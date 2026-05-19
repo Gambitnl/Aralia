@@ -1,0 +1,140 @@
+{
+  "draftId": "draft-1779208021377-c2sqez",
+  "title": "Prove clean-Git dashboard intake path: Linear boundary proof 2026-05-19",
+  "status": "ready",
+  "summary": "Handoff readiness is ready for Linear issue creation.",
+  "mutatesGit": false,
+  "mutatesExternalSystems": false,
+  "mutatesLocalFiles": false,
+  "blockers": [],
+  "nextOperatorAction": {
+    "label": "Create Linear issue before Jules handoff",
+    "detail": "Linear issue receipt with identifier, URL, synced branch, and synced commit.",
+    "method": "POST",
+    "endpoint": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/create-linear"
+  },
+  "links": {
+    "self": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/handoff-readiness",
+    "gitPreflight": "http://127.0.0.1:8082/api/v1/git-preflight",
+    "linearIssuePreview": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/linear-preview",
+    "julesManifestPreview": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/jules-manifest-preview",
+    "taskNudge": "http://127.0.0.1:8082/api/v1/task-nudges"
+  },
+  "stages": [
+    {
+      "id": "git_sync",
+      "label": "GitHub Sync Gate",
+      "status": "ready",
+      "detail": "Ready: master matches origin/master and the working tree is clean.",
+      "endpoint": "http://127.0.0.1:8082/api/v1/git-preflight",
+      "method": "POST",
+      "blockers": []
+    },
+    {
+      "id": "linear_issue",
+      "label": "Linear Issue Packet",
+      "status": "ready",
+      "detail": "Linear issue creation can run after operator confirmation.",
+      "endpoint": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/create-linear",
+      "method": "POST",
+      "blockers": []
+    },
+    {
+      "id": "jules_manifest",
+      "label": "Jules Manifest Packet",
+      "status": "blocked",
+      "detail": "Jules manifest packet is previewable at .jules/runs/symphony-preview-draft-1779208021377-c2sqez/manifest.json, but staging waits for Git sync and Linear tracking.",
+      "endpoint": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/promote",
+      "method": "POST",
+      "blockers": [
+        "Create Linear Issue before preparing a Jules handoff."
+      ]
+    },
+    {
+      "id": "jules_launch",
+      "label": "Jules Launch",
+      "status": "waiting",
+      "detail": "Jules launch waits until the handoff exists, the manifest is staged, and the existing .jules/orchestrator launch command is available.",
+      "endpoint": null,
+      "method": "NONE",
+      "blockers": [
+        "Stage the Jules manifest before launch."
+      ]
+    },
+    {
+      "id": "first_nudge",
+      "label": "First Task Nudge",
+      "status": "ready",
+      "detail": "A foreman can record the current wait or refresh decision as task-tracking evidence without mutating GitHub, Linear, Jules, or local files.",
+      "endpoint": "http://127.0.0.1:8082/api/v1/task-nudges",
+      "method": "POST",
+      "blockers": []
+    }
+  ],
+  "passPath": {
+    "status": "ready",
+    "currentBoundary": "linear_issue",
+    "nextExpectedProof": "Linear issue receipt with identifier, URL, synced branch, and synced commit.",
+    "actions": [
+      {
+        "id": "git_sync",
+        "label": "GitHub Sync Gate",
+        "status": "complete",
+        "canRunNow": false,
+        "method": "POST",
+        "endpoint": "http://127.0.0.1:8082/api/v1/git-preflight",
+        "mutatesGitIfRun": false,
+        "mutatesExternalSystemsIfRun": false,
+        "mutatesLocalFilesIfRun": false,
+        "blockedBy": [],
+        "expectedProof": "Passing GitHub sync receipt for origin/master at 65a5eb93105d7532014934b7da1cae5e63a8f588.",
+        "receipt": "origin/master @ 65a5eb93105d7532014934b7da1cae5e63a8f588"
+      },
+      {
+        "id": "linear_issue",
+        "label": "Linear Tracking Issue",
+        "status": "ready",
+        "canRunNow": true,
+        "method": "POST",
+        "endpoint": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/create-linear",
+        "mutatesGitIfRun": false,
+        "mutatesExternalSystemsIfRun": true,
+        "mutatesLocalFilesIfRun": false,
+        "blockedBy": [],
+        "expectedProof": "Linear issue receipt with identifier, URL, synced branch, and synced commit.",
+        "receipt": null
+      },
+      {
+        "id": "jules_manifest",
+        "label": "Jules Handoff Manifest",
+        "status": "waiting",
+        "canRunNow": false,
+        "method": "POST",
+        "endpoint": "http://127.0.0.1:8082/api/v1/task-drafts/draft-1779208021377-c2sqez/promote",
+        "mutatesGitIfRun": false,
+        "mutatesExternalSystemsIfRun": false,
+        "mutatesLocalFilesIfRun": false,
+        "blockedBy": [
+          "Create Linear Issue before preparing a Jules handoff."
+        ],
+        "expectedProof": "Staged .jules/orchestrator manifest path plus launch/status commands.",
+        "receipt": null
+      },
+      {
+        "id": "first_nudge",
+        "label": "First Foreman Nudge",
+        "status": "ready",
+        "canRunNow": true,
+        "method": "POST",
+        "endpoint": "http://127.0.0.1:8082/api/v1/task-nudges",
+        "mutatesGitIfRun": false,
+        "mutatesExternalSystemsIfRun": false,
+        "mutatesLocalFilesIfRun": false,
+        "blockedBy": [],
+        "expectedProof": "Task nudge ledger record showing the next wait, refresh, send, or assign decision.",
+        "receipt": null
+      }
+    ]
+  },
+  "safetyNote": "Read-only packet: this response does not change Git, call Linear, write .jules files, launch Jules, create a PR, or start local sync."
+}

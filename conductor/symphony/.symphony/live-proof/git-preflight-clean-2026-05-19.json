@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "checkedAt": "2026-05-19T16:26:50.691Z",
+  "repoRoot": "F:\\Repos\\Aralia",
+  "baseBranch": "master",
+  "remoteBranch": "origin/master",
+  "currentBranch": "master",
+  "localCommit": "65a5eb93105d7532014934b7da1cae5e63a8f588",
+  "remoteCommit": "65a5eb93105d7532014934b7da1cae5e63a8f588",
+  "ahead": 0,
+  "behind": 0,
+  "dirtyFiles": 0,
+  "untrackedFiles": 0,
+  "blockers": [],
+  "summary": "Ready: master matches origin/master and the working tree is clean.",
+  "details": [],
+  "dirtyFileSamples": [],
+  "untrackedFileSamples": [],
+  "resolutionPacket": {
+    "generatedAt": "2026-05-19T16:26:50.691Z",
+    "mutatesGit": false,
+    "repoRoot": "F:\\Repos\\Aralia",
+    "baseBranch": "master",
+    "remoteBranch": "origin/master",
+    "summary": "0 local-only commits, 0 remote-only commits, 0 tracked changes, 0 untracked files, need disposition before Jules can start from a trustworthy GitHub base.",
+    "localCommits": [],
+    "remoteCommits": [],
+    "trackedFiles": [],
+    "untrackedFiles": [],
+    "details": [
+      "Read-only packet. Symphony did not pull, push, stash, clean, reset, or delete anything while generating it."
+    ],
+    "commands": {
+      "fullStatus": "git -C F:\\Repos\\Aralia status --porcelain --untracked-files=all",
+      "inspectDivergence": "git -C F:\\Repos\\Aralia log --oneline --left-right master...origin/master"
+    }
+  },
+  "remediation": [
+    "GitHub is ready for Jules. You can create the Linear issue, stage a Jules manifest, or launch the handoff."
+  ],
+  "nextAction": {
+    "code": "ready_for_jules",
+    "tone": "ready",
+    "label": "GitHub Sync Ready",
+    "command": null,
+    "summary": "master matches origin/master and the working tree is clean enough for Jules.",
+    "steps": [
+      "Create the Linear issue if this workflow requires one.",
+      "Prepare or stage the Jules handoff.",
+      "Launch Jules only from the recorded GitHub base commit."
+    ]
+  },
+  "commands": {
+    "status": "git -C F:\\Repos\\Aralia status --short",
+    "fetch": "git -C F:\\Repos\\Aralia fetch origin",
+    "showLocalCommit": "git -C F:\\Repos\\Aralia rev-parse master",
+    "showRemoteCommit": "git -C F:\\Repos\\Aralia rev-parse origin/master",
+    "inspectDivergence": "git -C F:\\Repos\\Aralia log --oneline --left-right master...origin/master",
+    "pullFastForward": "git -C F:\\Repos\\Aralia pull --ff-only origin master",
+    "pushBase": "git -C F:\\Repos\\Aralia push origin master"
+  }
+}
