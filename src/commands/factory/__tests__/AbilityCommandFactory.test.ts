@@ -88,9 +88,6 @@ describe('AbilityCommandFactory', () => {
 
 describe('WeaponAttackCommand Proficiency Penalties', () => {
   it('omits proficiency bonus when attacking with a non-proficient weapon', () => {
-    // A level 1 character has a proficiency bonus (PB) of +2.
-    // With 14 Strength (+2 mod), a proficient attack should have a +4 modifier.
-    // A non-proficient attack should only have a +2 modifier.
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',
@@ -130,10 +127,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
 
     const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
-    // The combat log captures the exact modifier used in the attack formula.
     const logMessage = newState.combatLog[0].message;
-
-    // Attack mod should be just +2 (Str), not +4 (Str + PB)
     expect(logMessage).toContain('+ 2 =');
   });
 });
