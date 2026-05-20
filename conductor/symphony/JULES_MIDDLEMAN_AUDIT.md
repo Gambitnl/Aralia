@@ -84,6 +84,12 @@ flags. `verify-task-dashboard-navigator.mjs`, `verify-task-detail-page.mjs`, and
 `verify-task-message-api.mjs` protect the author selector and Codex-foreman path
 so this does not become a second task store or a hidden Jules feedback channel.
 
+The task page now has a first view-only terminal-style mirror without making
+terminal scrollback canonical. `Task Activity Mirror` renders the same durable
+timeline events, local task messages, and structured clarifications in a compact
+chronological trail; `verify-task-detail-page.mjs` protects that the mirror says
+it does not read terminal scrollback or mutate external systems.
+
 That same task-detail layer now carries a guarded operator action runbook.
 `verify-task-detail-api.mjs` proves handoff detail JSON includes
 `guardedActions` for the current Symphony boundary endpoint, operator-run Jules

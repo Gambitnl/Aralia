@@ -1596,7 +1596,8 @@ textarea {
 }
 
 .task-page-current,
-.task-page-timeline {
+.task-page-timeline,
+.task-page-terminal {
   grid-column: 1 / -1;
 }
 
@@ -1642,6 +1643,20 @@ textarea {
   color: var(--muted);
   display: block;
   font-size: 0.82rem;
+}
+
+.task-page-terminal pre {
+  /* The activity mirror is intentionally shaped like terminal scrollback while
+     staying backed by durable task records. Wrapping keeps long GitHub URLs,
+     file paths, and operator notes readable on narrow screens. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 1rem 0 0;
+  overflow-x: auto;
+  padding: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .task-page-packet {

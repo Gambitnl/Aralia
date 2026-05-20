@@ -1604,6 +1604,8 @@ export class HttpServer {
         ${this.renderTaskPageTimeline(timelineEvents)}
       </article>
 
+      ${this.renderTaskActivityMirror(timelineEvents, messages, clarifications)}
+
       <article class="card">
         <h2>Scope And Verification</h2>
         <h3>Expected Files</h3>
@@ -1944,6 +1946,66 @@ export class HttpServer {
         ${url ? `<a href="${this.escapeHtml(url)}">Open evidence</a>` : ''}
       </li>`;
     }).join('')}</ol>`;
+  }
+
+  private renderTaskActivityMirror(
+    timelineEvents: unknown[],
+    messages: unknown[],
+    clarifications: unknown[]
+  ): string {
+    // The terminal mirror is intentionally read-only. It gives the operator a
+    // scrollback-shaped view of the same durable task records that already feed
+    // the timeline, message list, and clarification list, so terminal output
+    // remains a convenience view instead of becoming another task database.
+    const rows = [
+      ...timelineEvents.map(event => {
+        const record = this.recordFromUnknown(event);
+        return {
+          at: this.stringFromUnknown(record.occurredAt) ?? '',
+          source: this.stringFromUnknown(record.source) ?? 'symphony',
+          label: this.stringFromUnknown(record.label) ?? this.stringFromUnknown(record.stage) ?? 'Timeline event',
+          detail: this.stringFromUnknown(record.detail) ?? this.stringFromUnknown(record.status) ?? '',
+        };
+      }),
+      ...messages.map(message => {
+        const record = this.recordFromUnknown(message);
+        return {
+          at: this.stringFromUnknown(record.createdAt) ?? '',
+          source: this.formatTaskMessageAuthor(record.author),
+          label: 'Task message',
+          detail: this.stringFromUnknown(record.body) ?? '',
+        };
+      }),
+      ...clarifications.map(clarification => {
+        const record = this.recordFromUnknown(clarification);
+        return {
+          at: this.stringFromUnknown(record.createdAt) ?? '',
+          source: 'Codex foreman',
+          label: this.stringFromUnknown(record.status) === 'answered'
+            ? 'Clarification answered'
+            : 'Clarification requested',
+          detail: this.stringFromUnknown(record.question) ?? '',
+        };
+      }),
+    ].sort((left, right) => left.at.localeCompare(right.at));
+
+    if (!rows.length) {
+      return `<article class="card task-page-terminal">
+        <h2>Task Activity Mirror</h2>
+        <p class="usage-summary">No local task activity is available yet.</p>
+      </article>`;
+    }
+
+    return `<article class="card task-page-terminal">
+      <h2>Task Activity Mirror</h2>
+      <p class="usage-summary">View-only terminal-style trail built from task timeline, messages, and clarifications. It does not read terminal scrollback or mutate external systems.</p>
+      <pre>${this.escapeHtml(rows.map(row => {
+        const timestamp = row.at || 'no timestamp';
+        const source = row.source || 'symphony';
+        const detail = row.detail ? ` - ${row.detail}` : '';
+        return `[${timestamp}] ${source}: ${row.label}${detail}`;
+      }).join('\n'))}</pre>
+    </article>`;
   }
 
   private renderTaskPageList(items: unknown[], emptyText: string): string {

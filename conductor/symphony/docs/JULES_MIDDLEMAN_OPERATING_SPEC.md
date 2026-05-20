@@ -446,7 +446,7 @@ but they are not a blocker waiting for operator approval.
    prompt/dialogue packets. It also records local task filing through
    `POST /api/v1/tasks/:id/disposition` so abandoned or archived work can leave
    the active queue without mutating outside systems. Richer external task
-   actions and the optional terminal mirror remain open.
+   actions remain open.
 8. The home page should make pending human-input tasks obvious, including a
    count badge or equivalent compact indicator.
 9. A terminal-simulator pane may mirror a live local Codex foreman process or
@@ -454,7 +454,10 @@ but they are not a blocker waiting for operator approval.
    onto task activity, not the canonical memory. Task questions, operator
    answers, decisions, blockers, and timestamps must still be stored as
    structured task events so future agents can resume without scraping terminal
-   scrollback.
+   scrollback. The current baseline is a read-only `Task Activity Mirror` on
+   `/tasks/:id` that renders timeline events, task messages, and clarifications
+   in terminal-style order without reading terminal scrollback or mutating
+   external systems.
 
 ### Human Blockers And Quiet Hours
 

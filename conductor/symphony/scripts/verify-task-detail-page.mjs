@@ -249,6 +249,12 @@ try {
   assert.match(page.body, /Task Timeline/);
   assert.match(page.body, /Jules launched/);
   assert.match(page.body, /PR detected/);
+  assert.match(page.body, /Task Activity Mirror/);
+  assert.match(page.body, /View-only terminal-style trail/);
+  assert.match(page.body, /does not read terminal scrollback or mutate external systems/);
+  assert.match(page.body, /symphony: Jules launched/);
+  assert.match(page.body, /Operator: Task message/);
+  assert.match(page.body, /Codex foreman: Clarification requested/);
   assert.match(page.body, /Expected Files/);
   assert.match(page.body, /Verification Commands/);
   assert.match(page.body, /Task detail JSON/);

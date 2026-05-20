@@ -335,6 +335,8 @@ assert.match(spec, /failed check set now produces a human-readable repair choice
 assert.match(spec, /Decide and execute the setup\/workflow repair path/);
 assert.match(spec, /terminal-simulator pane may mirror a live local Codex foreman process/);
 assert.match(spec, /structured task events so future agents can resume without scraping terminal\s+scrollback/);
+assert.match(spec, /current baseline is a read-only `Task Activity Mirror`/);
+assert.match(spec, /renders timeline events, task messages, and clarifications\s+in terminal-style order without reading terminal scrollback or mutating\s+external systems/);
 assert.match(spec, /plain-language `operatorQuestion` packet/);
 assert.match(spec, /repair-push approval question/);
 assert.match(spec, /current-boundary precedence/);

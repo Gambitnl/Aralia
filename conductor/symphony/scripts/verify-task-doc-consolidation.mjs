@@ -65,6 +65,11 @@ assert.match(openTasks, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-rep
 assert.match(openTasks, /dashboard displays the worktree-qualified push command/);
 assert.match(openTasks, /latest rendered proof verifies the safer `git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin \.\.\.` command display/);
 assert.match(openTasks, /was performed by Symphony/);
+assert.match(openTasks, /Role-aware task messages/);
+assert.match(openTasks, /local task message be recorded as either `operator` or `codex_foreman`/);
+assert.match(openTasks, /View-only task activity mirror/);
+assert.match(openTasks, /Task Activity Mirror/);
+assert.match(openTasks, /does not read terminal scrollback, and does not mutate external systems/);
 assert.match(openTasks, /Read-only external-state refresh/);
 assert.match(openTasks, /PR #931 is still open, not draft, mergeable, unchanged at head `0c0d9480`/);
 assert.match(openTasks, /latest PR update `2026-05-19T23:09:48Z`/);
