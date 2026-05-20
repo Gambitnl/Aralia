@@ -100,10 +100,13 @@ protects the `operatorAnswer` task link, and `verify-task-detail-page.mjs`
 protects the rendered `Record Operator Answer` and `Record Repair Push Result`
 forms. These forms record local receipts only; they do not execute repair lanes,
 send Jules feedback, push to GitHub, rerun checks, merge, pull, or edit local
-files. The task page now also renders a view-only `Task Activity Mirror` from
-the same durable task timeline, local messages, and clarifications. Richer
-external task actions beyond these local receipts remain open implementation
-work.
+files. The task detail packet and page now also render a read-only `Approval
+Checkpoint` that summarizes the current operator question, latest local answer
+when present, the still-external guarded command, and the next proof receipt
+without approving or running anything. The task page now also renders a
+view-only `Task Activity Mirror` from the same durable task timeline, local
+messages, and clarifications. Richer external task actions beyond these local
+receipts remain open implementation work.
 
 When a task needs human direction, the Codex foreman should stop at the
 dashboard question rather than busy-looping. The foreman may schedule a later

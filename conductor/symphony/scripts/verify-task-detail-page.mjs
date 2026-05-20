@@ -233,6 +233,13 @@ try {
   assert.match(page.body, /Prepare Jules PR feedback comment/);
   assert.match(page.body, /gh pr comment/);
   assert.match(page.body, /Push prepared repair to PR branch/);
+  assert.match(page.body, /Approval Checkpoint/);
+  assert.match(page.body, /Operator decision required/);
+  assert.match(page.body, /External mutation if run<\/dt><dd>Yes/);
+  assert.match(page.body, /Records local proof only<\/dt><dd>Yes/);
+  assert.match(page.body, /Decision needed:/);
+  assert.match(page.body, /Operator-run command:/);
+  assert.match(page.body, /This checkpoint is read-only local guidance|does not approve plans, send Jules feedback, comment on GitHub, push branches, rerun checks, merge, pull, or edit local files/);
   assert.match(page.body, /Operator Answer/);
   assert.match(page.body, /Record Operator Answer/);
   assert.match(page.body, /Approve repair push/);

@@ -65,12 +65,17 @@ assert.match(openTasks, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-rep
 assert.match(openTasks, /dashboard displays the worktree-qualified push command/);
 assert.match(openTasks, /latest rendered proof verifies the safer `git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin \.\.\.` command display/);
 assert.match(openTasks, /was performed by Symphony/);
+assert.match(openTasks, /`approvalCheckpoint` packet/);
+assert.match(openTasks, /Approval Checkpoint/);
+assert.match(openTasks, /still-external guarded command, mutation\s+flags, and next expected proof/);
+assert.match(openTasks, /symphony-task-approval-checkpoint\.png/);
+assert.match(openTasks, /no browser console errors/);
 assert.match(openTasks, /Role-aware task messages/);
 assert.match(openTasks, /local task message be recorded as either `operator` or `codex_foreman`/);
 assert.match(openTasks, /View-only task activity mirror/);
 assert.match(openTasks, /Task Activity Mirror/);
 assert.match(openTasks, /does not read terminal scrollback, and does not mutate external systems/);
-assert.match(openTasks, /view-only task activity mirror now reads those structured records/);
+assert.match(openTasks, /view-only task activity mirror now reads those structured\s+records/);
 assert.match(openTasks, /live task chat usage, ROI, and real worker dispatch/);
 assert.match(openTasks, /Read-only external-state refresh/);
 assert.match(openTasks, /PR #931 is still open, not draft, mergeable, unchanged at head `0c0d9480`/);

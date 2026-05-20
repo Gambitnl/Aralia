@@ -92,6 +92,11 @@ assert.match(audit, /repair-push guarded action, local-only\s+`Record Repair Pus
 assert.match(audit, /exact operator-owned command now\s+waiting for approval/);
 assert.match(audit, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair\s+push origin\s+codex\/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885/);
 assert.match(audit, /dashboard displays the worktree-qualified command/);
+assert.match(audit, /local `Approval Checkpoint`/);
+assert.match(audit, /`approvalCheckpoint` packet/);
+assert.match(audit, /preferred still-external guarded command/);
+assert.match(audit, /symphony-task-approval-checkpoint\.png/);
+assert.match(audit, /not a new\s+approval system or external action button/);
 assert.match(audit, /quiet-hours bug/);
 assert.match(audit, /08:52 Europe\/Amsterdam now correctly\s+sets `nextCheckAt` to `2026-05-20T07:00:00\.000Z`/);
 assert.match(audit, /read-only Jules prompt\/dialogue records/);

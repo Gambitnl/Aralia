@@ -284,6 +284,15 @@ try {
   assert.equal(handoffDetail.guardedActions[2].mutatesExternalSystemsIfRun, true);
   assert.match(handoffDetail.guardedActions[1].command, /gh pr comment/);
   assert.match(handoffDetail.guardedActions[2].command, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin codex\/pr-931-setup-repair/);
+  assert.equal(handoffDetail.approvalCheckpoint.status, 'waiting_for_operator');
+  assert.match(handoffDetail.approvalCheckpoint.label, /Operator decision required/);
+  assert.match(handoffDetail.approvalCheckpoint.question, /setup blocker/);
+  assert.equal(handoffDetail.approvalCheckpoint.externalMutationIfRun, true);
+  assert.equal(handoffDetail.approvalCheckpoint.mutatesExternalSystems, false);
+  assert.equal(handoffDetail.approvalCheckpoint.mutatesLocalFiles, false);
+  assert.equal(handoffDetail.approvalCheckpoint.mutatesGit, false);
+  assert.equal(handoffDetail.approvalCheckpoint.externalAction.code, 'repair_push');
+  assert.match(handoffDetail.approvalCheckpoint.safetyNote, /does not approve plans, send Jules feedback, comment on GitHub, push branches, rerun checks, merge, pull, or edit local files/);
 
   const missingDetail = await getJson(`${BASE_URL}/api/v1/tasks/missing-task`, { expectStatus: 404 });
   assert.equal(missingDetail.error.code, 'task_not_found');

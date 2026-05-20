@@ -1573,6 +1573,7 @@ export class HttpServer {
       </article>
 
       ${this.renderTaskPageGuardedActions(detail)}
+      ${this.renderTaskPageApprovalCheckpoint(detail)}
       ${this.renderTaskPageOperatorAnswer(detail)}
       ${this.renderTaskPageRepairPushResult(detail)}
 
@@ -1615,6 +1616,7 @@ export class HttpServer {
       </article>
 
       ${this.renderTaskPagePacket('Operator Question', detail.operatorQuestion)}
+      ${this.renderTaskPagePacket('Approval Checkpoint', detail.approvalCheckpoint)}
       ${this.renderTaskPagePacket('Task Disposition', detail.taskDisposition)}
       ${this.renderTaskPagePacket('Jules Handoff Prompt', detail.julesPrompt)}
       ${this.renderTaskPagePacket('Jules Dialogue And Approvals', detail.julesDialogue)}
@@ -1791,6 +1793,38 @@ export class HttpServer {
           ${endpoint ? `<p><code>${this.escapeHtml(`${method ?? 'POST'} ${endpoint}`)}</code></p>` : ''}
         </li>`;
       }).join('')}</ol>
+    </article>`;
+  }
+
+  private renderTaskPageApprovalCheckpoint(detail: Record<string, unknown>): string {
+    const checkpoint = this.recordFromUnknown(detail.approvalCheckpoint);
+    if (!Object.keys(checkpoint).length) return '';
+
+    const latestAnswer = this.recordFromUnknown(checkpoint.latestAnswer);
+    const externalAction = this.recordFromUnknown(checkpoint.externalAction);
+    const command = this.stringFromUnknown(externalAction.command);
+    const endpoint = this.stringFromUnknown(externalAction.endpoint);
+    const method = this.stringFromUnknown(externalAction.method);
+
+    // The approval checkpoint is a plain-English wrapper around existing
+    // task records. It keeps the human decision, the still-external command,
+    // and the next proof receipt together without turning the task page into
+    // an executor for GitHub, Jules, Linear, or local Git.
+    return `<article class="card task-page-approval-checkpoint">
+      <h2>Approval Checkpoint</h2>
+      <p><strong>${this.escapeHtml(this.stringFromUnknown(checkpoint.label) ?? 'Operator approval checkpoint')}</strong></p>
+      <p>${this.escapeHtml(this.stringFromUnknown(checkpoint.summary) ?? 'No approval summary recorded.')}</p>
+      <dl class="task-page-facts">
+        <div><dt>Status</dt><dd>${this.escapeHtml(this.stringFromUnknown(checkpoint.status) ?? 'unknown')}</dd></div>
+        <div><dt>External mutation if run</dt><dd>${checkpoint.externalMutationIfRun === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Records local proof only</dt><dd>${checkpoint.mutatesExternalSystems === true || checkpoint.mutatesLocalFiles === true || checkpoint.mutatesGit === true ? 'No' : 'Yes'}</dd></div>
+      </dl>
+      ${this.stringFromUnknown(checkpoint.question) ? `<p><strong>Decision needed:</strong> ${this.escapeHtml(this.stringFromUnknown(checkpoint.question) ?? '')}</p>` : ''}
+      ${Object.keys(latestAnswer).length ? `<p><strong>Latest local answer:</strong> ${this.escapeHtml(this.stringFromUnknown(latestAnswer.selectedAction) ?? 'recorded')} - ${this.escapeHtml(this.stringFromUnknown(latestAnswer.answer) ?? '')}</p>` : ''}
+      ${command ? `<p><strong>Operator-run command:</strong> <code>${this.escapeHtml(command)}</code></p>` : ''}
+      ${endpoint ? `<p><strong>Guarded endpoint:</strong> <code>${this.escapeHtml(`${method ?? 'POST'} ${endpoint}`)}</code></p>` : ''}
+      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(checkpoint.nextExpectedProof) ?? 'Record the next proof receipt before advancing the workflow.')}</p>
+      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(checkpoint.safetyNote) ?? 'This checkpoint is read-only local guidance.')}</p>
     </article>`;
   }
 
@@ -2144,6 +2178,7 @@ export class HttpServer {
       ? 'Needs human input'
       : this.readStringField(handoff.next_action, 'label') ?? handoff.status;
     const guardedActions = this.buildHandoffGuardedActions(handoff);
+    const approvalCheckpoint = this.buildTaskApprovalCheckpoint(handoff, guardedActions);
 
     // Handoffs are where Linear, Jules, GitHub, deployment, local sync, and ROI
     // evidence meet. This response keeps those records together for future task
@@ -2198,6 +2233,7 @@ export class HttpServer {
       clarificationState,
       taskDisposition: handoff.taskDisposition ?? null,
       guardedActions,
+      approvalCheckpoint,
       operatorQuestion: handoff.operatorQuestion ?? null,
       operatorAnswers: handoff.operatorAnswers ?? [],
       julesPrompt,
@@ -2329,6 +2365,77 @@ export class HttpServer {
     // are meaningful: they tell future UI layers there is no current command to
     // promote without forcing them to inspect raw handoff JSON.
     return actions;
+  }
+
+  private buildTaskApprovalCheckpoint(
+    handoff: TaskDraftSnapshot['handoffs'][number],
+    guardedActions: Array<Record<string, unknown>>,
+  ): Record<string, unknown> | null {
+    const operatorQuestion = this.recordFromUnknown(handoff.operatorQuestion);
+    const latestAnswer = Array.isArray(handoff.operatorAnswers) ? handoff.operatorAnswers[0] : null;
+    const repairPushResult = this.recordFromUnknown(handoff.repairPushResult);
+    const repairPushReadiness = this.recordFromUnknown(handoff.repairPushReadiness);
+    const externalAction = guardedActions.find(action => action.code === 'repair_push')
+      ?? guardedActions.find(action =>
+        action.mutatesExternalSystemsIfRun === true || action.mutatesGitIfRun === true || action.mutatesLocalFilesIfRun === true
+      )
+      ?? null;
+    const question = this.stringFromUnknown(operatorQuestion.plainLanguageQuestion)
+      ?? this.stringFromUnknown(operatorQuestion.question);
+    const resultStatus = this.stringFromUnknown(repairPushResult.status);
+    const answerRecord = this.recordFromUnknown(latestAnswer);
+    const selectedAction = this.stringFromUnknown(answerRecord.selectedAction);
+
+    if (!question && !latestAnswer && !externalAction && !Object.keys(repairPushResult).length) {
+      return null;
+    }
+
+    let status = 'waiting_for_operator';
+    let label = 'Operator decision required';
+    let summary = question ?? 'The task is waiting for a local operator decision before it can move forward.';
+
+    if (resultStatus === 'pushed') {
+      status = 'external_push_recorded';
+      label = 'External push recorded';
+      summary = this.stringFromUnknown(repairPushResult.summary)
+        ?? 'The operator recorded the repair push result. Symphony should now wait for GitHub checks and refresh PR state.';
+    } else if (resultStatus === 'failed') {
+      status = 'external_push_failed';
+      label = 'External push failed';
+      summary = this.stringFromUnknown(repairPushResult.summary)
+        ?? 'The operator recorded a failed repair push. A replacement repair path is needed before checks can rerun.';
+    } else if (selectedAction === 'approve_repair_push') {
+      status = 'approved_waiting_for_external_push';
+      label = 'Approved locally, waiting for external push';
+      summary = this.stringFromUnknown(answerRecord.answer)
+        ?? 'The operator approved the repair push locally. The GitHub mutation still has to be performed outside this checkpoint.';
+    } else if (selectedAction) {
+      status = 'answered_waiting_for_next_boundary';
+      label = 'Operator answer recorded';
+      summary = this.stringFromUnknown(answerRecord.answer)
+        ?? 'The operator answered locally. Symphony should follow the selected guarded path.';
+    }
+
+    // The checkpoint is deliberately a summary packet, not a new workflow
+    // engine. It reuses the current question, answer receipt, guarded action,
+    // and repair-push result so later UI layers can show one approval status
+    // without bypassing the existing safety gates.
+    return {
+      status,
+      label,
+      summary,
+      question: question ?? null,
+      latestAnswer: latestAnswer ?? null,
+      externalAction,
+      externalMutationIfRun: Boolean(externalAction),
+      nextExpectedProof: this.stringFromUnknown(repairPushReadiness.nextExpectedProof)
+        ?? this.stringFromUnknown(repairPushResult.nextExpectedProof)
+        ?? 'Record the next local receipt before Symphony advances this task.',
+      safetyNote: 'Read-only local checkpoint: this packet does not approve plans, send Jules feedback, comment on GitHub, push branches, rerun checks, merge, pull, or edit local files.',
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+      mutatesGit: false,
+    };
   }
 
   private formatWorktreeGitCommand(command: string | null, worktreePath: string | null): string | null {
