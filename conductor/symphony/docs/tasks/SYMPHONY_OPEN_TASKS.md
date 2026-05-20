@@ -106,7 +106,8 @@ mutation performed or skipped, and next expected proof.
   commit `1c4316c`; local sync then merged `origin/master` into
   `feature/ollama-model-router` as local commit `28ff49a6`, preserving the
   Symphony docs/verifier updates while bringing in the ARA-6 lockfile, task-doc,
-  and regression-test changes.
+  and regression-test changes. Local `master` was also fast-forwarded to match
+  `origin/master` at `1c4316c`.
 - Latest browser/tooling finding: the direct Playwright MCP browser tool can
   fail with `Transport closed` in this Codex app session, but the Browser
   plugin's intended in-app browser bridge still works. It listed the current
@@ -226,7 +227,8 @@ updated to `91ceee43`, all GitHub checks passed, and PR #931 merged as
 `https://github.com/Gambitnl/Aralia/actions/runs/26175016417` passed and was
 recorded as local Symphony deployment evidence. The next boundary is local sync,
 not additional PR repair. Local sync has now completed as merge commit
-`28ff49a6`; the remaining proof is post-sync verification on the local checkout.
+`28ff49a6`, with local `master` matching `origin/master` at `1c4316c`; the
+remaining proof is post-sync verification on the local checkout.
 
 Task 7 clarification addendum: the standalone task page now renders structured
 `Task Clarifications` with a `Record Clarification` form. `verify-task-detail-page.mjs`

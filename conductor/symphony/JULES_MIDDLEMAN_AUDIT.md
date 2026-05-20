@@ -82,8 +82,9 @@ completion proof was local sync to the merged `origin/master` state while
 preserving this local Symphony audit/report work. That sync is now represented
 by local merge commit `28ff49a6`, which incorporated `ca10728f` and `1c4316c`
 into `feature/ollama-model-router` after the report updates were committed as
-`4a6e8e18`. The remaining completion proof is post-sync verification on the
-local checkout.
+`4a6e8e18`. Local `master` was also fast-forwarded to match `origin/master` at
+`1c4316c`. The remaining completion proof is post-sync verification on the local
+checkout.
 
 The browser follow-along tooling gap has been narrowed. Direct Playwright MCP
 navigation can fail with `Transport closed`, but the Codex Browser plugin's
