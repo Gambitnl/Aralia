@@ -502,6 +502,9 @@ assert.match(audit, /The evidence receipt stores success, failure, or waiver loc
 assert.match(audit, /only `passed` or `waived` unlocks local sync/);
 assert.match(audit, /separates refresh evidence from guarded sync mutation/);
 assert.match(audit, /appears on the compact `\/proof` board for safe, blocked, and observed states/);
+assert.match(audit, /standalone task page now makes that return path visible/);
+assert.match(audit, /renders `Deployment And Local Sync`/);
+assert.match(audit, /does not create deployments, waive\s+proof, merge, pull, or edit local files/);
 assert.match(audit, /parseable `quality-scan-json` artifact, and a `GITHUB_STEP_SUMMARY` table/);
 assert.match(audit, /Symphony also records that artifact under `githubPullRequestChecks\.artifacts`/);
 assert.match(audit, /preserves the optional check details URL/);

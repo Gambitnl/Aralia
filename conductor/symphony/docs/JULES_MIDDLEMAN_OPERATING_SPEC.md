@@ -108,7 +108,14 @@ readable `ROI Evidence` summary from the same `delegationRoiLedger` packet so
 the operator can see missing task-scoped usage receipts, missing avoided-work
 estimates, and broad goal-context usage without opening raw JSON. That card must
 keep goal-context usage as context only; it does not count as measured task
-spend or unlock a savings claim. The task page now also renders a view-only
+spend or unlock a savings claim. The task page now also renders a readable
+`Deployment And Local Sync` summary from the existing `deploymentReadiness` and
+`localSyncReadiness` packets so the operator can see whether deployment proof
+can be checked, whether local repo sync is still blocked, which blockers remain,
+and whether the later sync command would mutate Git without opening raw JSON.
+This is only a visibility layer over existing gates; it does not create
+deployments, waive deployment proof, merge, pull, or edit local files. The task
+page now also renders a view-only
 `Task Activity Mirror` from the same durable task timeline, local messages, and
 clarifications. Richer external task actions beyond these local receipts remain
 open implementation work.

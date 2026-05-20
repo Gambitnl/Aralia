@@ -1607,6 +1607,8 @@ export class HttpServer {
 
       ${this.renderTaskPageRoiEvidence(detail.delegationRoiLedger)}
 
+      ${this.renderTaskPageDeploymentSyncEvidence(detail.deploymentReadiness, detail.localSyncReadiness)}
+
       ${this.renderTaskActivityMirror(timelineEvents, messages, clarifications)}
 
       <article class="card">
@@ -2024,6 +2026,56 @@ export class HttpServer {
       ${missingItems.length ? `<p class="usage-summary">Missing before any savings claim: ${this.escapeHtml(missingItems.join(', '))}.</p>` : '<p class="usage-summary">Task-scoped usage and avoided-work estimate are present; review confidence and caveats before treating this as candidate savings.</p>'}
       <p class="usage-summary">Goal-context usage documents the broader Codex thread cost only. It does not count as task-scoped spend or measured savings.</p>
     </article>`;
+  }
+
+  private renderTaskPageDeploymentSyncEvidence(deploymentReadiness: unknown, localSyncReadiness: unknown): string {
+    const deployment = this.recordFromUnknown(deploymentReadiness);
+    const localSync = this.recordFromUnknown(localSyncReadiness);
+    if (!Object.keys(deployment).length && !Object.keys(localSync).length) return '';
+
+    const deploymentBlockers = this.arrayFromUnknown(deployment.blockers).map(blocker => String(blocker));
+    const localSyncBlockers = this.arrayFromUnknown(localSync.blockers).map(blocker => String(blocker));
+    const deploymentCommands = this.recordFromUnknown(deployment.commands);
+    const syncNextAction = this.recordFromUnknown(localSync.nextAction);
+    const syncCommand = this.stringFromUnknown(syncNextAction.command);
+
+    // Deployment and local sync are the final live boundaries in the Jules
+    // handoff path. This card translates the existing readiness packets into a
+    // human-readable gate summary, while preserving the rule that Symphony does
+    // not create deployments or pull local Git from the task page.
+    return `<article class="card task-page-deployment-sync">
+      <h2>Deployment And Local Sync</h2>
+      <p class="usage-summary">Plain-language view of the deployment and local repo return gates. This section reads existing readiness packets only; it does not create deployments, waive proof, merge, pull, or edit local files.</p>
+      <dl class="task-page-facts">
+        <div><dt>Deployment status</dt><dd>${this.escapeHtml(this.stringFromUnknown(deployment.status) ?? 'not_available')}</dd></div>
+        <div><dt>Can check deployment</dt><dd>${deployment.canRefreshNow === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Can proceed to local sync</dt><dd>${deployment.canProceedToLocalSync === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Local sync status</dt><dd>${this.escapeHtml(this.stringFromUnknown(localSync.status) ?? 'not_available')}</dd></div>
+        <div><dt>Can sync local repo</dt><dd>${localSync.canSyncNow === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Sync mutates Git</dt><dd>${localSync.mutatesGitIfRun === true ? 'Yes' : 'No'}</dd></div>
+      </dl>
+      ${this.stringFromUnknown(deployment.expectedNextProof) ? `<p><strong>Deployment proof needed:</strong> ${this.escapeHtml(this.stringFromUnknown(deployment.expectedNextProof) ?? '')}</p>` : ''}
+      ${deploymentBlockers.length ? `<p class="usage-summary">Deployment blockers: ${this.escapeHtml(deploymentBlockers.join('; '))}</p>` : '<p class="usage-summary">No deployment blockers are recorded.</p>'}
+      ${localSyncBlockers.length ? `<p class="usage-summary">Local sync blockers: ${this.escapeHtml(localSyncBlockers.join('; '))}</p>` : '<p class="usage-summary">No local sync blockers are recorded.</p>'}
+      ${this.renderTaskPageDeploymentCommands(deploymentCommands)}
+      ${syncCommand ? `<p><strong>Operator-run sync command:</strong> <code>${this.escapeHtml(syncCommand)}</code></p>` : ''}
+      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(localSync.expectedNextProof) ?? 'Local sync remains unavailable until merge, deployment evidence or waiver, and Git safety checks are all proven.')}</p>
+    </article>`;
+  }
+
+  private renderTaskPageDeploymentCommands(commands: Record<string, unknown>): string {
+    const entries = Object.entries(commands)
+      .filter(([, command]) => typeof command === 'string' && command)
+      .map(([label, command]) => [label, command as string] as const);
+    if (!entries.length) return '';
+
+    // These commands are shown as read-only inspection prompts. They are not
+    // wired to buttons because deployment evidence needs a human decision
+    // before the workflow may return to local Git.
+    return `<div class="task-page-command-list">
+      <p><strong>Read-only deployment inspection:</strong></p>
+      <ul>${entries.map(([label, command]) => `<li>${this.escapeHtml(label)}: <code>${this.escapeHtml(command)}</code></li>`).join('')}</ul>
+    </div>`;
   }
 
   private renderTaskActivityMirror(

@@ -63,6 +63,8 @@ assert.match(spec, /without approving or running anything/);
 assert.match(spec, /readable `ROI Evidence` summary/);
 assert.match(spec, /missing task-scoped usage receipts, missing avoided-work\s+estimates, and broad goal-context usage/);
 assert.match(spec, /does not count as measured task\s+spend or unlock a savings claim/);
+assert.match(spec, /readable\s+`Deployment And Local Sync`\s+summary/);
+assert.match(spec, /does not create\s+deployments, waive deployment proof, merge, pull, or edit local\s+files/);
 assert.match(spec, /POST \/api\/v1\/tasks\/:id\/messages/);
 assert.match(spec, /verify-task-message-api\.mjs/);
 assert.match(spec, /do not send Jules feedback, create Linear\/GitHub\s+records, or mutate local Git/);

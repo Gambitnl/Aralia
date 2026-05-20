@@ -186,6 +186,43 @@ server.taskIntake = {
             caveats: [],
           },
         },
+        deployment_readiness: {
+          title: 'Deployment readiness for PR #931',
+          status: 'waiting_for_merge',
+          canRefreshNow: false,
+          canProceedToLocalSync: false,
+          mutatesExternalSystemsIfRun: false,
+          mutatesLocalFilesIfRun: false,
+          commands: {
+            latestPagesBuild: null,
+            recentDeployments: null,
+            deploymentStatuses: null,
+          },
+          blockers: ['PR is not merged, so deployment state is not the next boundary yet.'],
+          expectedNextProof: 'Merged PR receipt before any GitHub Pages deployment check is treated as meaningful.',
+          safetyNote: 'Read-only packet: this response does not create a GitHub Pages deployment, rerun Actions, mutate GitHub, pull Git, or edit local files.',
+        },
+        local_sync_readiness: {
+          title: 'Local sync readiness for PR #931',
+          status: 'waiting_for_merge',
+          canRefreshNow: false,
+          canSyncNow: false,
+          mutatesGitIfRun: true,
+          mutatesLocalFilesIfRun: true,
+          refreshUrl: `${BASE_URL}/api/v1/jules-handoffs/handoff-detail-page/refresh-local-sync`,
+          syncUrl: `${BASE_URL}/api/v1/jules-handoffs/handoff-detail-page/sync-local`,
+          nextAction: {
+            code: 'wait_for_merge',
+            tone: 'blocked',
+            label: 'Wait for merge',
+            command: null,
+            summary: 'Local sync waits for merge and deployment proof.',
+            steps: ['Wait for GitHub PR merge.', 'Record deployment proof or waiver.', 'Refresh local sync readiness.'],
+          },
+          blockers: ['PR is not merged.', 'Deployment proof or operator waiver is required before local sync can run.'],
+          expectedNextProof: 'Merged PR receipt, deployment evidence, and a clean fast-forward local Git check.',
+          safetyNote: 'Local sync mutates local Git only after all gates pass.',
+        },
         linearIssueIdentifier: 'ARA-6',
         linearIssueUrl: 'https://linear.app/aralia/issue/ARA-6/example',
         julesSessionId: '4101281510355198885',
@@ -317,7 +354,20 @@ try {
   assert.match(page.body, /Avoided-work estimate<\/dt><dd>missing_estimate/);
   assert.match(page.body, /Missing before any savings claim: task-scoped Codex foreman usage receipt, documented avoided-work estimate/);
   assert.match(page.body, /Goal-context usage documents the broader Codex thread cost only/);
+  assert.match(page.body, /Deployment And Local Sync/);
+  assert.match(page.body, /does not create deployments, waive proof, merge, pull, or edit local files/);
+  assert.match(page.body, /Deployment status<\/dt><dd>waiting_for_merge/);
+  assert.match(page.body, /Can proceed to local sync<\/dt><dd>No/);
+  assert.match(page.body, /Local sync status<\/dt><dd>[^<]+/);
+  assert.match(page.body, /Can sync local repo<\/dt><dd>No/);
+  assert.match(page.body, /Sync mutates Git<\/dt><dd>(Yes|No)/);
+  assert.match(page.body, /Deployment blockers: PR is not merged, so deployment state is not the next boundary yet/);
+  assert.match(page.body, /Local sync blockers:/);
+  assert.match(page.body, /Deployment proof or operator waiver|PR is not merged|No local sync blockers are recorded/);
+  assert.match(page.body, /Local sync remains unavailable|Merged PR receipt|deployment evidence/i);
   assert.match(page.body, /Delegation ROI Ledger/);
+  assert.match(page.body, /Deployment Readiness/);
+  assert.match(page.body, /Local Sync Readiness/);
   assert.match(page.body, /Mutates external systems<\/dt><dd>No/);
 
   const missing = await getText(`${BASE_URL}/tasks/does-not-exist`, 404);
