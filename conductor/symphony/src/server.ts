@@ -1541,6 +1541,12 @@ export class HttpServer {
         <h2>Task Messages</h2>
         <p class="usage-summary">Local operator/Codex notes for this task. This does not send feedback to Jules.</p>
         <form data-task-message-form data-task-message-url="${this.escapeHtml(messageUrl)}">
+          <label>Author
+            <select name="author">
+              <option value="operator">Operator</option>
+              <option value="codex_foreman">Codex foreman</option>
+            </select>
+          </label>
           <label>Message
             <textarea name="body" rows="4" placeholder="Record a local note, blocker, or question for this task."></textarea>
           </label>
@@ -1622,6 +1628,9 @@ export class HttpServer {
     form?.addEventListener('submit', async event => {
       event.preventDefault();
       const status = form.querySelector('[data-task-message-status]');
+      const author = form.querySelector('select[name="author"]')?.value === 'codex_foreman'
+        ? 'codex_foreman'
+        : 'operator';
       const textarea = form.querySelector('textarea[name="body"]');
       const body = String(textarea?.value || '').trim();
       if (!body) {
@@ -1633,7 +1642,7 @@ export class HttpServer {
         const response = await fetch(form.dataset.taskMessageUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ author: 'operator', body })
+          body: JSON.stringify({ author, body })
         });
         if (!response.ok) {
           const text = await response.text();
@@ -1885,11 +1894,18 @@ export class HttpServer {
     return `<ol class="task-page-messages">${messages.map(message => {
       const record = this.recordFromUnknown(message);
       return `<li>
-        <strong>${this.escapeHtml(this.stringFromUnknown(record.author) ?? 'operator')}</strong>
+        <strong>${this.escapeHtml(this.formatTaskMessageAuthor(record.author))}</strong>
         <span>${this.escapeHtml(this.stringFromUnknown(record.createdAt) ?? 'no timestamp')}</span>
         <p>${this.escapeHtml(this.stringFromUnknown(record.body) ?? '')}</p>
       </li>`;
     }).join('')}</ol>`;
+  }
+
+  private formatTaskMessageAuthor(author: unknown): string {
+    // Task messages are intentionally a small local chat, not a free-form user
+    // directory. Showing friendly role names keeps the page readable while the
+    // stored packet remains restricted to the two safe task-chat authors.
+    return author === 'codex_foreman' ? 'Codex foreman' : 'Operator';
   }
 
   private renderTaskPageClarifications(clarifications: unknown[]): string {

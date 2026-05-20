@@ -633,6 +633,9 @@ async function recordTaskMessage(button) {
   const taskId = button.getAttribute('data-task-id') || '';
   const taskMessageUrl = button.getAttribute('data-task-message-url') || '';
   const card = button.closest('[data-task-detail-preview]');
+  const author = card?.querySelector('select[data-task-message-author]')?.value === 'codex_foreman'
+    ? 'codex_foreman'
+    : 'operator';
   const textarea = card?.querySelector('textarea[data-task-message-body]');
   const body = String(textarea?.value || '').trim();
 
@@ -653,7 +656,7 @@ async function recordTaskMessage(button) {
     // This is dashboard chat, not Jules feedback. It records the operator/Codex
     // foreman conversation on the local Symphony task so future agents can
     // resume from structured notes instead of terminal scrollback.
-    const snapshot = await postJson(taskMessageUrl, { author: 'operator', body });
+    const snapshot = await postJson(taskMessageUrl, { author, body });
     if (textarea) textarea.value = '';
     renderTaskIntake(snapshot);
     setStatus('Recorded task message locally.');
@@ -3233,6 +3236,12 @@ function renderTaskDetailPreview(record) {
     </dl>
     ${record.needsInput ? '<p class="usage-summary"><strong>Needs human input</strong></p>' : ''}
     ${links ? `<p class="task-detail-links">${links}</p>` : ''}
+    <label>Task message author
+      <select data-task-message-author>
+        <option value="operator">Operator</option>
+        <option value="codex_foreman">Codex foreman</option>
+      </select>
+    </label>
     <label>Task message
       <textarea rows="2" data-task-message-body placeholder="Record a local note for this task. This does not send feedback to Jules."></textarea>
     </label>

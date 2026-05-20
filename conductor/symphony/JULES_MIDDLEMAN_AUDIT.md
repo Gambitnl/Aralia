@@ -76,6 +76,14 @@ The dashboard now also has the first task-list and task-detail layer. `verify-ta
 
 The task page now also renders the structured clarification loop. `verify-task-detail-page.mjs` proves `/tasks/:id` includes `Task Clarifications`, `Record Clarification`, the existing clarification question text, and the local `/api/v1/tasks/:id/clarifications` URL. This closes the first local Codex-foreman clarification UI slice without sending anything to Jules, creating Linear work, mutating GitHub, or touching local Git.
 
+The local task-message surface is now role-aware. The dashboard task preview and
+standalone `/tasks/:id` page can record a local message as either `operator` or
+`codex_foreman` through the same `POST /api/v1/tasks/:id/messages` endpoint, and
+the stored receipt keeps the same false GitHub/Jules/Linear/local mutation
+flags. `verify-task-dashboard-navigator.mjs`, `verify-task-detail-page.mjs`, and
+`verify-task-message-api.mjs` protect the author selector and Codex-foreman path
+so this does not become a second task store or a hidden Jules feedback channel.
+
 That same task-detail layer now carries a guarded operator action runbook.
 `verify-task-detail-api.mjs` proves handoff detail JSON includes
 `guardedActions` for the current Symphony boundary endpoint, operator-run Jules

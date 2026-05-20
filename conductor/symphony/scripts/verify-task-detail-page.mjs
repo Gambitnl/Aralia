@@ -217,6 +217,8 @@ try {
   assert.match(page.body, /Current Boundary/);
   assert.match(page.body, /Needs human input/);
   assert.match(page.body, /Task Messages/);
+  assert.match(page.body, /Author/);
+  assert.match(page.body, /Codex foreman/);
   assert.match(page.body, /Record Task Message/);
   assert.match(page.body, /This does not send feedback to Jules/);
   assert.match(page.body, /Keep this message local to Symphony/);

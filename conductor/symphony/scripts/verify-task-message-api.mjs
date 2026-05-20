@@ -93,6 +93,7 @@ try {
   assert.equal(afterPost.handoffs[0].taskMessages[0].mutatesExternalSystems, false);
   assert.equal(afterPost.handoffs[0].taskMessages[0].mutatesLocalFiles, false);
   assert.equal(afterPost.handoffs[0].taskMessages[0].mutatesGit, false);
+  assert.equal(afterPost.handoffs[0].taskMessages[0].author, 'codex_foreman');
 
   const badPost = await postJson(`${BASE_URL}/api/v1/tasks/handoff-message/messages`, {
     author: 'codex_foreman',

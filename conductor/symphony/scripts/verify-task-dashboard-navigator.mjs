@@ -79,6 +79,8 @@ assert.match(navigatorHtml, /Task detail/);
 assert.match(navigatorHtml, /Task page/);
 assert.match(navigatorHtml, /Task detail JSON/);
 assert.match(navigatorHtml, /Task messages/);
+assert.match(navigatorHtml, /Task message author/);
+assert.match(navigatorHtml, /Codex foreman/);
 assert.match(navigatorHtml, /Record Task Message/);
 assert.match(navigatorHtml, /data-task-action="record-task-message"/);
 assert.match(navigatorHtml, /href="\/api\/v1\/tasks\/handoff-ara6"/);
