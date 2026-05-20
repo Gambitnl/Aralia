@@ -78,8 +78,12 @@ comments and the diff stayed inside the ARA-6 task scope, so PR #931 merged as
 deployment all passed for `1c4316c`, and Symphony recorded a local deployment
 evidence receipt pointing at
 `https://github.com/Gambitnl/Aralia/actions/runs/26175016417`. The remaining
-completion proof is local sync to the merged `origin/master` state while
-preserving this local Symphony audit/report work.
+completion proof was local sync to the merged `origin/master` state while
+preserving this local Symphony audit/report work. That sync is now represented
+by local merge commit `28ff49a6`, which incorporated `ca10728f` and `1c4316c`
+into `feature/ollama-model-router` after the report updates were committed as
+`4a6e8e18`. The remaining completion proof is post-sync verification on the
+local checkout.
 
 The browser follow-along tooling gap has been narrowed. Direct Playwright MCP
 navigation can fail with `Transport closed`, but the Codex Browser plugin's

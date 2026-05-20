@@ -200,3 +200,26 @@ future tasks.
 - Result: Symphony recorded deployment proof for the merged ARA-6 handoff.
 - Next expected proof: safely sync the local checkout to include `origin/master`
   at `1c4316c` without losing the local Symphony docs/verifier updates.
+
+## Decision 9: Sync Local Checkout After Merge
+
+- Phase: `local_sync`
+- Decision point: decide how to bring the local checkout forward after PR #931
+  and PR #932 merged while preserving the local Symphony decision-report/docs
+  commit.
+- Options considered: leave local sync blocked for the operator, switch to
+  `master` and pull there, stash the docs work, or merge `origin/master` into
+  the current local `feature/ollama-model-router` branch after committing the
+  report updates.
+- Decision made by agent: committed the Symphony report updates as `4a6e8e18`,
+  then merged `origin/master` into `feature/ollama-model-router`.
+- Rationale and evidence: the working tree was clean after `4a6e8e18`;
+  `origin/master` contained the two required remote commits (`ca10728f` and
+  `1c4316c`); merging preserved the local Symphony work while incorporating the
+  ARA-6 lockfile, task-doc, and test changes.
+- Mutation performed: created local merge commit `28ff49a6`.
+- Result: the local checkout now contains the merged ARA-6 code and lockfile
+  state from `origin/master` plus the local Symphony completion report updates.
+- Next expected proof: rerun the focused Symphony report verifiers, full
+  `verify:jules-contract`, `git diff --check`, and the ARA-6 focused Vitest
+  files on the synced checkout before any completion claim.

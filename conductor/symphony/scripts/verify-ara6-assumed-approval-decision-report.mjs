@@ -93,6 +93,10 @@ assert.match(report, /local focused Vitest passed 2 files \/ 11 tests/);
 assert.match(report, /Decision 8: Record Deployment Evidence/);
 assert.match(report, /Deploy to GitHub Pages\s+\(`https:\/\/github\.com\/Gambitnl\/Aralia\/actions\/runs\/26175016417`\)/);
 assert.match(report, /Next expected proof: safely sync the local checkout/);
+assert.match(report, /Decision 9: Sync Local Checkout After Merge/);
+assert.match(report, /committed the Symphony report updates as `4a6e8e18`/);
+assert.match(report, /created local merge commit `28ff49a6`/);
+assert.match(report, /Next expected proof: rerun the focused Symphony report verifiers/);
 
 // The live docs must point future foremen to the report instead of making them
 // infer approval decisions from chat history.
@@ -104,6 +108,7 @@ assert.match(openTasks, /PR #932 was merged as `ca10728f`/);
 assert.match(openTasks, /PR #931 was\s+then updated to head `91ceee43`/);
 assert.match(openTasks, /PR #931 was\s+merged as `1c4316c`/);
 assert.match(openTasks, /GitHub Pages deployment run\s+`https:\/\/github\.com\/Gambitnl\/Aralia\/actions\/runs\/26175016417` passed/);
+assert.match(openTasks, /Local sync has now completed as merge commit\s+`28ff49a6`/);
 assert.match(openTasks, /PR #931 head `bb44a2f7`/);
 assert.match(openTasks, /coordinator-owned base lockfile mismatch/);
 assert.match(audit, /ARA-6_ASSUMED_APPROVAL_DECISIONS\.md/);
@@ -115,3 +120,4 @@ assert.match(audit, /PR #932 merged as `ca10728f`/);
 assert.match(audit, /PR #931 was then updated from `master`\s+to head `91ceee43`/);
 assert.match(audit, /PR #931 merged as\s+`1c4316c`/);
 assert.match(audit, /GitHub Pages\s+deployment all passed for `1c4316c`/);
+assert.match(audit, /local merge commit `28ff49a6`/);

@@ -58,7 +58,7 @@ assert.match(openTasks, /ARA-6 `refresh \/ github_pr` nudge and its 300-second n
 assert.match(openTasks, /task event derived from the nudge ledger/);
 assert.match(openTasks, /PR #932 merge, PR #931 branch update, PR #931 merge, and deployment\s+evidence receipt have happened under the ARA-6 assumed-approval rule/);
 assert.match(openTasks, /Scout\s+conflict detection, CodeQL, and GitHub Pages deployment passed for merge\s+commit `1c4316c`/);
-assert.match(openTasks, /next proof is local sync to the merged `origin\/master`\s+state/);
+assert.match(openTasks, /local sync then merged `origin\/master` into\s+`feature\/ollama-model-router` as local commit `28ff49a6`/);
 assert.match(openTasks, /Task 7 addendum/);
 assert.match(openTasks, /standalone task detail packet now includes `guardedActions`/);
 assert.match(openTasks, /Guarded Operator Actions/);
@@ -113,6 +113,7 @@ assert.match(openTasks, /PR #932\s+\(`https:\/\/github\.com\/Gambitnl\/Aralia\/p
 assert.match(openTasks, /PR #931\s+updated to `91ceee43`/);
 assert.match(openTasks, /PR #931 merged as\s+`1c4316c`/);
 assert.match(openTasks, /The next boundary is local sync,\s+not additional PR repair/);
+assert.match(openTasks, /Local sync has now completed as merge commit\s+`28ff49a6`/);
 assert.match(openTasks, /Poison File Check passed/);
 assert.match(openTasks, /Build\/Lint\/Tests\/Quality Scan still fail at `npm ci`/);
 assert.match(openTasks, /coordinator\/dependency repair/);
