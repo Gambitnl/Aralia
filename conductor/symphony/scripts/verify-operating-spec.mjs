@@ -10,6 +10,10 @@ const spec = await readFile(
   new URL('../docs/JULES_MIDDLEMAN_OPERATING_SPEC.md', import.meta.url),
   'utf8',
 );
+const openTasks = await readFile(
+  new URL('../docs/tasks/SYMPHONY_OPEN_TASKS.md', import.meta.url),
+  'utf8',
+);
 
 assert.match(spec, /# Symphony\/Jules Middleman Operating Spec/);
 assert.match(spec, /Use this file as the stable scope reference/);
@@ -18,16 +22,22 @@ assert.match(spec, /audit file records evidence\s+and live task status/);
 assert.match(spec, /Codex workers launched by Symphony are foremen/);
 assert.match(spec, /Symphony also acts as task tracker and task nudger/);
 assert.match(spec, /Jules planning, Jules execution, GitHub\s+checks, PR review, Scout\/Core review, and local sync can each require different\s+wait cadences/);
-assert.match(spec, /GitHub Actions checks are part of that foreman surface/);
+assert.match(spec, /GitHub Actions\s+checks are part of that foreman surface/);
 assert.match(spec, /faster, clearer, more actionable\s+failure signals/);
 assert.match(spec, /Not every change should go to Jules/);
 assert.match(spec, /local Codex agent when that\s+is lower overhead/);
 assert.match(spec, /built-in Codex app browser/);
-assert.match(spec, /current active goal is still the larger \*\*dashboard-first middleman\*\*/);
-assert.match(spec, /old\s+ever-growing thread goal has been retired/);
-assert.match(spec, /current stage inside that\s+larger mission is \*\*dashboard foreman-console focus plus safe dispatch gating\*\*/);
-assert.match(spec, /default-off dispatch control/);
-assert.match(spec, /visible worker-mode recommendation that names the right local\/Jules path and\s+Codex model\/reasoning effort/);
+assert.match(spec, /intended operator experience is task-centered/);
+assert.match(spec, /tasks waiting for human input/);
+assert.match(spec, /task-scoped Codex chat surface/);
+assert.match(spec, /weekday nights from 01:00 to 09:00/);
+assert.match(spec, /not\s+keep running a tight background script while blocked on the human/);
+assert.match(spec, /current active goal is the full \*\*Symphony delegation workflow\*\*/);
+assert.match(spec, /Codex acts as a foreman, clarifies\s+tasks, creates or updates Linear tracking/);
+assert.match(spec, /follows Jules through planning, execution, PR creation, GitHub checks,\s+deployment state, repair or feedback sequencing, merge readiness, and local repo\s+sync after merge/);
+assert.match(spec, /task-level Delegation ROI\s+ledger that measures whether delegating to Jules reduces Codex usage/);
+assert.match(spec, /implementation, workflow\s+intent, audit, architecture overview, and ordered task documents must stay\s+current/);
+assert.match(spec, /supporting slices of that larger end-to-end proof, not the whole goal/);
 
 for (const heading of [
   'Dashboard Intake',
@@ -35,6 +45,7 @@ for (const heading of [
   'Jules Handoff Staging',
   'Jules Launch And Session Tracking',
   'GitHub PR Monitoring',
+  'GitHub Pages Deployment Verification',
   'GitHub Actions And Check Quality',
   'Scout/Core Review And Merge Readiness',
   'Local Sync',
@@ -43,6 +54,7 @@ for (const heading of [
   'Dashboard Foreman Console',
   'Approvals',
   'Usage And Spending',
+  'Delegation ROI Ledger',
   'Documentation Creation',
 ]) {
   assert.match(spec, new RegExp(`### ${heading}`));
@@ -58,6 +70,11 @@ assert.match(spec, /Potential Conflict Detected by Scout/);
 assert.match(spec, /conflict file\s+plus priority PR number/);
 assert.match(spec, /Existing GitHub or Jules PRs can be added as `observed_pr` watch records/);
 assert.match(spec, /no Jules manifest staging, no Jules launch claim, and no local sync action/);
+assert.match(spec, /ARA-6 live run showed local status can report\s+`COMPLETED` with no PR URL/);
+assert.match(spec, /Jules API\/browser\/GitHub evidence exposes\s+additional task state/);
+assert.match(spec, /visually reconcile the session through the Codex app browser/);
+assert.match(spec, /After the PR is merged, Symphony should observe the GitHub Pages deployment\s+state/);
+assert.match(spec, /deployment check is read-only unless the operator explicitly authorizes a\s+repair path/);
 assert.match(spec, /worker-mode packet recommends a mode from task evidence/);
 assert.match(spec, /`operator_only` for blocked human decisions, `local_fast` for tiny local\s+edits\/verifiers\/docs, `local_careful`/);
 assert.match(spec, /explicit config wins and the dashboard should say\s+when it is overriding the automatic recommendation/);
@@ -67,6 +84,14 @@ assert.match(spec, /dashboard dispatch toggle mirrors backend state only/);
 assert.match(spec, /Routing is the source of the dynamic worker-mode packet/);
 assert.match(spec, /The main dashboard must not force every proof packet and every control to\s+compete equally for first-screen attention/);
 assert.match(spec, /current screen-space inventory is: header controls, dispatch toggle, run\s+totals, worker roster/);
+assert.match(spec, /Symphony must measure whether Jules delegation is saving Codex usage/);
+assert.match(spec, /Measured facts: Codex input\/output\/total tokens/);
+assert.match(spec, /Estimated avoided Codex work: estimated local Codex implementation turns/);
+assert.match(spec, /Workflow value signals: whether Jules produced a PR/);
+assert.match(spec, /must never present avoided-token estimates as actual token savings/);
+assert.match(spec, /`codex_totals`, worker roster token totals, retained usage\/rate-limit\s+activity/);
+assert.match(spec, /show "ROI unknown" rather than "saved"/);
+assert.match(spec, /ARA-6 first-run baseline/);
 
 for (const heading of [
   'Git And GitHub Blockers',
@@ -154,8 +179,11 @@ assert.match(spec, /schedule an observed PR refresh nudge/);
 assert.match(spec, /Record Observed Learning` instead of a repair action/);
 assert.match(spec, /observed-pr-follow-up-draft-2026-05-17\.json/);
 assert.match(spec, /PR #900 can become a separate blocked dashboard draft/);
-assert.match(spec, /real PR comment can be used as Jules feedback/);
-assert.match(spec, /other agent\/Scout comments route to the correct lanes/);
+assert.match(spec, /ara6-pr-refresh-summary-2026-05-20\.json` shows an active dashboard-started Jules handoff/);
+assert.match(spec, /reconcile a missing local PR URL from Jules API session output/);
+assert.match(spec, /ara6-pr-repair-decision-refresh-2026-05-20\.json` shows the same handoff now carries a read-only repair decision packet/);
+assert.match(spec, /setup-task, Jules-feedback, wait, and refresh-after-repair choices/);
+assert.match(spec, /Real repair feedback or setup repair execution, Scout\/Core readiness, Core validation\/merge, deployment, and local sync remain to be proven/);
 assert.match(spec, /\| GitHub Actions\/check quality \| Explicit scope now allows meaningful CI improvements/);
 assert.match(spec, /make checks more granular, faster to diagnose, less noisy, or easier for Symphony\/Codex\/Jules\/Scout\/Core to interpret/);
 assert.match(spec, /Quality Scan \(advisory\)` job that runs `npm run scan`/);
@@ -167,13 +195,22 @@ assert.match(spec, /verify-pr-check-artifacts\.mjs` proves Symphony's PR check s
 assert.match(spec, /stores a `githubPullRequestChecks\.artifacts` hint for `quality-scan-json`/);
 assert.match(spec, /preserves the optional GitHub check `detailsUrl`/);
 assert.match(spec, /renders that artifact plus the GitHub step-summary note and `Open check details` link in the PR readiness panel/);
+assert.match(spec, /read-only `workflow_setup` blocker/);
+assert.match(spec, /Check blocker classification/);
+assert.match(spec, /Resolve CI Setup Blocker/);
 assert.match(spec, /github-actions-quality-2026-05-17\.json/);
 assert.match(spec, /the JSON artifact command parses/);
 assert.match(spec, /npm run validate` currently fails on existing strict charset data issues and was intentionally not added as a noisy blocker/);
 assert.match(spec, /pr-929-quality-scan-github-2026-05-17\.\*/);
 assert.match(spec, /the new check completed successfully on GitHub and uploaded the `quality-scan-json` artifact/);
 assert.match(spec, /Symphony can watch PR #929 read-only and carry the live `quality-scan-json` artifact in dashboard state/);
-assert.match(spec, /Refresh an active dashboard-started PR through Symphony/);
+assert.match(spec, /Live ARA-6 proof `ara6-pr-refresh-summary-2026-05-20\.json`/);
+assert.match(spec, /classifies the real PR #931 build\/lint\/test\/quality failure set as `workflow_setup`/);
+assert.match(spec, /renders the read-only repair decision panel/);
+assert.match(spec, /failed check set now produces a human-readable repair choice packet without mutating GitHub or local files/);
+assert.match(spec, /Decide and execute the setup\/workflow repair path/);
+assert.match(spec, /terminal-simulator pane may mirror a live local Codex foreman process/);
+assert.match(spec, /structured task events so future agents can resume without scraping terminal\s+scrollback/);
 assert.match(spec, /\| Scout\/Core readiness \| `verify-scout-core-readiness-packet\.mjs` proves each handoff now exposes a read-only Scout\/Core readiness packet/);
 assert.match(spec, /PR state, checks, file risk, Scout conflict counts, external\/Jules feedback counts, dashboard-started-vs-observed ownership/);
 assert.match(spec, /Core validation\/merge commands only when ready, mutation flags, blockers, safety checklist, expected proof, and `\/proof` visibility/);
@@ -237,3 +274,38 @@ assert.match(spec, /npm\.cmd run verify:jules-contract/);
 assert.match(spec, /real dashboard-started task has moved through Linear, existing Jules\s+orchestration, GitHub PR state, Scout\/Core readiness, and local sync proof/);
 assert.match(spec, /completion audit\/status file shows each major goalpost as achieved or\s+not achieved/);
 assert.match(spec, /satisfy this spec and audit/);
+
+assert.match(openTasks, /# Symphony Open Task Order/);
+assert.match(openTasks, /## Current Live Thread/);
+assert.match(openTasks, /ARA-6/);
+assert.match(openTasks, /https:\/\/github\.com\/Gambitnl\/Aralia\/pull\/931/);
+assert.match(openTasks, /Current full goal: build and prove the Symphony delegation workflow end to end/);
+assert.match(openTasks, /task-level Delegation ROI ledger that separates measured facts from estimates/);
+assert.match(openTasks, /ordered\s+task documents must stay current as each proof stage advances/);
+assert.match(openTasks, /## Interaction Rules While Jules Works/);
+assert.match(openTasks, /Prefer read-only observation over chat/);
+assert.match(openTasks, /## Jules Environment Setup Finding/);
+assert.match(openTasks, /Run and snapshot/);
+assert.match(openTasks, /npm ci --no-audit --no-fund/);
+assert.match(openTasks, /## Ordered Work Queue/);
+assert.match(openTasks, /fallback PR discovery/);
+assert.match(openTasks, /check-blocker classification layer/);
+assert.match(openTasks, /workflow_setup/);
+assert.match(openTasks, /ara6-pr-refresh-summary-2026-05-20\.json/);
+assert.match(openTasks, /ara6-pr-repair-decision-refresh-2026-05-20\.json/);
+assert.match(openTasks, /Resolve CI Setup Blocker/);
+assert.match(openTasks, /create_setup_repair_task/);
+assert.match(openTasks, /send_jules_feedback/);
+assert.match(openTasks, /terminal-simulator live mirror/);
+assert.match(openTasks, /Delegation ROI ledger/);
+assert.match(openTasks, /measured Codex tokens\/runtime and\s+foreman turns separately from estimated avoided Codex implementation tokens/);
+assert.match(openTasks, /## Objective Completion Audit/);
+assert.match(openTasks, /Observe ARA-6 without disrupting Jules/);
+assert.match(openTasks, /Consolidate stale Symphony task\/docs into ordered checklist/);
+assert.match(openTasks, /Prove the full Symphony implementation is complete/);
+assert.match(openTasks, /Not achieved; keep the broader Symphony goal active/);
+assert.match(openTasks, /## Current Full-Workflow Completion Audit/);
+assert.match(openTasks, /Codex clarifies tasks and acts as foreman through Symphony/);
+assert.match(openTasks, /GitHub checks and repair\/feedback sequencing/);
+assert.match(openTasks, /Delegation ROI ledger \| Spec now defines measured facts/);
+assert.match(openTasks, /2026-05-20 01:05 Europe\/Amsterdam/);

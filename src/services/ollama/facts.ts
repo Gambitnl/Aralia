@@ -105,22 +105,18 @@ export async function extractDiscoveredFacts(
     participants: ParticipantData[],
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<DiscoveredFact[]>> {
-    const model = await client.getModel();
-    if (!model) {
-        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
-    }
-
     const prompt = buildFactExtractionPrompt(conversation, participants);
 
-    const result = await client.generate({
-        model,
-        prompt,
-        format: 'json',
-        temperature: 0.3, // Lower temp for more factual extraction
-        numPredict: 512
+    const result = await client.generateForTask({
+        taskType: 'fact_extraction',
+        prompt
     });
 
     if (!result.ok) {
+        const model = result.model ?? 'unresolved';
+        if (result.error === 'NO_MODEL') {
+            return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
+        }
         if (result.error === 'Request timed out') {
             return client.createErrorResult(
                 { type: 'TIMEOUT', message: result.error },
@@ -130,6 +126,7 @@ export async function extractDiscoveredFacts(
         return client.createNetworkError(result.error, prompt, model);
     }
 
+    const model = result.model;
     const metadata: OllamaMetadata = { prompt, response: result.data.response, model };
 
     const parsed = parseJsonRobustly(result.data.response);

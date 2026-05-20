@@ -29,13 +29,22 @@ export type {
     BanterLineData,
     ConversationResponse,
     ConversationSummary,
-    ReactionResponse
+    ReactionResponse,
+    // Router types
+    ModelParams,
+    ResponseFormat,
+    TaskType,
+    TaskProfile
 } from '../../types/ollama';
 
 export { DEFAULT_OLLAMA_CONFIG } from '../../types/ollama';
 
 // Re-export client
 export { OllamaClient, getDefaultClient, resetDefaultClient } from './client';
+
+// Re-export router + task profiles
+export { resolveModelForTask, resetRouterCache } from './router';
+export { DEFAULT_TASK_PROFILES, getTaskProfile } from './taskProfiles';
 
 // Re-export utilities
 export { parseJsonRobustly, extractTextField } from './jsonParser';

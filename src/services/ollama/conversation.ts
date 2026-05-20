@@ -111,11 +111,6 @@ export async function continueConversation(
     contextData: BanterContext,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<ConversationResponse>> {
-    const model = await client.getModel();
-    if (!model) {
-        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
-    }
-
     // Determine who should respond
     const lastSpeaker = history[history.length - 1]?.speakerId;
     const respondingCompanion = lastSpeaker === 'player'
@@ -124,17 +119,23 @@ export async function continueConversation(
 
     const prompt = buildContinuePrompt(participants, history, contextData, respondingCompanion);
 
-    const result = await client.generate({
-        model,
+    const result = await client.generateForTask({
+        taskType: 'conversation_continuation',
         prompt,
-        temperature: 0.7,
-        numPredict: 256
+        // numPredict carried over from the prior hardcoded value so single-turn
+        // replies have headroom even on chatty models.
+        overrides: { numPredict: 256, temperature: 0.7 }
     });
 
     if (!result.ok) {
+        const model = result.model ?? 'unresolved';
+        if (result.error === 'NO_MODEL') {
+            return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
+        }
         return client.createNetworkError(result.error, prompt, model);
     }
 
+    const model = result.model;
     const metadata: OllamaMetadata = { prompt, response: result.data.response, model };
 
     const parsed = parseJsonRobustly(result.data.response);
@@ -168,25 +169,24 @@ export async function summarizeConversation(
     contextData: BanterContext,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<ConversationSummary>> {
-    const model = await client.getModel();
-    if (!model) {
-        return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
-    }
-
     const prompt = buildSummarizePrompt(participants, history, contextData);
 
-    const result = await client.generate({
-        model,
+    const result = await client.generateForTask({
+        taskType: 'conversation_summary',
         prompt,
-        format: 'json',
-        temperature: 0.5,
-        numPredict: 256
+        // Summaries need a bit more headroom than the utility default's 256.
+        overrides: { temperature: 0.5 }
     });
 
     if (!result.ok) {
+        const model = result.model ?? 'unresolved';
+        if (result.error === 'NO_MODEL') {
+            return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'No Ollama model available' });
+        }
         return client.createNetworkError(result.error, prompt, model);
     }
 
+    const model = result.model;
     const metadata: OllamaMetadata = { prompt, response: result.data.response, model };
 
     let jsonStr = result.data.response;

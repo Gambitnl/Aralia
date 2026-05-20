@@ -25,6 +25,15 @@ dist-ssr
 # AI Agent local configs
 # Conductor (AI Agent Tracking)
 conductor/
+!conductor/
+conductor/*
+!conductor/symphony/
+conductor/symphony/*
+!conductor/symphony/docs/
+conductor/symphony/docs/*
+!conductor/symphony/docs/tasks/
+conductor/symphony/docs/tasks/*
+!conductor/symphony/docs/tasks/**/*.md
 
 # Experimental 3D POCs
 src/components/ThreeDModal/Experimental/
@@ -149,7 +158,14 @@ scripts/tooling/
 
 # Local-only agent/runtime artifacts from external or desktop-side processes.
 .agent/rules/environment-learnings/codex-desktop-terminal.md
+
+# Symphony/Jules runtime state. These files are created while the local
+# dashboard, preflight, and Jules handoff flow are running; keeping them ignored
+# prevents Symphony from dirtying the same worktree it is trying to inspect.
+.symphony/
+conductor/symphony/.symphony/
 .jules/runs/
+.jules/verification/
 .jules/dashboard/
 .jules/orchestrator/
 jules-dashboard-*.png

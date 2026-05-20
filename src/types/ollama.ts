@@ -29,7 +29,8 @@ export interface OllamaConfig {
     timeoutMs: number;
     /** Number of retry attempts for failed requests */
     retryAttempts: number;
-    /** Preferred model names in order of priority */
+    /** Preferred model names in order of priority. Used as the global fallback chain
+     * when no task-specific profile match is found in installed models. */
     preferredModels: string[];
 }
 
@@ -37,8 +38,103 @@ export const DEFAULT_OLLAMA_CONFIG: OllamaConfig = {
     apiBase: '/api/ollama',
     timeoutMs: 90000,
     retryAttempts: 0,
-    preferredModels: ['mistral:instruct', 'leeplenty/ellaria', 'phi4-mini:3.8b', 'llama3.1:instruct', 'llama3:instruct', 'gemma3:1b', 'gemma:2b', 'phi']
+    // Order reflects the router fallback chain. Spec-recommended models come first;
+    // legacy entries follow so existing setups continue to work until the user pulls
+    // the new ones. See docs/ai/local-llm-model-routing.md.
+    preferredModels: [
+        'granite4.1:8b-q4_K_M',
+        'qwen3:8b-q4_K_M',
+        'granite4.1:3b-q6_K',
+        'phi4-mini:3.8b-q4_K_M',
+        'adi0adi/ollama_stheno-8b_v3.1_q6k',
+        'mistral:instruct',
+        'leeplenty/ellaria',
+        'phi4-mini:3.8b',
+        'llama3.1:instruct',
+        'llama3:instruct',
+        'gemma3:1b',
+        'gemma:2b',
+        'phi'
+    ]
 };
+
+// ============================================================================
+// Model Parameters & Task Routing
+// ============================================================================
+
+/**
+ * Sampling and runtime parameters for a single Ollama request.
+ * All fields optional — defaults are filled in by the client when omitted.
+ * See docs/ai/local-llm-model-routing.md for guidance per task category.
+ */
+export interface ModelParams {
+    temperature?: number;
+    /** Nucleus sampling cutoff (0..1). */
+    topP?: number;
+    /** Repetition penalty (Ollama: `repeat_penalty`). Values > 1 discourage repetition. */
+    repeatPenalty?: number;
+    /** Context window size. Default 4096; do not raise above what your VRAM allows. */
+    numCtx?: number;
+    /** Maximum tokens to generate (Ollama: `num_predict`). */
+    numPredict?: number;
+    /** Ollama `keep_alive`: how long the model stays resident after a request.
+     * Accepts a duration string (e.g. "10m"), or 0 to unload immediately. */
+    keepAlive?: string | number;
+}
+
+/**
+ * Format option for Ollama's `format` field. `'json'` enables loose JSON mode.
+ * Passing an object enables structured-output mode (Ollama grounds the response
+ * against this JSON schema). Omit for freeform text.
+ */
+export type ResponseFormat = 'json' | Record<string, unknown>;
+
+/**
+ * Canonical task taxonomy mapped to model routing decisions.
+ * Order roughly matches the routing table in docs/ai/local-llm-model-routing.md.
+ */
+export type TaskType =
+    // Dialogue / prose
+    | 'companion_banter'
+    | 'companion_banter_escalation'
+    | 'conversation_continuation'
+    | 'npc_dialogue'
+    | 'gossip'
+    | 'emotional_reaction'
+    | 'location_description'
+    | 'wilderness_description'
+    | 'encounter_description'
+    | 'action_outcome'
+    | 'dynamic_event'
+    // Structured / judgment
+    | 'oracle_response'
+    | 'social_check_outcome'
+    | 'situation_analysis'
+    | 'custom_action_suggestions'
+    | 'guide_response'
+    // Utility / chores
+    | 'conversation_summary'
+    | 'fact_extraction'
+    | 'name_generation'
+    | 'tile_inspection'
+    | 'harvest_loot';
+
+/**
+ * A profile describing how to handle a specific task: which models to try, what
+ * sampling parameters to use, and whether to request structured outputs.
+ */
+export interface TaskProfile {
+    taskType: TaskType;
+    /** Preferred models for this task, in priority order. Router walks this list
+     * against installed models, then falls back to OllamaConfig.preferredModels. */
+    preferredModels: string[];
+    /** Default sampling parameters for this category. Callers may override per-request. */
+    params: Required<Pick<ModelParams, 'temperature' | 'topP' | 'repeatPenalty' | 'numCtx' | 'numPredict'>>;
+    /** Optional response format hint. */
+    format?: ResponseFormat;
+    /** Optional keep_alive policy (defaults to undefined = Ollama default). */
+    keepAlive?: string | number;
+}
 
 // ============================================================================
 // API Response Types

@@ -10,9 +10,9 @@ This file is the architectural index. It is not the behavioral spec and not the 
 
 ## System Role
 
-Symphony is the local dashboard-first middleman around the existing Aralia Jules workflow. It is responsible for safe task intake, Git/GitHub readiness, Linear tracking, Jules handoff staging and launch, GitHub PR observation, Scout/Core readiness, local sync readiness, Codex worker observability, and proof capture.
+Symphony is the local dashboard-first middleman around the existing Aralia Jules workflow. It is responsible for safe task intake, Codex foreman clarification, Git/GitHub readiness, Linear tracking, Jules handoff staging and launch, Jules browser/session reconciliation, GitHub PR observation, GitHub Pages deployment observation, Scout/Core readiness, local sync readiness, Codex worker observability, and proof capture.
 
-Symphony is not meant to replace Jules or become an unbounded local implementation runner. Codex workers launched by Symphony are foremen by default: they inspect dashboard state, prepare bounded handoffs, monitor external progress, explain blockers, and update the operator trail.
+Symphony is not meant to replace Jules or become an unbounded local implementation runner. Codex workers launched by Symphony are foremen by default: they inspect dashboard state, clarify ambiguous tasks with the operator, prepare bounded handoffs, monitor external progress, explain blockers, and update the operator trail.
 
 ## Architecture At A Glance
 
@@ -23,11 +23,13 @@ flowchart TD
   Orchestrator["Runtime supervisor\nsrc/orchestrator.ts"]
   Server["Local API + dashboard server\nsrc/server.ts"]
   Dashboard["Browser dashboard\npublic/dashboard.html\npublic/dashboard.js\npublic/dashboard.css"]
+  TaskView["Task list/detail/chat intent\nfuture dashboard task surfaces"]
   TaskStore["Task and handoff state\nsrc/task-intake.ts\n.symphony/task-drafts.json"]
   Git["Git/GitHub preflight and sync packets\nsrc/task-intake.ts"]
   Linear["Linear adapter\nsrc/linear-client.ts"]
   Jules["Jules orchestrator bridge\n.jules/orchestrator\n.jules/runs"]
-  PR["GitHub PR, checks, Scout/Core, local sync readiness\nsrc/task-intake.ts"]
+  PR["GitHub PR, checks, deployments, Scout/Core, local sync readiness\nsrc/task-intake.ts"]
+  Browser["Codex app browser inspection\nJules visual status reconciliation"]
   Worker["Codex worker runner\nsrc/agent-runner.ts\nsrc/workspace.ts\nsrc/prompt-renderer.ts"]
   Proof["Verifiers and proof board\nscripts/verify-*.mjs\n/proof"]
   Docs["Spec and audit\nJULES_MIDDLEMAN_OPERATING_SPEC.md\nJULES_MIDDLEMAN_AUDIT.md"]
@@ -36,11 +38,14 @@ flowchart TD
   Workflow --> Orchestrator
   Orchestrator --> Server
   Server --> Dashboard
+  Dashboard --> TaskView
   Server --> TaskStore
   TaskStore --> Git
   TaskStore --> Linear
   TaskStore --> Jules
   TaskStore --> PR
+  Jules --> Browser
+  Browser --> TaskStore
   Orchestrator --> Worker
   Server --> Proof
   Docs --> Proof
@@ -91,6 +96,8 @@ Important boundary:
 
 The dashboard is a control surface, not a second state owner. It renders backend state and posts explicit operator actions. It should not store orchestration truth in browser local storage except harmless display preferences such as theme.
 
+The intended dashboard shape is task-centered. The home view should summarize open work and pending human-input counts, while each task should have a detail surface with timeline, current boundary, Linear/Jules/GitHub/deployment/local-sync links, expandable Jules prompt, expandable Codex/Jules dialogue, and a task-scoped Codex chat. These task surfaces should extend the existing task store and API rather than becoming a separate orchestration database.
+
 ### Task Intake And Middleman State
 
 Primary files:
@@ -102,6 +109,20 @@ Primary files:
 Important boundary:
 
 `task-intake.ts` is intentionally broad because it is the coordinator for many non-mutating readiness packets. New task/Jules/GitHub/local-sync state should usually extend this store before adding a parallel state file.
+
+The Delegation ROI ledger belongs on the task/handoff record because it compares
+the same task's measured Codex foreman spend, Jules/GitHub elapsed time, human
+intervention count, local-edit avoidance, and estimated avoided local Codex
+implementation. It should reuse orchestrator usage/rate-limit events and task
+timeline data; estimates must be labeled as estimates and must not be mixed into
+measured token totals.
+
+Documentation continuity is an architectural responsibility, not a cleanup
+chore. The operating spec, audit, architecture overview, ordered open-task list,
+and per-task handoff files are the shared memory that lets later Codex foremen
+continue without re-litigating each boundary. Each implementation/proof stage
+should update the status documents that own that stage before the stage is
+treated as settled.
 
 ### Git, GitHub, Scout/Core, And Local Sync Readiness
 
@@ -117,7 +138,14 @@ Related external surfaces:
 
 Important boundary:
 
-Git preflight and local sync packets separate read-only inspection from human-run mutation. Symphony should expose mutating local sync only when the packet proves it is safe, and observed PRs should remain read-only learning/proof records.
+Git preflight and local sync packets separate read-only inspection from human-run mutation. Symphony should expose mutating local sync only when the packet proves it is safe, and observed PRs should remain read-only learning/proof records. For changes that affect the published application, the GitHub Pages deployment boundary belongs between PR merge and local sync readiness.
+
+Failed PR checks now have the same read-only-before-mutation rule. A PR refresh
+may classify blockers and generate a repair decision packet, but the packet only
+asks which lane to use: separate setup repair task, Jules feedback, workflow
+configuration repair, manual wait, or refresh-after-repair. Posting feedback,
+creating a tracking issue, editing workflow files, or changing local Git remains
+operator-approved work outside the packet.
 
 ### Jules Bridge
 
@@ -132,7 +160,11 @@ Related files/directories:
 
 Important boundary:
 
-Symphony prepares, stages, launches, refreshes, and records Jules handoffs. Jules owns cloud implementation. A dashboard-created task should pass through Git sync, Linear tracking, Jules manifest staging, Jules launch/session tracking, PR review, Scout/Core readiness, and local sync readiness.
+Symphony prepares, stages, launches, refreshes, and records Jules handoffs. Jules owns cloud implementation. A dashboard-created task should pass through Git sync, Linear tracking, Jules manifest staging, Jules launch/session tracking, PR review, deployment observation when relevant, Scout/Core readiness, and local sync readiness.
+
+The ARA-6 live run exposed a specific ownership boundary: local `.jules/runs` status can say `COMPLETED` with no PR URL while Jules API, browser-visible state, and GitHub each expose additional facts. Current browser evidence shows `Plan approved`, `All plan steps completed`, `View PR`, and failed check summaries; the Jules API exposes PR #931; GitHub confirms the matching PR. Symphony therefore needs a reconciliation layer that treats stored Jules status as one signal, not the only truth, prefers official Jules API outputs when available, uses the Codex app browser for visual confirmation when state is ambiguous, and falls back to read-only GitHub lookup by session id, branch name, handoff title, or Linear issue before declaring that no PR exists.
+
+Jules repository environment setup is external configuration, not Symphony-owned state. Symphony should document recommended setup scripts and blockers, but running `Run and Snapshot` on the Jules Environment page is an operator-approved external action. The current ARA-6 evidence shows `npm ci` fails because the lockfile is out of sync, so `npm ci --no-audit --no-fund` is the desired future setup script only after lockfile repair; `npm install --no-audit --no-fund` is a diagnostic workaround that may dirty Jules' working copy.
 
 ### Verification And Proof
 
@@ -159,7 +191,7 @@ The verifier suite is part of the architecture. New dashboard/API behavior shoul
 | Local API | `src/server.ts` | route handling, static dashboard assets, proof board, API response writing | durable task logic when `task-intake.ts` already owns it |
 | Browser dashboard | `public/dashboard.html`, `public/dashboard.js`, `public/dashboard.css` | presentation and explicit operator actions | hidden orchestration state |
 | Middleman store | `src/task-intake.ts`, `.symphony/task-drafts.json` | drafts, handoffs, readiness packets, nudges, observed PR records | live Codex process management |
-| Jules bridge | `src/task-intake.ts`, `.jules/orchestrator`, `.jules/runs` | manifest preparation, launch readiness, session receipts | replacing Jules implementation |
+| Jules bridge | `src/task-intake.ts`, `.jules/orchestrator`, `.jules/runs` | manifest preparation, launch readiness, session receipts, visual reconciliation inputs | replacing Jules implementation |
 | Verification | `scripts/verify-*.mjs`, `package.json` | executable contracts and proof scaffolding | production behavior |
 | Governance docs | `README.md`, `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`, `JULES_MIDDLEMAN_AUDIT.md`, this file | orientation, required behavior, status, architecture map | duplicating runtime state |
 
@@ -180,6 +212,13 @@ Human operators and foreman workers should prefer these local endpoints over gue
 - `POST /api/v1/task-nudges`: record task routing/nudge evidence.
 - `POST /api/v1/task-nudges/refresh-due`: run due external-read refresh nudges.
 - `POST /api/v1/jules-handoffs/...`: stage, launch, refresh, message, approve, PR refresh, local-sync, and observed-learning actions, each guarded by task-intake readiness.
+
+Intended task-centered surfaces that are not yet fully represented as stable API contracts:
+
+- `GET /api/v1/tasks/:id`: task detail, boundary timeline, attached links, prompt/dialogue records, and status history.
+- `POST /api/v1/tasks/:id/messages`: operator-to-Codex task chat and Codex-to-operator questions.
+- `GET /api/v1/tasks/:id/terminal`: optional terminal-simulator stream for a local Codex foreman process or command output. This is a live view onto the task, not the task's source of truth; structured task messages and events remain canonical.
+- deployment-readiness refresh for GitHub Pages or equivalent published-app targets before final local sync.
 
 ## Common Change Patterns
 
@@ -243,5 +282,8 @@ Known places where future edits may need to update this map:
 - if `task-intake.ts` is split into smaller modules;
 - if Jules orchestration moves out of `.jules/orchestrator`;
 - if GitHub access moves from CLI-driven snapshots to a dedicated adapter;
+- if GitHub Pages deployment state becomes a first-class adapter instead of a GitHub CLI/API snapshot;
 - if Scout/Core becomes an API integration instead of readiness commands;
-- if the dashboard gains separate pages beyond `/` and `/proof`.
+- if the dashboard gains separate pages beyond `/` and `/proof`;
+- if per-task chat/timeline state moves out of the current task-intake store;
+- if Jules visual status reconciliation becomes automated instead of foreman/browser-driven.

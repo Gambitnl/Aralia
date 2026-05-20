@@ -3,9 +3,10 @@
 TypeScript implementation of [OpenAI Symphony](https://github.com/openai/symphony), adapted for the Aralia project.
 
 Symphony is now Aralia's Jules delegation middleman. The dashboard is the front
-door: draft a bounded task, pass the GitHub sync preflight, create the Linear
-tracking issue when needed, stage and launch the Jules manifest, then monitor
-Jules sessions, GitHub PRs, Scout/Core review, usage, approvals, and local sync.
+door: draft a bounded task, let a Codex foreman clarify the plan when needed,
+pass the GitHub sync preflight, create the Linear tracking issue, stage and
+launch the Jules manifest, then monitor Jules sessions, GitHub PRs, GitHub Pages
+deployment health, Scout/Core review, usage, approvals, and local sync.
 
 The canonical operating spec is
 `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`. Use it for the full task and blocker
@@ -14,9 +15,10 @@ Use `docs/SYMPHONY_MIDDLEMAN_ARCHITECTURE.md` for the high-level map of related
 files, ownership boundaries, API surfaces, and verifier entry points.
 
 Codex workers are foremen in this workflow. Their default job is to read the
-dashboard/API, delegate bounded implementation to Google Jules, and babysit the
-GitHub return path. They should only do broad local implementation when the
-operator explicitly asks for local-only work.
+dashboard/API, ask human-readable clarification questions through the task
+surface, delegate bounded implementation to Google Jules, and babysit the GitHub
+return path. They should only do broad local implementation when the operator
+explicitly asks for local-only work.
 
 ## Quick Start
 
@@ -144,10 +146,15 @@ src/
 5. **Tracks Jules sessions and GitHub PRs** including checks, mergeability,
    changed-file risk, conflict-prone files, plan approvals, and operator
    feedback.
-6. **Routes review through Scout/Core** before merge and only allows local sync
-   after GitHub reports the Jules PR merged.
-7. **Surfaces live observability** for approvals, spending/usage, worker
+6. **Reconciles ambiguous Jules state** with Codex app browser inspection when
+   stored status and the visible Jules session disagree.
+7. **Routes review through Scout/Core** before merge and checks GitHub Pages
+   deployment health for published-app changes before local sync.
+8. **Surfaces live observability** for approvals, spending/usage, worker
    designations, readable activity, and the local return path.
+9. **Measures delegation ROI** per task so the operator can see whether Jules
+   actually reduced Codex usage. Measured Codex tokens/runtime must stay
+   separate from estimated avoided local Codex work.
 
 ## Dashboard Contract
 
@@ -167,9 +174,26 @@ reconstructing state from raw events:
 - `/api/v1/state` exposes `worker_roster`, `rate_limits`, model/reasoning
   assignment, approval policy, and dashboard control URLs so a foreman can
   identify its assignment and the user can see spending and approval pressure.
+- Task detail surfaces should include a Delegation ROI ledger that reuses
+  Codex token/runtime data, Jules and GitHub timestamps, human intervention
+  counts, and explicit avoided-work estimates without presenting estimates as
+  measured savings.
 - Handoff cards preserve detailed PR and local-sync next actions, including
   `wait_for_checks`, `repair_failed_checks`, `core_validate_and_merge`,
   `review_local_changes`, and `sync_local_master`.
+- Failed PR checks can also carry a read-only repair decision packet. The
+  first live ARA-6 packet asks whether the operator wants a separate setup
+  repair task, Jules feedback, manual wait, or refresh-after-repair before
+  Symphony mutates GitHub or local files.
+- The intended task view groups each task's description, current boundary,
+  timeline, Linear issue, Jules session, GitHub PR, deployment state,
+  expandable Jules prompt/dialogue, and task-scoped Codex chat. Pending
+  human-input tasks should be obvious from the home dashboard.
+- A terminal-simulator pane can be used as a live mirror for a local Codex
+  foreman process or command stream, but structured task messages, decisions,
+  blockers, and timestamps remain the durable task memory.
+- The spec, audit, architecture overview, ordered open-task list, and per-task
+  handoff docs should be updated as each implementation/proof stage advances.
 
 ## Configuration
 

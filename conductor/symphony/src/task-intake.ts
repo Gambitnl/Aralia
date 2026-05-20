@@ -432,6 +432,9 @@ export interface JulesHandoff {
   githubPullRequestFiles: PullRequestFileSummary | null;
   githubPullRequestFeedback: PullRequestFeedbackSummary | null;
   githubPullRequestNextAction: PullRequestNextAction | null;
+  githubPullRequestRepairDecision: PullRequestRepairDecisionPacket | null;
+  delegationRoiLedger: DelegationRoiLedger | null;
+  githubPullRequestDiscovery?: PullRequestDiscoveryReceipt | null;
   githubPullRequestRefreshError: string | null;
   lastPullRequestRefreshAt: string | null;
   pullRequestViewCommand: string | null;
@@ -908,6 +911,20 @@ export function buildPullRequestNextAction(input: {
   }
 
   if (input.checks?.conclusion === 'failing') {
+    const primaryBlocker = input.checks.blockers?.[0] ?? null;
+
+    if (primaryBlocker?.category === 'workflow_setup') {
+      return action('repair_failed_checks', 'blocked', 'Resolve CI Setup Blocker', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
+        primaryBlocker.summary,
+        ['Inspect failed check logs.', primaryBlocker.nextAction, 'Fix or route the shared setup blocker before judging Jules implementation quality.', 'Refresh PR checks after repair.']);
+    }
+
+    if (primaryBlocker?.category === 'workflow_config') {
+      return action('repair_failed_checks', 'blocked', 'Resolve Workflow Config Blocker', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
+        primaryBlocker.summary,
+        ['Inspect the failed automation logs.', primaryBlocker.nextAction, 'Fix or route the workflow configuration before asking Jules to change task code.', 'Refresh PR checks after repair.']);
+    }
+
     return action('repair_failed_checks', 'blocked', 'Repair Failed Checks', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
       'GitHub checks are failing.',
       ['Inspect failed checks.', 'Leave a GitHub PR comment for Jules with the failing-check course correction.', 'Send focused repair work to Jules or fix the PR.', 'Refresh PR checks after repair.']);
@@ -931,6 +948,282 @@ export function buildPullRequestNextAction(input: {
     input.refreshPullRequestUrl,
     'The PR looks ready for Core validation and merge after Scout clears it.',
     ['Run Core validation.', 'Merge only after Core accepts the PR.', 'Refresh PR state after merge, then check local sync.']);
+}
+
+export function buildPullRequestRepairDecision(input: {
+  handoffId: string;
+  checks: PullRequestCheckSummary | null;
+  nextAction: PullRequestNextAction | null;
+  julesFeedbackCommand: string | null;
+  refreshPullRequestUrl: string | null;
+  generatedAt?: string;
+}): PullRequestRepairDecisionPacket | null {
+  const blocker = input.checks?.blockers?.[0] ?? null;
+  if (!blocker || input.nextAction?.code !== 'repair_failed_checks') return null;
+
+  const generatedAt = input.generatedAt ?? new Date().toISOString();
+  const refreshOption: PullRequestRepairDecisionOption = {
+    id: 'refresh_after_repair',
+    label: 'Refresh After Repair',
+    description: 'Read the PR again after a human, Jules, or a separate repair task changes the failing branch or workflow.',
+    whenToUse: 'Use this only after a repair has landed or GitHub has rerun the checks.',
+    command: input.refreshPullRequestUrl,
+    requiresOperatorApproval: true,
+    mutatesExternalSystemsIfRun: false,
+    mutatesLocalFilesIfRun: false,
+  };
+  const waitOption: PullRequestRepairDecisionOption = {
+    id: 'wait_for_manual_repair',
+    label: 'Wait For Manual Repair',
+    description: 'Keep the task blocked and show the operator what proof is needed next.',
+    whenToUse: 'Use this when the operator will fix the dependency or workflow state outside Symphony first.',
+    command: null,
+    requiresOperatorApproval: true,
+    mutatesExternalSystemsIfRun: false,
+    mutatesLocalFilesIfRun: false,
+  };
+
+  if (blocker.category === 'workflow_setup') {
+    // A shared setup failure is an operator routing decision, not automatic
+    // Jules feedback. This packet keeps all available paths visible while
+    // preserving the rule that Symphony must not mutate GitHub or local files
+    // just to explain a blocker.
+    return {
+      status: 'needs_operator_decision',
+      category: blocker.category,
+      handoffId: input.handoffId,
+      generatedAt,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+      question: 'The PR checks failed during shared dependency setup. Should Symphony create a separate setup repair task, send Jules feedback, or wait for a manual dependency repair?',
+      plainLanguageSummary: blocker.summary,
+      evidence: blocker.evidence,
+      recommendedFirstStep: 'Inspect the failed GitHub check logs and confirm whether the package lockfile, workflow runtime, or Jules branch caused the install failure.',
+      options: [
+        {
+          id: 'create_setup_repair_task',
+          label: 'Create Setup Repair Task',
+          description: 'Track the dependency-lock or install-environment repair as its own bounded task before judging Jules code.',
+          whenToUse: 'Use this when the logs show npm install or npm ci fails before tests can run.',
+          command: null,
+          requiresOperatorApproval: true,
+          mutatesExternalSystemsIfRun: true,
+          mutatesLocalFilesIfRun: false,
+        },
+        {
+          id: 'send_jules_feedback',
+          label: 'Send Jules Feedback',
+          description: 'Post an explicit [Jules feedback] PR comment that asks Jules to repair the branch.',
+          whenToUse: 'Use this only if the setup failure belongs to Jules changes in the PR branch, not to the shared base or workflow config.',
+          command: input.julesFeedbackCommand,
+          requiresOperatorApproval: true,
+          mutatesExternalSystemsIfRun: true,
+          mutatesLocalFilesIfRun: false,
+        },
+        waitOption,
+        refreshOption,
+      ],
+      nextExpectedProof: 'A chosen repair lane, then a refreshed PR check packet showing whether setup now passes.',
+    };
+  }
+
+  if (blocker.category === 'workflow_config') {
+    return {
+      status: 'needs_operator_decision',
+      category: blocker.category,
+      handoffId: input.handoffId,
+      generatedAt,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+      question: 'A workflow or review automation check failed. Should Symphony route a workflow-config repair before asking Jules to change task code?',
+      plainLanguageSummary: blocker.summary,
+      evidence: blocker.evidence,
+      recommendedFirstStep: 'Inspect the workflow configuration and failed automation logs before sending implementation feedback.',
+      options: [
+        {
+          id: 'fix_workflow_config',
+          label: 'Fix Workflow Config',
+          description: 'Create or run a separate workflow-configuration repair task.',
+          whenToUse: 'Use this when the failed check names or logs point at CI/review configuration rather than task code.',
+          command: null,
+          requiresOperatorApproval: true,
+          mutatesExternalSystemsIfRun: true,
+          mutatesLocalFilesIfRun: true,
+        },
+        waitOption,
+        refreshOption,
+      ],
+      nextExpectedProof: 'A workflow-config repair proof, then a refreshed PR check packet.',
+    };
+  }
+
+  return {
+    status: 'needs_operator_decision',
+    category: blocker.category,
+    handoffId: input.handoffId,
+    generatedAt,
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    question: 'GitHub checks are failing. Should the repair go to Jules, a local setup task, or a workflow configuration task?',
+    plainLanguageSummary: blocker.summary,
+    evidence: blocker.evidence,
+    recommendedFirstStep: 'Inspect failed check logs and choose the smallest repair lane that matches the evidence.',
+    options: [
+      {
+        id: 'send_jules_feedback',
+        label: 'Send Jules Feedback',
+        description: 'Post an explicit [Jules feedback] PR comment that asks Jules to repair the implementation.',
+        whenToUse: 'Use this when logs show a failure in the files Jules changed or in the requested test behavior.',
+        command: input.julesFeedbackCommand,
+        requiresOperatorApproval: true,
+        mutatesExternalSystemsIfRun: true,
+        mutatesLocalFilesIfRun: false,
+      },
+      {
+        id: 'create_setup_repair_task',
+        label: 'Create Setup Repair Task',
+        description: 'Track a setup/dependency repair separately.',
+        whenToUse: 'Use this when checks fail before the implementation or tests run.',
+        command: null,
+        requiresOperatorApproval: true,
+        mutatesExternalSystemsIfRun: true,
+        mutatesLocalFilesIfRun: false,
+      },
+      waitOption,
+      refreshOption,
+    ],
+    nextExpectedProof: 'A chosen repair lane, then a refreshed PR check packet.',
+  };
+}
+
+export function selectJulesPullRequestFallback(input: {
+  handoffId: string;
+  title: string;
+  julesSessionId: string | null;
+  linearIssueIdentifier: string | null;
+  candidates: PullRequestDiscoveryCandidate[];
+  searchedAt?: string;
+}): PullRequestDiscoveryReceipt {
+  const searchedAt = input.searchedAt ?? new Date().toISOString();
+  const sessionId = normalizeDiscoveryToken(input.julesSessionId);
+  const linearId = normalizeDiscoveryToken(input.linearIssueIdentifier);
+  const titleTokens = normalizeDiscoveryText(input.title)
+    .split(/\s+/)
+    .filter(token => token.length >= 5)
+    .slice(0, 8);
+
+  const matches = input.candidates
+    .map(candidate => {
+      const haystack = normalizeDiscoveryText([
+        candidate.url,
+        candidate.title,
+        candidate.headRefName,
+        candidate.baseRefName,
+      ].filter(Boolean).join(' '));
+      const matchedBy: string[] = [];
+
+      if (sessionId && haystack.includes(sessionId)) {
+        matchedBy.push('jules_session_id');
+      }
+
+      if (linearId && haystack.includes(linearId)) {
+        matchedBy.push('linear_issue_identifier');
+      }
+
+      const titleTokenHits = titleTokens.filter(token => haystack.includes(token));
+      if (!sessionId && titleTokenHits.length >= 4) {
+        matchedBy.push('handoff_title');
+      }
+
+      return { candidate, matchedBy };
+    })
+    .filter(match => match.matchedBy.length > 0 && typeof match.candidate.url === 'string');
+
+  if (matches.length === 1) {
+    const match = matches[0];
+    const candidate = match.candidate;
+    const by = orderDiscoveryReasons(match.matchedBy);
+    return {
+      status: 'matched',
+      source: 'github_pr_list',
+      handoffId: input.handoffId,
+      searchedAt,
+      candidatesChecked: input.candidates.length,
+      matchedBy: by,
+      url: candidate.url ?? null,
+      title: candidate.title ?? null,
+      headRefName: candidate.headRefName ?? null,
+      state: candidate.state ?? null,
+      summary: `Matched GitHub PR by ${by.join(', ')} after checking ${input.candidates.length} candidate(s).`,
+      mutatesExternalSystems: false,
+    };
+  }
+
+  const status = matches.length > 1 ? 'ambiguous' : 'not_found';
+  return {
+    status,
+    source: 'github_pr_list',
+    handoffId: input.handoffId,
+    searchedAt,
+    candidatesChecked: input.candidates.length,
+    matchedBy: [],
+    url: null,
+    title: null,
+    headRefName: null,
+    state: null,
+    summary: status === 'ambiguous'
+      ? `Found ${matches.length} possible GitHub PRs; Symphony will not guess which PR belongs to this Jules handoff.`
+      : `No matching GitHub PR found after checking ${input.candidates.length} candidate(s).`,
+    mutatesExternalSystems: false,
+  };
+}
+
+export function selectJulesApiPullRequestOutput(input: {
+  handoffId: string;
+  session: JulesApiSession | null;
+  searchedAt?: string;
+}): PullRequestDiscoveryReceipt {
+  const searchedAt = input.searchedAt ?? new Date().toISOString();
+  const outputs = Array.isArray(input.session?.outputs) ? input.session.outputs : [];
+  const pullRequests = outputs
+    .map(output => output.pullRequest)
+    .filter((pullRequest): pullRequest is NonNullable<JulesApiSessionOutput['pullRequest']> => Boolean(pullRequest?.url));
+
+  if (pullRequests.length === 1) {
+    const pr = pullRequests[0];
+    return {
+      status: 'matched',
+      source: 'jules_api_session',
+      handoffId: input.handoffId,
+      searchedAt,
+      candidatesChecked: outputs.length,
+      matchedBy: ['jules_api_output'],
+      url: pr.url ?? null,
+      title: pr.title ?? null,
+      headRefName: pr.headRef ?? null,
+      state: input.session?.state ?? null,
+      summary: `Matched GitHub PR from Jules API session output after checking ${outputs.length} output item(s).`,
+      mutatesExternalSystems: false,
+    };
+  }
+
+  const status = pullRequests.length > 1 ? 'ambiguous' : 'not_found';
+  return {
+    status,
+    source: 'jules_api_session',
+    handoffId: input.handoffId,
+    searchedAt,
+    candidatesChecked: outputs.length,
+    matchedBy: [],
+    url: null,
+    title: null,
+    headRefName: null,
+    state: input.session?.state ?? null,
+    summary: status === 'ambiguous'
+      ? `Jules API returned ${pullRequests.length} PR outputs; Symphony will not guess which one owns this handoff.`
+      : `Jules API session ${input.session?.id ?? input.session?.name ?? 'unknown'} did not include a pull request output.`,
+    mutatesExternalSystems: false,
+  };
 }
 
 interface JulesManifestTask {
@@ -974,6 +1267,7 @@ interface PullRequestCheckSummary {
   unknown: number;
   conclusion: 'passing' | 'failing' | 'pending' | 'unknown';
   artifacts: PullRequestCheckArtifact[];
+  blockers: PullRequestCheckBlocker[];
 }
 
 interface PullRequestCheckArtifact {
@@ -981,6 +1275,95 @@ interface PullRequestCheckArtifact {
   artifactName: string;
   detailsUrl: string | null;
   summary: string;
+}
+
+interface PullRequestCheckBlocker {
+  category: 'workflow_setup' | 'workflow_config' | 'jules_implementation' | 'unknown';
+  severity: 'blocking' | 'advisory';
+  checkNames: string[];
+  evidence: string[];
+  summary: string;
+  nextAction: string;
+  mutatesExternalSystems: false;
+}
+
+export interface PullRequestRepairDecisionPacket {
+  status: 'not_needed' | 'needs_operator_decision';
+  category: PullRequestCheckBlocker['category'] | null;
+  handoffId: string;
+  generatedAt: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  question: string;
+  plainLanguageSummary: string;
+  evidence: string[];
+  recommendedFirstStep: string;
+  options: PullRequestRepairDecisionOption[];
+  nextExpectedProof: string;
+}
+
+export interface PullRequestRepairDecisionOption {
+  id:
+    | 'create_setup_repair_task'
+    | 'send_jules_feedback'
+    | 'fix_workflow_config'
+    | 'wait_for_manual_repair'
+    | 'refresh_after_repair';
+  label: string;
+  description: string;
+  whenToUse: string;
+  command: string | null;
+  requiresOperatorApproval: true;
+  mutatesExternalSystemsIfRun: boolean;
+  mutatesLocalFilesIfRun: boolean;
+}
+
+export interface DelegationRoiLedger {
+  status: 'roi_unknown' | 'candidate_savings' | 'not_delegated';
+  generatedAt: string;
+  handoffId: string;
+  summary: string;
+  verdict: string;
+  separatesMeasuredFactsFromEstimates: true;
+  measuredFacts: DelegationRoiMeasuredFacts;
+  estimatedAvoidedCodexWork: DelegationRoiEstimate;
+  workflowValueSignals: DelegationRoiWorkflowSignals;
+}
+
+export interface DelegationRoiMeasuredFacts {
+  codexTokens: {
+    input: number | null;
+    output: number | null;
+    total: number | null;
+    source: 'missing' | 'codex_totals' | 'worker_roster' | 'retained_usage';
+  };
+  codexActiveRuntimeSeconds: number | null;
+  codexForemanEventCount: number;
+  julesElapsedSeconds: number | null;
+  githubElapsedSeconds: number | null;
+  humanInterventionCount: number;
+  localCodexEditedProductionFiles: boolean | null;
+  dataSources: string[];
+}
+
+export interface DelegationRoiEstimate {
+  status: 'missing_estimate' | 'documented_estimate';
+  estimatedLocalCodexImplementationTurns: number | null;
+  estimatedLocalCodexTokens: number | null;
+  estimatedDebuggingCycles: number | null;
+  confidence: 'missing' | 'low' | 'medium' | 'high';
+  method: string | null;
+  caveats: string[];
+}
+
+export interface DelegationRoiWorkflowSignals {
+  delegatedToJules: boolean;
+  julesProducedPullRequest: boolean;
+  prStayedWithinDeclaredScope: boolean | null;
+  codexAvoidedLocalImplementation: boolean | null;
+  humanInterventionsNeeded: number;
+  stalledBecause: 'none' | 'ci_setup' | 'workflow_config' | 'jules_implementation' | 'unclear_handoff' | 'unknown';
+  pullRequestUrl: string | null;
 }
 
 interface PullRequestFileSummary {
@@ -1063,6 +1446,53 @@ interface GitHubPullRequestView {
     conclusion?: string;
     detailsUrl?: string;
   }>;
+}
+
+export interface PullRequestDiscoveryCandidate {
+  number?: number;
+  url?: string;
+  title?: string;
+  headRefName?: string;
+  baseRefName?: string;
+  state?: string;
+  isDraft?: boolean;
+  updatedAt?: string;
+}
+
+export interface PullRequestDiscoveryReceipt {
+  status: 'matched' | 'not_found' | 'ambiguous';
+  source: 'github_pr_list' | 'jules_api_session';
+  handoffId: string;
+  searchedAt: string;
+  candidatesChecked: number;
+  matchedBy: string[];
+  url: string | null;
+  title: string | null;
+  headRefName: string | null;
+  state: string | null;
+  summary: string;
+  mutatesExternalSystems: false;
+}
+
+export interface JulesApiSessionOutput {
+  pullRequest?: {
+    url?: string;
+    title?: string;
+    description?: string;
+    baseRef?: string;
+    headRef?: string;
+  };
+  changeSet?: unknown;
+}
+
+export interface JulesApiSession {
+  id?: string;
+  name?: string;
+  title?: string;
+  state?: string;
+  url?: string;
+  updateTime?: string;
+  outputs?: JulesApiSessionOutput[];
 }
 
 interface GitHubPullRequestComment {
@@ -1209,7 +1639,7 @@ export class TaskIntakeStore {
     // blocked Git/Jules/GitHub boundary.
     return {
       drafts: this.applyPreflightStatus(stored.drafts, preflight),
-      handoffs: this.applyHandoffPreflightStatus(stored.handoffs, preflight),
+      handoffs: this.applyHandoffPreflightStatus(stored.handoffs, preflight, stored.taskNudges),
       preflight,
       gitDisposition,
       gitSyncPlan: buildGitSyncPlan(preflight, gitDisposition),
@@ -1343,6 +1773,8 @@ export class TaskIntakeStore {
       githubPullRequestFiles: null,
       githubPullRequestFeedback: null,
       githubPullRequestNextAction: null,
+      githubPullRequestRepairDecision: null,
+      delegationRoiLedger: null,
       githubPullRequestRefreshError: null,
       lastPullRequestRefreshAt: null,
       pullRequestViewCommand: null,
@@ -1714,6 +2146,80 @@ export class TaskIntakeStore {
     return this.buildSnapshotFromStored(stored, preflight);
   }
 
+  private async discoverPullRequestForHandoff(handoff: JulesHandoff, searchedAt: string): Promise<PullRequestDiscoveryReceipt> {
+    // Jules can create a PR even when the local records file never receives a
+    // pullRequestUrl. This fallback keeps Symphony's foreman state honest by
+    // reading GitHub's PR list and matching only on strong task evidence.
+    const result = await execFileAsync(
+      'gh',
+      [
+        'pr',
+        'list',
+        '--state',
+        'all',
+        '--limit',
+        '100',
+        '--json',
+        'number,url,title,headRefName,baseRefName,state,isDraft,updatedAt',
+      ],
+      {
+        cwd: this.repoRoot,
+        timeout: 60_000,
+        maxBuffer: 2 * 1024 * 1024,
+      }
+    );
+    const candidates = JSON.parse(result.stdout) as PullRequestDiscoveryCandidate[];
+    return selectJulesPullRequestFallback({
+      handoffId: handoff.id,
+      title: handoff.title,
+      julesSessionId: handoff.julesSessionId,
+      linearIssueIdentifier: handoff.linearIssueIdentifier,
+      candidates,
+      searchedAt,
+    });
+  }
+
+  private async discoverPullRequestFromJulesApi(handoff: JulesHandoff, searchedAt: string): Promise<PullRequestDiscoveryReceipt | null> {
+    const apiKey = process.env.JULES_API_KEY;
+    if (!apiKey || !handoff.julesSessionId) {
+      return null;
+    }
+
+    // The official Jules API is the first reconciliation source because it can
+    // report completed session outputs even when the local .jules records file
+    // missed pullRequestUrl. Keep the key only in the request header and store
+    // a redacted, read-only receipt for dashboard evidence.
+    const response = await fetch(`https://jules.googleapis.com/v1alpha/sessions/${encodeURIComponent(handoff.julesSessionId)}`, {
+      headers: {
+        'x-goog-api-key': apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        status: 'not_found',
+        source: 'jules_api_session',
+        handoffId: handoff.id,
+        searchedAt,
+        candidatesChecked: 0,
+        matchedBy: [],
+        url: null,
+        title: null,
+        headRefName: null,
+        state: null,
+        summary: `Jules API session lookup returned HTTP ${response.status}.`,
+        mutatesExternalSystems: false,
+      };
+    }
+
+    const session = await response.json() as JulesApiSession;
+    return selectJulesApiPullRequestOutput({
+      handoffId: handoff.id,
+      session,
+      searchedAt,
+    });
+  }
+
   async refreshPullRequestStatus(handoffId: string): Promise<TaskDraftSnapshot> {
     const stored = await this.readStoredDrafts();
     const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
@@ -1721,14 +2227,78 @@ export class TaskIntakeStore {
       throw new Error(`Handoff ${handoffId} was not found.`);
     }
 
-    const handoff = stored.handoffs[handoffIndex];
-    const prUrl = handoff.githubPullRequestUrl;
-    if (!prUrl) {
-      throw new Error(`Handoff ${handoffId} does not have a GitHub PR URL yet.`);
-    }
-
     const now = new Date().toISOString();
     const preflight = await this.runGitSyncPreflight();
+    const handoff = stored.handoffs[handoffIndex];
+    let prUrl = handoff.githubPullRequestUrl;
+    let discovery = handoff.githubPullRequestDiscovery ?? null;
+
+    if (!prUrl && handoff.julesSessionId) {
+      try {
+        const apiDiscovery = await this.discoverPullRequestFromJulesApi(handoff, now);
+        if (apiDiscovery) {
+          discovery = apiDiscovery;
+          if (apiDiscovery.status === 'matched' && apiDiscovery.url) {
+            prUrl = apiDiscovery.url;
+          }
+        }
+      } catch (err) {
+        const failed = err as Error;
+        discovery = {
+          status: 'not_found',
+          source: 'jules_api_session',
+          handoffId: handoff.id,
+          searchedAt: now,
+          candidatesChecked: 0,
+          matchedBy: [],
+          url: null,
+          title: null,
+          headRefName: null,
+          state: null,
+          summary: failed.message,
+          mutatesExternalSystems: false,
+        };
+      }
+    }
+
+    if (!prUrl && handoff.julesSessionId) {
+      try {
+        discovery = await this.discoverPullRequestForHandoff(handoff, now);
+        if (discovery.status === 'matched' && discovery.url) {
+          prUrl = discovery.url;
+        }
+      } catch (err) {
+        const failed = err as Error & { stdout?: string; stderr?: string };
+        discovery = {
+          status: 'not_found',
+          source: 'github_pr_list',
+          handoffId: handoff.id,
+          searchedAt: now,
+          candidatesChecked: 0,
+          matchedBy: [],
+          url: null,
+          title: null,
+          headRefName: null,
+          state: null,
+          summary: failed.stderr || failed.stdout || failed.message,
+          mutatesExternalSystems: false,
+        };
+      }
+    }
+
+    if (!prUrl) {
+      stored.handoffs[handoffIndex] = {
+        ...handoff,
+        updatedAt: now,
+        gitPreflight: preflight,
+        githubPullRequestDiscovery: discovery,
+        githubPullRequestRefreshError: discovery?.summary ?? `Handoff ${handoffId} does not have a GitHub PR URL yet.`,
+        lastPullRequestRefreshAt: now,
+      };
+      await this.writeStoredDrafts(stored);
+      throw new Error(discovery?.summary ?? `Handoff ${handoffId} does not have a GitHub PR URL yet.`);
+    }
+
     const commands = buildPullRequestCommands(prUrl, this.baseBranch);
     const julesFeedbackCommand = buildPullRequestFeedbackCommand(prUrl, handoff.id);
 
@@ -1752,6 +2322,18 @@ export class TaskIntakeStore {
       const pullRequestChecks = summarizePullRequestChecks(pr.statusCheckRollup);
       const pullRequestFiles = summarizePullRequestFiles(pr, handoff.expectedFiles ?? []);
       const pullRequestFeedback = summarizePullRequestFeedback(pr);
+      const pullRequestNextAction = buildPullRequestNextAction({
+        state: pr.state ?? null,
+        isDraft: typeof pr.isDraft === 'boolean' ? pr.isDraft : null,
+        mergeable: pr.mergeable ?? null,
+        checks: pullRequestChecks,
+        files: pullRequestFiles,
+        scoutReviewCommand: commands.scoutReviewCommand,
+        julesFeedbackCommand,
+        coreValidationCommand: commands.coreValidationCommand,
+        coreMergeCommand: commands.coreMergeCommand,
+        refreshPullRequestUrl: null,
+      });
 
       // This is read-only PR tracking. It lets Symphony act as foreman after
       // Jules opens a PR: show checks and merge/local-sync readiness without
@@ -1771,16 +2353,13 @@ export class TaskIntakeStore {
         githubPullRequestChecks: pullRequestChecks,
         githubPullRequestFiles: pullRequestFiles,
         githubPullRequestFeedback: pullRequestFeedback,
-        githubPullRequestNextAction: buildPullRequestNextAction({
-          state: pr.state ?? null,
-          isDraft: typeof pr.isDraft === 'boolean' ? pr.isDraft : null,
-          mergeable: pr.mergeable ?? null,
+        githubPullRequestDiscovery: discovery,
+        githubPullRequestNextAction: pullRequestNextAction,
+        githubPullRequestRepairDecision: buildPullRequestRepairDecision({
+          handoffId: handoff.id,
           checks: pullRequestChecks,
-          files: pullRequestFiles,
-          scoutReviewCommand: commands.scoutReviewCommand,
+          nextAction: pullRequestNextAction,
           julesFeedbackCommand,
-          coreValidationCommand: commands.coreValidationCommand,
-          coreMergeCommand: commands.coreMergeCommand,
           refreshPullRequestUrl: null,
         }),
         githubPullRequestRefreshError: null,
@@ -1806,7 +2385,9 @@ export class TaskIntakeStore {
           coreMergeCommand: commands.coreMergeCommand,
           refreshPullRequestUrl: null,
         }),
+        githubPullRequestRepairDecision: null,
         githubPullRequestRefreshError: failed.stderr || failed.stdout || failed.message,
+        githubPullRequestDiscovery: discovery,
         lastPullRequestRefreshAt: now,
         ...commands,
       };
@@ -2103,7 +2684,7 @@ export class TaskIntakeStore {
 
     const afterStatusStore = await this.readStoredDrafts();
     for (const handoff of afterStatusStore.handoffs) {
-      if (!handoff.githubPullRequestUrl) continue;
+      if (!handoff.githubPullRequestUrl && !handoff.julesSessionId) continue;
 
       try {
         await this.refreshPullRequestStatus(handoff.id);
@@ -2571,7 +3152,8 @@ export class TaskIntakeStore {
 
   private applyHandoffPreflightStatus(
     handoffs: JulesHandoff[],
-    preflight: GitSyncPreflight
+    preflight: GitSyncPreflight,
+    taskNudges: TaskNudgeRecord[] = []
   ): JulesHandoff[] {
     return handoffs.map(handoff => {
       const normalizedHandoff = {
@@ -2583,46 +3165,55 @@ export class TaskIntakeStore {
         linearIssueUrl: handoff.linearIssueUrl ?? null,
         linearIssueCreatedAt: handoff.linearIssueCreatedAt ?? null,
         githubPullRequestNextAction: handoff.githubPullRequestNextAction ?? null,
+        githubPullRequestRepairDecision: handoff.githubPullRequestRepairDecision ?? null,
+        delegationRoiLedger: handoff.delegationRoiLedger ?? null,
       };
+      const withRoiLedger = (candidate: JulesHandoff): JulesHandoff => ({
+        ...candidate,
+        delegationRoiLedger: buildDelegationRoiLedger({
+          handoff: candidate,
+          taskNudges,
+        }),
+      });
 
       if (normalizedHandoff.status === 'observed_pr') {
-        return { ...normalizedHandoff, baseCommitDrift: null };
+        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
       if (normalizedHandoff.status === 'sent_to_jules' || normalizedHandoff.julesSessionId) {
-        return { ...normalizedHandoff, baseCommitDrift: null };
+        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
       if (!preflight.ok) {
-        return {
+        return withRoiLedger({
           ...normalizedHandoff,
           status: 'blocked_by_git_sync',
           baseCommitDrift: null,
-        };
+        });
       }
 
       const baseCommitDrift = this.buildBaseCommitDrift(normalizedHandoff, preflight);
       if (baseCommitDrift) {
-        return {
+        return withRoiLedger({
           ...normalizedHandoff,
           status: 'base_commit_stale',
           baseCommitDrift,
-        };
+        });
       }
 
       if (normalizedHandoff.status === 'launch_failed' || normalizedHandoff.status === 'status_refresh_failed') {
-        return { ...normalizedHandoff, baseCommitDrift: null };
+        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
       if (normalizedHandoff.status === 'manifest_ready') {
-        return { ...normalizedHandoff, baseCommitDrift: null };
+        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
-      return {
+      return withRoiLedger({
         ...normalizedHandoff,
         status: 'ready_for_jules',
         baseCommitDrift: null,
-      };
+      });
     });
   }
 
@@ -4309,6 +4900,8 @@ export function buildJulesManifestPreviewFromDraft(
     githubPullRequestFiles: null,
     githubPullRequestFeedback: null,
     githubPullRequestNextAction: null,
+    githubPullRequestRepairDecision: null,
+    delegationRoiLedger: null,
     githubPullRequestRefreshError: null,
     lastPullRequestRefreshAt: null,
     pullRequestViewCommand: null,
@@ -4468,6 +5061,8 @@ function buildObservedPullRequestHandoff(input: {
     githubPullRequestFiles: existing?.githubPullRequestFiles ?? null,
     githubPullRequestFeedback: existing?.githubPullRequestFeedback ?? null,
     githubPullRequestNextAction: existing?.githubPullRequestNextAction ?? null,
+    githubPullRequestRepairDecision: existing?.githubPullRequestRepairDecision ?? null,
+    delegationRoiLedger: existing?.delegationRoiLedger ?? null,
     githubPullRequestRefreshError: existing?.githubPullRequestRefreshError ?? null,
     lastPullRequestRefreshAt: existing?.lastPullRequestRefreshAt ?? null,
     ...commands,
@@ -4568,6 +5163,20 @@ function extractPullRequestNumber(prUrl: string | null): string | null {
 function extractPullRequestRepository(prUrl: string | null): string | null {
   const match = String(prUrl ?? '').match(/^https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/pull\/\d+$/i);
   return match?.[1] ?? null;
+}
+
+function normalizeDiscoveryToken(value: string | null | undefined): string | null {
+  const normalized = normalizeDiscoveryText(value ?? '');
+  return normalized || null;
+}
+
+function normalizeDiscoveryText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function orderDiscoveryReasons(reasons: string[]): string[] {
+  const order = ['jules_session_id', 'linear_issue_identifier', 'handoff_title'];
+  return order.filter(reason => reasons.includes(reason));
 }
 
 function buildUnknownGitPreflight(now: string, baseBranch: string): GitSyncPreflight {
@@ -4694,6 +5303,7 @@ export function summarizePullRequestChecks(
   let skipped = 0;
   let unknown = 0;
   const artifacts: PullRequestCheckArtifact[] = [];
+  const failedChecks: Array<{ name: string; detailsUrl: string | null }> = [];
 
   for (const check of checks) {
     const name = String(check.name ?? '');
@@ -4701,7 +5311,13 @@ export function summarizePullRequestChecks(
     const status = String(check.status ?? '').toUpperCase();
 
     if (['SUCCESS', 'PASSED'].includes(conclusion)) passed += 1;
-    else if (['FAILURE', 'FAILED', 'CANCELLED', 'TIMED_OUT', 'ACTION_REQUIRED'].includes(conclusion)) failed += 1;
+    else if (['FAILURE', 'FAILED', 'CANCELLED', 'TIMED_OUT', 'ACTION_REQUIRED'].includes(conclusion)) {
+      failed += 1;
+      failedChecks.push({
+        name: name || '(unnamed check)',
+        detailsUrl: typeof check.detailsUrl === 'string' && check.detailsUrl ? check.detailsUrl : null,
+      });
+    }
     else if (['SKIPPED', 'NEUTRAL'].includes(conclusion)) skipped += 1;
     else if (['QUEUED', 'IN_PROGRESS', 'PENDING', 'REQUESTED', 'WAITING'].includes(status)) pending += 1;
     else unknown += 1;
@@ -4733,7 +5349,63 @@ export function summarizePullRequestChecks(
           ? 'passing'
           : 'unknown',
     artifacts,
+    blockers: classifyPullRequestCheckBlockers(failedChecks),
   };
+}
+
+function classifyPullRequestCheckBlockers(
+  failedChecks: Array<{ name: string; detailsUrl: string | null }>
+): PullRequestCheckBlocker[] {
+  if (failedChecks.length === 0) return [];
+
+  const failedNames = failedChecks.map(check => check.name);
+  const normalizedNames = failedNames.map(name => name.toLowerCase());
+  const hasBuild = normalizedNames.some(name => /build/.test(name));
+  const hasLint = normalizedNames.some(name => /lint/.test(name));
+  const hasTests = normalizedNames.some(name => /test/.test(name));
+  const hasQuality = normalizedNames.some(name => /quality/.test(name));
+  const hasReviewConfig = normalizedNames.some(name => /gemini|review/.test(name));
+
+  if (hasBuild && hasLint && hasTests && hasQuality) {
+    // When every npm-dependent CI lane fails together, the first useful
+    // foreman action is log inspection for a shared setup/install problem.
+    // This is a classification hint, not a proof of root cause; the details
+    // links stay attached so a worker can verify the exact failing command.
+    return [{
+      category: 'workflow_setup',
+      severity: 'blocking',
+      checkNames: failedNames,
+      evidence: failedChecks
+        .map(check => check.detailsUrl ? `${check.name}: ${check.detailsUrl}` : check.name),
+      summary: 'Build, lint, tests, and advisory quality scan failed together, which points first at a shared setup or dependency-install step.',
+      nextAction: 'Inspect the failed check logs for the shared setup/install command before sending Jules implementation feedback.',
+      mutatesExternalSystems: false,
+    }];
+  }
+
+  if (hasReviewConfig) {
+    return [{
+      category: 'workflow_config',
+      severity: 'blocking',
+      checkNames: failedNames,
+      evidence: failedChecks
+        .map(check => check.detailsUrl ? `${check.name}: ${check.detailsUrl}` : check.name),
+      summary: 'A review or automation check failed in a way that may belong to workflow configuration rather than the Jules code change.',
+      nextAction: 'Inspect the review check configuration and logs before asking Jules to change task code.',
+      mutatesExternalSystems: false,
+    }];
+  }
+
+  return [{
+    category: 'unknown',
+    severity: 'blocking',
+    checkNames: failedNames,
+    evidence: failedChecks
+      .map(check => check.detailsUrl ? `${check.name}: ${check.detailsUrl}` : check.name),
+    summary: 'GitHub checks are failing, but Symphony cannot classify the owner from check names alone.',
+    nextAction: 'Inspect failed check logs, then decide whether the fix belongs to Jules implementation, CI setup, or workflow configuration.',
+    mutatesExternalSystems: false,
+  }];
 }
 
 export function summarizePullRequestFiles(pr: GitHubPullRequestView, expectedFiles: string[] = []): PullRequestFileSummary {

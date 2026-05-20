@@ -8,7 +8,7 @@
  */
 
 import { getDefaultClient } from './ollama/client';
-import type { OllamaResult } from './ollama';
+import type { OllamaResult, TaskType, ModelParams } from './ollama';
 
 // Types matching Gemini service interface
 export interface OllamaTextData {
@@ -29,57 +29,44 @@ export interface StandardizedResult<T> {
   };
 }
 
-// Types are defined above
-
 /**
  * Generate text using Ollama with standardized error handling.
+ *
+ * Routes by TaskType so each narrative call gets the model/params matched to
+ * its category (see docs/ai/local-llm-model-routing.md). Per-call overrides
+ * are accepted for cases where the caller needs to tune sampling.
  */
 async function generateText(
+  taskType: TaskType,
   prompt: string,
   systemInstruction: string | undefined,
-  functionName: string,
-  temperature: number = 0.7,
-  maxTokens: number = 256
+  overrides?: ModelParams
 ): Promise<StandardizedResult<OllamaTextData>> {
   try {
     const client = getDefaultClient();
-    const model = await client.getModel();
-
-    if (!model) {
-      return {
-        success: false,
-        error: 'No Ollama model available',
-        metadata: {
-          promptSent: prompt,
-          rawResponse: 'No Ollama model available',
-          rateLimitHit: false
-        }
-      };
-    }
 
     // Combine system instruction with prompt if provided
     const fullPrompt = systemInstruction
       ? `${systemInstruction}\n\n${prompt}`
       : prompt;
 
-    const result = await client.generate({
-      model,
+    const result = await client.generateForTask({
+      taskType,
       prompt: fullPrompt,
-      temperature,
-      numPredict: maxTokens
+      overrides
     });
 
     if (!result.ok) {
-      // DEBT: Cast to any to probe dynamic error property from client result without full schema mapping.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const anyResult = result as any;
+      const errorMessage = result.error === 'NO_MODEL'
+        ? 'No Ollama model available'
+        : result.error;
       return {
         success: false,
-        error: anyResult.error,
+        error: errorMessage,
         data: null,
         metadata: {
           promptSent: prompt,
-          rawResponse: anyResult.error,
+          rawResponse: errorMessage,
           rateLimitHit: false
         }
       };
@@ -135,7 +122,7 @@ ${context}
 - Integration: If the Context mentions weather or time, weave it into the description.
 - Brevity: Limit response to 2-3 evocative sentences. Avoid flowery filler.`;
 
-  return await generateText(prompt, systemInstruction, 'generateLocationDescription', 0.8, 150);
+  return await generateText('location_description', prompt, systemInstruction);
 }
 
 /**
@@ -162,7 +149,7 @@ ${playerContext}
 ## TASK
 Describe the wilderness the player is currently in, focusing on immediate sights, sounds, and smells. Keep it to 2-3 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateWildernessLocationDescription', 0.8, 150);
+  return await generateText('wilderness_description', prompt, systemInstruction);
 }
 
 /**
@@ -181,7 +168,7 @@ NPC Context: ${npcContext}
 
 Respond in-character in 1-2 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateNPCResponse', 0.9, 100);
+  return await generateText('npc_dialogue', prompt, systemInstruction);
 }
 
 /**
@@ -197,7 +184,7 @@ export async function generateActionOutcome(
 Context: ${context}
 Outcome:`;
 
-  return await generateText(prompt, systemInstruction, 'generateActionOutcome', 0.8, 120);
+  return await generateText('action_outcome', prompt, systemInstruction);
 }
 
 /**
@@ -211,7 +198,7 @@ export async function generateDynamicEvent(
   const prompt = `Context: ${context}
 Generate a short dynamic event in 1-2 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateDynamicEvent', 0.8, 100);
+  return await generateText('dynamic_event', prompt, systemInstruction);
 }
 
 /**
@@ -225,7 +212,7 @@ export async function generateOracleResponse(
   const prompt = `Context: ${context}
 Provide an oracle's cryptic guidance in 1-2 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateOracleResponse', 0.9, 120);
+  return await generateText('oracle_response', prompt, systemInstruction);
 }
 
 /**
@@ -245,7 +232,7 @@ ${context ? `Context: ${context}` : ''}
 
 Provide only the name, nothing else.`;
 
-  return await generateText(prompt, systemInstruction, 'generateCharacterName', 0.7, 50);
+  return await generateText('name_generation', prompt, systemInstruction);
 }
 
 /**
@@ -271,7 +258,7 @@ Context: ${context}
 
 Describe what the player discovers upon close inspection in 2-3 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateTileInspectionDetails', 0.8, 150);
+  return await generateText('tile_inspection', prompt, systemInstruction);
 }
 
 /**
@@ -288,7 +275,7 @@ Difficulty: ${difficulty}
 
 Generate a combat encounter description in 2-3 sentences. Include what the player encounters and any immediate tactical considerations.`;
 
-  return await generateText(prompt, systemInstruction, 'generateEncounter', 0.8, 200);
+  return await generateText('encounter_description', prompt, systemInstruction);
 }
 
 /**
@@ -305,7 +292,7 @@ Available Standard Actions: ${availableActions.join(', ')}
 
 Suggest 2-3 creative custom actions the player could take. Each action should be 1 sentence describing what the player does.`;
 
-  return await generateText(prompt, systemInstruction, 'generateCustomActions', 0.9, 200);
+  return await generateText('custom_action_suggestions', prompt, systemInstruction);
 }
 
 /**
@@ -324,7 +311,7 @@ DC: ${dc}
 
 Describe the outcome of this social interaction in 2-3 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateSocialCheckOutcome', 0.8, 150);
+  return await generateText('social_check_outcome', prompt, systemInstruction);
 }
 
 /**
@@ -343,7 +330,7 @@ Fact to rephrase: ${fact}
 
 Rephrase this as gossip spoken by ${npcName} in 1-2 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'rephraseFactForGossip', 0.9, 120);
+  return await generateText('gossip', prompt, systemInstruction);
 }
 
 /**
@@ -358,7 +345,7 @@ export async function generateSituationAnalysis(
 
 Provide a brief situational analysis and one suggested next action.`;
 
-  return await generateText(prompt, systemInstruction, 'generateSituationAnalysis', 0.7, 100);
+  return await generateText('situation_analysis', prompt, systemInstruction);
 }
 
 /**
@@ -375,7 +362,7 @@ Action: ${actionDescription}
 
 Describe what the player harvests or finds in 2-3 sentences. Include specific items found and their condition.`;
 
-  return await generateText(prompt, systemInstruction, 'generateHarvestLoot', 0.8, 150);
+  return await generateText('harvest_loot', prompt, systemInstruction);
 }
 
 /**
@@ -397,5 +384,5 @@ Player Context: ${playerContext}
 
 Provide guidance as an NPC mentor in 2-3 sentences.`;
 
-  return await generateText(prompt, systemInstruction, 'generateGuideResponse', 0.8, 150);
+  return await generateText('guide_response', prompt, systemInstruction);
 }

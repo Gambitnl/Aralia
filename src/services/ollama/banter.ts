@@ -311,8 +311,6 @@ export async function generateBanter(
     contextData: BanterContext,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<BanterDefinition>> {
-    // Use leeplenty/ellaria specifically for banter (better at creative dialogue)
-    const model = 'leeplenty/ellaria';
     const isAvailable = await client.isAvailable();
     if (!isAvailable) {
         return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
@@ -320,16 +318,21 @@ export async function generateBanter(
 
     const prompt = buildBanterPrompt(participants, contextData);
 
-    const result = await client.generate({
-        model,
+    // Route via companion_banter profile; full definition needs more tokens than per-line.
+    const result = await client.generateForTask({
+        taskType: 'companion_banter',
         prompt,
-        format: 'json',
-        temperature: 0.8,
-        numPredict: 512
+        overrides: { numPredict: 512 }
     });
 
     if (!result.ok) {
-        // Check if it's a timeout error (fetchWithTimeout includes elapsed time in the message).
+        const model = result.model ?? 'unresolved';
+        if (result.error === 'NO_MODEL') {
+            return client.createErrorResult(
+                { type: 'NETWORK_ERROR', message: 'No Ollama model available for companion_banter' },
+                { prompt, model }
+            );
+        }
         if (result.error.toLowerCase().includes('timed out')) {
             return client.createErrorResult(
                 { type: 'TIMEOUT', message: result.error },
@@ -338,6 +341,8 @@ export async function generateBanter(
         }
         return client.createNetworkError(result.error, prompt, model);
     }
+
+    const model = result.model;
 
     const metadata: OllamaMetadata = { prompt, response: result.data.response, model };
 
@@ -374,14 +379,20 @@ export async function generateBanterLine(
     onPending?: (id: string, prompt: string, model: string) => void,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<BanterLineData>> {
-    // Use leeplenty/ellaria specifically for banter (better at creative dialogue)
-    const model = 'leeplenty/ellaria';
     const isAvailable = await client.isAvailable();
     if (!isAvailable) {
         return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
     }
 
     const interactionId = Math.random().toString(36).substring(2, 15);
+
+    // Resolve the model up-front so onPending can report it.
+    const resolvedModel = await client.resolveModel('companion_banter');
+    if (!resolvedModel) {
+        return client.createErrorResult(
+            { type: 'NETWORK_ERROR', message: 'No Ollama model available for companion_banter' }
+        );
+    }
 
     // Determine who should speak next
     const lastSpeaker = conversationHistory[conversationHistory.length - 1]?.speakerId;
@@ -393,16 +404,18 @@ export async function generateBanterLine(
     const messages = buildBanterLinePrompt(participants, conversationHistory, contextData, turnNumber, nextSpeaker);
 
     if (onPending) {
-        onPending(interactionId, messages[0].content, model);
+        onPending(interactionId, messages[0].content, resolvedModel);
     }
 
-    const result = await client.chat({
-        model,
+    const result = await client.chatForTask({
+        taskType: 'companion_banter',
         messages,
-        format: 'json',
-        temperature: 0.7,
-        numPredict: 2048
+        // Per-line turn responses can run longer than the profile's 80 default;
+        // honour the prior 2048 ceiling so verbose models don't truncate mid-line.
+        overrides: { numPredict: 2048, temperature: 0.7 }
     });
+
+    const model = result.ok ? result.model : (result.model ?? resolvedModel);
 
     if (!result.ok) {
         return client.createNetworkError(result.error, messages[0].content, model, interactionId);
@@ -471,10 +484,16 @@ export async function generatePlayerDirectedLine(
     onPending?: (id: string, prompt: string, model: string) => void,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<BanterLineData>> {
-    const model = 'leeplenty/ellaria';
     const isAvailable = await client.isAvailable();
     if (!isAvailable) {
         return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
+    }
+
+    const resolvedModel = await client.resolveModel('companion_banter');
+    if (!resolvedModel) {
+        return client.createErrorResult(
+            { type: 'NETWORK_ERROR', message: 'No Ollama model available for companion_banter' }
+        );
     }
 
     const interactionId = Math.random().toString(36).substring(2, 15);
@@ -482,10 +501,16 @@ export async function generatePlayerDirectedLine(
     const messages = buildPlayerDirectedLinePrompt(npc, playerName, conversationHistory, context, turnNumber);
 
     if (onPending) {
-        onPending(interactionId, messages[0].content, model);
+        onPending(interactionId, messages[0].content, resolvedModel);
     }
 
-    const result = await client.chat({ model, messages, format: 'json', temperature: 0.75, numPredict: 2048 });
+    const result = await client.chatForTask({
+        taskType: 'companion_banter',
+        messages,
+        overrides: { numPredict: 2048, temperature: 0.75 }
+    });
+
+    const model = result.ok ? result.model : (result.model ?? resolvedModel);
 
     if (!result.ok) {
         return client.createNetworkError(result.error, messages[0].content, model, interactionId);
@@ -536,10 +561,16 @@ export async function generateEscalationLine(
     onPending?: (id: string, prompt: string, model: string) => void,
     client: OllamaClient = getDefaultClient()
 ): Promise<OllamaResult<BanterLineData>> {
-    const model = 'leeplenty/ellaria';
     const isAvailable = await client.isAvailable();
     if (!isAvailable) {
         return client.createErrorResult({ type: 'NETWORK_ERROR', message: 'Ollama service not available' });
+    }
+
+    const resolvedModel = await client.resolveModel('companion_banter_escalation');
+    if (!resolvedModel) {
+        return client.createErrorResult(
+            { type: 'NETWORK_ERROR', message: 'No Ollama model available for companion_banter_escalation' }
+        );
     }
 
     const interactionId = Math.random().toString(36).substring(2, 15);
@@ -547,10 +578,16 @@ export async function generateEscalationLine(
     const messages = buildEscalationLinePrompt(npc, playerName, conversationHistory, context, ignoreCount);
 
     if (onPending) {
-        onPending(interactionId, messages[0].content, model);
+        onPending(interactionId, messages[0].content, resolvedModel);
     }
 
-    const result = await client.chat({ model, messages, format: 'json', temperature: 0.8, numPredict: 2048 });
+    const result = await client.chatForTask({
+        taskType: 'companion_banter_escalation',
+        messages,
+        overrides: { numPredict: 2048, temperature: 0.8 }
+    });
+
+    const model = result.ok ? result.model : (result.model ?? resolvedModel);
 
     if (!result.ok) {
         return client.createNetworkError(result.error, messages[0].content, model, interactionId);

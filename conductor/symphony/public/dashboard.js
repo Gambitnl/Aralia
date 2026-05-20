@@ -3237,11 +3237,13 @@ function renderPullRequestReadiness(handoff) {
       </details>`
     : '';
   const checkArtifacts = renderPullRequestCheckArtifacts(checks);
+  const checkBlockers = renderPullRequestCheckBlockers(checks);
   const feedbackSummary = renderPullRequestFeedbackSummary(handoff.githubPullRequestFeedback);
   const error = handoff.githubPullRequestRefreshError
     ? `<p class="pr-error">${escapeHtml(handoff.githubPullRequestRefreshError)}</p>`
     : '';
   const nextAction = renderPullRequestNextAction(handoff.githubPullRequestNextAction);
+  const repairDecision = renderPullRequestRepairDecision(handoff.githubPullRequestRepairDecision);
   const lastRefresh = handoff.lastPullRequestRefreshAt
     ? `<small>Last PR refresh ${escapeHtml(formatTimestamp(handoff.lastPullRequestRefreshAt))}</small>`
     : '';
@@ -3254,13 +3256,45 @@ function renderPullRequestReadiness(handoff) {
     <p><a href="${escapeAttribute(handoff.githubPullRequestUrl || '#')}">${escapeHtml(handoff.githubPullRequestUrl || 'PR URL unavailable')}</a></p>
     ${error}
     ${nextAction}
+    ${repairDecision}
     <ul>${rows}</ul>
     ${riskReasons}
+    ${checkBlockers}
     ${checkArtifacts}
     ${feedbackSummary}
     ${outOfScopeList}
     ${riskyFileList}
   </div>`;
+}
+
+function renderPullRequestRepairDecision(packet) {
+  if (!packet || packet.status !== 'needs_operator_decision') return '';
+
+  const evidence = Array.isArray(packet.evidence) && packet.evidence.length
+    ? `<ul>${packet.evidence.slice(0, 8).map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+    : '';
+  const options = Array.isArray(packet.options) && packet.options.length
+    ? `<ul>${packet.options.map(option => `<li>
+        <strong>${escapeHtml(option.label || option.id || 'Repair option')}</strong>
+        <span>${escapeHtml(option.description || '')}</span>
+        <em>${escapeHtml(option.whenToUse || '')}</em>
+        ${option.command ? `<code>${escapeHtml(option.command)}</code>` : ''}
+        <small>Needs approval: ${option.requiresOperatorApproval ? 'yes' : 'unknown'} / external mutation if run: ${option.mutatesExternalSystemsIfRun ? 'yes' : 'no'} / local mutation if run: ${option.mutatesLocalFilesIfRun ? 'yes' : 'no'}</small>
+      </li>`).join('')}</ul>`
+    : '<p>No repair choices available yet.</p>';
+
+  // This panel is the human-friendly fork after a failed PR check. It turns
+  // "red checks" into an explicit routing decision without posting a PR comment,
+  // changing workflow files, or touching the local checkout on its own.
+  return `<details class="pr-repair-decision" open>
+    <summary>Repair decision needed</summary>
+    <p><strong>${escapeHtml(packet.question || 'Which repair lane should Symphony use?')}</strong></p>
+    <p>${escapeHtml(packet.plainLanguageSummary || '')}</p>
+    <p><em>${escapeHtml(packet.recommendedFirstStep || '')}</em></p>
+    ${evidence}
+    ${options}
+    <p><small>Packet is read-only: external mutation ${packet.mutatesExternalSystems === false ? 'no' : 'unknown'}, local mutation ${packet.mutatesLocalFiles === false ? 'no' : 'unknown'}. Next proof: ${escapeHtml(packet.nextExpectedProof || '')}</small></p>
+  </details>`;
 }
 
 function renderPullRequestFeedbackSummary(feedback) {
@@ -3300,6 +3334,29 @@ function renderPullRequestFeedbackSummary(feedback) {
       <strong>External review comments</strong>
       ${externalComments.length ? `<ul>${externalComments.slice(0, 8).map(renderComment).join('')}</ul>` : '<p>No external review comments captured.</p>'}
     </div>
+  </details>`;
+}
+
+function renderPullRequestCheckBlockers(checks) {
+  const blockers = Array.isArray(checks?.blockers) ? checks.blockers : [];
+  if (!blockers.length) return '';
+
+  // Check blockers translate raw GitHub failures into foreman-level ownership
+  // hints. They do not prove the root cause; they show the next safe evidence
+  // step before the operator asks Jules, CI, or workflow config to repair it.
+  return `<details class="check-blockers" open>
+    <summary>Check blocker classification</summary>
+    <ul>${blockers.map(blocker => {
+      const evidence = Array.isArray(blocker.evidence) && blocker.evidence.length
+        ? `<ul>${blocker.evidence.slice(0, 8).map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`
+        : '';
+      return `<li>
+        <strong>${escapeHtml(blocker.category || 'unknown')}</strong>
+        <span>${escapeHtml(blocker.summary || 'GitHub checks need review.')}</span>
+        <em>${escapeHtml(blocker.nextAction || 'Inspect failed check logs before choosing a repair path.')}</em>
+        ${evidence}
+      </li>`;
+    }).join('')}</ul>
   </details>`;
 }
 
