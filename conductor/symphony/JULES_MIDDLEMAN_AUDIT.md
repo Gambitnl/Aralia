@@ -57,6 +57,30 @@ The ARA-6 live run exposed the next workflow gap: local Jules/Symphony status re
 
 The ARA-6 `github_pr` boundary has now exercised the assumed-approval rule twice, and the decisions are durable in `docs/decision-reports/ARA-6_ASSUMED_APPROVAL_DECISIONS.md`. Codex first pushed local repair commit `19eb1cd4` to PR #931 after confirming the repair worktree matched PR head `0c0d9480` and the focused npm/Vitest checks passed. GitHub then proved that the repair fixed the setup install path for Build, Tests, Quality Scan, and CodeQL-family checks, but Lint and Poison File Check still failed. The poison log named `package-lock.json` as the policy violation, matching `.github/workflows/ci.yml` and `.jules/_ROSTER.md`, so Codex made a second bounded repair commit, `f755df2b`, that removes the lockfile from the final PR diff, switches PR CI install steps to `npm install --no-audit --no-fund`, fixes the PR test lint errors, and pushes the PR branch again. Local verification for that second repair passed focused lint, focused Vitest, full lint with zero errors, `npx tsc --noEmit`, `npm run build`, `git diff --check`, and a final diff-name check proving `package-lock.json` is not in the PR diff. The fresh GitHub rerun now passes Poison File Check but still fails Build, Lint, Tests, and Quality Scan at `Run npm ci`, with the same missing React 18 peer lockfile entries. Jules then pushed bot commit `bb44a2f7`, superseding the PR-local workflow edit and leaving the live PR diff to the task note plus the two test files. PR #931 is open, not draft, mergeable, and at head `bb44a2f7`, but this is now a coordinator-owned base lockfile blocker rather than another ordinary PR-local repair; Scout/Core cannot advance until that lockfile boundary is resolved or explicitly routed.
 
+The coordinator-owned lockfile boundary has now been routed through PR #932
+under the same ARA-6 assumed-approval rule. Codex opened
+`https://github.com/Gambitnl/Aralia/pull/932` from
+`codex/dependabot-aralia-lockfile-sync` at commit `f19cc779`; the PR changes
+only `package-lock.json`, uses the documented `codex/dependabot-*` dependency
+lane that bypasses the poison-file check, and was locally verified with npm
+10.8.2 `npm ci --dry-run --no-audit --no-fund`, `git diff --check`, and
+pre-push `npm run sync-check`. The remaining live proof is PR #932's GitHub
+checks and an explicit merge/application decision before PR #931 can be
+refreshed past its base `npm ci` blocker.
+
+That follow-through is now complete. PR #932 merged as `ca10728f` after core
+checks passed; the only failed review job was Gemini infrastructure reporting
+`models/gemini-1.5-flash is not found`. PR #931 was then updated from `master`
+to head `91ceee43`; Poison File Check, Build, Lint, Quality Scan, Tests, and
+CodeQL all passed against the repaired base. Scout/Core review found no blocking
+comments and the diff stayed inside the ARA-6 task scope, so PR #931 merged as
+`1c4316c`. Post-merge Scout conflict detection, CodeQL, and GitHub Pages
+deployment all passed for `1c4316c`, and Symphony recorded a local deployment
+evidence receipt pointing at
+`https://github.com/Gambitnl/Aralia/actions/runs/26175016417`. The remaining
+completion proof is local sync to the merged `origin/master` state while
+preserving this local Symphony audit/report work.
+
 The browser follow-along tooling gap has been narrowed. Direct Playwright MCP
 navigation can fail with `Transport closed`, but the Codex Browser plugin's
 in-app browser bridge successfully listed the signed-in Jules tab, read the

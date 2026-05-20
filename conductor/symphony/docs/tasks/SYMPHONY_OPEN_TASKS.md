@@ -45,6 +45,7 @@ mutation performed or skipped, and next expected proof.
 - Jules session: `https://jules.google.com/session/4101281510355198885`
 - Handoff id: `handoff-1779226708033-v4ohk7`
 - GitHub PR: `https://github.com/Gambitnl/Aralia/pull/931`
+- Coordinator lockfile repair PR: `https://github.com/Gambitnl/Aralia/pull/932`
 - Latest live PR movement: under the current ARA-6 assumed-approval test-flow
   rule, Codex pushed two `github_pr` boundary repairs to PR #931. First,
   `19eb1cd4` applied the prepared lockfile setup repair; that moved Build,
@@ -59,7 +60,14 @@ mutation performed or skipped, and next expected proof.
   ordinary PR-file repair. Jules then pushed bot commit `bb44a2f7`, which
   superseded the PR-local CI workflow edit and leaves the live PR diff to the
   task note plus the two regression-test files. The durable decision report is
-  `../decision-reports/ARA-6_ASSUMED_APPROVAL_DECISIONS.md`.
+  `../decision-reports/ARA-6_ASSUMED_APPROVAL_DECISIONS.md`. Codex has now used
+  the same assumed-approval rule to open the separate coordinator/dependency
+  repair PR #932 from branch `codex/dependabot-aralia-lockfile-sync`; that PR
+  contained only commit `f19cc779` and only changed `package-lock.json` so the
+  base branch could satisfy npm 10.8.2 `npm ci` without putting a forbidden
+  lockfile diff back into PR #931. PR #932 was merged as `ca10728f`; PR #931 was
+  then updated to head `91ceee43`, all GitHub checks passed, and PR #931 was
+  merged as `1c4316c`.
 - Latest known workflow finding: local Jules/Symphony status initially reported
   `COMPLETED` with no PR URL while Jules API, browser-visible state, and GitHub
   exposed additional facts. Current browser evidence shows `Plan approved`,
@@ -91,10 +99,12 @@ mutation performed or skipped, and next expected proof.
   explicit: wait for GitHub checks, refresh Symphony's PR packet, then update
   Scout/Core readiness. Symphony now also has a local `repairPushResult`
   receipt contract and dashboard `Record Repair Push Result` control for the
-  moment after an approved push happens. The live pushes have happened under the
-  ARA-6 assumed-approval rule, and the next decision is now the
-  coordinator/dependency repair path for the base lockfile mismatch before
-  Scout/Core can advance.
+  moment after an approved push happens. The live pushes and the coordinator
+  repair PR, PR #932 merge, PR #931 branch update, PR #931 merge, and deployment
+  evidence receipt have happened under the ARA-6 assumed-approval rule. Scout
+  conflict detection, CodeQL, and GitHub Pages deployment passed for merge
+  commit `1c4316c`; the next proof is local sync to the merged `origin/master`
+  state without losing the local Symphony docs/verifier updates.
 - Latest browser/tooling finding: the direct Playwright MCP browser tool can
   fail with `Transport closed` in this Codex app session, but the Browser
   plugin's intended in-app browser bridge still works. It listed the current
@@ -205,6 +215,15 @@ the operator approves the exact script on the Jules Environment page.
 | 11 | Delegation ROI ledger | Baseline implemented, proof incomplete | Handoff snapshots now generate `delegationRoiLedger`, the dashboard renders separate Measured facts, Estimated avoided Codex work, and Workflow value signals sections, and `verify-delegation-roi-ledger.mjs` guards `ROI unknown` behavior. The dashboard/API now has a local `roi-foreman-usage` path to record task-scoped Codex input/output/total tokens, active runtime, foreman turns, source, and notes without external/local mutation, plus a local `roi-estimate` path to record avoided-work method, confidence, caveats, turns, tokens, and debugging cycles without external/local mutation. Broad `codex_goal_context` receipts now render as goal-context usage and do not count as task-scoped spend or unlock `candidate_savings`. Live dashboard-safe proof `ara6-delegation-roi-ledger-2026-05-20.json` still shows ARA-6 has `status: roi_unknown`, `tokenSource: codex_totals`, `totalTokens: 0`, missing avoided-work estimate, PR produced, and `stalledBecause: ci_setup`. Next: attach a real ARA-6 task-scoped foreman-usage receipt and documented avoided-work estimate before claiming savings. | No for local implementation; yes before claiming real savings. |
 | 12 | Quiet-hour and human-blocker behavior | Baseline operator-question, answer receipts, and local quiet-hour preferences implemented | Handoff snapshots now derive a read-only `operatorQuestion` when a repair decision needs the operator or when prepared repair-push readiness needs explicit approval, the dashboard shows `Needs your input` with a `pending-human-input` badge, and `verify-operator-question-packet.mjs` proves the default weekday 01:00-09:00 Europe/Amsterdam quiet hours suppress immediate notification and schedule the next check at 09:00 local time. `verify-operator-preferences.mjs` now proves `operatorPreferences.quietHours` can locally override the time zone, start/end hours, weekday-only behavior, and enabled/disabled state, and that the dashboard renders `Operator Preferences` plus `Record Operator Preferences` without contacting Jules, GitHub, Linear, local files, or Git. The same question verifier proves `repair_push_approval` uses approve/reject/wait choices, hides repair-lane execution, and takes precedence over the older repair-lane question after a repair commit exists. Rendered local fixture `repair-push-approval-question-2026-05-20.png` captures the push-approval question layout without contacting external systems. `verify-operator-answer-recording.mjs` now proves both repair-lane choices and `approve_repair_push` can be recorded as local-only `operatorAnswers` without sending Jules feedback, creating Linear tasks, mutating GitHub, or touching local Git; after `approve_repair_push`, it also proves routing advances to an `operator_only` `Record repair push result` boundary instead of re-asking the approval question. `verify-handoff-timeline.mjs` now labels the later push approval answer separately from the earlier repair-lane answer. Still open: full task-scoped chat and execution of external repair lanes after explicit approval. | Maybe, for changing quiet-hour preferences or answering/executing a live blocker. |
 | 13 | Dispatch/real worker proof | Deferred | Prove local Codex worker dispatch consumes worker-mode policy only after the Jules/GitHub path is stable and dashboard control is clear. | Yes before enabling real dispatch. |
+
+Task 3 current-state override: the coordinator/dependency repair path has now
+been completed under the ARA-6 assumed-approval rule. PR #932
+(`https://github.com/Gambitnl/Aralia/pull/932`) merged as `ca10728f`, PR #931
+updated to `91ceee43`, all GitHub checks passed, and PR #931 merged as
+`1c4316c`. GitHub Pages deployment run
+`https://github.com/Gambitnl/Aralia/actions/runs/26175016417` passed and was
+recorded as local Symphony deployment evidence. The next boundary is local sync,
+not additional PR repair.
 
 Task 7 clarification addendum: the standalone task page now renders structured
 `Task Clarifications` with a `Record Clarification` form. `verify-task-detail-page.mjs`
@@ -412,6 +431,7 @@ Record future observations here or in the audit when they become meaningful.
 | 2026-05-20 15:27 UTC | GitHub PR #931 | Assumed approval repair push 1 | Under the current ARA-6 assumed-approval rule, Codex pushed `19eb1cd4` from `codex/pr-931-setup-repair` to the PR branch. Build, Tests, Quality Scan, and CodeQL-family checks later passed, but Lint and Poison File Check still failed. The poison log named `package-lock.json` as forbidden by the PR policy. | Make a second bounded repair or route back through feedback; record the decision in the assumed-approval report. |
 | 2026-05-20 15:39 UTC | GitHub PR #931 | Assumed approval repair push 2 | Codex pushed `f755df2b`, which removes `package-lock.json` from the final PR diff, switches CI install steps to `npm install --no-audit --no-fund`, and fixes the PR test lint errors. Local verification passed install, focused lint, focused Vitest, full lint with zero errors, `npx tsc --noEmit`, `npm run build`, `git diff --check`, and a diff-name poison simulation. The PR is open, not draft, mergeable, and now at head `f755df2b`. | Wait for fresh GitHub checks, refresh Symphony PR state, then update Scout/Core readiness. |
 | 2026-05-20 15:42 UTC | GitHub PR #931 | Post-repair check rerun | The fresh rerun passed Poison File Check but Build, Lint, Tests, and Quality Scan still failed in the install step with `Run npm ci` and the same missing React 18 peer lockfile entries. Jules also pushed bot commit `bb44a2f7`, leaving the live PR diff to the task note and two test files while the base lockfile mismatch remains. | Stop PR-local mutation for this blocker and decide the coordinator/dependency lockfile repair path. |
+| 2026-05-20 16:00 UTC | GitHub PR #932 | Coordinator lockfile repair opened | Under the ARA-6 assumed-approval rule, Codex created commit `f19cc779` on `codex/dependabot-aralia-lockfile-sync`, pushed the branch, and opened PR #932 with a one-file `package-lock.json` repair. Local proof: npm 10.8.2 package-lock-only install, npm 10.8.2 `npm ci --dry-run --no-audit --no-fund`, `git diff --check`, and pre-push `npm run sync-check`; the worktree-local hook path issue is recorded in the decision report. | Wait for PR #932 checks, then decide whether the coordinator PR can be merged/applied before refreshing PR #931. |
 | 2026-05-20 | Symphony local contract | Post-push check-rerun readiness | `verify-scout-core-readiness-packet.mjs` proves a handoff with a local `repairPushResult` now reports Scout/Core status `waiting_for_checks_rerun`, keeps Core validation and merge disabled, carries the GitHub checks command and PR refresh endpoint as blockers, and stays read-only until GitHub check rerun evidence is refreshed. Rendered proof `scout-core-post-push-rerun-2026-05-20.png` captures the `/proof` board showing the same post-push wait state. | Await an actual operator-approved push and live GitHub check rerun before creating live receipt proof. |
 | 2026-05-20 | Symphony local contract + GitHub docs review | Deployment readiness baseline | `verify-deployment-readiness-packet.mjs` proves handoffs now carry a non-mutating `deployment_readiness` packet and expose it through direct `GET /api/v1/jules-handoffs/:id/deployment-readiness` access plus task-detail `links.deploymentReadiness`. For merged dashboard-started PRs it exposes read-only `gh api repos/OWNER/REPO/pages/builds/latest`, recent deployments, and deployment-status commands; for unmerged PRs it waits for merge; for observed PRs it stays read-only learning. GitHub's current REST docs expose Pages build/deployment and deployment-status endpoints for this evidence path. | Prove the packet against a real merged dashboard-started Jules PR, then only proceed to local sync after deployment evidence or explicit operator waiver. |
 | 2026-05-20 | Symphony local contract | Deployment evidence receipt | `verify-deployment-evidence-receipt.mjs` proves a merged dashboard-started handoff with safe local-sync facts still cannot sync until deployment proof or waiver is recorded. Posting to the local `deployment-evidence` endpoint stores `deploymentEvidence` with non-mutation flags, changes `deployment_readiness` to `passed` or `waived`, and only then lets `local_sync_readiness.canSyncNow` become true. | Prove the same sequence against a real merged dashboard-started Jules PR. |
