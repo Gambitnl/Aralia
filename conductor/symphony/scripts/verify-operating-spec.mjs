@@ -60,6 +60,9 @@ assert.match(spec, /do not execute repair lanes,\s+send Jules feedback, push to 
 assert.match(spec, /read-only `Approval\s+Checkpoint`/);
 assert.match(spec, /current operator question, latest local answer\s+when present, the still-external guarded command, and the next proof receipt/);
 assert.match(spec, /without approving or running anything/);
+assert.match(spec, /readable `ROI Evidence` summary/);
+assert.match(spec, /missing task-scoped usage receipts, missing avoided-work\s+estimates, and broad goal-context usage/);
+assert.match(spec, /does not count as measured task\s+spend or unlock a savings claim/);
 assert.match(spec, /POST \/api\/v1\/tasks\/:id\/messages/);
 assert.match(spec, /verify-task-message-api\.mjs/);
 assert.match(spec, /do not send Jules feedback, create Linear\/GitHub\s+records, or mutate local Git/);
@@ -609,6 +612,9 @@ assert.match(openTasks, /do not count as task-scoped spend or unlock `candidate_
 assert.match(openTasks, /local `roi-estimate` path to record avoided-work method, confidence, caveats/);
 assert.match(openTasks, /ara6-delegation-roi-ledger-2026-05-20\.json` still shows ARA-6 has `status: roi_unknown`/);
 assert.match(openTasks, /`tokenSource: codex_totals`, `totalTokens: 0`/);
+assert.match(openTasks, /`ROI Evidence` card/);
+assert.match(openTasks, /keeps broad\s+goal-context usage separate from task-scoped spend/);
+assert.match(openTasks, /symphony-task-roi-evidence\.png/);
 assert.match(openTasks, /attach a real ARA-6 task-scoped foreman-usage receipt/);
 assert.match(openTasks, /## Objective Completion Audit/);
 assert.match(openTasks, /Observe ARA-6 without disrupting Jules/);
@@ -627,6 +633,9 @@ assert.match(openTasks, /passes Symphony runtime `codex_totals` into the ledger 
 assert.match(openTasks, /local `roi-foreman-usage` path records task-scoped Codex foreman tokens\/runtime\/turns/);
 assert.match(openTasks, /broad `codex_goal_context` receipts stay visible as goal-context usage without unlocking task-level savings/);
 assert.match(openTasks, /local `roi-estimate` path records documented avoided-work estimates without external\/local mutation/);
+assert.match(openTasks, /\/tasks\/:id` now renders a readable `ROI Evidence` card/);
+assert.match(openTasks, /goal-context usage is not measured savings/);
+assert.match(openTasks, /rendered proof `symphony-task-roi-evidence\.png` captures the live ARA-6 task page/);
 assert.match(openTasks, /Local measured-usage and estimate paths implemented; real ARA-6 usage receipt plus avoided-work estimate remain open/);
 assert.match(openTasks, /2026-05-20 01:05 Europe\/Amsterdam/);
 assert.match(openTasks, /Delegation ROI baseline/);

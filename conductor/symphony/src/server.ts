@@ -1605,6 +1605,8 @@ export class HttpServer {
         ${this.renderTaskPageTimeline(timelineEvents)}
       </article>
 
+      ${this.renderTaskPageRoiEvidence(detail.delegationRoiLedger)}
+
       ${this.renderTaskActivityMirror(timelineEvents, messages, clarifications)}
 
       <article class="card">
@@ -1982,6 +1984,48 @@ export class HttpServer {
     }).join('')}</ol>`;
   }
 
+  private renderTaskPageRoiEvidence(ledger: unknown): string {
+    const record = this.recordFromUnknown(ledger);
+    if (!Object.keys(record).length) return '';
+
+    const measuredFacts = this.recordFromUnknown(record.measuredFacts);
+    const codexTokens = this.recordFromUnknown(measuredFacts.codexTokens);
+    const taskUsage = this.recordFromUnknown(measuredFacts.taskScopedForemanUsage);
+    const goalUsage = this.recordFromUnknown(measuredFacts.goalContextForemanUsage);
+    const estimate = this.recordFromUnknown(record.estimatedAvoidedCodexWork);
+    const taskReceiptCount = this.numberFromUnknown(taskUsage.receiptCount) ?? 0;
+    const goalReceiptCount = this.numberFromUnknown(goalUsage.receiptCount) ?? 0;
+    const taskTokens = this.numberFromUnknown(taskUsage.totalTokens);
+    const goalTokens = this.numberFromUnknown(goalUsage.totalTokens);
+    const estimateStatus = this.stringFromUnknown(estimate.status) ?? 'missing_estimate';
+    const codexTotal = this.numberFromUnknown(codexTokens.total);
+    const codexSource = this.stringFromUnknown(codexTokens.source) ?? 'missing';
+    const missingItems = [
+      taskReceiptCount > 0 ? null : 'task-scoped Codex foreman usage receipt',
+      estimateStatus === 'documented_estimate' ? null : 'documented avoided-work estimate',
+    ].filter((item): item is string => Boolean(item));
+
+    // ROI is easy to overstate, so the task page summarizes the same ledger
+    // packet in plain language. Goal-context usage is shown as context only;
+    // it must not unlock a savings claim until task-scoped usage and a
+    // documented avoided-work estimate both exist.
+    return `<article class="card task-page-roi-evidence">
+      <h2>ROI Evidence</h2>
+      <p><strong>${this.escapeHtml(this.stringFromUnknown(record.status) ?? 'roi_unknown')}</strong></p>
+      <p>${this.escapeHtml(this.stringFromUnknown(record.verdict) ?? this.stringFromUnknown(record.summary) ?? 'Delegation ROI has not been evaluated yet.')}</p>
+      <dl class="task-page-facts">
+        <div><dt>Task-scoped foreman receipts</dt><dd>${this.escapeHtml(String(taskReceiptCount))}</dd></div>
+        <div><dt>Task-scoped foreman tokens</dt><dd>${taskTokens === null ? 'Missing' : this.escapeHtml(String(taskTokens))}</dd></div>
+        <div><dt>Goal-context tokens</dt><dd>${goalTokens === null ? 'Missing' : this.escapeHtml(String(goalTokens))}</dd></div>
+        <div><dt>Goal-context receipts</dt><dd>${this.escapeHtml(String(goalReceiptCount))}</dd></div>
+        <div><dt>Dashboard Codex tokens</dt><dd>${codexTotal === null ? this.escapeHtml(`Missing (${codexSource})`) : this.escapeHtml(`${codexTotal} (${codexSource})`)}</dd></div>
+        <div><dt>Avoided-work estimate</dt><dd>${this.escapeHtml(estimateStatus)}</dd></div>
+      </dl>
+      ${missingItems.length ? `<p class="usage-summary">Missing before any savings claim: ${this.escapeHtml(missingItems.join(', '))}.</p>` : '<p class="usage-summary">Task-scoped usage and avoided-work estimate are present; review confidence and caveats before treating this as candidate savings.</p>'}
+      <p class="usage-summary">Goal-context usage documents the broader Codex thread cost only. It does not count as task-scoped spend or measured savings.</p>
+    </article>`;
+  }
+
   private renderTaskActivityMirror(
     timelineEvents: unknown[],
     messages: unknown[],
@@ -2069,6 +2113,10 @@ export class HttpServer {
 
   private stringFromUnknown(value: unknown): string | null {
     return typeof value === 'string' ? value : null;
+  }
+
+  private numberFromUnknown(value: unknown): number | null {
+    return typeof value === 'number' && Number.isFinite(value) ? value : null;
   }
 
   private buildDraftTaskDetail(

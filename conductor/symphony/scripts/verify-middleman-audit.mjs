@@ -43,6 +43,14 @@ assert.match(audit, /broad `codex_goal_context` receipts are split into a separa
 assert.match(audit, /long-thread usage cannot masquerade as task-level ROI proof/);
 assert.match(audit, /ara6-delegation-roi-ledger-2026-05-20\.json` confirms the real ARA-6 handoff snapshot/);
 assert.match(audit, /`tokenSource: codex_totals`, `totalTokens: 0`/);
+assert.match(audit, /standalone task page now exposes that conservative ROI state/);
+assert.match(audit, /renders `ROI Evidence`/);
+assert.match(audit, /missing proof\s+pieces required before any savings claim/);
+assert.match(audit, /goal-context usage\s+is broader Codex thread cost rather than task-scoped spend or measured savings/);
+assert.match(audit, /symphony-task-roi-evidence\.png/);
+assert.match(audit, /Missing before any savings claim/);
+assert.match(audit, /no browser console errors/);
+assert.match(audit, /not a new ROI formula or a savings\s+assertion/);
 assert.match(audit, /task-centered dashboard has its first chronological slice/);
 assert.match(audit, /read-only `handoffTimeline`/);
 assert.match(audit, /dashboard renders it as `Task timeline`/);
@@ -547,6 +555,7 @@ assert.match(audit, /verify-task-detail-api\.mjs` proves `GET \/api\/v1\/tasks\/
 assert.match(audit, /including Jules prompt\/dialogue records, local task disposition when present, and the handoff `operatorAnswer` link/);
 assert.match(audit, /local `clarificationState`/);
 assert.match(audit, /verify-task-detail-page\.mjs` proves `\/tasks\/:id` renders that packet as a standalone task workspace with `Task Filing`, local-only `Record Operator Answer`, local-only `Record Repair Push Result`/);
+assert.match(audit, /ROI Evidence/);
 assert.match(audit, /The task page now also renders the structured clarification loop/);
 assert.match(audit, /includes `Task Clarifications`, `Record Clarification`/);
 assert.match(audit, /verify-task-message-api\.mjs` proves `POST \/api\/v1\/tasks\/:id\/messages` records local operator\/Codex task messages/);

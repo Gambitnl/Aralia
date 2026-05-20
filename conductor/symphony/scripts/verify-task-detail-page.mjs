@@ -147,6 +147,44 @@ server.taskIntake = {
         delegationRoiLedger: {
           status: 'roi_unknown',
           separatesMeasuredFactsFromEstimates: true,
+          verdict: 'ROI unknown until measured task-scoped Codex spend and avoided-work estimate are recorded.',
+          measuredFacts: {
+            codexTokens: { input: null, output: null, total: null, source: 'missing' },
+            taskScopedForemanUsage: {
+              inputTokens: null,
+              outputTokens: null,
+              totalTokens: null,
+              activeRuntimeSeconds: null,
+              foremanTurns: null,
+              source: 'missing',
+              receiptCount: 0,
+            },
+            goalContextForemanUsage: {
+              inputTokens: null,
+              outputTokens: null,
+              totalTokens: 1163311,
+              activeRuntimeSeconds: null,
+              foremanTurns: null,
+              source: 'goal_context_foreman_usage',
+              receiptCount: 1,
+            },
+            codexActiveRuntimeSeconds: null,
+            codexForemanEventCount: 0,
+            julesElapsedSeconds: null,
+            githubElapsedSeconds: null,
+            humanInterventionCount: 2,
+            localCodexEditedProductionFiles: null,
+            dataSources: ['goal_context_foreman_usage'],
+          },
+          estimatedAvoidedCodexWork: {
+            status: 'missing_estimate',
+            estimatedLocalCodexImplementationTurns: null,
+            estimatedLocalCodexTokens: null,
+            estimatedDebuggingCycles: null,
+            confidence: 'missing',
+            method: null,
+            caveats: [],
+          },
         },
         linearIssueIdentifier: 'ARA-6',
         linearIssueUrl: 'https://linear.app/aralia/issue/ARA-6/example',
@@ -272,6 +310,13 @@ try {
   assert.match(page.body, /Operator note sent to Jules before the PR was ready/);
   assert.match(page.body, /plan-detail-page/);
   assert.match(page.body, /Jules State Reconciliation/);
+  assert.match(page.body, /ROI Evidence/);
+  assert.match(page.body, /Task-scoped foreman receipts<\/dt><dd>0/);
+  assert.match(page.body, /Task-scoped foreman tokens<\/dt><dd>Missing/);
+  assert.match(page.body, /Goal-context tokens<\/dt><dd>1163311/);
+  assert.match(page.body, /Avoided-work estimate<\/dt><dd>missing_estimate/);
+  assert.match(page.body, /Missing before any savings claim: task-scoped Codex foreman usage receipt, documented avoided-work estimate/);
+  assert.match(page.body, /Goal-context usage documents the broader Codex thread cost only/);
   assert.match(page.body, /Delegation ROI Ledger/);
   assert.match(page.body, /Mutates external systems<\/dt><dd>No/);
 

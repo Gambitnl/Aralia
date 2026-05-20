@@ -104,9 +104,14 @@ files. The task detail packet and page now also render a read-only `Approval
 Checkpoint` that summarizes the current operator question, latest local answer
 when present, the still-external guarded command, and the next proof receipt
 without approving or running anything. The task page now also renders a
-view-only `Task Activity Mirror` from the same durable task timeline, local
-messages, and clarifications. Richer external task actions beyond these local
-receipts remain open implementation work.
+readable `ROI Evidence` summary from the same `delegationRoiLedger` packet so
+the operator can see missing task-scoped usage receipts, missing avoided-work
+estimates, and broad goal-context usage without opening raw JSON. That card must
+keep goal-context usage as context only; it does not count as measured task
+spend or unlock a savings claim. The task page now also renders a view-only
+`Task Activity Mirror` from the same durable task timeline, local messages, and
+clarifications. Richer external task actions beyond these local receipts remain
+open implementation work.
 
 When a task needs human direction, the Codex foreman should stop at the
 dashboard question rather than busy-looping. The foreman may schedule a later
