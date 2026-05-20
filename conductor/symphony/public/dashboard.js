@@ -25,6 +25,9 @@ const dispatchToggleButton = document.getElementById('dispatch-toggle');
 const themeToggleButton = document.getElementById('theme-toggle');
 
 const THEME_STORAGE_KEY = 'symphony-dashboard-theme';
+const TASK_NAVIGATOR_FILTER_STORAGE_KEY = 'symphony-task-navigator-filter';
+const TASK_NAVIGATOR_FILTERS = ['all', 'needs_input', 'open', 'completed', 'archived'];
+let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 
 initializeThemeToggle();
 
@@ -71,6 +74,12 @@ taskIntakeRoot?.addEventListener('submit', async event => {
 });
 
 taskIntakeRoot?.addEventListener('click', async event => {
+  const filterButton = event.target?.closest?.('button[data-task-filter]');
+  if (filterButton) {
+    setTaskNavigatorFilter(filterButton.getAttribute('data-task-filter'));
+    return;
+  }
+
   const button = event.target?.closest?.('button[data-task-action]');
   if (!button) return;
 
@@ -89,6 +98,14 @@ taskIntakeRoot?.addEventListener('click', async event => {
 
   if (action === 'record-task-nudge') {
     await recordTaskNudge(button);
+  }
+
+  if (action === 'record-task-message') {
+    await recordTaskMessage(button);
+  }
+
+  if (action === 'record-operator-preferences') {
+    await recordOperatorPreferences(button);
   }
 
   if (action === 'refresh-due-task-nudges') {
@@ -134,6 +151,48 @@ taskIntakeRoot?.addEventListener('click', async event => {
     const handoffId = button.getAttribute('data-handoff-id');
     if (handoffId) {
       await sendJulesOperatorMessage(handoffId, button);
+    }
+  }
+
+  if (action === 'record-roi-estimate') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await recordDelegationRoiEstimate(handoffId, button);
+    }
+  }
+
+  if (action === 'record-roi-foreman-usage') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await recordDelegationRoiForemanUsage(handoffId, button);
+    }
+  }
+
+  if (action === 'record-operator-answer') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await recordOperatorAnswer(handoffId, button);
+    }
+  }
+
+  if (action === 'execute-repair-lane') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await executeSelectedRepairLane(handoffId, button);
+    }
+  }
+
+  if (action === 'record-repair-push-result') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await recordRepairPushResult(handoffId, button);
+    }
+  }
+
+  if (action === 'record-deployment-evidence') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await recordDeploymentEvidence(handoffId, button);
     }
   }
 
@@ -232,6 +291,39 @@ function writeStoredTheme(theme) {
   } catch {
     // Keep the active in-memory theme and skip persistence.
   }
+}
+
+function readStoredTaskNavigatorFilter() {
+  // The task filter is only a display preference. If storage is unavailable or
+  // an old value is invalid, fall back to all tasks so no work disappears.
+  try {
+    const stored = typeof localStorage === 'undefined'
+      ? null
+      : localStorage.getItem(TASK_NAVIGATOR_FILTER_STORAGE_KEY);
+    return normalizeTaskNavigatorFilter(stored);
+  } catch {
+    return 'all';
+  }
+}
+
+function setTaskNavigatorFilter(filter) {
+  taskNavigatorFilter = normalizeTaskNavigatorFilter(filter);
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(TASK_NAVIGATOR_FILTER_STORAGE_KEY, taskNavigatorFilter);
+    }
+  } catch {
+    // Keep the in-memory filter for this page; persistence is optional.
+  }
+
+  refreshTaskIntake().catch(error => {
+    setStatus(`Task filter changed, but dashboard refresh failed: ${error.message || error}`);
+  });
+}
+
+function normalizeTaskNavigatorFilter(filter) {
+  return TASK_NAVIGATOR_FILTERS.includes(filter) ? filter : 'all';
 }
 
 function updateThemeToggle(theme) {
@@ -537,6 +629,42 @@ async function recordTaskNudge(button) {
   }
 }
 
+async function recordTaskMessage(button) {
+  const taskId = button.getAttribute('data-task-id') || '';
+  const taskMessageUrl = button.getAttribute('data-task-message-url') || '';
+  const card = button.closest('[data-task-detail-preview]');
+  const textarea = card?.querySelector('textarea[data-task-message-body]');
+  const body = String(textarea?.value || '').trim();
+
+  if (!taskId || !taskMessageUrl) {
+    setStatus('Task message cannot be recorded because the task link is missing.');
+    return;
+  }
+
+  if (!body) {
+    setStatus('Write a task message before recording it.');
+    return;
+  }
+
+  button.disabled = true;
+  setStatus('Recording task message locally.');
+
+  try {
+    // This is dashboard chat, not Jules feedback. It records the operator/Codex
+    // foreman conversation on the local Symphony task so future agents can
+    // resume from structured notes instead of terminal scrollback.
+    const snapshot = await postJson(taskMessageUrl, { author: 'operator', body });
+    if (textarea) textarea.value = '';
+    renderTaskIntake(snapshot);
+    setStatus('Recorded task message locally.');
+  } catch (err) {
+    setStatus(`Task message failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function runDueTaskNudges(button) {
   button.disabled = true;
   setStatus('Running due task nudge refreshes.');
@@ -655,6 +783,228 @@ async function sendJulesOperatorMessage(handoffId, button) {
     setStatus('Operator message sent to Jules.');
   } catch (err) {
     setStatus(`Jules message failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function recordDelegationRoiEstimate(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const readNumber = name => {
+    const value = String(card?.querySelector(`[data-roi-estimate="${name}"]`)?.value || '').trim();
+    return value ? Number(value) : null;
+  };
+  const confidence = card?.querySelector('[data-roi-estimate="confidence"]')?.value || 'low';
+  const method = String(card?.querySelector('[data-roi-estimate="method"]')?.value || '').trim();
+  const caveats = String(card?.querySelector('[data-roi-estimate="caveats"]')?.value || '').trim();
+  const payload = {
+    estimatedLocalCodexImplementationTurns: readNumber('turns'),
+    estimatedLocalCodexTokens: readNumber('tokens'),
+    estimatedDebuggingCycles: readNumber('cycles'),
+    confidence,
+    method,
+    caveats,
+  };
+
+  if (!method) {
+    setStatus('Describe the estimate method before recording ROI evidence.');
+    return;
+  }
+
+  button.disabled = true;
+  setStatus('Recording Delegation ROI estimate.');
+
+  try {
+    const snapshot = await postJson(`/api/v1/jules-handoffs/${encodeURIComponent(handoffId)}/roi-estimate`, payload);
+    renderTaskIntake(snapshot);
+    setStatus('Recorded local Delegation ROI estimate.');
+  } catch (err) {
+    setStatus(`ROI estimate blocked: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function recordDelegationRoiForemanUsage(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const readNumber = name => {
+    const value = String(card?.querySelector(`[data-roi-foreman-usage="${name}"]`)?.value || '').trim();
+    return value ? Number(value) : null;
+  };
+  const notes = String(card?.querySelector('[data-roi-foreman-usage="notes"]')?.value || '').trim();
+  const source = card?.querySelector('[data-roi-foreman-usage="source"]')?.value || 'manual_codex_receipt';
+  const payload = {
+    inputTokens: readNumber('inputTokens'),
+    outputTokens: readNumber('outputTokens'),
+    totalTokens: readNumber('totalTokens'),
+    activeRuntimeSeconds: readNumber('activeRuntimeSeconds'),
+    foremanTurns: readNumber('foremanTurns'),
+    source,
+    notes,
+    recordedBy: 'codex_foreman',
+  };
+
+  if (
+    payload.totalTokens === null
+    && payload.activeRuntimeSeconds === null
+    && payload.foremanTurns === null
+  ) {
+    setStatus('Record at least one measured foreman usage value.');
+    return;
+  }
+
+  button.disabled = true;
+  setStatus('Recording task-scoped foreman usage.');
+
+  try {
+    const snapshot = await postJson(`/api/v1/jules-handoffs/${encodeURIComponent(handoffId)}/roi-foreman-usage`, payload);
+    renderTaskIntake(snapshot);
+    setStatus('Recorded local task-scoped foreman usage.');
+  } catch (err) {
+    setStatus(`Foreman usage recording blocked: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function recordOperatorAnswer(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const selectedAction = card?.querySelector('[data-operator-answer="selectedAction"]')?.value || 'other';
+  const answer = String(card?.querySelector('[data-operator-answer="answer"]')?.value || '').trim();
+
+  if (!answer) {
+    setStatus('Write the operator answer before recording it.');
+    return;
+  }
+
+  button.disabled = true;
+  setStatus('Recording operator answer.');
+
+  try {
+    const snapshot = await postJson(`/api/v1/jules-handoffs/${encodeURIComponent(handoffId)}/operator-answer`, {
+      selectedAction,
+      answer,
+      answeredBy: 'operator',
+    });
+    renderTaskIntake(snapshot);
+    setStatus('Recorded operator answer locally.');
+  } catch (err) {
+    setStatus(`Operator answer blocked: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function recordOperatorPreferences(button) {
+  const card = button.closest('[data-operator-preferences-card]');
+  const enabledInput = card?.querySelector('[data-operator-preference="quietHours.enabled"]');
+  const timeZone = String(card?.querySelector('[data-operator-preference="quietHours.timeZone"]')?.value || 'Europe/Amsterdam').trim();
+  const startHour = Number(card?.querySelector('[data-operator-preference="quietHours.startHour"]')?.value || 1);
+  const endHour = Number(card?.querySelector('[data-operator-preference="quietHours.endHour"]')?.value || 9);
+  const weekdaysOnlyInput = card?.querySelector('[data-operator-preference="quietHours.weekdaysOnly"]');
+
+  const payload = {
+    quietHours: {
+      enabled: Boolean(enabledInput?.checked),
+      timeZone,
+      startHour,
+      endHour,
+      weekdaysOnly: Boolean(weekdaysOnlyInput?.checked),
+    },
+  };
+
+  // Preference edits only change Symphony's local waiting policy. They make
+  // future operator questions quieter or louder without sending anything to
+  // Jules, GitHub, Linear, local files, or Git.
+  await postJson('/api/v1/operator-preferences', payload);
+  setStatus('Operator preferences recorded locally.');
+  await refreshTaskIntake();
+}
+
+async function executeSelectedRepairLane(handoffId, button) {
+  button.disabled = true;
+  setStatus('Executing selected repair lane locally.');
+
+  try {
+    const snapshot = await postJson(`/api/v1/jules-handoffs/${encodeURIComponent(handoffId)}/execute-repair-lane`, {});
+    renderTaskIntake(snapshot);
+    setStatus('Created local setup repair draft.');
+  } catch (err) {
+    setStatus(`Repair lane blocked: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function recordRepairPushResult(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const status = card?.querySelector('[data-repair-push-result="status"]')?.value || 'pushed';
+  const pushedCommit = String(card?.querySelector('[data-repair-push-result="pushedCommit"]')?.value || '').trim();
+  const targetPullRequestHeadCommit = String(card?.querySelector('[data-repair-push-result="targetPullRequestHeadCommit"]')?.value || '').trim();
+  const pushedAt = String(card?.querySelector('[data-repair-push-result="pushedAt"]')?.value || '').trim();
+  const evidenceUrl = String(card?.querySelector('[data-repair-push-result="evidenceUrl"]')?.value || '').trim();
+  const summary = String(card?.querySelector('[data-repair-push-result="summary"]')?.value || '').trim();
+
+  if (!summary) {
+    setStatus('Summarize the push result before recording it.');
+    return;
+  }
+
+  button.disabled = true;
+  setStatus('Recording repair push result.');
+
+  try {
+    const snapshot = await postJson(`/api/v1/jules-handoffs/${encodeURIComponent(handoffId)}/repair-push-result`, {
+      status,
+      pushedCommit,
+      targetPullRequestHeadCommit,
+      pushedAt,
+      pushedBy: 'operator',
+      evidenceUrl,
+      summary,
+    });
+    renderTaskIntake(snapshot);
+    setStatus('Recorded repair push result locally.');
+  } catch (err) {
+    setStatus(`Repair push result blocked: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function recordDeploymentEvidence(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const status = card?.querySelector('[data-deployment-evidence="status"]')?.value || 'passed';
+  const source = card?.querySelector('[data-deployment-evidence="source"]')?.value || 'github_pages_latest_build';
+  const evidenceUrl = String(card?.querySelector('[data-deployment-evidence="evidenceUrl"]')?.value || '').trim();
+  const summary = String(card?.querySelector('[data-deployment-evidence="summary"]')?.value || '').trim();
+
+  if (!summary) {
+    setStatus('Summarize the deployment proof or waiver before recording it.');
+    return;
+  }
+
+  button.disabled = true;
+  setStatus('Recording deployment evidence.');
+
+  try {
+    const snapshot = await postJson(`/api/v1/jules-handoffs/${encodeURIComponent(handoffId)}/deployment-evidence`, {
+      status,
+      source,
+      evidenceUrl,
+      summary,
+      recordedBy: 'operator',
+    });
+    renderTaskIntake(snapshot);
+    setStatus('Recorded deployment evidence locally.');
+  } catch (err) {
+    setStatus(`Deployment evidence blocked: ${err.message}`);
     await refreshTaskIntake();
   } finally {
     button.disabled = false;
@@ -882,6 +1232,7 @@ function renderTaskIntake(snapshot) {
   const capabilities = snapshot.capabilities || {};
   const drafts = Array.isArray(snapshot.drafts) ? snapshot.drafts : [];
   const handoffs = Array.isArray(snapshot.handoffs) ? snapshot.handoffs : [];
+  const pendingHumanInputCount = handoffs.filter(handoff => Boolean(handoff.operatorQuestion)).length;
   const operatorPlan = buildTaskOperatorPlan(preflight, drafts, handoffs, capabilities);
   const taskRouting = renderTaskRouting(snapshot.taskRouting, snapshot.taskNudges);
   const bulkRefresh = snapshot.bulkRefresh || null;
@@ -909,6 +1260,7 @@ function renderTaskIntake(snapshot) {
   const kickoffGuide = renderKickoffGuide(capabilities.kickoffGuide);
   const queueNextAction = renderQueueNextAction(snapshot.next_action);
   const handoffStatusBoard = renderHandoffStatusBoard(handoffs);
+  const taskNavigator = renderTaskNavigator(drafts, handoffs);
   const taskForms = `
     <div class="task-intake-grid">
       <form id="task-draft-form" class="task-form">
@@ -992,12 +1344,17 @@ function renderTaskIntake(snapshot) {
       <div>
         <h2>New Jules Task</h2>
         <p class="usage-summary">Draft work here first. Symphony will only allow Jules handoff after the GitHub sync gate passes.</p>
+        ${pendingHumanInputCount ? `<span class="badge pending-human-input">Needs your input: ${escapeHtml(String(pendingHumanInputCount))}</span>` : ''}
       </div>
       <div class="heading-actions">
         <button type="button" data-task-action="check-git">Check GitHub Sync</button>
         <button type="button" ${handoffs.length ? '' : 'disabled'} data-task-action="bulk-refresh-jules" title="${escapeAttribute(handoffs.length ? 'Refresh status and PR data for all tracked Jules handoffs.' : 'No Jules handoffs exist yet.')}">Refresh All Jules</button>
       </div>
     </div>
+
+    ${taskNavigator}
+
+    ${renderOperatorPreferences(snapshot.operatorPreferences)}
 
     ${renderForemanConsole({
       path: snapshot.middleman_path,
@@ -1025,6 +1382,7 @@ function renderForemanConsole(parts) {
     parts.middlemanPath,
   ].filter(Boolean).join('');
   const julesLifecycle = [
+    renderBrowserFollowAlongGuidance(),
     parts.kickoffSequence,
     parts.kickoffGuide,
     parts.taskNudgeRefreshSummary,
@@ -1048,6 +1406,20 @@ function renderForemanConsole(parts) {
       ${renderForemanDetailGroup('Task Intake And Records', 'Draft new work, watch existing PRs, and review stored drafts/handoffs.', `${parts.taskForms}${parts.records}`)}
     </div>
   </div>`;
+}
+
+function renderBrowserFollowAlongGuidance() {
+  // This guidance records the current browser-tooling lesson without turning
+  // the browser itself into Symphony state. Future foremen need to know that a
+  // direct Playwright transport failure is not the same as Jules being
+  // unobservable, while the real task evidence still belongs in handoff packets.
+  return `<section class="browser-followalong-guidance" aria-label="Browser Follow-along">
+    <h3>Browser Follow-along</h3>
+    <p><strong>Use the Codex Browser plugin bridge first.</strong></p>
+    <p>Direct Playwright MCP can report Transport closed while Jules visible state can still be read from the signed-in in-app browser tab.</p>
+    <p class="usage-summary">Terminal Playwright is only repeatable local dashboard verification; live Jules follow-along belongs in the operator-visible Codex app browser.</p>
+    <p class="usage-summary"><a href="/api/v1/browser-tooling-health">Browser tooling health JSON</a></p>
+  </section>`;
 }
 
 function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
@@ -2382,7 +2754,7 @@ function taskDraftCard(draft, preflight, capabilities = {}) {
       ? 'Create the Linear issue first so a Symphony foreman can claim and track this task.'
       : 'Create a local Jules handoff prompt for review.';
 
-  return `<li class="task-draft ${blocked ? 'blocked' : 'ready'}">
+  return `<li id="task-draft-${escapeAttribute(draft.id)}" class="task-draft ${blocked ? 'blocked' : 'ready'}">
     <div>
       <span class="badge ${blocked ? 'approval' : 'running'}">${escapeHtml(statusLabel)}</span>
       <strong>${escapeHtml(draft.title)}</strong>
@@ -2620,6 +2992,11 @@ function handoffCard(handoff) {
   const baseDriftDetail = renderBaseCommitDrift(handoff);
   const launchReceiptDetail = renderLaunchGitHubReceipt(handoff);
   const launchReadinessDetail = renderJulesLaunchReadiness(handoff.launch_readiness);
+  const operatorQuestionDetail = renderOperatorQuestion(handoff.operatorQuestion, handoff.id, handoff.operatorAnswers);
+  const timelineDetail = renderHandoffTimeline(handoff.handoffTimeline);
+  const julesStateReconciliationDetail = renderJulesStateReconciliation(handoff.julesStateReconciliation);
+  const repairPushReadinessDetail = renderRepairPushReadiness(handoff.repairPushReadiness);
+  const repairPushResultDetail = renderRepairPushResult(handoff.repairPushResult);
   const julesDetail = handoff.julesSessionId || handoff.julesSessionUrl || handoff.githubPullRequestUrl || handoff.julesState
     ? `<div class="handoff-manifest">
         <p><strong>Jules state:</strong> ${escapeHtml(handoff.julesState || 'session created')}</p>
@@ -2639,7 +3016,9 @@ function handoffCard(handoff) {
   const scoutCoreDetail = renderScoutCoreReadiness(handoff);
   const operatorMessageDetail = renderJulesOperatorMessages(handoff);
   const planApprovalDetail = renderJulesPlanApprovals(handoff);
+  const deploymentDetail = renderDeploymentReadiness(handoff.deployment_readiness);
   const localSyncDetail = renderLocalSyncReadiness(handoff);
+  const delegationRoiDetail = renderDelegationRoiLedger(handoff.delegationRoiLedger, handoff.id);
   const commandDetail = handoff.statusCommand || handoff.reviewCommand || handoff.pullCommand || handoff.recordsPath
     ? `<details>
         <summary>Foreman commands</summary>
@@ -2662,7 +3041,7 @@ function handoffCard(handoff) {
     ? `<small>Last Jules refresh ${escapeHtml(formatTimestamp(handoff.lastStatusRefreshAt))}</small>`
     : '';
 
-  return `<li class="task-draft ${blocked || baseStale || launchFailed || refreshFailed ? 'blocked' : 'ready'}" data-handoff-card="${escapeAttribute(handoff.id)}">
+  return `<li id="task-handoff-${escapeAttribute(handoff.id)}" class="task-draft ${blocked || baseStale || launchFailed || refreshFailed ? 'blocked' : 'ready'}" data-handoff-card="${escapeAttribute(handoff.id)}">
     <div>
       <span class="badge ${badgeClass}">${escapeHtml(statusLabel)}</span>
       <strong>${escapeHtml(handoff.title)}</strong>
@@ -2673,6 +3052,11 @@ function handoffCard(handoff) {
     ${linearDetail}
     ${lifecycleDetail}
     ${baseDriftDetail}
+    ${operatorQuestionDetail}
+    ${timelineDetail}
+    ${julesStateReconciliationDetail}
+    ${repairPushReadinessDetail}
+    ${repairPushResultDetail}
     ${julesDetail}
     ${expectedFileDetail}
     ${verificationDetail}
@@ -2685,7 +3069,9 @@ function handoffCard(handoff) {
     ${operatorMessageDetail}
     ${pullRequestDetail}
     ${scoutCoreDetail}
+    ${deploymentDetail}
     ${localSyncDetail}
+    ${delegationRoiDetail}
     ${launchOutput}
     ${commandDetail}
     <details>
@@ -2730,6 +3116,480 @@ function handoffCard(handoff) {
       Sync Local Master
     </button>
   </li>`;
+}
+
+function renderTaskNavigator(drafts = [], handoffs = []) {
+  const records = [
+    ...drafts.map(draft => buildTaskNavigatorRecord('draft', draft)),
+    ...handoffs.map(handoff => buildTaskNavigatorRecord('handoff', handoff)),
+  ].sort((a, b) => {
+    const priority = { needs_input: 0, open: 1, completed: 2, archived: 3 };
+    const priorityDelta = (priority[a.bucket] ?? 9) - (priority[b.bucket] ?? 9);
+    if (priorityDelta !== 0) return priorityDelta;
+
+    return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+  });
+
+  if (!records.length) {
+    return `<section class="task-navigator empty" aria-label="Task navigator">
+      <div>
+        <h3>Task navigator</h3>
+        <p class="usage-summary">No local Symphony tasks are recorded yet.</p>
+      </div>
+    </section>`;
+  }
+
+  const pendingInput = records.filter(record => record.bucket === 'needs_input').length;
+  const open = records.filter(record => record.bucket === 'open' || record.bucket === 'needs_input').length;
+  const completed = records.filter(record => record.bucket === 'completed').length;
+  const archived = records.filter(record => record.bucket === 'archived').length;
+  const activeFilter = normalizeTaskNavigatorFilter(taskNavigatorFilter);
+  const visibleRecords = records.filter(record => taskNavigatorRecordMatchesFilter(record, activeFilter));
+  const filters = [
+    { id: 'all', label: 'All tasks', count: records.length },
+    { id: 'needs_input', label: 'Needs input', count: pendingInput },
+    { id: 'open', label: 'Open', count: open },
+    { id: 'completed', label: 'Completed', count: completed },
+    { id: 'archived', label: 'Archived', count: archived },
+  ];
+
+  // The navigator is deliberately derived from the same draft/handoff cards
+  // rendered below. It is a map, not a second task store, so the dashboard does
+  // not split truth between "summary task" state and detailed receipt state.
+  return `<section class="task-navigator" aria-label="Task navigator">
+    <div class="task-navigator-header">
+      <div>
+        <h3>Task navigator</h3>
+        <p class="usage-summary">Jump to the task record that needs attention before reading the full receipt stack.</p>
+      </div>
+      <div class="task-navigator-counts">
+        <span class="badge">All tasks: ${escapeHtml(String(records.length))}</span>
+        <span class="badge pending-human-input">Needs input: ${escapeHtml(String(pendingInput))}</span>
+        <span class="badge running">Open: ${escapeHtml(String(open))}</span>
+        <span class="badge">Completed: ${escapeHtml(String(completed))}</span>
+        ${archived ? `<span class="badge">Archived: ${escapeHtml(String(archived))}</span>` : ''}
+      </div>
+    </div>
+    <div class="task-navigator-filters" role="toolbar" aria-label="Task navigator filters">
+      ${filters.map(filter => `<button type="button"
+        data-task-filter="${escapeAttribute(filter.id)}"
+        aria-pressed="${filter.id === activeFilter ? 'true' : 'false'}">
+        ${escapeHtml(filter.label)} (${escapeHtml(String(filter.count))})
+      </button>`).join('')}
+    </div>
+    <p class="usage-summary">Filter: ${escapeHtml(taskNavigatorFilterLabel(activeFilter))}</p>
+    ${renderTaskDetailPreview(visibleRecords[0])}
+    <ol>
+      ${visibleRecords.length ? visibleRecords.map(record => `<li class="${escapeAttribute(record.bucket)}" data-task-record-kind="${escapeAttribute(record.kind)}">
+        <a href="#${escapeAttribute(record.anchor)}">${escapeHtml(record.title)}</a>
+        <span class="badge ${escapeAttribute(record.badgeClass)}">${escapeHtml(record.statusLabel)}</span>
+        <small>${escapeHtml(record.kind === 'draft' ? 'Draft' : 'Handoff')} · ${escapeHtml(record.updatedAt ? formatTimestamp(record.updatedAt) : 'no timestamp')}</small>
+        <p>${escapeHtml(record.summary)}</p>
+      </li>`).join('') : `<li class="empty" data-task-record-kind="empty">
+        <p>No tasks match this filter.</p>
+      </li>`}
+    </ol>
+  </section>`;
+}
+
+function renderTaskDetailPreview(record) {
+  if (!record) return '';
+
+  const links = [
+    record.taskPageUrl ? `<a href="${escapeAttribute(record.taskPageUrl)}">Task page</a>` : '',
+    record.taskDetailUrl ? `<a href="${escapeAttribute(record.taskDetailUrl)}">Task detail JSON</a>` : '',
+    record.linearIssueUrl ? `<a href="${escapeAttribute(record.linearIssueUrl)}">Linear issue</a>` : '',
+    record.julesSessionUrl ? `<a href="${escapeAttribute(record.julesSessionUrl)}">Jules session</a>` : '',
+    record.githubPullRequestUrl ? `<a href="${escapeAttribute(record.githubPullRequestUrl)}">GitHub PR</a>` : '',
+  ].filter(Boolean).join(' ');
+  const timelineCount = Number(record.timelineEventCount || 0);
+  const expectedFiles = Number(record.expectedFileCount || 0);
+  const verificationCommands = Number(record.verificationCommandCount || 0);
+  const taskMessages = Number(record.taskMessageCount || 0);
+  const disposition = record.taskDisposition?.state || 'active';
+  const taskMessageUrl = record.taskDetailUrl
+    ? `${record.taskDetailUrl.replace(/\/$/, '')}/messages`
+    : '';
+
+  // This is the first single-task detail slice. It is intentionally read-only
+  // and compact: the full receipt card still owns the deep controls below, while
+  // this preview lets the operator understand the selected task before jumping.
+  return `<article class="task-detail-preview" aria-label="Task detail" data-task-detail-preview="${escapeAttribute(record.id)}">
+    <div>
+      <span class="badge ${escapeAttribute(record.badgeClass)}">${escapeHtml(record.statusLabel)}</span>
+      <strong>Task detail</strong>
+    </div>
+    <h4>${escapeHtml(record.title)}</h4>
+    <p>${escapeHtml(record.summary)}</p>
+    <dl>
+      <div><dt>Kind</dt><dd>${escapeHtml(record.kind === 'draft' ? 'Draft' : 'Handoff')}</dd></div>
+      <div><dt>Current boundary</dt><dd>${escapeHtml(record.currentBoundary || record.statusLabel || 'Unknown')}</dd></div>
+      <div><dt>Updated</dt><dd>${escapeHtml(record.updatedAt ? formatTimestamp(record.updatedAt) : 'No timestamp')}</dd></div>
+      <div><dt>Timeline events</dt><dd>${escapeHtml(`Timeline events: ${timelineCount}`)}</dd></div>
+      <div><dt>Task messages</dt><dd>${escapeHtml(String(taskMessages))}</dd></div>
+      <div><dt>Task filing</dt><dd>${escapeHtml(disposition)}</dd></div>
+      <div><dt>Expected files</dt><dd>${escapeHtml(String(expectedFiles))}</dd></div>
+      <div><dt>Verification commands</dt><dd>${escapeHtml(String(verificationCommands))}</dd></div>
+    </dl>
+    ${record.needsInput ? '<p class="usage-summary"><strong>Needs human input</strong></p>' : ''}
+    ${links ? `<p class="task-detail-links">${links}</p>` : ''}
+    <label>Task message
+      <textarea rows="2" data-task-message-body placeholder="Record a local note for this task. This does not send feedback to Jules."></textarea>
+    </label>
+    <button type="button"
+      data-task-action="record-task-message"
+      data-task-id="${escapeAttribute(record.id)}"
+      data-task-message-url="${escapeAttribute(taskMessageUrl)}">
+      Record Task Message
+    </button>
+    <p><a href="#${escapeAttribute(record.anchor)}">Open full receipt</a></p>
+  </article>`;
+}
+
+function taskNavigatorRecordMatchesFilter(record, filter) {
+  if (filter === 'all') return true;
+  if (filter === 'open') return record.bucket === 'open' || record.bucket === 'needs_input';
+  return record.bucket === filter;
+}
+
+function taskNavigatorFilterLabel(filter) {
+  const labels = {
+    all: 'All tasks',
+    needs_input: 'Needs input',
+    open: 'Open',
+    completed: 'Completed',
+    archived: 'Archived',
+  };
+  return labels[filter] || labels.all;
+}
+
+function renderOperatorPreferences(preferences = {}) {
+  const quiet = preferences.quietHours || {};
+  const enabled = quiet.enabled !== false;
+  const timeZone = quiet.timeZone || 'Europe/Amsterdam';
+  const startHour = Number.isFinite(Number(quiet.startHour)) ? Number(quiet.startHour) : 1;
+  const endHour = Number.isFinite(Number(quiet.endHour)) ? Number(quiet.endHour) : 9;
+  const weekdaysOnly = quiet.weekdaysOnly !== false;
+
+  // This card makes the human-blocker waiting policy visible and editable. The
+  // resulting preference is still just local Symphony state; it does not notify
+  // the operator or cross any Jules/GitHub/Linear/Git boundary by itself.
+  return `<details class="handoff-readiness operator-preferences" data-operator-preferences-card>
+    <summary>Operator Preferences</summary>
+    <p class="usage-summary">Control when Symphony should quietly wait instead of repeatedly checking for a human answer.</p>
+    <div class="form-grid">
+      <label>
+        <input type="checkbox" data-operator-preference="quietHours.enabled" ${enabled ? 'checked' : ''}>
+        Quiet hours enabled
+      </label>
+      <label>Time zone
+        <input type="text" data-operator-preference="quietHours.timeZone" value="${escapeAttribute(timeZone)}" placeholder="Europe/Amsterdam">
+      </label>
+      <label>Start hour
+        <input type="number" min="0" max="23" step="1" data-operator-preference="quietHours.startHour" value="${escapeAttribute(String(startHour))}">
+      </label>
+      <label>End hour
+        <input type="number" min="0" max="23" step="1" data-operator-preference="quietHours.endHour" value="${escapeAttribute(String(endHour))}">
+      </label>
+      <label>
+        <input type="checkbox" data-operator-preference="quietHours.weekdaysOnly" ${weekdaysOnly ? 'checked' : ''}>
+        Weekdays only
+      </label>
+    </div>
+    <button type="button" data-task-action="record-operator-preferences">Record Operator Preferences</button>
+    <p class="usage-summary">Current quiet-hours rule: ${escapeHtml(enabled ? `${weekdaysOnly ? 'weekday' : 'daily'} ${String(startHour).padStart(2, '0')}:00-${String(endHour).padStart(2, '0')}:00 ${timeZone}` : 'disabled')}.</p>
+  </details>`;
+}
+
+function buildTaskNavigatorRecord(kind, item) {
+  const title = item.title || item.id || 'Untitled Symphony task';
+  const id = item.id || title;
+  const updatedAt = item.updatedAt || item.createdAt || null;
+
+  if (kind === 'draft') {
+    const waitingOnLinear = !item.linearIssueIdentifier && item.next_action?.code === 'create_linear_issue';
+    const summary = item.next_action?.summary || item.body || 'Draft is waiting for the next Symphony gate.';
+    const disposition = item.taskDisposition?.state || 'active';
+    const disposed = disposition !== 'active';
+
+    return {
+      kind,
+      id,
+      title,
+      updatedAt,
+      anchor: `task-draft-${id}`,
+      bucket: disposition === 'completed' ? 'completed' : disposed ? 'archived' : 'open',
+      badgeClass: disposed ? 'approval' : waitingOnLinear ? 'approval' : 'running',
+      statusLabel: disposed ? disposition : waitingOnLinear ? 'open draft' : 'open',
+      summary: disposed && item.taskDisposition?.reason ? item.taskDisposition.reason : summary,
+      currentBoundary: item.next_action?.label || item.status || 'Draft',
+      expectedFileCount: Array.isArray(item.expectedFiles) ? item.expectedFiles.length : 0,
+      verificationCommandCount: Array.isArray(item.verificationCommands) ? item.verificationCommands.length : 0,
+      timelineEventCount: 0,
+      taskMessageCount: Array.isArray(item.taskMessages) ? item.taskMessages.length : 0,
+      taskDisposition: item.taskDisposition || null,
+      needsInput: false,
+      taskDetailUrl: item.links?.taskDetail || `/api/v1/tasks/${encodeURIComponent(id)}`,
+      taskPageUrl: item.links?.page || `/tasks/${encodeURIComponent(id)}`,
+      linearIssueUrl: item.linearIssueUrl || null,
+    };
+  }
+
+  const disposition = item.taskDisposition?.state || 'active';
+  const needsInput = Boolean(item.operatorQuestion);
+  const merged = item.githubPullRequestState === 'MERGED';
+  const closed = item.githubPullRequestState === 'CLOSED' || item.status === 'observed_pr';
+  const bucket = disposition === 'completed'
+    ? 'completed'
+    : disposition === 'archived' || disposition === 'abandoned'
+      ? 'archived'
+      : needsInput
+    ? 'needs_input'
+    : merged
+      ? 'completed'
+      : closed
+        ? 'archived'
+        : 'open';
+  const statusLabel = disposition !== 'active'
+    ? disposition
+    : needsInput
+    ? 'needs operator input'
+    : merged
+      ? 'completed'
+      : closed
+        ? 'archived'
+        : item.next_action?.label || item.julesState || item.status || 'open';
+  const summary = disposition !== 'active' && item.taskDisposition?.reason
+    ? item.taskDisposition.reason
+    : needsInput
+    ? item.operatorQuestion?.plainLanguageSummary || item.operatorQuestion?.plainLanguageQuestion || 'This handoff needs an operator answer.'
+    : item.next_action?.summary || item.julesStateReconciliation?.summary || 'Handoff is waiting for the next proof boundary.';
+
+  return {
+    kind,
+    id,
+    title,
+    updatedAt,
+    anchor: `task-handoff-${id}`,
+    bucket,
+    badgeClass: disposition !== 'active' ? 'approval' : needsInput ? 'pending-human-input' : merged ? 'running' : closed ? 'approval' : 'running',
+    statusLabel,
+    summary,
+    currentBoundary: item.next_action?.label || item.julesState || item.githubPullRequestState || item.status || 'Handoff',
+    expectedFileCount: Array.isArray(item.expectedFiles) ? item.expectedFiles.length : 0,
+    verificationCommandCount: Array.isArray(item.verificationCommands) ? item.verificationCommands.length : 0,
+    timelineEventCount: Array.isArray(item.handoffTimeline?.events) ? item.handoffTimeline.events.length : 0,
+    taskMessageCount: Array.isArray(item.taskMessages) ? item.taskMessages.length : 0,
+    taskDisposition: item.taskDisposition || null,
+    needsInput,
+    taskDetailUrl: item.links?.taskDetail || `/api/v1/tasks/${encodeURIComponent(id)}`,
+    taskPageUrl: item.links?.page || `/tasks/${encodeURIComponent(id)}`,
+    linearIssueUrl: item.linearIssueUrl || null,
+    julesSessionUrl: item.julesSessionUrl || null,
+    githubPullRequestUrl: item.githubPullRequestUrl || null,
+  };
+}
+
+function renderOperatorQuestion(question, handoffId, answers = []) {
+  if (!question) return '';
+  const isPushApproval = question.sourceStage === 'repair_push_approval';
+  const actionLabel = isPushApproval ? 'Push decision' : 'Repair lane';
+  const actionOptions = isPushApproval
+    ? `<option value="approve_repair_push">Approve repair push</option>
+        <option value="reject_repair_push">Reject repair push</option>
+        <option value="wait_for_manual_repair">Wait for manual repair</option>
+        <option value="other">Other</option>`
+    : `<option value="create_setup_repair_task">Create setup repair task</option>
+        <option value="send_jules_feedback">Send Jules feedback</option>
+        <option value="wait_for_manual_repair">Wait for manual repair</option>
+        <option value="refresh_after_repair">Refresh after repair</option>
+        <option value="other">Other</option>`;
+  const answerRows = Array.isArray(answers) && answers.length
+    ? `<ul class="risk-reasons">${answers.map(answer => `<li>
+        <strong>${escapeHtml(answer.selectedAction || 'operator answer')}</strong>
+        <span>${escapeHtml(formatTimestamp(answer.answeredAt))}</span>
+        <p>${escapeHtml(answer.answer || '')}</p>
+      </li>`).join('')}</ul>`
+    : '<p class="usage-summary">No operator answer has been recorded yet.</p>';
+
+  // Operator questions turn a blocked technical packet into a single human
+  // decision. Quiet-hours details are shown here so a foreman can stop waiting
+  // noisily when the user is unlikely to answer.
+  return `<details class="handoff-readiness operator-question pending-human-input" open>
+    <summary>Needs your input</summary>
+    <p><strong>${escapeHtml(question.plainLanguageQuestion || 'Symphony needs a decision before continuing.')}</strong></p>
+    <p>${escapeHtml(question.plainLanguageSummary || '')}</p>
+    <ul>
+      ${readinessItem('Requested proof', question.requestedAction || 'Operator decision', true)}
+      ${readinessItem('Can notify now', question.canNotifyNow ? 'Yes' : 'No', question.canNotifyNow, !question.canNotifyNow)}
+      ${readinessItem('Quiet hours', question.quietHours?.appliesNow ? 'Active' : 'Not active', !question.quietHours?.appliesNow, question.quietHours?.appliesNow)}
+      ${question.nextCheckAt ? readinessItem('Next check', formatTimestamp(question.nextCheckAt), true) : ''}
+    </ul>
+    <p class="usage-summary">${escapeHtml(question.quietHours?.summary || 'No quiet-hours guidance recorded.')}</p>
+    <label>${escapeHtml(actionLabel)}
+      <select data-operator-answer="selectedAction">
+        ${actionOptions}
+      </select>
+    </label>
+    <label>Operator answer
+      <textarea rows="2" data-operator-answer="answer" placeholder="Plain-language decision for this blocker"></textarea>
+    </label>
+    <button type="button" data-task-action="record-operator-answer" data-handoff-id="${escapeAttribute(handoffId || question.handoffId || '')}">Record Operator Answer</button>
+    ${isPushApproval ? '' : `<button type="button" ${answers.length ? '' : 'disabled'} data-task-action="execute-repair-lane" data-handoff-id="${escapeAttribute(handoffId || question.handoffId || '')}">Execute Selected Repair Lane</button>`}
+    <strong>Recorded answers</strong>
+    ${answerRows}
+  </details>`;
+}
+
+function renderHandoffTimeline(timeline) {
+  if (!timeline || !Array.isArray(timeline.events) || !timeline.events.length) return '';
+
+  // The task timeline is the compact, chronological version of the handoff.
+  // It does not replace the detailed panels below; it gives the operator and
+  // future Codex foremen a fast answer to "what happened, in what order?"
+  return `<details class="handoff-readiness handoff-timeline" open>
+    <summary>Task timeline</summary>
+    <p>${escapeHtml(timeline.summary || 'Timeline evidence recorded for this handoff.')}</p>
+    <ol>
+      ${timeline.events.map(event => `<li class="timeline-event ${escapeAttribute(event.status || 'recorded')}">
+        <strong>${escapeHtml(event.label || event.stage || 'Timeline event')}</strong>
+        <span>${escapeHtml(formatTimestamp(event.occurredAt))}</span>
+        <em>${escapeHtml(event.source || 'symphony')}</em>
+        <p>${escapeHtml(event.detail || '')}</p>
+        ${event.url ? `<a href="${escapeAttribute(event.url)}">Open evidence</a>` : ''}
+      </li>`).join('')}
+    </ol>
+    <p><strong>Next expected proof:</strong> ${escapeHtml(timeline.nextExpectedProof || 'Not recorded')}</p>
+  </details>`;
+}
+
+function renderJulesStateReconciliation(reconciliation) {
+  if (!reconciliation) return '';
+
+  // This panel explains why Symphony may trust Jules API or GitHub evidence
+  // over an older local Jules record. It is a read-only interpretation packet:
+  // the refresh endpoints gather evidence, and this view tells the operator
+  // which source settled or failed to settle the mismatch.
+  return `<details class="handoff-readiness jules-state-reconciliation" open>
+    <summary>Jules state reconciliation</summary>
+    <p>${escapeHtml(reconciliation.summary || 'Jules state reconciliation has no summary yet.')}</p>
+    <ul>
+      ${readinessItem('Status', reconciliation.status || 'unknown', reconciliation.status === 'consistent' || reconciliation.status === 'reconciled_from_external_evidence', reconciliation.status === 'needs_browser_reconciliation')}
+      ${readinessItem('Stored state incomplete', reconciliation.localStoredStateIncomplete ? 'Yes' : 'No', !reconciliation.localStoredStateIncomplete, reconciliation.localStoredStateIncomplete)}
+      ${readinessItem('Needs browser check', reconciliation.requiresBrowserCheck ? 'Yes' : 'No', !reconciliation.requiresBrowserCheck, reconciliation.requiresBrowserCheck)}
+      ${readinessItem('Mutates external systems', reconciliation.mutatesExternalSystems ? 'Yes' : 'No', !reconciliation.mutatesExternalSystems, reconciliation.mutatesExternalSystems)}
+      ${readinessItem('Mutates local files', reconciliation.mutatesLocalFiles ? 'Yes' : 'No', !reconciliation.mutatesLocalFiles, reconciliation.mutatesLocalFiles)}
+    </ul>
+    <p><strong>Jules state:</strong> ${escapeHtml(reconciliation.storedJulesState || 'not recorded')}</p>
+    <p><strong>Discovery source:</strong> ${escapeHtml(reconciliation.discoverySource || 'none')}</p>
+    <p><strong>Matched by:</strong> ${escapeHtml(Array.isArray(reconciliation.matchedBy) && reconciliation.matchedBy.length ? reconciliation.matchedBy.join(', ') : 'not matched')}</p>
+    ${reconciliation.sessionUrl ? `<p><strong>Session:</strong> <a href="${escapeAttribute(reconciliation.sessionUrl)}">${escapeHtml(reconciliation.sessionId || reconciliation.sessionUrl)}</a></p>` : ''}
+    ${reconciliation.capturedPullRequestUrl ? `<p><strong>Captured PR:</strong> <a href="${escapeAttribute(reconciliation.capturedPullRequestUrl)}">${escapeHtml(reconciliation.capturedPullRequestUrl)}</a></p>` : ''}
+    <p><strong>Next expected proof:</strong> ${escapeHtml(reconciliation.nextExpectedProof || 'Refresh Jules or GitHub evidence.')}</p>
+  </details>`;
+}
+
+function renderRepairPushReadiness(readiness) {
+  if (!readiness) return '';
+
+  const changedFiles = Array.isArray(readiness.changedFiles) ? readiness.changedFiles : [];
+  const verificationCommands = Array.isArray(readiness.verificationCommands) ? readiness.verificationCommands : [];
+  const postPushFollowUp = readiness.postPushFollowUp || null;
+  const postPushSequence = Array.isArray(postPushFollowUp?.expectedSequence) ? postPushFollowUp.expectedSequence : [];
+  const defaultPushedAt = new Date().toISOString();
+
+  // Repair push readiness is shown as a separate gate because the prepared
+  // local commit is useful evidence, while the actual push still changes
+  // GitHub and needs explicit operator approval. The post-push section names
+  // the next read-only observations so the dashboard does not jump from "push"
+  // straight to "merge" without check refresh and Scout/Core evidence.
+  return `<details class="handoff-readiness repair-push-readiness" open>
+    <summary>Repair push readiness</summary>
+    <p>${escapeHtml(readiness.summary || 'A local repair commit is ready for operator review before push.')}</p>
+    <ul>
+      ${readinessItem('Status', readiness.status || 'awaiting_operator_push_approval', false, true)}
+      ${readinessItem('Can push now', readiness.canPushNow ? 'Yes' : 'No', Boolean(readiness.canPushNow), !readiness.canPushNow)}
+      ${readinessItem('Mutates GitHub if run', readiness.mutatesExternalSystemsIfRun ? 'Yes' : 'No', !readiness.mutatesExternalSystemsIfRun, readiness.mutatesExternalSystemsIfRun)}
+      ${readinessItem('Mutates local files', readiness.mutatesLocalFiles ? 'Yes' : 'No', !readiness.mutatesLocalFiles, readiness.mutatesLocalFiles)}
+      ${readinessItem('Freshness', readiness.freshnessStatus || 'unchecked', readiness.freshnessStatus === 'matches_current_pr_head', readiness.freshnessStatus === 'stale_pr_head')}
+      ${readinessItem('Recorded', readiness.recordedAt ? formatTimestamp(readiness.recordedAt) : 'not recorded', Boolean(readiness.recordedAt), !readiness.recordedAt)}
+    </ul>
+    <p><strong>Branch:</strong> <code>${escapeHtml(readiness.branch || 'unknown')}</code></p>
+    <p><strong>Commit:</strong> <code>${escapeHtml(readiness.commit || 'unknown')}</code></p>
+    <p><strong>Repair base:</strong> <code>${escapeHtml(readiness.repairBaseCommit || 'unchecked')}</code></p>
+    <p><strong>Current PR head:</strong> <code>${escapeHtml(readiness.targetPullRequestHeadCommit || 'unchecked')}</code></p>
+    <p><strong>Worktree:</strong> <code>${escapeHtml(readiness.worktreePath || 'unknown')}</code></p>
+    ${readiness.targetPullRequestUrl ? `<p><strong>PR:</strong> <a href="${escapeAttribute(readiness.targetPullRequestUrl)}">${escapeHtml(readiness.targetPullRequestUrl)}</a></p>` : ''}
+    <p><strong>Push command:</strong> <code>${escapeHtml(readiness.pushCommand || '')}</code></p>
+    <p class="usage-summary">${escapeHtml(readiness.freshnessSummary || 'Repair base freshness was not checked against the current PR head.')}</p>
+    ${changedFiles.length ? `<strong>Changed files</strong><ul class="risk-reasons">${changedFiles.map(file => `<li><code>${escapeHtml(file)}</code></li>`).join('')}</ul>` : ''}
+    ${verificationCommands.length ? `<strong>Local verification</strong><pre>${escapeHtml(verificationCommands.join('\n'))}</pre>` : ''}
+    <p class="usage-summary">${escapeHtml(readiness.verificationSummary || '')}</p>
+    ${postPushFollowUp ? `<div class="handoff-manifest">
+      <strong>Post-push follow-up</strong>
+      <p>${escapeHtml(postPushFollowUp.summary || 'Wait for GitHub checks, then refresh Symphony.')}</p>
+      <ul>
+        ${readinessItem('Mutates external systems', postPushFollowUp.mutatesExternalSystems ? 'Yes' : 'No', !postPushFollowUp.mutatesExternalSystems, postPushFollowUp.mutatesExternalSystems)}
+        ${readinessItem('Mutates local files', postPushFollowUp.mutatesLocalFiles ? 'Yes' : 'No', !postPushFollowUp.mutatesLocalFiles, postPushFollowUp.mutatesLocalFiles)}
+      </ul>
+      ${postPushFollowUp.checksCommand ? `<p><strong>Check command:</strong> <code>${escapeHtml(postPushFollowUp.checksCommand)}</code></p>` : ''}
+      ${postPushFollowUp.refreshEndpoint ? `<p><strong>Refresh endpoint:</strong> <code>${escapeHtml(postPushFollowUp.refreshEndpoint)}</code></p>` : ''}
+      ${postPushSequence.length ? `<ol>${postPushSequence.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>` : ''}
+    </div>` : ''}
+    <div class="handoff-manifest">
+      <strong>Record Repair Push Result</strong>
+      <p class="usage-summary">Use this only after the operator has pushed or attempted the repair outside Symphony. This records local evidence; it does not push, rerun checks, merge, pull, or edit files.</p>
+      <label>Status
+        <select data-repair-push-result="status">
+          <option value="pushed">Pushed</option>
+          <option value="failed">Failed</option>
+        </select>
+      </label>
+      <label>Pushed commit
+        <input data-repair-push-result="pushedCommit" value="${escapeAttribute(readiness.commit || '')}" placeholder="Commit that was pushed" />
+      </label>
+      <label>PR head after push
+        <input data-repair-push-result="targetPullRequestHeadCommit" value="${escapeAttribute(readiness.commit || '')}" placeholder="Observed PR head commit" />
+      </label>
+      <label>Pushed at
+        <input data-repair-push-result="pushedAt" value="${escapeAttribute(defaultPushedAt)}" placeholder="ISO timestamp" />
+      </label>
+      <label>Evidence URL
+        <input data-repair-push-result="evidenceUrl" value="${escapeAttribute(readiness.targetPullRequestUrl || '')}" placeholder="GitHub PR, push, or check URL" />
+      </label>
+      <label>Summary
+        <textarea rows="2" data-repair-push-result="summary" placeholder="Plain-language result of the operator-owned push"></textarea>
+      </label>
+      <button type="button" data-task-action="record-repair-push-result" data-handoff-id="${escapeAttribute(readiness.handoffId || '')}">Record Repair Push Result</button>
+    </div>
+    <p><strong>Next expected proof:</strong> ${escapeHtml(readiness.nextExpectedProof || 'Operator-approved push, then refreshed GitHub checks.')}</p>
+  </details>`;
+}
+
+function renderRepairPushResult(result) {
+  if (!result) return '';
+
+  // This panel is deliberately a receipt, not an action panel. It tells the
+  // foreman that a human-approved push already happened and that the safe next
+  // behavior is to watch GitHub checks and refresh Symphony state.
+  return `<details class="handoff-readiness repair-push-result" open>
+    <summary>Repair push result</summary>
+    <p>${escapeHtml(result.summary || 'Repair push result was recorded locally.')}</p>
+    <ul>
+      ${readinessItem('Status', result.status || 'unknown', result.status === 'pushed', result.status === 'failed')}
+      ${readinessItem('Next boundary', result.nextBoundary || 'github_checks_rerun', result.nextBoundary === 'github_checks_rerun', result.nextBoundary === 'repair_push_failed')}
+      ${readinessItem('Mutates external systems', result.mutatesExternalSystems ? 'Yes' : 'No', !result.mutatesExternalSystems, result.mutatesExternalSystems)}
+      ${readinessItem('Mutates local files', result.mutatesLocalFiles ? 'Yes' : 'No', !result.mutatesLocalFiles, result.mutatesLocalFiles)}
+      ${readinessItem('Recorded', result.recordedAt ? formatTimestamp(result.recordedAt) : 'not recorded', Boolean(result.recordedAt), !result.recordedAt)}
+    </ul>
+    <p><strong>Pushed commit:</strong> <code>${escapeHtml(result.pushedCommit || 'unknown')}</code></p>
+    <p><strong>Current PR head:</strong> <code>${escapeHtml(result.targetPullRequestHeadCommit || 'unknown')}</code></p>
+    <p><strong>Pushed at:</strong> ${escapeHtml(result.pushedAt ? formatTimestamp(result.pushedAt) : 'unknown')}</p>
+    ${result.evidenceUrl ? `<p><strong>Evidence:</strong> <a href="${escapeAttribute(result.evidenceUrl)}">${escapeHtml(result.evidenceUrl)}</a></p>` : ''}
+    ${result.checksCommand ? `<p><strong>Check command:</strong> <code>${escapeHtml(result.checksCommand)}</code></p>` : ''}
+    ${result.refreshEndpoint ? `<p><strong>Refresh endpoint:</strong> <code>${escapeHtml(result.refreshEndpoint)}</code></p>` : ''}
+    <p><strong>Next expected proof:</strong> ${escapeHtml(result.nextExpectedProof || 'GitHub checks complete, then Symphony refreshes PR state.')}</p>
+  </details>`;
 }
 
 function renderHandoffLifecycle(handoff) {
@@ -3297,6 +4157,119 @@ function renderPullRequestRepairDecision(packet) {
   </details>`;
 }
 
+function renderDelegationRoiLedger(ledger, handoffId) {
+  if (!ledger) return '';
+
+  const facts = ledger.measuredFacts || {};
+  const tokens = facts.codexTokens || {};
+  const foremanUsage = facts.taskScopedForemanUsage || {};
+  const goalContextUsage = facts.goalContextForemanUsage || {};
+  const estimate = ledger.estimatedAvoidedCodexWork || {};
+  const signals = ledger.workflowValueSignals || {};
+  const statusLabel = ledger.status === 'roi_unknown'
+    ? 'ROI unknown'
+    : ledger.status === 'candidate_savings'
+      ? 'Candidate savings'
+      : 'Not delegated';
+  const factsRows = [
+    readinessItem('Codex tokens', tokens.total === null || tokens.total === undefined ? `Missing (${tokens.source || 'unknown source'})` : `${tokens.total} total`, typeof tokens.total === 'number'),
+    readinessItem('Codex runtime', facts.codexActiveRuntimeSeconds === null || facts.codexActiveRuntimeSeconds === undefined ? 'Missing' : `${facts.codexActiveRuntimeSeconds}s`, typeof facts.codexActiveRuntimeSeconds === 'number'),
+    readinessItem('Task-scoped foreman tokens', foremanUsage.totalTokens === null || foremanUsage.totalTokens === undefined ? `Missing (${foremanUsage.source || 'unknown source'})` : `${foremanUsage.totalTokens} total`, typeof foremanUsage.totalTokens === 'number'),
+    readinessItem('Task-scoped foreman turns', foremanUsage.foremanTurns === null || foremanUsage.foremanTurns === undefined ? 'Missing' : `${foremanUsage.foremanTurns}`, typeof foremanUsage.foremanTurns === 'number'),
+    readinessItem('Task-scoped foreman receipts', String(foremanUsage.receiptCount ?? 0), true),
+    readinessItem('Goal-context foreman tokens', goalContextUsage.totalTokens === null || goalContextUsage.totalTokens === undefined ? `Missing (${goalContextUsage.source || 'unknown source'})` : `${goalContextUsage.totalTokens} total`, typeof goalContextUsage.totalTokens === 'number'),
+    readinessItem('Goal-context foreman receipts', String(goalContextUsage.receiptCount ?? 0), true),
+    readinessItem('Foreman events', String(facts.codexForemanEventCount ?? 0), true),
+    readinessItem('Jules elapsed', facts.julesElapsedSeconds === null || facts.julesElapsedSeconds === undefined ? 'Missing' : `${facts.julesElapsedSeconds}s`, typeof facts.julesElapsedSeconds === 'number'),
+    readinessItem('GitHub elapsed', facts.githubElapsedSeconds === null || facts.githubElapsedSeconds === undefined ? 'Missing' : `${facts.githubElapsedSeconds}s`, typeof facts.githubElapsedSeconds === 'number'),
+    readinessItem('Human interventions', String(facts.humanInterventionCount ?? 0), true),
+  ].join('');
+  const estimateRows = [
+    readinessItem('Estimate status', estimate.status || 'missing_estimate', estimate.status === 'documented_estimate', estimate.status !== 'documented_estimate'),
+    readinessItem('Local Codex turns avoided', estimate.estimatedLocalCodexImplementationTurns ?? 'Missing', typeof estimate.estimatedLocalCodexImplementationTurns === 'number'),
+    readinessItem('Local Codex tokens avoided', estimate.estimatedLocalCodexTokens ?? 'Missing', typeof estimate.estimatedLocalCodexTokens === 'number'),
+    readinessItem('Debugging cycles avoided', estimate.estimatedDebuggingCycles ?? 'Missing', typeof estimate.estimatedDebuggingCycles === 'number'),
+    readinessItem('Confidence', estimate.confidence || 'missing', estimate.confidence && estimate.confidence !== 'missing', estimate.confidence === 'missing'),
+  ].join('');
+  const signalRows = [
+    readinessItem('Delegated to Jules', signals.delegatedToJules ? 'Yes' : 'No', Boolean(signals.delegatedToJules), !signals.delegatedToJules),
+    readinessItem('Jules produced PR', signals.julesProducedPullRequest ? 'Yes' : 'No', Boolean(signals.julesProducedPullRequest), !signals.julesProducedPullRequest),
+    readinessItem('Scope stayed declared', signals.prStayedWithinDeclaredScope === null || signals.prStayedWithinDeclaredScope === undefined ? 'Unknown' : signals.prStayedWithinDeclaredScope ? 'Yes' : 'No', signals.prStayedWithinDeclaredScope === true, signals.prStayedWithinDeclaredScope === false),
+    readinessItem('Local implementation avoided', signals.codexAvoidedLocalImplementation === null || signals.codexAvoidedLocalImplementation === undefined ? 'Unknown' : signals.codexAvoidedLocalImplementation ? 'Likely yes' : 'No', signals.codexAvoidedLocalImplementation === true),
+    readinessItem('Stalled because', signals.stalledBecause || 'unknown', signals.stalledBecause === 'none', signals.stalledBecause && signals.stalledBecause !== 'none'),
+  ].join('');
+  const caveats = Array.isArray(estimate.caveats) && estimate.caveats.length
+    ? `<ul class="risk-reasons">${estimate.caveats.map(caveat => `<li>${escapeHtml(caveat)}</li>`).join('')}</ul>`
+    : '';
+  const dataSources = Array.isArray(facts.dataSources) && facts.dataSources.length
+    ? `<p class="usage-summary">Sources: ${facts.dataSources.map(source => escapeHtml(source)).join(', ')}</p>`
+    : '';
+  const estimateForm = handoffId
+    ? `<details class="roi-estimate-form">
+        <summary>Record avoided-work estimate</summary>
+        <p class="usage-summary">This stores local counterfactual evidence only. It does not contact Jules, GitHub, Linear, or local Git.</p>
+        <label>Local Codex turns avoided <input type="number" min="0" step="1" data-roi-estimate="turns" placeholder="optional"></label>
+        <label>Local Codex tokens avoided <input type="number" min="0" step="1" data-roi-estimate="tokens" placeholder="optional"></label>
+        <label>Debugging cycles avoided <input type="number" min="0" step="1" data-roi-estimate="cycles" placeholder="optional"></label>
+        <label>Confidence
+          <select data-roi-estimate="confidence">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+        <label>Estimate method <textarea rows="2" data-roi-estimate="method" placeholder="Example: compared against similar local Codex test-writing tasks"></textarea></label>
+        <label>Caveats <textarea rows="2" data-roi-estimate="caveats" placeholder="One caveat per line"></textarea></label>
+        <button type="button" data-task-action="record-roi-estimate" data-handoff-id="${escapeAttribute(handoffId)}">Record ROI Estimate</button>
+      </details>`
+    : '';
+  const usageForm = handoffId
+    ? `<details class="roi-estimate-form">
+        <summary>Record task-scoped foreman usage</summary>
+        <p class="usage-summary">This stores measured local Codex foreman usage for this task only. It does not contact Jules, GitHub, Linear, or local Git.</p>
+        <label>Input tokens <input type="number" min="0" step="1" data-roi-foreman-usage="inputTokens" placeholder="optional"></label>
+        <label>Output tokens <input type="number" min="0" step="1" data-roi-foreman-usage="outputTokens" placeholder="optional"></label>
+        <label>Total tokens <input type="number" min="0" step="1" data-roi-foreman-usage="totalTokens" placeholder="optional"></label>
+        <label>Active runtime seconds <input type="number" min="0" step="1" data-roi-foreman-usage="activeRuntimeSeconds" placeholder="optional"></label>
+        <label>Foreman turns <input type="number" min="0" step="1" data-roi-foreman-usage="foremanTurns" placeholder="optional"></label>
+        <label>Source
+          <select data-roi-foreman-usage="source">
+            <option value="manual_codex_receipt">Manual Codex receipt</option>
+            <option value="codex_goal_context">Codex goal context</option>
+            <option value="other_measured_source">Other measured source</option>
+          </select>
+        </label>
+        <label>Notes <textarea rows="2" data-roi-foreman-usage="notes" placeholder="Where did this measured usage come from?"></textarea></label>
+        <button type="button" data-task-action="record-roi-foreman-usage" data-handoff-id="${escapeAttribute(handoffId)}">Record Foreman Usage</button>
+      </details>`
+    : '';
+
+  // The ROI panel is intentionally conservative: measured facts and estimates
+  // are rendered in separate sections so Symphony can show useful delegation
+  // evidence without overstating Codex usage savings.
+  return `<details class="handoff-readiness delegation-roi-ledger" open>
+    <summary>Delegation ROI ledger <span class="badge ${ledger.status === 'candidate_savings' ? 'running' : 'retrying'}">${escapeHtml(statusLabel)}</span></summary>
+    <p>${escapeHtml(ledger.verdict || ledger.summary || 'Delegation ROI has not been calculated yet.')}</p>
+    <div>
+      <strong>Measured facts</strong>
+      ${dataSources}
+      <ul>${factsRows}</ul>
+      ${usageForm}
+    </div>
+    <div>
+      <strong>Estimated avoided Codex work</strong>
+      <ul>${estimateRows}</ul>
+      ${caveats}
+      ${estimateForm}
+    </div>
+    <div>
+      <strong>Workflow value signals</strong>
+      <ul>${signalRows}</ul>
+      ${signals.pullRequestUrl ? `<p><a href="${escapeAttribute(signals.pullRequestUrl)}" target="_blank" rel="noreferrer">${escapeHtml(signals.pullRequestUrl)}</a></p>` : ''}
+    </div>
+  </details>`;
+}
+
 function renderPullRequestFeedbackSummary(feedback) {
   if (!feedback || feedback.totalComments === 0) return '';
 
@@ -3417,6 +4390,7 @@ function renderScoutCoreReadiness(handoff) {
     const rows = [
       readinessItem('Scout input', readiness.pr?.url ? 'PR URL captured' : 'Waiting for Jules PR', Boolean(readiness.pr?.url)),
       readinessItem('Scout freshness', readiness.pr?.lastRefreshAt ? `Refreshed ${formatTimestamp(readiness.pr.lastRefreshAt)}` : 'Refresh PR Checks first', Boolean(readiness.pr?.lastRefreshAt)),
+      readinessItem('Check rerun', readiness.status === 'waiting_for_checks_rerun' ? 'Repair push recorded; wait for GitHub checks and refresh PR' : 'No repair-push wait recorded', readiness.status !== 'waiting_for_checks_rerun', readiness.status === 'waiting_for_checks_rerun'),
       readinessItem('Scout bridge', readiness.canScoutReviewNow ? `Ready; ${evidence.scoutConflictComments ?? 0} Scout conflict comment(s)` : 'Waiting for current PR data', readiness.canScoutReviewNow, readiness.status === 'blocked_by_scout'),
       readinessItem('Core validation', readiness.canCoreValidateNow ? 'Ready after Scout bridge' : readiness.status === 'merged' ? 'PR already merged' : 'Blocked until Scout bridge, checks, and mergeability are clear', readiness.canCoreValidateNow || readiness.status === 'merged'),
       readinessItem('Core merge', readiness.canCoreMergeNow ? `Use: ${readiness.coreMergeCommand || handoff.pullRequestMergeCommand || 'gh pr merge'}` : readiness.status === 'merged' ? 'Merge recorded by GitHub' : 'Not ready for merge', readiness.canCoreMergeNow || readiness.status === 'merged'),
@@ -3538,6 +4512,67 @@ function renderLocalSyncReadiness(handoff) {
     <ul>${rows}</ul>
     ${status?.pullCommand ? `<p><strong>Command:</strong> <code>${escapeHtml(status.pullCommand)}</code></p>` : ''}
     ${output}
+  </div>`;
+}
+
+function renderDeploymentReadiness(readiness) {
+  if (!readiness) return '';
+
+  const blockers = Array.isArray(readiness.blockers) && readiness.blockers.length
+    ? `<ul class="risk-reasons">${readiness.blockers.map(blocker => `<li>${escapeHtml(blocker)}</li>`).join('')}</ul>`
+    : '';
+  const commands = readiness.commands || {};
+  const commandLines = [
+    commands.latestPagesBuild ? `Latest Pages build: ${commands.latestPagesBuild}` : '',
+    commands.recentDeployments ? `Recent deployments: ${commands.recentDeployments}` : '',
+    commands.deploymentStatuses ? `Deployment statuses: ${commands.deploymentStatuses}` : '',
+  ].filter(Boolean);
+  const evidence = readiness.evidence
+    ? `<div class="handoff-manifest">
+        <p><strong>Recorded deployment evidence:</strong> ${escapeHtml(readiness.evidence.status || 'recorded')}</p>
+        <p>${escapeHtml(readiness.evidence.summary || '')}</p>
+        ${readiness.evidence.evidenceUrl ? `<p><a href="${escapeAttribute(readiness.evidence.evidenceUrl)}">${escapeHtml(readiness.evidence.evidenceUrl)}</a></p>` : ''}
+      </div>`
+    : '';
+
+  // Deployment readiness lives between a merged PR and local sync. It gives the
+  // operator read-only GitHub Pages/deployment checks before Symphony treats the
+  // cloud work as safe to pull back into local master.
+  return `<div class="handoff-readiness deployment-readiness">
+    <strong>Deployment readiness</strong>
+    <p>${escapeHtml(readiness.expectedNextProof || 'Check GitHub Pages deployment state before local sync.')}</p>
+    <ul>
+      ${readinessItem('Status', readiness.status || 'waiting', readiness.status === 'needs_check', readiness.status === 'waiting_for_merge')}
+      ${readinessItem('Can refresh now', readiness.canRefreshNow ? 'Yes' : 'No', readiness.canRefreshNow, !readiness.canRefreshNow && readiness.status === 'needs_check')}
+      ${readinessItem('Can proceed to local sync', readiness.canProceedToLocalSync ? 'Yes' : 'No', readiness.canProceedToLocalSync, !readiness.canProceedToLocalSync)}
+      ${readinessItem('Mutates external systems', readiness.mutatesExternalSystemsIfRun ? 'Yes' : 'No', !readiness.mutatesExternalSystemsIfRun, readiness.mutatesExternalSystemsIfRun)}
+      ${readinessItem('Mutates local files', readiness.mutatesLocalFilesIfRun ? 'Yes' : 'No', !readiness.mutatesLocalFilesIfRun, readiness.mutatesLocalFilesIfRun)}
+    </ul>
+    ${blockers}
+    ${evidence}
+    ${commandLines.length ? `<details><summary>Read-only deployment commands</summary><pre>${escapeHtml(commandLines.join('\n'))}</pre></details>` : ''}
+    <label>Deployment result
+      <select data-deployment-evidence="status">
+        <option value="passed">Passed</option>
+        <option value="failed">Failed</option>
+        <option value="waived">Waived by operator</option>
+      </select>
+    </label>
+    <label>Evidence source
+      <select data-deployment-evidence="source">
+        <option value="github_pages_latest_build">GitHub Pages latest build</option>
+        <option value="github_deployment_status">GitHub deployment status</option>
+        <option value="operator_waiver">Operator waiver</option>
+      </select>
+    </label>
+    <label>Evidence URL
+      <input data-deployment-evidence="evidenceUrl" type="url" placeholder="https://github.com/.../deployments/..." value="${escapeAttribute(readiness.evidence?.evidenceUrl || '')}">
+    </label>
+    <label>Deployment summary
+      <textarea rows="2" data-deployment-evidence="summary" placeholder="Plain-language deployment proof or waiver">${escapeHtml(readiness.evidence?.summary || '')}</textarea>
+    </label>
+    <button type="button" data-task-action="record-deployment-evidence" data-handoff-id="${escapeAttribute(readiness.handoffId || '')}">Record Deployment Evidence</button>
+    <p class="usage-summary">${escapeHtml(readiness.safetyNote || '')}</p>
   </div>`;
 }
 

@@ -125,6 +125,7 @@ const baseHandoff = {
   coreValidationCommand: 'gh pr view https://github.com/Gambitnl/Aralia/pull/902 --json state,isDraft,mergeable,reviewDecision,statusCheckRollup,files',
   coreMergeCommand: 'gh pr merge https://github.com/Gambitnl/Aralia/pull/902 --squash --delete-branch',
   localSyncCommand: 'git pull --ff-only origin master',
+  deploymentEvidence: null,
   localSyncStatus: null,
   localSyncOutput: null,
   localSyncError: null,
@@ -135,6 +136,18 @@ const baseHandoff = {
 
 const safeHandoff = {
   ...baseHandoff,
+  deploymentEvidence: {
+    handoffId: 'handoff-local-sync',
+    status: 'passed',
+    source: 'github_pages_latest_build',
+    evidenceUrl: 'https://github.com/Gambitnl/Aralia/deployments/github-pages',
+    summary: 'GitHub Pages deployment succeeded for this merged PR.',
+    checkedAt: '2026-05-17T00:04:30.000Z',
+    recordedAt: '2026-05-17T00:04:45.000Z',
+    recordedBy: 'operator',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  },
   localSyncStatus: localSyncStatus({
     safeToPull: true,
     upToDate: false,

@@ -14,6 +14,14 @@ Symphony is the local dashboard-first middleman around the existing Aralia Jules
 
 Symphony is not meant to replace Jules or become an unbounded local implementation runner. Codex workers launched by Symphony are foremen by default: they inspect dashboard state, clarify ambiguous tasks with the operator, prepare bounded handoffs, monitor external progress, explain blockers, and update the operator trail.
 
+Approval gates are architectural boundaries, not a ban on local maintenance.
+They protect external or workflow-advancing mutation: Linear, Jules, GitHub, PR
+branches, deployment waivers, local master sync, and user-visible task
+decisions. Local Symphony hygiene such as docs edits, verifier updates,
+dashboard/API code edits, verifier runs, and local checkpoint commits stays
+inside the implementation loop as long as it does not push, launch, merge, sync,
+contact external systems, or claim that a live boundary advanced.
+
 ## Architecture At A Glance
 
 ```mermaid
@@ -29,7 +37,7 @@ flowchart TD
   Linear["Linear adapter\nsrc/linear-client.ts"]
   Jules["Jules orchestrator bridge\n.jules/orchestrator\n.jules/runs"]
   PR["GitHub PR, checks, deployments, Scout/Core, local sync readiness\nsrc/task-intake.ts"]
-  Browser["Codex app browser inspection\nJules visual status reconciliation"]
+  Browser["Codex Browser plugin bridge\nJules visual status reconciliation"]
   Worker["Codex worker runner\nsrc/agent-runner.ts\nsrc/workspace.ts\nsrc/prompt-renderer.ts"]
   Proof["Verifiers and proof board\nscripts/verify-*.mjs\n/proof"]
   Docs["Spec and audit\nJULES_MIDDLEMAN_OPERATING_SPEC.md\nJULES_MIDDLEMAN_AUDIT.md"]
@@ -113,16 +121,135 @@ Important boundary:
 The Delegation ROI ledger belongs on the task/handoff record because it compares
 the same task's measured Codex foreman spend, Jules/GitHub elapsed time, human
 intervention count, local-edit avoidance, and estimated avoided local Codex
-implementation. It should reuse orchestrator usage/rate-limit events and task
-timeline data; estimates must be labeled as estimates and must not be mixed into
-measured token totals.
+implementation. The baseline implementation derives `delegationRoiLedger` during
+task-intake snapshot normalization, `server.ts` passes live Symphony
+`codex_totals` into `/api/v1/task-drafts` when available, and
+`public/dashboard.js` renders the ledger, the local task-scoped foreman-usage
+form, and the local avoided-work estimate form. The `roi-foreman-usage` route
+records measured Codex foreman usage that belongs to one handoff but was not
+captured by Symphony worker totals; the `roi-estimate` route records only
+Symphony-local estimate evidence. Neither route contacts Jules, GitHub, Linear,
+or local Git. Broad `codex_goal_context` receipts are retained in a separate
+goal-context usage bucket so the dashboard can show the cost of the larger
+Symphony goal without treating that long-thread total as task-scoped ROI proof.
+The ledger should continue to reuse orchestrator usage/rate-limit events and
+task timeline data as those sources become available; estimates must be labeled
+as estimates and must not be mixed into measured token totals.
+
+The handoff timeline is also owned by `task-intake.ts`. It derives
+`handoffTimeline` from stored facts on a handoff: draft creation, Linear issue
+linking, manifest staging, Jules launch, plan approvals, operator messages,
+Jules refreshes, GitHub PR refreshes, durable task nudges, repair decisions, ROI
+ledger generation, and later local sync checks. `public/dashboard.js` renders
+that packet as `Task timeline` on handoff cards. Nudge events are derived from
+the task-nudge ledger, so the task page can explain why a timed refresh happened
+without creating a second scheduler or conversation store. This is the first
+task-centered dashboard slice; the full task detail page and task-scoped Codex
+chat should build on the same task-store records instead of creating a parallel
+conversation database.
+
+The home-page `Task navigator` is intentionally presentation-only. It is built
+inside `public/dashboard.js` from the same draft and handoff arrays already
+returned by `/api/v1/task-drafts`, counts all/open/completed/archived records
+plus tasks that need human input, filters those buckets as a browser display
+preference, and links to the existing card that owns the detailed receipts. This
+gives the operator a small task list without adding a new persistence layer. The
+same section now renders a compact read-only `Task detail` preview for the first
+visible navigator row. That preview links to `/tasks/:id`, the first standalone
+task page, and to `GET /api/v1/tasks/:id`, the stable single-task read API. Both
+surfaces derive one draft or handoff detail packet from the existing
+task-intake snapshot, include current boundary, timeline, attached links,
+human-blocker state, ROI/readiness records when present, and always return or
+display non-mutation flags. The page is server-rendered by `HttpServer` so a
+task can be opened directly without a second frontend application. It also
+includes the read-only Jules handoff prompt, the read-only Jules
+dialogue/approval history, stored `taskMessages`, `taskClarifications`, a local
+message form, and a local clarification form. `POST /api/v1/tasks/:id/messages` appends a local
+operator/Codex note to the same draft or handoff record; this is the first
+task-chat storage baseline, not a Jules feedback route. `POST
+/api/v1/tasks/:id/clarifications` records a structured Codex-foreman
+clarification question and optional operator answer on the same local record.
+The derived `clarificationState` marks whether that task is waiting for the
+operator before Linear/Jules work should move onward. Neither route creates a
+second task database, calls external services, or mutates Git. `POST
+/api/v1/tasks/:id/disposition` uses the same
+local task record to file work as active, completed, archived, or abandoned so
+the dashboard can triage stale records without changing Linear, Jules, GitHub,
+or local Git.
+
+`server.ts` also derives `guardedActions` for handoff task details. These are
+operator runbook entries for commands or endpoints that already exist elsewhere
+in the handoff, such as PR refresh, marked Jules feedback, repair push, and
+local sync. They are rendered on `/tasks/:id` as `Guarded Operator Actions`
+because the operator needs to see what boundary is next, but the task page still
+does not run GitHub comments, Git pushes, check reruns, merges, pulls, or Jules
+messages automatically.
+
+Human-blocker packets are derived in the same layer. `task-intake.ts` turns a
+repair decision that needs the operator into an `operatorQuestion` packet with
+plain-language question text, non-mutation flags, and the local
+`operatorPreferences.quietHours` waiting policy. The default is weekday
+01:00-09:00 Europe/Amsterdam, but the same store can persist operator overrides
+for time zone, start/end hours, weekday-only behavior, or disabled quiet hours.
+`server.ts` exposes `POST /api/v1/operator-preferences`, and
+`public/dashboard.js` renders `Operator Preferences`; both are local dashboard
+state and do not contact Jules, GitHub, Linear, local files, or Git. It also turns prepared
+`repairPushReadiness` without a `repairPushResult` into a
+`repair_push_approval` question, because approving a GitHub push is a different
+decision from choosing a repair lane. That current-boundary question takes
+precedence over the older repair-decision packet when both remain on the handoff
+for audit history. `public/dashboard.js` renders both cases as `Needs your
+input` plus a pending-human-input badge; for push approval it shows
+approve/reject/wait choices and does not show the execute-repair-lane button.
+The same store now records `operatorAnswers` as local-only receipts for the
+selected repair lane or push decision. The first guarded repair action,
+`create_setup_repair_task`, creates a local
+setup-repair draft and `repairLaneExecutions` receipt only. This is not yet the
+full task chat system or external repair-lane executor; it is the stable blocker,
+answer, and local-draft record that chat and guarded external actions should
+build on. Setup-repair drafts then become the routing focus when they are newer
+than the source handoff, and the worker-mode packet recommends local-careful
+Codex handling so workflow/setup failures are repaired locally before Jules is
+given more implementation feedback.
+
+The next boundary after a local repair commit is `repairPushReadiness`. It is
+owned by the same task-intake store because it attaches to the handoff, but it
+does not push. It records the worktree, branch, commit, repair-base commit,
+current PR head commit, files, verification, PR, and push command while marking
+the command as external mutation that still needs operator approval. The
+repair-base/current-PR-head fields protect against pushing a stale local repair
+after Jules or another actor has moved the PR branch. Its `postPushFollowUp`
+packet then names the read-only sequence Symphony should observe after a human
+push: GitHub checks rerun, PR refresh, and Scout/Core readiness update.
+While no result receipt exists, this readiness packet is elevated into the
+dashboard's plain-language operator question so the approval request is visible
+in the task's human-input queue instead of hidden inside the readiness panel.
+The handoff timeline labels that later answer as repair-push approval instead
+of repair-lane choice, which keeps the chronological task view aligned with the
+real boundary.
+Once that approval answer is recorded, task routing switches to an
+`operator_only` `Record repair push result` boundary. That state deliberately
+shows the human-owned push command and the result endpoint while keeping worker
+dispatch disabled, so Symphony does not loop on the old approval question and
+does not imply that GitHub checks can rerun before the external push is
+recorded.
+After the human-owned push happens, the same handoff can store
+`repairPushResult` as a local receipt. That receipt captures pushed/failed
+status, pushed commit, resulting PR head, evidence URL, `gh pr checks` command,
+refresh endpoint, and next boundary, but it still does not push, rerun checks,
+merge, pull, or edit local files. The dashboard surfaces this as a
+`Record Repair Push Result` control under the readiness packet so the operator
+can turn an external GitHub action into durable Symphony evidence.
 
 Documentation continuity is an architectural responsibility, not a cleanup
 chore. The operating spec, audit, architecture overview, ordered open-task list,
 and per-task handoff files are the shared memory that lets later Codex foremen
 continue without re-litigating each boundary. Each implementation/proof stage
 should update the status documents that own that stage before the stage is
-treated as settled.
+treated as settled. Read-only observation slices should be recorded as
+read-only, with the unchanged external boundary and the next operator-owned
+mutation named explicitly, so the dashboard does not inherit invisible state
+from a conversation thread.
 
 ### Git, GitHub, Scout/Core, And Local Sync Readiness
 
@@ -139,13 +266,31 @@ Related external surfaces:
 Important boundary:
 
 Git preflight and local sync packets separate read-only inspection from human-run mutation. Symphony should expose mutating local sync only when the packet proves it is safe, and observed PRs should remain read-only learning/proof records. For changes that affect the published application, the GitHub Pages deployment boundary belongs between PR merge and local sync readiness.
+That boundary now has a server-derived `deployment_readiness` packet. It is not
+a deployment runner; it records whether the PR is merged, whether the handoff is
+dashboard-started, which GitHub repository is involved, and which read-only
+GitHub Pages/deployment-status commands should prove published-app health before
+local sync proceeds. The local `deployment-evidence` route then records the
+operator or foreman evidence as `deploymentEvidence` on the handoff. That receipt
+is still Symphony-local and non-mutating; only `passed` or `waived` evidence can
+unlock the local-sync readiness action.
 
 Failed PR checks now have the same read-only-before-mutation rule. A PR refresh
 may classify blockers and generate a repair decision packet, but the packet only
 asks which lane to use: separate setup repair task, Jules feedback, workflow
 configuration repair, manual wait, or refresh-after-repair. Posting feedback,
 creating a tracking issue, editing workflow files, or changing local Git remains
-operator-approved work outside the packet.
+operator-approved work outside the packet. A prepared local repair can be
+recorded as `repairPushReadiness`, but GitHub push/rerun remains outside that
+packet until the operator approves the external mutation. Freshness evidence on
+that packet tells the operator whether the prepared repair still sits on the
+current PR head or needs rebasing before any approval makes sense. Post-push
+follow-up evidence keeps the next step read-only: watch checks, refresh the PR
+packet, and only then reconsider Scout/Core readiness. A later
+`repairPushResult` receipt records the outcome of the operator-owned push and
+points Symphony at GitHub check observation; it is still Symphony-local evidence,
+not a GitHub mutation path. The matching dashboard control records this receipt
+only after the operator has already crossed the external push boundary.
 
 ### Jules Bridge
 
@@ -162,9 +307,25 @@ Important boundary:
 
 Symphony prepares, stages, launches, refreshes, and records Jules handoffs. Jules owns cloud implementation. A dashboard-created task should pass through Git sync, Linear tracking, Jules manifest staging, Jules launch/session tracking, PR review, deployment observation when relevant, Scout/Core readiness, and local sync readiness.
 
-The ARA-6 live run exposed a specific ownership boundary: local `.jules/runs` status can say `COMPLETED` with no PR URL while Jules API, browser-visible state, and GitHub each expose additional facts. Current browser evidence shows `Plan approved`, `All plan steps completed`, `View PR`, and failed check summaries; the Jules API exposes PR #931; GitHub confirms the matching PR. Symphony therefore needs a reconciliation layer that treats stored Jules status as one signal, not the only truth, prefers official Jules API outputs when available, uses the Codex app browser for visual confirmation when state is ambiguous, and falls back to read-only GitHub lookup by session id, branch name, handoff title, or Linear issue before declaring that no PR exists.
+The ARA-6 live run exposed a specific ownership boundary: local `.jules/runs` status can say `COMPLETED` with no PR URL while Jules API, browser-visible state, and GitHub each expose additional facts. Current browser evidence shows `Plan approved`, `All plan steps completed`, `View PR`, and failed check summaries; the Jules API exposes PR #931; GitHub confirms the matching PR. Symphony therefore needs a reconciliation layer that treats stored Jules status as one signal, not the only truth, prefers official Jules API outputs when available, uses the Codex app browser for visual confirmation when state is ambiguous, and falls back to read-only GitHub lookup by session id, branch name, handoff title, or Linear issue before declaring that no PR exists. Current Jules API docs describe that surface as alpha and expose sessions, activities, `approvePlan`, `sendMessage`, and PR outputs, so Symphony should keep API evidence versioned and avoid assuming the API shape is stable.
 
-Jules repository environment setup is external configuration, not Symphony-owned state. Symphony should document recommended setup scripts and blockers, but running `Run and Snapshot` on the Jules Environment page is an operator-approved external action. The current ARA-6 evidence shows `npm ci` fails because the lockfile is out of sync, so `npm ci --no-audit --no-fund` is the desired future setup script only after lockfile repair; `npm install --no-audit --no-fund` is a diagnostic workaround that may dirty Jules' working copy.
+The reliable live browser route in Codex is the Browser plugin's in-app browser
+bridge. A direct Playwright MCP call may fail with `Transport closed` even while
+the in-app browser bridge can still list the signed-in Jules tab, read visible
+state, and capture a screenshot. Terminal Playwright remains useful for
+repeatable local dashboard verification, but Jules follow-along evidence should
+prefer the in-app bridge because it is the operator-visible browser surface.
+`server.ts` renders this rule on `/proof`, and `public/dashboard.js` renders the
+same `Browser Follow-along` guidance inside the Jules Lifecycle group. `server.ts`
+also exposes `GET /api/v1/browser-tooling-health`, a read-only packet that
+names the Browser plugin bridge as the primary live follow-along path, records
+direct Playwright `Transport closed` as a known unreliable path, lists
+allowed/disallowed uses, carries the ARA-6 observed evidence, and keeps
+external/local mutation flags false. This packet does not query Jules or become
+a browser-state store; it is the operational contract future foremen should read
+before deciding how to observe a live Jules session.
+
+Jules repository environment setup is external configuration, not Symphony-owned state. Symphony should document recommended setup scripts and blockers, but running `Run and Snapshot` on the Jules Environment page is an operator-approved external action. The current ARA-6 evidence shows `npm ci` fails because the lockfile is out of sync, so `npm ci --no-audit --no-fund` is the desired future setup script only after lockfile repair; `npm install --no-audit --no-fund` is a diagnostic workaround that may dirty Jules' working copy. `server.ts` exposes this as the read-only `GET /api/v1/jules-environment-setup` packet and a `/proof` `Jules Environment Setup` card so future foremen can see the setup recommendation and external mutation boundary without relying on prior chat context.
 
 ### Verification And Proof
 
@@ -203,22 +364,28 @@ Human operators and foreman workers should prefer these local endpoints over gue
 - `GET /proof`: compact proof board for in-app browser follow-along.
 - `GET /api/v1/state`: orchestrator snapshot, worker roster, dashboard URLs, dispatch state, usage, approval policy.
 - `GET /api/v1/dispatch-control`: backend dispatch gate state.
+- `GET /api/v1/browser-tooling-health`: read-only browser follow-along guidance packet; names the Codex Browser plugin bridge as primary, direct Playwright transport as known-unreliable, and records false mutation flags.
 - `POST /api/v1/dispatch-control`: enable or pause new worker assignment.
 - `GET /api/v1/task-drafts`: task queue, handoffs, Git preflight, routing, nudges, readiness packets.
+- `GET /tasks/:id`: server-rendered task workspace for one draft or handoff, backed by the same detail packet, read-only Jules prompt/dialogue packets, and local task-message endpoint.
+- `GET /api/v1/tasks/:id`: read-only detail packet for one draft or handoff, derived from `/api/v1/task-drafts` state with explicit non-mutation flags, Jules prompt history, Jules dialogue/approval history, local `clarificationState`, and local task disposition when present.
+- `GET /api/v1/jules-handoffs/:id/deployment-readiness`: read-only deployment readiness packet for one handoff after merge and before local sync. It exposes GitHub Pages/latest-build and deployment-status inspection guidance plus safety flags, but it does not create deployments, rerun Actions, mutate GitHub, pull Git, or edit local files. Task detail packets link to this endpoint as `links.deploymentReadiness`.
+- `POST /api/v1/tasks/:id/messages`: local operator-to-Codex task messages stored on the draft or handoff with explicit non-mutation flags; separate from Jules feedback.
+- `POST /api/v1/tasks/:id/clarifications`: local structured Codex-foreman clarification question plus optional operator answer, stored on the draft or handoff with explicit non-mutation flags; separate from Jules feedback and Linear/Jules/GitHub actions.
+- `POST /api/v1/tasks/:id/disposition`: local task filing receipt for active/completed/archived/abandoned task states with explicit non-mutation flags; separate from Linear/Jules/GitHub/Git actions.
 - `POST /api/v1/task-drafts`: create a dashboard draft.
 - `POST /api/v1/git-preflight`: refresh the hard Git/GitHub sync gate.
 - `GET /api/v1/git-disposition/review`: read-only Git disposition packet.
 - `POST /api/v1/git-disposition`: record operator Git disposition intent without mutating Git.
 - `POST /api/v1/task-nudges`: record task routing/nudge evidence.
 - `POST /api/v1/task-nudges/refresh-due`: run due external-read refresh nudges.
-- `POST /api/v1/jules-handoffs/...`: stage, launch, refresh, message, approve, PR refresh, local-sync, and observed-learning actions, each guarded by task-intake readiness.
+- `POST /api/v1/jules-handoffs/:id/roi-foreman-usage`: local measured task-scoped Codex foreman usage receipt for a handoff; separate from avoided-work estimates and external actions.
+- `POST /api/v1/jules-handoffs/...`: stage, launch, refresh, message, approve, PR refresh, ROI estimate, deployment-evidence, local-sync, and observed-learning actions, each guarded by task-intake readiness.
 
 Intended task-centered surfaces that are not yet fully represented as stable API contracts:
 
-- `GET /api/v1/tasks/:id`: task detail, boundary timeline, attached links, prompt/dialogue records, and status history.
-- `POST /api/v1/tasks/:id/messages`: operator-to-Codex task chat and Codex-to-operator questions.
 - `GET /api/v1/tasks/:id/terminal`: optional terminal-simulator stream for a local Codex foreman process or command output. This is a live view onto the task, not the task's source of truth; structured task messages and events remain canonical.
-- deployment-readiness refresh for GitHub Pages or equivalent published-app targets before final local sync.
+- live GitHub Pages adapter evidence beyond the current read-only deployment-readiness packet. The stable local contract exists; the remaining work is proving it against a real merged dashboard-started Jules PR and any future published-app targets.
 
 ## Common Change Patterns
 
@@ -286,4 +453,6 @@ Known places where future edits may need to update this map:
 - if Scout/Core becomes an API integration instead of readiness commands;
 - if the dashboard gains separate pages beyond `/` and `/proof`;
 - if per-task chat/timeline state moves out of the current task-intake store;
-- if Jules visual status reconciliation becomes automated instead of foreman/browser-driven.
+- if Jules visual status reconciliation becomes automated instead of foreman/browser-driven;
+- if the Browser plugin bridge gains a server-queryable live health signal
+  beyond the current read-only `browser-tooling-health` operational contract.

@@ -1443,6 +1443,240 @@ textarea {
   padding: 0;
 }
 
+.task-navigator {
+  /* This is the operator's compact task map. The detailed cards still own the
+     real receipts; this panel only counts them and links down to the record
+     that currently needs attention. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem;
+}
+
+.task-navigator.empty {
+  color: var(--muted);
+}
+
+.task-navigator-header {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.task-navigator-header h3 {
+  margin: 0 0 0.25rem;
+}
+
+.task-navigator-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.task-navigator-filters {
+  /* These buttons filter the already-rendered task map by status. They do not
+     change backend state; they only help the operator focus on pending input,
+     active work, completed handoffs, or archived learning records. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.task-navigator-filters button[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent), transparent 78%);
+}
+
+.task-navigator ol {
+  display: grid;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task-navigator li {
+  align-items: baseline;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.3rem;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  padding: 0.65rem;
+}
+
+.task-navigator li.needs_input {
+  border-color: color-mix(in srgb, var(--approval-text) 50%, var(--border));
+}
+
+.task-navigator li.completed {
+  border-color: color-mix(in srgb, var(--running-text) 45%, var(--border));
+}
+
+.task-navigator li p,
+.task-navigator li small {
+  color: var(--muted);
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.task-detail-preview {
+  /* This preview is the first focused task-detail surface. It summarizes the
+     selected navigator record and links to the full receipt card instead of
+     duplicating the deep controls or owning task state itself. */
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+}
+
+.task-detail-preview h4,
+.task-detail-preview p {
+  margin: 0;
+}
+
+.task-detail-preview dl {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin: 0;
+}
+
+.task-detail-preview dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.task-detail-preview dd {
+  margin: 0;
+}
+
+.button-link {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  display: inline-flex;
+  padding: 0.55rem 0.8rem;
+  text-decoration: none;
+}
+
+.button-link:hover {
+  border-color: var(--accent);
+}
+
+.task-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.task-page {
+  /* The task page is the first standalone workspace for one Symphony task. It
+     reuses dashboard styling but arranges the task as a working surface rather
+     than another dense all-system dashboard. */
+  max-width: 1180px;
+}
+
+.task-page-header h1 {
+  margin: 0.1rem 0 0.35rem;
+}
+
+.task-page-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+.task-page-current,
+.task-page-timeline {
+  grid-column: 1 / -1;
+}
+
+.task-page-facts {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin: 1rem 0;
+}
+
+.task-page-facts dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.task-page-facts dd {
+  margin: 0;
+}
+
+.task-page-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.task-page-messages,
+.task-page-events {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.task-page-messages li,
+.task-page-events li {
+  border-left: 3px solid var(--border);
+  padding-left: 0.75rem;
+}
+
+.task-page-messages span,
+.task-page-events span,
+.task-page-events em {
+  color: var(--muted);
+  display: block;
+  font-size: 0.82rem;
+}
+
+.task-page-packet {
+  grid-column: 1 / -1;
+}
+
+.task-page-packet pre {
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 860px) {
+  .task-page-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.browser-followalong-guidance {
+  /* This is an operator note, not a new browser controller. It keeps the live
+     Jules inspection rule visible in the dashboard while the actual evidence
+     still comes from task handoff packets and proof-board receipts. */
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.browser-followalong-guidance h3,
+.browser-followalong-guidance p {
+  margin: 0;
+}
+
 .task-draft {
   border: 1px solid var(--border);
   border-radius: 8px;

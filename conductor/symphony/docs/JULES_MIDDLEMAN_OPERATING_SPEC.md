@@ -43,7 +43,11 @@ execution can go to Jules.
 
 Live dashboard inspection must use the built-in Codex app browser so the user
 can follow along. External Chrome/Chromium windows are not the live inspection
-surface for this workflow.
+surface for this workflow. The current reliable route is the Codex Browser
+plugin's in-app browser bridge. A direct Playwright MCP call can fail with
+`Transport closed` in this app session, but that does not prove Jules is
+unobservable: the Browser plugin bridge can still list the already-open Jules
+tab, read visible page text, and capture screenshots inside the in-app browser.
 
 The intended operator experience is task-centered. The dashboard should let the
 operator see all tasks, open tasks, tasks waiting for human input, completed
@@ -54,12 +58,59 @@ surface for the Codex foreman assigned to that task. Any question for the
 operator should be written in human language and posted through the task view,
 not hidden in a terminal transcript.
 
+The current baseline for that task-centered view is a read-only `Task navigator`
+on the dashboard. It is derived from the same draft and handoff snapshot as the
+existing cards, counts all/open/completed/archived records plus tasks needing
+human input, filters the list by those buckets as a display preference, and
+links to the existing detailed card instead of creating a separate task truth.
+It now also renders a compact read-only `Task detail` preview for the first
+visible task, showing current boundary, update time, timeline count,
+expected-file count, verification-command count, and Linear/Jules/GitHub links
+when present. `verify-task-dashboard-navigator.mjs` protects this as a dashboard
+contract. The preview links to `/tasks/:id`, the first standalone task page,
+and to `GET /api/v1/tasks/:id`, a non-mutating single-task JSON endpoint
+protected by `verify-task-detail-api.mjs`. The JSON endpoint returns one draft
+or handoff detail packet with the current boundary, timeline, attached
+Linear/Jules/GitHub links, operator-question state, ROI ledger, readiness
+packets, stored local task messages, local task disposition when present,
+local `clarificationState`, `taskMessages`, `taskClarifications`, and
+`taskDisposition` links, and explicit
+non-mutation flags. The page is protected by `verify-task-detail-page.mjs` and
+renders the same facts as a task workspace with current boundary, safety flags,
+task links, local messages, timeline, scope, verification, a read-only Jules
+handoff prompt packet, a read-only Jules dialogue/approval history packet, and
+expandable readiness packets. The preview and task page also have local-only `Task message`
+forms backed by `POST /api/v1/tasks/:id/messages` and protected by
+`verify-task-message-api.mjs`; they record operator-to-Codex notes in the
+Symphony task store and do not send Jules feedback, create Linear/GitHub
+records, or mutate local Git. Structured foreman clarification questions are
+backed by `POST /api/v1/tasks/:id/clarifications` and protected by
+`verify-task-clarification-api.mjs`; they record the question and optional
+operator answer as local task state so the dashboard can mark work as waiting
+for clarification before it crosses into Linear or Jules. `verify-task-detail-page.mjs`
+also protects the first task-page `Task Clarifications` form for that same local
+path. Local task filing is
+backed by
+`POST /api/v1/tasks/:id/disposition` and protected by
+`verify-task-disposition-api.mjs`; it can mark work active, completed,
+archived, or abandoned as dashboard state only. The standalone task page now
+also exposes the local-only operator-answer and repair-push-result actions for
+handoffs through the existing guarded endpoints. `verify-task-detail-api.mjs`
+protects the `operatorAnswer` task link, and `verify-task-detail-page.mjs`
+protects the rendered `Record Operator Answer` and `Record Repair Push Result`
+forms. These forms record local receipts only; they do not execute repair lanes,
+send Jules feedback, push to GitHub, rerun checks, merge, pull, or edit local
+files. Richer external task actions beyond these local receipts and the
+optional terminal mirror remain open implementation work.
+
 When a task needs human direction, the Codex foreman should stop at the
 dashboard question rather than busy-looping. The foreman may schedule a later
-wake-up or leave the task waiting, especially during known quiet hours such as
-weekday nights from 01:00 to 09:00 in the operator's local time. The wake-up
-should refresh the boundary state and check for an operator reply; it should not
-keep running a tight background script while blocked on the human.
+wake-up or leave the task waiting, especially during operator-configured quiet
+hours. The default quiet window remains weekday nights from 01:00 to 09:00
+Europe/Amsterdam, but the dashboard should let the operator adjust or disable
+that local waiting policy. The wake-up should refresh the boundary state and
+check for an operator reply; it should not keep running a tight background
+script while blocked on the human.
 
 The current active goal is the full **Symphony delegation workflow** outcome:
 Symphony should be the local dashboard where Codex acts as a foreman, clarifies
@@ -73,6 +124,17 @@ intent, audit, architecture overview, and ordered task documents must stay
 current as each proof stage advances. Dashboard foreman-console focus,
 default-off dispatch, task routing, and worker-mode recommendation are
 supporting slices of that larger end-to-end proof, not the whole goal.
+
+Approval wording in that goal is intentionally scoped to operator-owned
+workflow boundaries. An operator-approved mutation is an external or
+workflow-advancing action that affects Linear, Jules, GitHub, PR branches,
+deployment waivers, local master sync, or user-visible task decisions. It does
+not include ordinary local implementation hygiene inside the active Symphony
+workstream: documentation edits, verifier updates, local API/dashboard code
+changes, local verifier runs, or local checkpoint commits that do not push,
+launch, merge, sync, contact external systems, or claim a live workflow boundary
+has advanced. Those local hygiene changes still need normal review discipline,
+but they are not a blocker waiting for operator approval.
 
 ## System Boundaries
 
@@ -146,18 +208,33 @@ supporting slices of that larger end-to-end proof, not the whole goal.
    `COMPLETED` with no PR URL while Jules API/browser/GitHub evidence exposes
    additional task state.
 6. When a Jules API key is available, Symphony should prefer the official Jules
-   REST API `GetSession` and activity responses before browser scraping. The
-   ARA-6 session API returned `state: COMPLETED` plus a PR output for
+   REST API `GetSession` and activity responses before browser scraping. Jules'
+   current public API docs describe the API as alpha, use `X-Goog-Api-Key` for
+   authentication, describe sessions as the continuous unit of work, activities
+   as per-session agent/user events, `approvePlan` and `sendMessage` as explicit
+   operator-style session actions, and session outputs as the place where an
+   automatically created PR can appear. The ARA-6 session API returned
+   `state: COMPLETED` plus a PR output for
    `https://github.com/Gambitnl/Aralia/pull/931`, even though local Symphony
    status still lacked `pullRequestUrl`.
 7. If the API is unavailable or contradicts the visible web session, Symphony
    should visually reconcile the session through the Codex app browser before
-   treating the boundary as complete.
+   treating the boundary as complete. The intended browser path is the Browser
+   plugin's in-app bridge; terminal Playwright is acceptable for repeatable
+   local dashboard verification but is not the operator-visible Jules
+   follow-along surface.
 8. If stored Jules state still has no PR URL after API/browser reconciliation, Symphony
    should also perform a read-only GitHub fallback lookup by Jules session id,
    generated branch name, handoff title, or Linear issue. The ARA-6 run created
    PR #931 even though the local Jules/Symphony record still did not expose
    `pullRequestUrl`.
+9. Handoff snapshots should expose a read-only `julesStateReconciliation` packet
+   that explains which source settled the state mismatch. When Jules API or a
+   GitHub fallback finds a PR after the local Jules record was incomplete, the
+   packet should say `reconciled_from_external_evidence`; when stored Jules state
+   says `COMPLETED` and no PR is captured, it should say
+   `needs_browser_reconciliation` and point the foreman at Codex app browser or
+   Jules API proof before claiming the boundary is complete.
 
 ### GitHub PR Monitoring
 
@@ -198,6 +275,24 @@ supporting slices of that larger end-to-end proof, not the whole goal.
    repair path.
 4. A failed or missing deployment should become a task blocker with a clear next
    action, not be buried under a successful PR merge.
+5. Each handoff should expose a `deployment_readiness` packet before local sync.
+   The packet may point at read-only GitHub Pages build/deployment and general
+   deployment-status queries, but it must not create deployments, rerun Actions,
+   mutate GitHub, pull Git, or edit local files.
+6. The packet should be available both inside task/handoff snapshots and through
+   `GET /api/v1/jules-handoffs/:id/deployment-readiness`, with `/tasks/:id`
+   exposing the same URL as `links.deploymentReadiness`. This gives foremen a
+   stable read endpoint without turning deployment inspection into an automatic
+   GitHub mutation.
+7. Local sync should remain blocked until deployment evidence exists or the
+   operator explicitly waives this gate for a task where published-app health is
+   irrelevant.
+8. Deployment success, failure, or waiver should be recorded as local
+   `deploymentEvidence`. This receipt must include a status, source, summary,
+   optional evidence URL, checked time, recorder, and non-mutation flags.
+9. `deploymentEvidence.status: passed` and `deploymentEvidence.status: waived`
+   are the only states that can unlock the local sync readiness action. A failed
+   or missing receipt keeps local sync blocked.
 
 ### GitHub Actions And Check Quality
 
@@ -223,6 +318,25 @@ supporting slices of that larger end-to-end proof, not the whole goal.
    lockfile is repaired. While the lockfile is out of sync, any `npm install`
    setup script is diagnostic and should be approved because it may update the
    lockfile inside Jules' working copy.
+8. When the operator chooses `create_setup_repair_task`, the resulting
+   setup-repair draft becomes the next actionable task-routing subject and
+   should be handled as local-careful Codex work before Symphony sends further
+   Jules feedback.
+9. Jules setup scripts and snapshots should be informed by official Jules
+   environment docs: Jules tasks run in short-lived Ubuntu VMs, common tools
+   such as Node.js/npm/rg are preinstalled, the documented VM baseline currently
+   includes Node 22.16.0 and npm 11.4.2, and `Run and Snapshot` saves a
+   successful setup for later tasks. Symphony should record those assumptions as
+   current external documentation, but running a snapshot remains an
+   operator-approved external action.
+10. Symphony exposes that decision as a read-only local packet at
+    `GET /api/v1/jules-environment-setup` and on `/proof` as `Jules Environment
+    Setup`. The packet must show the post-repair `npm ci --no-audit --no-fund`
+    setup recommendation, the diagnostic-only `npm install --no-audit --no-fund`
+    fallback, the current PR #931 lockfile blocker, and `Run and Snapshot` as
+    `requiresOperatorApproval: true` plus `mutatesExternalSystemsIfRun: true`.
+    This packet does not query Jules or run the setup script; it keeps the
+    operator-owned environment mutation visible until the lockfile repair lands.
 
 ### Scout/Core Review And Merge Readiness
 
@@ -322,6 +436,17 @@ supporting slices of that larger end-to-end proof, not the whole goal.
    chronological stage timeline, Linear issue, Jules session, GitHub PR,
    deployment state when relevant, local sync state, expandable Jules prompt,
    expandable Codex/Jules dialogue, and a task-scoped Codex chat surface.
+   The current baseline derives a read-only `handoffTimeline` from stored
+   handoff facts and renders it as `Task timeline` on handoff cards, exposes
+   `GET /api/v1/tasks/:id` as the single-task read API, serves `/tasks/:id` as
+   the first standalone task page, records local-only task messages through
+   `POST /api/v1/tasks/:id/messages`, records structured local-only
+   clarification questions and answers through
+   `POST /api/v1/tasks/:id/clarifications`, and renders read-only Jules
+   prompt/dialogue packets. It also records local task filing through
+   `POST /api/v1/tasks/:id/disposition` so abandoned or archived work can leave
+   the active queue without mutating outside systems. Richer external task
+   actions and the optional terminal mirror remain open.
 8. The home page should make pending human-input tasks obvious, including a
    count badge or equivalent compact indicator.
 9. A terminal-simulator pane may mirror a live local Codex foreman process or
@@ -330,6 +455,102 @@ supporting slices of that larger end-to-end proof, not the whole goal.
    answers, decisions, blockers, and timestamps must still be stored as
    structured task events so future agents can resume without scraping terminal
    scrollback.
+
+### Human Blockers And Quiet Hours
+
+1. When a handoff needs a human decision, Symphony should expose one
+   plain-language `operatorQuestion` packet instead of burying the blocker in
+   raw PR or workflow terminology.
+2. The packet is read-only evidence. It must report `mutatesExternalSystems:
+   false` and `mutatesLocalFiles: false`.
+3. The default quiet-hours policy is weekday 01:00-09:00 Europe/Amsterdam.
+   During that window, the packet should set `canNotifyNow: false` and
+   `nextCheckAt` to the next 09:00 local check time rather than running a tight
+   wait loop.
+4. Operator quiet-hour preferences live in `operatorPreferences.quietHours`.
+   They can override the time zone, start hour, end hour, weekday-only behavior,
+   or disable quiet hours. Recording those preferences is local dashboard state:
+   it must not call Jules, GitHub, Linear, write project files, or mutate Git.
+5. The dashboard should render the packet as `Needs your input` and expose a
+   pending-human-input count so the operator can find blocked tasks quickly.
+6. The operator's answer should be recorded as local `operatorAnswers` before
+   Symphony runs any chosen repair lane. This receipt records the selected lane
+   and plain-language answer, but it does not send Jules feedback, create Linear
+   tasks, mutate GitHub, or touch local Git.
+7. The first guarded repair-lane execution is `create_setup_repair_task`. It
+   creates a local Symphony setup-repair draft and a `repairLaneExecutions`
+   receipt only. That draft must still pass the normal Git, Linear, and Jules
+   gates before any external work happens.
+8. When a local repair commit is prepared, Symphony may record a
+   `repairPushReadiness` packet. That packet stores the local worktree, branch,
+   commit, repair-base commit, current PR head commit, changed files,
+   verification commands, target PR, and exact push command. It must keep
+   `canPushNow: false`, `mutatesExternalSystemsIfRun:
+   true`, and `mutatesLocalFiles: false` so the dashboard can explain the next
+   boundary without quietly pushing to GitHub.
+9. Repair push readiness should report whether the prepared repair is still
+   based on the current PR head. A stale repair base is not a push failure; it is
+   a local warning that the repair needs rebasing or regeneration before the
+   operator approves any GitHub mutation.
+10. Repair push readiness should also include a `postPushFollowUp` packet that
+   names the read-only sequence after operator push: wait for GitHub checks,
+   refresh the Symphony PR packet, then update Scout/Core readiness. This packet
+   must not push, rerun checks, merge, or pull local Git by itself.
+11. A `repairPushReadiness` packet without a recorded `repairPushResult` should
+   also produce an `operatorQuestion` with `sourceStage: repair_push_approval`.
+   That question asks whether the operator approves pushing the prepared repair,
+   offers approve/reject/wait choices, and hides repair-lane execution because
+   the next decision is push approval rather than setup-task creation. The
+   question remains local evidence only: it records the human decision but does
+   not push to GitHub, rerun checks, merge, or edit local files.
+   This current-boundary question takes precedence over the older repair-lane
+   decision packet when both remain on the handoff for audit history.
+12. After the operator records `approve_repair_push`, routing must advance to a
+   local `Record repair push result` boundary instead of asking the same
+   approval question again or pretending GitHub checks can rerun already. That
+   routing state is still `operator_only`: it may show the exact push command
+   and post-push result endpoint, but the push remains a human-owned GitHub
+   mutation outside Symphony.
+13. After an operator-approved push has happened outside Symphony, Symphony may
+   record a local `repairPushResult` receipt. That receipt stores pushed/failed
+   status, pushed commit, resulting PR head, push time, evidence URL, check
+   command, refresh endpoint, next boundary, expected proof, and non-mutation
+   flags. It is a receipt for an external action, not a push/rerun/merge/pull
+   executor. The dashboard exposes this as `Record Repair Push Result` inside
+   the repair-push readiness panel so the operator can attach the post-push
+   evidence without asking Symphony to perform the push.
+14. `verify-operator-question-packet.mjs` protects the ARA-6 repair-decision
+   shape, repair-push approval question, current-boundary precedence, and
+   default quiet-hours behavior. `verify-operator-preferences.mjs` protects the
+   local preference override/disable behavior and the dashboard preference
+   drawer. Durable operator-answer capture, including
+   `approve_repair_push` as a local non-mutating receipt and the follow-on
+   `Record repair push result` routing boundary, is protected by
+   `verify-operator-answer-recording.mjs`.
+   Local setup-repair draft execution is protected by
+   `verify-repair-lane-local-draft.mjs`, and setup repair routing is protected
+   by `verify-setup-repair-draft-routing.mjs`. Repair push readiness is
+   protected by `verify-repair-push-readiness-packet.mjs`, and local post-push
+   result receipts are protected by
+   `verify-repair-push-result-receipt.mjs`. Full task-scoped chat and external
+   repair lanes remain separate work.
+
+### Handoff Timeline
+
+1. Each dashboard-started or observed Jules handoff may expose a derived
+   `handoffTimeline` packet.
+2. The packet is read-only evidence. It must report `mutatesExternalSystems:
+   false` and `mutatesLocalFiles: false`.
+3. Timeline events are derived from existing handoff facts: task creation,
+   Linear issue link, manifest staging, Jules launch, plan approvals, operator
+   notes, Jules status refresh, GitHub PR refresh, repair decision, operator
+   answer, repair-lane execution, repair push readiness, repair push result,
+   Delegation ROI ledger generation, deployment evidence, and local sync checks
+   when present.
+4. The dashboard can use this packet to answer "what happened, in what order?"
+   without making the timeline a second source of truth.
+5. `verify-handoff-timeline.mjs` protects the ARA-6-style chronological path and
+   the dashboard's `Task timeline` rendering.
 
 ### Approvals
 
@@ -371,17 +592,41 @@ supporting slices of that larger end-to-end proof, not the whole goal.
 4. The first implementation should reuse existing Codex usage sources:
    `codex_totals`, worker roster token totals, retained usage/rate-limit
    activity, task nudge records, Jules session timestamps, GitHub PR/check
-   timestamps, and task/handoff records. New fields should extend the task
-   ledger rather than creating a parallel cost database.
+   timestamps, and task/handoff records. When the broader Codex conversation
+   cost is not part of Symphony worker totals, the task can store a local
+   task-scoped foreman-usage receipt instead of pretending the measured spend is
+   zero. New fields should extend the task ledger rather than creating a
+   parallel cost database.
+4a. Broad active-goal or thread-level usage is useful context, but it is not the
+   same as measured task-scoped spend. `codex_goal_context` receipts must be
+   displayed in a separate goal-context bucket and must not unlock
+   `candidate_savings` without a task-scoped spend source.
 5. A task can only claim "Jules saved Codex usage" when the ledger shows both:
-   measured Codex foreman spend and a documented avoided-work estimate with
-   method, confidence, and caveats. If either side is missing, the dashboard
-   should show "ROI unknown" rather than "saved".
+   measured task-scoped Codex foreman spend and a documented avoided-work
+   estimate with method, confidence, and caveats. If either side is missing, the
+   dashboard should show "ROI unknown" rather than "saved".
 6. The ARA-6 first-run baseline should be recorded as a learning case: Codex
    spent orchestration/documentation effort, Jules produced PR #931, and the
    current blocker is CI/setup health. That outcome may still be valuable, but
    it is not enough by itself to prove token savings until the avoided Codex
    implementation estimate is recorded.
+7. The current baseline implementation attaches `delegationRoiLedger` to each
+   handoff snapshot, passes Symphony runtime `codex_totals` into `/api/v1/task-
+   drafts` when available, aggregates local `delegationRoiForemanUsage`
+   receipts when present, and renders the ledger on the dashboard. It is
+   deliberately conservative: if measured task-scoped Codex tokens or
+   documented avoided-work estimates are missing, the ledger says `ROI unknown`
+   and keeps those missing fields visible instead of substituting zeroes or
+   claiming savings.
+8. Measured task-scoped Codex foreman usage is recorded through the local
+   `roi-foreman-usage` path on a Jules handoff. That path mutates only the
+   Symphony task store and must keep all external/local mutation flags false
+   while recording input tokens, output tokens, total tokens, active runtime,
+   foreman turns, source, notes, and receipt count as measured facts.
+9. Avoided-work estimates are recorded through the local `roi-estimate` path on
+   a Jules handoff. That path mutates only the Symphony task store and must
+   record method, confidence, caveats, and the estimated turns/tokens/debugging
+   cycles separately from measured Codex spend.
 
 ### Documentation Creation
 
@@ -392,6 +637,28 @@ supporting slices of that larger end-to-end proof, not the whole goal.
 4. Evidence artifacts are linked from the audit.
 5. Documentation must not claim full completion while live end-to-end proof is
    missing.
+6. Documentation is an ongoing part of the active goal. Each implementation or
+   proof slice should update the operating spec, audit, architecture overview,
+   and ordered task list before that slice is considered settled, even when the
+   runtime change is small.
+7. Read-only refreshes should say what was observed, what did not mutate, and
+   which operator-owned boundary remains next. Conversation memory is not a
+   durable status ledger.
+
+8. Task detail pages should expose guarded operator actions as runbook evidence
+   when a boundary has a command or endpoint. These entries may include the
+   current Symphony endpoint, a marked Jules PR feedback comment command, a
+   prepared repair push command, or a future local-sync command. They must carry
+   mutation flags and must not become automatic buttons.
+   Rendered proof `task-page-guarded-actions-2026-05-20.png` confirms the live
+   ARA-6 task page renders the guarded PR refresh and Jules PR feedback actions
+   without mutation; the live JSON receipt confirms the repair-push guarded
+   action is absent until `repairPushReadiness` is recorded on that handoff.
+   Follow-up proof `task-page-guarded-actions-after-readiness-2026-05-20.png`
+   confirms the live page renders the repair-push guarded action and local-only
+   repair-push result receipt after Symphony records readiness. The paired JSON
+   proof also guards the corrected quiet-hours behavior: 08:52 Europe/Amsterdam
+   maps to next check `2026-05-20T07:00:00.000Z`.
 
 ## Blockage Scenarios To Cover
 
@@ -493,6 +760,9 @@ supporting slices of that larger end-to-end proof, not the whole goal.
 - README and spec disagree.
 - Completion audit omits a requirement.
 - Live proof was captured outside the Codex in-app browser.
+- A proof stage advances in code, verifier output, browser evidence, or
+  external-state observation without updating the owning status documents in the
+  same pass.
 
 ## Required Evidence
 
@@ -500,6 +770,12 @@ Each requirement needs the strongest evidence appropriate to its scope:
 
 - Code paths for parser, runner, server, dashboard, and task store behavior.
 - Verifier scripts that protect API contracts and dashboard rendering.
+- Verifier scripts are durable contract tests and must stay trackable source,
+  not generated runtime artifacts. `.gitignore` may ignore Symphony state,
+  live-proof captures, visual proof images, and Jules run output, but it must
+  explicitly unignore any `conductor/symphony/scripts/verify-*.mjs` file that is
+  part of `verify:jules-contract`. `verify-gitignore-contract-boundary.mjs`
+  protects that split directly.
 - Rendered screenshots for visual surfaces.
 - JSON API captures for live state.
 - Codex in-app browser proof for live dashboard inspection.
@@ -521,20 +797,23 @@ complete.
 | Linear issue creation | Local verifier coverage for preflight-protected issue text, required draft fields, sync receipt, missing Linear API key/project slug blockers via `verify-linear-issue-blockers.mjs`, and non-mutating issue-packet rehearsal via `verify-linear-issue-preview.mjs`. Codex in-app browser/API proof `linear-issue-preview-2026-05-17.*` and `linear-issue-preview-proof-board-2026-05-17.*` shows the blocked queue can expose the exact future Linear issue title/body, blockers, `canCreateNow: false`, `wouldCreateLinearIssue: true`, and `mutatesExternalSystems: false` before any Linear call. | Live dashboard-created Linear issue against the intended project after Git sync passes. |
 | Jules manifest staging | Local verifier coverage that staging uses the existing `.jules/orchestrator` contract, blocks when `.jules/orchestrator/cli.ts` is missing, and remains preflight-gated. `verify-jules-manifest-preview.mjs` proves blocked drafts can rehearse the exact manifest shape in memory with `canStageNow: false`, `wouldStageJulesManifest: true`, and `mutatesLocalFiles: false`. Codex in-app browser/API proof `jules-manifest-preview-2026-05-17.*` and `jules-manifest-preview-proof-board-2026-05-17.*` shows the blocked queue exposes the future `.jules/runs/.../manifest.json` packet without writing files. | Live staged manifest from a synced dashboard draft after Git and Linear gates pass. |
 | Jules launch/session tracking | Local dashboard/API coverage for session, URL, state, plan approval, messages, and refresh fields. `verify-jules-launch-readiness-packet.mjs` proves a staged handoff now exposes a read-only launch readiness packet with launch URL, launch command, status command, manifest path, records path, Linear issue receipt, GitHub base commit, external/local mutation class, safety checklist, blockers, and expected post-launch proof; launched handoffs switch that packet to the session receipt and status-refresh boundary. Codex in-app browser/API proof `jules-launch-readiness-2026-05-17.*` shows real observed-PR handoffs render that launch-readiness card as blocked, with `canLaunchNow: false`, no external/local mutation path, watch-only blockers, and no false live-launch claim while Git sync remains blocked. | Live Jules session launched through the existing orchestrator. |
-| GitHub PR monitoring | Local verifier coverage for PR state, checks, files, risk, mergeability, and next action. `verify-pr-next-action.mjs` now also proves failed checks and risky files expose an operator-run `gh pr comment ... --body-file ...` feedback command so PR comments can course-correct Jules work without Symphony mutating GitHub automatically. `verify-pr-comment-classification.mjs` proves comments from other review agents stay external review context unless the operator marks them with `[Jules feedback]`, and that Scout conflict comments are separated with conflict file and priority PR metadata. `verify-observed-pr-watch.mjs` proves existing GitHub PRs can be watched as `observed_pr` records without manifest staging, Jules launch, or local sync claims. `verify-observed-pr-follow-up-draft.mjs` proves historical observed PR learning creates a separate normal dashboard draft, keeps the old PR read-only, and carries "do not repair, reopen, or comment on the historical PR" wording. Live PR #900 proof (`pr-900-scout-conflict-learning-2026-05-17.*`) shows the real pattern: a closed Jules PR with 41 changed files, 0 checks, and 256 Scout conflict comments. Codex in-app browser/API proof `observed-pr-due-refresh-2026-05-17.*` shows the dashboard can watch PR #900 read-only, classify its Scout conflict lane, schedule an observed PR refresh nudge, refresh the real GitHub boundary once, and expose `Record Observed Learning` instead of a repair action. Codex in-app browser/API proof `observed-pr-follow-up-draft-2026-05-17.json` and `.md` shows PR #900 can become a separate blocked dashboard draft while the source handoff stays `observed_pr` with no manifest or launch command. Live ARA-6 proof `ara6-pr-refresh-summary-2026-05-20.json` shows an active dashboard-started Jules handoff can reconcile a missing local PR URL from Jules API session output, attach PR #931, refresh GitHub checks, and set the next action without external mutation. Live ARA-6 proof `ara6-pr-repair-decision-refresh-2026-05-20.json` shows the same handoff now carries a read-only repair decision packet with setup-task, Jules-feedback, wait, and refresh-after-repair choices. | Real repair feedback or setup repair execution, Scout/Core readiness, Core validation/merge, deployment, and local sync remain to be proven on a dashboard-started Jules PR. |
+| GitHub PR monitoring | Local verifier coverage for PR state, checks, files, risk, mergeability, and next action. `verify-pr-next-action.mjs` now also proves failed checks and risky files expose an operator-run `gh pr comment ... --body-file ...` feedback command so PR comments can course-correct Jules work without Symphony mutating GitHub automatically. `verify-pr-comment-classification.mjs` proves comments from other review agents stay external review context unless the operator marks them with `[Jules feedback]`, and that Scout conflict comments are separated with conflict file and priority PR metadata. `verify-observed-pr-watch.mjs` proves existing GitHub PRs can be watched as `observed_pr` records without manifest staging, Jules launch, or local sync claims. `verify-observed-pr-follow-up-draft.mjs` proves historical observed PR learning creates a separate normal dashboard draft, keeps the old PR read-only, and carries "do not repair, reopen, or comment on the historical PR" wording. Live PR #900 proof (`pr-900-scout-conflict-learning-2026-05-17.*`) shows the real pattern: a closed Jules PR with 41 changed files, 0 checks, and 256 Scout conflict comments. Codex in-app browser/API proof `observed-pr-due-refresh-2026-05-17.*` shows the dashboard can watch PR #900 read-only, classify its Scout conflict lane, schedule an observed PR refresh nudge, refresh the real GitHub boundary once, and expose `Record Observed Learning` instead of a repair action. Codex in-app browser/API proof `observed-pr-follow-up-draft-2026-05-17.json` and `.md` shows PR #900 can become a separate blocked dashboard draft while the source handoff stays `observed_pr` with no manifest or launch command. Live ARA-6 proof `ara6-pr-refresh-summary-2026-05-20.json` shows an active dashboard-started Jules handoff can reconcile a missing local PR URL from Jules API session output, attach PR #931, refresh GitHub checks, and set the next action without external mutation. `verify-jules-state-reconciliation-packet.mjs` now proves handoff snapshots also expose `julesStateReconciliation`: matched Jules API/GitHub evidence becomes `reconciled_from_external_evidence`, while `COMPLETED` with no PR remains `needs_browser_reconciliation` instead of a false completion claim. Live ARA-6 proof `ara6-pr-repair-decision-refresh-2026-05-20.json` shows the same handoff now carries a read-only repair decision packet with setup-task, Jules-feedback, wait, and refresh-after-repair choices. `verify-repair-push-readiness-packet.mjs` proves the local PR #931 lockfile repair can be recorded as a push-readiness packet without pushing, including repair-base/current-PR-head freshness so stale prepared repairs are visible before any operator-approved push and `postPushFollowUp` so the next read-only checks/refresh/Scout-Core sequence is explicit after that push. `verify-operator-question-packet.mjs` now also proves that push-readiness becomes a plain-language `repair_push_approval` question with approve/reject/wait choices instead of an execute-repair-lane action. `verify-repair-push-result-receipt.mjs` proves a later human-approved push can be recorded locally as `repairPushResult`, the dashboard exposes `Record Repair Push Result` to capture that local receipt, and the receipt sends the handoff to `github_checks_rerun` with `gh pr checks 931 --repo Gambitnl/Aralia` plus the Symphony PR refresh endpoint while keeping Symphony non-mutating. `verify-deployment-readiness-packet.mjs` proves the post-merge deployment gate exists as a read-only packet before local sync. | Live repair push or feedback execution, GitHub check rerun, Scout/Core readiness, Core validation/merge, live deployment proof, and local sync remain to be proven on a dashboard-started Jules PR. |
 | GitHub Actions/check quality | Explicit scope now allows meaningful CI improvements when they make checks more granular, faster to diagnose, less noisy, or easier for Symphony/Codex/Jules/Scout/Core to interpret. `.github/workflows/ci.yml` now has a separate `Quality Scan (advisory)` job that runs `npm run scan`, writes parseable `quality-scan.json` with `npm --silent run scan -- --json`, uploads it as the `quality-scan-json` artifact, and writes grouped counts into `GITHUB_STEP_SUMMARY`. This gives PRs human-readable and machine-readable quality-debt signal without blocking merges on known backlog debt. `verify-pr-check-artifacts.mjs` proves Symphony's PR check summary recognizes `Quality Scan (advisory)`, stores a `githubPullRequestChecks.artifacts` hint for `quality-scan-json`, preserves the optional GitHub check `detailsUrl`, renders that artifact plus the GitHub step-summary note and `Open check details` link in the PR readiness panel, and renders the read-only repair decision panel for setup-classified failures. The same verifier now proves ARA-6-style build/lint/test/quality failures classify as a read-only `workflow_setup` blocker and render a `Check blocker classification` panel before the operator decides whether the repair belongs to CI setup, workflow config, or Jules implementation. `verify-pr-next-action.mjs` proves setup-classified blockers change the foreman label to `Resolve CI Setup Blocker`. `github-actions-quality-2026-05-17.json` records the inspection result: `npm run scan` passes and reports 591 grouped findings, the JSON artifact command parses, while `npm run validate` currently fails on existing strict charset data issues and was intentionally not added as a noisy blocker. Live PR #929 proof (`pr-929-quality-scan-github-2026-05-17.*`) shows the new check completed successfully on GitHub and uploaded the `quality-scan-json` artifact. Codex in-app browser/API proof `observed-pr-watch-dashboard-2026-05-17.*` shows Symphony can watch PR #929 read-only and carry the live `quality-scan-json` artifact in dashboard state. Live ARA-6 proof `ara6-pr-refresh-summary-2026-05-20.json` shows Symphony classifies the real PR #931 build/lint/test/quality failure set as `workflow_setup`, preserves the quality artifact hint, and sets next action to `Resolve CI Setup Blocker`. Live ARA-6 proof `ara6-pr-repair-decision-refresh-2026-05-20.json` shows the failed check set now produces a human-readable repair choice packet without mutating GitHub or local files. | Decide and execute the setup/workflow repair path, then refresh PR #931 again before judging Jules implementation quality. |
 | Conflict-prone files | Local verifier and screenshot coverage for overlap/risk panels. | Live overlap or risk case from active handoffs, or a documented real blocker if none is appropriate. |
-| Scout/Core readiness | `verify-scout-core-readiness-packet.mjs` proves each handoff now exposes a read-only Scout/Core readiness packet with PR state, checks, file risk, Scout conflict counts, external/Jules feedback counts, dashboard-started-vs-observed ownership, refresh URL, Scout review command, Core validation/merge commands only when ready, mutation flags, blockers, safety checklist, expected proof, and `/proof` visibility for ready, risky, waiting, merged, and observed PR states. | Live Scout/Core review state connected to a real dashboard-started Jules PR. |
-| Local sync | Local verifier coverage for post-merge fast-forward gating. `verify-local-sync-next-action.mjs` proves each local checkout state resolves to one readable next action. `verify-local-sync-readiness-packet.mjs` proves each handoff now exposes a read-only local-sync readiness packet with PR merge state, dashboard-started-vs-observed ownership, local commit evidence, refresh URL, guarded sync URL, safety checklist, expected proof, and mutation flags. The same verifier protects `/proof` visibility for safe, blocked, and observed PR local-sync states without exposing a sync URL for blocked or observed records. | Live post-merge sync readiness, with the mutating sync action exposed only when safe. |
+| Scout/Core readiness | `verify-scout-core-readiness-packet.mjs` proves each handoff now exposes a read-only Scout/Core readiness packet with PR state, checks, file risk, Scout conflict counts, external/Jules feedback counts, dashboard-started-vs-observed ownership, refresh URL, Scout review command, Core validation/merge commands only when ready, mutation flags, blockers, safety checklist, expected proof, and `/proof` visibility for ready, risky, waiting, post-repair-push check-rerun, merged, and observed PR states. The `waiting_for_checks_rerun` state is derived from a recorded `repairPushResult`, keeps Core validation disabled, and points the foreman at `gh pr checks ...` plus the Symphony PR refresh endpoint before Scout/Core readiness can advance. | Live Scout/Core review state connected to a real dashboard-started Jules PR. |
+| Deployment readiness | `verify-deployment-readiness-packet.mjs` proves each handoff now exposes a read-only deployment gate with PR merge state, dashboard-started-vs-observed ownership, GitHub repository detection, GitHub Pages/latest-build and deployment-status inspection commands, non-mutation flags, blockers, safety checklist, expected proof, dashboard rendering, direct `GET /api/v1/jules-handoffs/:id/deployment-readiness` access, task-detail `links.deploymentReadiness`, and `/proof` visibility for merged, waiting, and observed states. `verify-deployment-evidence-receipt.mjs` proves the local `deployment-evidence` endpoint records success, failure, or waiver receipts without mutating GitHub or local files, and that only success or waiver can unlock local-sync readiness. | Live GitHub Pages or deployment-status proof from a merged dashboard-started Jules PR. |
+| Local sync | Local verifier coverage for post-merge fast-forward gating. `verify-local-sync-next-action.mjs` proves each local checkout state resolves to one readable next action. `verify-local-sync-readiness-packet.mjs` proves each handoff now exposes a read-only local-sync readiness packet with PR merge state, dashboard-started-vs-observed ownership, local commit evidence, refresh URL, guarded sync URL, safety checklist, expected proof, and mutation flags. The deployment evidence verifier proves even safe local-checkout facts cannot expose the sync action until deployment success or operator waiver exists. The same verifier protects `/proof` visibility for safe, blocked, and observed PR local-sync states without exposing a sync URL for blocked or observed records. | Live post-merge sync readiness after deployment proof or explicit operator waiver, with the mutating sync action exposed only when safe. |
 | Worker designation and dispatch gate | Local verifier and dashboard screenshot coverage for worker identity and roster. `verify-dashboard-only-mode.mjs` and `verify-dispatch-control-toggle.mjs` prove startup defaults to dispatch paused, `/api/v1/dispatch-control` reports backend state, normal startup does not poll or launch workers until enabled, and enabling the backend gate resumes the existing mock assignment path. | Live worker roster during a real foreman run after the operator enables dispatch. |
 | Worker model/thinking assignment | Local verifier coverage plus Codex in-app browser proof that unset values display as defaults. `verify-worker-mode-packet.mjs` proves routing now emits a dynamic worker-mode packet for `operator_only`, `local_fast`, `local_careful`, `jules_task`, `jules_plan`, and `observe_wait`, including model/reasoning recommendation, dispatchability, complexity signals, reasons, and explicit `codex.model` / `codex.reasoning_effort` override policy. Codex in-app browser proof `symphony-worker-mode-packet.png` shows the current blocked dashboard rendering the packet as `operator_only`, with `none` model/reasoning and no dispatch while Git disposition is blocked. | Prove the recommended mode feeds an actual worker launch after Git sync allows dispatch. |
 | Task routing and nudging | `verify-task-routing-nudging.mjs` covers blocked queues, small local-agent recommendations, Jules planning recommendations, and pause-aware nudge cadence in the task-intake API. `verify-task-nudge-ledger.mjs` proves the routing decision can be recorded as durable task-tracking evidence with pause cadence, next nudge time, and `mutatesExternalSystems: false`. `verify-task-nudge-scheduler.mjs` proves recorded nudges are classified as due, waiting, or operator-blocked and include explicit foreman action packets with method, endpoint, safety class, runnable state, and `mutatesExternalSystems: false`. `verify-task-nudge-due-refresh.mjs` proves a foreman wake-up can run due external-read nudges for Jules/GitHub/local-sync boundaries while skipping local-state actions that still need operator intent. Dashboard rendering exposes the recommendation, next action, pause duration, candidate routes, record button, task nudge ledger, nudge scheduler, action packet, run-due-refresh button, and due refresh receipt. Codex in-app browser proof `task-routing-nudging-2026-05-17.*` shows the live dashboard waits instead of assigning Jules or local Codex while the GitHub sync gate is blocked. Codex in-app browser proof `task-nudge-ledger-2026-05-17.*` shows the live dashboard records that blocked-Git wait as ledger evidence without mutating external systems. Codex in-app browser proof `task-nudge-scheduler-2026-05-17.*` shows the live scheduler classifies that record as operator-blocked instead of due. Codex in-app browser proof `task-nudge-action-packet-2026-05-17.*` shows the live scheduler action packet for the blocked Git wait: method `NONE`, safety `operator_only`, `canRunNow: false`, and no external mutation. Codex in-app browser proof `task-nudge-due-refresh-2026-05-17.*` shows the live dashboard/API exposes the due-refresh runner and correctly performs no refresh while the real queue has 0 due records and 1 operator-blocked Git-sync record. Codex in-app browser/API proof `observed-pr-due-refresh-2026-05-17.*` shows the same due-refresh runner against a real GitHub PR boundary: one due `refresh / github_pr` nudge for observed PR #900 produced one PR refresh, zero skipped actions, and `mutatesExternalSystems: false`. | Prove the due-refresh runner against a real dashboard-started Jules/GitHub boundary after Git sync allows a handoff to start. |
-| Dashboard foreman-console focus | Current screen-space inventory is documented in this spec so dashboard work can decide what becomes primary, grouped, collapsed, or moved to `/proof`. The dark/light mode toggle is restored in the header and guarded for browser storage limitations and verifier DOM shims. `verify-dashboard-foreman-console.mjs` proves the main dashboard now renders a first-class Current Foreman Boundary panel before grouped detail sections for Git Safety, Jules Lifecycle, PR Review And Local Return, and Task Intake And Records while preserving Save Draft, Watch Existing PR, GitHub Sync Gate, handoff status board, and tracked records. `verify-dashboard-density.mjs` proves idle Usage Tracker, Routine Approval Rules, Running Issues, and Retrying Issues render as compact summary drawers, while warning/danger usage, pending approvals, running workers, and retrying issues stay prominent. Codex in-app browser proof `symphony-foreman-console.png` shows the live dashboard renders the current boundary first and keeps the large detail groups collapsed by default; `symphony-dashboard-density.png` shows the idle lower monitoring sections collapsed below that boundary. | Continue refining density without losing safety packets or controls. |
+| Dashboard foreman-console focus | Current screen-space inventory is documented in this spec so dashboard work can decide what becomes primary, grouped, collapsed, or moved to `/proof`. The dark/light mode toggle is restored in the header and guarded for browser storage limitations and verifier DOM shims. `verify-dashboard-foreman-console.mjs` proves the main dashboard now renders a first-class Current Foreman Boundary panel before grouped detail sections for Git Safety, Jules Lifecycle, PR Review And Local Return, and Task Intake And Records while preserving Save Draft, Watch Existing PR, GitHub Sync Gate, handoff status board, and tracked records. `verify-dashboard-density.mjs` proves idle Usage Tracker, Routine Approval Rules, Running Issues, and Retrying Issues render as compact summary drawers, while warning/danger usage, pending approvals, running workers, and retrying issues stay prominent. `verify-task-detail-api.mjs` now protects the first stable `GET /api/v1/tasks/:id` task-detail JSON endpoint, and the dashboard preview links to it as `Task detail JSON` without creating a second task store. Codex in-app browser proof `symphony-foreman-console.png` shows the live dashboard renders the current boundary first and keeps the large detail groups collapsed by default; `symphony-dashboard-density.png` shows the idle lower monitoring sections collapsed below that boundary. | Continue refining density without losing safety packets or controls. |
 | Approvals | Local verifier coverage for worker approval panels, auto-approval explanation, and Jules plan approval routes. | Live approval or plan-approval event, or a documented external blocker. |
 | Usage/spending | Local verifier coverage for token, rate-limit, retained activity, and credit display shapes. | Live Codex usage/rate-limit event from an active worker. |
-| Documentation/spec/audit | README, this spec, audit, architecture overview, open-task queue, and verifiers now point to the full delegation-workflow goal. The audit is the live Markdown status file that lists task areas, goalposts, status, achieved/not-achieved state, blockers, remaining proof, and evidence paths. `verify-proof-board.mjs` now protects a compact `/proof` page that reuses task-intake state, links back to this spec and audit, and exposes the latest Linear issue, Jules manifest, and handoff-readiness previews. Documentation continuity is part of the active goal: every implementation/proof stage should update the relevant status documents before the stage is treated as settled. | Keep audit, architecture, open tasks, and goal-facing docs current after every live proof slice. |
+| Delegation ROI ledger | `verify-delegation-roi-ledger.mjs` proves handoff snapshots can generate a conservative task-level ledger, measured `codex_totals` can populate the facts section without changing `ROI unknown`, task-scoped `delegationRoiForemanUsage` receipts can populate measured foreman tokens/runtime/turns when broader Codex usage is outside Symphony worker totals, the dashboard renders separate Measured facts, Estimated avoided Codex work, and Workflow value signals sections, the local `roi-foreman-usage` path records measured task-scoped usage without external/local mutation, the local `roi-estimate` path records method/confidence/caveats plus avoided turns/tokens/debugging cycles without external/local mutation, and an ARA-6-style handoff remains `ROI unknown` while documented avoided-work estimates are incomplete. The same verifier proves measured spend plus a documented estimate produces only `candidate_savings`, not a final savings claim. Live proof `ara6-delegation-roi-ledger-2026-05-20.json` confirms the same conservative state appears in `/api/v1/task-drafts` for handoff `handoff-1779226708033-v4ohk7` with `tokenSource: codex_totals` and `totalTokens: 0`. | Record a real ARA-6 task-scoped foreman-usage receipt and a real avoided-work method/confidence/caveats entry before claiming Jules saved Codex usage. |
+| Documentation/spec/audit | README, this spec, audit, architecture overview, open-task queue, and verifiers now point to the full delegation-workflow goal. The audit is the live Markdown status file that lists task areas, goalposts, status, achieved/not-achieved state, blockers, remaining proof, and evidence paths. `verify-proof-board.mjs` now protects a compact `/proof` page that reuses task-intake state, links back to this spec and audit, and exposes the latest Linear issue, Jules manifest, and handoff-readiness previews. Documentation continuity is part of the active goal: every implementation/proof stage should update the relevant status documents before the stage is treated as settled, and read-only refreshes must say what did not mutate. The May 20 PR #931 refresh is documented that way: open, not draft, mergeable, unchanged at head `0c0d948010b3b72d05deb4f2f37ed9c462990593`, latest update `2026-05-19T23:09:48Z`, and no Jules chat, repair push, check rerun, merge, deployment inspection, or local sync. | Keep audit, architecture, open tasks, and goal-facing docs current after every live proof slice. |
 | Browser constraint | Codex in-app browser proof artifacts exist for dashboard-only preflight and intake. The compact `/proof` board gives the in-app browser a small, script-free follow-along surface for queue action, Git sync state, Git disposition review, latest draft/handoff, Linear issue preview, Jules manifest preview, handoff readiness, middleman path, foreman action, nudge state, worker snapshot, and evidence links. Live proof `proof-board-2026-05-17.json` and `.md`, `linear-issue-preview-proof-board-2026-05-17.*`, `jules-manifest-preview-proof-board-2026-05-17.*`, `handoff-readiness-proof-board-2026-05-17.*`, `git-disposition-review-proof-board-2026-05-17.*`, `middleman-path-2026-05-17.*`, `foreman-action-packet-2026-05-17.*`, `symphony-foreman-console.png`, `symphony-dashboard-density.png`, and `symphony-worker-mode-packet.png` shows the Codex in-app browser loaded the relevant dashboard/proof surfaces and saw the expected status fields. | Continue using only the in-app browser for follow-along live checks. |
-| Full end-to-end path | Not complete. Current live proof covers preflight-blocked dashboard intake, read-only observed PR monitoring for PR #900 and PR #929, one real observed-PR due refresh against PR #900, a separate dashboard draft created from PR #900 learning without repairing that historical PR, non-mutating Git disposition review for the blocked queue (`git-disposition-review-2026-05-17.*`), non-mutating Git sync execution receipt for that blocked queue (`git-sync-execution-receipt-2026-05-17.*`), non-mutating Linear issue preview for that blocked draft, Jules manifest preview for that blocked draft, non-mutating handoff-readiness packet for that blocked draft (`handoff-readiness-2026-05-17.*`), blocked launch-readiness cards for real observed-PR handoffs (`jules-launch-readiness-2026-05-17.*`), one global middleman path that preserves the current Git boundary and keeps observed PRs out of launch/local-sync claims (`middleman-path-2026-05-17.*`), a current-boundary foreman action packet for operator-owned Git disposition (`foreman-action-packet-2026-05-17.*`), local `verify-middleman-foreman-pass-path.mjs` proof that the same packet will pick the correct future foreman action and evidence endpoint across Linear/Jules/GitHub/local-sync boundaries, local `verify-scout-core-readiness-packet.mjs` proof that the GitHub PR review boundary separates read-only Scout/Core evidence from explicit Core merge, local `verify-local-sync-readiness-packet.mjs` proof that the final local-sync boundary separates read-only refresh evidence from guarded Git mutation, and compact proof-board follow-along state for the blocked queue. | Real dashboard-started task must pass sync, create/link Linear, stage/launch Jules, produce/refresh PR, expose Scout/Core readiness, and prove local sync. |
+| Browser tooling health | The direct Playwright MCP path can return `Transport closed`, but the Browser plugin in-app bridge successfully listed the current Jules tab, read visible Jules state, and captured a screenshot. Current visible ARA-6 state showed `Ready for review`, `View PR`, changed-file review entries, `Time: 51 mins`, and `Check Suite Failure` with four failed checks. The main dashboard and `/proof` now link to read-only `GET /api/v1/browser-tooling-health`, and `verify-browser-tooling-health.mjs` proves that packet exposes the primary Codex Browser plugin bridge, the known direct-Playwright `Transport closed` failure mode, allowed/disallowed uses, observed ARA-6 evidence, next expected proof, and false external/local mutation flags. | Later improvement: if the Codex app exposes a safe server-queryable browser bridge health signal, fold that live signal into the packet without turning terminal scrollback into canonical task state. |
+| Full end-to-end path | Not complete. Current live proof covers preflight-blocked dashboard intake, read-only observed PR monitoring for PR #900 and PR #929, one real observed-PR due refresh against PR #900, a separate dashboard draft created from PR #900 learning without repairing that historical PR, non-mutating Git disposition review for the blocked queue (`git-disposition-review-2026-05-17.*`), non-mutating Git sync execution receipt for that blocked queue (`git-sync-execution-receipt-2026-05-17.*`), non-mutating Linear issue preview for that blocked draft, Jules manifest preview for that blocked draft, non-mutating handoff-readiness packet for that blocked draft (`handoff-readiness-2026-05-17.*`), blocked launch-readiness cards for real observed-PR handoffs (`jules-launch-readiness-2026-05-17.*`), one global middleman path that preserves the current Git boundary and keeps observed PRs out of launch/local-sync claims (`middleman-path-2026-05-17.*`), a current-boundary foreman action packet for operator-owned Git disposition (`foreman-action-packet-2026-05-17.*`), local `verify-middleman-foreman-pass-path.mjs` proof that the same packet will pick the correct future foreman action and evidence endpoint across Linear/Jules/GitHub/local-sync boundaries, local `verify-scout-core-readiness-packet.mjs` proof that the GitHub PR review boundary separates read-only Scout/Core evidence from explicit Core merge, local `verify-deployment-readiness-packet.mjs` and `verify-deployment-evidence-receipt.mjs` proof that the deployment boundary separates read-only GitHub Pages/deployment evidence from local sync and requires success or waiver before sync, local `verify-local-sync-readiness-packet.mjs` proof that the final local-sync boundary separates read-only refresh evidence from guarded Git mutation, and compact proof-board follow-along state for the blocked queue. | Real dashboard-started task must pass sync, create/link Linear, stage/launch Jules, produce/refresh PR, expose Scout/Core readiness, prove live deployment state, and prove local sync. |
 
 ## Verification Commands
 

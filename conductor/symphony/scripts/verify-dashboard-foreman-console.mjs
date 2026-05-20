@@ -13,7 +13,13 @@ const dashboardSource = await readFile(new URL('../public/dashboard.js', import.
 assert.match(dashboardSource, /function renderForemanConsole/);
 assert.match(dashboardSource, /function renderForemanCurrentBoundary/);
 assert.match(dashboardSource, /function renderForemanDetailGroup/);
+assert.match(dashboardSource, /function renderBrowserFollowAlongGuidance/);
 assert.match(dashboardSource, /Current Foreman Boundary/);
+assert.match(dashboardSource, /Browser Follow-along/);
+assert.match(dashboardSource, /Use the Codex Browser plugin bridge first/);
+assert.match(dashboardSource, /Direct Playwright MCP can report Transport closed/);
+assert.match(dashboardSource, /signed-in in-app browser tab/);
+assert.match(dashboardSource, /Terminal Playwright is only repeatable local dashboard verification/);
 assert.match(dashboardSource, /Git Safety/);
 assert.match(dashboardSource, /Jules Lifecycle/);
 assert.match(dashboardSource, /PR Review And Local Return/);

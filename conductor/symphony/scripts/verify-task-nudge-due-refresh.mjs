@@ -120,6 +120,15 @@ try {
 
   const afterSnapshot = await store.snapshot();
   assert.ok(afterSnapshot.handoffs[0].localSyncStatus, 'Due local-sync refresh should update the handoff readiness snapshot.');
+  const rescheduledLocalSyncNudge = afterSnapshot.taskNudges.scheduler.waiting.find(
+    item => item.subjectId === handoff.id && item.phase === 'local_sync'
+  );
+  assert.ok(rescheduledLocalSyncNudge, 'Refreshed external-read nudges should move back to the waiting queue.');
+  assert.equal(rescheduledLocalSyncNudge.pauseSeconds, 300);
+  assert.ok(
+    new Date(rescheduledLocalSyncNudge.nextNudgeAt).getTime() > new Date(refreshed.taskNudgeRefresh.checkedAt).getTime(),
+    'Refreshed external-read nudges should not be immediately due again.'
+  );
 
   const server = await readFile(join(process.cwd(), 'src', 'server.ts'), 'utf8');
   const dashboard = await readFile(join(process.cwd(), 'public', 'dashboard.js'), 'utf8');

@@ -30,6 +30,9 @@ export interface TaskDraft {
   body: string;
   expectedFiles: string[];
   verificationCommands: string[];
+  taskMessages: TaskMessage[];
+  taskClarifications: TaskClarification[];
+  taskDisposition: TaskDisposition | null;
   executor: 'jules';
   status: 'draft' | 'blocked_by_git_sync' | 'ready_for_handoff';
   linearIssueId: string | null;
@@ -45,6 +48,66 @@ export interface TaskDraftInput {
   body: string;
   expectedFiles?: string[] | string;
   verificationCommands?: string[] | string;
+}
+
+export interface TaskMessage {
+  id: string;
+  taskId: string;
+  taskKind: 'draft' | 'handoff';
+  author: 'operator' | 'codex_foreman';
+  body: string;
+  createdAt: string;
+  source: 'task_chat';
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  mutatesGit: false;
+}
+
+export interface TaskMessageInput {
+  author?: 'operator' | 'codex_foreman' | string;
+  body?: string;
+}
+
+export interface TaskClarification {
+  id: string;
+  taskId: string;
+  taskKind: 'draft' | 'handoff';
+  status: 'waiting_for_operator' | 'answered';
+  question: string;
+  answer: string | null;
+  requestedBy: 'codex_foreman';
+  answeredBy: 'operator' | null;
+  createdAt: string;
+  answeredAt: string | null;
+  source: 'foreman_clarification';
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  mutatesGit: false;
+}
+
+export interface TaskClarificationInput {
+  question?: string;
+  answer?: string;
+}
+
+export type TaskDispositionState = 'active' | 'completed' | 'archived' | 'abandoned';
+
+export interface TaskDisposition {
+  taskId: string;
+  taskKind: 'draft' | 'handoff';
+  state: TaskDispositionState;
+  reason: string;
+  recordedAt: string;
+  recordedBy: 'operator' | 'codex_foreman';
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  mutatesGit: false;
+}
+
+export interface TaskDispositionInput {
+  state?: TaskDispositionState | string;
+  reason?: string;
+  recordedBy?: 'operator' | 'codex_foreman' | string;
 }
 
 export interface PullRequestWatchInput {
@@ -70,6 +133,26 @@ export interface TaskDraftSnapshot {
   gitSyncPlan: GitSyncPlan;
   taskRouting: TaskRoutingPlan;
   taskNudges: TaskNudgeSummary;
+  operatorPreferences: OperatorPreferences;
+}
+
+export interface OperatorPreferences {
+  quietHours: OperatorQuietHoursPreference;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  mutatesGit: false;
+}
+
+export interface OperatorPreferencesInput {
+  quietHours?: Partial<OperatorQuietHoursPreference>;
+}
+
+export interface OperatorQuietHoursPreference {
+  enabled: boolean;
+  timeZone: string;
+  startHour: number;
+  endHour: number;
+  weekdaysOnly: boolean;
 }
 
 export type GitDispositionCategory =
@@ -382,6 +465,244 @@ export interface TaskNudgeRefreshRunItem {
   error: string | null;
 }
 
+export type JulesHandoffTimelineStage =
+  | 'task_created'
+  | 'linear_issue'
+  | 'jules_manifest'
+  | 'jules_launch'
+  | 'jules_plan_approval'
+  | 'operator_message'
+  | 'jules_status_refresh'
+  | 'github_pr_refresh'
+  | 'task_nudge'
+  | 'repair_decision'
+  | 'operator_answer'
+  | 'repair_lane_execution'
+  | 'repair_push_readiness'
+  | 'repair_push_result'
+  | 'delegation_roi'
+  | 'deployment_evidence'
+  | 'local_sync';
+
+export interface JulesHandoffTimelineEvent {
+  id: string;
+  stage: JulesHandoffTimelineStage;
+  label: string;
+  occurredAt: string;
+  sortKey: string;
+  status: 'complete' | 'blocked' | 'waiting' | 'recorded';
+  detail: string;
+  source: 'symphony' | 'linear' | 'jules' | 'github' | 'operator' | 'roi';
+  url: string | null;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface JulesHandoffTimeline {
+  handoffId: string;
+  title: string;
+  generatedAt: string;
+  summary: string;
+  nextExpectedProof: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  events: JulesHandoffTimelineEvent[];
+}
+
+export interface JulesStateReconciliation {
+  handoffId: string;
+  title: string;
+  generatedAt: string;
+  status:
+    | 'consistent'
+    | 'waiting_for_pr'
+    | 'reconciled_from_external_evidence'
+    | 'needs_browser_reconciliation';
+  storedJulesState: string | null;
+  sessionId: string | null;
+  sessionUrl: string | null;
+  capturedPullRequestUrl: string | null;
+  discoverySource: PullRequestDiscoveryReceipt['source'] | null;
+  discoveryStatus: PullRequestDiscoveryReceipt['status'] | null;
+  matchedBy: string[];
+  localStoredStateIncomplete: boolean;
+  requiresBrowserCheck: boolean;
+  summary: string;
+  nextExpectedProof: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface HandoffOperatorQuestion {
+  handoffId: string;
+  title: string;
+  status: 'waiting_for_operator';
+  generatedAt: string;
+  plainLanguageQuestion: string;
+  plainLanguageSummary: string;
+  requestedAction: string;
+  sourceStage: 'repair_decision' | 'repair_push_approval';
+  canNotifyNow: boolean;
+  nextCheckAt: string | null;
+  quietHours: HandoffQuietHours;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface HandoffQuietHours {
+  timeZone: string;
+  policy: string;
+  localTime: string;
+  appliesNow: boolean;
+  nextCheckAt: string | null;
+  summary: string;
+}
+
+export type OperatorAnswerAction =
+  | 'create_setup_repair_task'
+  | 'send_jules_feedback'
+  | 'wait_for_manual_repair'
+  | 'refresh_after_repair'
+  | 'approve_repair_push'
+  | 'reject_repair_push'
+  | 'other';
+
+export interface HandoffOperatorAnswerInput {
+  selectedAction?: OperatorAnswerAction | string | null;
+  answer?: string | null;
+  answeredBy?: 'operator' | 'codex_foreman' | string | null;
+}
+
+export interface HandoffOperatorAnswer {
+  id: string;
+  handoffId: string;
+  selectedAction: OperatorAnswerAction;
+  answer: string;
+  answeredBy: 'operator' | 'codex_foreman';
+  answeredAt: string;
+  sourceQuestion: string | null;
+  sourceStage: HandoffOperatorQuestion['sourceStage'] | null;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface HandoffRepairLaneExecution {
+  id: string;
+  handoffId: string;
+  selectedAction: OperatorAnswerAction;
+  status: 'local_draft_created';
+  createdAt: string;
+  createdDraftId: string | null;
+  summary: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface HandoffRepairPushReadinessInput {
+  source?: 'local_commit' | string | null;
+  worktreePath?: string | null;
+  branch?: string | null;
+  commit?: string | null;
+  repairBaseCommit?: string | null;
+  targetPullRequestHeadCommit?: string | null;
+  targetPullRequestUrl?: string | null;
+  changedFiles?: string[] | null;
+  verificationCommands?: string[] | null;
+  verificationSummary?: string | null;
+}
+
+export interface HandoffRepairPostPushFollowUp {
+  status: 'waiting_for_operator_push';
+  expectedSequence: [
+    'operator_pushes_repair',
+    'github_checks_rerun',
+    'symphony_refreshes_pr',
+    'scout_core_readiness_updates',
+  ];
+  checksCommand: string;
+  refreshEndpoint: string;
+  scoutCoreReadinessEndpoint: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+  summary: string;
+}
+
+export interface HandoffRepairPushReadiness {
+  handoffId: string;
+  status: 'awaiting_operator_push_approval';
+  source: 'local_commit';
+  recordedAt: string;
+  worktreePath: string;
+  branch: string;
+  commit: string;
+  repairBaseCommit: string | null;
+  targetPullRequestHeadCommit: string | null;
+  freshnessStatus: 'matches_current_pr_head' | 'stale_pr_head' | 'unchecked';
+  isBasedOnCurrentPullRequestHead: boolean | null;
+  freshnessSummary: string;
+  targetPullRequestUrl: string | null;
+  changedFiles: string[];
+  verificationCommands: string[];
+  verificationSummary: string;
+  pushCommand: string;
+  canPushNow: false;
+  mutatesExternalSystemsIfRun: true;
+  mutatesLocalFiles: false;
+  postPushFollowUp: HandoffRepairPostPushFollowUp;
+  nextExpectedProof: string;
+  summary: string;
+}
+
+export interface HandoffRepairPushResultInput {
+  status?: 'pushed' | 'failed' | string | null;
+  pushedCommit?: string | null;
+  targetPullRequestHeadCommit?: string | null;
+  pushedAt?: string | null;
+  pushedBy?: 'operator' | 'codex_foreman' | string | null;
+  evidenceUrl?: string | null;
+  summary?: string | null;
+}
+
+export interface HandoffRepairPushResult {
+  handoffId: string;
+  status: 'pushed' | 'failed';
+  pushedCommit: string | null;
+  targetPullRequestHeadCommit: string | null;
+  pushedAt: string;
+  recordedAt: string;
+  pushedBy: 'operator' | 'codex_foreman';
+  evidenceUrl: string | null;
+  summary: string;
+  checksCommand: string;
+  refreshEndpoint: string;
+  nextBoundary: 'github_checks_rerun' | 'repair_push_failed';
+  nextExpectedProof: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface HandoffDeploymentEvidenceInput {
+  status?: 'passed' | 'failed' | 'waived' | string | null;
+  source?: 'github_pages_latest_build' | 'github_deployment_status' | 'operator_waiver' | string | null;
+  evidenceUrl?: string | null;
+  summary?: string | null;
+  checkedAt?: string | null;
+  recordedBy?: 'operator' | 'codex_foreman' | string | null;
+}
+
+export interface HandoffDeploymentEvidence {
+  handoffId: string;
+  status: 'passed' | 'failed' | 'waived';
+  source: 'github_pages_latest_build' | 'github_deployment_status' | 'operator_waiver';
+  evidenceUrl: string | null;
+  summary: string;
+  checkedAt: string;
+  recordedAt: string;
+  recordedBy: 'operator' | 'codex_foreman';
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
 export interface JulesHandoff {
   id: string;
   draftId: string;
@@ -433,7 +754,17 @@ export interface JulesHandoff {
   githubPullRequestFeedback: PullRequestFeedbackSummary | null;
   githubPullRequestNextAction: PullRequestNextAction | null;
   githubPullRequestRepairDecision: PullRequestRepairDecisionPacket | null;
+  delegationRoiForemanUsage: DelegationRoiForemanUsage[];
+  delegationRoiEstimate: DelegationRoiEstimate | null;
   delegationRoiLedger: DelegationRoiLedger | null;
+  handoffTimeline: JulesHandoffTimeline | null;
+  julesStateReconciliation: JulesStateReconciliation | null;
+  operatorQuestion: HandoffOperatorQuestion | null;
+  operatorAnswers: HandoffOperatorAnswer[];
+  repairLaneExecutions: HandoffRepairLaneExecution[];
+  repairPushReadiness: HandoffRepairPushReadiness | null;
+  repairPushResult: HandoffRepairPushResult | null;
+  deploymentEvidence: HandoffDeploymentEvidence | null;
   githubPullRequestDiscovery?: PullRequestDiscoveryReceipt | null;
   githubPullRequestRefreshError: string | null;
   lastPullRequestRefreshAt: string | null;
@@ -450,6 +781,9 @@ export interface JulesHandoff {
   lastLocalSyncAt: string | null;
   operatorMessages: JulesOperatorMessage[];
   planApprovals: JulesPlanApproval[];
+  taskMessages: TaskMessage[];
+  taskClarifications: TaskClarification[];
+  taskDisposition: TaskDisposition | null;
 }
 
 export interface HandoffBaseCommitDrift {
@@ -1096,6 +1430,1208 @@ export function buildPullRequestRepairDecision(input: {
   };
 }
 
+export function buildDelegationRoiLedger(input: {
+  handoff: Partial<JulesHandoff>;
+  taskNudges?: Array<Partial<TaskNudgeRecord>>;
+  codexUsage?: DelegationRoiCodexUsageInput | null;
+  generatedAt?: string;
+}): DelegationRoiLedger {
+  const handoff = input.handoff;
+  const handoffId = typeof handoff.id === 'string' ? handoff.id : 'unknown-handoff';
+  const generatedAt = input.generatedAt ?? new Date().toISOString();
+  const relatedNudges = (input.taskNudges ?? []).filter(record => record.subjectId === handoffId);
+  const codexUsage = normalizeDelegationRoiCodexUsage(input.codexUsage ?? null);
+  const taskScopedForemanUsage = aggregateDelegationRoiForemanUsage(handoff.delegationRoiForemanUsage, handoffId);
+  const goalContextForemanUsage = aggregateDelegationRoiGoalContextUsage(handoff.delegationRoiForemanUsage, handoffId);
+  const repairDecision = handoff.githubPullRequestRepairDecision as Partial<PullRequestRepairDecisionPacket> | null | undefined;
+  const checkBlocker = handoff.githubPullRequestChecks?.blockers?.[0] ?? null;
+  const delegatedToJules = handoff.executor === 'jules' || Boolean(handoff.julesSessionId);
+  const julesProducedPullRequest = typeof handoff.githubPullRequestUrl === 'string' && handoff.githubPullRequestUrl.length > 0;
+  const outOfScopeFiles = Array.isArray(handoff.githubPullRequestFiles?.outOfScopeFiles)
+    ? handoff.githubPullRequestFiles.outOfScopeFiles
+    : [];
+  const prStayedWithinDeclaredScope = handoff.githubPullRequestFiles
+    ? outOfScopeFiles.length === 0
+    : null;
+  const humanInterventionCount = (Array.isArray(handoff.operatorMessages) ? handoff.operatorMessages.length : 0)
+    + (Array.isArray(handoff.planApprovals) ? handoff.planApprovals.length : 0)
+    + (repairDecision?.status === 'needs_operator_decision' ? 1 : 0);
+  const julesElapsedSeconds = secondsBetween(
+    typeof handoff.launchedAt === 'string' ? handoff.launchedAt : null,
+    typeof handoff.lastStatusRefreshAt === 'string' ? handoff.lastStatusRefreshAt : null,
+  );
+  const githubElapsedSeconds = secondsBetween(
+    typeof handoff.lastStatusRefreshAt === 'string' ? handoff.lastStatusRefreshAt : null,
+    typeof handoff.lastPullRequestRefreshAt === 'string' ? handoff.lastPullRequestRefreshAt : null,
+  );
+  const stalledBecause = classifyDelegationRoiStall(checkBlocker);
+  // Codex spend is the measured side of the ROI ledger. It may come from the
+  // live dashboard totals, a worker roster, or retained usage events, but it is
+  // never estimated here; if no measured source exists, the ledger says missing.
+  const measuredFacts: DelegationRoiMeasuredFacts = {
+    codexTokens: {
+      input: codexUsage?.inputTokens ?? null,
+      output: codexUsage?.outputTokens ?? null,
+      total: codexUsage?.totalTokens ?? null,
+      source: codexUsage?.source ?? 'missing',
+    },
+    taskScopedForemanUsage,
+    goalContextForemanUsage,
+    codexActiveRuntimeSeconds: codexUsage?.secondsRunning ?? null,
+    codexForemanEventCount: relatedNudges.length,
+    julesElapsedSeconds,
+    githubElapsedSeconds,
+    humanInterventionCount,
+    localCodexEditedProductionFiles: null,
+    dataSources: [
+      'task_handoff_record',
+      ...(codexUsage ? [codexUsage.source] : []),
+      ...(taskScopedForemanUsage.receiptCount ? ['task_scoped_foreman_usage'] : []),
+      ...(goalContextForemanUsage.receiptCount ? ['goal_context_foreman_usage'] : []),
+      ...(relatedNudges.length ? ['task_nudge_records'] : []),
+      ...(julesProducedPullRequest ? ['github_pr_refresh'] : []),
+    ],
+  };
+  const missingAvoidedWorkEstimate: DelegationRoiEstimate = {
+    status: 'missing_estimate',
+    estimatedLocalCodexImplementationTurns: null,
+    estimatedLocalCodexTokens: null,
+    estimatedDebuggingCycles: null,
+    confidence: 'missing',
+    method: null,
+    caveats: [
+      'No avoided-work estimate has been recorded for this task yet.',
+      'Do not treat Jules PR creation as measured Codex savings by itself.',
+    ],
+  };
+  const estimatedAvoidedCodexWork = handoff.delegationRoiEstimate?.status === 'documented_estimate'
+    ? handoff.delegationRoiEstimate
+    : missingAvoidedWorkEstimate;
+  const workflowValueSignals: DelegationRoiWorkflowSignals = {
+    delegatedToJules,
+    julesProducedPullRequest,
+    prStayedWithinDeclaredScope,
+    codexAvoidedLocalImplementation: delegatedToJules && julesProducedPullRequest ? true : null,
+    humanInterventionsNeeded: humanInterventionCount,
+    stalledBecause,
+    pullRequestUrl: typeof handoff.githubPullRequestUrl === 'string' ? handoff.githubPullRequestUrl : null,
+  };
+  const hasMeasuredCodexSpend = typeof measuredFacts.codexTokens.total === 'number'
+    || typeof measuredFacts.taskScopedForemanUsage.totalTokens === 'number';
+  const hasAvoidedWorkEstimate = estimatedAvoidedCodexWork.status === 'documented_estimate';
+  const status: DelegationRoiLedger['status'] = delegatedToJules
+    ? hasMeasuredCodexSpend && hasAvoidedWorkEstimate
+      ? 'candidate_savings'
+      : 'roi_unknown'
+    : 'not_delegated';
+
+  // The verdict is deliberately conservative. A Jules PR is useful evidence,
+  // but the operator asked for real usage savings, so missing Codex spend or
+  // missing avoided-work estimates keep the result at ROI unknown.
+  return {
+    status,
+    generatedAt,
+    handoffId,
+    summary: status === 'roi_unknown'
+      ? 'Delegation ROI is unknown because measured task-scoped Codex spend or avoided-work estimates are incomplete.'
+      : status === 'candidate_savings'
+        ? 'Delegation may have saved Codex work; review measured facts and estimates before claiming savings.'
+        : 'This task has not been delegated to Jules.',
+    verdict: status === 'roi_unknown'
+      ? 'ROI unknown: measured task-scoped Codex spend and a documented avoided-work estimate are both required before claiming Jules saved Codex usage.'
+      : status === 'candidate_savings'
+        ? 'Candidate savings: measured facts and estimates are both present, but estimates remain counterfactual.'
+        : 'Not delegated: no Jules ROI can be calculated.',
+    separatesMeasuredFactsFromEstimates: true,
+    measuredFacts,
+    estimatedAvoidedCodexWork,
+    workflowValueSignals,
+  };
+}
+
+export function buildJulesHandoffTimeline(
+  handoff: Partial<JulesHandoff>,
+  taskNudges: TaskNudgeRecord[] = []
+): JulesHandoffTimeline {
+  const handoffId = typeof handoff.id === 'string' ? handoff.id : 'unknown-handoff';
+  const title = typeof handoff.title === 'string' ? handoff.title : 'Untitled Jules handoff';
+  const fallbackTime = firstTimelineTime(handoff.createdAt, handoff.updatedAt, handoff.launchedAt)
+    ?? new Date().toISOString();
+  const events: JulesHandoffTimelineEvent[] = [];
+  const addEvent = (input: Omit<JulesHandoffTimelineEvent, 'sortKey' | 'mutatesExternalSystems' | 'mutatesLocalFiles'>) => {
+    const occurredAt = normalizeTimelineTime(input.occurredAt, fallbackTime);
+    events.push({
+      ...input,
+      occurredAt,
+      sortKey: `${occurredAt}|${String(TIMELINE_STAGE_ORDER[input.stage] ?? 99).padStart(2, '0')}|${input.id}`,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    });
+  };
+
+  // The timeline is a read-only human map of the handoff. It deliberately
+  // derives from facts already stored on the handoff so the dashboard does not
+  // gain a second workflow state that can drift away from the real records.
+  addEvent({
+    id: `${handoffId}:task-created`,
+    stage: 'task_created',
+    label: 'Task drafted',
+    occurredAt: handoff.createdAt ?? fallbackTime,
+    status: 'complete',
+    detail: 'Symphony captured the task as a dashboard handoff record.',
+    source: 'symphony',
+    url: null,
+  });
+
+  if (handoff.linearIssueIdentifier || handoff.linearIssueUrl || handoff.linearIssueId) {
+    addEvent({
+      id: `${handoffId}:linear-issue`,
+      stage: 'linear_issue',
+      label: 'Linear issue linked',
+      occurredAt: handoff.linearIssueCreatedAt ?? handoff.createdAt ?? fallbackTime,
+      status: 'complete',
+      detail: handoff.linearIssueIdentifier
+        ? `Tracking issue ${handoff.linearIssueIdentifier} is linked.`
+        : 'A Linear tracking issue is linked.',
+      source: 'linear',
+      url: handoff.linearIssueUrl ?? null,
+    });
+  }
+
+  if (handoff.manifestPath) {
+    addEvent({
+      id: `${handoffId}:jules-manifest`,
+      stage: 'jules_manifest',
+      label: 'Jules manifest staged',
+      occurredAt: handoff.linearIssueCreatedAt ?? handoff.createdAt ?? fallbackTime,
+      status: 'complete',
+      detail: `Manifest path: ${handoff.manifestPath}`,
+      source: 'symphony',
+      url: null,
+    });
+  }
+
+  if (handoff.julesSessionId || handoff.julesSessionUrl || handoff.launchedAt) {
+    addEvent({
+      id: `${handoffId}:jules-launch`,
+      stage: 'jules_launch',
+      label: 'Jules session launched',
+      occurredAt: handoff.launchedAt ?? handoff.updatedAt ?? fallbackTime,
+      status: 'complete',
+      detail: handoff.julesSessionId ? `Session ${handoff.julesSessionId}` : 'Jules launch receipt exists.',
+      source: 'jules',
+      url: handoff.julesSessionUrl ?? null,
+    });
+  }
+
+  for (const approval of handoff.planApprovals ?? []) {
+    addEvent({
+      id: `${handoffId}:plan-approval:${approval.id}`,
+      stage: 'jules_plan_approval',
+      label: 'Jules plan approval recorded',
+      occurredAt: approval.createdAt,
+      status: approval.status === 'approved' ? 'complete' : 'blocked',
+      detail: approval.status === 'approved' ? 'The operator approval was sent to Jules.' : approval.error ?? 'Plan approval failed.',
+      source: 'operator',
+      url: handoff.julesSessionUrl ?? null,
+    });
+  }
+
+  for (const message of handoff.operatorMessages ?? []) {
+    addEvent({
+      id: `${handoffId}:operator-message:${message.id}`,
+      stage: 'operator_message',
+      label: 'Operator note sent',
+      occurredAt: message.createdAt,
+      status: message.status === 'sent' ? 'recorded' : 'blocked',
+      detail: message.status === 'sent' ? message.body : message.error ?? 'Operator note failed.',
+      source: 'operator',
+      url: handoff.julesSessionUrl ?? null,
+    });
+  }
+
+  if (handoff.lastStatusRefreshAt) {
+    addEvent({
+      id: `${handoffId}:jules-status-refresh`,
+      stage: 'jules_status_refresh',
+      label: 'Jules status refreshed',
+      occurredAt: handoff.lastStatusRefreshAt,
+      status: handoff.githubPullRequestUrl ? 'complete' : 'waiting',
+      detail: handoff.julesState ? `Jules reported ${handoff.julesState}.` : 'Symphony refreshed the Jules session record.',
+      source: 'jules',
+      url: handoff.julesSessionUrl ?? null,
+    });
+  }
+
+  if (handoff.githubPullRequestUrl || handoff.lastPullRequestRefreshAt || handoff.githubPullRequestChecks) {
+    addEvent({
+      id: `${handoffId}:github-pr-refresh`,
+      stage: 'github_pr_refresh',
+      label: 'GitHub PR refreshed',
+      occurredAt: handoff.lastPullRequestRefreshAt ?? handoff.lastStatusRefreshAt ?? fallbackTime,
+      status: handoff.githubPullRequestChecks?.conclusion === 'failing' ? 'blocked' : 'complete',
+      detail: handoff.githubPullRequestChecks
+        ? `Checks: ${handoff.githubPullRequestChecks.conclusion}.`
+        : 'GitHub PR evidence is linked.',
+      source: 'github',
+      url: handoff.githubPullRequestUrl ?? null,
+    });
+  }
+
+  for (const nudge of taskNudges.filter(record => record.subjectKind === 'handoff' && record.subjectId === handoffId)) {
+    const nextNudgeDetail = nudge.nextNudgeAt
+      ? ` Next check: ${nudge.nextNudgeAt} after ${nudge.pauseSeconds} second(s).`
+      : ' No timed follow-up is scheduled.';
+    const noteDetail = nudge.note ? ` Note: ${nudge.note}` : '';
+
+    // Task nudges are the foreman's durable wake-up notes. Including them in
+    // the task timeline lets the dashboard explain why a later read-only
+    // refresh happened without treating the nudge as a Jules or GitHub action.
+    addEvent({
+      id: `${handoffId}:task-nudge:${nudge.id}`,
+      stage: 'task_nudge',
+      label: 'Task nudge recorded',
+      occurredAt: nudge.createdAt,
+      status: nudge.nextNudgeAt ? 'waiting' : 'recorded',
+      detail: `${nudge.action} / ${nudge.phase}.${nextNudgeDetail}${noteDetail}`,
+      source: 'symphony',
+      url: null,
+    });
+  }
+
+  if (handoff.githubPullRequestRepairDecision) {
+    addEvent({
+      id: `${handoffId}:repair-decision`,
+      stage: 'repair_decision',
+      label: 'Repair lane decision needed',
+      occurredAt: handoff.lastPullRequestRefreshAt ?? handoff.updatedAt ?? fallbackTime,
+      status: handoff.githubPullRequestRepairDecision.status === 'needs_operator_decision' ? 'blocked' : 'waiting',
+      detail: handoff.githubPullRequestRepairDecision.nextExpectedProof,
+      source: 'github',
+      url: handoff.githubPullRequestUrl ?? null,
+    });
+  }
+
+  for (const answer of handoff.operatorAnswers ?? []) {
+    const label = answer.sourceStage === 'repair_push_approval'
+      ? 'Repair push approval answer recorded'
+      : 'Repair lane answer recorded';
+
+    addEvent({
+      id: `${handoffId}:operator-answer:${answer.id}`,
+      stage: 'operator_answer',
+      label,
+      occurredAt: answer.answeredAt,
+      status: 'recorded',
+      detail: `${answer.selectedAction}: ${answer.answer}`,
+      source: 'operator',
+      url: null,
+    });
+  }
+
+  for (const execution of handoff.repairLaneExecutions ?? []) {
+    addEvent({
+      id: `${handoffId}:repair-lane:${execution.id}`,
+      stage: 'repair_lane_execution',
+      label: 'Repair lane execution recorded',
+      occurredAt: execution.createdAt,
+      status: 'complete',
+      detail: execution.summary,
+      source: 'symphony',
+      url: null,
+    });
+  }
+
+  if (handoff.repairPushReadiness) {
+    addEvent({
+      id: `${handoffId}:repair-push-readiness`,
+      stage: 'repair_push_readiness',
+      label: 'Repair push readiness recorded',
+      occurredAt: handoff.repairPushReadiness.recordedAt,
+      status: handoff.repairPushReadiness.freshnessStatus === 'stale_pr_head' ? 'blocked' : 'waiting',
+      detail: `${handoff.repairPushReadiness.summary} ${handoff.repairPushReadiness.freshnessSummary}`,
+      source: 'symphony',
+      url: handoff.repairPushReadiness.targetPullRequestUrl,
+    });
+  }
+
+  if (handoff.repairPushResult) {
+    addEvent({
+      id: `${handoffId}:repair-push-result`,
+      stage: 'repair_push_result',
+      label: 'Repair push result recorded',
+      occurredAt: handoff.repairPushResult.pushedAt,
+      status: handoff.repairPushResult.status === 'pushed' ? 'complete' : 'blocked',
+      detail: handoff.repairPushResult.summary,
+      source: 'operator',
+      url: handoff.repairPushResult.evidenceUrl,
+    });
+  }
+
+  if (handoff.delegationRoiLedger) {
+    addEvent({
+      id: `${handoffId}:delegation-roi`,
+      stage: 'delegation_roi',
+      label: 'Delegation ROI ledger generated',
+      occurredAt: handoff.delegationRoiLedger.generatedAt,
+      status: handoff.delegationRoiLedger.status === 'candidate_savings' ? 'complete' : 'waiting',
+      detail: handoff.delegationRoiLedger.verdict,
+      source: 'roi',
+      url: null,
+    });
+  }
+
+  if (handoff.deploymentEvidence) {
+    addEvent({
+      id: `${handoffId}:deployment-evidence`,
+      stage: 'deployment_evidence',
+      label: 'Deployment evidence recorded',
+      occurredAt: handoff.deploymentEvidence.checkedAt,
+      status: handoff.deploymentEvidence.status === 'failed' ? 'blocked' : 'complete',
+      detail: handoff.deploymentEvidence.summary,
+      source: handoff.deploymentEvidence.source === 'operator_waiver' ? 'operator' : 'github',
+      url: handoff.deploymentEvidence.evidenceUrl,
+    });
+  }
+
+  if (handoff.lastLocalSyncAt || handoff.localSyncStatus) {
+    addEvent({
+      id: `${handoffId}:local-sync`,
+      stage: 'local_sync',
+      label: 'Local sync checked',
+      occurredAt: handoff.lastLocalSyncAt ?? handoff.localSyncStatus?.checkedAt ?? fallbackTime,
+      status: handoff.localSyncStatus?.upToDate ? 'complete' : 'waiting',
+      detail: handoff.localSyncStatus?.summary ?? 'Local sync was checked.',
+      source: 'github',
+      url: handoff.githubPullRequestUrl ?? null,
+    });
+  }
+
+  events.sort((left, right) => left.sortKey.localeCompare(right.sortKey));
+  return {
+    handoffId,
+    title,
+    generatedAt: new Date().toISOString(),
+    summary: `${events.length} timeline event${events.length === 1 ? '' : 's'} recorded for this handoff.`,
+    nextExpectedProof: buildTimelineNextExpectedProof(handoff),
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    events,
+  };
+}
+
+const TIMELINE_STAGE_ORDER: Record<JulesHandoffTimelineStage, number> = {
+  task_created: 1,
+  linear_issue: 2,
+  jules_manifest: 3,
+  jules_launch: 4,
+  jules_plan_approval: 5,
+  operator_message: 6,
+  jules_status_refresh: 7,
+  github_pr_refresh: 8,
+  task_nudge: 9,
+  repair_decision: 10,
+  operator_answer: 11,
+  repair_lane_execution: 12,
+  repair_push_readiness: 13,
+  repair_push_result: 14,
+  delegation_roi: 15,
+  deployment_evidence: 16,
+  local_sync: 17,
+};
+
+function buildTimelineNextExpectedProof(handoff: Partial<JulesHandoff>): string {
+  if (handoff.repairPushResult?.status === 'pushed') {
+    return 'GitHub checks complete after the repair push, then Symphony refreshes PR state and Scout/Core readiness.';
+  }
+  if (handoff.repairPushResult?.status === 'failed') {
+    return 'Operator resolves the failed push or records a replacement repair push readiness packet.';
+  }
+  if (handoff.repairPushReadiness) {
+    return 'Operator approves or rejects the repair push, then records the push result before Symphony watches GitHub checks.';
+  }
+  if (handoff.repairLaneExecutions?.length) {
+    return 'A verified local repair commit and repair push readiness packet.';
+  }
+  if (handoff.operatorAnswers?.length) {
+    return 'Execute the selected repair lane or record why the selected lane is deferred.';
+  }
+  if (handoff.githubPullRequestRepairDecision?.status === 'needs_operator_decision') {
+    return 'Operator chooses the repair lane, then Symphony refreshes the PR checks after that lane runs.';
+  }
+  if (handoff.githubPullRequestUrl && handoff.githubPullRequestState !== 'MERGED') {
+    return 'A refreshed GitHub PR check packet, Scout/Core review result, or merged PR receipt.';
+  }
+  if (handoff.githubPullRequestState === 'MERGED' && !handoff.lastLocalSyncAt) {
+    return 'A local sync readiness packet and fast-forward sync receipt.';
+  }
+  if (handoff.julesSessionId && !handoff.githubPullRequestUrl) {
+    return 'A Jules status refresh that either finds the PR or records why none exists yet.';
+  }
+  if (handoff.manifestPath && !handoff.julesSessionId) {
+    return 'A Jules launch receipt.';
+  }
+  if (handoff.linearIssueIdentifier && !handoff.manifestPath) {
+    return 'A staged Jules manifest receipt.';
+  }
+  return 'The next Symphony handoff proof stage for this task.';
+}
+
+function firstTimelineTime(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    if (typeof value === 'string' && Number.isFinite(new Date(value).getTime())) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function normalizeTimelineTime(value: string | null | undefined, fallback: string): string {
+  if (typeof value === 'string' && Number.isFinite(new Date(value).getTime())) {
+    return value;
+  }
+  return fallback;
+}
+
+export function buildHandoffOperatorQuestion(
+  handoff: Partial<JulesHandoff>,
+  options: { generatedAt?: string; operatorPreferences?: OperatorPreferencesInput | OperatorPreferences | null } = {}
+): HandoffOperatorQuestion | null {
+  const generatedAt = options.generatedAt ?? new Date().toISOString();
+  const operatorPreferences = normalizeOperatorPreferences(options.operatorPreferences ?? null);
+  const quietHours = buildQuietHoursPacket(generatedAt, operatorPreferences.quietHours);
+  const handoffId = typeof handoff.id === 'string' ? handoff.id : 'unknown-handoff';
+  const title = typeof handoff.title === 'string' ? handoff.title : 'Untitled Jules handoff';
+  const repairDecision = handoff.githubPullRequestRepairDecision;
+  const repairPushReadiness = handoff.repairPushReadiness;
+
+  // Operator questions are the dashboard-facing version of a blocker. When a
+  // newer repair-push packet exists, it owns the current human decision even if
+  // the older repair-lane packet remains on the handoff for audit history.
+  if (repairPushReadiness && !handoff.repairPushResult) {
+    return {
+      handoffId,
+      title,
+      status: 'waiting_for_operator',
+      generatedAt,
+      plainLanguageQuestion: 'Do you approve pushing the prepared repair to the Jules PR?',
+      plainLanguageSummary: `${repairPushReadiness.summary} ${repairPushReadiness.freshnessSummary}`,
+      requestedAction: 'Approve the external push and record the push result, or reject this repair and prepare a replacement.',
+      sourceStage: 'repair_push_approval',
+      canNotifyNow: !quietHours.appliesNow,
+      nextCheckAt: quietHours.nextCheckAt,
+      quietHours,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+  }
+
+  if (repairDecision?.status === 'needs_operator_decision') {
+    return {
+      handoffId,
+      title,
+      status: 'waiting_for_operator',
+      generatedAt,
+      plainLanguageQuestion: repairDecision.question,
+      plainLanguageSummary: repairDecision.plainLanguageSummary,
+      requestedAction: repairDecision.nextExpectedProof,
+      sourceStage: 'repair_decision',
+      canNotifyNow: !quietHours.appliesNow,
+      nextCheckAt: quietHours.nextCheckAt,
+      quietHours,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+  }
+
+  return null;
+}
+
+function normalizeOperatorAnswer(
+  handoff: JulesHandoff,
+  input: HandoffOperatorAnswerInput
+): HandoffOperatorAnswer {
+  const answer = typeof input.answer === 'string' ? input.answer.trim().slice(0, 1200) : '';
+  if (!answer) {
+    throw new Error('Operator answer text is required.');
+  }
+
+  const selectedAction = normalizeOperatorAnswerAction(input.selectedAction);
+  const answeredBy = input.answeredBy === 'codex_foreman' ? 'codex_foreman' : 'operator';
+  const question = handoff.operatorQuestion ?? buildHandoffOperatorQuestion(handoff);
+
+  // The answer is deliberately just a local receipt. It records the operator's
+  // repair-lane or repair-push decision so later controls know what was
+  // decided, but it does not create tasks, comment on PRs, send Jules feedback,
+  // push to GitHub, or edit local files by itself.
+  return {
+    id: `operator-answer-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    handoffId: handoff.id,
+    selectedAction,
+    answer,
+    answeredBy,
+    answeredAt: new Date().toISOString(),
+    sourceQuestion: question?.plainLanguageQuestion ?? null,
+    sourceStage: question?.sourceStage ?? null,
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  };
+}
+
+function normalizeOperatorAnswerAction(value: HandoffOperatorAnswerInput['selectedAction']): OperatorAnswerAction {
+  const action = typeof value === 'string' ? value.trim() : '';
+  if (
+    action === 'create_setup_repair_task'
+    || action === 'send_jules_feedback'
+    || action === 'wait_for_manual_repair'
+    || action === 'refresh_after_repair'
+    || action === 'approve_repair_push'
+    || action === 'reject_repair_push'
+  ) {
+    return action;
+  }
+  return 'other';
+}
+
+function normalizeRepairPushReadiness(
+  handoff: JulesHandoff,
+  input: HandoffRepairPushReadinessInput
+): HandoffRepairPushReadiness {
+  const source = input.source === 'local_commit' || !input.source ? 'local_commit' : null;
+  if (!source) {
+    throw new Error(`Unsupported repair push readiness source: ${String(input.source)}`);
+  }
+
+  const worktreePath = trimRequiredString(input.worktreePath, 'Repair worktree path');
+  const branch = trimRequiredString(input.branch, 'Repair branch');
+  const commit = trimRequiredString(input.commit, 'Repair commit');
+  const repairBaseCommit = typeof input.repairBaseCommit === 'string' && input.repairBaseCommit.trim()
+    ? input.repairBaseCommit.trim()
+    : null;
+  const targetPullRequestHeadCommit = typeof input.targetPullRequestHeadCommit === 'string' && input.targetPullRequestHeadCommit.trim()
+    ? input.targetPullRequestHeadCommit.trim()
+    : null;
+  const hasFreshnessPair = Boolean(repairBaseCommit && targetPullRequestHeadCommit);
+  const isBasedOnCurrentPullRequestHead = hasFreshnessPair
+    ? repairBaseCommit === targetPullRequestHeadCommit
+    : null;
+  const freshnessStatus = isBasedOnCurrentPullRequestHead === true
+    ? 'matches_current_pr_head'
+    : isBasedOnCurrentPullRequestHead === false
+      ? 'stale_pr_head'
+      : 'unchecked';
+  const freshnessSummary = freshnessStatus === 'matches_current_pr_head'
+    ? `Repair base ${repairBaseCommit} matches the current PR head ${targetPullRequestHeadCommit}.`
+    : freshnessStatus === 'stale_pr_head'
+      ? `Repair base ${repairBaseCommit} does not match current PR head ${targetPullRequestHeadCommit}; do not push this repair until it is rebased or regenerated.`
+      : 'Repair base freshness was not checked against the current PR head.';
+  const targetPullRequestUrl = typeof input.targetPullRequestUrl === 'string' && input.targetPullRequestUrl.trim()
+    ? input.targetPullRequestUrl.trim()
+    : handoff.githubPullRequestUrl ?? null;
+  const changedFiles = uniqueStrings(input.changedFiles ?? []);
+  if (!changedFiles.length) {
+    throw new Error('At least one changed file is required for repair push readiness.');
+  }
+
+  const verificationCommands = uniqueStrings(input.verificationCommands ?? handoff.verificationCommands ?? []);
+  const verificationSummary = typeof input.verificationSummary === 'string' && input.verificationSummary.trim()
+    ? input.verificationSummary.trim().slice(0, 1200)
+    : 'Local repair verification has not been summarized yet.';
+  const recordedAt = new Date().toISOString();
+  const remoteRef = handoff.githubPullRequestHeadRef?.trim() || branch;
+  const pushCommand = remoteRef === branch
+    ? `git push origin ${branch}`
+    : `git push origin ${branch}:${remoteRef}`;
+  const targetLabel = targetPullRequestUrl ?? 'the tracked GitHub pull request';
+  const pullRequestNumber = extractPullRequestNumber(targetPullRequestUrl);
+  const repository = extractPullRequestRepository(targetPullRequestUrl);
+  const pullRequestSelector = pullRequestNumber && repository
+    ? `${pullRequestNumber} --repo ${repository}`
+    : targetPullRequestUrl ?? '';
+  const postPushFollowUp: HandoffRepairPostPushFollowUp = {
+    status: 'waiting_for_operator_push',
+    expectedSequence: [
+      'operator_pushes_repair',
+      'github_checks_rerun',
+      'symphony_refreshes_pr',
+      'scout_core_readiness_updates',
+    ],
+    checksCommand: pullRequestSelector ? `gh pr checks ${pullRequestSelector}` : 'gh pr checks <pull-request>',
+    refreshEndpoint: `/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/refresh-pr`,
+    scoutCoreReadinessEndpoint: `/api/v1/task-drafts`,
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    summary: 'After the operator pushes the repair, watch GitHub checks, refresh the Symphony PR packet, then let Scout/Core readiness update from the refreshed evidence.',
+  };
+
+  // The push-readiness packet keeps the dirty-worktree dilemma visible. A local
+  // agent can prepare and verify a repair commit, but Symphony still marks the
+  // GitHub update as operator-approved external mutation instead of quietly
+  // treating it like another background dashboard refresh. The PR-head freshness
+  // fields preserve the second safety question: is this repair still based on
+  // the same PR revision that failed, or did the cloud branch move underneath it?
+  // The post-push follow-up packet preserves the third safety question: once a
+  // human pushes, what should Symphony observe next before it talks about
+  // Scout/Core or merge readiness?
+  return {
+    handoffId: handoff.id,
+    status: 'awaiting_operator_push_approval',
+    source,
+    recordedAt,
+    worktreePath,
+    branch,
+    commit,
+    repairBaseCommit,
+    targetPullRequestHeadCommit,
+    freshnessStatus,
+    isBasedOnCurrentPullRequestHead,
+    freshnessSummary,
+    targetPullRequestUrl,
+    changedFiles,
+    verificationCommands,
+    verificationSummary,
+    pushCommand,
+    canPushNow: false,
+    mutatesExternalSystemsIfRun: true,
+    mutatesLocalFiles: false,
+    postPushFollowUp,
+    nextExpectedProof: `Operator approves ${pushCommand}; GitHub checks rerun for ${targetLabel} and Symphony records the refreshed check state.`,
+    summary: `Local repair commit ${commit} on ${branch} is ready for operator-approved push to ${targetLabel}.`,
+  };
+}
+
+function normalizeRepairPushResult(
+  handoff: JulesHandoff,
+  input: HandoffRepairPushResultInput
+): HandoffRepairPushResult {
+  const status = input.status === 'failed' ? 'failed' : 'pushed';
+  const pushedCommit = typeof input.pushedCommit === 'string' && input.pushedCommit.trim()
+    ? input.pushedCommit.trim()
+    : handoff.repairPushReadiness?.commit ?? null;
+  const targetPullRequestHeadCommit = typeof input.targetPullRequestHeadCommit === 'string' && input.targetPullRequestHeadCommit.trim()
+    ? input.targetPullRequestHeadCommit.trim()
+    : null;
+  const pushedAt = typeof input.pushedAt === 'string' && Number.isFinite(new Date(input.pushedAt).getTime())
+    ? input.pushedAt
+    : new Date().toISOString();
+  const recordedAt = new Date().toISOString();
+  const pushedBy = input.pushedBy === 'codex_foreman' ? 'codex_foreman' : 'operator';
+  const evidenceUrl = typeof input.evidenceUrl === 'string' && input.evidenceUrl.trim()
+    ? input.evidenceUrl.trim()
+    : handoff.githubPullRequestUrl;
+  const summary = typeof input.summary === 'string' && input.summary.trim()
+    ? input.summary.trim().slice(0, 1200)
+    : status === 'pushed'
+      ? 'Repair push was recorded locally. Wait for GitHub checks, then refresh Symphony.'
+      : 'Repair push failed or was not completed. Keep the task in the repair boundary.';
+  const prUrl = handoff.githubPullRequestUrl ?? evidenceUrl;
+  const number = extractPullRequestNumber(prUrl);
+  const repo = extractPullRequestRepository(prUrl);
+  const pullRequestSelector = number && repo ? `${number} --repo ${repo}` : prUrl ?? '<pull-request>';
+
+  // This is a receipt for an external action that already happened with human
+  // approval. Recording it gives Symphony the next thing to watch, but this
+  // function does not push, rerun checks, merge, comment, or pull local Git.
+  return {
+    handoffId: handoff.id,
+    status,
+    pushedCommit,
+    targetPullRequestHeadCommit,
+    pushedAt,
+    recordedAt,
+    pushedBy,
+    evidenceUrl,
+    summary,
+    checksCommand: `gh pr checks ${pullRequestSelector}`,
+    refreshEndpoint: `/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/refresh-pr`,
+    nextBoundary: status === 'pushed' ? 'github_checks_rerun' : 'repair_push_failed',
+    nextExpectedProof: status === 'pushed'
+      ? 'GitHub checks complete after the repair push, then Symphony refreshes PR state.'
+      : 'Operator resolves the failed push or records a replacement repair push readiness packet.',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  };
+}
+
+function normalizeDeploymentEvidence(
+  handoff: JulesHandoff,
+  input: HandoffDeploymentEvidenceInput
+): HandoffDeploymentEvidence {
+  const status = normalizeDeploymentEvidenceStatus(input.status);
+  const source = normalizeDeploymentEvidenceSource(input.source, status);
+  const summary = typeof input.summary === 'string' ? input.summary.trim().slice(0, 1200) : '';
+  if (!summary) {
+    throw new Error('Deployment evidence summary is required.');
+  }
+
+  const checkedAt = typeof input.checkedAt === 'string' && Number.isFinite(new Date(input.checkedAt).getTime())
+    ? input.checkedAt
+    : new Date().toISOString();
+  const evidenceUrl = typeof input.evidenceUrl === 'string' && input.evidenceUrl.trim()
+    ? input.evidenceUrl.trim()
+    : handoff.githubPullRequestUrl;
+  const recordedBy = input.recordedBy === 'codex_foreman' ? 'codex_foreman' : 'operator';
+
+  // This receipt is local proof only. It lets the dashboard remember whether
+  // the deployment gate passed, failed, or was explicitly waived before local
+  // sync, without itself calling GitHub Pages, rerunning Actions, or pulling Git.
+  return {
+    handoffId: handoff.id,
+    status,
+    source,
+    evidenceUrl,
+    summary,
+    checkedAt,
+    recordedAt: new Date().toISOString(),
+    recordedBy,
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  };
+}
+
+function normalizeDeploymentEvidenceStatus(value: HandoffDeploymentEvidenceInput['status']): HandoffDeploymentEvidence['status'] {
+  if (value === 'passed' || value === 'failed' || value === 'waived') {
+    return value;
+  }
+  throw new Error(`Unsupported deployment evidence status: ${String(value)}`);
+}
+
+function normalizeDeploymentEvidenceSource(
+  value: HandoffDeploymentEvidenceInput['source'],
+  status: HandoffDeploymentEvidence['status']
+): HandoffDeploymentEvidence['source'] {
+  if (value === 'github_pages_latest_build' || value === 'github_deployment_status' || value === 'operator_waiver') {
+    return value;
+  }
+  if (status === 'waived') {
+    return 'operator_waiver';
+  }
+  throw new Error(`Unsupported deployment evidence source: ${String(value)}`);
+}
+
+function trimRequiredString(value: unknown, label: string): string {
+  const text = typeof value === 'string' ? value.trim() : '';
+  if (!text) {
+    throw new Error(`${label} is required.`);
+  }
+  return text;
+}
+
+function buildSetupRepairDraftFromHandoff(
+  handoff: JulesHandoff,
+  answer: HandoffOperatorAnswer,
+  createdAt: string
+): TaskDraft {
+  const blocker = handoff.githubPullRequestChecks?.blockers?.[0] ?? null;
+  const issue = handoff.linearIssueIdentifier || handoff.linearIssueId || handoff.id;
+  const evidence = [
+    ...(blocker?.evidence ?? []),
+    ...(handoff.githubPullRequestRepairDecision?.evidence ?? []),
+  ].filter(Boolean);
+
+  // Setup repair drafts are the first safe execution of the chosen repair lane.
+  // They keep the problem inside Symphony's normal draft queue so the operator
+  // can review scope before any Linear/Jules/GitHub mutation happens.
+  return {
+    id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: `Setup repair for ${issue}`,
+    body: [
+      `Repair the setup/workflow blocker discovered while following Jules handoff ${handoff.id}.`,
+      '',
+      `Original task: ${handoff.title}`,
+      handoff.githubPullRequestUrl ? `GitHub PR: ${handoff.githubPullRequestUrl}` : '',
+      handoff.linearIssueUrl ? `Linear issue: ${handoff.linearIssueUrl}` : '',
+      '',
+      'Operator decision:',
+      answer.answer,
+      '',
+      'Failure summary:',
+      blocker?.summary || handoff.githubPullRequestRepairDecision?.plainLanguageSummary || 'Setup failed before task validation could run.',
+      '',
+      'Evidence:',
+      ...(evidence.length ? evidence.map(item => `- ${item}`) : ['- No detailed check evidence was captured.']),
+      '',
+      'Keep this repair separate from Jules implementation feedback unless later evidence shows Jules changed the failing setup files.',
+    ].filter(line => line !== '').join('\n'),
+    expectedFiles: ['package-lock.json', 'package.json', '.github/workflows/ci.yml'],
+    verificationCommands: [
+      'npm ci --no-audit --no-fund',
+      'npm run build',
+      'npm run verify:jules-contract --workspace conductor/symphony',
+    ],
+    taskMessages: [],
+    taskClarifications: [],
+    taskDisposition: null,
+    executor: 'jules',
+    status: 'draft',
+    linearIssueId: null,
+    linearIssueIdentifier: null,
+    linearIssueUrl: null,
+    linearIssueCreatedAt: null,
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
+export function normalizeOperatorPreferences(value: unknown): OperatorPreferences {
+  const input = (typeof value === 'object' && value !== null ? value : {}) as Partial<OperatorPreferencesInput>;
+  const quietInput = (typeof input.quietHours === 'object' && input.quietHours !== null ? input.quietHours : {}) as Partial<OperatorQuietHoursPreference>;
+  const timeZone = normalizeTimeZone(quietInput.timeZone);
+  const startHour = normalizeQuietHour(quietInput.startHour, 1);
+  const endHour = normalizeQuietHour(quietInput.endHour, 9);
+
+  // Preferences are local dashboard behavior. They tell a foreman when to wait
+  // for the human; they never authorize Jules, GitHub, Linear, local files, or
+  // Git mutation.
+  return {
+    quietHours: {
+      enabled: quietInput.enabled === false ? false : true,
+      timeZone,
+      startHour,
+      endHour,
+      weekdaysOnly: quietInput.weekdaysOnly === false ? false : true,
+    },
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    mutatesGit: false,
+  };
+}
+
+function buildQuietHoursPacket(
+  generatedAt: string,
+  preference: OperatorQuietHoursPreference = normalizeOperatorPreferences(null).quietHours
+): HandoffQuietHours {
+  const timeZone = preference.timeZone;
+  const localParts = getLocalTimeParts(generatedAt, timeZone);
+  const weekdayQuiet = preference.weekdaysOnly ? localParts.weekday >= 1 && localParts.weekday <= 5 : true;
+  const hourQuiet = isWithinQuietHour(localParts.hour, preference.startHour, preference.endHour);
+  const appliesNow = preference.enabled && weekdayQuiet && hourQuiet;
+  const nextCheckAt = appliesNow ? findNextLocalHour(generatedAt, timeZone, preference.endHour) : null;
+  const localTime = `${String(localParts.year).padStart(4, '0')}-${String(localParts.month).padStart(2, '0')}-${String(localParts.day).padStart(2, '0')} ${String(localParts.hour).padStart(2, '0')}:${String(localParts.minute).padStart(2, '0')} ${timeZone}`;
+  const policy = preference.enabled
+    ? `${preference.weekdaysOnly ? 'Weekday' : 'Daily'} quiet hours are ${String(preference.startHour).padStart(2, '0')}:00-${String(preference.endHour).padStart(2, '0')}:00 ${timeZone}.`
+    : `Quiet hours are disabled for ${timeZone}.`;
+
+  // This policy is intentionally a packet, not a scheduler. Symphony can show
+  // when a foreman should check back, but it does not keep a hidden tight loop
+  // running while the human input is unlikely to arrive.
+  return {
+    timeZone,
+    policy,
+    localTime,
+    appliesNow,
+    nextCheckAt,
+    summary: !preference.enabled
+      ? 'Quiet hours are disabled; the operator question can be shown now.'
+      : appliesNow
+      ? `Quiet hours are active; wait until ${nextCheckAt} before checking for operator input again.`
+      : 'Quiet hours are not active; the operator question can be shown now.',
+  };
+}
+
+function normalizeQuietHour(value: unknown, fallback: number): number {
+  const numeric = typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : fallback;
+  return Math.min(23, Math.max(0, numeric));
+}
+
+function normalizeTimeZone(value: unknown): string {
+  const candidate = typeof value === 'string' && value.trim() ? value.trim() : 'Europe/Amsterdam';
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch {
+    return 'Europe/Amsterdam';
+  }
+}
+
+function isWithinQuietHour(hour: number, startHour: number, endHour: number): boolean {
+  if (startHour === endHour) return false;
+  return startHour < endHour
+    ? hour >= startHour && hour < endHour
+    : hour >= startHour || hour < endHour;
+}
+
+function getLocalTimeParts(isoTime: string, timeZone: string): {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  weekday: number;
+} {
+  const date = new Date(isoTime);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    weekday: 'short',
+  }).formatToParts(date);
+  const part = (type: string) => parts.find(item => item.type === type)?.value ?? '';
+  const weekdayName = part('weekday');
+  const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(weekdayName);
+
+  return {
+    year: Number(part('year')),
+    month: Number(part('month')),
+    day: Number(part('day')),
+    hour: Number(part('hour')) % 24,
+    minute: Number(part('minute')),
+    weekday: weekday >= 0 ? weekday : date.getUTCDay(),
+  };
+}
+
+function findNextLocalHour(isoTime: string, timeZone: string, targetHour: number): string {
+  const start = Math.ceil(new Date(isoTime).getTime() / (60 * 1000)) * 60 * 1000;
+  const oneMinute = 60 * 1000;
+
+  // Time-zone conversion is delegated to Intl above. This bounded search avoids
+  // hardcoding daylight-saving offsets and finds the next UTC instant that reads
+  // as the requested local hour in the operator's time zone. The search uses
+  // minute boundaries because a receipt can be recorded at 08:52:44; stepping in
+  // larger chunks would skip the 09:00 wake-up point and produce a misleading
+  // afternoon follow-up time.
+  for (let offset = 0; offset <= 48 * 60 * 60 * 1000; offset += oneMinute) {
+    const candidate = new Date(start + offset);
+    const parts = getLocalTimeParts(candidate.toISOString(), timeZone);
+    if (parts.hour === targetHour && parts.minute === 0) {
+      return candidate.toISOString();
+    }
+  }
+
+  return new Date(start + 8 * 60 * 60 * 1000).toISOString();
+}
+
+function classifyDelegationRoiStall(
+  blocker: PullRequestCheckBlocker | null
+): DelegationRoiWorkflowSignals['stalledBecause'] {
+  if (!blocker) return 'none';
+  if (blocker.category === 'workflow_setup') return 'ci_setup';
+  if (blocker.category === 'workflow_config') return 'workflow_config';
+  if (blocker.category === 'jules_implementation') return 'jules_implementation';
+  return 'unknown';
+}
+
+function secondsBetween(start: string | null, end: string | null): number | null {
+  if (!start || !end) return null;
+  const startTime = new Date(start).getTime();
+  const endTime = new Date(end).getTime();
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime < startTime) return null;
+  return Math.round((endTime - startTime) / 1000);
+}
+
+function normalizeDelegationRoiCodexUsage(
+  usage: DelegationRoiCodexUsageInput | null
+): Required<DelegationRoiCodexUsageInput> | null {
+  if (!usage) return null;
+  const totalTokens = finiteNonNegativeNumber(usage.totalTokens);
+  const inputTokens = finiteNonNegativeNumber(usage.inputTokens);
+  const outputTokens = finiteNonNegativeNumber(usage.outputTokens);
+  const secondsRunning = finiteNonNegativeNumber(usage.secondsRunning);
+
+  // A usage source is only "measured" if it provides at least one concrete
+  // spend/runtime value. Otherwise the ledger must stay explicit about missing
+  // evidence instead of converting absent values into zeroes.
+  if (totalTokens === null && inputTokens === null && outputTokens === null && secondsRunning === null) {
+    return null;
+  }
+
+  return {
+    inputTokens,
+    outputTokens,
+    totalTokens,
+    secondsRunning,
+    source: usage.source,
+  };
+}
+
+function finiteNonNegativeNumber(value: number | null | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function aggregateDelegationRoiForemanUsage(
+  value: unknown,
+  handoffId: string
+): DelegationRoiMeasuredFacts['taskScopedForemanUsage'] {
+  const receipts = normalizeDelegationRoiForemanUsageList(value, handoffId)
+    .filter(receipt => receipt.source !== 'codex_goal_context');
+  const sumNullable = (field: keyof Pick<DelegationRoiForemanUsage, 'inputTokens' | 'outputTokens' | 'totalTokens' | 'activeRuntimeSeconds' | 'foremanTurns'>): number | null => {
+    const numbers = receipts
+      .map(receipt => receipt[field])
+      .filter((amount): amount is number => typeof amount === 'number');
+    return numbers.length ? numbers.reduce((total, amount) => total + amount, 0) : null;
+  };
+
+  // Task-scoped foreman usage is measured evidence entered for one handoff. It
+  // complements the global dashboard Codex totals instead of replacing them,
+  // because the global totals can include unrelated work in a long session.
+  return {
+    inputTokens: sumNullable('inputTokens'),
+    outputTokens: sumNullable('outputTokens'),
+    totalTokens: sumNullable('totalTokens'),
+    activeRuntimeSeconds: sumNullable('activeRuntimeSeconds'),
+    foremanTurns: sumNullable('foremanTurns'),
+    source: receipts.length ? 'task_scoped_foreman_usage' : 'missing',
+    receiptCount: receipts.length,
+  };
+}
+
+function aggregateDelegationRoiGoalContextUsage(
+  value: unknown,
+  handoffId: string
+): DelegationRoiMeasuredFacts['goalContextForemanUsage'] {
+  const receipts = normalizeDelegationRoiForemanUsageList(value, handoffId)
+    .filter(receipt => receipt.source === 'codex_goal_context');
+  const sumNullable = (field: keyof Pick<DelegationRoiForemanUsage, 'inputTokens' | 'outputTokens' | 'totalTokens' | 'activeRuntimeSeconds' | 'foremanTurns'>): number | null => {
+    const numbers = receipts
+      .map(receipt => receipt[field])
+      .filter((amount): amount is number => typeof amount === 'number');
+    return numbers.length ? numbers.reduce((total, amount) => total + amount, 0) : null;
+  };
+
+  // Goal-context usage can document how much the whole Symphony goal has cost,
+  // but it is broader than one task. Keeping it in its own bucket prevents a
+  // long thread total from masquerading as task-level savings evidence.
+  return {
+    inputTokens: sumNullable('inputTokens'),
+    outputTokens: sumNullable('outputTokens'),
+    totalTokens: sumNullable('totalTokens'),
+    activeRuntimeSeconds: sumNullable('activeRuntimeSeconds'),
+    foremanTurns: sumNullable('foremanTurns'),
+    source: receipts.length ? 'goal_context_foreman_usage' : 'missing',
+    receiptCount: receipts.length,
+  };
+}
+
+function normalizeDelegationRoiForemanUsageInput(
+  handoffId: string,
+  input: DelegationRoiForemanUsageInput
+): DelegationRoiForemanUsage {
+  const inputTokens = finiteNonNegativeNumber(input.inputTokens);
+  const outputTokens = finiteNonNegativeNumber(input.outputTokens);
+  const providedTotal = finiteNonNegativeNumber(input.totalTokens);
+  const totalTokens = providedTotal ?? (
+    typeof inputTokens === 'number' || typeof outputTokens === 'number'
+      ? (inputTokens ?? 0) + (outputTokens ?? 0)
+      : null
+  );
+  const activeRuntimeSeconds = finiteNonNegativeNumber(input.activeRuntimeSeconds);
+  const foremanTurns = finiteNonNegativeNumber(input.foremanTurns);
+  const notes = typeof input.notes === 'string' ? input.notes.trim().slice(0, 1200) : '';
+  const source = input.source === 'codex_goal_context' || input.source === 'other_measured_source'
+    ? input.source
+    : 'manual_codex_receipt';
+  const recordedBy = input.recordedBy === 'operator' ? 'operator' : 'codex_foreman';
+
+  if (totalTokens === null && activeRuntimeSeconds === null && foremanTurns === null) {
+    throw new Error('Record at least one measured foreman usage value.');
+  }
+
+  return {
+    id: `foreman-usage-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    handoffId,
+    source,
+    inputTokens,
+    outputTokens,
+    totalTokens,
+    activeRuntimeSeconds,
+    foremanTurns,
+    notes,
+    recordedAt: new Date().toISOString(),
+    recordedBy,
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  };
+}
+
+function normalizeDelegationRoiForemanUsageList(
+  value: unknown,
+  handoffId: string
+): DelegationRoiForemanUsage[] {
+  const receipts = Array.isArray(value) ? value : [];
+
+  // Older handoffs have no foreman-usage receipts. Normalizing at read time
+  // keeps those records valid while guaranteeing every new receipt carries the
+  // non-mutation flags required by the ROI ledger.
+  return receipts
+    .map(item => {
+      const receipt = item as Partial<DelegationRoiForemanUsage>;
+      const recordedAt = typeof receipt.recordedAt === 'string' ? receipt.recordedAt : null;
+      if (!recordedAt) return null;
+      const normalized: DelegationRoiForemanUsage = {
+        id: typeof receipt.id === 'string' ? receipt.id : `foreman-usage-${recordedAt}`,
+        handoffId,
+        source: receipt.source === 'codex_goal_context' || receipt.source === 'other_measured_source'
+          ? receipt.source
+          : 'manual_codex_receipt',
+        inputTokens: finiteNonNegativeNumber(receipt.inputTokens),
+        outputTokens: finiteNonNegativeNumber(receipt.outputTokens),
+        totalTokens: finiteNonNegativeNumber(receipt.totalTokens),
+        activeRuntimeSeconds: finiteNonNegativeNumber(receipt.activeRuntimeSeconds),
+        foremanTurns: finiteNonNegativeNumber(receipt.foremanTurns),
+        notes: typeof receipt.notes === 'string' ? receipt.notes.trim().slice(0, 1200) : '',
+        recordedAt,
+        recordedBy: receipt.recordedBy === 'operator' ? 'operator' : 'codex_foreman',
+        mutatesExternalSystems: false,
+        mutatesLocalFiles: false,
+      };
+      return normalized.totalTokens === null && normalized.activeRuntimeSeconds === null && normalized.foremanTurns === null
+        ? null
+        : normalized;
+    })
+    .filter((receipt): receipt is DelegationRoiForemanUsage => Boolean(receipt))
+    .slice(0, 40);
+}
+
+function normalizeDelegationRoiEstimateInput(input: DelegationRoiEstimateInput): DelegationRoiEstimate {
+  const turns = finiteNonNegativeNumber(input.estimatedLocalCodexImplementationTurns ?? null);
+  const tokens = finiteNonNegativeNumber(input.estimatedLocalCodexTokens ?? null);
+  const cycles = finiteNonNegativeNumber(input.estimatedDebuggingCycles ?? null);
+  const method = typeof input.method === 'string' ? input.method.trim().slice(0, 1200) : '';
+  const confidence = input.confidence === 'low' || input.confidence === 'medium' || input.confidence === 'high'
+    ? input.confidence
+    : 'low';
+  const caveats = Array.isArray(input.caveats)
+    ? input.caveats
+    : typeof input.caveats === 'string'
+      ? input.caveats.split(/\r?\n/)
+      : [];
+  const normalizedCaveats = caveats
+    .map(item => String(item).trim())
+    .filter(Boolean)
+    .slice(0, 8)
+    .map(item => item.slice(0, 500));
+
+  if (turns === null && tokens === null && cycles === null) {
+    throw new Error('Record at least one avoided-work estimate: turns, tokens, or debugging cycles.');
+  }
+  if (!method) {
+    throw new Error('Delegation ROI estimate method is required.');
+  }
+
+  // The estimate is intentionally marked as counterfactual. It can help compare
+  // local Codex work with Jules delegation, but it must stay labeled as an
+  // estimate with confidence and caveats rather than becoming measured spend.
+  return {
+    status: 'documented_estimate',
+    estimatedLocalCodexImplementationTurns: turns,
+    estimatedLocalCodexTokens: tokens,
+    estimatedDebuggingCycles: cycles,
+    confidence,
+    method,
+    caveats: normalizedCaveats.length
+      ? normalizedCaveats
+      : ['Counterfactual estimate; compare against measured Codex spend before claiming savings.'],
+    recordedAt: new Date().toISOString(),
+    recordedBy: 'operator',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  };
+}
+
 export function selectJulesPullRequestFallback(input: {
   handoffId: string;
   title: string;
@@ -1226,6 +2762,74 @@ export function selectJulesApiPullRequestOutput(input: {
   };
 }
 
+export function buildJulesStateReconciliation(handoff: Partial<JulesHandoff>): JulesStateReconciliation {
+  const handoffId = typeof handoff.id === 'string' ? handoff.id : 'unknown-handoff';
+  const title = typeof handoff.title === 'string' ? handoff.title : 'Untitled Jules handoff';
+  const discovery = handoff.githubPullRequestDiscovery ?? null;
+  const storedJulesState = typeof handoff.julesState === 'string' ? handoff.julesState : null;
+  const capturedPullRequestUrl = typeof handoff.githubPullRequestUrl === 'string'
+    ? handoff.githubPullRequestUrl
+    : null;
+  const hasSession = Boolean(handoff.julesSessionId || handoff.julesSessionUrl || storedJulesState);
+  const completedWithoutStoredPr = storedJulesState === 'COMPLETED' && !capturedPullRequestUrl;
+  const reconciledByDiscovery = Boolean(
+    capturedPullRequestUrl
+      && discovery?.status === 'matched'
+      && discovery.url === capturedPullRequestUrl
+  );
+
+  // This packet explains which source Symphony trusts when the local Jules
+  // record and the broader Jules/GitHub evidence disagree. It does not discover
+  // anything by itself; refreshPullRequestStatus owns API/GitHub reads, while
+  // this derived packet makes the result readable for the operator.
+  const status: JulesStateReconciliation['status'] = reconciledByDiscovery
+    ? 'reconciled_from_external_evidence'
+    : completedWithoutStoredPr
+      ? 'needs_browser_reconciliation'
+      : hasSession && !capturedPullRequestUrl
+        ? 'waiting_for_pr'
+        : 'consistent';
+  const localStoredStateIncomplete = status === 'reconciled_from_external_evidence';
+  const requiresBrowserCheck = status === 'needs_browser_reconciliation';
+  const sourceLabel = discovery?.source === 'jules_api_session'
+    ? 'Jules API'
+    : discovery?.source === 'github_pr_list'
+      ? 'GitHub PR list'
+      : 'stored Symphony state';
+
+  return {
+    handoffId,
+    title,
+    generatedAt: new Date().toISOString(),
+    status,
+    storedJulesState,
+    sessionId: typeof handoff.julesSessionId === 'string' ? handoff.julesSessionId : null,
+    sessionUrl: typeof handoff.julesSessionUrl === 'string' ? handoff.julesSessionUrl : null,
+    capturedPullRequestUrl,
+    discoverySource: discovery?.source ?? null,
+    discoveryStatus: discovery?.status ?? null,
+    matchedBy: discovery?.matchedBy ?? [],
+    localStoredStateIncomplete,
+    requiresBrowserCheck,
+    summary: status === 'reconciled_from_external_evidence'
+      ? `${sourceLabel} found the GitHub PR after the local Jules record was incomplete.`
+      : status === 'needs_browser_reconciliation'
+        ? 'Jules says the task is complete, but no PR URL is captured. Inspect the visible Jules session before treating this boundary as complete.'
+        : status === 'waiting_for_pr'
+          ? 'Jules has a session record, but Symphony has not captured a PR yet.'
+          : 'Stored Jules state and captured PR evidence are consistent enough for the next boundary.',
+    nextExpectedProof: status === 'reconciled_from_external_evidence'
+      ? 'Refresh PR checks, files, comments, and Scout/Core readiness from GitHub.'
+      : status === 'needs_browser_reconciliation'
+        ? 'Codex app browser or Jules API evidence that confirms whether a PR exists.'
+        : status === 'waiting_for_pr'
+          ? 'A Jules status/API/GitHub refresh that either captures a PR or records why none exists yet.'
+          : 'Continue with the current Symphony handoff boundary.',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  };
+}
+
 interface JulesManifestTask {
   id: string;
   title: string;
@@ -1337,6 +2941,24 @@ export interface DelegationRoiMeasuredFacts {
     total: number | null;
     source: 'missing' | 'codex_totals' | 'worker_roster' | 'retained_usage';
   };
+  taskScopedForemanUsage: {
+    inputTokens: number | null;
+    outputTokens: number | null;
+    totalTokens: number | null;
+    activeRuntimeSeconds: number | null;
+    foremanTurns: number | null;
+    source: 'missing' | 'task_scoped_foreman_usage';
+    receiptCount: number;
+  };
+  goalContextForemanUsage: {
+    inputTokens: number | null;
+    outputTokens: number | null;
+    totalTokens: number | null;
+    activeRuntimeSeconds: number | null;
+    foremanTurns: number | null;
+    source: 'missing' | 'goal_context_foreman_usage';
+    receiptCount: number;
+  };
   codexActiveRuntimeSeconds: number | null;
   codexForemanEventCount: number;
   julesElapsedSeconds: number | null;
@@ -1344,6 +2966,50 @@ export interface DelegationRoiMeasuredFacts {
   humanInterventionCount: number;
   localCodexEditedProductionFiles: boolean | null;
   dataSources: string[];
+}
+
+export interface DelegationRoiCodexUsageInput {
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  totalTokens?: number | null;
+  secondsRunning?: number | null;
+  source: 'codex_totals' | 'worker_roster' | 'retained_usage';
+}
+
+export interface DelegationRoiForemanUsageInput {
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  totalTokens?: number | null;
+  activeRuntimeSeconds?: number | null;
+  foremanTurns?: number | null;
+  source?: 'codex_goal_context' | 'manual_codex_receipt' | 'other_measured_source' | string | null;
+  notes?: string | null;
+  recordedBy?: 'operator' | 'codex_foreman' | string | null;
+}
+
+export interface DelegationRoiForemanUsage {
+  id: string;
+  handoffId: string;
+  source: 'codex_goal_context' | 'manual_codex_receipt' | 'other_measured_source';
+  inputTokens: number | null;
+  outputTokens: number | null;
+  totalTokens: number | null;
+  activeRuntimeSeconds: number | null;
+  foremanTurns: number | null;
+  notes: string;
+  recordedAt: string;
+  recordedBy: 'operator' | 'codex_foreman';
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+}
+
+export interface DelegationRoiEstimateInput {
+  estimatedLocalCodexImplementationTurns?: number | null;
+  estimatedLocalCodexTokens?: number | null;
+  estimatedDebuggingCycles?: number | null;
+  confidence?: 'low' | 'medium' | 'high';
+  method?: string | null;
+  caveats?: string[] | string | null;
 }
 
 export interface DelegationRoiEstimate {
@@ -1354,6 +3020,10 @@ export interface DelegationRoiEstimate {
   confidence: 'missing' | 'low' | 'medium' | 'high';
   method: string | null;
   caveats: string[];
+  recordedAt?: string;
+  recordedBy?: 'operator' | 'codex_foreman';
+  mutatesExternalSystems?: false;
+  mutatesLocalFiles?: false;
 }
 
 export interface DelegationRoiWorkflowSignals {
@@ -1515,6 +3185,7 @@ interface StoredDraftFile {
   handoffs: JulesHandoff[];
   gitDisposition: GitDispositionRecord[];
   taskNudges: TaskNudgeRecord[];
+  operatorPreferences: OperatorPreferences;
 }
 
 // ============================================================================
@@ -1543,9 +3214,22 @@ export class TaskIntakeStore {
     this.remoteName = opts.remoteName ?? 'origin';
   }
 
-  async snapshot(): Promise<TaskDraftSnapshot> {
+  async snapshot(codexUsage?: DelegationRoiCodexUsageInput | null): Promise<TaskDraftSnapshot> {
     const preflight = await this.runGitSyncPreflight();
     const stored = await this.readStoredDrafts();
+    return this.buildSnapshotFromStored(stored, preflight, codexUsage);
+  }
+
+  async recordOperatorPreferences(input: OperatorPreferencesInput): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const preflight = await this.runGitSyncPreflight();
+
+    // Preference edits are local dashboard state. They let the foreman respect
+    // the operator's quiet hours without crossing any task, Jules, GitHub,
+    // Linear, filesystem, or Git boundary.
+    stored.operatorPreferences = normalizeOperatorPreferences(input);
+    await this.writeStoredDrafts(stored);
+
     return this.buildSnapshotFromStored(stored, preflight);
   }
 
@@ -1628,8 +3312,153 @@ export class TaskIntakeStore {
     return this.buildSnapshotFromStored(stored, preflight);
   }
 
-  private buildSnapshotFromStored(stored: StoredDraftFile, preflight: GitSyncPreflight): TaskDraftSnapshot {
+  async recordTaskMessage(
+    taskId: string,
+    input: TaskMessageInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const preflight = await this.runGitSyncPreflight();
+    const draftIndex = stored.drafts.findIndex(item => item.id === taskId);
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === taskId);
+    const taskKind: TaskMessage['taskKind'] | null = draftIndex >= 0
+      ? 'draft'
+      : handoffIndex >= 0
+        ? 'handoff'
+        : null;
+
+    if (!taskKind) {
+      throw new Error(`Task ${taskId} was not found.`);
+    }
+
+    const message = normalizeTaskMessageInput(taskId, taskKind, input);
+
+    // Task messages are the local conversation trail between the operator and
+    // the Codex foreman. They intentionally do not send anything to Jules or
+    // GitHub; those remain separate explicit endpoints because they cross an
+    // external boundary and can change remote work.
+    if (taskKind === 'draft') {
+      const draft = stored.drafts[draftIndex];
+      stored.drafts[draftIndex] = {
+        ...draft,
+        updatedAt: message.createdAt,
+        taskMessages: [message, ...normalizeTaskMessages(draft.taskMessages, draft.id, 'draft')].slice(0, 40),
+      };
+    } else {
+      const handoff = stored.handoffs[handoffIndex];
+      stored.handoffs[handoffIndex] = {
+        ...handoff,
+        updatedAt: message.createdAt,
+        taskMessages: [message, ...normalizeTaskMessages(handoff.taskMessages, handoff.id, 'handoff')].slice(0, 40),
+      };
+    }
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordTaskClarification(
+    taskId: string,
+    input: TaskClarificationInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const preflight = await this.runGitSyncPreflight();
+    const draftIndex = stored.drafts.findIndex(item => item.id === taskId);
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === taskId);
+    const taskKind: TaskClarification['taskKind'] | null = draftIndex >= 0
+      ? 'draft'
+      : handoffIndex >= 0
+        ? 'handoff'
+        : null;
+
+    if (!taskKind) {
+      throw new Error(`Task ${taskId} was not found.`);
+    }
+
+    const clarification = normalizeTaskClarificationInput(taskId, taskKind, input);
+
+    // Clarifications are structured questions and answers for the Codex
+    // foreman loop. They are kept separate from free-form task messages so the
+    // dashboard can reliably mark a task as "needs clarification" before it is
+    // sent across the Linear/Jules boundary.
+    if (taskKind === 'draft') {
+      const draft = stored.drafts[draftIndex];
+      stored.drafts[draftIndex] = {
+        ...draft,
+        updatedAt: clarification.createdAt,
+        taskClarifications: [
+          clarification,
+          ...normalizeTaskClarifications(draft.taskClarifications, draft.id, 'draft'),
+        ].slice(0, 40),
+      };
+    } else {
+      const handoff = stored.handoffs[handoffIndex];
+      stored.handoffs[handoffIndex] = {
+        ...handoff,
+        updatedAt: clarification.createdAt,
+        taskClarifications: [
+          clarification,
+          ...normalizeTaskClarifications(handoff.taskClarifications, handoff.id, 'handoff'),
+        ].slice(0, 40),
+      };
+    }
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordTaskDisposition(
+    taskId: string,
+    input: TaskDispositionInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const preflight = await this.runGitSyncPreflight();
+    const draftIndex = stored.drafts.findIndex(item => item.id === taskId);
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === taskId);
+    const taskKind: TaskDisposition['taskKind'] | null = draftIndex >= 0
+      ? 'draft'
+      : handoffIndex >= 0
+        ? 'handoff'
+        : null;
+
+    if (!taskKind) {
+      throw new Error(`Task ${taskId} was not found.`);
+    }
+
+    const disposition = normalizeTaskDispositionInput(taskId, taskKind, input);
+
+    // Disposition is a local dashboard filing decision. It lets the operator
+    // mark stale, completed, or abandoned work without rewriting the Jules,
+    // Linear, GitHub, or Git evidence that led to that decision.
+    if (taskKind === 'draft') {
+      const draft = stored.drafts[draftIndex];
+      stored.drafts[draftIndex] = {
+        ...draft,
+        updatedAt: disposition.recordedAt,
+        taskDisposition: disposition.state === 'active' ? null : disposition,
+      };
+    } else {
+      const handoff = stored.handoffs[handoffIndex];
+      stored.handoffs[handoffIndex] = {
+        ...handoff,
+        updatedAt: disposition.recordedAt,
+        taskDisposition: disposition.state === 'active' ? null : disposition,
+      };
+    }
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  private buildSnapshotFromStored(
+    stored: StoredDraftFile,
+    preflight: GitSyncPreflight,
+    codexUsage?: DelegationRoiCodexUsageInput | null
+  ): TaskDraftSnapshot {
     const gitDisposition = buildGitDispositionSummary(stored.gitDisposition);
+    const operatorPreferences = normalizeOperatorPreferences(stored.operatorPreferences);
     const taskRouting = buildTaskRoutingPlan(stored.drafts, stored.handoffs, preflight);
 
     // Every dashboard/API response carries the same preflight, disposition,
@@ -1639,12 +3468,13 @@ export class TaskIntakeStore {
     // blocked Git/Jules/GitHub boundary.
     return {
       drafts: this.applyPreflightStatus(stored.drafts, preflight),
-      handoffs: this.applyHandoffPreflightStatus(stored.handoffs, preflight, stored.taskNudges),
+      handoffs: this.applyHandoffPreflightStatus(stored.handoffs, preflight, stored.taskNudges, codexUsage, operatorPreferences),
       preflight,
       gitDisposition,
       gitSyncPlan: buildGitSyncPlan(preflight, gitDisposition),
       taskRouting,
       taskNudges: buildTaskNudgeSummary(stored.taskNudges, taskRouting),
+      operatorPreferences,
     };
   }
 
@@ -1693,6 +3523,9 @@ export class TaskIntakeStore {
       body,
       expectedFiles,
       verificationCommands,
+      taskMessages: [],
+      taskClarifications: [],
+      taskDisposition: null,
       executor: 'jules',
       status: preflight.ok ? 'ready_for_handoff' : 'blocked_by_git_sync',
       linearIssueId: null,
@@ -1731,8 +3564,9 @@ export class TaskIntakeStore {
     }
 
     const now = new Date().toISOString();
+    const handoffId = `handoff-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const handoff: JulesHandoff = {
-      id: `handoff-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: handoffId,
       draftId: draft.id,
       title: draft.title,
       executor: 'jules',
@@ -1740,6 +3574,11 @@ export class TaskIntakeStore {
       prompt: buildJulesPrompt(draft, preflight),
       expectedFiles: draft.expectedFiles ?? [],
       verificationCommands: draft.verificationCommands ?? [],
+      taskMessages: normalizeTaskMessages(draft.taskMessages, draft.id, 'draft')
+        .map(message => ({ ...message, taskId: handoffId, taskKind: 'handoff' as const })),
+      taskClarifications: normalizeTaskClarifications(draft.taskClarifications, draft.id, 'draft')
+        .map(clarification => ({ ...clarification, taskId: handoffId, taskKind: 'handoff' as const })),
+      taskDisposition: null,
       createdAt: now,
       updatedAt: now,
       gitPreflight: preflight,
@@ -1774,7 +3613,17 @@ export class TaskIntakeStore {
       githubPullRequestFeedback: null,
       githubPullRequestNextAction: null,
       githubPullRequestRepairDecision: null,
+      delegationRoiForemanUsage: [],
+      delegationRoiEstimate: null,
       delegationRoiLedger: null,
+      handoffTimeline: null,
+      julesStateReconciliation: null,
+      operatorQuestion: null,
+      operatorAnswers: [],
+      repairLaneExecutions: [],
+      repairPushReadiness: null,
+      repairPushResult: null,
+      deploymentEvidence: null,
       githubPullRequestRefreshError: null,
       lastPullRequestRefreshAt: null,
       pullRequestViewCommand: null,
@@ -2571,6 +4420,248 @@ export class TaskIntakeStore {
     return this.buildSnapshotFromStored(stored, preflight);
   }
 
+  async recordDelegationRoiEstimate(
+    handoffId: string,
+    input: DelegationRoiEstimateInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const estimate = normalizeDelegationRoiEstimateInput(input);
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = stored.handoffs[handoffIndex];
+
+    // This local receipt records the counterfactual side of ROI: what Codex
+    // thinks it avoided by delegating to Jules. It is stored separately from
+    // measured tokens so a future dashboard can compare facts and estimates
+    // without mixing them into a fake "saved tokens" number.
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: estimate.recordedAt ?? new Date().toISOString(),
+      delegationRoiEstimate: estimate,
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordDelegationRoiForemanUsage(
+    handoffId: string,
+    input: DelegationRoiForemanUsageInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const usage = normalizeDelegationRoiForemanUsageInput(handoffId, input);
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = stored.handoffs[handoffIndex];
+
+    // This local receipt records measured Codex foreman usage for one
+    // delegation task. It fills the gap left by global Codex totals, which can
+    // include unrelated work in a long-running thread and therefore cannot
+    // prove task-level ROI on their own.
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: usage.recordedAt,
+      delegationRoiForemanUsage: [
+        usage,
+        ...normalizeDelegationRoiForemanUsageList(handoff.delegationRoiForemanUsage, handoffId),
+      ].slice(0, 40),
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordOperatorAnswer(
+    handoffId: string,
+    input: HandoffOperatorAnswerInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = {
+      ...stored.handoffs[handoffIndex],
+      operatorAnswers: Array.isArray(stored.handoffs[handoffIndex].operatorAnswers)
+        ? stored.handoffs[handoffIndex].operatorAnswers
+        : [],
+    };
+    const answer = normalizeOperatorAnswer(handoff, input);
+
+    // This records the human's answer to a Symphony blocker without crossing
+    // the repair boundary. The next action can use this receipt to decide which
+    // guarded endpoint to offer, but this method itself is local-state only.
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: answer.answeredAt,
+      operatorAnswers: [answer, ...handoff.operatorAnswers].slice(0, 20),
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async executeSelectedRepairLane(handoffId: string): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = {
+      ...stored.handoffs[handoffIndex],
+      operatorAnswers: Array.isArray(stored.handoffs[handoffIndex].operatorAnswers)
+        ? stored.handoffs[handoffIndex].operatorAnswers
+        : [],
+      repairLaneExecutions: Array.isArray(stored.handoffs[handoffIndex].repairLaneExecutions)
+        ? stored.handoffs[handoffIndex].repairLaneExecutions
+        : [],
+    };
+    const latestAnswer = handoff.operatorAnswers[0] ?? null;
+
+    if (!latestAnswer) {
+      throw new Error('Record the operator repair-lane answer before executing a repair lane.');
+    }
+
+    if (latestAnswer.selectedAction !== 'create_setup_repair_task') {
+      throw new Error(`Repair lane ${latestAnswer.selectedAction} is not executable by this local draft path yet.`);
+    }
+
+    const existingExecution = handoff.repairLaneExecutions.find(execution =>
+      execution.selectedAction === latestAnswer.selectedAction && execution.createdDraftId
+    );
+    if (existingExecution) {
+      return this.buildSnapshotFromStored(stored, preflight);
+    }
+
+    const now = new Date().toISOString();
+    const draft = buildSetupRepairDraftFromHandoff(handoff, latestAnswer, now);
+    const execution: HandoffRepairLaneExecution = {
+      id: `repair-lane-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+      handoffId,
+      selectedAction: latestAnswer.selectedAction,
+      status: 'local_draft_created',
+      createdAt: now,
+      createdDraftId: draft.id,
+      summary: `Created local setup repair draft ${draft.id}.`,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+
+    // The setup-repair lane intentionally creates only a local draft. That new
+    // draft must still pass the normal Git, Linear, and Jules gates later; this
+    // method does not create Linear issues, comment on PRs, send Jules feedback,
+    // or edit the checkout.
+    stored.drafts.unshift(draft);
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: now,
+      repairLaneExecutions: [execution, ...handoff.repairLaneExecutions].slice(0, 20),
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordRepairPushReadiness(
+    handoffId: string,
+    input: HandoffRepairPushReadinessInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = stored.handoffs[handoffIndex];
+    const readiness = normalizeRepairPushReadiness(handoff, input);
+
+    // This records the handoff between local repair work and the external
+    // GitHub mutation. It is intentionally a receipt only: Symphony can show
+    // the prepared commit and exact push command, but this method never pushes.
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: readiness.recordedAt,
+      repairPushReadiness: readiness,
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordRepairPushResult(
+    handoffId: string,
+    input: HandoffRepairPushResultInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = stored.handoffs[handoffIndex];
+    const result = normalizeRepairPushResult(handoff, input);
+
+    // This receipt records an operator-approved push after it happened. It is
+    // deliberately separate from repairPushReadiness so future foremen can see
+    // both the pre-push safety evidence and the post-push waiting boundary.
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: result.recordedAt,
+      repairPushResult: result,
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
+  async recordDeploymentEvidence(
+    handoffId: string,
+    input: HandoffDeploymentEvidenceInput
+  ): Promise<TaskDraftSnapshot> {
+    const stored = await this.readStoredDrafts();
+    const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
+    if (handoffIndex < 0) {
+      throw new Error(`Handoff ${handoffId} was not found.`);
+    }
+
+    const preflight = await this.runGitSyncPreflight();
+    const handoff = stored.handoffs[handoffIndex];
+    const evidence = normalizeDeploymentEvidence(handoff, input);
+
+    // Deployment proof is a local return-path receipt. It decides whether the
+    // deployment gate is satisfied or explicitly waived, but it does not create
+    // deployments, rerun Actions, call Jules, or mutate the local checkout.
+    stored.handoffs[handoffIndex] = {
+      ...handoff,
+      updatedAt: evidence.recordedAt,
+      deploymentEvidence: evidence,
+    };
+
+    await this.writeStoredDrafts(stored);
+
+    return this.buildSnapshotFromStored(stored, preflight);
+  }
+
   async approveJulesPlan(handoffId: string): Promise<TaskDraftSnapshot> {
     const stored = await this.readStoredDrafts();
     const handoffIndex = stored.handoffs.findIndex(item => item.id === handoffId);
@@ -2839,10 +4930,20 @@ export class TaskIntakeStore {
     if (index < 0) return;
 
     const record = stored.taskNudges[index];
+    const defaultPauseSeconds = defaultTaskNudgePauseSeconds(record.action, record.phase);
+    const rescheduledPauseSeconds = record.pauseSeconds > 0
+      ? Math.max(record.pauseSeconds, defaultPauseSeconds)
+      : 0;
+
+    // A due refresh is a measured foreman wake-up, not permission to poll the
+    // same external service in a tight loop. If a proof or manual call used a
+    // tiny pause to make the nudge due, the next scheduled refresh returns to
+    // the normal phase cadence before the dashboard offers it again.
     stored.taskNudges[index] = {
       ...record,
       createdAt: checkedAt,
-      nextNudgeAt: record.pauseSeconds > 0 ? addSeconds(checkedAt, record.pauseSeconds) : null,
+      pauseSeconds: rescheduledPauseSeconds,
+      nextNudgeAt: rescheduledPauseSeconds > 0 ? addSeconds(checkedAt, rescheduledPauseSeconds) : null,
     };
 
     await this.writeStoredDrafts(stored);
@@ -3142,6 +5243,9 @@ export class TaskIntakeStore {
       ...draft,
       expectedFiles: draft.expectedFiles ?? [],
       verificationCommands: draft.verificationCommands ?? [],
+        taskMessages: normalizeTaskMessages(draft.taskMessages, draft.id, 'draft'),
+        taskClarifications: normalizeTaskClarifications(draft.taskClarifications, draft.id, 'draft'),
+        taskDisposition: normalizeTaskDisposition(draft.taskDisposition, draft.id, 'draft'),
       status: preflight.ok ? 'ready_for_handoff' : 'blocked_by_git_sync',
       linearIssueId: draft.linearIssueId ?? null,
       linearIssueIdentifier: draft.linearIssueIdentifier ?? null,
@@ -3153,39 +5257,67 @@ export class TaskIntakeStore {
   private applyHandoffPreflightStatus(
     handoffs: JulesHandoff[],
     preflight: GitSyncPreflight,
-    taskNudges: TaskNudgeRecord[] = []
+    taskNudges: TaskNudgeRecord[] = [],
+    codexUsage?: DelegationRoiCodexUsageInput | null,
+    operatorPreferences: OperatorPreferences = normalizeOperatorPreferences(null)
   ): JulesHandoff[] {
     return handoffs.map(handoff => {
-      const normalizedHandoff = {
+      const normalizedHandoff: JulesHandoff = {
         ...handoff,
         expectedFiles: handoff.expectedFiles ?? [],
         verificationCommands: handoff.verificationCommands ?? [],
+        taskMessages: normalizeTaskMessages(handoff.taskMessages, handoff.id, 'handoff'),
+        taskClarifications: normalizeTaskClarifications(handoff.taskClarifications, handoff.id, 'handoff'),
+        taskDisposition: normalizeTaskDisposition(handoff.taskDisposition, handoff.id, 'handoff'),
         linearIssueId: handoff.linearIssueId ?? null,
         linearIssueIdentifier: handoff.linearIssueIdentifier ?? null,
         linearIssueUrl: handoff.linearIssueUrl ?? null,
         linearIssueCreatedAt: handoff.linearIssueCreatedAt ?? null,
         githubPullRequestNextAction: handoff.githubPullRequestNextAction ?? null,
         githubPullRequestRepairDecision: handoff.githubPullRequestRepairDecision ?? null,
+        delegationRoiForemanUsage: normalizeDelegationRoiForemanUsageList(handoff.delegationRoiForemanUsage, handoff.id),
+        delegationRoiEstimate: handoff.delegationRoiEstimate ?? null,
         delegationRoiLedger: handoff.delegationRoiLedger ?? null,
+        handoffTimeline: handoff.handoffTimeline ?? null,
+        julesStateReconciliation: handoff.julesStateReconciliation ?? null,
+        operatorQuestion: handoff.operatorQuestion ?? null,
+        operatorAnswers: Array.isArray(handoff.operatorAnswers) ? handoff.operatorAnswers : [],
+        repairLaneExecutions: Array.isArray(handoff.repairLaneExecutions) ? handoff.repairLaneExecutions : [],
+        repairPushReadiness: handoff.repairPushReadiness ?? null,
+        repairPushResult: handoff.repairPushResult ?? null,
+        deploymentEvidence: handoff.deploymentEvidence ?? null,
       };
-      const withRoiLedger = (candidate: JulesHandoff): JulesHandoff => ({
-        ...candidate,
-        delegationRoiLedger: buildDelegationRoiLedger({
-          handoff: candidate,
-          taskNudges,
-        }),
-      });
+      const withDerivedHandoffPackets = (candidate: JulesHandoff): JulesHandoff => {
+        const withLedger: JulesHandoff = {
+          ...candidate,
+          delegationRoiLedger: buildDelegationRoiLedger({
+            handoff: candidate,
+            taskNudges,
+            codexUsage,
+          }),
+        };
+
+        // The ledger and timeline are both dashboard explanation packets. They
+        // are rebuilt from the latest handoff facts every time the snapshot is
+        // read, so stale stored JSON cannot make the foreman view lie.
+        return {
+          ...withLedger,
+          handoffTimeline: buildJulesHandoffTimeline(withLedger, taskNudges),
+          julesStateReconciliation: buildJulesStateReconciliation(withLedger),
+          operatorQuestion: buildHandoffOperatorQuestion(withLedger, { operatorPreferences }),
+        };
+      };
 
       if (normalizedHandoff.status === 'observed_pr') {
-        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
+        return withDerivedHandoffPackets({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
       if (normalizedHandoff.status === 'sent_to_jules' || normalizedHandoff.julesSessionId) {
-        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
+        return withDerivedHandoffPackets({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
       if (!preflight.ok) {
-        return withRoiLedger({
+        return withDerivedHandoffPackets({
           ...normalizedHandoff,
           status: 'blocked_by_git_sync',
           baseCommitDrift: null,
@@ -3194,7 +5326,7 @@ export class TaskIntakeStore {
 
       const baseCommitDrift = this.buildBaseCommitDrift(normalizedHandoff, preflight);
       if (baseCommitDrift) {
-        return withRoiLedger({
+        return withDerivedHandoffPackets({
           ...normalizedHandoff,
           status: 'base_commit_stale',
           baseCommitDrift,
@@ -3202,14 +5334,14 @@ export class TaskIntakeStore {
       }
 
       if (normalizedHandoff.status === 'launch_failed' || normalizedHandoff.status === 'status_refresh_failed') {
-        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
+        return withDerivedHandoffPackets({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
       if (normalizedHandoff.status === 'manifest_ready') {
-        return withRoiLedger({ ...normalizedHandoff, baseCommitDrift: null });
+        return withDerivedHandoffPackets({ ...normalizedHandoff, baseCommitDrift: null });
       }
 
-      return withRoiLedger({
+      return withDerivedHandoffPackets({
         ...normalizedHandoff,
         status: 'ready_for_jules',
         baseCommitDrift: null,
@@ -3256,10 +5388,17 @@ export class TaskIntakeStore {
         handoffs: Array.isArray(parsed.handoffs) ? parsed.handoffs.filter(isJulesHandoff) : [],
         gitDisposition: buildGitDispositionSummary(parsed.gitDisposition).categories,
         taskNudges: normalizeTaskNudges(parsed.taskNudges),
+        operatorPreferences: normalizeOperatorPreferences(parsed.operatorPreferences),
       };
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-        return { drafts: [], handoffs: [], gitDisposition: [], taskNudges: [] };
+        return {
+          drafts: [],
+          handoffs: [],
+          gitDisposition: [],
+          taskNudges: [],
+          operatorPreferences: normalizeOperatorPreferences(null),
+        };
       }
 
       throw err;
@@ -3484,6 +5623,199 @@ function normalizeVerificationCommands(value: unknown): string[] {
   // both textarea strings and stored arrays into a small ordered checklist that
   // Jules, Scout, and Core can all see without reading the free-form task body.
   return normalizeLineList(value, 12);
+}
+
+function normalizeTaskMessageInput(
+  taskId: string,
+  taskKind: TaskMessage['taskKind'],
+  input: TaskMessageInput
+): TaskMessage {
+  const body = typeof input.body === 'string' ? input.body.trim().slice(0, 4000) : '';
+  const author = input.author === 'codex_foreman' ? 'codex_foreman' : 'operator';
+
+  if (!body) {
+    throw new Error('Task message body is required.');
+  }
+
+  return {
+    id: `task-message-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    taskId,
+    taskKind,
+    author,
+    body,
+    createdAt: new Date().toISOString(),
+    source: 'task_chat',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    mutatesGit: false,
+  };
+}
+
+function normalizeTaskMessages(
+  value: unknown,
+  taskId: string,
+  taskKind: TaskMessage['taskKind']
+): TaskMessage[] {
+  const messages = Array.isArray(value) ? value : [];
+
+  // Stored task messages are allowed to survive old schema versions. Normalize
+  // them at the snapshot boundary so older drafts/handoffs remain readable and
+  // future task pages can trust the non-mutation flags.
+  return messages
+    .map(item => {
+      const message = item as Partial<TaskMessage>;
+      const body = typeof message.body === 'string' ? message.body.trim() : '';
+      const createdAt = typeof message.createdAt === 'string' ? message.createdAt : null;
+      if (!body || !createdAt) return null;
+
+      return {
+        id: typeof message.id === 'string' ? message.id : `task-message-${createdAt}`,
+        taskId,
+        taskKind,
+        author: message.author === 'codex_foreman' ? 'codex_foreman' : 'operator',
+        body: body.slice(0, 4000),
+        createdAt,
+        source: 'task_chat' as const,
+        mutatesExternalSystems: false as const,
+        mutatesLocalFiles: false as const,
+        mutatesGit: false as const,
+      };
+    })
+    .filter((message): message is TaskMessage => Boolean(message))
+    .slice(0, 40);
+}
+
+function normalizeTaskClarificationInput(
+  taskId: string,
+  taskKind: TaskClarification['taskKind'],
+  input: TaskClarificationInput
+): TaskClarification {
+  const question = typeof input.question === 'string' ? input.question.trim().slice(0, 1200) : '';
+  const answer = typeof input.answer === 'string' && input.answer.trim()
+    ? input.answer.trim().slice(0, 2400)
+    : null;
+  const now = new Date().toISOString();
+
+  if (!question) {
+    throw new Error('Task clarification question is required.');
+  }
+
+  return {
+    id: `task-clarification-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    taskId,
+    taskKind,
+    status: answer ? 'answered' : 'waiting_for_operator',
+    question,
+    answer,
+    requestedBy: 'codex_foreman',
+    answeredBy: answer ? 'operator' : null,
+    createdAt: now,
+    answeredAt: answer ? now : null,
+    source: 'foreman_clarification',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    mutatesGit: false,
+  };
+}
+
+function normalizeTaskClarifications(
+  value: unknown,
+  taskId: string,
+  taskKind: TaskClarification['taskKind']
+): TaskClarification[] {
+  const clarifications = Array.isArray(value) ? value : [];
+
+  // Old queue files are allowed to omit clarification records entirely. When a
+  // record does exist, normalize its safety flags at read time so future
+  // dashboard pages can trust that clarification never implies Jules feedback.
+  return clarifications
+    .map(item => {
+      const clarification = item as Partial<TaskClarification>;
+      const question = typeof clarification.question === 'string' ? clarification.question.trim() : '';
+      const createdAt = typeof clarification.createdAt === 'string' ? clarification.createdAt : null;
+      if (!question || !createdAt) return null;
+      const answer = typeof clarification.answer === 'string' && clarification.answer.trim()
+        ? clarification.answer.trim().slice(0, 2400)
+        : null;
+
+      return {
+        id: typeof clarification.id === 'string' ? clarification.id : `task-clarification-${createdAt}`,
+        taskId,
+        taskKind,
+        status: answer ? 'answered' as const : 'waiting_for_operator' as const,
+        question: question.slice(0, 1200),
+        answer,
+        requestedBy: 'codex_foreman' as const,
+        answeredBy: answer ? 'operator' as const : null,
+        createdAt,
+        answeredAt: answer
+          ? typeof clarification.answeredAt === 'string' ? clarification.answeredAt : createdAt
+          : null,
+        source: 'foreman_clarification' as const,
+        mutatesExternalSystems: false as const,
+        mutatesLocalFiles: false as const,
+        mutatesGit: false as const,
+      };
+    })
+    .filter((clarification): clarification is TaskClarification => Boolean(clarification))
+    .slice(0, 40);
+}
+
+function normalizeTaskDispositionInput(
+  taskId: string,
+  taskKind: TaskDisposition['taskKind'],
+  input: TaskDispositionInput
+): TaskDisposition {
+  const allowedStates: TaskDispositionState[] = ['active', 'completed', 'archived', 'abandoned'];
+  const state = allowedStates.includes(input.state as TaskDispositionState)
+    ? input.state as TaskDispositionState
+    : null;
+  const reason = typeof input.reason === 'string' ? input.reason.trim().slice(0, 1200) : '';
+  const recordedBy = input.recordedBy === 'codex_foreman' ? 'codex_foreman' : 'operator';
+
+  if (!state) {
+    throw new Error('Task disposition state must be active, completed, archived, or abandoned.');
+  }
+
+  if (state !== 'active' && !reason) {
+    throw new Error('A reason is required when completing, archiving, or abandoning a task.');
+  }
+
+  return {
+    taskId,
+    taskKind,
+    state,
+    reason,
+    recordedAt: new Date().toISOString(),
+    recordedBy,
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    mutatesGit: false,
+  };
+}
+
+function normalizeTaskDisposition(
+  value: unknown,
+  taskId: string,
+  taskKind: TaskDisposition['taskKind']
+): TaskDisposition | null {
+  const disposition = value as Partial<TaskDisposition> | null;
+  if (!disposition || typeof disposition !== 'object') return null;
+
+  const allowedStates: TaskDispositionState[] = ['active', 'completed', 'archived', 'abandoned'];
+  if (!allowedStates.includes(disposition.state as TaskDispositionState)) return null;
+
+  return {
+    taskId,
+    taskKind,
+    state: disposition.state as TaskDispositionState,
+    reason: typeof disposition.reason === 'string' ? disposition.reason.slice(0, 1200) : '',
+    recordedAt: typeof disposition.recordedAt === 'string' ? disposition.recordedAt : new Date().toISOString(),
+    recordedBy: disposition.recordedBy === 'codex_foreman' ? 'codex_foreman' : 'operator',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+    mutatesGit: false,
+  };
 }
 
 function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
@@ -3951,11 +6283,18 @@ function buildTaskRoutingPlan(
     };
   }
 
-  if (latestHandoff) {
-    return buildRoutingPlanForHandoff(latestHandoff, generatedAt, candidates);
+  const latestDraftTime = latestDraft ? timestampForRouting(latestDraft) : 0;
+  const latestHandoffTime = latestHandoff ? timestampForRouting(latestHandoff) : 0;
+
+  // Repair lanes can create a fresh local draft from an older Jules handoff.
+  // When that happens the draft is the next actionable object, so it should
+  // take the routing focus instead of leaving the dashboard stuck on the
+  // external handoff that only discovered the failure.
+  if (latestDraft && (!latestHandoff || latestDraftTime >= latestHandoffTime)) {
+    return buildRoutingPlanForDraft(latestDraft, generatedAt, candidates);
   }
 
-  return buildRoutingPlanForDraft(latestDraft!, generatedAt, candidates);
+  return buildRoutingPlanForHandoff(latestHandoff!, generatedAt, candidates);
 }
 
 function buildTaskNudgeSummary(records: TaskNudgeRecord[], routing: TaskRoutingPlan): TaskNudgeSummary {
@@ -4269,11 +6608,14 @@ function buildRoutingPlanForDraft(
     : score.localEnough
       ? 'local_agent'
       : 'jules_task';
+  const isSetupRepair = score.reasons.some(reason => /setup repair/i.test(reason));
   const nextAction: TaskRoutingNextAction = route === 'local_agent'
     ? {
         code: 'assign_local_agent',
         label: 'Assign local Codex agent',
-        detail: 'This looks small enough that a local Codex worker is lower overhead than a Jules cloud handoff.',
+        detail: isSetupRepair
+          ? 'This setup repair should stay local first so the workflow failure is fixed before Jules receives more implementation feedback.'
+          : 'This looks small enough that a local Codex worker is lower overhead than a Jules cloud handoff.',
         pauseSeconds: 0,
         nextNudgeAt: null,
       }
@@ -4293,7 +6635,9 @@ function buildRoutingPlanForDraft(
     subjectId: draft.id,
     subjectTitle: draft.title,
     summary: route === 'local_agent'
-      ? 'Recommended route: local Codex agent. The task appears small, low-risk, and cheaper to handle locally.'
+      ? isSetupRepair
+        ? 'Recommended route: local Codex agent for setup repair. Fix the workflow blocker locally before sending more instructions to Jules.'
+        : 'Recommended route: local Codex agent. The task appears small, low-risk, and cheaper to handle locally.'
       : route === 'jules_plan'
         ? 'Recommended route: Jules plan first. The task appears broad enough to benefit from cloud planning before execution.'
         : 'Recommended route: Jules task. The task appears bounded but substantial enough for cloud execution.',
@@ -4315,6 +6659,50 @@ function buildRoutingPlanForHandoff(
   generatedAt: string,
   candidates: TaskRoutingCandidate[]
 ): TaskRoutingPlan {
+  const repairPushReadiness = handoff.repairPushReadiness;
+  const latestOperatorAnswer = handoff.operatorAnswers[0] ?? null;
+  if (
+    repairPushReadiness
+    && !handoff.repairPushResult
+    && latestOperatorAnswer?.sourceStage === 'repair_push_approval'
+    && latestOperatorAnswer.selectedAction === 'approve_repair_push'
+  ) {
+    const route: TaskRoutingPlan['route'] = 'ask_operator';
+    const reasons = [
+      'The prepared repair push has local operator approval.',
+      'The push itself mutates GitHub and must still be performed outside this read-only routing packet.',
+      `After the push, record the result with: ${repairPushReadiness.postPushFollowUp.refreshEndpoint.replace('/refresh-pr', '/repair-push-result')}.`,
+    ];
+
+    // Approval and execution are intentionally split. This routing branch keeps
+    // the dashboard from re-asking the approval question while still refusing
+    // to push or pretend GitHub checks can rerun before a push-result receipt.
+    return {
+      generatedAt,
+      route,
+      subjectId: handoff.id,
+      subjectTitle: handoff.title,
+      summary: 'Repair push approved locally. Run the external GitHub push, then record the repair push result before refreshing PR checks.',
+      reasons,
+      nextAction: {
+        code: 'ask_operator',
+        label: 'Record repair push result',
+        detail: `Run the approved push command outside Symphony, then record whether it succeeded: ${repairPushReadiness.pushCommand}.`,
+        pauseSeconds: 0,
+        nextNudgeAt: null,
+      },
+      workerMode: buildWorkerModeRecommendation({
+        route,
+        subject: handoff,
+        reasons,
+        blocked: true,
+        externalBoundary: true,
+        dashboardStarted: handoff.status !== 'observed_pr',
+      }),
+      candidates,
+    };
+  }
+
   if (handoff.julesState === 'AWAITING_PLAN_APPROVAL' || handoff.julesState === 'AWAITING_USER_FEEDBACK') {
     const route: TaskRoutingPlan['route'] = 'wait_external';
     return {
@@ -4430,13 +6818,15 @@ function scoreDraftForRouting(draft: TaskDraft): {
   const reasons: string[] = [];
   const broadWords = ['multi-file', 'multi stage', 'multi-stage', 'architecture', 'system', 'plan first', 'make a plan'];
   const smallWords = ['typo', 'copy', 'wording', 'small', 'docs', 'verifier', 'dashboard wiring'];
-  const wantsJulesPlan = broadWords.some(word => text.includes(word)) || fileCount >= 4 || commandCount >= 2;
-  const localEnough = !wantsJulesPlan && fileCount <= 2 && smallWords.some(word => text.includes(word));
+  const setupRepair = text.includes('setup repair') || text.includes('setup/workflow blocker');
+  const wantsJulesPlan = !setupRepair && (broadWords.some(word => text.includes(word)) || fileCount >= 4 || commandCount >= 2);
+  const localEnough = setupRepair || (!wantsJulesPlan && fileCount <= 2 && smallWords.some(word => text.includes(word)));
 
   if (fileCount <= 2) reasons.push('Small write scope.');
   if (fileCount >= 4) reasons.push('Broad multi-file write scope.');
   if (commandCount >= 2) reasons.push('Multiple verification commands suggest a larger task.');
   if (smallWords.some(word => text.includes(word))) reasons.push('Draft wording describes a small local change.');
+  if (setupRepair) reasons.push('Setup repair draft should be handled locally before Jules receives more implementation feedback.');
   if (broadWords.some(word => text.includes(word))) reasons.push('Draft wording asks for Jules-scale planning or system work.');
   if (!reasons.length) reasons.push('Route based on expected file count and verification scope.');
 
@@ -4579,6 +6969,11 @@ function newestByUpdatedAt<T extends { updatedAt?: string; createdAt?: string }>
   return [...items].sort((a, b) => {
     return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
   })[0] ?? null;
+}
+
+function timestampForRouting(item: { updatedAt?: string; createdAt?: string }): number {
+  const timestamp = new Date(item.updatedAt || item.createdAt || 0).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function addSeconds(timestamp: string, seconds: number): string {
@@ -4901,7 +7296,17 @@ export function buildJulesManifestPreviewFromDraft(
     githubPullRequestFeedback: null,
     githubPullRequestNextAction: null,
     githubPullRequestRepairDecision: null,
+    delegationRoiEstimate: null,
+    delegationRoiForemanUsage: [],
     delegationRoiLedger: null,
+    handoffTimeline: null,
+    julesStateReconciliation: null,
+    operatorQuestion: null,
+    operatorAnswers: [],
+    repairLaneExecutions: [],
+    repairPushReadiness: null,
+    repairPushResult: null,
+    deploymentEvidence: null,
     githubPullRequestRefreshError: null,
     lastPullRequestRefreshAt: null,
     pullRequestViewCommand: null,
@@ -4917,6 +7322,10 @@ export function buildJulesManifestPreviewFromDraft(
     lastLocalSyncAt: null,
     operatorMessages: [],
     planApprovals: [],
+    taskMessages: [],
+    taskClarifications: normalizeTaskClarifications(draft.taskClarifications, draft.id, 'draft')
+      .map(clarification => ({ ...clarification, taskId: runId, taskKind: 'handoff' as const })),
+    taskDisposition: null,
   }, preflight, runId);
 }
 
@@ -5009,12 +7418,13 @@ function buildObservedPullRequestHandoff(input: {
 }): JulesHandoff {
   const commands = buildPullRequestCommands(input.prUrl, input.baseBranch);
   const existing = input.existing;
+  const handoffId = existing?.id ?? `observed-pr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   // A watched PR is intentionally stored in the same handoff list as Jules PRs
   // so the dashboard can reuse the mature PR/check/risk/readiness panels. The
   // observed_pr status keeps launch, manifest, and local-sync claims honest.
   return {
-    id: existing?.id ?? `observed-pr-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: handoffId,
     draftId: existing?.draftId ?? `observed-pr:${input.prUrl}`,
     title: input.title,
     executor: 'jules',
@@ -5026,9 +7436,10 @@ function buildObservedPullRequestHandoff(input: {
       '',
       `PR: ${input.prUrl}`,
     ].join('\n'),
-    expectedFiles: input.expectedFiles,
-    verificationCommands: input.verificationCommands,
-    createdAt: existing?.createdAt ?? input.now,
+      expectedFiles: input.expectedFiles,
+      verificationCommands: input.verificationCommands,
+      taskDisposition: existing?.taskDisposition ?? null,
+      createdAt: existing?.createdAt ?? input.now,
     updatedAt: input.now,
     gitPreflight: existing?.gitPreflight ?? buildUnknownGitPreflight(input.now, input.baseBranch),
     baseCommitDrift: null,
@@ -5062,7 +7473,17 @@ function buildObservedPullRequestHandoff(input: {
     githubPullRequestFeedback: existing?.githubPullRequestFeedback ?? null,
     githubPullRequestNextAction: existing?.githubPullRequestNextAction ?? null,
     githubPullRequestRepairDecision: existing?.githubPullRequestRepairDecision ?? null,
+    delegationRoiEstimate: existing?.delegationRoiEstimate ?? null,
+    delegationRoiForemanUsage: normalizeDelegationRoiForemanUsageList(existing?.delegationRoiForemanUsage, handoffId),
     delegationRoiLedger: existing?.delegationRoiLedger ?? null,
+    handoffTimeline: existing?.handoffTimeline ?? null,
+    julesStateReconciliation: existing?.julesStateReconciliation ?? null,
+    operatorQuestion: existing?.operatorQuestion ?? null,
+    operatorAnswers: Array.isArray(existing?.operatorAnswers) ? existing.operatorAnswers : [],
+    repairLaneExecutions: Array.isArray(existing?.repairLaneExecutions) ? existing.repairLaneExecutions : [],
+    repairPushReadiness: existing?.repairPushReadiness ?? null,
+    repairPushResult: existing?.repairPushResult ?? null,
+    deploymentEvidence: existing?.deploymentEvidence ?? null,
     githubPullRequestRefreshError: existing?.githubPullRequestRefreshError ?? null,
     lastPullRequestRefreshAt: existing?.lastPullRequestRefreshAt ?? null,
     ...commands,
@@ -5072,6 +7493,8 @@ function buildObservedPullRequestHandoff(input: {
     lastLocalSyncAt: existing?.lastLocalSyncAt ?? null,
     operatorMessages: existing?.operatorMessages ?? [],
     planApprovals: existing?.planApprovals ?? [],
+    taskMessages: normalizeTaskMessages(existing?.taskMessages, handoffId, 'handoff'),
+    taskClarifications: normalizeTaskClarifications(existing?.taskClarifications, handoffId, 'handoff'),
   };
 }
 

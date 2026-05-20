@@ -213,6 +213,16 @@ try {
   assert.match(html, /Current boundary: GitHub sync/);
   assert.match(html, /Foreman action: Resolve Git disposition before Linear\/Jules/);
   assert.match(html, /Safety: operator_only/);
+  assert.match(html, /Browser Follow-along/);
+  assert.match(html, /Codex Browser plugin bridge/);
+  assert.match(html, /Use the Codex Browser plugin in-app bridge for live Jules follow-along/);
+  assert.match(html, /not as proof that the Jules session cannot be observed/);
+  assert.match(html, /Known unreliable path: Direct Playwright MCP transport can report Transport closed/);
+  assert.match(html, /Browser tooling health JSON/);
+  assert.match(html, /Jules Environment Setup/);
+  assert.match(html, /blocked_by_lockfile_repair/);
+  assert.match(html, /npm ci --no-audit --no-fund &amp;&amp; npm run typecheck/);
+  assert.match(html, /Environment setup JSON/);
   assert.match(html, /GitHub sync: blocked/);
   assert.match(html, /Review Local Changes/);
   assert.match(html, /Proof board bounded draft/);

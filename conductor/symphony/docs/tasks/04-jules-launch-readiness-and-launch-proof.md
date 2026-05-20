@@ -2,7 +2,7 @@
 
 ## Status
 
-Launch completed for ARA-6; post-launch reconciliation remains open.
+Completed for ARA-6 launch and baseline post-launch reconciliation; this task file is superseded by the live ARA-6 evidence.
 
 ## Purpose
 
@@ -83,17 +83,17 @@ Launch success, only if approved:
 
 ## Response
 
-Current status recorded by Codex on 2026-05-20.
+Current status updated by Codex on 2026-05-20.
 
-- Summary: ARA-6 proved launch readiness and launch into Jules session `4101281510355198885`. It also exposed the important follow-up gap: local Jules/Symphony status reported `COMPLETED` with `pullRequestUrl: null`, while browser and GitHub evidence showed more state existed.
+- Summary: ARA-6 proved launch readiness and launch into Jules session `4101281510355198885`. It also exposed the important follow-up gap: local Jules/Symphony status reported `COMPLETED` with `pullRequestUrl: null`, while Jules API, browser-visible state, and GitHub evidence showed more state existed. That gap now has a baseline Symphony reconciliation packet.
 - Approval source: Operator approved continuing after the Linear/staging boundary.
 - Handoff id: `handoff-1779226708033-v4ohk7`.
 - Readiness result: Launch readiness was captured before launch and after manifest staging.
 - Launch result: Jules session `https://jules.google.com/session/4101281510355198885` was created. Later GitHub evidence found PR #931 from the same session.
 - Commands run: See the audit for captured Symphony API and GitHub read-only commands.
-- Verification: Launch proof exists; reconciliation proof remains incomplete because Symphony did not detect PR #931 from the local `pullRequestUrl` field.
+- Verification: Launch proof exists, and `verify-jules-state-reconciliation-packet.mjs` now proves the baseline reconciliation behavior: Jules API/GitHub evidence can reconcile the missing PR URL as `reconciled_from_external_evidence`, while `COMPLETED` with no PR remains `needs_browser_reconciliation` instead of a false completion claim.
 - External mutations: One approved Jules launch.
 - Local mutations: Symphony/Jules runtime records only; runtime files are intentionally ignored.
-- Current boundary: Post-launch reconciliation and PR #931 check handling.
-- Remaining blockers: Implement/prove fallback PR discovery, refresh PR #931 through Symphony, and surface the current CI/setup blockers.
-- Proof artifacts: `jules-launch-proof-2026-05-19.json`, `launch-readiness-after-jules-launch-2026-05-19.json`, and GitHub PR #931.
+- Current boundary: PR #931 check handling, setup/workflow repair sequencing, Scout/Core readiness, deployment proof, merge readiness, and local sync.
+- Remaining blockers: Live browser-proof capture remains useful for future visible Jules actions that API/local state miss. PR #931 still needs the repair/check sequence to proceed before Scout/Core, deployment, merge, and local sync can be proven.
+- Proof artifacts: `jules-launch-proof-2026-05-19.json`, `launch-readiness-after-jules-launch-2026-05-19.json`, `ara6-pr-refresh-summary-2026-05-20.json`, `ara6-pr-repair-decision-refresh-2026-05-20.json`, `verify-jules-state-reconciliation-packet.mjs`, and GitHub PR #931.

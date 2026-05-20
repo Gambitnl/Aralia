@@ -134,6 +134,31 @@ const mergedHandoff = {
   githubPullRequestNextAction: nextAction('check_local_sync', 'ready', 'Check Local Sync', 'GitHub reports the PR merged. The next step is the guarded local sync check.'),
 };
 
+const postPushHandoff = {
+  ...baseHandoff,
+  id: 'handoff-scout-core-post-push',
+  title: 'Post-push Scout Core proof handoff',
+  githubPullRequestChecks: checks('failing'),
+  githubPullRequestNextAction: nextAction('repair_failed_checks', 'blocked', 'Repair Failed Checks', 'Checks failed before the repair push was observed.'),
+  repairPushResult: {
+    handoffId: 'handoff-scout-core-post-push',
+    status: 'pushed',
+    pushedCommit: '19eb1cd4',
+    targetPullRequestHeadCommit: '19eb1cd4',
+    pushedAt: '2026-05-20T00:10:00.000Z',
+    recordedAt: '2026-05-20T00:10:30.000Z',
+    pushedBy: 'operator',
+    evidenceUrl: 'https://github.com/Gambitnl/Aralia/pull/903',
+    summary: 'Operator pushed the repair; checks need to rerun.',
+    checksCommand: 'gh pr checks 903 --repo Gambitnl/Aralia',
+    refreshEndpoint: '/api/v1/jules-handoffs/handoff-scout-core-post-push/refresh-pr',
+    nextBoundary: 'github_checks_rerun',
+    nextExpectedProof: 'GitHub checks complete after the repair push.',
+    mutatesExternalSystems: false,
+    mutatesLocalFiles: false,
+  },
+};
+
 const observedHandoff = {
   ...baseHandoff,
   id: 'handoff-scout-core-observed',
@@ -161,7 +186,7 @@ const orchestrator = {
   },
 };
 
-let handoffs = [baseHandoff, riskyHandoff, pendingHandoff, mergedHandoff, observedHandoff];
+let handoffs = [baseHandoff, riskyHandoff, pendingHandoff, mergedHandoff, postPushHandoff, observedHandoff];
 const server = new HttpServer(8206, orchestrator, logger);
 server.taskIntake = {
   async snapshot() {
@@ -240,43 +265,60 @@ server.taskIntake = {
 try {
   await server.start();
 
-  const snapshot = await getJson(`${BASE_URL}/api/v1/task-drafts`);
-  const [ready, risky, pending, merged, observed] = snapshot.handoffs;
+  if (process.env.SYMPHONY_SCOUT_CORE_PROOF_SERVER === '1') {
+    console.log(`Scout/Core proof server listening at ${BASE_URL}`);
+    await new Promise(resolve => {
+      process.once('SIGINT', resolve);
+      process.once('SIGTERM', resolve);
+    });
+  } else {
+    const snapshot = await getJson(`${BASE_URL}/api/v1/task-drafts`);
+    const [ready, risky, pending, merged, postPush, observed] = snapshot.handoffs;
 
-  assert.equal(ready.scout_core_readiness.status, 'ready_for_core');
-  assert.equal(ready.scout_core_readiness.canScoutReviewNow, true);
-  assert.equal(ready.scout_core_readiness.canCoreValidateNow, true);
-  assert.equal(ready.scout_core_readiness.canCoreMergeNow, true);
-  assert.equal(ready.scout_core_readiness.mutatesGitIfRun, false);
-  assert.equal(ready.scout_core_readiness.mutatesExternalSystemsIfCoreMerges, true);
-  assert.equal(ready.scout_core_readiness.pr.url, baseHandoff.githubPullRequestUrl);
-  assert.equal(ready.scout_core_readiness.evidence.checksConclusion, 'passing');
-  assert.equal(ready.scout_core_readiness.expectedNextProof, 'Core validation receipt, merge receipt, refreshed PR state, then local sync readiness.');
+    assert.equal(ready.scout_core_readiness.status, 'ready_for_core');
+    assert.equal(ready.scout_core_readiness.canScoutReviewNow, true);
+    assert.equal(ready.scout_core_readiness.canCoreValidateNow, true);
+    assert.equal(ready.scout_core_readiness.canCoreMergeNow, true);
+    assert.equal(ready.scout_core_readiness.mutatesGitIfRun, false);
+    assert.equal(ready.scout_core_readiness.mutatesExternalSystemsIfCoreMerges, true);
+    assert.equal(ready.scout_core_readiness.pr.url, baseHandoff.githubPullRequestUrl);
+    assert.equal(ready.scout_core_readiness.evidence.checksConclusion, 'passing');
+    assert.equal(ready.scout_core_readiness.expectedNextProof, 'Core validation receipt, merge receipt, refreshed PR state, then local sync readiness.');
 
-  assert.equal(risky.scout_core_readiness.status, 'blocked_by_scout');
-  assert.equal(risky.scout_core_readiness.canCoreValidateNow, false);
-  assert.equal(risky.scout_core_readiness.canCoreMergeNow, false);
-  assert.match(risky.scout_core_readiness.blockers.join(' '), /Scout review/);
-  assert.equal(risky.scout_core_readiness.evidence.scoutConflictComments, 2);
+    assert.equal(risky.scout_core_readiness.status, 'blocked_by_scout');
+    assert.equal(risky.scout_core_readiness.canCoreValidateNow, false);
+    assert.equal(risky.scout_core_readiness.canCoreMergeNow, false);
+    assert.match(risky.scout_core_readiness.blockers.join(' '), /Scout review/);
+    assert.equal(risky.scout_core_readiness.evidence.scoutConflictComments, 2);
 
-  assert.equal(pending.scout_core_readiness.status, 'waiting');
-  assert.equal(pending.scout_core_readiness.canCoreValidateNow, false);
-  assert.match(pending.scout_core_readiness.blockers.join(' '), /checks/);
+    assert.equal(pending.scout_core_readiness.status, 'waiting');
+    assert.equal(pending.scout_core_readiness.canCoreValidateNow, false);
+    assert.match(pending.scout_core_readiness.blockers.join(' '), /checks/);
 
-  assert.equal(merged.scout_core_readiness.status, 'merged');
-  assert.equal(merged.scout_core_readiness.canCoreMergeNow, false);
-  assert.equal(merged.scout_core_readiness.nextBoundary, 'local_sync');
+    assert.equal(merged.scout_core_readiness.status, 'merged');
+    assert.equal(merged.scout_core_readiness.canCoreMergeNow, false);
+    assert.equal(merged.scout_core_readiness.nextBoundary, 'local_sync');
 
-  assert.equal(observed.scout_core_readiness.status, 'observed');
-  assert.equal(observed.scout_core_readiness.canScoutReviewNow, true);
-  assert.equal(observed.scout_core_readiness.canCoreMergeNow, false);
-  assert.match(observed.scout_core_readiness.blockers.join(' '), /Observed PR records are read-only/);
+    assert.equal(postPush.scout_core_readiness.status, 'waiting_for_checks_rerun');
+    assert.equal(postPush.scout_core_readiness.nextBoundary, 'github_pr');
+    assert.equal(postPush.scout_core_readiness.canCoreValidateNow, false);
+    assert.equal(postPush.scout_core_readiness.canCoreMergeNow, false);
+    assert.match(postPush.scout_core_readiness.blockers.join(' '), /repair push was recorded/i);
+    assert.match(postPush.scout_core_readiness.blockers.join(' '), /gh pr checks 903 --repo Gambitnl\/Aralia/);
+    assert.match(postPush.scout_core_readiness.expectedNextProof, /checks complete after the recorded repair push/i);
 
-  const proof = await getText(`${BASE_URL}/proof`);
-  assert.match(proof, /Scout\/Core Readiness/);
-  assert.match(proof, /Core validation receipt, merge receipt, refreshed PR state, then local sync readiness/);
-  assert.match(proof, /Observed PR records are read-only/);
-  assert.doesNotMatch(proof, /<script/i);
+    assert.equal(observed.scout_core_readiness.status, 'observed');
+    assert.equal(observed.scout_core_readiness.canScoutReviewNow, true);
+    assert.equal(observed.scout_core_readiness.canCoreMergeNow, false);
+    assert.match(observed.scout_core_readiness.blockers.join(' '), /Observed PR records are read-only/);
+
+    const proof = await getText(`${BASE_URL}/proof`);
+    assert.match(proof, /Scout\/Core Readiness/);
+    assert.match(proof, /Core validation receipt, merge receipt, refreshed PR state, then local sync readiness/);
+    assert.match(proof, /waiting_for_checks_rerun/);
+    assert.match(proof, /Observed PR records are read-only/);
+    assert.doesNotMatch(proof, /<script/i);
+  }
 } finally {
   await server.stop();
 }

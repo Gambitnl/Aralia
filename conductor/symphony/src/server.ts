@@ -6,9 +6,20 @@ import type { Logger } from './logger.js';
 import {
   buildJulesManifestPreviewFromDraft,
   TaskIntakeStore,
+  type DelegationRoiCodexUsageInput,
+  type DelegationRoiEstimateInput,
+  type DelegationRoiForemanUsageInput,
   type GitDispositionCategory,
+  type HandoffDeploymentEvidenceInput,
+  type HandoffOperatorAnswerInput,
+  type HandoffRepairPushReadinessInput,
+  type HandoffRepairPushResultInput,
+  type OperatorPreferencesInput,
+  type TaskClarificationInput,
   type JulesRunManifest,
+  type TaskDispositionInput,
   type TaskDraftSnapshot,
+  type TaskMessageInput,
 } from './task-intake.js';
 import { LinearClient } from './linear-client.js';
 
@@ -121,6 +132,58 @@ type HandoffReadinessPacket = {
   safetyNote: string;
 };
 
+type JulesEnvironmentSetupPacket = {
+  status: 'blocked_by_lockfile_repair' | 'ready_for_operator_snapshot';
+  generatedAt: string;
+  title: string;
+  summary: string;
+  recommendedScript: string[];
+  diagnosticScript: string[];
+  currentBlockers: string[];
+  documentedJulesEnvironment: {
+    taskRuntime: string;
+    preinstalledTools: string[];
+    nodeVersion: string;
+    npmVersion: string;
+    snapshotBehavior: string;
+    sourceUrl: string;
+  };
+  operatorAction: {
+    label: string;
+    canRunNow: boolean;
+    requiresOperatorApproval: true;
+    mutatesExternalSystemsIfRun: true;
+    mutatesLocalFilesIfRun: false;
+    detail: string;
+  };
+  nextExpectedProof: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+};
+
+type BrowserToolingHealthPacket = {
+  status: 'browser_bridge_required';
+  generatedAt: string;
+  title: string;
+  summary: string;
+  primaryPath: {
+    label: string;
+    capability: string;
+    operatorVisible: true;
+  };
+  unreliablePath: {
+    label: string;
+    knownFailure: string;
+    meaning: string;
+  };
+  allowedUses: string[];
+  disallowedUses: string[];
+  observedEvidence: string[];
+  nextExpectedProof: string;
+  mutatesExternalSystems: false;
+  mutatesLocalFiles: false;
+};
+
 type JulesLaunchReadinessPacket = {
   handoffId: string;
   title: string;
@@ -191,10 +254,39 @@ type LocalSyncReadinessPacket = {
   safetyNote: string;
 };
 
+type DeploymentReadinessPacket = {
+  handoffId: string;
+  title: string;
+  status: 'waiting_for_merge' | 'needs_check' | 'passed' | 'failed' | 'waived' | 'observed';
+  canRefreshNow: boolean;
+  canProceedToLocalSync: boolean;
+  mutatesExternalSystemsIfRun: false;
+  mutatesLocalFilesIfRun: false;
+  pr: {
+    url: string | null;
+    state: string | null;
+    dashboardStarted: boolean;
+  };
+  repository: {
+    owner: string | null;
+    name: string | null;
+  };
+  commands: {
+    latestPagesBuild: string | null;
+    recentDeployments: string | null;
+    deploymentStatuses: string | null;
+  };
+  evidence: TaskDraftSnapshot['handoffs'][number]['deploymentEvidence'] | null;
+  blockers: string[];
+  safetyChecklist: string[];
+  expectedNextProof: string;
+  safetyNote: string;
+};
+
 type ScoutCoreReadinessPacket = {
   handoffId: string;
   title: string;
-  status: 'waiting' | 'blocked_by_pr' | 'blocked_by_scout' | 'ready_for_core' | 'merged' | 'observed';
+  status: 'waiting' | 'waiting_for_checks_rerun' | 'blocked_by_pr' | 'blocked_by_scout' | 'ready_for_core' | 'merged' | 'observed';
   nextBoundary: 'github_pr' | 'scout_core' | 'core_merge' | 'local_sync';
   canRefreshNow: boolean;
   canScoutReviewNow: boolean;
@@ -397,6 +489,13 @@ export class HttpServer {
       return this.handleProofBoard(res);
     }
 
+    if (method === 'GET' && pathname.startsWith('/tasks/')) {
+      const parts = pathname.split('/');
+      if (parts.length === 3) {
+        return this.handleTaskPage(parts[2], res);
+      }
+    }
+
     if (method === 'GET' && pathname === '/dashboard.css') {
       return this.handleStaticFile(res, 'dashboard.css', 'text/css; charset=utf-8');
     }
@@ -413,8 +512,27 @@ export class HttpServer {
       return this.handleGetDispatchControl(res);
     }
 
+    if (method === 'GET' && pathname === '/api/v1/jules-environment-setup') {
+      return this.handleGetJulesEnvironmentSetup(res);
+    }
+
+    if (method === 'GET' && pathname === '/api/v1/browser-tooling-health') {
+      return this.handleGetBrowserToolingHealth(res);
+    }
+
+    if (method === 'GET' && pathname.startsWith('/api/v1/jules-handoffs/')) {
+      const parts = pathname.split('/');
+      if (parts.length === 6 && parts[5] === 'deployment-readiness') {
+        return this.handleGetDeploymentReadiness(parts[4], res);
+      }
+    }
+
     if (method === 'POST' && pathname === '/api/v1/dispatch-control') {
       return this.handleSetDispatchControl(req, res);
+    }
+
+    if (method === 'POST' && pathname === '/api/v1/operator-preferences') {
+      return this.handleOperatorPreferences(req, res);
     }
 
     if (method === 'GET' && pathname === '/api/v1/dashboard-fragment') {
@@ -427,6 +545,26 @@ export class HttpServer {
 
     if (method === 'GET' && pathname === '/api/v1/task-drafts') {
       return this.handleGetTaskDrafts(res);
+    }
+
+    if (method === 'GET' && pathname.startsWith('/api/v1/tasks/')) {
+      const parts = pathname.split('/');
+      if (parts.length === 5) {
+        return this.handleGetTaskDetail(parts[4], res);
+      }
+    }
+
+    if (method === 'POST' && pathname.startsWith('/api/v1/tasks/')) {
+      const parts = pathname.split('/');
+      if (parts.length === 6 && parts[5] === 'messages') {
+        return this.handleTaskMessage(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'clarifications') {
+        return this.handleTaskClarification(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'disposition') {
+        return this.handleTaskDisposition(parts[4], req, res);
+      }
     }
 
     if (method === 'GET' && pathname.startsWith('/api/v1/task-drafts/')) {
@@ -483,6 +621,27 @@ export class HttpServer {
       }
       if (parts.length === 6 && parts[5] === 'message') {
         return this.handleJulesOperatorMessage(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'roi-estimate') {
+        return this.handleDelegationRoiEstimate(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'roi-foreman-usage') {
+        return this.handleDelegationRoiForemanUsage(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'operator-answer') {
+        return this.handleOperatorAnswer(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'execute-repair-lane') {
+        return this.handleExecuteRepairLane(parts[4], res);
+      }
+      if (parts.length === 6 && parts[5] === 'repair-push-readiness') {
+        return this.handleRepairPushReadiness(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'repair-push-result') {
+        return this.handleRepairPushResult(parts[4], req, res);
+      }
+      if (parts.length === 6 && parts[5] === 'deployment-evidence') {
+        return this.handleDeploymentEvidence(parts[4], req, res);
       }
       if (parts.length === 6 && parts[5] === 'approve-plan') {
         return this.handleJulesPlanApproval(parts[4], res);
@@ -856,6 +1015,93 @@ export class HttpServer {
     res.end(html);
   }
 
+  private buildJulesEnvironmentSetupPacket(): JulesEnvironmentSetupPacket {
+    // This packet intentionally mirrors the human-facing environment finding in
+    // the docs. It gives the dashboard a stable, read-only contract for the
+    // setup recommendation without clicking Jules' external Run and Snapshot
+    // button or pretending the lockfile repair has already landed.
+    return {
+      status: 'blocked_by_lockfile_repair',
+      generatedAt: new Date().toISOString(),
+      title: 'Jules Environment Setup Recommendation',
+      summary: 'Do not run a Jules environment snapshot yet. The honest setup script is npm ci, but ARA-6 proved the current PR is still blocked until the package-lock repair is pushed and verified.',
+      recommendedScript: [
+        'npm ci --no-audit --no-fund',
+        'npm run typecheck',
+      ],
+      diagnosticScript: [
+        'npm install --no-audit --no-fund',
+        'npm run typecheck',
+      ],
+      currentBlockers: [
+        'PR #931 setup repair is prepared locally but not pushed to the Jules PR branch.',
+        'Until the lockfile repair lands, npm ci is expected to fail before task-specific validation can run.',
+        'The npm install fallback is diagnostic only because it may update the lockfile in Jules working copy state.',
+      ],
+      documentedJulesEnvironment: {
+        taskRuntime: 'short-lived Ubuntu VM',
+        preinstalledTools: ['Node.js', 'npm', 'rg', 'git', 'curl', 'jq'],
+        nodeVersion: '22.16.0',
+        npmVersion: '11.4.2',
+        snapshotBehavior: 'Run and Snapshot validates the setup script and saves a reusable environment snapshot for later tasks.',
+        sourceUrl: 'https://jules.google/docs/environment/',
+      },
+      operatorAction: {
+        label: 'Run Jules environment snapshot',
+        canRunNow: false,
+        requiresOperatorApproval: true,
+        mutatesExternalSystemsIfRun: true,
+        mutatesLocalFilesIfRun: false,
+        detail: 'After the lockfile repair is pushed and npm ci is expected to pass, the operator can paste the recommended script into the Jules Environment page and click Run and Snapshot.',
+      },
+      nextExpectedProof: 'Operator-approved Jules Environment page snapshot after PR #931 lockfile repair is pushed and GitHub setup checks rerun cleanly.',
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+  }
+
+  private buildBrowserToolingHealthPacket(): BrowserToolingHealthPacket {
+    // The server cannot introspect the Codex app browser bridge directly. This
+    // packet therefore protects the operational rule that came from live ARA-6
+    // evidence: direct Playwright transport failure is a tooling signal, not
+    // proof that Jules is invisible. The actual page observation still belongs
+    // in operator-visible Codex app browser evidence and handoff receipts.
+    return {
+      status: 'browser_bridge_required',
+      generatedAt: new Date().toISOString(),
+      title: 'Browser Follow-along Health',
+      summary: 'Use the Codex Browser plugin in-app bridge for live Jules follow-along. Treat direct Playwright MCP Transport closed as a known unreliable path, not as proof that the Jules session cannot be observed.',
+      primaryPath: {
+        label: 'Codex Browser plugin bridge',
+        capability: 'Read and screenshot the signed-in in-app Jules tab so the operator can follow along.',
+        operatorVisible: true,
+      },
+      unreliablePath: {
+        label: 'Direct Playwright MCP transport',
+        knownFailure: 'Transport closed',
+        meaning: 'This can fail in the Codex app session even when the signed-in Jules tab is still visible through the Browser plugin bridge.',
+      },
+      allowedUses: [
+        'Use the Browser plugin bridge for live Jules page checks.',
+        'Use terminal Playwright for repeatable local dashboard verification.',
+        'Record any observed Jules state into task/handoff evidence before advancing the workflow.',
+      ],
+      disallowedUses: [
+        'Do not treat direct Playwright transport failure as evidence that Jules is unavailable.',
+        'Do not open an external Chrome window for live follow-along unless the operator explicitly changes the browser constraint.',
+        'Do not store terminal scrollback as the canonical task record; use structured task events and receipts.',
+      ],
+      observedEvidence: [
+        'ARA-6 Jules session 4101281510355198885 was visible through the signed-in in-app browser tab.',
+        'The visible Jules state included Ready for review, View PR, changed-file review, Time: 51 mins, and four failed checks.',
+        'The same live run showed Direct Playwright MCP could report Transport closed.',
+      ],
+      nextExpectedProof: 'Future live Jules checks should capture Browser plugin in-app evidence or record why API/GitHub evidence was sufficient.',
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+  }
+
   private renderProofBoard(taskState: ReturnType<HttpServer['withTaskCapabilities']> & {
     drafts: Array<TaskDraftSnapshot['drafts'][number] & {
       next_action?: Record<string, unknown>;
@@ -870,15 +1116,20 @@ export class HttpServer {
     }>;
   }): string {
     const appState = this.orchestrator.getSnapshot() as any;
+    const browserTooling = this.buildBrowserToolingHealthPacket();
     const latestDraft = taskState.drafts[0] ?? null;
     const latestHandoff = taskState.handoffs[0] ?? null;
     const localSyncReadinessPackets = taskState.handoffs
       .map(handoff => (handoff as TaskDraftSnapshot['handoffs'][number] & { local_sync_readiness?: LocalSyncReadinessPacket }).local_sync_readiness)
       .filter((readiness): readiness is LocalSyncReadinessPacket => Boolean(readiness));
+    const deploymentReadinessPackets = taskState.handoffs
+      .map(handoff => (handoff as TaskDraftSnapshot['handoffs'][number] & { deployment_readiness?: DeploymentReadinessPacket }).deployment_readiness)
+      .filter((readiness): readiness is DeploymentReadinessPacket => Boolean(readiness));
     const scoutCoreReadinessPackets = taskState.handoffs
       .map(handoff => (handoff as TaskDraftSnapshot['handoffs'][number] & { scout_core_readiness?: ScoutCoreReadinessPacket }).scout_core_readiness)
       .filter((readiness): readiness is ScoutCoreReadinessPacket => Boolean(readiness));
     const middlemanPath = taskState.middleman_path ?? null;
+    const environmentSetup = this.buildJulesEnvironmentSetupPacket();
     const latestLinearPreview = latestDraft?.linear_issue_preview ?? null;
     const latestManifestPreview = latestDraft?.jules_manifest_preview ?? null;
     const latestReadiness = latestDraft?.handoff_readiness ?? null;
@@ -958,6 +1209,21 @@ export class HttpServer {
         <p class="small">Source: ${this.escapeHtml(nextAction.source_type ?? 'queue')} ${this.escapeHtml(nextAction.source_id ?? '')}</p>
       </article>
       <article class="card">
+        <h2>Browser Follow-along</h2>
+        <p><strong>${this.escapeHtml(browserTooling.primaryPath.label)}</strong></p>
+        <p>${this.escapeHtml(browserTooling.summary)}</p>
+        <p class="small">Known unreliable path: ${this.escapeHtml(browserTooling.unreliablePath.label)} can report ${this.escapeHtml(browserTooling.unreliablePath.knownFailure)}.</p>
+        <p class="small"><a href="/api/v1/browser-tooling-health">Browser tooling health JSON</a></p>
+      </article>
+      <article class="card">
+        <h2>Jules Environment Setup</h2>
+        <p><strong>${this.escapeHtml(environmentSetup.status)}</strong></p>
+        <p>${this.escapeHtml(environmentSetup.summary)}</p>
+        <p class="small">Recommended after repair: <code>${this.escapeHtml(environmentSetup.recommendedScript.join(' && '))}</code></p>
+        <p class="small">Run and Snapshot can run now: ${environmentSetup.operatorAction.canRunNow ? 'yes' : 'no'}; mutates external systems if run: ${environmentSetup.operatorAction.mutatesExternalSystemsIfRun ? 'yes' : 'no'}</p>
+        <p class="small"><a href="/api/v1/jules-environment-setup">Environment setup JSON</a></p>
+      </article>
+      <article class="card">
         <h2>Git Sync Plan</h2>
         <p><strong>${this.escapeHtml(taskState.gitSyncPlan.status)}</strong></p>
         <p>${this.escapeHtml(taskState.gitSyncPlan.summary)}</p>
@@ -1015,6 +1281,21 @@ export class HttpServer {
           <p class="small">Next: ${this.escapeHtml(latestHandoff.next_action?.label ?? 'none')}</p>
           ${latestHandoff.githubPullRequestUrl ? `<p><a href="${this.escapeHtml(latestHandoff.githubPullRequestUrl)}">${this.escapeHtml(latestHandoff.githubPullRequestUrl)}</a></p>` : ''}
         ` : '<p>No handoff or observed PR exists yet.</p>'}
+      </article>
+      <article class="card">
+        <h2>Deployment Readiness</h2>
+        ${deploymentReadinessPackets.length ? `
+          <ol>${deploymentReadinessPackets.map(readiness => `
+            <li>
+              <strong>${this.escapeHtml(readiness.title)}</strong>
+              <span class="badge ${this.escapeHtml(readiness.status)}">${this.escapeHtml(readiness.status)}</span>
+              <p class="small">Can refresh now: ${readiness.canRefreshNow ? 'yes' : 'no'}; can proceed to local sync: ${readiness.canProceedToLocalSync ? 'yes' : 'no'}</p>
+              <p class="small">Mutates external systems: ${readiness.mutatesExternalSystemsIfRun ? 'yes' : 'no'}; mutates local files: ${readiness.mutatesLocalFilesIfRun ? 'yes' : 'no'}</p>
+              <p class="small">${this.escapeHtml(readiness.expectedNextProof)}</p>
+              ${readiness.blockers.length ? `<ul>${readiness.blockers.map((blocker: string) => `<li>${this.escapeHtml(blocker)}</li>`).join('')}</ul>` : ''}
+            </li>
+          `).join('')}</ol>
+        ` : '<p>No deployment readiness packet is available yet.</p>'}
       </article>
       <article class="card">
         <h2>Local Sync Readiness</h2>
@@ -1083,10 +1364,1059 @@ export class HttpServer {
   }
 
   private async handleGetTaskDrafts(res: ServerResponse): Promise<void> {
-    const snapshot = await this.taskIntake.snapshot();
+    const snapshot = await this.taskIntake.snapshot(this.buildDelegationRoiCodexUsageInput());
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+  }
+
+  private async handleGetJulesEnvironmentSetup(res: ServerResponse): Promise<void> {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(this.buildJulesEnvironmentSetupPacket(), null, 2));
+  }
+
+  private async handleGetBrowserToolingHealth(res: ServerResponse): Promise<void> {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(this.buildBrowserToolingHealthPacket(), null, 2));
+  }
+
+  private async handleGetDeploymentReadiness(handoffId: string, res: ServerResponse): Promise<void> {
+    const decodedHandoffId = decodeURIComponent(handoffId);
+    const snapshot = await this.taskIntake.snapshot(this.buildDelegationRoiCodexUsageInput());
+    const handoff = snapshot.handoffs.find((candidate) => candidate.id === decodedHandoffId);
+
+    if (!handoff) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'handoff_not_found', message: `No Jules handoff exists with id ${decodedHandoffId}.` },
+      }));
+      return;
+    }
+
+    // Deployment readiness is the read-only published-app gate between PR merge
+    // and local sync. This endpoint only returns the packet; it does not create
+    // deployments, rerun Actions, record evidence, pull Git, or edit local files.
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(this.buildDeploymentReadinessPacket(handoff), null, 2));
+  }
+
+  private async handleGetTaskDetail(taskId: string, res: ServerResponse): Promise<void> {
+    const decodedTaskId = decodeURIComponent(taskId);
+    const detail = await this.buildTaskDetailById(decodedTaskId);
+    if (detail) {
+      this.writeTaskDetailResponse(res, detail);
+      return;
+    }
+
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      error: {
+        code: 'task_not_found',
+        message: `No Symphony task, draft, or handoff exists for ${decodedTaskId}.`,
+      },
+    }, null, 2));
+  }
+
+  private async handleTaskPage(taskId: string, res: ServerResponse): Promise<void> {
+    const decodedTaskId = decodeURIComponent(taskId);
+    const detail = await this.buildTaskDetailById(decodedTaskId);
+    if (!detail) {
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Task not found</title><link rel="stylesheet" href="/dashboard.css"></head><body><main><section class="card"><h1>Task not found</h1><p>No Symphony task exists for <code>${this.escapeHtml(decodedTaskId)}</code>.</p><p><a href="/">Return to dashboard</a></p></section></main></body></html>`);
+      return;
+    }
+
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
+    res.end(this.renderTaskPage(detail));
+  }
+
+  private async buildTaskDetailById(decodedTaskId: string): Promise<Record<string, unknown> | null> {
+    const snapshot = this.withTaskCapabilities(
+      await this.taskIntake.snapshot(this.buildDelegationRoiCodexUsageInput()),
+    );
+    const draft = snapshot.drafts.find(item => item.id === decodedTaskId);
+    if (draft) {
+      return this.buildDraftTaskDetail(snapshot.links.self, draft);
+    }
+
+    const handoff = snapshot.handoffs.find(item => item.id === decodedTaskId);
+    if (handoff) {
+      return this.buildHandoffTaskDetail(snapshot.links.self, handoff);
+    }
+
+    return null;
+  }
+
+  private writeTaskDetailResponse(res: ServerResponse, detail: Record<string, unknown>): void {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(detail, null, 2));
+  }
+
+  private renderTaskPage(detail: Record<string, unknown>): string {
+    const links = this.recordFromUnknown(detail.links);
+    const currentBoundary = this.recordFromUnknown(detail.currentBoundary);
+    const timeline = this.recordFromUnknown(detail.timeline);
+    const messages = this.arrayFromUnknown(detail.taskMessages);
+    const clarifications = this.arrayFromUnknown(detail.taskClarifications);
+    const taskDisposition = this.recordFromUnknown(detail.taskDisposition);
+    const expectedFiles = this.arrayFromUnknown(detail.expectedFiles);
+    const verificationCommands = this.arrayFromUnknown(detail.verificationCommands);
+    const jsonUrl = this.stringFromUnknown(links.self) ?? `/api/v1/tasks/${encodeURIComponent(this.stringFromUnknown(detail.id) ?? '')}`;
+    const messageUrl = this.stringFromUnknown(links.taskMessages) ?? `${jsonUrl.replace(/\/$/, '')}/messages`;
+    const clarificationUrl = this.stringFromUnknown(links.taskClarifications) ?? `${jsonUrl.replace(/\/$/, '')}/clarifications`;
+    const dispositionUrl = this.stringFromUnknown(links.taskDisposition) ?? `${jsonUrl.replace(/\/$/, '')}/disposition`;
+    const fullReceipt = this.stringFromUnknown(links.fullReceipt);
+    const fullReceiptUrl = fullReceipt?.startsWith('#') ? `/${fullReceipt}` : fullReceipt;
+    const title = this.stringFromUnknown(detail.title) ?? 'Symphony task';
+    const status = this.stringFromUnknown(detail.status) ?? 'unknown';
+    const kind = this.stringFromUnknown(detail.kind) ?? 'task';
+    const needsHumanInput = detail.needsHumanInput === true;
+    const timelineEvents = this.arrayFromUnknown(timeline.events);
+    const externalLinks = [
+      ['Linear issue', links.linearIssue],
+      ['Jules session', links.julesSession],
+      ['GitHub PR', links.githubPullRequest],
+      ['Source queue', links.source],
+      ['Task detail JSON', jsonUrl],
+      ['Full dashboard receipt', fullReceiptUrl],
+    ]
+      .filter(([, href]) => typeof href === 'string' && href)
+      .map(([label, href]) => `<a href="${this.escapeHtml(href)}">${this.escapeHtml(label)}</a>`)
+      .join('');
+
+    // This page is the first durable, task-centered workspace. It reads from
+    // the same detail packet as the JSON API and records only local task
+    // messages, so it does not create a second source of truth or quietly send
+    // feedback to Jules/GitHub/Linear while the operator is reviewing a task.
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${this.escapeHtml(title)} - Symphony Task</title>
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem('symphony-dashboard-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+  <main class="task-page" data-task-id="${this.escapeHtml(detail.id)}">
+    <header class="page-header task-page-header">
+      <div>
+        <p class="refresh-note"><a href="/">Symphony Dashboard</a></p>
+        <h1>${this.escapeHtml(title)}</h1>
+        <p><span class="badge ${needsHumanInput ? 'pending-human-input' : 'running'}">${this.escapeHtml(status)}</span> ${this.escapeHtml(kind)}</p>
+      </div>
+      <div class="page-actions">
+        <a class="button-link" href="${this.escapeHtml(jsonUrl)}">Task detail JSON</a>
+        ${fullReceiptUrl ? `<a class="button-link" href="${this.escapeHtml(fullReceiptUrl)}">Full receipt</a>` : ''}
+      </div>
+    </header>
+
+    <section class="task-page-grid">
+      <article class="card task-page-current">
+        <h2>Current Boundary</h2>
+        <p><strong>${this.escapeHtml(this.stringFromUnknown(currentBoundary.label) ?? status)}</strong></p>
+        <p>${this.escapeHtml(this.stringFromUnknown(currentBoundary.detail) ?? this.stringFromUnknown(detail.summary) ?? 'No boundary detail recorded.')}</p>
+        <dl class="task-page-facts">
+          <div><dt>Needs human input</dt><dd>${needsHumanInput ? 'Yes' : 'No'}</dd></div>
+          <div><dt>Mutates Git</dt><dd>${detail.mutatesGit === true ? 'Yes' : 'No'}</dd></div>
+          <div><dt>Mutates external systems</dt><dd>${detail.mutatesExternalSystems === true ? 'Yes' : 'No'}</dd></div>
+          <div><dt>Mutates local files</dt><dd>${detail.mutatesLocalFiles === true ? 'Yes' : 'No'}</dd></div>
+        </dl>
+        ${externalLinks ? `<nav class="task-page-links" aria-label="Task links">${externalLinks}</nav>` : ''}
+      </article>
+
+      <article class="card task-page-chat">
+        <h2>Task Messages</h2>
+        <p class="usage-summary">Local operator/Codex notes for this task. This does not send feedback to Jules.</p>
+        <form data-task-message-form data-task-message-url="${this.escapeHtml(messageUrl)}">
+          <label>Message
+            <textarea name="body" rows="4" placeholder="Record a local note, blocker, or question for this task."></textarea>
+          </label>
+          <button type="submit">Record Task Message</button>
+          <p class="usage-summary" data-task-message-status></p>
+        </form>
+        ${this.renderTaskPageMessages(messages)}
+      </article>
+
+      <article class="card task-page-clarifications">
+        <h2>Task Clarifications</h2>
+        <p class="usage-summary">Structured Codex-foreman questions and operator answers for task boundaries. This does not send feedback to Jules, create Linear work, push to GitHub, or mutate Git.</p>
+        <form data-task-clarification-form data-task-clarification-url="${this.escapeHtml(clarificationUrl)}">
+          <label>Question
+            <textarea name="question" rows="3" placeholder="Record the plain-language clarification question."></textarea>
+          </label>
+          <label>Answer
+            <textarea name="answer" rows="3" placeholder="Optional operator answer. Leave blank if this still needs input."></textarea>
+          </label>
+          <button type="submit">Record Clarification</button>
+          <p class="usage-summary" data-task-clarification-status></p>
+        </form>
+        ${this.renderTaskPageClarifications(clarifications)}
+      </article>
+
+      ${this.renderTaskPageGuardedActions(detail)}
+      ${this.renderTaskPageOperatorAnswer(detail)}
+      ${this.renderTaskPageRepairPushResult(detail)}
+
+      <article class="card task-page-disposition">
+        <h2>Task Filing</h2>
+        <p class="usage-summary">Local task disposition for dashboard triage. This does not close Linear, message Jules, change GitHub, or mutate Git.</p>
+        <p><strong>Current:</strong> ${this.escapeHtml(this.stringFromUnknown(taskDisposition.state) ?? 'active')}</p>
+        ${this.stringFromUnknown(taskDisposition.reason) ? `<p>${this.escapeHtml(this.stringFromUnknown(taskDisposition.reason) ?? '')}</p>` : ''}
+        <form data-task-disposition-form data-task-disposition-url="${this.escapeHtml(dispositionUrl)}">
+          <label>Status
+            <select name="state">
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="archived">Archived</option>
+              <option value="abandoned">Abandoned</option>
+            </select>
+          </label>
+          <label>Reason
+            <textarea name="reason" rows="3" placeholder="Required unless returning the task to active."></textarea>
+          </label>
+          <button type="submit">Record Task Filing</button>
+          <p class="usage-summary" data-task-disposition-status></p>
+        </form>
+      </article>
+
+      <article class="card task-page-timeline">
+        <h2>Task Timeline</h2>
+        <p>${this.escapeHtml(this.stringFromUnknown(timeline.summary) ?? `Timeline events: ${timelineEvents.length}`)}</p>
+        ${this.renderTaskPageTimeline(timelineEvents)}
+      </article>
+
+      <article class="card">
+        <h2>Scope And Verification</h2>
+        <h3>Expected Files</h3>
+        ${this.renderTaskPageList(expectedFiles, 'No expected files recorded.')}
+        <h3>Verification Commands</h3>
+        ${this.renderTaskPageList(verificationCommands, 'No verification commands recorded.')}
+      </article>
+
+      ${this.renderTaskPagePacket('Operator Question', detail.operatorQuestion)}
+      ${this.renderTaskPagePacket('Task Disposition', detail.taskDisposition)}
+      ${this.renderTaskPagePacket('Jules Handoff Prompt', detail.julesPrompt)}
+      ${this.renderTaskPagePacket('Jules Dialogue And Approvals', detail.julesDialogue)}
+      ${this.renderTaskPagePacket('Jules State Reconciliation', detail.julesStateReconciliation)}
+      ${this.renderTaskPagePacket('Delegation ROI Ledger', detail.delegationRoiLedger)}
+      ${this.renderTaskPagePacket('Scout/Core Readiness', detail.scoutCoreReadiness)}
+      ${this.renderTaskPagePacket('Deployment Readiness', detail.deploymentReadiness)}
+      ${this.renderTaskPagePacket('Local Sync Readiness', detail.localSyncReadiness)}
+    </section>
+  </main>
+  <script>
+    const form = document.querySelector('[data-task-message-form]');
+    form?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = form.querySelector('[data-task-message-status]');
+      const textarea = form.querySelector('textarea[name="body"]');
+      const body = String(textarea?.value || '').trim();
+      if (!body) {
+        if (status) status.textContent = 'Write a message before recording it.';
+        return;
+      }
+      if (status) status.textContent = 'Recording local task message...';
+      try {
+        const response = await fetch(form.dataset.taskMessageUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ author: 'operator', body })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (status) status.textContent = 'Task message failed: ' + (error?.message || error);
+      }
+    });
+    const clarificationForm = document.querySelector('[data-task-clarification-form]');
+    clarificationForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = clarificationForm.querySelector('[data-task-clarification-status]');
+      const question = String(clarificationForm.querySelector('textarea[name="question"]')?.value || '').trim();
+      const answer = String(clarificationForm.querySelector('textarea[name="answer"]')?.value || '').trim();
+      if (!question) {
+        if (status) status.textContent = 'Write a clarification question before recording it.';
+        return;
+      }
+      if (status) status.textContent = 'Recording local clarification...';
+      try {
+        const response = await fetch(clarificationForm.dataset.taskClarificationUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, answer })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (status) status.textContent = 'Task clarification failed: ' + (error?.message || error);
+      }
+    });
+    const dispositionForm = document.querySelector('[data-task-disposition-form]');
+    dispositionForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = dispositionForm.querySelector('[data-task-disposition-status]');
+      const state = String(dispositionForm.querySelector('select[name="state"]')?.value || 'active');
+      const reason = String(dispositionForm.querySelector('textarea[name="reason"]')?.value || '').trim();
+      if (state !== 'active' && !reason) {
+        if (status) status.textContent = 'Write a reason before filing this task.';
+        return;
+      }
+      if (status) status.textContent = 'Recording local task filing...';
+      try {
+        const response = await fetch(dispositionForm.dataset.taskDispositionUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state, reason, recordedBy: 'operator' })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (status) status.textContent = 'Task filing failed: ' + (error?.message || error);
+      }
+    });
+    const operatorAnswerForm = document.querySelector('[data-task-operator-answer-form]');
+    operatorAnswerForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const status = operatorAnswerForm.querySelector('[data-task-operator-answer-status]');
+      const selectedAction = String(operatorAnswerForm.querySelector('select[name="selectedAction"]')?.value || 'other');
+      const answer = String(operatorAnswerForm.querySelector('textarea[name="answer"]')?.value || '').trim();
+      if (!answer) {
+        if (status) status.textContent = 'Write the operator answer before recording it.';
+        return;
+      }
+      if (status) status.textContent = 'Recording local operator answer...';
+      try {
+        const response = await fetch(operatorAnswerForm.dataset.taskOperatorAnswerUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selectedAction, answer, answeredBy: 'operator' })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
+      }
+    });
+    const repairPushResultForm = document.querySelector('[data-task-repair-push-result-form]');
+    repairPushResultForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const statusNode = repairPushResultForm.querySelector('[data-task-repair-push-result-status]');
+      const status = String(repairPushResultForm.querySelector('select[name="status"]')?.value || 'pushed');
+      const pushedCommit = String(repairPushResultForm.querySelector('input[name="pushedCommit"]')?.value || '').trim();
+      const targetPullRequestHeadCommit = String(repairPushResultForm.querySelector('input[name="targetPullRequestHeadCommit"]')?.value || '').trim();
+      const pushedAt = String(repairPushResultForm.querySelector('input[name="pushedAt"]')?.value || '').trim();
+      const evidenceUrl = String(repairPushResultForm.querySelector('input[name="evidenceUrl"]')?.value || '').trim();
+      const summary = String(repairPushResultForm.querySelector('textarea[name="summary"]')?.value || '').trim();
+      if (!summary) {
+        if (statusNode) statusNode.textContent = 'Write a push result summary before recording it.';
+        return;
+      }
+      if (statusNode) statusNode.textContent = 'Recording repair push result...';
+      try {
+        const response = await fetch(repairPushResultForm.dataset.taskRepairPushResultUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status, pushedCommit, targetPullRequestHeadCommit, pushedAt, evidenceUrl, summary, pushedBy: 'operator' })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (statusNode) statusNode.textContent = 'Repair push result failed: ' + (error?.message || error);
+      }
+    });
+  </script>
+</body>
+</html>`;
+  }
+
+  private renderTaskPageGuardedActions(detail: Record<string, unknown>): string {
+    const actions = this.arrayFromUnknown(detail.guardedActions);
+    if (!actions.length) return '';
+
+    // Guarded actions are deliberately shown as runbook evidence, not as
+    // automatic buttons. This lets the operator see the next GitHub/Jules/Git
+    // command while Symphony still refuses to cross that boundary silently.
+    return `<article class="card task-page-guarded-actions">
+      <h2>Guarded Operator Actions</h2>
+      <p class="usage-summary">Commands and endpoints listed here require deliberate operator action or a guarded Symphony endpoint. This section does not run them.</p>
+      <ol class="task-page-events">${actions.map(action => {
+        const record = this.recordFromUnknown(action);
+        const command = this.stringFromUnknown(record.command);
+        const endpoint = this.stringFromUnknown(record.endpoint);
+        const method = this.stringFromUnknown(record.method);
+        return `<li>
+          <strong>${this.escapeHtml(this.stringFromUnknown(record.label) ?? 'Guarded action')}</strong>
+          <span>${this.escapeHtml(this.stringFromUnknown(record.safety) ?? 'operator approval required')}</span>
+          <p>${this.escapeHtml(this.stringFromUnknown(record.summary) ?? '')}</p>
+          ${command ? `<p><code>${this.escapeHtml(command)}</code></p>` : ''}
+          ${endpoint ? `<p><code>${this.escapeHtml(`${method ?? 'POST'} ${endpoint}`)}</code></p>` : ''}
+        </li>`;
+      }).join('')}</ol>
+    </article>`;
+  }
+
+  private renderTaskPageOperatorAnswer(detail: Record<string, unknown>): string {
+    const links = this.recordFromUnknown(detail.links);
+    const actionUrl = this.stringFromUnknown(links.operatorAnswer);
+    const question = this.recordFromUnknown(detail.operatorQuestion);
+    if (!actionUrl || !Object.keys(question).length) return '';
+
+    const sourceStage = this.stringFromUnknown(question.sourceStage);
+    const options = sourceStage === 'repair_push_approval'
+      ? [
+          ['approve_repair_push', 'Approve repair push'],
+          ['reject_repair_push', 'Reject repair push'],
+          ['wait_for_manual_repair', 'Wait or defer'],
+        ]
+      : [
+          ['create_setup_repair_task', 'Create setup repair task'],
+          ['send_jules_feedback', 'Send Jules feedback later'],
+          ['wait_for_manual_repair', 'Wait for manual repair'],
+          ['refresh_after_repair', 'Refresh after repair'],
+          ['other', 'Other'],
+        ];
+
+    // The task page can now capture the same local operator receipt as the main
+    // handoff card. It deliberately posts only to the local answer endpoint; it
+    // does not execute a repair lane, push to GitHub, or send Jules feedback.
+    return `<article class="card task-page-operator-answer">
+      <h2>Operator Answer</h2>
+      <p><strong>${this.escapeHtml(this.stringFromUnknown(question.plainLanguageQuestion) ?? this.stringFromUnknown(question.question) ?? 'This task needs an operator answer.')}</strong></p>
+      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(question.plainLanguageSummary) ?? 'Record the local decision so the foreman can move to the next guarded boundary.')}</p>
+      <form data-task-operator-answer-form data-task-operator-answer-url="${this.escapeHtml(actionUrl)}">
+        <label>Decision
+          <select name="selectedAction">
+            ${options.map(([value, label]) => `<option value="${this.escapeHtml(value)}">${this.escapeHtml(label)}</option>`).join('')}
+          </select>
+        </label>
+        <label>Answer
+          <textarea name="answer" rows="3" placeholder="Write the human-readable decision or blocker."></textarea>
+        </label>
+        <button type="submit">Record Operator Answer</button>
+        <p class="usage-summary">Local receipt only. This does not send Jules feedback, create Linear work, push to GitHub, or mutate Git.</p>
+        <p class="usage-summary" data-task-operator-answer-status></p>
+      </form>
+    </article>`;
+  }
+
+  private renderTaskPageRepairPushResult(detail: Record<string, unknown>): string {
+    const links = this.recordFromUnknown(detail.links);
+    const actionUrl = this.stringFromUnknown(links.repairPushResult);
+    const readiness = this.recordFromUnknown(detail.repairPushReadiness);
+    const existingResult = detail.repairPushResult;
+    if (!actionUrl || !Object.keys(readiness).length || existingResult) return '';
+
+    const defaultTimestamp = new Date().toISOString();
+    const commit = this.stringFromUnknown(readiness.commit) ?? '';
+    const evidenceUrl = this.stringFromUnknown(readiness.targetPullRequestUrl) ?? '';
+    const pushCommand = this.formatWorktreeGitCommand(
+      this.stringFromUnknown(readiness.pushCommand),
+      this.stringFromUnknown(readiness.worktreePath),
+    );
+
+    // The push-result form starts only after a readiness packet exists. It is a
+    // receipt for a human-owned GitHub mutation, not a button that performs the
+    // push or reruns checks from Symphony.
+    return `<article class="card task-page-repair-push-result">
+      <h2>Repair Push Result</h2>
+      <p class="usage-summary">Record what happened after the approved external push. This does not push, rerun checks, merge, pull, or edit local files.</p>
+      ${pushCommand ? `<p><code>${this.escapeHtml(pushCommand)}</code></p>` : ''}
+      <form data-task-repair-push-result-form data-task-repair-push-result-url="${this.escapeHtml(actionUrl)}">
+        <label>Status
+          <select name="status">
+            <option value="pushed">Pushed</option>
+            <option value="failed">Failed</option>
+          </select>
+        </label>
+        <label>Pushed commit
+          <input name="pushedCommit" value="${this.escapeHtml(commit)}" placeholder="Commit that was pushed">
+        </label>
+        <label>Observed PR head
+          <input name="targetPullRequestHeadCommit" value="${this.escapeHtml(commit)}" placeholder="PR head after push">
+        </label>
+        <label>Push time
+          <input name="pushedAt" value="${this.escapeHtml(defaultTimestamp)}" placeholder="ISO timestamp">
+        </label>
+        <label>Evidence URL
+          <input name="evidenceUrl" value="${this.escapeHtml(evidenceUrl)}" placeholder="GitHub PR, push, or check URL">
+        </label>
+        <label>Summary
+          <textarea name="summary" rows="3" placeholder="Plain-language result of the operator-owned push."></textarea>
+        </label>
+        <button type="submit">Record Repair Push Result</button>
+        <p class="usage-summary" data-task-repair-push-result-status></p>
+      </form>
+    </article>`;
+  }
+
+  private renderTaskPageMessages(messages: unknown[]): string {
+    if (!messages.length) {
+      return '<p class="usage-summary">No local task messages recorded yet.</p>';
+    }
+
+    return `<ol class="task-page-messages">${messages.map(message => {
+      const record = this.recordFromUnknown(message);
+      return `<li>
+        <strong>${this.escapeHtml(this.stringFromUnknown(record.author) ?? 'operator')}</strong>
+        <span>${this.escapeHtml(this.stringFromUnknown(record.createdAt) ?? 'no timestamp')}</span>
+        <p>${this.escapeHtml(this.stringFromUnknown(record.body) ?? '')}</p>
+      </li>`;
+    }).join('')}</ol>`;
+  }
+
+  private renderTaskPageClarifications(clarifications: unknown[]): string {
+    if (!clarifications.length) {
+      return '<p class="usage-summary">No structured clarifications recorded yet.</p>';
+    }
+
+    // Clarifications are more structured than free-form messages. The task
+    // page shows question, answer, and pending status so the operator can see
+    // which task boundary still needs a human answer before delegation moves.
+    return `<ol class="task-page-messages">${clarifications.map(item => {
+      const record = this.recordFromUnknown(item);
+      const answer = this.stringFromUnknown(record.answer);
+      return `<li>
+        <strong>${this.escapeHtml(this.stringFromUnknown(record.status) ?? 'waiting_for_operator')}</strong>
+        <span>${this.escapeHtml(this.stringFromUnknown(record.createdAt) ?? 'no timestamp')}</span>
+        <p>${this.escapeHtml(this.stringFromUnknown(record.question) ?? '')}</p>
+        ${answer ? `<p><strong>Answer:</strong> ${this.escapeHtml(answer)}</p>` : '<p class="usage-summary">No operator answer recorded yet.</p>'}
+      </li>`;
+    }).join('')}</ol>`;
+  }
+
+  private renderTaskPageTimeline(events: unknown[]): string {
+    if (!events.length) {
+      return '<p class="usage-summary">No timeline events recorded yet.</p>';
+    }
+
+    return `<ol class="task-page-events">${events.map(event => {
+      const record = this.recordFromUnknown(event);
+      const url = this.stringFromUnknown(record.url);
+      return `<li>
+        <strong>${this.escapeHtml(this.stringFromUnknown(record.label) ?? this.stringFromUnknown(record.stage) ?? 'Timeline event')}</strong>
+        <span>${this.escapeHtml(this.stringFromUnknown(record.occurredAt) ?? 'no timestamp')}</span>
+        <em>${this.escapeHtml(this.stringFromUnknown(record.source) ?? 'symphony')}</em>
+        <p>${this.escapeHtml(this.stringFromUnknown(record.detail) ?? '')}</p>
+        ${url ? `<a href="${this.escapeHtml(url)}">Open evidence</a>` : ''}
+      </li>`;
+    }).join('')}</ol>`;
+  }
+
+  private renderTaskPageList(items: unknown[], emptyText: string): string {
+    if (!items.length) return `<p class="usage-summary">${this.escapeHtml(emptyText)}</p>`;
+    return `<ul>${items.map(item => `<li><code>${this.escapeHtml(item)}</code></li>`).join('')}</ul>`;
+  }
+
+  private renderTaskPagePacket(title: string, packet: unknown): string {
+    if (!packet) return '';
+    return `<article class="card task-page-packet">
+      <details>
+        <summary>${this.escapeHtml(title)}</summary>
+        <pre>${this.escapeHtml(JSON.stringify(packet, null, 2))}</pre>
+      </details>
+    </article>`;
+  }
+
+  private recordFromUnknown(value: unknown): Record<string, unknown> {
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : {};
+  }
+
+  private arrayFromUnknown(value: unknown): unknown[] {
+    return Array.isArray(value) ? value : [];
+  }
+
+  private stringFromUnknown(value: unknown): string | null {
+    return typeof value === 'string' ? value : null;
+  }
+
+  private buildDraftTaskDetail(
+    taskQueueUrl: string,
+    draft: TaskDraftSnapshot['drafts'][number] & {
+      links?: Record<string, string>;
+      next_action?: Record<string, unknown>;
+      handoff_readiness?: HandoffReadinessPacket;
+    },
+  ): Record<string, unknown> {
+    const actionLabel = this.readStringField(draft.next_action, 'label')
+      ?? draft.handoff_readiness?.nextOperatorAction.label
+      ?? draft.status;
+    const clarificationState = this.buildTaskClarificationState(draft.taskClarifications);
+
+    // This endpoint is the first task-detail API slice. It deliberately
+    // summarizes the same draft record already returned by /api/v1/task-drafts
+    // instead of creating a new task database or inventing separate state.
+    return {
+      kind: 'draft',
+      id: draft.id,
+      title: draft.title,
+      status: draft.status,
+      summary: this.readStringField(draft.next_action, 'summary') ?? draft.body,
+      currentBoundary: {
+        label: actionLabel,
+        detail: draft.handoff_readiness?.nextOperatorAction.detail ?? null,
+        endpoint: draft.handoff_readiness?.nextOperatorAction.endpoint ?? null,
+        method: draft.handoff_readiness?.nextOperatorAction.method ?? null,
+      },
+      needsHumanInput: clarificationState.status === 'waiting_for_operator',
+      expectedFiles: draft.expectedFiles,
+      verificationCommands: draft.verificationCommands,
+      timeline: {
+        summary: 'Timeline events: 0',
+        events: [],
+      },
+      links: {
+        self: draft.links?.taskDetail ?? `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(draft.id)}`,
+        page: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/tasks/${encodeURIComponent(draft.id)}`,
+        source: taskQueueUrl,
+        fullReceipt: `#task-draft-${draft.id}`,
+        taskMessages: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(draft.id)}/messages`,
+        taskClarifications: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(draft.id)}/clarifications`,
+        taskDisposition: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(draft.id)}/disposition`,
+        linearIssuePreview: draft.links?.linearIssuePreview ?? null,
+        julesManifestPreview: draft.links?.julesManifestPreview ?? null,
+        handoffReadiness: draft.links?.handoffReadiness ?? null,
+      },
+      taskMessages: draft.taskMessages ?? [],
+      taskClarifications: draft.taskClarifications ?? [],
+      clarificationState,
+      taskDisposition: draft.taskDisposition ?? null,
+      sourceRecord: draft,
+      mutatesGit: false,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+  }
+
+  private buildHandoffTaskDetail(
+    taskQueueUrl: string,
+    handoff: TaskDraftSnapshot['handoffs'][number] & {
+      links?: Record<string, string>;
+      next_action?: Record<string, unknown>;
+      local_sync_readiness?: LocalSyncReadinessPacket;
+      scout_core_readiness?: ScoutCoreReadinessPacket;
+      deployment_readiness?: DeploymentReadinessPacket;
+      launch_readiness?: JulesLaunchReadinessPacket;
+    },
+  ): Record<string, unknown> {
+    const timelineEvents = Array.isArray(handoff.handoffTimeline?.events)
+      ? handoff.handoffTimeline.events
+      : [];
+    const clarificationState = this.buildTaskClarificationState(handoff.taskClarifications);
+    const needsHumanInput = Boolean(handoff.operatorQuestion)
+      || clarificationState.status === 'waiting_for_operator';
+    const operatorQuestion = handoff.operatorQuestion as (typeof handoff.operatorQuestion & {
+      question?: string;
+    }) | null;
+    const julesPrompt = handoff.prompt.trim()
+      ? {
+          status: handoff.manifestPath ? 'manifest_staged' : 'prompt_prepared',
+          prompt: handoff.prompt,
+          manifestPath: handoff.manifestPath,
+          launchCommand: handoff.launchCommand,
+          statusCommand: handoff.statusCommand,
+          reviewCommand: handoff.reviewCommand,
+          pullCommand: handoff.pullCommand,
+          expectedFiles: handoff.expectedFiles,
+          verificationCommands: handoff.verificationCommands,
+          mutatesExternalSystems: false,
+          mutatesLocalFiles: false,
+        }
+      : null;
+    const operatorMessages = Array.isArray(handoff.operatorMessages) ? handoff.operatorMessages : [];
+    const planApprovals = Array.isArray(handoff.planApprovals) ? handoff.planApprovals : [];
+    const julesDialogue = {
+      summary: `${operatorMessages.length} operator-to-Jules message(s), ${planApprovals.length} plan approval attempt(s).`,
+      note: 'This is read-only history from the handoff. The task page does not send new Jules feedback.',
+      operatorMessages,
+      planApprovals,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+    const currentBoundaryLabel = needsHumanInput
+      ? 'Needs human input'
+      : this.readStringField(handoff.next_action, 'label') ?? handoff.status;
+    const guardedActions = this.buildHandoffGuardedActions(handoff);
+
+    // Handoffs are where Linear, Jules, GitHub, deployment, local sync, and ROI
+    // evidence meet. This response keeps those records together for future task
+    // pages and chat without exposing any mutation endpoint as a background run.
+    return {
+      kind: 'handoff',
+      id: handoff.id,
+      title: handoff.title,
+      status: handoff.status,
+      summary: this.readStringField(handoff.next_action, 'summary')
+        ?? handoff.githubPullRequestFeedback?.summary
+        ?? 'Handoff is waiting for the next recorded Symphony boundary.',
+      currentBoundary: {
+        label: currentBoundaryLabel,
+        detail: needsHumanInput
+          ? operatorQuestion?.plainLanguageQuestion ?? operatorQuestion?.question ?? null
+          : this.readStringField(handoff.next_action, 'detail'),
+        endpoint: this.readStringField(handoff.next_action, 'endpoint'),
+        method: this.readStringField(handoff.next_action, 'method'),
+      },
+      needsHumanInput,
+      expectedFiles: handoff.expectedFiles,
+      verificationCommands: handoff.verificationCommands,
+      timeline: {
+        summary: `Timeline events: ${timelineEvents.length}`,
+        generatedAt: handoff.handoffTimeline?.generatedAt ?? null,
+        events: timelineEvents,
+      },
+      links: {
+        self: handoff.links?.taskDetail ?? `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(handoff.id)}`,
+        page: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/tasks/${encodeURIComponent(handoff.id)}`,
+        source: taskQueueUrl,
+        fullReceipt: `#jules-handoff-${handoff.id}`,
+        linearIssue: handoff.linearIssueUrl ?? null,
+        julesSession: handoff.julesSessionUrl ?? null,
+        githubPullRequest: handoff.githubPullRequestUrl ?? null,
+        taskMessages: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(handoff.id)}/messages`,
+        taskClarifications: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(handoff.id)}/clarifications`,
+        taskDisposition: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(handoff.id)}/disposition`,
+        operatorAnswer: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/operator-answer`,
+        repairPushResult: handoff.repairPushReadiness && !handoff.repairPushResult
+          ? `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/repair-push-result`
+          : null,
+        refreshStatus: handoff.links?.refreshStatus ?? null,
+        refreshPullRequest: handoff.links?.refreshPullRequest ?? null,
+        deploymentReadiness: handoff.links?.deploymentReadiness ?? null,
+        localSyncReadiness: handoff.local_sync_readiness?.refreshUrl ?? null,
+        scoutCoreReadiness: handoff.scout_core_readiness?.refreshUrl ?? null,
+      },
+      taskMessages: handoff.taskMessages ?? [],
+      taskClarifications: handoff.taskClarifications ?? [],
+      clarificationState,
+      taskDisposition: handoff.taskDisposition ?? null,
+      guardedActions,
+      operatorQuestion: handoff.operatorQuestion ?? null,
+      operatorAnswers: handoff.operatorAnswers ?? [],
+      julesPrompt,
+      julesDialogue,
+      julesStateReconciliation: handoff.julesStateReconciliation ?? null,
+      delegationRoiLedger: handoff.delegationRoiLedger ?? null,
+      repairPushReadiness: handoff.repairPushReadiness ?? null,
+      repairPushResult: handoff.repairPushResult ?? null,
+      deploymentReadiness: handoff.deployment_readiness ?? null,
+      localSyncReadiness: handoff.local_sync_readiness ?? null,
+      scoutCoreReadiness: handoff.scout_core_readiness ?? null,
+      sourceRecord: handoff,
+      mutatesGit: false,
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+    };
+  }
+
+  private buildTaskClarificationState(value: unknown): Record<string, unknown> {
+    const clarifications = this.arrayFromUnknown(value);
+    const pending = clarifications.filter(item => {
+      const record = this.recordFromUnknown(item);
+      return this.stringFromUnknown(record.status) === 'waiting_for_operator';
+    });
+
+    // The clarification state is derived from local records only. It is the
+    // dashboard's plain-English signal that Codex still needs the operator to
+    // answer a task-boundary question before the task should move onward.
+    return {
+      status: pending.length ? 'waiting_for_operator' : clarifications.length ? 'answered' : 'none',
+      pendingCount: pending.length,
+      totalCount: clarifications.length,
+      latestQuestion: pending[0] ?? clarifications[0] ?? null,
+      summary: pending.length
+        ? `${pending.length} clarification question(s) still need an operator answer.`
+        : clarifications.length
+          ? 'All recorded clarification questions have answers.'
+          : 'No task clarifications have been recorded.',
+      mutatesExternalSystems: false,
+      mutatesLocalFiles: false,
+      mutatesGit: false,
+    };
+  }
+
+  private buildHandoffGuardedActions(
+    handoff: TaskDraftSnapshot['handoffs'][number] & {
+      next_action?: Record<string, unknown>;
+      local_sync_readiness?: LocalSyncReadinessPacket;
+      scout_core_readiness?: ScoutCoreReadinessPacket;
+      deployment_readiness?: DeploymentReadinessPacket;
+    },
+  ): Array<Record<string, unknown>> {
+    const actions: Array<Record<string, unknown>> = [];
+    const nextAction = handoff.next_action ?? {};
+    const nextEndpoint = this.readStringField(nextAction, 'endpoint') ?? this.readStringField(nextAction, 'url');
+    const nextMethod = this.readStringField(nextAction, 'method') ?? (nextEndpoint ? 'POST' : null);
+
+    if (nextEndpoint) {
+      actions.push({
+        code: this.readStringField(nextAction, 'code') ?? 'current_boundary',
+        label: this.readStringField(nextAction, 'label') ?? 'Run guarded current-boundary endpoint',
+        summary: this.readStringField(nextAction, 'summary') ?? this.readStringField(nextAction, 'detail') ?? 'Use the guarded Symphony endpoint for the current boundary.',
+        endpoint: nextEndpoint,
+        method: nextMethod,
+        safety: 'guarded_symphony_endpoint',
+        requiresOperator: true,
+        canRunNow: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        mutatesGitIfRun: false,
+      });
+    }
+
+    const prAction = handoff.githubPullRequestNextAction as Record<string, unknown> | null;
+    const feedbackCommand = this.readStringField(prAction ?? undefined, 'feedbackCommand');
+    if (feedbackCommand) {
+      actions.push({
+        code: 'jules_pr_feedback',
+        label: 'Prepare Jules PR feedback comment',
+        summary: 'Operator-run GitHub comment command for marked Jules feedback. Symphony shows it but does not post it.',
+        command: feedbackCommand,
+        safety: 'operator_run_github_comment',
+        requiresOperator: true,
+        canRunNow: false,
+        mutatesExternalSystemsIfRun: true,
+        mutatesLocalFilesIfRun: false,
+        mutatesGitIfRun: false,
+      });
+    }
+
+    const repairPushReadiness = handoff.repairPushReadiness as Record<string, unknown> | null;
+    const repairPushCommand = this.formatWorktreeGitCommand(
+      this.readStringField(repairPushReadiness ?? undefined, 'pushCommand'),
+      this.readStringField(repairPushReadiness ?? undefined, 'worktreePath'),
+    );
+    if (repairPushCommand && !handoff.repairPushResult) {
+      actions.push({
+        code: 'repair_push',
+        label: 'Push prepared repair to PR branch',
+        summary: 'Operator-owned GitHub mutation. Record the repair push result after this command is run outside Symphony.',
+        command: repairPushCommand,
+        safety: 'operator_run_git_push',
+        requiresOperator: true,
+        canRunNow: false,
+        mutatesExternalSystemsIfRun: true,
+        mutatesLocalFilesIfRun: false,
+        mutatesGitIfRun: false,
+      });
+    }
+
+    const syncUrl = handoff.local_sync_readiness?.syncUrl ?? null;
+    if (syncUrl) {
+      actions.push({
+        code: 'local_sync',
+        label: 'Run guarded local sync',
+        summary: 'Fast-forward local sync is available only after merge, deployment evidence, and local Git safety checks pass.',
+        endpoint: syncUrl,
+        method: 'POST',
+        safety: 'guarded_local_git_mutation',
+        requiresOperator: true,
+        canRunNow: true,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: true,
+        mutatesGitIfRun: true,
+      });
+    }
+
+    // The task page should expose only actionable runbook entries. Empty arrays
+    // are meaningful: they tell future UI layers there is no current command to
+    // promote without forcing them to inspect raw handoff JSON.
+    return actions;
+  }
+
+  private formatWorktreeGitCommand(command: string | null, worktreePath: string | null): string | null {
+    if (!command) return null;
+
+    // The repair readiness packet stores the canonical Git push command. The
+    // task page adds `git -C <worktree>` for human copy/paste safety so the
+    // operator runs the command from the prepared repair worktree, not whichever
+    // directory their terminal happens to be in.
+    if (!worktreePath || !command.startsWith('git push ')) {
+      return command;
+    }
+
+    const escapedPath = worktreePath.includes(' ') ? `"${worktreePath.replace(/"/g, '\\"')}"` : worktreePath;
+    return `git -C ${escapedPath} ${command.slice('git '.length)}`;
+  }
+
+  private readStringField(source: Record<string, unknown> | undefined, field: string): string | null {
+    const value = source?.[field];
+    return typeof value === 'string' ? value : null;
+  }
+
+  private async handleTaskMessage(
+    taskId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: TaskMessageInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with author and body.' },
+      }));
+      return;
+    }
+
+    try {
+      const body = typeof payload.body === 'string' ? payload.body.trim() : '';
+      if (!body) {
+        throw new Error('Task message body is required.');
+      }
+
+      // Task messages are local foreman/operator notes. They are intentionally
+      // separate from the Jules feedback endpoint because this route must be
+      // safe for dashboard chat and should never mutate external systems.
+      const snapshot = await this.taskIntake.recordTaskMessage(decodeURIComponent(taskId), {
+        author: payload.author,
+        body,
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_task_message', message: (err as Error).message },
+      }));
+    }
+  }
+
+  private async handleTaskClarification(
+    taskId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: TaskClarificationInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with question and optional answer.' },
+      }));
+      return;
+    }
+
+    try {
+      const question = typeof payload.question === 'string' ? payload.question.trim() : '';
+      if (!question) {
+        throw new Error('Task clarification question is required.');
+      }
+
+      // Clarification records are the structured part of the local Codex
+      // foreman conversation. They let the dashboard block or unblock task
+      // handoff based on human-readable questions without sending anything to
+      // Jules, Linear, GitHub, or local Git.
+      const snapshot = await this.taskIntake.recordTaskClarification(decodeURIComponent(taskId), {
+        question,
+        answer: payload.answer,
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_task_clarification', message: (err as Error).message },
+      }));
+    }
+  }
+
+  private async handleTaskDisposition(
+    taskId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: TaskDispositionInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with state and optional reason.' },
+      }));
+      return;
+    }
+
+    try {
+      // Disposition is the local filing layer for the task workspace. It can
+      // hide stale work from the active queue or mark a task abandoned, but it
+      // deliberately does not close Linear, comment on Jules/GitHub, or change
+      // local Git state.
+      const snapshot = await this.taskIntake.recordTaskDisposition(decodeURIComponent(taskId), {
+        state: payload.state,
+        reason: payload.reason,
+        recordedBy: payload.recordedBy,
+      });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_task_disposition', message: (err as Error).message },
+      }));
+    }
+  }
+
+  private buildDelegationRoiCodexUsageInput(): DelegationRoiCodexUsageInput | null {
+    const state = this.orchestrator.getSnapshot() as {
+      codex_totals?: {
+        input_tokens?: number;
+        output_tokens?: number;
+        total_tokens?: number;
+        seconds_running?: number;
+      };
+    };
+    const totals = state.codex_totals;
+    if (!totals) return null;
+
+    // The task queue is the dashboard's task-level view, while Codex usage
+    // totals live on the orchestrator state. This bridge lets the ROI ledger
+    // display real measured spend when the runtime has it, without inventing
+    // savings or duplicating usage storage in the task-intake file.
+    return {
+      inputTokens: totals.input_tokens,
+      outputTokens: totals.output_tokens,
+      totalTokens: totals.total_tokens,
+      secondsRunning: totals.seconds_running,
+      source: 'codex_totals',
+    };
   }
 
   private withTaskCapabilities(snapshot: TaskDraftSnapshot): TaskDraftSnapshot & {
@@ -1160,6 +2490,7 @@ export class HttpServer {
         links,
         launch_readiness: this.buildJulesLaunchReadinessPacket(baseUrl, handoff),
         scout_core_readiness: this.buildScoutCoreReadinessPacket(baseUrl, handoff),
+        deployment_readiness: this.buildDeploymentReadinessPacket(handoff),
         local_sync_readiness: this.buildLocalSyncReadinessPacket(baseUrl, handoff),
         next_action: this.buildHandoffNextAction(baseUrl, handoff),
       };
@@ -2340,6 +3671,7 @@ export class HttpServer {
   private buildDraftLinks(baseUrl: string, draftId: string): Record<string, string> {
     const encoded = encodeURIComponent(draftId);
     return {
+      taskDetail: `${baseUrl}/api/v1/tasks/${encoded}`,
       handoffReadiness: `${baseUrl}/api/v1/task-drafts/${encoded}/handoff-readiness`,
       linearIssuePreview: `${baseUrl}/api/v1/task-drafts/${encoded}/linear-preview`,
       julesManifestPreview: `${baseUrl}/api/v1/task-drafts/${encoded}/jules-manifest-preview`,
@@ -2651,6 +3983,7 @@ export class HttpServer {
   private buildHandoffLinks(baseUrl: string, handoffId: string): Record<string, string> {
     const encoded = encodeURIComponent(handoffId);
     return {
+      taskDetail: `${baseUrl}/api/v1/tasks/${encoded}`,
       stageManifest: `${baseUrl}/api/v1/jules-handoffs/${encoded}/stage-manifest`,
       launch: `${baseUrl}/api/v1/jules-handoffs/${encoded}/launch`,
       launchReadiness: `${baseUrl}/api/v1/jules-handoffs/${encoded}/launch-readiness`,
@@ -2659,6 +3992,7 @@ export class HttpServer {
       approvePlan: `${baseUrl}/api/v1/jules-handoffs/${encoded}/approve-plan`,
       refreshPullRequest: `${baseUrl}/api/v1/jules-handoffs/${encoded}/refresh-pr`,
       createFollowUpDraft: `${baseUrl}/api/v1/jules-handoffs/${encoded}/create-follow-up-draft`,
+      deploymentReadiness: `${baseUrl}/api/v1/jules-handoffs/${encoded}/deployment-readiness`,
       refreshLocalSync: `${baseUrl}/api/v1/jules-handoffs/${encoded}/refresh-local-sync`,
       syncLocal: `${baseUrl}/api/v1/jules-handoffs/${encoded}/sync-local`,
     };
@@ -2773,8 +4107,9 @@ export class HttpServer {
     const status = handoff.localSyncStatus;
     const dashboardStarted = handoff.status !== 'observed_pr';
     const prMerged = handoff.githubPullRequestState === 'MERGED';
+    const deploymentSatisfied = this.isDeploymentGateSatisfied(handoff);
     const canRefreshNow = Boolean(dashboardStarted && handoff.githubPullRequestUrl);
-    const canSyncNow = Boolean(dashboardStarted && prMerged && status?.safeToPull);
+    const canSyncNow = Boolean(dashboardStarted && prMerged && deploymentSatisfied && status?.safeToPull);
     const packetStatus: LocalSyncReadinessPacket['status'] = !dashboardStarted
       ? 'observed'
       : !prMerged || !status
@@ -2827,6 +4162,72 @@ export class HttpServer {
           ? 'Recorded local-sync check proving local master already matches GitHub after the Jules merge.'
           : 'Refreshed local-sync check proving PR merge state and local checkout safety before any pull.',
       safetyNote: 'Read-only packet: this response does not pull from GitHub, mutate Git, overwrite local files, or mark the handoff complete. The sync URL is present only when the existing local-sync guard says a fast-forward pull is safe.',
+    };
+  }
+
+  private buildDeploymentReadinessPacket(
+    handoff: TaskDraftSnapshot['handoffs'][number],
+  ): DeploymentReadinessPacket {
+    const dashboardStarted = handoff.status !== 'observed_pr';
+    const prMerged = handoff.githubPullRequestState === 'MERGED';
+    const evidence = handoff.deploymentEvidence ?? null;
+    const repo = this.extractGitHubRepository(handoff.githubPullRequestUrl);
+    const canRefreshNow = Boolean(dashboardStarted && prMerged && repo.owner && repo.name);
+    const status: DeploymentReadinessPacket['status'] = !dashboardStarted
+      ? 'observed'
+      : evidence?.status === 'passed' || evidence?.status === 'failed' || evidence?.status === 'waived'
+        ? evidence.status
+      : prMerged
+        ? 'needs_check'
+        : 'waiting_for_merge';
+    const commands = repo.owner && repo.name
+      ? {
+          latestPagesBuild: `gh api repos/${repo.owner}/${repo.name}/pages/builds/latest`,
+          recentDeployments: `gh api repos/${repo.owner}/${repo.name}/deployments --field per_page=5`,
+          deploymentStatuses: 'gh api repos/OWNER/REPO/deployments/DEPLOYMENT_ID/statuses',
+        }
+      : {
+          latestPagesBuild: null,
+          recentDeployments: null,
+          deploymentStatuses: null,
+        };
+    const blockers = this.buildDeploymentReadinessBlockers(handoff, dashboardStarted, prMerged, repo);
+
+    // Deployment readiness is the cloud-publish checkpoint between GitHub merge
+    // and local sync. It only tells the operator where to inspect Pages/build
+    // evidence; it never creates deployments, reruns workflows, or pulls Git.
+    return {
+      handoffId: handoff.id,
+      title: handoff.title,
+      status,
+      canRefreshNow,
+      canProceedToLocalSync: evidence?.status === 'passed' || evidence?.status === 'waived',
+      mutatesExternalSystemsIfRun: false,
+      mutatesLocalFilesIfRun: false,
+      pr: {
+        url: handoff.githubPullRequestUrl,
+        state: handoff.githubPullRequestState,
+        dashboardStarted,
+      },
+      repository: repo,
+      commands,
+      evidence,
+      blockers,
+      safetyChecklist: [
+        'Confirm GitHub reports the PR merged before checking deployment state.',
+        'Use read-only GitHub Pages or deployment-status queries first.',
+        'Do not sync local master until deployment evidence is recorded or the operator explicitly accepts skipping that gate.',
+      ],
+      expectedNextProof: evidence?.status === 'passed'
+        ? 'Local sync readiness may now proceed using the recorded deployment success receipt.'
+        : evidence?.status === 'waived'
+          ? 'Local sync readiness may now proceed because the operator explicitly waived deployment proof.'
+          : evidence?.status === 'failed'
+            ? 'Repair or explicitly waive the failed deployment before local sync.'
+            : prMerged
+        ? 'GitHub Pages deployment or latest Pages build proof, then local-sync readiness can be checked.'
+        : 'Merged PR receipt before any GitHub Pages deployment check is treated as meaningful.',
+      safetyNote: 'Read-only packet: this response does not create a GitHub Pages deployment, rerun Actions, mutate GitHub, pull Git, or edit local files.',
     };
   }
 
@@ -2893,6 +4294,8 @@ export class HttpServer {
         ? 'Core validation receipt, merge receipt, refreshed PR state, then local sync readiness.'
         : status === 'merged'
           ? 'Refreshed PR state showing merged status, then local sync readiness.'
+          : status === 'waiting_for_checks_rerun'
+            ? 'GitHub checks complete after the recorded repair push, then Symphony refreshes PR state and Scout/Core readiness.'
           : 'Refreshed PR checks, changed-file risk, Scout review disposition, and Core validation decision before merge.',
       safetyNote: 'Read-only packet: this response does not run Scout, merge the PR, call GitHub, mutate Git, or write local files. Core merge remains an explicit external command after checks and Scout review are clear.',
     };
@@ -2907,6 +4310,7 @@ export class HttpServer {
     if (!dashboardStarted) return 'observed';
     if (!handoff.githubPullRequestUrl || !handoff.lastPullRequestRefreshAt) return 'waiting';
     if (handoff.githubPullRequestState === 'MERGED' || actionCode === 'check_local_sync') return 'merged';
+    if (handoff.repairPushResult?.status === 'pushed') return 'waiting_for_checks_rerun';
     if (actionCode === 'core_validate_and_merge') return 'ready_for_core';
     if (
       actionCode === 'scout_bridge_risk'
@@ -2933,7 +4337,7 @@ export class HttpServer {
   private scoutCoreNextBoundary(status: ScoutCoreReadinessPacket['status']): ScoutCoreReadinessPacket['nextBoundary'] {
     if (status === 'ready_for_core') return 'core_merge';
     if (status === 'merged') return 'local_sync';
-    if (status === 'waiting' || status === 'blocked_by_pr') return 'github_pr';
+    if (status === 'waiting' || status === 'waiting_for_checks_rerun' || status === 'blocked_by_pr') return 'github_pr';
     return 'scout_core';
   }
 
@@ -2954,6 +4358,12 @@ export class HttpServer {
       if (!handoff.githubPullRequestChecks || handoff.githubPullRequestChecks.conclusion !== 'passing') {
         blockers.push('GitHub checks are not conclusively passing yet.');
       }
+    }
+
+    if (status === 'waiting_for_checks_rerun') {
+      blockers.push('A repair push was recorded; wait for GitHub checks to rerun and refresh the PR packet before Scout/Core can validate.');
+      if (handoff.repairPushResult?.checksCommand) blockers.push(`Check rerun command: ${handoff.repairPushResult.checksCommand}`);
+      if (handoff.repairPushResult?.refreshEndpoint) blockers.push(`Refresh endpoint after checks: ${handoff.repairPushResult.refreshEndpoint}`);
     }
 
     if (status === 'blocked_by_pr') {
@@ -3016,12 +4426,52 @@ export class HttpServer {
     if (!dashboardStarted) blockers.push('Observed PR records are read-only; local sync belongs to a dashboard-started merged Jules PR.');
     if (!handoff.githubPullRequestUrl) blockers.push('No GitHub PR URL is recorded for this handoff.');
     if (!prMerged) blockers.push('GitHub has not reported this Jules PR as merged yet.');
+    if (prMerged && !this.isDeploymentGateSatisfied(handoff)) {
+      blockers.push('Deployment proof or operator waiver is required before local sync can run.');
+    }
     if (!status) blockers.push('Run Check Local Sync to capture current branch, dirty files, ahead/behind, and fast-forward safety.');
 
     return [
       ...blockers,
       ...(status?.blockers ?? []),
     ];
+  }
+
+  private buildDeploymentReadinessBlockers(
+    handoff: TaskDraftSnapshot['handoffs'][number],
+    dashboardStarted: boolean,
+    prMerged: boolean,
+    repo: { owner: string | null; name: string | null },
+  ): string[] {
+    const blockers: string[] = [];
+
+    if (!dashboardStarted) blockers.push('Observed PR records are read-only learning records; deployment tracking belongs to dashboard-started Jules handoffs.');
+    if (!handoff.githubPullRequestUrl) blockers.push('No GitHub PR URL is recorded yet.');
+    if (dashboardStarted && !prMerged) blockers.push('PR is not merged, so deployment state is not the next boundary yet.');
+    if (!repo.owner || !repo.name) blockers.push('GitHub repository could not be derived from the PR URL.');
+
+    return this.uniqueNonEmptyStrings(blockers);
+  }
+
+  private isDeploymentGateSatisfied(handoff: TaskDraftSnapshot['handoffs'][number]): boolean {
+    const status = handoff.deploymentEvidence?.status ?? null;
+    return status === 'passed' || status === 'waived';
+  }
+
+  private extractGitHubRepository(prUrl: string | null): { owner: string | null; name: string | null } {
+    if (!prUrl) {
+      return { owner: null, name: null };
+    }
+
+    const match = prUrl.match(/github\.com\/([^/]+)\/([^/]+)(?:\/|$)/i);
+    if (!match) {
+      return { owner: null, name: null };
+    }
+
+    return {
+      owner: match[1],
+      name: match[2].replace(/\.git$/i, ''),
+    };
   }
 
   private buildLocalSyncSafetyChecklist(canSyncNow: boolean, dashboardStarted: boolean): string[] {
@@ -3584,6 +5034,270 @@ export class HttpServer {
       res.writeHead(409, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         error: { code: 'jules_message_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleDelegationRoiEstimate(
+    handoffId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: DelegationRoiEstimateInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with avoided-work estimate fields.' }
+      }));
+      return;
+    }
+
+    try {
+      // The ROI estimate endpoint mutates only Symphony's local task record. It
+      // does not contact Jules, GitHub, Linear, or local Git; it gives the
+      // dashboard a documented counterfactual estimate to compare with measured
+      // Codex usage in the handoff ledger.
+      const snapshot = await this.taskIntake.recordDelegationRoiEstimate(
+        decodeURIComponent(handoffId),
+        payload
+      );
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'delegation_roi_estimate_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleDelegationRoiForemanUsage(
+    handoffId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: DelegationRoiForemanUsageInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with measured foreman usage.' }
+      }));
+      return;
+    }
+
+    try {
+      // Foreman usage is measured local evidence for one task. This endpoint
+      // records it beside the handoff so the ROI ledger can distinguish
+      // task-scoped Codex spend from global runtime totals.
+      const snapshot = await this.taskIntake.recordDelegationRoiForemanUsage(
+        decodeURIComponent(handoffId),
+        payload
+      );
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'delegation_roi_foreman_usage_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleOperatorPreferences(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    let payload: OperatorPreferencesInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_operator_preferences', message: 'Operator preference payload must be valid JSON.' }
+      }));
+      return;
+    }
+
+    try {
+      // Preference updates change only Symphony's local waiting policy. They do
+      // not notify the operator, message Jules, create Linear work, touch
+      // GitHub, write project files, or mutate Git.
+      const snapshot = await this.taskIntake.recordOperatorPreferences(payload);
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'operator_preferences_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleOperatorAnswer(
+    handoffId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: HandoffOperatorAnswerInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with selectedAction and answer.' }
+      }));
+      return;
+    }
+
+    try {
+      // Recording an operator answer is deliberately local-state only. It gives
+      // the foreman a durable receipt for the chosen repair lane before any
+      // later endpoint creates Linear work, comments on GitHub, or sends Jules
+      // feedback.
+      const snapshot = await this.taskIntake.recordOperatorAnswer(
+        decodeURIComponent(handoffId),
+        payload
+      );
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'operator_answer_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleExecuteRepairLane(handoffId: string, res: ServerResponse): Promise<void> {
+    try {
+      // The first executable repair lane is deliberately conservative: it turns
+      // the recorded operator answer into a new local setup-repair draft. That
+      // draft can later go through the normal Git/Linear/Jules gates.
+      const snapshot = await this.taskIntake.executeSelectedRepairLane(decodeURIComponent(handoffId));
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'repair_lane_execution_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleRepairPushReadiness(
+    handoffId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: HandoffRepairPushReadinessInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with repair branch, commit, worktree, files, and verification.' }
+      }));
+      return;
+    }
+
+    try {
+      // This is the non-mutating bridge from local repair work to an external
+      // GitHub push. It stores the exact receipt and push command so the
+      // operator can approve the mutation explicitly in a later step.
+      const snapshot = await this.taskIntake.recordRepairPushReadiness(
+        decodeURIComponent(handoffId),
+        payload
+      );
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'repair_push_readiness_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleRepairPushResult(
+    handoffId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: HandoffRepairPushResultInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with push status, pushed commit, evidence URL, and summary.' }
+      }));
+      return;
+    }
+
+    try {
+      // This records the result of an operator-approved GitHub push after the
+      // human has crossed that boundary. Symphony still does not push, rerun
+      // checks, merge, or pull local Git from this endpoint.
+      const snapshot = await this.taskIntake.recordRepairPushResult(
+        decodeURIComponent(handoffId),
+        payload
+      );
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'repair_push_result_failed', message: (err as Error).message }
+      }));
+    }
+  }
+
+  private async handleDeploymentEvidence(
+    handoffId: string,
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
+    let payload: HandoffDeploymentEvidenceInput = {};
+
+    try {
+      payload = JSON.parse(await this.readRequestBody(req));
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'bad_json', message: 'Expected JSON body with deployment status, source, evidence URL, and summary.' }
+      }));
+      return;
+    }
+
+    try {
+      // Deployment evidence is a local receipt for the cloud-publish gate. It
+      // does not create deployments or pull Git; it only records the operator's
+      // proof or waiver so local sync has a durable prerequisite.
+      const snapshot = await this.taskIntake.recordDeploymentEvidence(
+        decodeURIComponent(handoffId),
+        payload
+      );
+
+      res.writeHead(202, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(this.withTaskCapabilities(snapshot), null, 2));
+    } catch (err) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: { code: 'deployment_evidence_failed', message: (err as Error).message }
       }));
     }
   }
