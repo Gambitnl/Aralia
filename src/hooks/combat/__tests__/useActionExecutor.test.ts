@@ -4,14 +4,6 @@ import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
 import { CombatCharacter, CombatAction, TurnState, Ability } from '../../../types/combat';
 
-/**
- * This file tests the action executor hook that spends combat resources, moves
- * characters, and fires reaction attacks.
- *
- * The battle UI calls this hook when a player or enemy tries to act. These tests
- * keep movement, Dash, blocked tiles, and opportunity attacks from drifting
- * apart as the combat system grows.
- */
 describe('useActionExecutor', () => {
     // Mocks
     const mockEndTurn = vi.fn();
@@ -44,9 +36,6 @@ describe('useActionExecutor', () => {
             armorProficiencies: [],
             weaponProficiencies: [],
             features: []
-        // DEBT: The full class shape is larger than this hook test needs. This
-        // cast keeps the fixture focused on combat action behavior; a shared
-        // class fixture should replace it once combat tests standardize setup.
         } as any,
         stats: {
             strength: 16,
@@ -337,8 +326,6 @@ describe('useActionExecutor', () => {
     });
 
     it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', () => {
-        // This weapon intentionally lacks proficiency. The expected attack log
-        // should show only the Strength modifier, not Strength plus proficiency.
         const unproficientWeapon = {
             id: 'unproficient_weapon',
             name: 'Heavy Club',

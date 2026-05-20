@@ -86,11 +86,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        # Feature PRs are not allowed to commit package-lock.json because the
-        # coordinator owns lockfile updates across batch runs. npm install lets
-        # this PR prove its code while leaving that lockfile repair out of the
-        # branch diff.
-        run: npm install --no-audit --no-fund
+        run: npm ci
       
       - name: Type check
         run: npx tsc --noEmit
@@ -112,10 +108,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        # Keep the PR free of lockfile changes while still installing the
-        # dependency tree needed for lint. The poison gate remains responsible
-        # for proving package-lock.json was not committed.
-        run: npm install --no-audit --no-fund
+        run: npm ci
       
       - name: Run ESLint
         run: npm run lint
@@ -136,9 +129,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        # The advisory scan should inspect the PR's source changes without
-        # forcing a lockfile mutation into a feature branch.
-        run: npm install --no-audit --no-fund
+        run: npm ci
       
       - name: Run advisory quality scan
         run: npm run scan
@@ -170,10 +161,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        # Tests need the same non-committed install path as build and lint so
-        # regression coverage can run while coordinator-managed lockfiles stay
-        # out of this PR.
-        run: npm install --no-audit --no-fund
+        run: npm ci
       
       - name: Run tests
         run: npm test -- --run
