@@ -230,7 +230,22 @@ server.taskIntake = {
         julesState: 'COMPLETED',
         githubPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/931',
         githubPullRequestState: 'OPEN',
-        githubPullRequestChecks: { total: 4, passed: 0, failed: 4, pending: 0, skipped: 0, unknown: 0, conclusion: 'failure', artifacts: [] },
+        githubPullRequestChecks: {
+          total: 4,
+          passed: 0,
+          failed: 4,
+          pending: 0,
+          skipped: 0,
+          unknown: 0,
+          conclusion: 'failure',
+          failedChecks: [
+            { name: 'Build', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-build' },
+            { name: 'Lint', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-lint' },
+            { name: 'Tests', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-tests' },
+            { name: 'Quality Scan (advisory)', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-quality' },
+          ],
+          artifacts: [],
+        },
         githubPullRequestFeedback: { totalComments: 0, julesFeedback: [], scoutConflictComments: [], externalReviewComments: [], summary: 'No PR feedback recorded.' },
         githubPullRequestNextAction: {
           label: 'Resolve CI Setup Blocker',
@@ -321,6 +336,10 @@ try {
   assert.match(page.body, /does not push, rerun checks, comment on GitHub, merge, or edit local files/);
   assert.match(page.body, /Check conclusion<\/dt><dd>failure/);
   assert.match(page.body, /Checks failed<\/dt><dd>4/);
+  assert.match(page.body, />Build<\/a>/);
+  assert.match(page.body, />Lint<\/a>/);
+  assert.match(page.body, />Tests<\/a>/);
+  assert.match(page.body, />Quality Scan \(advisory\)<\/a>/);
   assert.match(page.body, /Repair push status<\/dt><dd>awaiting_operator_push_approval/);
   assert.match(page.body, /Repair freshness<\/dt><dd>matches_current_pr_head/);
   assert.match(page.body, /Prepared repair files: package-lock\.json/);

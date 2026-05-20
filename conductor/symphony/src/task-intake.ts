@@ -2870,6 +2870,7 @@ interface PullRequestCheckSummary {
   skipped: number;
   unknown: number;
   conclusion: 'passing' | 'failing' | 'pending' | 'unknown';
+  failedChecks: Array<{ name: string; detailsUrl: string | null }>;
   artifacts: PullRequestCheckArtifact[];
   blockers: PullRequestCheckBlocker[];
 }
@@ -7771,6 +7772,11 @@ export function summarizePullRequestChecks(
         : checks.length > 0 && unknown === 0
           ? 'passing'
           : 'unknown',
+    // Failed check names are kept as first-class evidence so the task page and
+    // foreman packets can say "Build, Lint, Tests, Quality Scan failed"
+    // without making the operator open raw GitHub JSON or infer names from a
+    // broader setup-blocker paragraph.
+    failedChecks,
     artifacts,
     blockers: classifyPullRequestCheckBlockers(failedChecks),
   };

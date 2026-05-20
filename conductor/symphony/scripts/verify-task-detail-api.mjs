@@ -100,7 +100,22 @@ server.taskIntake = {
         githubPullRequestReviewDecision: null,
         githubPullRequestHeadRef: 'add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885',
         githubPullRequestBaseRef: 'master',
-        githubPullRequestChecks: { total: 4, passed: 0, failed: 4, pending: 0, skipped: 0, unknown: 0, conclusion: 'failure', artifacts: [] },
+        githubPullRequestChecks: {
+          total: 4,
+          passed: 0,
+          failed: 4,
+          pending: 0,
+          skipped: 0,
+          unknown: 0,
+          conclusion: 'failure',
+          failedChecks: [
+            { name: 'Build', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-build' },
+            { name: 'Lint', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-lint' },
+            { name: 'Tests', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-tests' },
+            { name: 'Quality Scan (advisory)', detailsUrl: 'https://github.com/Gambitnl/Aralia/actions/runs/ci-quality' },
+          ],
+          artifacts: [],
+        },
         githubPullRequestFiles: { total: 3, additions: 127, deletions: 19, files: [] },
         githubPullRequestFeedback: { totalComments: 0, julesFeedback: [], scoutConflictComments: [], externalReviewComments: [], summary: 'No PR feedback recorded.' },
         githubPullRequestNextAction: {
@@ -275,6 +290,12 @@ try {
   assert.equal(handoffDetail.julesDialogue.mutatesExternalSystems, false);
   assert.equal(handoffDetail.githubPullRequestChecks.failed, 4);
   assert.equal(handoffDetail.githubPullRequestChecks.conclusion, 'failure');
+  assert.deepEqual(handoffDetail.githubPullRequestChecks.failedChecks.map(check => check.name), [
+    'Build',
+    'Lint',
+    'Tests',
+    'Quality Scan (advisory)',
+  ]);
   assert.match(handoffDetail.githubPullRequestNextAction.label, /Resolve CI Setup Blocker/);
   assert.match(handoffDetail.pullRequestChecksCommand, /gh pr checks 931/);
   assert.equal(handoffDetail.githubPullRequestState, 'OPEN');

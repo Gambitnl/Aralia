@@ -1860,6 +1860,7 @@ export class HttpServer {
     const refreshEndpoint = this.stringFromUnknown(result.refreshEndpoint)
       ?? this.stringFromUnknown(postPush.refreshEndpoint)
       ?? this.stringFromUnknown(scoutCore.refreshEndpoint);
+    const failedChecks = this.extractTaskPageFailedChecks(checks);
 
     // The PR check and repair card is the operator-facing bridge between a
     // failing GitHub PR and the later Scout/Core gate. It does not rerun checks
@@ -1878,6 +1879,7 @@ export class HttpServer {
         <div><dt>Repair freshness</dt><dd>${this.escapeHtml(this.stringFromUnknown(readiness.freshnessStatus) ?? 'unknown')}</dd></div>
       </dl>
       ${this.stringFromUnknown(nextAction.label) ? `<p><strong>${this.escapeHtml(this.stringFromUnknown(nextAction.label) ?? '')}</strong>: ${this.escapeHtml(this.stringFromUnknown(nextAction.summary) ?? '')}</p>` : ''}
+      ${failedChecks.length ? `<ul>${failedChecks.map(check => `<li>${check.detailsUrl ? `<a href="${this.escapeHtml(check.detailsUrl)}">${this.escapeHtml(check.name)}</a>` : this.escapeHtml(check.name)}</li>`).join('')}</ul>` : ''}
       ${changedFiles.length ? `<p class="usage-summary">Prepared repair files: ${this.escapeHtml(changedFiles.map(file => String(file)).join(', '))}</p>` : ''}
       ${verificationCommands.length ? `<p class="usage-summary">Local repair verification: ${this.escapeHtml(verificationCommands.map(command => String(command)).join('; '))}</p>` : ''}
       ${repairCommand && !Object.keys(result).length ? `<p><strong>Operator-owned repair push:</strong> <code>${this.escapeHtml(repairCommand)}</code></p>` : ''}
@@ -1886,6 +1888,40 @@ export class HttpServer {
       ${refreshEndpoint ? `<p><strong>After-push PR refresh:</strong> <code>${this.escapeHtml(refreshEndpoint)}</code></p>` : ''}
       <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(readiness.nextExpectedProof) ?? this.stringFromUnknown(result.nextExpectedProof) ?? this.stringFromUnknown(scoutCore.expectedNextProof) ?? 'Next proof is GitHub check rerun evidence followed by Symphony PR refresh and Scout/Core readiness update.')}</p>
     </article>`;
+  }
+
+  private extractTaskPageFailedChecks(checks: Record<string, unknown>): Array<{ name: string; detailsUrl: string | null }> {
+    const direct = this.arrayFromUnknown(checks.failedChecks)
+      .map(item => {
+        const record = this.recordFromUnknown(item);
+        const name = this.stringFromUnknown(record.name);
+        return name ? {
+          name,
+          detailsUrl: this.stringFromUnknown(record.detailsUrl),
+        } : null;
+      })
+      .filter((item): item is { name: string; detailsUrl: string | null } => Boolean(item));
+    if (direct.length) return direct;
+
+    // Older handoff snapshots may only have blocker packets, not the newer
+    // first-class failedChecks list. Reuse blocker evidence so the task page
+    // remains informative for ARA-6 without requiring a GitHub refresh or a
+    // mutation just to render existing failed check names.
+    const blockers = this.arrayFromUnknown(checks.blockers);
+    const recovered = new Map<string, string | null>();
+    for (const blocker of blockers) {
+      const record = this.recordFromUnknown(blocker);
+      for (const name of this.arrayFromUnknown(record.checkNames)) {
+        const text = String(name);
+        if (text) recovered.set(text, null);
+      }
+      for (const evidence of this.arrayFromUnknown(record.evidence)) {
+        const text = String(evidence);
+        const [name, url] = text.split(/:\s+/, 2);
+        if (name) recovered.set(name, url && /^https?:\/\//.test(url) ? url : recovered.get(name) ?? null);
+      }
+    }
+    return [...recovered.entries()].map(([name, detailsUrl]) => ({ name, detailsUrl }));
   }
 
   private renderTaskPageOperatorAnswer(detail: Record<string, unknown>): string {

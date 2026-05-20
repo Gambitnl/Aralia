@@ -60,6 +60,8 @@ const ara6SetupBlockedChecks = summarizePullRequestChecks([
 ]);
 
 assert.equal(ara6SetupBlockedChecks.conclusion, 'failing');
+assert.deepEqual(ara6SetupBlockedChecks.failedChecks.map(check => check.name), ['🔨 Build', '🎨 Lint', '🧪 Tests', 'Quality Scan (advisory)']);
+assert.equal(ara6SetupBlockedChecks.failedChecks[0].detailsUrl, 'https://github.com/Gambitnl/Aralia/actions/runs/26130846019/job/76855371593');
 assert.equal(ara6SetupBlockedChecks.blockers.length, 1);
 assert.equal(ara6SetupBlockedChecks.blockers[0].category, 'workflow_setup');
 assert.equal(ara6SetupBlockedChecks.blockers[0].mutatesExternalSystems, false);

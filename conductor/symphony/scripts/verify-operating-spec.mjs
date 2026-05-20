@@ -62,7 +62,8 @@ assert.match(spec, /current operator question, latest local answer\s+when presen
 assert.match(spec, /without approving or running anything/);
 assert.match(spec, /existing GitHub PR check summary and PR check\/view commands as read-only\s+task fields/);
 assert.match(spec, /`PR Checks And Repair`/);
-assert.match(spec, /without pushing, rerunning checks,\s+commenting on GitHub, merging, or editing local files/);
+assert.match(spec, /individual failed check names plus their details links/);
+assert.match(spec, /without pushing, rerunning checks, commenting\s+on GitHub, merging, or editing local files/);
 assert.match(spec, /readable `ROI Evidence` summary/);
 assert.match(spec, /missing task-scoped usage receipts, missing avoided-work\s+estimates, and broad goal-context usage/);
 assert.match(spec, /does not count as measured task\s+spend or unlock a savings claim/);

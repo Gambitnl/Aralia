@@ -247,6 +247,13 @@ checks, merge, pull, or edit local files. Rendered proof
 dashboard-safe port 8136 with `Approval Checkpoint`, `External mutation if run`,
 and `Records local proof only` visible and no browser console errors.
 
+Task 3/7 addendum: the task detail API now preserves PR failed check
+names/details links alongside the aggregate PR check summary, and `/tasks/:id`
+renders them inside `PR Checks And Repair`. The ARA-6 page can therefore show
+individual failed checks such as Build, Lint, Tests, and Quality Scan from the
+first-class `failedChecks` packet or from older blocker evidence, without
+refreshing GitHub or running a push/check mutation.
+
 ## Dashboard Improvements Identified By ARA-6
 
 These are implementation targets, not proof claims:

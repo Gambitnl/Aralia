@@ -85,6 +85,8 @@ assert.match(openTasks, /goal-context usage is not measured savings/);
 assert.match(openTasks, /task-page PR-check summary visible/);
 assert.match(openTasks, /`PR Checks And Repair`/);
 assert.match(openTasks, /PR check summary, PR next action, PR check\/view commands, PR state\/head fields/);
+assert.match(openTasks, /failed check\s+names\/details links/);
+assert.match(openTasks, /individual failed checks such as Build, Lint, Tests, and Quality Scan/);
 assert.match(openTasks, /readable `Deployment And Local Sync`/);
 assert.match(openTasks, /deployment blockers, local-sync blockers, mutation flags, and expected proof/);
 assert.match(openTasks, /Read-only external-state refresh/);
