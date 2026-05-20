@@ -70,6 +70,8 @@ assert.match(openTasks, /local task message be recorded as either `operator` or 
 assert.match(openTasks, /View-only task activity mirror/);
 assert.match(openTasks, /Task Activity Mirror/);
 assert.match(openTasks, /does not read terminal scrollback, and does not mutate external systems/);
+assert.match(openTasks, /view-only task activity mirror now reads those structured records/);
+assert.match(openTasks, /live task chat usage, ROI, and real worker dispatch/);
 assert.match(openTasks, /Read-only external-state refresh/);
 assert.match(openTasks, /PR #931 is still open, not draft, mergeable, unchanged at head `0c0d9480`/);
 assert.match(openTasks, /latest PR update `2026-05-19T23:09:48Z`/);

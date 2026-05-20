@@ -71,6 +71,8 @@ assert.match(audit, /record a local message as either `operator` or\s+`codex_for
 assert.match(audit, /does not become a second task store or a hidden Jules feedback channel/);
 assert.match(audit, /Task Activity Mirror` renders the same durable\s+timeline events, local task messages, and structured clarifications/);
 assert.match(audit, /does not read terminal scrollback or mutate external systems/);
+assert.match(audit, /a view-only `Task Activity Mirror`, and readiness packets/);
+assert.match(audit, /live task-chat usage are still open/);
 assert.match(audit, /local-only `Record Operator Answer`/);
 assert.match(audit, /local-only `Record Repair Push Result`/);
 assert.match(audit, /guarded operator action runbook/);
