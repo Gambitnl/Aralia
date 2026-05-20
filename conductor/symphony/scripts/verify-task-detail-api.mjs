@@ -273,6 +273,11 @@ try {
   assert.equal(handoffDetail.julesDialogue.planApprovals.length, 1);
   assert.match(handoffDetail.julesDialogue.summary, /1 operator-to-Jules message/);
   assert.equal(handoffDetail.julesDialogue.mutatesExternalSystems, false);
+  assert.equal(handoffDetail.githubPullRequestChecks.failed, 4);
+  assert.equal(handoffDetail.githubPullRequestChecks.conclusion, 'failure');
+  assert.match(handoffDetail.githubPullRequestNextAction.label, /Resolve CI Setup Blocker/);
+  assert.match(handoffDetail.pullRequestChecksCommand, /gh pr checks 931/);
+  assert.equal(handoffDetail.githubPullRequestState, 'OPEN');
   assert.equal(handoffDetail.guardedActions.length, 3);
   assert.deepEqual(handoffDetail.guardedActions.map(action => action.code), [
     'current_boundary',

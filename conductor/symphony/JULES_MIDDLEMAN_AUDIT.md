@@ -151,6 +151,17 @@ dashboard-safe port 8136 with the checkpoint visible and no browser console
 errors. This is a clarification surface for the approval blocker, not a new
 approval system or external action button.
 
+The task detail API and page now also expose the PR-check repair boundary in
+plain language. `verify-task-detail-api.mjs` proves `GET /api/v1/tasks/:id`
+carries the existing `githubPullRequestChecks`, `githubPullRequestNextAction`,
+PR check command, PR view command, PR state, and PR head ref into the task
+detail packet. `verify-task-detail-page.mjs` proves `/tasks/:id` renders
+`PR Checks And Repair` with the failing check count, prepared repair freshness,
+local verification, operator-owned repair push command, and after-push check
+and PR-refresh instructions. This is a read-only view over existing PR and
+repair receipts; it does not push, rerun checks, comment on GitHub, merge, or
+edit local files.
+
 The human-blocker path now has a baseline packet and local preference layer. Handoff snapshots generate a read-only `operatorQuestion` when the PR repair decision needs the operator, the dashboard renders `Needs your input` and a `pending-human-input` badge, and `verify-operator-question-packet.mjs` proves the default weekday 01:00-09:00 Europe/Amsterdam quiet-hours policy suppresses immediate notification and sets the next check to 09:00 local time. `verify-operator-preferences.mjs` now proves `operatorPreferences.quietHours` is local dashboard state: it defaults to that Amsterdam weekday window, can override time zone/start/end/weekdays-only settings, can disable quiet hours, feeds the derived operator question, and renders `Operator Preferences` plus `Record Operator Preferences` without touching Jules, GitHub, Linear, local files, or Git. The question verifier also proves the later repair-push boundary becomes `sourceStage: repair_push_approval` with approve/reject/wait choices and no execute-repair-lane button, so the operator sees the push decision as a task question instead of hunting for it inside the technical readiness panel. It also proves repair-push approval takes precedence over the older repair-lane question when both packets remain on the handoff for audit history. `verify-operator-answer-recording.mjs` now proves `approve_repair_push` is recordable as a local non-mutating answer receipt and moves routing to an `operator_only` `Record repair push result` boundary, so the dashboard does not keep asking the old approval question and does not imply that GitHub checks can rerun before the external push is recorded. `verify-handoff-timeline.mjs` labels that later event as `Repair push approval answer recorded` rather than another repair-lane answer. Rendered proof `repair-push-approval-question-2026-05-20.png` captures that push-approval question layout as a local non-mutating fixture. This is not yet the full task-scoped Codex chat; it is the explicit blocker/preference record for ARA-6's repair-lane and repair-push decisions.
 
 The operator-answer receipt is now locally implemented. `verify-operator-answer-recording.mjs` proves an ARA-6-style handoff can record the chosen repair lane as `operatorAnswers`, persist the answer on the handoff, expose dashboard/API hooks, and keep `mutatesExternalSystems: false` plus `mutatesLocalFiles: false`. This records the answer only; it does not create a setup repair task, send Jules feedback, comment on GitHub, or touch local Git.

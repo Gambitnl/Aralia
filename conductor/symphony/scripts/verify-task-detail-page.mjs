@@ -237,6 +237,8 @@ server.taskIntake = {
           summary: 'Prepare a marked Jules feedback comment if the operator rejects the setup repair.',
           feedbackCommand: 'gh pr comment https://github.com/Gambitnl/Aralia/pull/931 --body-file .jules/feedback/handoff-detail-page-pr-feedback.md',
         },
+        pullRequestChecksCommand: 'gh pr checks 931 --repo Gambitnl/Aralia',
+        pullRequestViewCommand: 'gh pr view 931 --repo Gambitnl/Aralia',
         next_action: {
           label: 'Resolve CI Setup Blocker',
           summary: 'Repair the setup blocker before judging Jules implementation quality.',
@@ -315,6 +317,16 @@ try {
   assert.match(page.body, /Decision needed:/);
   assert.match(page.body, /Operator-run command:/);
   assert.match(page.body, /This checkpoint is read-only local guidance|does not approve plans, send Jules feedback, comment on GitHub, push branches, rerun checks, merge, pull, or edit local files/);
+  assert.match(page.body, /PR Checks And Repair/);
+  assert.match(page.body, /does not push, rerun checks, comment on GitHub, merge, or edit local files/);
+  assert.match(page.body, /Check conclusion<\/dt><dd>failure/);
+  assert.match(page.body, /Checks failed<\/dt><dd>4/);
+  assert.match(page.body, /Repair push status<\/dt><dd>awaiting_operator_push_approval/);
+  assert.match(page.body, /Repair freshness<\/dt><dd>matches_current_pr_head/);
+  assert.match(page.body, /Prepared repair files: package-lock\.json/);
+  assert.match(page.body, /Local repair verification: npm ci --dry-run/);
+  assert.match(page.body, /After-push check command:<\/strong> <code>gh pr checks 931 --repo Gambitnl\/Aralia<\/code>/);
+  assert.match(page.body, /After-push PR refresh:<\/strong> <code>\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-pr<\/code>/);
   assert.match(page.body, /Operator Answer/);
   assert.match(page.body, /Record Operator Answer/);
   assert.match(page.body, /Approve repair push/);

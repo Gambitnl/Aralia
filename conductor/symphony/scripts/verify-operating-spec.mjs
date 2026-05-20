@@ -60,6 +60,9 @@ assert.match(spec, /do not execute repair lanes,\s+send Jules feedback, push to 
 assert.match(spec, /read-only `Approval\s+Checkpoint`/);
 assert.match(spec, /current operator question, latest local answer\s+when present, the still-external guarded command, and the next proof receipt/);
 assert.match(spec, /without approving or running anything/);
+assert.match(spec, /existing GitHub PR check summary and PR check\/view commands as read-only\s+task fields/);
+assert.match(spec, /`PR Checks And Repair`/);
+assert.match(spec, /without pushing, rerunning checks,\s+commenting on GitHub, merging, or editing local files/);
 assert.match(spec, /readable `ROI Evidence` summary/);
 assert.match(spec, /missing task-scoped usage receipts, missing avoided-work\s+estimates, and broad goal-context usage/);
 assert.match(spec, /does not count as measured task\s+spend or unlock a savings claim/);
@@ -555,6 +558,8 @@ assert.match(openTasks, /direct Playwright MCP transport failure/);
 assert.match(openTasks, /verify-task-doc-consolidation\.mjs/);
 assert.match(openTasks, /baseline Symphony-side reconciliation of the missing local PR URL/);
 assert.match(openTasks, /Baseline timeline, navigator, filters, detail preview, task page, single-task read API, Jules prompt\/dialogue packets, local task filing, local task messages, structured task clarifications, and task-page local action receipts implemented/);
+assert.match(openTasks, /PR check summary, PR next action, PR check\/view commands, PR state\/head fields/);
+assert.match(openTasks, /readable `PR Checks And Repair`/);
 assert.match(openTasks, /verify-handoff-timeline\.mjs` proves the ARA-6-style event order/);
 assert.match(openTasks, /dashboard renders `Task timeline` entries/);
 assert.match(openTasks, /Task navigator/);

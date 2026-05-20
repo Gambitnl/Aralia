@@ -1574,6 +1574,7 @@ export class HttpServer {
 
       ${this.renderTaskPageGuardedActions(detail)}
       ${this.renderTaskPageApprovalCheckpoint(detail)}
+      ${this.renderTaskPagePrCheckRepairEvidence(detail)}
       ${this.renderTaskPageOperatorAnswer(detail)}
       ${this.renderTaskPageRepairPushResult(detail)}
 
@@ -1829,6 +1830,61 @@ export class HttpServer {
       ${endpoint ? `<p><strong>Guarded endpoint:</strong> <code>${this.escapeHtml(`${method ?? 'POST'} ${endpoint}`)}</code></p>` : ''}
       <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(checkpoint.nextExpectedProof) ?? 'Record the next proof receipt before advancing the workflow.')}</p>
       <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(checkpoint.safetyNote) ?? 'This checkpoint is read-only local guidance.')}</p>
+    </article>`;
+  }
+
+  private renderTaskPagePrCheckRepairEvidence(detail: Record<string, unknown>): string {
+    const checks = this.recordFromUnknown(detail.githubPullRequestChecks);
+    const nextAction = this.recordFromUnknown(detail.githubPullRequestNextAction);
+    const readiness = this.recordFromUnknown(detail.repairPushReadiness);
+    const result = this.recordFromUnknown(detail.repairPushResult);
+    const scoutCore = this.recordFromUnknown(detail.scoutCoreReadiness);
+    if (
+      !Object.keys(checks).length
+      && !Object.keys(nextAction).length
+      && !Object.keys(readiness).length
+      && !Object.keys(result).length
+      && !Object.keys(scoutCore).length
+    ) return '';
+
+    const changedFiles = this.arrayFromUnknown(readiness.changedFiles);
+    const verificationCommands = this.arrayFromUnknown(readiness.verificationCommands);
+    const postPush = this.recordFromUnknown(readiness.postPushFollowUp);
+    const repairCommand = this.formatWorktreeGitCommand(
+      this.stringFromUnknown(readiness.pushCommand),
+      this.stringFromUnknown(readiness.worktreePath),
+    );
+    const checkCommand = this.stringFromUnknown(result.checkCommand)
+      ?? this.stringFromUnknown(scoutCore.githubChecksCommand)
+      ?? this.stringFromUnknown(detail.pullRequestChecksCommand);
+    const refreshEndpoint = this.stringFromUnknown(result.refreshEndpoint)
+      ?? this.stringFromUnknown(postPush.refreshEndpoint)
+      ?? this.stringFromUnknown(scoutCore.refreshEndpoint);
+
+    // The PR check and repair card is the operator-facing bridge between a
+    // failing GitHub PR and the later Scout/Core gate. It does not rerun checks
+    // or push code; it only makes the current failure count, prepared repair,
+    // and required after-push proof visible in one place.
+    return `<article class="card task-page-pr-repair">
+      <h2>PR Checks And Repair</h2>
+      <p class="usage-summary">Read-only summary of the GitHub check and prepared-repair boundary. This section does not push, rerun checks, comment on GitHub, merge, or edit local files.</p>
+      <dl class="task-page-facts">
+        <div><dt>PR state</dt><dd>${this.escapeHtml(this.stringFromUnknown(detail.githubPullRequestState) ?? 'unknown')}</dd></div>
+        <div><dt>Check conclusion</dt><dd>${this.escapeHtml(this.stringFromUnknown(checks.conclusion) ?? 'unknown')}</dd></div>
+        <div><dt>Checks passed</dt><dd>${this.escapeHtml(String(this.numberFromUnknown(checks.passed) ?? 0))}</dd></div>
+        <div><dt>Checks failed</dt><dd>${this.escapeHtml(String(this.numberFromUnknown(checks.failed) ?? 0))}</dd></div>
+        <div><dt>Checks pending</dt><dd>${this.escapeHtml(String(this.numberFromUnknown(checks.pending) ?? 0))}</dd></div>
+        <div><dt>Repair push status</dt><dd>${this.escapeHtml(this.stringFromUnknown(readiness.status) ?? this.stringFromUnknown(result.status) ?? 'not_recorded')}</dd></div>
+        <div><dt>Repair freshness</dt><dd>${this.escapeHtml(this.stringFromUnknown(readiness.freshnessStatus) ?? 'unknown')}</dd></div>
+      </dl>
+      ${this.stringFromUnknown(nextAction.label) ? `<p><strong>${this.escapeHtml(this.stringFromUnknown(nextAction.label) ?? '')}</strong>: ${this.escapeHtml(this.stringFromUnknown(nextAction.summary) ?? '')}</p>` : ''}
+      ${changedFiles.length ? `<p class="usage-summary">Prepared repair files: ${this.escapeHtml(changedFiles.map(file => String(file)).join(', '))}</p>` : ''}
+      ${verificationCommands.length ? `<p class="usage-summary">Local repair verification: ${this.escapeHtml(verificationCommands.map(command => String(command)).join('; '))}</p>` : ''}
+      ${repairCommand && !Object.keys(result).length ? `<p><strong>Operator-owned repair push:</strong> <code>${this.escapeHtml(repairCommand)}</code></p>` : ''}
+      ${Object.keys(result).length ? `<p><strong>Recorded push result:</strong> ${this.escapeHtml(this.stringFromUnknown(result.summary) ?? this.stringFromUnknown(result.status) ?? 'recorded')}</p>` : ''}
+      ${checkCommand ? `<p><strong>After-push check command:</strong> <code>${this.escapeHtml(checkCommand)}</code></p>` : ''}
+      ${refreshEndpoint ? `<p><strong>After-push PR refresh:</strong> <code>${this.escapeHtml(refreshEndpoint)}</code></p>` : ''}
+      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(readiness.nextExpectedProof) ?? this.stringFromUnknown(result.nextExpectedProof) ?? this.stringFromUnknown(scoutCore.expectedNextProof) ?? 'Next proof is GitHub check rerun evidence followed by Symphony PR refresh and Scout/Core readiness update.')}</p>
     </article>`;
   }
 
@@ -2339,6 +2395,12 @@ export class HttpServer {
       julesPrompt,
       julesDialogue,
       julesStateReconciliation: handoff.julesStateReconciliation ?? null,
+      githubPullRequestChecks: handoff.githubPullRequestChecks ?? null,
+      githubPullRequestNextAction: handoff.githubPullRequestNextAction ?? null,
+      pullRequestChecksCommand: handoff.pullRequestChecksCommand ?? null,
+      pullRequestViewCommand: handoff.pullRequestViewCommand ?? null,
+      githubPullRequestState: handoff.githubPullRequestState ?? null,
+      githubPullRequestHeadRef: handoff.githubPullRequestHeadRef ?? null,
       delegationRoiLedger: handoff.delegationRoiLedger ?? null,
       repairPushReadiness: handoff.repairPushReadiness ?? null,
       repairPushResult: handoff.repairPushResult ?? null,

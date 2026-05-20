@@ -103,7 +103,13 @@ send Jules feedback, push to GitHub, rerun checks, merge, pull, or edit local
 files. The task detail packet and page now also render a read-only `Approval
 Checkpoint` that summarizes the current operator question, latest local answer
 when present, the still-external guarded command, and the next proof receipt
-without approving or running anything. The task page now also renders a
+without approving or running anything. The task detail packet now also exposes
+the existing GitHub PR check summary and PR check/view commands as read-only
+task fields, and the task page renders those fields as `PR Checks And Repair`.
+That card keeps the current check conclusion, failed/pending counts, prepared
+repair freshness, local verification, operator-owned push command, and
+after-push check/refresh instructions visible without pushing, rerunning checks,
+commenting on GitHub, merging, or editing local files. The task page now also renders a
 readable `ROI Evidence` summary from the same `delegationRoiLedger` packet so
 the operator can see missing task-scoped usage receipts, missing avoided-work
 estimates, and broad goal-context usage without opening raw JSON. That card must

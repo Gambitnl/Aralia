@@ -82,6 +82,9 @@ assert.match(openTasks, /missing proof pieces and keeps broad\s+goal-context usa
 assert.match(openTasks, /symphony-task-roi-evidence\.png/);
 assert.match(openTasks, /\/tasks\/:id` now renders a readable `ROI Evidence` card/);
 assert.match(openTasks, /goal-context usage is not measured savings/);
+assert.match(openTasks, /task-page PR-check summary visible/);
+assert.match(openTasks, /`PR Checks And Repair`/);
+assert.match(openTasks, /PR check summary, PR next action, PR check\/view commands, PR state\/head fields/);
 assert.match(openTasks, /readable `Deployment And Local Sync`/);
 assert.match(openTasks, /deployment blockers, local-sync blockers, mutation flags, and expected proof/);
 assert.match(openTasks, /Read-only external-state refresh/);
