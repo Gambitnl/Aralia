@@ -4,6 +4,14 @@ import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
 import { CombatCharacter, CombatAction, TurnState, Ability } from '../../../types/combat';
 
+/**
+ * This file tests the action executor hook that spends combat resources, moves
+ * characters, and fires reaction attacks.
+ *
+ * The battle UI calls this hook when a player or enemy tries to act. These tests
+ * keep movement, Dash, blocked tiles, and opportunity attacks from drifting
+ * apart as the combat system grows.
+ */
 describe('useActionExecutor', () => {
     // Mocks
     const mockEndTurn = vi.fn();
@@ -36,6 +44,9 @@ describe('useActionExecutor', () => {
             armorProficiencies: [],
             weaponProficiencies: [],
             features: []
+        // DEBT: The full class shape is larger than this hook test needs. This
+        // cast keeps the fixture focused on combat action behavior; a shared
+        // class fixture should replace it once combat tests standardize setup.
         } as any,
         stats: {
             strength: 16,
@@ -128,9 +139,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'action1',
             characterId: 'char1',
-            type: 'move' as 'move',
+            type: 'move' as const,
             targetPosition: { x: 1, y: 1 },
-            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -154,9 +165,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'action1',
             characterId: 'char1',
-            type: 'move' as 'move',
+            type: 'move' as const,
             targetPosition: { x: 1, y: 1 },
-            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -200,9 +211,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'blocked-move',
             characterId: mockCharacter.id,
-            type: 'move' as 'move',
+            type: 'move' as const,
             targetPosition: blocker.position,
-            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -221,7 +232,7 @@ describe('useActionExecutor', () => {
             name: 'Dash',
             description: 'Gain extra movement for the turn.',
             type: 'movement',
-            cost: { type: 'action' as 'action' },
+            cost: { type: 'action' as const },
             targeting: 'self',
             range: 0,
             effects: [{ type: 'movement', value: 30 }]
@@ -274,18 +285,18 @@ describe('useActionExecutor', () => {
             id: 'scimitar',
             name: 'Scimitar',
             description: 'A close melee attack.',
-            type: 'attack' as 'attack',
-            cost: { type: 'action' as 'action' },
-            targeting: 'single_enemy' as 'single_enemy',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
             range: 1,
-            effects: [{ type: 'damage' as 'damage', value: 4, damageType: 'physical' as 'physical' }]
+            effects: [{ type: 'damage' as const, value: 4, damageType: 'physical' as const }]
         };
         const mover = { ...mockCharacter, position: { x: 0, y: 1 } };
         const attacker: CombatCharacter = {
             ...mockCharacter,
             id: 'orc',
             name: 'Orc',
-            team: 'enemy' as 'enemy',
+            team: 'enemy' as const,
             position: { x: 0, y: 0 },
             abilities: [scimitar],
             actionEconomy: {
@@ -305,9 +316,9 @@ describe('useActionExecutor', () => {
         const action: CombatAction = {
             id: 'leave-reach',
             characterId: mover.id,
-            type: 'move' as 'move',
+            type: 'move' as const,
             targetPosition: { x: 0, y: 2 },
-            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
             timestamp: Date.now()
         };
 
@@ -326,16 +337,18 @@ describe('useActionExecutor', () => {
     });
 
     it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', () => {
+        // This weapon intentionally lacks proficiency. The expected attack log
+        // should show only the Strength modifier, not Strength plus proficiency.
         const unproficientWeapon = {
             id: 'unproficient_weapon',
             name: 'Heavy Club',
             description: 'A heavy melee attack.',
-            type: 'attack' as 'attack',
-            cost: { type: 'action' as 'action' },
-            targeting: 'single_enemy' as 'single_enemy',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
             range: 1,
             isProficient: false,
-            effects: [{ type: 'damage' as 'damage', value: 4, damageType: 'physical' as 'physical' }]
+            effects: [{ type: 'damage' as const, value: 4, damageType: 'physical' as const }]
         };
         const mover = { ...mockCharacter, position: { x: 0, y: 1 } };
         const attacker = {
@@ -347,7 +360,7 @@ describe('useActionExecutor', () => {
                 ...mockCharacter.stats,
                 strength: 14 // +2 mod
             },
-            team: 'enemy' as 'enemy',
+            team: 'enemy' as const,
             position: { x: 0, y: 0 },
             abilities: [unproficientWeapon],
             actionEconomy: {
@@ -367,9 +380,9 @@ describe('useActionExecutor', () => {
         const action = {
             id: 'leave-reach',
             characterId: mover.id,
-            type: 'move' as 'move',
+            type: 'move' as const,
             targetPosition: { x: 0, y: 2 },
-            cost: { type: 'movement-only' as 'movement-only', movementCost: 5 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
             timestamp: Date.now()
         };
 
