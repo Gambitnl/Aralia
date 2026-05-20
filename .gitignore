@@ -44,6 +44,7 @@ conductor/symphony/scripts/*
 !conductor/symphony/scripts/verify-task-clarification-api.mjs
 !conductor/symphony/scripts/verify-task-disposition-api.mjs
 !conductor/symphony/scripts/verify-task-doc-consolidation.mjs
+!conductor/symphony/scripts/verify-ara6-assumed-approval-decision-report.mjs
 !conductor/symphony/scripts/verify-operator-question-packet.mjs
 !conductor/symphony/scripts/verify-operator-preferences.mjs
 !conductor/symphony/scripts/verify-operator-answer-recording.mjs
@@ -58,6 +59,9 @@ conductor/symphony/docs/*
 !conductor/symphony/docs/tasks/
 conductor/symphony/docs/tasks/*
 !conductor/symphony/docs/tasks/**/*.md
+!conductor/symphony/docs/decision-reports/
+conductor/symphony/docs/decision-reports/*
+!conductor/symphony/docs/decision-reports/*.md
 
 # Experimental 3D POCs
 src/components/ThreeDModal/Experimental/
