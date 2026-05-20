@@ -1978,10 +1978,11 @@ export class HttpServer {
     const defaultTimestamp = new Date().toISOString();
     const commit = this.stringFromUnknown(readiness.commit) ?? '';
     const evidenceUrl = this.stringFromUnknown(readiness.targetPullRequestUrl) ?? '';
-    const pushCommand = this.formatWorktreeGitCommand(
-      this.stringFromUnknown(readiness.pushCommand),
-      this.stringFromUnknown(readiness.worktreePath),
-    );
+    const pushCommand = this.stringFromUnknown(readiness.worktreeQualifiedPushCommand)
+      ?? this.formatWorktreeGitCommand(
+        this.stringFromUnknown(readiness.pushCommand),
+        this.stringFromUnknown(readiness.worktreePath),
+      );
 
     // The push-result form starts only after a readiness packet exists. It is a
     // receipt for a human-owned GitHub mutation, not a button that performs the

@@ -20,6 +20,11 @@ assert.match(audit, /operator-owned boundary means external or workflow-advancin
 assert.match(audit, /Linear, Jules, GitHub, PR branches, deployment waiver, local master sync, or\s+user-visible task decision/);
 assert.match(audit, /does not mean ordinary local Symphony hygiene\s+such as documentation edits, verifier updates, local API\/dashboard code edits/);
 assert.match(audit, /local checkpoint commits when those changes do not\s+push, launch, merge, sync, contact external systems/);
+assert.match(audit, /canonical list of approval boundaries is\s+now `docs\/JULES_MIDDLEMAN_OPERATING_SPEC\.md#approval-boundaries`/);
+assert.match(audit, /canonical workflow phase list is\s+`docs\/JULES_MIDDLEMAN_OPERATING_SPEC\.md#workflow-phases`/);
+assert.match(audit, /without maintaining a competing ladder/);
+assert.match(audit, /operator has allowed assumed approvals at\s+each phase boundary/);
+assert.match(audit, /decision point, options considered, agent decision, rationale\/evidence/);
 assert.match(audit, /Repository hygiene is part of that proof discipline/);
 assert.match(audit, /Symphony runtime state and\s+live proof output belong under ignored paths/);
 assert.match(audit, /contract verifiers are durable source/);
@@ -100,6 +105,8 @@ assert.match(audit, /repair-push guarded action, local-only\s+`Record Repair Pus
 assert.match(audit, /exact operator-owned command now\s+waiting for approval/);
 assert.match(audit, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair\s+push origin\s+codex\/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885/);
 assert.match(audit, /dashboard displays the worktree-qualified command/);
+assert.match(audit, /safer command first-class packet data/);
+assert.match(audit, /approval-routing\s+detail, guarded task action, and task detail API expose `git -C/);
 assert.match(audit, /local `Approval Checkpoint`/);
 assert.match(audit, /`approvalCheckpoint` packet/);
 assert.match(audit, /preferred still-external guarded command/);

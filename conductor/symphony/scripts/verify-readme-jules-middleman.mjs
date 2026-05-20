@@ -21,6 +21,10 @@ assert.match(readme, /When the docs or active goal say a mutation needs operator
 assert.match(readme, /external or workflow-advancing boundary: Linear, Jules, GitHub, PR branch\s+updates, deployment waivers, local master sync, or user-visible task decisions/);
 assert.match(readme, /Ordinary local Symphony implementation hygiene, including docs edits, verifier\s+updates, dashboard\/API code edits, local verifier runs, and local checkpoint\s+commits/);
 assert.match(readme, /not blocked on that approval unless it would push, launch, merge,\s+sync, contact external systems/);
+assert.match(readme, /canonical approval-boundary table lives in\s+`docs\/JULES_MIDDLEMAN_OPERATING_SPEC\.md#approval-boundaries`/);
+assert.match(readme, /canonical workflow-phase table lives in\s+`docs\/JULES_MIDDLEMAN_OPERATING_SPEC\.md#workflow-phases`/);
+assert.match(readme, /allowed Symphony\/Codex to\s+assume approval at each phase boundary/);
+assert.match(readme, /decision point, options, decision made, rationale\/evidence/);
 assert.match(readme, /Reconciles ambiguous Jules state/);
 assert.match(readme, /Jules API\/GitHub fallback evidence/);
 assert.match(readme, /Codex app browser inspection/);

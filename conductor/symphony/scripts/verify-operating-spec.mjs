@@ -88,12 +88,55 @@ assert.match(spec, /An operator-approved mutation is an external or\s+workflow-a
 assert.match(spec, /does\s+not include ordinary local implementation hygiene inside the active Symphony\s+workstream/);
 assert.match(spec, /documentation edits, verifier updates, local API\/dashboard code\s+changes, local verifier runs, or local checkpoint commits/);
 assert.match(spec, /do not push,\s+launch, merge, sync, contact external systems, or claim a live workflow boundary\s+has advanced/);
+assert.match(spec, /### Approval Boundaries/);
+assert.match(spec, /canonical approval-boundary list for Symphony\/Jules work/);
+for (const boundary of [
+  'Linear issue creation or update',
+  'Jules manifest staging',
+  'Jules launch or session action',
+  'GitHub PR feedback',
+  'GitHub PR branch update',
+  'GitHub CI mutation',
+  'Scout/Core validation or merge',
+  'Deployment waiver or repair',
+  'Local repository sync',
+  'User-visible task decision',
+]) {
+  assert.match(spec, new RegExp(boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+}
+assert.match(spec, /do \*\*not\*\* need operator approval by themselves/);
+assert.match(spec, /local docs edits,\s+verifier updates, local dashboard\/API code changes/);
+assert.match(spec, /For the current ARA-6 end-to-end test flow/);
+assert.match(spec, /assume approval at each phase boundary/);
+assert.match(spec, /Each assumed approval must\s+produce a decision report entry/);
+assert.match(spec, /phase, decision point, available\s+options, decision made by the agent, evidence\/rationale/);
+assert.match(spec, /### Workflow Phases/);
+assert.match(spec, /canonical phase list for the dashboard-created\s+Symphony\/Jules path/);
+assert.match(spec, /global `middlemanPath` packet exposes the\s+same ordered ladder/);
+assert.match(spec, /\| Phase id \| Owner \| Purpose \| Read-only evidence \| Mutation boundary \| Typical worker mode \| Completion receipt \|/);
+for (const phase of [
+  '`git_sync`',
+  '`linear_issue`',
+  '`jules_manifest`',
+  '`jules_launch`',
+  '`jules_session`',
+  '`github_pr`',
+  '`scout_core`',
+  '`deployment`',
+  '`local_sync`',
+]) {
+  assert.match(spec, new RegExp(phase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+}
+assert.match(spec, /Task timelines may add finer\s+receipt events inside these phases/i);
+assert.match(spec, /`operator_only` while blocked; `observe_wait` for read-only checks/);
+assert.match(spec, /`observe_wait` for refresh; `local_careful` for local setup repair; `operator_only` for GitHub mutations/);
 assert.match(spec, /Read-only refreshes should say what was observed, what did not mutate/);
 assert.match(spec, /Conversation memory is not a\s+durable status ledger/);
 assert.match(spec, /Task detail pages should expose guarded operator actions as runbook evidence/);
 assert.match(spec, /current Symphony endpoint, a marked Jules PR feedback comment command/);
 assert.match(spec, /prepared repair push command, or a future local-sync command/);
 assert.match(spec, /must carry\s+mutation flags and must not become automatic buttons/);
+assert.match(spec, /worktree-qualified `git -C <repair worktree> push \.\.\.` command/);
 assert.match(spec, /task-page-guarded-actions-2026-05-20\.png/);
 assert.match(spec, /live JSON receipt confirms the repair-push guarded\s+action is absent until `repairPushReadiness` is recorded/);
 assert.match(spec, /task-page-guarded-actions-after-readiness-2026-05-20\.png/);

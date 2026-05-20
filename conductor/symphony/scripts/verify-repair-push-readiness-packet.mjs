@@ -164,11 +164,14 @@ try {
   assert.equal(handoff.repairPushReadiness.mutatesExternalSystemsIfRun, true);
   assert.equal(handoff.repairPushReadiness.mutatesLocalFiles, false);
   assert.match(handoff.repairPushReadiness.pushCommand, /git push origin codex\/pr-931-setup-repair/);
+  assert.match(handoff.repairPushReadiness.worktreeQualifiedPushCommand, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin codex\/pr-931-setup-repair/);
+  assert.match(handoff.repairPushReadiness.nextExpectedProof, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin/);
   assert.match(handoff.repairPushReadiness.nextExpectedProof, /GitHub checks rerun/i);
   assert.match(handoff.repairPushReadiness.freshnessSummary, /repair base .* matches the current PR head/i);
 
   const persisted = JSON.parse(await readFile(storePath, 'utf8'));
   assert.equal(persisted.handoffs[0].repairPushReadiness.commit, '19eb1cd4');
+  assert.match(persisted.handoffs[0].repairPushReadiness.worktreeQualifiedPushCommand, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin/);
 
   const staleSnapshot = await store.recordRepairPushReadiness(handoffId, {
     source: 'local_commit',

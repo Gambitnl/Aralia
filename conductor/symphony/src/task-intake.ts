@@ -645,6 +645,7 @@ export interface HandoffRepairPushReadiness {
   verificationCommands: string[];
   verificationSummary: string;
   pushCommand: string;
+  worktreeQualifiedPushCommand: string;
   canPushNow: false;
   mutatesExternalSystemsIfRun: true;
   mutatesLocalFiles: false;
@@ -2042,6 +2043,7 @@ function normalizeRepairPushReadiness(
   const pushCommand = remoteRef === branch
     ? `git push origin ${branch}`
     : `git push origin ${branch}:${remoteRef}`;
+  const worktreeQualifiedPushCommand = qualifyGitCommandForWorktree(pushCommand, worktreePath);
   const targetLabel = targetPullRequestUrl ?? 'the tracked GitHub pull request';
   const pullRequestNumber = extractPullRequestNumber(targetPullRequestUrl);
   const repository = extractPullRequestRepository(targetPullRequestUrl);
@@ -2072,7 +2074,9 @@ function normalizeRepairPushReadiness(
   // the same PR revision that failed, or did the cloud branch move underneath it?
   // The post-push follow-up packet preserves the third safety question: once a
   // human pushes, what should Symphony observe next before it talks about
-  // Scout/Core or merge readiness?
+  // Scout/Core or merge readiness? The worktree-qualified command preserves the
+  // fourth safety question: will the operator push from the exact repair
+  // worktree instead of whichever directory their terminal currently uses?
   return {
     handoffId: handoff.id,
     status: 'awaiting_operator_push_approval',
@@ -2091,13 +2095,20 @@ function normalizeRepairPushReadiness(
     verificationCommands,
     verificationSummary,
     pushCommand,
+    worktreeQualifiedPushCommand,
     canPushNow: false,
     mutatesExternalSystemsIfRun: true,
     mutatesLocalFiles: false,
     postPushFollowUp,
-    nextExpectedProof: `Operator approves ${pushCommand}; GitHub checks rerun for ${targetLabel} and Symphony records the refreshed check state.`,
+    nextExpectedProof: `Operator approves ${worktreeQualifiedPushCommand}; GitHub checks rerun for ${targetLabel} and Symphony records the refreshed check state.`,
     summary: `Local repair commit ${commit} on ${branch} is ready for operator-approved push to ${targetLabel}.`,
   };
+}
+
+function qualifyGitCommandForWorktree(command: string, worktreePath: string): string {
+  if (!command.startsWith('git push ')) return command;
+  const escapedPath = worktreePath.includes(' ') ? `"${worktreePath.replace(/"/g, '\\"')}"` : worktreePath;
+  return `git -C ${escapedPath} ${command.slice('git '.length)}`;
 }
 
 function normalizeRepairPushResult(
@@ -6688,7 +6699,7 @@ function buildRoutingPlanForHandoff(
       nextAction: {
         code: 'ask_operator',
         label: 'Record repair push result',
-        detail: `Run the approved push command outside Symphony, then record whether it succeeded: ${repairPushReadiness.pushCommand}.`,
+        detail: `Run the approved push command outside Symphony, then record whether it succeeded: ${repairPushReadiness.worktreeQualifiedPushCommand ?? repairPushReadiness.pushCommand}.`,
         pauseSeconds: 0,
         nextNudgeAt: null,
       },

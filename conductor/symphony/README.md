@@ -27,6 +27,16 @@ Ordinary local Symphony implementation hygiene, including docs edits, verifier
 updates, dashboard/API code edits, local verifier runs, and local checkpoint
 commits, is not blocked on that approval unless it would push, launch, merge,
 sync, contact external systems, or claim that a live boundary advanced.
+The canonical approval-boundary table lives in
+`docs/JULES_MIDDLEMAN_OPERATING_SPEC.md#approval-boundaries`; update that table
+first when adding a new guarded action.
+The canonical workflow-phase table lives in
+`docs/JULES_MIDDLEMAN_OPERATING_SPEC.md#workflow-phases`; update that table
+first when adding or renaming a phase in the dashboard-created path.
+For the current ARA-6 test flow, the operator has allowed Symphony/Codex to
+assume approval at each phase boundary, but every assumed approval must be
+reported with the decision point, options, decision made, rationale/evidence,
+mutation performed or skipped, and next proof.
 
 ## Quick Start
 

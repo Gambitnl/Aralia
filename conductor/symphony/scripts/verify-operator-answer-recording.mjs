@@ -184,7 +184,7 @@ assert.equal(persisted.handoffs[0].operatorAnswers[0].selectedAction, 'create_se
   assert.equal(pushAnswerSnapshot.taskRouting.workerMode.canDispatchNow, false);
   assert.equal(pushAnswerSnapshot.taskRouting.nextAction.label, 'Record repair push result');
   assert.match(pushAnswerSnapshot.taskRouting.summary, /Repair push approved locally/i);
-  assert.match(pushAnswerSnapshot.taskRouting.nextAction.detail, /git push origin codex\/pr-931-setup-repair/);
+  assert.match(pushAnswerSnapshot.taskRouting.nextAction.detail, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin codex\/pr-931-setup-repair/);
   assert.match(pushAnswerSnapshot.taskRouting.reasons.join('\n'), /must still be performed outside this read-only routing packet/);
 } finally {
   await rm(repo.root, { recursive: true, force: true });

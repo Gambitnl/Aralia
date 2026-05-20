@@ -130,6 +130,7 @@ server.taskIntake = {
           verificationCommands: ['npm ci --dry-run'],
           verificationSummary: 'Local setup repair passed before push.',
           pushCommand: 'git push origin codex/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885',
+          worktreeQualifiedPushCommand: 'git -C F:\\Repos\\Aralia\\.worktrees\\pr-931-setup-repair push origin codex/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885',
           canPushNow: false,
           mutatesExternalSystemsIfRun: true,
           mutatesLocalFiles: false,

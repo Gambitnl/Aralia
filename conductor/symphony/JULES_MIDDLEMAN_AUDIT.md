@@ -18,7 +18,16 @@ user-visible task decision. It does not mean ordinary local Symphony hygiene
 such as documentation edits, verifier updates, local API/dashboard code edits,
 local verifier runs, or local checkpoint commits when those changes do not
 push, launch, merge, sync, contact external systems, or claim that the live
-workflow boundary has advanced.
+workflow boundary has advanced. The canonical list of approval boundaries is
+now `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md#approval-boundaries`; this audit
+should record live status and evidence, not fork that table.
+The canonical workflow phase list is
+`docs/JULES_MIDDLEMAN_OPERATING_SPEC.md#workflow-phases`; this audit should
+describe current proof for those phases without maintaining a competing ladder.
+For the current ARA-6 test flow, the operator has allowed assumed approvals at
+each phase boundary, but this audit or the final run report must list every
+decision point, options considered, agent decision, rationale/evidence, mutation
+performed or skipped, and next expected proof.
 
 Repository hygiene is part of that proof discipline. Symphony runtime state and
 live proof output belong under ignored paths such as
@@ -131,7 +140,13 @@ codex/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-atta
 The dashboard displays the worktree-qualified command rather than the bare
 `git push` form so the operator does not accidentally push from the wrong
 checkout, and `task-page-worktree-qualified-push-2026-05-20.md` records the
-read-only text assertions for that safer display.
+read-only text assertions for that safer display. Follow-up local contracts now
+make that safer command first-class packet data: `verify-repair-push-readiness-
+packet.mjs`, `verify-operator-answer-recording.mjs`, and
+`verify-task-detail-api.mjs` prove the readiness packet, approval-routing
+detail, guarded task action, and task detail API expose `git -C
+F:\Repos\Aralia\.worktrees\pr-931-setup-repair push origin ...` rather than
+leaving only the bare `git push ...` form on some surfaces.
 This receipt also exposed and fixed a
 quiet-hours bug: a question generated at 08:52 Europe/Amsterdam now correctly
 sets `nextCheckAt` to `2026-05-20T07:00:00.000Z` rather than skipping to an

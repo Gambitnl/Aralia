@@ -160,6 +160,60 @@ launch, merge, sync, contact external systems, or claim a live workflow boundary
 has advanced. Those local hygiene changes still need normal review discipline,
 but they are not a blocker waiting for operator approval.
 
+### Approval Boundaries
+
+This table is the canonical approval-boundary list for Symphony/Jules work.
+Other Symphony docs should link back here instead of maintaining competing
+approval lists.
+
+| Boundary | Approval required before | Why it is guarded | Local-only receipt after action |
+|---|---|---|---|
+| Linear issue creation or update | Creating a Linear issue, changing Linear status, or posting Linear status comments | Mutates the external tracking system and changes user-visible work state | Linear issue receipt or status-comment receipt |
+| Jules manifest staging | Writing or updating `.jules/orchestrator` handoff material for cloud work | Prepares external cloud execution input and can change what Jules will run | Handoff manifest/staging receipt |
+| Jules launch or session action | Launching Jules, approving a Jules plan, sending Jules chat, or using Jules API actions such as `approvePlan` or `sendMessage` | Starts or redirects cloud implementation work | Jules launch, plan approval, or operator-message receipt |
+| GitHub PR feedback | Posting `gh pr comment ...`, especially marked `[Jules feedback]` comments | Mutates PR discussion and can redirect Jules or reviewers | PR feedback command/receipt |
+| GitHub PR branch update | Pushing, applying, force-updating, or otherwise changing a PR branch, including the PR #931 setup repair | Mutates GitHub source state and reruns or invalidates CI evidence | `repairPushResult` or equivalent PR-update receipt |
+| GitHub CI mutation | Manually rerunning Actions, cancelling runs, changing workflow state, or editing CI files as the chosen live repair | Mutates GitHub check state or workflow behavior | Check-rerun or CI-repair receipt |
+| Scout/Core validation or merge | Running Core validation as a merge gate, approving Core merge, or merging a PR | Advances merge readiness or mutates the protected branch | Scout/Core readiness, validation, or merge receipt |
+| Deployment waiver or repair | Waiving deployment proof, rerunning deployment, or changing deployment configuration | Changes the evidence required before local sync or mutates deployment state | `deploymentEvidence` receipt |
+| Local repository sync | Pulling, fast-forwarding, merging, rebasing, or otherwise syncing local master after merge | Mutates local Git and possibly local files | Local sync readiness/execution receipt |
+| User-visible task decision | Choosing a repair lane, approving/rejecting a repair push, archiving/completing/abandoning a task, or changing quiet-hour policy | Changes the operator-visible workflow path even when stored locally | `operatorAnswers`, task disposition, or preference receipt |
+
+These actions do **not** need operator approval by themselves: local docs edits,
+verifier updates, local dashboard/API code changes, local verifier runs,
+read-only GitHub/Jules/Linear inspection, read-only Symphony refreshes, rendered
+local dashboard verification, and local checkpoint commits that are not pushed
+and do not claim a live boundary has advanced.
+
+For the current ARA-6 end-to-end test flow, the operator has explicitly allowed
+Symphony/Codex to assume approval at each phase boundary so the workflow can be
+proven without stopping at every gate. That permission is scoped to this test
+flow and does not remove the approval-boundary model. Each assumed approval must
+produce a decision report entry that states the phase, decision point, available
+options, decision made by the agent, evidence/rationale, resulting mutation or
+non-mutation, and next expected proof. The purpose is to make the agent's
+decision behavior inspectable after the run.
+
+### Workflow Phases
+
+This table is the canonical phase list for the dashboard-created
+Symphony/Jules path. Other Symphony docs should link back here instead of
+maintaining competing phase lists. The global `middlemanPath` packet exposes the
+same ordered ladder in `/api/v1/task-drafts`; task timelines may add finer
+receipt events inside these phases.
+
+| Phase id | Owner | Purpose | Read-only evidence | Mutation boundary | Typical worker mode | Completion receipt |
+|---|---|---|---|---|---|---|
+| `git_sync` | Local repository / Symphony | Prove the local branch can safely feed cloud work | Git preflight, disposition review, resolution packet, sync plan | Human-owned local Git sync, commit, push, or disposition decision | `operator_only` while blocked; `observe_wait` for read-only checks | Clean preflight or Git sync execution receipt |
+| `linear_issue` | Linear / Symphony | Create or connect human-readable tracking | Linear issue preview, existing issue lookup, handoff readiness packet | Create/update Linear issue or status comment | `operator_only` at mutation; `observe_wait` for preview | Linear issue receipt or linked issue id |
+| `jules_manifest` | Symphony / `.jules/orchestrator` | Stage the bounded Jules handoff | Manifest preview with write scope and verification commands | Write/update `.jules/orchestrator` handoff material | `operator_only` at mutation; `local_careful` for local setup repair drafts | Manifest/staging receipt |
+| `jules_launch` | Jules / Symphony | Start cloud implementation from the staged handoff | Launch readiness packet, safety checklist, Linear/Git receipt | Launch Jules session | `operator_only` at mutation | Jules launch/session receipt |
+| `jules_session` | Jules / Symphony | Track plan, execution, messages, PR output, and reconciliation | Jules API/browser state, `julesStateReconciliation`, prompt/dialogue packets | Approve plan, send Jules message, or otherwise direct Jules | `observe_wait` for reads; `operator_only` for plan/message actions | Plan approval, message, session refresh, or PR-discovery receipt |
+| `github_pr` | GitHub / Symphony | Monitor PR state, checks, files, feedback, and repair choices | PR refresh, checks, failed check names, file risk, comments, repair decision/readiness | PR comment, branch push/apply, check rerun, workflow repair | `observe_wait` for refresh; `local_careful` for local setup repair; `operator_only` for GitHub mutations | PR refresh, feedback, repair push, or check-rerun receipt |
+| `scout_core` | Scout/Core / Symphony | Decide review, risk, validation, and merge readiness | Scout/Core readiness packet, conflict comments, risk/file scope | Core validation, Core approval, or merge | `observe_wait` for reads; `operator_only` for validation/merge | Scout/Core validation or merge receipt |
+| `deployment` | GitHub Pages/deployment system / Symphony | Prove published-app health before local sync when relevant | `deployment_readiness`, Pages build/deployment/status inspection commands | Deployment repair, rerun, or deployment-proof waiver | `observe_wait` for inspection; `operator_only` for waiver/repair | `deploymentEvidence` receipt |
+| `local_sync` | Local repository / Symphony | Bring local master/worktree up to the merged, deployed state | `local_sync_readiness`, dirty/ahead/behind/fast-forward checks | `git pull --ff-only`, merge, rebase, or other local sync | `operator_only` at mutation | Local sync execution receipt |
+
 ## System Boundaries
 
 - Symphony owns local dashboard state, default-off dispatch control, worker
@@ -676,7 +730,10 @@ but they are not a blocker waiting for operator approval.
    when a boundary has a command or endpoint. These entries may include the
    current Symphony endpoint, a marked Jules PR feedback comment command, a
    prepared repair push command, or a future local-sync command. They must carry
-   mutation flags and must not become automatic buttons.
+   mutation flags and must not become automatic buttons. Repair-push readiness
+   packets should carry both the canonical Git push ref and the safer
+   worktree-qualified `git -C <repair worktree> push ...` command so every
+   operator-facing surface points to the prepared repair checkout.
    Rendered proof `task-page-guarded-actions-2026-05-20.png` confirms the live
    ARA-6 task page renders the guarded PR refresh and Jules PR feedback actions
    without mutation; the live JSON receipt confirms the repair-push guarded

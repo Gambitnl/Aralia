@@ -144,6 +144,7 @@ server.taskIntake = {
           commit: '19eb1cd4',
           worktreePath: 'F:\\Repos\\Aralia\\.worktrees\\pr-931-setup-repair',
           pushCommand: 'git push origin codex/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885',
+          worktreeQualifiedPushCommand: 'git -C F:\\Repos\\Aralia\\.worktrees\\pr-931-setup-repair push origin codex/pr-931-setup-repair:add-regression-coverage-for-non-proficient-weapon-attack-penalties-4101281510355198885',
           targetPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/931',
           mutatesExternalSystemsIfRun: true,
           mutatesLocalFiles: false,
@@ -310,6 +311,7 @@ try {
   assert.equal(handoffDetail.guardedActions[2].mutatesExternalSystemsIfRun, true);
   assert.match(handoffDetail.guardedActions[1].command, /gh pr comment/);
   assert.match(handoffDetail.guardedActions[2].command, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin codex\/pr-931-setup-repair/);
+  assert.match(handoffDetail.repairPushReadiness.worktreeQualifiedPushCommand, /git -C F:\\Repos\\Aralia\\\.worktrees\\pr-931-setup-repair push origin codex\/pr-931-setup-repair/);
   assert.equal(handoffDetail.approvalCheckpoint.status, 'waiting_for_operator');
   assert.match(handoffDetail.approvalCheckpoint.label, /Operator decision required/);
   assert.match(handoffDetail.approvalCheckpoint.question, /setup blocker/);
