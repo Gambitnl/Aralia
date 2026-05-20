@@ -85,3 +85,49 @@ describe('AbilityCommandFactory', () => {
     expect(commands[0].metadata.effectType).toBe('HEALING');
   });
 });
+
+describe('WeaponAttackCommand Proficiency Penalties', () => {
+  it('omits proficiency bonus when attacking with a non-proficient weapon', () => {
+    const attacker = createMockCombatCharacter({
+      id: 'attacker',
+      name: 'Attacker',
+      level: 1, // pb = 2
+      stats: { baseInitiative: 0, speed: 30, cr: '0',
+        strength: 14, // +2 mod
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+      }
+    });
+
+    const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
+
+    const attack: Ability = {
+      id: 'unproficient_attack',
+      name: 'Unproficient Attack',
+      description: 'A melee strike with a non-proficient weapon.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      isProficient: false, // Explicitly not proficient
+      effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+    };
+
+    const command = new WeaponAttackCommand(attack, attacker, [target], {
+      spellId: attack.id,
+      spellName: attack.name,
+      castAtLevel: 0,
+      caster: attacker,
+      targets: [target],
+      gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
+
+    const logMessage = newState.combatLog[0].message;
+    expect(logMessage).toContain('+ 2 =');
+  });
+});
