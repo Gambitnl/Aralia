@@ -361,10 +361,12 @@ try {
 
   await assertForeman('session', {
     boundary: 'jules_session',
-    safety: 'local_state_only',
+    safety: 'external_read',
     method: 'POST',
     endpoint: `${BASE_URL}/api/v1/jules-handoffs/handoff-pass-path/refresh-status`,
     evidenceEndpoint: `${BASE_URL}/api/v1/jules-handoffs/handoff-pass-path/refresh-status`,
+    requiresOperator: false,
+    instructionPattern: /dashboard refresh control/i,
     mutatesExternalSystemsIfRun: false,
     mutatesLocalFilesIfRun: true,
     mutatesGitIfRun: false,
@@ -419,11 +421,20 @@ async function assertForeman(snapshotName, expected) {
   assert.equal(action.endpoint, expected.endpoint, `${snapshotName}: endpoint`);
   assert.equal(action.evidenceEndpoint, expected.evidenceEndpoint, `${snapshotName}: evidence endpoint`);
   assert.equal(action.canRunNow, true, `${snapshotName}: canRunNow`);
-  assert.equal(action.requiresOperator, action.mutatesGitIfRun || action.mutatesExternalSystemsIfRun || action.mutatesLocalFilesIfRun, `${snapshotName}: operator flag`);
+  // Jules status refresh is an approved monitoring action: it reads Jules and
+  // may refresh local receipt state, but it should not stop on an operator
+  // approval prompt every time the dashboard needs current status.
+  const expectedOperatorRequirement = typeof expected.requiresOperator === 'boolean'
+    ? expected.requiresOperator
+    : action.mutatesGitIfRun || action.mutatesExternalSystemsIfRun || action.mutatesLocalFilesIfRun;
+  assert.equal(action.requiresOperator, expectedOperatorRequirement, `${snapshotName}: operator flag`);
   assert.equal(action.mutatesExternalSystemsIfRun, expected.mutatesExternalSystemsIfRun, `${snapshotName}: external mutation flag`);
   assert.equal(action.mutatesLocalFilesIfRun, expected.mutatesLocalFilesIfRun, `${snapshotName}: local mutation flag`);
   assert.equal(action.mutatesGitIfRun, expected.mutatesGitIfRun, `${snapshotName}: Git mutation flag`);
-  assert.match(action.instruction, /capture proof/i, `${snapshotName}: instruction names proof capture`);
+  // Most foreman actions must explicitly name proof capture. Jules refresh is
+  // already the proof-gathering act, so its instruction instead names the
+  // visible dashboard control the operator should use.
+  assert.match(action.instruction, expected.instructionPattern ?? /capture proof/i, `${snapshotName}: instruction names proof capture`);
 }
 
 async function getJson(url) {

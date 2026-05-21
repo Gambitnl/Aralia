@@ -73,6 +73,10 @@ const gitSyncAttemptReceipt = readFileSync(
   join(repoRoot, 'docs', 'tasks', 'spells', 'PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md'),
   'utf8',
 );
+const handoffReceipt = readFileSync(
+  join(repoRoot, 'docs', 'tasks', 'spells', 'PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md'),
+  'utf8',
+);
 
 assert.match(task, /# Package 2 Jules Task: Premade Party And Gear/);
 assert.match(task, /Status: local Symphony draft created; setup branch pushed; fresh Symphony\s+readiness preflight required before Jules dispatch/);
@@ -238,7 +242,7 @@ assert.deepEqual(taskDraftPayload.verificationCommands, [
 ]);
 
 assert.match(readinessChecklist, /# Package 2 Dispatch Readiness Checklist/);
-assert.match(readinessChecklist, /Status: setup branch pushed; fresh Symphony readiness preflight required before\s+Jules dispatch/);
+assert.match(readinessChecklist, /Status: dispatched to Jules; waiting on Jules queue\/plan\/PR state/);
 assert.match(readinessChecklist, /Ready Artifacts/);
 assert.match(readinessChecklist, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT\.md/);
@@ -252,6 +256,7 @@ assert.match(readinessChecklist, /PACKAGE_2_TASK_COMMUNICATION_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
+assert.match(readinessChecklist, /PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT\.md/);
 assert.match(readinessChecklist, /jules\/spells-package2-premade-party-gear/);
 assert.match(readinessChecklist, /codex\/spells-package2-premade-party-gear-review/);
 assert.match(readinessChecklist, /F:\\Repos\\Aralia\\\.worktrees\\spells-package2-premade-party-gear/);
@@ -262,19 +267,16 @@ assert.match(readinessChecklist, /jules-env-config-spell-phase1-package2-scoped-
 assert.match(readinessChecklist, /local POST to `\/api\/v1\/task-drafts` has been sent/);
 assert.match(readinessChecklist, /draft-1779344522441-vdy0hi/);
 assert.match(readinessChecklist, /blocked_by_git_sync/);
-assert.match(readinessChecklist, /No Package 2 Jules task has been dispatched/);
-assert.match(readinessChecklist, /codex\/spell-phase1-symphony-package2-setup/);
-assert.match(readinessChecklist, /origin\/codex\/spell-phase1-symphony-package2-setup/);
-assert.match(readinessChecklist, /6fc9e81a/);
+assert.match(readinessChecklist, /draft-1779400428597-mind7o/);
+assert.match(readinessChecklist, /Linear issue `ARA-7` has been created/);
+assert.match(readinessChecklist, /handoff-1779400495781-jauy49/);
+assert.match(readinessChecklist, /Jules session `15527431301408060204` is queued/);
 assert.match(readinessChecklist, /No Package 2 implementation branch or worktree has been created/);
 assert.match(readinessChecklist, /No Package 2 PR has been opened/);
 assert.match(readinessChecklist, /No Package 2 task-scoped ROI savings claim is allowed yet/);
 assert.match(readinessChecklist, /Next Dispatch Steps/);
-assert.match(readinessChecklist, /Rerun or explicitly classify the remaining Git sync blockers/);
-assert.match(readinessChecklist, /Could not fetch origin/);
-assert.match(readinessChecklist, /tracked dirty files/);
-assert.match(readinessChecklist, /untracked files/);
-assert.match(readinessChecklist, /Dispatch Jules with the exact prompt/);
+assert.match(readinessChecklist, /Refresh Jules session `15527431301408060204` until it leaves `QUEUED`/);
+assert.match(readinessChecklist, /asks for plan approval, opens a PR, or reports a\s+blocker/);
 assert.match(readinessChecklist, /roi-foreman-usage/);
 assert.match(readinessChecklist, /roi-estimate/);
 assert.match(readinessChecklist, /before\s+deciding Package 3 can begin/);
@@ -286,17 +288,36 @@ assert.match(readinessChecklist, /do not dispatch Package 2/);
 assert.match(readinessChecklist, /npm install --no-audit --no-fund/);
 
 assert.match(draftSubmissionReceipt, /# Package 2 Symphony Draft Submission Receipt/);
-assert.match(draftSubmissionReceipt, /Status: submitted to local Symphony; old Git sync blocker needs refreshed\s+preflight after successful setup-branch push/);
+assert.match(draftSubmissionReceipt, /Status: superseded by clean-base draft and Jules launch receipt/);
 assert.match(draftSubmissionReceipt, /draft-1779344522441-vdy0hi/);
 assert.match(draftSubmissionReceipt, /blocked_by_git_sync/);
 assert.match(draftSubmissionReceipt, /Could not fetch origin/);
 assert.match(draftSubmissionReceipt, /16 tracked file\(s\) have uncommitted changes/);
 assert.match(draftSubmissionReceipt, /19 untracked file\(s\) are present/);
-assert.match(draftSubmissionReceipt, /origin\/codex\/spell-phase1-symphony-package2-setup/);
-assert.match(draftSubmissionReceipt, /6fc9e81a/);
-assert.match(draftSubmissionReceipt, /fresh Symphony task queue or Git preflight snapshot/);
-assert.match(draftSubmissionReceipt, /did not dispatch\s+Jules/);
+assert.match(draftSubmissionReceipt, /40678de8bdc3ce58db0c97e062f5a170526e4fa7/);
+assert.match(draftSubmissionReceipt, /draft-1779400428597-mind7o/);
+assert.match(draftSubmissionReceipt, /ARA-7/);
+assert.match(draftSubmissionReceipt, /handoff-1779400495781-jauy49/);
+assert.match(draftSubmissionReceipt, /15527431301408060204/);
 assert.match(draftSubmissionReceipt, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
+
+assert.match(handoffReceipt, /# Package 2 Symphony Handoff Receipt/);
+// The receipt is intentionally allowed to advance as the visible Jules handoff
+// advances. This assertion protects the current post-approval state so future
+// agents do not accidentally describe the handoff as still merely queued.
+assert.match(handoffReceipt, /Status: Jules plan approved; waiting on Jules run\/PR state/);
+assert.match(handoffReceipt, /40678de8bdc3ce58db0c97e062f5a170526e4fa7/);
+assert.match(handoffReceipt, /draft-1779400428597-mind7o/);
+assert.match(handoffReceipt, /ARA-7/);
+assert.match(handoffReceipt, /handoff-1779400495781-jauy49/);
+assert.match(handoffReceipt, /15527431301408060204/);
+assert.match(handoffReceipt, /Latest dashboard-refreshed Jules state: `IN_PROGRESS`/);
+assert.match(handoffReceipt, /Dashboard-First Blocker Found/);
+assert.match(handoffReceipt, /visible Symphony dashboard/);
+assert.match(handoffReceipt, /Current Foreman Boundary/);
+assert.match(handoffReceipt, /Visible Jules Plan Approval Found/);
+assert.match(handoffReceipt, /dashboard-linked\s+Jules session did not show a finished Package 2 result/);
+assert.match(handoffReceipt, /Package 2 handoff reconciled to\s+`IN_PROGRESS`/);
 
 assert.match(gitSyncAttemptReceipt, /# Package 2 Git Sync Attempt Receipt/);
 assert.match(gitSyncAttemptReceipt, /Status: remote branch pushed; Symphony readiness still needs a fresh preflight/);
