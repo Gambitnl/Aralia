@@ -93,7 +93,7 @@ body {
 main {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
 }
 
 h1,
@@ -174,14 +174,14 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 2px 4px var(--shadow);
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
 }
 
 .stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 2rem;
+  gap: 0.85rem;
 }
 
 .section-heading {
@@ -235,14 +235,23 @@ textarea {
 }
 
 .control-surface {
-  /* This makes the local dashboard API visible as an operator surface, not just
-     an implementation detail hidden inside worker prompts or raw JSON state. */
+  /* The API links are still available for foremen, but they stay collapsed so
+     the dashboard opens on task state instead of endpoint bookkeeping. */
   border: 1px solid var(--border);
   border-radius: 8px;
+  min-width: min(100%, 260px);
+  padding: 0.45rem 0.6rem;
+}
+
+.control-surface summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.control-surface-body {
   display: grid;
   gap: 0.35rem;
-  min-width: min(100%, 360px);
-  padding: 0.75rem;
+  padding-top: 0.45rem;
 }
 
 .control-surface span,
@@ -2090,12 +2099,13 @@ textarea {
 }
 
 .stat {
-  font-size: 1.2rem;
+  font-size: 0.9rem;
+  min-width: 7.5rem;
 }
 
 .stat-value {
   color: var(--accent);
-  font-size: 2rem;
+  font-size: 1.35rem;
   font-weight: 700;
 }
 

@@ -290,6 +290,76 @@ try {
   assert.match(proof, /Human-owned Git disposition and a passing GitHub sync preflight/);
   assert.match(proof, /Observed PR #900 ladder proof/);
   assert.doesNotMatch(proof, /<script/i);
+
+  const runningJulesHandoff = {
+    ...observedHandoff,
+    id: 'handoff-running-jules',
+    draftId: 'draft-running-jules',
+    title: 'Running Jules handoff proof',
+    status: 'sent_to_jules',
+    manifestPath: '.jules/runs/running-jules/manifest.json',
+    launchedAt: '2026-05-21T21:55:00.000Z',
+    julesSessionId: '15527431301408060204',
+    julesSessionUrl: 'https://jules.google.com/session/15527431301408060204',
+    julesState: 'QUEUED',
+    linearIssueIdentifier: 'ARA-7',
+    linearIssueUrl: 'https://linear.app/aralia/issue/ARA-7/spell-phase-1-package-2-premade-party-and-gear',
+    githubPullRequestUrl: null,
+    githubPullRequestState: null,
+    lastPullRequestRefreshAt: null,
+    githubPullRequestFeedback: null,
+  };
+
+  server.taskIntake.snapshot = async () => ({
+    drafts: [],
+    handoffs: [runningJulesHandoff],
+    preflight: blockedPreflight,
+    gitDisposition: {
+      categories: [],
+      decidedCount: 0,
+      totalRequired: 4,
+      readyForHumanSync: false,
+      summary: 'No Git disposition decisions recorded.',
+      updatedAt: null,
+    },
+    gitSyncPlan: null,
+    taskRouting: null,
+    taskNudges: {
+      total: 0,
+      summary: 'No durable nudge evidence recorded yet.',
+      latest: null,
+      recent: [],
+      nextNudgeAt: null,
+      scheduler: {
+        checkedAt: '2026-05-21T21:55:00.000Z',
+        status: 'idle',
+        summary: 'No recorded nudges are scheduled.',
+        dueCount: 0,
+        waitingCount: 0,
+        blockedCount: 0,
+        nextDueAt: null,
+        mutatesExternalSystems: false,
+        due: [],
+        waiting: [],
+        blocked: [],
+      },
+    },
+  });
+
+  const runningSnapshot = await getJson('http://127.0.0.1:8203/api/v1/task-drafts');
+  assert.equal(runningSnapshot.middleman_path.status, 'active');
+  assert.equal(runningSnapshot.middleman_path.currentBoundary, 'jules_session');
+  assert.equal(runningSnapshot.middleman_path.foremanAction.label, 'Refresh Jules Status');
+  assert.equal(runningSnapshot.middleman_path.foremanAction.safety, 'external_read');
+  assert.equal(runningSnapshot.middleman_path.foremanAction.canRunNow, true);
+
+  const runningGitStage = runningSnapshot.middleman_path.stages.find(stage => stage.id === 'git_sync');
+  assert.equal(runningGitStage.status, 'blocked');
+  assert.match(runningGitStage.detail, /6 tracked file/);
+
+  const runningJulesStage = runningSnapshot.middleman_path.stages.find(stage => stage.id === 'jules_session');
+  assert.equal(runningJulesStage.status, 'active');
+  assert.equal(runningJulesStage.receipt, 'https://jules.google.com/session/15527431301408060204');
 } finally {
   await server.stop();
 }

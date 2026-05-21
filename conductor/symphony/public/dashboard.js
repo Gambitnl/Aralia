@@ -27,7 +27,9 @@ const themeToggleButton = document.getElementById('theme-toggle');
 const THEME_STORAGE_KEY = 'symphony-dashboard-theme';
 const TASK_NAVIGATOR_FILTER_STORAGE_KEY = 'symphony-task-navigator-filter';
 const TASK_NAVIGATOR_FILTERS = ['all', 'needs_input', 'open', 'completed', 'archived'];
+const TASK_INTAKE_INTERACTION_HOLD_MS = 4000;
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
+let taskIntakeInteractionHoldUntil = 0;
 
 initializeThemeToggle();
 
@@ -74,6 +76,8 @@ taskIntakeRoot?.addEventListener('submit', async event => {
 });
 
 taskIntakeRoot?.addEventListener('click', async event => {
+  holdTaskIntakeAutoRefresh();
+
   const filterButton = event.target?.closest?.('button[data-task-filter]');
   if (filterButton) {
     setTaskNavigatorFilter(filterButton.getAttribute('data-task-filter'));
@@ -231,6 +235,10 @@ taskIntakeRoot?.addEventListener('click', async event => {
     }
   }
 });
+
+taskIntakeRoot?.addEventListener('pointerover', holdTaskIntakeAutoRefresh);
+taskIntakeRoot?.addEventListener('pointerdown', holdTaskIntakeAutoRefresh);
+taskIntakeRoot?.addEventListener('focusin', holdTaskIntakeAutoRefresh);
 
 let liveRefreshFallback = null;
 let liveRefreshTimer = null;
@@ -396,10 +404,11 @@ async function refreshDashboard(options = {}) {
     renderActivity(activeIds, detailsById);
 
     const cadence = options.source === 'event-stream'
-      ? 'Updates details live from the Symphony event stream'
-      : 'Updates details in place every 5 seconds';
+      ? 'Live from Symphony'
+      : 'Refreshes every 5 seconds';
+    const updatedAt = formatDashboardTimestamp(state.generated_at);
     refreshNote.firstChild.nodeValue =
-      `${cadence}. Generated at ${state.generated_at}. `;
+      `${cadence}. Updated ${updatedAt}. `;
     setStatus('Updated details only.');
     restoreDashboardScroll(scrollSnapshot);
   } catch (err) {
@@ -492,10 +501,11 @@ async function fetchIssueDetails(identifiers) {
 async function refreshTaskIntake(options = {}) {
   if (!taskIntakeRoot) return;
 
-  if (options.skipIfEditing && isEditingInside(taskIntakeRoot)) {
+  if (options.skipIfEditing && shouldHoldTaskIntakeAutoRefresh()) {
     // Automatic polling should never erase the operator's half-written Jules
-    // task. Manual actions still refresh this section because those clicks are
-    // explicit workflow decisions.
+    // task or replace a button while the operator is aiming at it. Manual
+    // actions still refresh this section because those clicks are explicit
+    // workflow decisions.
     return;
   }
 
@@ -510,6 +520,27 @@ async function refreshTaskIntake(options = {}) {
     : snapshot;
 
   renderTaskIntake(finalSnapshot);
+}
+
+function holdTaskIntakeAutoRefresh() {
+  // The task intake panel contains the current human decision surface. When a
+  // pointer or keyboard focus enters it, pause automatic repainting briefly so
+  // a visible action cannot disappear between the operator seeing it and
+  // clicking it.
+  taskIntakeInteractionHoldUntil = Date.now() + TASK_INTAKE_INTERACTION_HOLD_MS;
+}
+
+function isTaskIntakeInteractionActive() {
+  return isEditingInside(taskIntakeRoot) || Date.now() < taskIntakeInteractionHoldUntil;
+}
+
+function shouldHoldTaskIntakeAutoRefresh() {
+  // The current-boundary action is the control the operator is being asked to
+  // use next. When it is visible, automatic repainting would trade freshness
+  // for a moving target, so the task panel waits for an explicit click or manual
+  // refresh before replacing that button or evidence link.
+  return isTaskIntakeInteractionActive()
+    || Boolean(taskIntakeRoot?.querySelector?.('[data-current-foreman-action="true"]'));
 }
 
 function isEditingInside(root) {
@@ -1149,21 +1180,22 @@ async function sendApprovalDecision(identifier, decision, button) {
 function renderStats(state) {
   const dashboard = state.dashboard || {};
   const controlSurface = dashboard.state_url
-    ? `<div class="control-surface">
-        <div>
-          <strong>Control surface</strong>
-          <span>Workers and operators can use this live local API.</span>
-        </div>
-        <code>${escapeHtml(dashboard.state_url)}</code>
+    ? `<details class="control-surface">
+        <summary>Control surface</summary>
+        <div class="control-surface-body">
+          <span>Local API links for foremen and operators.</span>
+          <code>${escapeHtml(dashboard.state_url)}</code>
         <!-- These URLs are for foreman workers and operators. Keeping them
-             visible makes the local dashboard API discoverable without asking
-             anyone to remember endpoint names while a Jules run is active. -->
-        ${dashboard.task_drafts_url ? `<small>Task queue: <code>${escapeHtml(dashboard.task_drafts_url)}</code></small>` : ''}
-        ${dashboard.git_preflight_url ? `<small>Git sync: <code>${escapeHtml(dashboard.git_preflight_url)}</code></small>` : ''}
-        ${dashboard.dispatch_control_url ? `<small>Dispatch gate: <code>${escapeHtml(dashboard.dispatch_control_url)}</code></small>` : ''}
-        ${dashboard.jules_refresh_all_url ? `<small>Refresh all Jules: <code>${escapeHtml(dashboard.jules_refresh_all_url)}</code></small>` : ''}
-        ${dashboard.events_url ? `<small>Live updates: <code>${escapeHtml(dashboard.events_url)}</code></small>` : ''}
-      </div>`
+             visible on demand makes the local dashboard API discoverable
+             without letting endpoint names dominate the operator's first
+             viewport during a Jules monitoring pass. -->
+          ${dashboard.task_drafts_url ? `<small>Task queue: <code>${escapeHtml(dashboard.task_drafts_url)}</code></small>` : ''}
+          ${dashboard.git_preflight_url ? `<small>Git sync: <code>${escapeHtml(dashboard.git_preflight_url)}</code></small>` : ''}
+          ${dashboard.dispatch_control_url ? `<small>Dispatch gate: <code>${escapeHtml(dashboard.dispatch_control_url)}</code></small>` : ''}
+          ${dashboard.jules_refresh_all_url ? `<small>Refresh all Jules: <code>${escapeHtml(dashboard.jules_refresh_all_url)}</code></small>` : ''}
+          ${dashboard.events_url ? `<small>Live updates: <code>${escapeHtml(dashboard.events_url)}</code></small>` : ''}
+        </div>
+      </details>`
     : '';
 
   statsCard.innerHTML = [
@@ -1175,6 +1207,20 @@ function renderStats(state) {
     renderWorkerRoster(state.worker_roster),
     controlSurface,
   ].join('');
+}
+
+function formatDashboardTimestamp(value) {
+  // Operators need to know whether the dashboard is fresh, not parse a raw ISO
+  // timestamp. Keep seconds for live debugging but drop milliseconds and the
+  // long date unless the browser cannot parse the server value.
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || 'unknown';
+
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
 function renderWorkerRoster(roster) {
@@ -1342,7 +1388,7 @@ function renderTaskIntake(snapshot) {
   // It intentionally saves drafts locally and disables handoff whenever GitHub
   // is not synced, because Jules will work from the remote repository rather
   // than from unpushed local files.
-  taskIntakeRoot.innerHTML = `
+  const nextHtml = `
     <div class="section-heading">
       <div>
         <h2>New Jules Task</h2>
@@ -1375,6 +1421,13 @@ function renderTaskIntake(snapshot) {
       syncGate,
       records,
     })}`;
+
+  // If a live refresh returns the same visible task surface, leave the existing
+  // nodes in place. This preserves hover, focus, and pending click targets
+  // instead of replacing an identical button with a fresh element.
+  if (taskIntakeRoot.innerHTML === nextHtml) return;
+
+  taskIntakeRoot.innerHTML = nextHtml;
 }
 
 function renderForemanConsole(parts) {
@@ -1438,7 +1491,7 @@ function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
   const endpoints = [
     action.evidenceEndpoint ? `<a href="${escapeAttribute(action.evidenceEndpoint)}">Evidence</a>` : '',
     action.recordEndpoint ? `<a href="${escapeAttribute(action.recordEndpoint)}">Record</a>` : '',
-    action.endpoint ? `<a href="${escapeAttribute(action.endpoint)}">Run</a>` : '',
+    renderForemanRunControl(action),
   ].filter(Boolean).join(' ');
 
   // This panel answers "what now?" before showing the rest of the dashboard.
@@ -1461,6 +1514,20 @@ function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
     ${action.blockedReason ? `<p class="usage-summary">${escapeHtml(action.blockedReason)}</p>` : ''}
     ${endpoints ? `<p class="foreman-links">${endpoints}</p>` : ''}
   </section>`;
+}
+
+function renderForemanRunControl(action) {
+  if (!action?.endpoint) return '';
+
+  const refreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-status$/);
+  if (action.method === 'POST' && action.canRunNow && refreshMatch) {
+    // The current-boundary panel should be operable by a human foreman, not just
+    // a list of API URLs. For active Jules monitoring, reuse the existing
+    // guarded dashboard button path so the visible UI owns the refresh action.
+    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
+  }
+
+  return `<a data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
 }
 
 function renderForemanDetailGroup(title, summary, body, open = false) {

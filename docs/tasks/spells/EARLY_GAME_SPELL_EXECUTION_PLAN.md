@@ -14,19 +14,27 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Package 2 has a local Symphony draft,
-`draft-1779344522441-vdy0hi`, created from
-`docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`. The setup branch
-`codex/spell-phase1-symphony-package2-setup` is tracked on origin through PR
-#933; that setup/context PR must land or be superseded before Jules dispatch can
-cleanly start from `master`. Before dispatch, rerun the Symphony task queue or
-Git preflight and record whether the prior `blocked_by_git_sync` state is
-cleared.
+Current live boundary: setup PR #933 has landed on `master` at
+`40678de8bdc3ce58db0c97e062f5a170526e4fa7`. Package 2 now has clean-base
+Symphony draft `draft-1779400428597-mind7o`, created from
+`docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`, Linear issue
+`ARA-7`, handoff `handoff-1779400495781-jauy49`, and Jules session
+`15527431301408060204`. The first refreshed Jules state was `QUEUED`; the next
+boundary is to refresh Jules until it produces a plan approval request, PR, or
+blocker.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
 project file for package status, discovered tasks, detailed subtask links, and
 adjacent out-of-scope gaps.
+
+Dashboard-first workflow constraint: use the Symphony dashboard in the Codex
+in-app browser as the primary path for this test flow. Visible dashboard task
+cards, proof boards, controls, and blockers are the authoritative workflow
+surface. Direct API calls or terminal shortcuts may inspect state, start local
+servers, verify claims, or implement a dashboard/workflow repair, but they must
+not bypass a dashboard blocker. If the dashboard blocks the flow, record the
+blocker and improve the dashboard/workflow or docs before proceeding.
 
 ## Project Goal
 

@@ -2342,6 +2342,9 @@ export class HttpServer {
       launch_readiness?: JulesLaunchReadinessPacket;
     },
   ): Record<string, unknown> {
+    const baseUrl = taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '');
+    const derivedNextAction = this.buildHandoffNextAction(baseUrl, handoff);
+    const effectiveNextAction = handoff.next_action ?? derivedNextAction;
     const timelineEvents = Array.isArray(handoff.handoffTimeline?.events)
       ? handoff.handoffTimeline.events
       : [];
@@ -2378,7 +2381,7 @@ export class HttpServer {
     };
     const currentBoundaryLabel = needsHumanInput
       ? 'Needs human input'
-      : this.readStringField(handoff.next_action, 'label') ?? handoff.status;
+      : this.readStringField(effectiveNextAction, 'label') ?? handoff.status;
     const guardedActions = this.buildHandoffGuardedActions(handoff);
     const approvalCheckpoint = this.buildTaskApprovalCheckpoint(handoff, guardedActions);
 
@@ -2390,16 +2393,16 @@ export class HttpServer {
       id: handoff.id,
       title: handoff.title,
       status: handoff.status,
-      summary: this.readStringField(handoff.next_action, 'summary')
+      summary: this.readStringField(effectiveNextAction, 'summary')
         ?? handoff.githubPullRequestFeedback?.summary
         ?? 'Handoff is waiting for the next recorded Symphony boundary.',
       currentBoundary: {
         label: currentBoundaryLabel,
         detail: needsHumanInput
           ? operatorQuestion?.plainLanguageQuestion ?? operatorQuestion?.question ?? null
-          : this.readStringField(handoff.next_action, 'detail'),
-        endpoint: this.readStringField(handoff.next_action, 'endpoint'),
-        method: this.readStringField(handoff.next_action, 'method'),
+          : this.readStringField(effectiveNextAction, 'detail'),
+        endpoint: this.readStringField(effectiveNextAction, 'endpoint') ?? this.readStringField(effectiveNextAction, 'url'),
+        method: this.readStringField(effectiveNextAction, 'method'),
       },
       needsHumanInput,
       expectedFiles: handoff.expectedFiles,
@@ -2968,6 +2971,7 @@ export class HttpServer {
     const hasDashboardPr = Boolean(dashboardHandoff?.githubPullRequestUrl);
     const hasObservedPr = Boolean(prHandoff?.status === 'observed_pr' && prHandoff.githubPullRequestUrl);
     const hasPr = hasDashboardPr || hasObservedPr;
+    const completedWithoutPr = Boolean(manifestHandoff?.julesState === 'COMPLETED' && !hasDashboardPr);
     const prState = prHandoff?.githubPullRequestState ?? null;
     const prChecks = prHandoff?.githubPullRequestChecks ?? null;
     const hasPrBlocker = prChecks?.failed ? prChecks.failed > 0 : false;
@@ -3071,20 +3075,28 @@ export class HttpServer {
       {
         id: 'jules_session',
         label: 'Jules session',
-        status: hasSession ? 'active' : 'waiting',
+        status: completedWithoutPr ? 'blocked' : hasSession ? 'active' : 'waiting',
         sourceId: manifestHandoff?.id ?? null,
         sourceTitle: manifestHandoff?.title ?? null,
         detail: hasSession
-          ? `Jules state is ${manifestHandoff?.julesState ?? 'unknown'}.`
+          ? completedWithoutPr
+            ? 'Jules reported COMPLETED, but Symphony has no PR URL or completion result yet.'
+            : `Jules state is ${manifestHandoff?.julesState ?? 'unknown'}.`
           : 'Waiting for Jules launch and status refresh.',
-        endpoint: manifestHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(manifestHandoff.id)}/refresh-status` : null,
-        method: manifestHandoff ? 'POST' : 'NONE',
+        endpoint: completedWithoutPr
+          ? manifestHandoff?.julesSessionUrl ?? null
+          : manifestHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(manifestHandoff.id)}/refresh-status` : null,
+        method: completedWithoutPr ? 'GET' : manifestHandoff ? 'POST' : 'NONE',
         canRunNow: Boolean(hasSession && manifestHandoff),
         mutatesGitIfRun: false,
         mutatesExternalSystemsIfRun: false,
-        mutatesLocalFilesIfRun: Boolean(hasSession && manifestHandoff),
-        blockedBy: hasSession ? [] : ['Jules session receipt is missing.'],
-        expectedProof: 'Refreshed Jules state, plan approval state, or PR/session boundary.',
+        mutatesLocalFilesIfRun: Boolean(hasSession && manifestHandoff && !completedWithoutPr),
+        blockedBy: completedWithoutPr
+          ? ['Jules completed without a captured PR URL; inspect the visible Jules session or API result before filing Package 2.']
+          : hasSession ? [] : ['Jules session receipt is missing.'],
+        expectedProof: completedWithoutPr
+          ? 'Visible Jules completion result proving PR URL, no-PR completion, failure, or required operator follow-up.'
+          : 'Refreshed Jules state, plan approval state, or PR/session boundary.',
         receipt: manifestHandoff?.julesSessionUrl ?? manifestHandoff?.julesSessionId ?? null,
       },
       {
@@ -3151,8 +3163,21 @@ export class HttpServer {
     ];
 
     const activeStages = stages.filter(stage => stage.status === 'active');
-    const current = stages.find(stage => stage.status === 'blocked')
-      ?? stages.find(stage => stage.status === 'ready')
+    // Once Jules has launched, refreshing that cloud session is a safe
+    // dashboard action even if the local receipt-writing branch later makes Git
+    // preflight red again. Keep the running Jules boundary visible so a human
+    // foreman can continue monitoring the live worker instead of being pushed
+    // back to a pre-launch Git gate that no longer owns the next proof.
+    const liveJulesStage = activeStages.find(stage => stage.id === 'github_pr')
+      ?? activeStages.find(stage => stage.id === 'jules_session')
+      ?? null;
+    const unresolvedCompletedJulesStage = completedWithoutPr
+      ? stages.find(stage => stage.id === 'jules_session') ?? null
+      : null;
+    const current = stages.find(stage => stage.status === 'ready')
+      ?? unresolvedCompletedJulesStage
+      ?? liveJulesStage
+      ?? stages.find(stage => stage.status === 'blocked')
       ?? activeStages[activeStages.length - 1]
       ?? stages.find(stage => stage.status === 'waiting')
       ?? stages[stages.length - 1];
@@ -3201,6 +3226,50 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedReason,
         instruction: 'Review the Git disposition packet, record human-owned decisions for local commits, tracked changes, untracked artifacts, and remote commits, then rerun the GitHub sync preflight.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'jules_session' && stage.status === 'active') {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Refresh Jules Status',
+        status: stage.status,
+        method: stage.endpoint ? stage.method : 'NONE',
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: Boolean(stage.endpoint),
+        requiresOperator: false,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: Boolean(stage.mutatesLocalFilesIfRun),
+        blockedReason,
+        instruction: 'Use the dashboard refresh control for this Jules session, then record whether Jules needs plan approval, feedback, a PR review, or more waiting.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'jules_session' && stage.status === 'blocked') {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Inspect Jules Completion',
+        status: stage.status,
+        method: stage.endpoint ? stage.method : 'NONE',
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: Boolean(stage.endpoint),
+        requiresOperator: true,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: 'Open the visible Jules session result, then record whether the completed run produced a PR URL, failed, or completed without code changes.',
         expectedProof: stage.expectedProof,
       };
     }
@@ -3944,6 +4013,21 @@ export class HttpServer {
           request_body_example: {
             body: 'Short bounded feedback for Jules after inspecting the session request.',
           },
+        });
+    }
+
+    if (!hasPullRequest && handoff.julesState === 'COMPLETED') {
+      return action('inspect_jules_completion', 'blocked', 'Inspect Jules Completion',
+        'Jules reported COMPLETED, but Symphony has no PR URL or completion result. Open the visible Jules session before deciding whether this handoff produced a PR, failed, or completed without code changes.',
+        handoff.julesSessionUrl ?? null,
+        handoff.julesSessionUrl ? 'GET' : null,
+        ['Open the Jules session evidence link in the signed-in browser.', 'Record the visible result: PR URL, no-PR completion, failure, or operator follow-up.', 'Only move to PR review or filing after that proof is captured.'],
+        {
+          // A completed Jules session with no PR is a workflow decision point,
+          // not another polling loop. Carry the session link so the dashboard
+          // can show the human-readable inspection boundary directly.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
         });
     }
 

@@ -1,7 +1,6 @@
 # Package 2 Symphony Draft Submission Receipt
 
-Status: submitted to local Symphony; old Git sync blocker needs refreshed
-preflight after successful setup-branch push.
+Status: superseded by clean-base draft and Jules launch receipt.
 
 Date/time: 2026-05-21 08:22 Europe/Amsterdam.
 
@@ -32,20 +31,26 @@ The follow-up `GET /api/v1/task-drafts` snapshot originally reported:
 - `16 tracked file(s) have uncommitted changes.`
 - `19 untracked file(s) are present.`
 
-The setup branch has since been pushed to
-`origin/codex/spell-phase1-symphony-package2-setup` at `6fc9e81a`. The next live
-boundary is a fresh Symphony task queue or Git preflight snapshot that proves
-whether `draft-1779344522441-vdy0hi` is ready to dispatch or still has a real
-remaining blocker.
+The setup branch has since landed through PR #933 at
+`40678de8bdc3ce58db0c97e062f5a170526e4fa7`. A fresh clean-base draft replaced
+this old blocker snapshot:
+
+- Active draft: `draft-1779400428597-mind7o`
+- Linear issue: `ARA-7`
+- Handoff id: `handoff-1779400495781-jauy49`
+- Jules session: `https://jules.google.com/session/15527431301408060204`
+- Receipt:
+  `docs/tasks/spells/PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`
 
 ## Next Expected Proof
 
-Before dispatching Jules for Package 2, record:
+After Jules dispatch for Package 2, record:
 
-- a clean or intentionally explained Git preflight result;
-- the branch/worktree decision used for the Package 2 handoff;
-- whether the refreshed Symphony preflight clears the prior Git sync blockers;
-- the handoff or Jules session id once dispatch actually happens.
+- whether Jules leaves `QUEUED`, asks for plan approval, opens a PR, or reports
+  a blocker;
+- the PR URL and changed-file scope when available;
+- the Atlas/gate checkpoint, foreman review, task communication, PR/deployment
+  local-sync, and ROI receipts before Package 2 is treated as complete.
 
 Follow-up local Git receipt:
 
