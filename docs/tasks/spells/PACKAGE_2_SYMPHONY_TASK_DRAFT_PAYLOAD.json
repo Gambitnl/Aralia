@@ -1,0 +1,21 @@
+{
+  "status": "submitted_blocked_by_git_sync",
+  "submittedDraftId": "draft-1779344522441-vdy0hi",
+  "submittedAt": "2026-05-21T06:22:01.760Z",
+  "submissionReceipt": "docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md",
+  "submitAfter": "docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_SNAPSHOT_RECEIPT.md records passed or approved waived result and says Package 2 may dispatch",
+  "endpoint": "POST /api/v1/task-drafts",
+  "title": "Spell Phase 1 Package 2: premade party and gear",
+  "body": "Use the exact Jules prompt packet in docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md. Scope: equip all 13 level-1 premade characters with class-appropriate working gear, verify caster spellbook/preparation legality, and repair only narrow combat conversion issues needed for AC/baseAC and ranged weapon range. Worker: Jules. Branch: jules/spells-package2-premade-party-gear. Do not broaden into character creator UI, character sheet spellbook UI, broad spell schema/runtime architecture, AI arbitration policy, or Symphony orchestration files. The Jules Environment receipt now allows Package 2 dispatch after the scoped setup snapshot passed.",
+  "expectedFiles": [
+    "public/premade-characters/*.json",
+    "src/utils/combat/combatUtils.ts",
+    "src/utils/combat/__tests__/combatUtils_*.test.ts",
+    "optional narrow premade legality audit/test under existing test or script structure"
+  ],
+  "verificationCommands": [
+    "npm run validate:spells",
+    "npm run generate:spell-gates",
+    "npx vitest run src/utils/combat/__tests__/combatUtils_*.test.ts --reporter=verbose"
+  ]
+}
