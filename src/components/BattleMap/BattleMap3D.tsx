@@ -19,10 +19,9 @@
  */
 import React, { useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { MapControls, Html } from '@react-three/drei';
+import { MapControls } from '@react-three/drei';
 import { EffectComposer, SSAO, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData, CombatCharacter } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
@@ -30,6 +29,7 @@ import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps } from './terrain';
+import { CharacterActor } from './characters';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,106 +102,6 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-
-/** Character token rendered as a simple capsule — placeholder for Phase 2's glTF models */
-const CharacterMarker: React.FC<{
-  character: CombatCharacter;
-  isSelected: boolean;
-  isTurn: boolean;
-  isTargetable: boolean;
-  targetingMode: boolean;
-  onClick: (character: CombatCharacter) => void;
-}> = ({ character, isSelected, isTurn, isTargetable, targetingMode, onClick }) => {
-  const { x, y } = character.position;
-  const isPlayer = character.team === 'player';
-  const isAlive = character.currentHP > 0;
-
-  // Base color by team
-  let baseColor = isPlayer ? 0x3b82f6 : 0x991b1b;
-  if (isSelected) baseColor = 0xfbbf24;
-  if (isTargetable && targetingMode) baseColor = 0xef4444;
-
-  // Selection ring color
-  const ringColor = isPlayer ? 0x60a5fa : 0xef4444;
-  const showRing = isSelected || isTurn;
-
-  return (
-    <group position={[x * TILE_WORLD_SIZE, 0.5, y * TILE_WORLD_SIZE]}>
-      {/* Character body — capsule placeholder */}
-      <mesh
-        onClick={(e: ThreeEvent<MouseEvent>) => {
-          e.stopPropagation();
-          onClick(character);
-        }}
-        castShadow
-      >
-        <capsuleGeometry args={[0.15, 0.5, 8, 16]} />
-        <meshStandardMaterial
-          color={baseColor}
-          roughness={0.4}
-          metalness={0.2}
-          emissive={isTurn ? baseColor : 0x000000}
-          emissiveIntensity={isTurn ? 0.3 : 0}
-        />
-      </mesh>
-
-      {/* Selection / turn ring on ground */}
-      {showRing && (
-        <mesh
-          position={[0, -0.45, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <ringGeometry args={[0.3, 0.38, 32]} />
-          <meshStandardMaterial
-            color={isTurn ? 0xfbbf24 : ringColor}
-            emissive={isTurn ? 0xfbbf24 : ringColor}
-            emissiveIntensity={0.8}
-            transparent
-            opacity={0.9}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      )}
-
-      {/* Nameplate — HTML overlay */}
-      <Html
-        position={[0, 0.7, 0]}
-        center
-        distanceFactor={10}
-        style={{ pointerEvents: 'none' }}
-      >
-        <div style={{
-          background: 'rgba(0,0,0,0.75)',
-          padding: '2px 6px',
-          borderRadius: '4px',
-          whiteSpace: 'nowrap',
-          fontSize: '11px',
-          color: '#e6edf3',
-          textAlign: 'center',
-          borderLeft: `3px solid ${isPlayer ? '#3b82f6' : '#ef4444'}`,
-        }}>
-          <div style={{ fontWeight: 600 }}>{character.name}</div>
-          <div style={{
-            width: '60px',
-            height: '4px',
-            background: '#1a1a2e',
-            borderRadius: '2px',
-            marginTop: '2px',
-          }}>
-            <div style={{
-              width: `${Math.max(0, (character.currentHP / character.maxHP) * 100)}%`,
-              height: '100%',
-              background: character.currentHP / character.maxHP > 0.5 ? '#22c55e'
-                : character.currentHP / character.maxHP > 0.25 ? '#eab308' : '#ef4444',
-              borderRadius: '2px',
-              transition: 'width 0.3s ease',
-            }} />
-          </div>
-        </div>
-      </Html>
-    </group>
-  );
-};
 
 /** Lighting rig driven by biome presets */
 const SceneLighting: React.FC<{ biome: string }> = ({ biome }) => {
@@ -379,13 +279,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         <WaterSystem mapData={mapData} />
         <DecorationProps mapData={mapData} />
 
-        {/* Characters */}
+        {/* Characters — CharacterActor with animation state machine and BG3-style selection */}
         {characters.map(character => {
           const charTileId = `${character.position.x}-${character.position.y}`;
           const isTargetable = validTargetSet.has(charTileId);
 
           return (
-            <CharacterMarker
+            <CharacterActor
               key={character.id}
               character={character}
               isSelected={selectedCharacterId === character.id}
