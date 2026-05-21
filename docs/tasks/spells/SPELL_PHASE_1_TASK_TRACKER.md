@@ -44,6 +44,8 @@ Statuses:
   `https://linear.app/aralia/issue/ARA-7/spell-phase-1-package-2-premade-party-and-gear`
 - Package 2 Jules session:
   `https://jules.google.com/session/15527431301408060204`
+- Package 2 PR:
+  `https://github.com/Gambitnl/Aralia/pull/935`
 
 ## Active Package Queue
 
@@ -51,8 +53,8 @@ Statuses:
 |---|---|---|---|---|---|
 | P0 | active | Codex foreman | Symphony finalization baseline: post-ARA-6 contract, stale-status cleanup, branch/worktree discipline, decision reporting, task evidence pathways, artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Setup PR #933 landed; continue evidence updates during Package 2 |
 | P1 | done | Codex foreman | Scoped baseline inventory for levels 0-3 | `SPELL_PHASE_1_BASELINE_REPORT.md` | Baseline report exists; use as context for later packages |
-| P2 | waiting | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Jules session `15527431301408060204` had its visible plan approved through the dashboard-linked Jules page; dashboard refresh now reports `IN_PROGRESS` and no PR URL yet |
-| P2D | active | Codex foreman | Dashboard-first hardening for Package 2 handoff monitoring | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`; Decisions 26-30 | Fix dashboard boundary selection, compact top chrome, keep visible action controls stable, surface completed-without-PR Jules sessions as inspectable blockers, and record the visible plan-approval recovery path |
+| P2 | active | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | PR #935 is visible and mergeable; file list is inside declared Package 2 scope; scoped local verification passed; broad GitHub test job is failing in unrelated `handleMovement` seasonal test and needs Scout/Core disposition before merge |
+| P2D | active | Codex foreman | Dashboard-first hardening for Package 2 handoff monitoring | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`; Decisions 26-30 | Dashboard reached PR #935 and Jules sign-in successfully, but task-note entry still fails from the in-app browser clipboard/input surface; keep recording durable evidence here until the dashboard has a robust note path |
 | P3 | not_started | Jules preferred after P2 | Character creator spell selection and character sheet spellbook visibility | create `PACKAGE_3_*` docs when P2 review says ready | Waiting on P2 |
 | P4 | not_started | Jules preferred after P3 | Combat simulator deterministic spell pilot | create `PACKAGE_4_*` docs after P3 | Waiting on P2/P3 |
 | P5 | not_started | Jules preferred after P4 | AI arbitration pilot for open-ended spells | create `PACKAGE_5_*` docs after deterministic pilot | Waiting on P4 |
@@ -67,7 +69,8 @@ Statuses:
 | S3 | done | Rerun Symphony task queue/preflight from local `master` after setup context lands | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Clean preflight: local and remote `master` both `40678de8` |
 | S4 | done | Dispatch Package 2 to Jules | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Jules session `15527431301408060204` launched and queued |
 | S5 | done | Inspect completed Jules session result through dashboard-safe workflow | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Visible Jules session showed a plan-approval gate, not a usable completion result; plan was approved through the dashboard-linked Jules page |
-| S6 | waiting | Monitor approved Package 2 Jules run through dashboard-safe workflow | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Current state `IN_PROGRESS`; use dashboard `Refresh Jules Status` until Jules returns a PR, blocker, or follow-up request |
+| S6 | done | Monitor approved Package 2 Jules run through dashboard-safe workflow | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Dashboard captured PR #935 and current boundary moved to `Bridge Through Scout/Core` |
+| S7 | active | Review Package 2 PR #935 before Scout/Core merge path | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Scoped local verification passed; GitHub build/lint/security checks pass; broad test job fails in unrelated movement test; Gemini review job fails from missing `gemini-1.5-flash`; classify and decide whether to request Jules follow-up, fix ambient CI separately, or proceed through documented guarded PR path |
 
 ## Adjacent Gap Log
 
@@ -84,7 +87,10 @@ package queue or a linked detailed task file.
 | G5 | done | Dashboard-first Package 2 monitoring | The dashboard first viewport spent too much space on run totals/control API links and showed raw ISO update timestamps with milliseconds | This is a dashboard usability issue exposed by human-style browser navigation, not spell implementation work | Decision 27; `conductor/symphony/public/dashboard.js`; `conductor/symphony/public/dashboard.css` |
 | G6 | done | Dashboard-first Package 2 monitoring | A live dashboard refresh could replace the `Refresh Jules Status` button while the operator was trying to click it | This is a dashboard interaction stability issue exposed by human-style browser navigation, not spell implementation work | Decision 28; `conductor/symphony/public/dashboard.js`; `conductor/symphony/scripts/verify-dashboard-interaction-stability.mjs` |
 | G7 | done | Dashboard-first Package 2 monitoring | Jules can report `COMPLETED` without a captured PR URL, while the in-app browser may still be blocked on Google sign-in before the result can be inspected | This is a Symphony/Jules visibility and filing blocker, not spell implementation work | Decision 29; `conductor/symphony/src/server.ts`; `conductor/symphony/scripts/verify-completed-jules-no-pr-boundary.mjs` |
-| G8 | active | Dashboard-first Package 2 monitoring | The dashboard-linked Jules page can reveal a visible plan-approval gate even when Symphony's prior stored status said `COMPLETED` with no PR URL | This is a Symphony/Jules state reconciliation gap, not spell implementation work | Decision 30; keep refreshing through dashboard controls after any visible Jules action |
+| G8 | done | Dashboard-first Package 2 monitoring | The dashboard-linked Jules page can reveal a visible plan-approval gate even when Symphony's prior stored status said `COMPLETED` with no PR URL | This was a Symphony/Jules state reconciliation gap, not spell implementation work | Decision 30; dashboard refresh after approval eventually captured PR #935 |
+| G9 | active | Visible Jules Package 2 monitoring | The Jules working tree showed helper/scratch files and generated/audit surfaces outside declared write scope while work was in progress; PR #935 file list does not include those helper files, but three premade JSON files still carry large formatting churn | Helper files were transient at PR-file-list level; formatting churn remains a review concern because it makes human review harder even when semantic JSON changes are narrow | PR #935 semantic diff: gear additions, a few armor-class changes, and two prepared-spell trims; decide during Scout/Core review whether to accept formatting churn or request a narrower JSON rewrite |
+| G10 | active | PR #935 CI review | GitHub broad test job fails in `src/hooks/actions/__tests__/handleMovement.test.ts`, expecting winter travel time `2700` but receiving `8100`; focused movement test passes locally on both PR #935 checkout and the foreman checkout | The failing file is outside Package 2's write scope and not touched by PR #935, so this looks like ambient full-suite order/environment behavior rather than a Jules implementation defect | Classify before merge: either document as ambient CI blocker, repair separately, or rerun after any known test-isolation fix |
+| G11 | active | Dashboard task-page note attempt | The visible task message form could not be filled from Codex because the in-app browser reported that its virtual clipboard is not installed | This is a dashboard/workflow evidence-path limitation, not spell implementation work; using a hidden task-message endpoint would bypass the dashboard-first test | Keep durable notes in this tracker/receipt; add a robust visible note-entry fallback or dashboard-side action later |
 
 ## Detailed Task File Index
 
@@ -98,7 +104,7 @@ package queue or a linked detailed task file.
 | `PACKAGE_2_TASK_COMMUNICATION_RECEIPT.md` | Package 2 task-scoped communication target | pending implementation |
 | `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | Package 2 PR/deployment/local-sync target | pending implementation |
 | `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Retain/archive/delete policy for package artifacts | active |
-| `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Clean-base Package 2 draft, Linear issue, handoff, manifest, and Jules launch receipt | active, Jules plan approved and run in progress |
+| `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Clean-base Package 2 draft, Linear issue, handoff, manifest, Jules launch, PR #935, and scoped verification receipt | active, PR review in progress |
 
 ## Update Rules
 
