@@ -19,7 +19,7 @@
  */
 import React, { useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { MapControls } from '@react-three/drei';
+// MapControls now handled by CameraController
 import { EffectComposer, SSAO, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -30,6 +30,7 @@ import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps } from './terrain';
 import { CharacterActor } from './characters';
+import { CameraController } from './camera';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -182,6 +183,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
   } = battleMapState;
 
   const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
+  const selectedCharacter = characters.find(c => c.id === selectedCharacterId) ?? null;
 
   // Target selection — same as 2D BattleMap
   const { validTargetSet } = useTargetSelection({
@@ -249,16 +251,17 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         {/* Lighting rig */}
         <SceneLighting biome={biome} />
 
-        {/* Camera controls — BG3-style orbit */}
-        <MapControls
-          target={[cameraTarget[0], 0, cameraTarget[2]]}
-          minDistance={8}
-          maxDistance={25}
-          minPolarAngle={Math.PI * 0.15}  // ~27° from horizon (prevent going under)
-          maxPolarAngle={Math.PI * 0.42}   // ~75° from horizon (prevent top-down)
-          enableDamping
-          dampingFactor={0.08}
-          screenSpacePanning={false}
+        {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam */}
+        <CameraController
+          mapCenter={cameraTarget}
+          activeCharacter={currentCharacter ?? null}
+          selectedCharacter={selectedCharacter}
+          characters={characters}
+          cinematicEnabled={true}
+          onCameraSelectCharacter={handleCharacterClick ? (id) => {
+            const char = characters.find(c => c.id === id);
+            if (char) handleCharacterClick(char);
+          } : undefined}
         />
 
         {/* Terrain system — continuous heightfield mesh with vegetation and water */}
