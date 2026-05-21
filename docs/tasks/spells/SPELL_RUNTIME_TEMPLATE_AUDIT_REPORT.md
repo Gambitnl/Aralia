@@ -2,7 +2,7 @@
 
 This report checks the strict spell conversion template across structured markdown and runtime JSON.
 
-Generated: 2026-05-14T11:40:30.806Z
+Generated: 2026-05-20T23:48:30.569Z
 Spells scanned: 459
 Total issues: 28
 Errors: 0

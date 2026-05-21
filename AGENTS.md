@@ -81,12 +81,55 @@ results = col.query(query_texts=["your query"], n_results=5)
 - **Architecture questions**: Query for past rationale behind design choices.
 - **Continuity**: When picking up work another agent started, search for their session context.
 
-### Keeping it updated
+### Keeping it updated (Targeted Mining Policy)
 
-After significant project changes, re-mine to index new files (already-filed files are skipped automatically):
-```
-mempalace mine F:\Repos\Aralia
-```
+To avoid scanning thousands of unrelated data and codebase files, **do not default to full-repo mining after every task.** Instead, follow a **targeted** mining policy that keeps the palace accurate while being highly efficient and proportional to the work performed.
+
+#### Targeted vs. Full-Repo Mining Policy
+
+1. **Targeted Mining (Preferred Default)**:
+   Limit mining to the narrow directories or specific subdirectories affected by the session's work.
+   - For normal task completion, identify changed files using:
+     - `git diff --name-only HEAD~1..HEAD` (for the latest commit)
+     - `git diff --name-only` (for uncommitted work)
+     - Any newly created durable documents, reports, or plans (e.g., in `docs/` or `conductor/symphony/docs/`).
+   - Do **NOT** mine runtime artifacts, temporary proof captures, generated outputs, `node_modules`, build outputs, or massive structured data unless they are the exact durable artifact being preserved.
+   - Record skipped or partial mining honestly in the final session report.
+
+2. **Full-Repo Mining (Exception Only)**:
+   Run a full-repo mine (`mempalace mine F:\Repos\Aralia --wing aralia`) **only** under these conditions:
+   - The task changed repo-wide conventions, patterns, or architecture.
+   - Many disparate directories changed across the entire codebase.
+   - The MemPalace index is suspected to be stale or corrupt. Do not automatically full-repo mine; report the symptom, run only documented repair/diagnostic steps if available, and ask the operator before any full-repo re-mine.
+   - The operator/user explicitly requests a full re-mine.
+
+#### MemPalace CLI Limitations & Workarounds
+
+> [!IMPORTANT]
+> **No Single-File/File-List Support**: The MemPalace CLI `mine` command expects a directory. Passing a single file (e.g., `mempalace mine F:\Repos\Aralia\AGENTS.md`) directly will result in `Files processed: 0`. Always target the **narrowest containing directory** instead.
+
+> [!IMPORTANT]
+> **Explicit Wing Specification Required**: When mining a subdirectory, do not rely on root config discovery. Always pass `--wing aralia` so drawers stay in the project wing.
+
+#### Concrete Examples
+
+- **For a Symphony documentation/report task (narrow subdirectory targets)**:
+  ```powershell
+  mempalace mine F:\Repos\Aralia\conductor\symphony\docs\decision-reports --wing aralia
+  mempalace mine F:\Repos\Aralia\conductor\symphony\docs\tasks --wing aralia
+  ```
+- **For a single durable file in a subdirectory** (mine its narrowest parent directory with explicit wing to capture it):
+  ```powershell
+  mempalace mine F:\Repos\Aralia\conductor\symphony\docs\decision-reports --wing aralia
+  ```
+- **For a source change in `src/`**:
+  ```powershell
+  mempalace mine F:\Repos\Aralia\src\components\dashboard --wing aralia
+  ```
+- **For broad architectural changes (full-repo re-mine)**:
+  ```powershell
+  mempalace mine F:\Repos\Aralia --wing aralia
+  ```
 
 ### Palace location
 

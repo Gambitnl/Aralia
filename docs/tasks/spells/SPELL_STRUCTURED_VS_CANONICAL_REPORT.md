@@ -2,16 +2,1464 @@
 
 This report compares the validator-facing structured spell markdown block to the raw canonical snapshot stored lower in the same file.
 
-Generated: 2026-05-13T06:16:57.966Z
+Generated: 2026-05-20T23:48:31.155Z
 Markdown files scanned: 459
 Spell files compared: 459
-Total mismatches: 0
-Grouped mismatch buckets: 0
+Total mismatches: 3
+Grouped mismatch buckets: 2
 Policy boundaries: 476
 
 This report does not arbitrate which side is correct. It surfaces where the structured Aralia spell data and the copied canonical snapshot are not currently identical, and it lists accepted policy boundaries separately so missing source data is not silent.
 
 ## Grouped Mismatches
 
-No structured-vs-canonical mismatches found.
+### structured-vs-canonical / Range/Area
+
+- Kind: `value-mismatch`
+- Occurrences: 2
+- Distinct spells: 2
+- Sample spells: leomunds-tiny-hut, sleet-storm
+- Sample findings:
+  - Leomund's Tiny Hut records Range/Area differently in the structured block and the canonical snapshot.
+  - Sleet Storm records Range/Area differently in the structured block and the canonical snapshot.
+
+### structured-vs-canonical / Duration
+
+- Kind: `value-mismatch`
+- Occurrences: 1
+- Distinct spells: 1
+- Sample spells: power-word-pain
+- Sample findings:
+  - Power Word Pain records Duration differently in the structured block and the canonical snapshot.
+
+## Policy Boundaries
+
+- Acid Splash / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blade Ward / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Booming Blade / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Chill Touch / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Create Bonfire / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dancing Lights / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Druidcraft / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Eldritch Blast / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Elementalism / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fire Bolt / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Friends / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Frostbite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Green-Flame Blade / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Guidance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Light / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Lightning Lure / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mage Hand / Sub-Classes
+  - Structured: `Rogue - Arcane Trickster`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Magic Stone / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mending / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Message / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mind Sliver / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Minor Illusion / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mold Earth / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Poison Spray / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Prestidigitation / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Primal Savagery / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Produce Flame / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Ray of Frost / Sub-Classes
+  - Structured: `Druid - Circle of the Sea`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Resistance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sacred Flame / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Shape Water / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Shillelagh / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Shocking Grasp / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Spare the Dying / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Starry Wisp / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sword Burst / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Thaumaturgy / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Thorn Whip / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Thunderclap / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Toll the Dead / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- True Strike / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Vicious Mockery / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Word of Radiance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Absorb Elements / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Alarm / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Animal Friendship / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Armor of Agathys / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Arms of Hadar / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Bane / Sub-Classes
+  - Structured: `Paladin - Oath of Vengeance`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Bless / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Burning Hands / Sub-Classes
+  - Structured: `Cleric - Light Domain, Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Catapult / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Charm Person / Sub-Classes
+  - Structured: `Cleric - Trickery Domain, Ranger - Fey Wanderer`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Chromatic Orb / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Color Spray / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Command / Sub-Classes
+  - Structured: `Sorcerer - Draconic Sorcery, Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Compelled Duel / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Comprehend Languages / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Create or Destroy Water / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Cure Wounds / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Detect Evil and Good / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Detect Magic / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Detect Poison and Disease / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Disguise Self / Sub-Classes
+  - Structured: `Cleric - Trickery Domain, Ranger - Gloom Stalker`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Dissonant Whispers / Sub-Classes
+  - Structured: `Warlock - Great Old One Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Divine Favor / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Divine Smite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Ensnaring Strike / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Entangle / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Expeditious Retreat / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Faerie Fire / Sub-Classes
+  - Structured: `Cleric - Light Domain, Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- False Life / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Feather Fall / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Find Familiar / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fog Cloud / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Goodberry / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Grease / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Guiding Bolt / Sub-Classes
+  - Structured: `Paladin - Oath of Glory, Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Hail of Thorns / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Healing Word / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hellish Rebuke / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Heroism / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hex / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hunter's Mark / Sub-Classes
+  - Structured: `Paladin - Oath of Vengeance`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Ice Knife / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Identify / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Illusory Script / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Inflict Wounds / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Jump / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Longstrider / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Mage Armor / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Magic Missile / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Protection from Evil and Good / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Purify Food and Drink / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Ray of Sickness / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sanctuary / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Searing Smite / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Shield of Faith / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Shield / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Silent Image / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sleep / Sub-Classes
+  - Structured: `Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Snare / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Speak with Animals / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Tasha's Caustic Brew / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tasha's Hideous Laughter / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tenser's Floating Disk / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Thunderous Smite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Thunderwave / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Unseen Servant / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Witch Bolt / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wrathful Smite / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Aid / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Alter Self / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Animal Messenger / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Arcane Lock / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Arcane Vigor / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Augury / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Barkskin / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Beast Sense / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blindness/Deafness / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blur / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Calm Emotions / Sub-Classes
+  - Structured: `Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Cloud of Daggers / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Continual Flame / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Cordon of Arrows / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Crown of Madness / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Darkness / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Darkvision / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Detect Thoughts / Sub-Classes
+  - Structured: `Warlock - Great Old One Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Dragon's Breath / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Enhance Ability / Sub-Classes
+  - Structured: `Paladin - Oath of Glory`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Enlarge/Reduce / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Enthrall / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Find Steed / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Find Traps / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Flame Blade / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Flaming Sphere / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Gentle Repose / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Gust of Wind / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Heat Metal / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hold Person / Sub-Classes
+  - Structured: `Paladin - Oath of Vengeance`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Invisibility / Sub-Classes
+  - Structured: `Cleric - Trickery Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Knock / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Lesser Restoration / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Levitate / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Locate Animals or Plants / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Locate Object / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Magic Mouth / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Magic Weapon / Sub-Classes
+  - Structured: `Cleric - War Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Melf's Acid Arrow / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mind Spike / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mirror Image / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Misty Step / Sub-Classes
+  - Structured: `Paladin - Oath of Vengeance, Paladin - Oath of the Ancients, Ranger - Fey Wanderer`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Moonbeam / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Nystul's Magic Aura / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Pass without Trace / Sub-Classes
+  - Structured: `Cleric - Trickery Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Phantasmal Force / Sub-Classes
+  - Structured: `Warlock - Archfey Patron, Warlock - Great Old One Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Prayer of Healing / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Protection from Poison / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Pyrotechnics / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Ray of Enfeeblement / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Rope Trick / Sub-Classes
+  - Structured: `Ranger - Gloom Stalker`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Scorching Ray / Sub-Classes
+  - Structured: `Cleric - Light Domain, Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- See Invisibility / Sub-Classes
+  - Structured: `Cleric - Light Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Shatter / Sub-Classes
+  - Structured: `Druid - Circle of the Sea`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Shining Smite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Silence / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Skywrite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Spider Climb / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Spike Growth / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Spiritual Weapon / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Suggestion / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Summon Beast / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Warding Bond / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Web / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Zone of Truth / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Animate Dead / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Aura of Vitality / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Beacon of Hope / Sub-Classes
+  - Structured: `Paladin - Oath of Devotion`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Bestow Curse / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blinding Smite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blink / Sub-Classes
+  - Structured: `Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Call Lightning / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Catnap / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Clairvoyance / Sub-Classes
+  - Structured: `Warlock - Great Old One Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Conjure Animals / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Conjure Barrage / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Counterspell / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Create Food and Water / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Crusader's Mantle / Sub-Classes
+  - Structured: `Cleric - War Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Daylight / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Dispel Magic / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Elemental Weapon / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Enemies Abound / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Erupting Earth / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fast Friends / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fear / Sub-Classes
+  - Structured: `Ranger - Gloom Stalker`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Feign Death / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fireball / Sub-Classes
+  - Structured: `Cleric - Light Domain, Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Flame Arrows / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fly / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Galder's Tower / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Gaseous Form / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Glyph of Warding / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Haste / Sub-Classes
+  - Structured: `Paladin - Oath of Glory, Paladin - Oath of Vengeance`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Hunger of Hadar / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hypnotic Pattern / Sub-Classes
+  - Structured: `Cleric - Trickery Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Incite Greed / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Intellect Fortress / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Leomund's Tiny Hut / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Life Transference / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Lightning Arrow / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Lightning Bolt / Sub-Classes
+  - Structured: `Druid - Circle of the Sea`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Magic Circle / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Major Image / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mass Healing Word / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Meld into Stone / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Melf's Minute Meteors / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Motivational Speech / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Nondetection / Sub-Classes
+  - Structured: `Cleric - Trickery Domain`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Phantom Steed / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Plant Growth / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients, Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Protection from Energy / Sub-Classes
+  - Structured: `Paladin - Oath of Glory, Paladin - Oath of Vengeance, Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Remove Curse / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Revivify / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Sending / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sleet Storm / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Slow / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Speak with Dead / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Speak with Plants / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Spirit Guardians / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Stinking Cloud / Sub-Classes
+  - Structured: `Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Summon Lesser Demons / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Thunder Step / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tidal Wave / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tiny Servant / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tongues / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Vampiric Touch / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Sand / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Water / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Water Breathing / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Water Walk / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wind Wall / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Arcane Eye / Sub-Classes
+  - Structured: `Cleric - Light Domain, Sorcerer - Draconic Sorcery`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Aura of Life / Classes
+  - Structured: `Paladin`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Aura of Life / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Aura of Purity / Classes
+  - Structured: `Paladin`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Aura of Purity / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Banishment / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blight / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Charm Monster / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Compulsion / Sub-Classes
+  - Structured: `Paladin - Oath of Glory`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Confusion / Sub-Classes
+  - Structured: `Cleric - Trickery Domain, Warlock - Great Old One Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Conjure Minor Elementals / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Conjure Woodland Beings / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Control Water / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Death Ward / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dimension Door / Sub-Classes
+  - Structured: `Cleric - Trickery Domain, Paladin - Oath of Vengeance, Ranger - Fey Wanderer`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Divination / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dominate Beast / Sub-Classes
+  - Structured: `Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Elemental Bane / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Evard's Black Tentacles / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fabricate / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Find Greater Steed / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fire Shield / Sub-Classes
+  - Structured: `Cleric - War Domain, Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Freedom of Movement / Sub-Classes
+  - Structured: `Paladin - Oath of Devotion, Paladin - Oath of Glory`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Galders Speedy Courier / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Giant Insect / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Grasping Vine / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Greater Invisibility / Sub-Classes
+  - Structured: `Ranger - Gloom Stalker, Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Guardian of Faith / Sub-Classes
+  - Structured: `Paladin - Oath of Devotion, Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Guardian of Nature / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hallucinatory Terrain / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Ice Storm / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Leomund's Secret Chest / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Locate Creature / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mordenkainen's Faithful Hound / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mordenkainen's Private Sanctum / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Otiluke's Resilient Sphere / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Phantasmal Killer / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Polymorph / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Shadow of Moil / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sickening Radiance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Staggering Smite / Classes
+  - Structured: `Paladin`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Staggering Smite / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Stone Shape / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Stoneskin / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Storm Sphere / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Summon Greater Demon / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Vitriolic Sphere / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Fire / Sub-Classes
+  - Structured: `Cleric - Light Domain, Warlock - Celestial Patron, Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Watery Sphere / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Animate Objects / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Antilife Shell / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Awaken / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Banishing Smite / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Bigby's Hand / Classes
+  - Structured: `Artificer, Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Bigby's Hand / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Circle of Power / Classes
+  - Structured: `Paladin`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Circle of Power / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Cloudkill / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Commune with Nature / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Commune / Sub-Classes
+  - Structured: `Paladin - Oath of Devotion`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Cone of Cold / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Conjure Elemental / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Conjure Volley / Classes
+  - Structured: `Ranger`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Conjure Volley / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Contact Other Plane / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Contagion / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Control Winds / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Creation / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Danse Macabre / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dawn / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Destructive Wave / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dispel Evil and Good / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dominate Person / Sub-Classes
+  - Structured: `Cleric - Trickery Domain, Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Dream / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Enervation / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Far Step / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Flame Strike / Sub-Classes
+  - Structured: `Paladin - Oath of Devotion`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Geas / Sub-Classes
+  - Structured: `Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Greater Restoration / Sub-Classes
+  - Structured: `Warlock - Celestial Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Hallow / Sub-Classes
+  - Structured: `Folded into Classes`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Hold Monster / Sub-Classes
+  - Structured: `Cleric - War Domain, Druid - Circle of the Sea, Paladin - Oath of Vengeance`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Holy Weapon / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Immolation / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Infernal Calling / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Insect Plague / Sub-Classes
+  - Structured: `Warlock - Fiend Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Legend Lore / Sub-Classes
+  - Structured: `Paladin - Oath of Glory, Sorcerer - Draconic Sorcery`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Maelstrom / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mass Cure Wounds / Classes
+  - Structured: `Bard, Cleric, Druid`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Mass Cure Wounds / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Mislead / Classes
+  - Structured: `Bard, Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Mislead / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Modify Memory / Classes
+  - Structured: `Bard, Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Modify Memory / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Negative Energy Flood / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Passwall / Classes
+  - Structured: `Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Passwall / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Planar Binding / Classes
+  - Structured: `Bard, Cleric, Druid, Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Planar Binding / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Raise Dead / Classes
+  - Structured: `Bard, Cleric, Paladin`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Raise Dead / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Rary's Telepathic Bond / Classes
+  - Structured: `Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Rary's Telepathic Bond / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Reincarnate / Classes
+  - Structured: `Druid`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Reincarnate / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Scrying / Classes
+  - Structured: `Bard, Cleric, Druid, Warlock, Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Scrying / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Seeming / Sub-Classes
+  - Structured: `Ranger - Gloom Stalker, Warlock - Archfey Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Skill Empowerment / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Steel Wind Strike / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Swift Quiver / Classes
+  - Structured: `Ranger`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Swift Quiver / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Synaptic Static / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Telekinesis / Sub-Classes
+  - Structured: `Warlock - Great Old One Patron`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Teleportation Circle / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Transmute Rock / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tree Stride / Sub-Classes
+  - Structured: `Paladin - Oath of the Ancients`
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Wall of Force / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Light / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Stone / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wrath of Nature / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Arcane Gate / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blade Barrier / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Bones of the Earth / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Chain Lightning / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Circle of Death / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Conjure Fey / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Contingency / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Create Homunculus / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Create Undead / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Disintegrate / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Drawmij's Instant Summons / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Druid Grove / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Eyebite / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Find the Path / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Flesh to Stone / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Forbiddance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Globe of Invulnerability / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Guards and Wards / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Harm / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Heal / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Heroes' Feast / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Investiture of Flame / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Investiture of Ice / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Investiture of Stone / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Investiture of Wind / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Magic Jar / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mass Suggestion / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mental Prison / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Move Earth / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Otiluke's Freezing Sphere / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Otto's Irresistible Dance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Planar Ally / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Primordial Ward / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Programmed Illusion / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Scatter / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Soul Cage / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sunbeam / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tenser's Transformation / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Transport via Plants / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- True Seeing / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Ice / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wall of Thorns / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wind Walk / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Word of Recall / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Arcane Sword / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Conjure Celestial / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Crown of Stars / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Delayed Blast Fireball / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Divine Word / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Draconic Transformation / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dream of the Blue Veil / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Etherealness / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Finger of Death / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Fire Storm / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Forcecage / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mirage Arcane / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mordenkainen's Magnificent Mansion / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Plane Shift / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Power Word Pain / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Prismatic Spray / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Project Image / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Regenerate / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Resurrection / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Reverse Gravity / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sequester / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Simulacrum / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Symbol / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Teleport / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Temple of the Gods / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Whirlwind / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Abi-Dalzim's Horrid Wilting / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Animal Shapes / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Antimagic Field / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Antipathy/Sympathy / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Clone / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Control Weather / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Demiplane / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Dominate Monster / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Earthquake / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Feeblemind / Classes
+  - Structured: `Bard, Druid, Warlock, Wizard`
+  - Policy: Legacy canonical capture has an empty Available For section, so the Classes row is preserved as structured access data and is not treated as canonical drift.
+- Feeblemind / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Glibness / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Holy Aura / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Illusory Dragon / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Incendiary Cloud / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Maddening Darkness / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Maze / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mighty Fortress / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mind Blank / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Power Word Stun / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Sunburst / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Telepathy / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Tsunami / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Astral Projection / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Blade of Disaster / Sub-Classes
+  - Structured: ``
+  - Policy: Structured Sub-Classes is governed by the roster-specific subclass audit, which applies supported-roster and repeated-base policies before judging parity; this raw canonical comparison is recorded as a boundary so that audit remains the single source of truth.
+- Foresight / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Gate / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Imprisonment / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Invulnerability / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mass Heal / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Mass Polymorph / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Meteor Swarm / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Power Word Heal / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Power Word Kill / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Prismatic Wall / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Psychic Scream / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Shapechange / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Storm of Vengeance / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Time Stop / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- True Polymorph / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- True Resurrection / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Weird / Sub-Classes
+  - Structured: `No Subclass Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
+- Wish / Sub-Classes
+  - Structured: `Unsupported Entries`
+  - Policy: Structured Sub-Classes uses an approved policy marker governed by the roster-specific subclass audit, so raw canonical access text is recorded as a boundary instead of reopened as ordinary drift.
 

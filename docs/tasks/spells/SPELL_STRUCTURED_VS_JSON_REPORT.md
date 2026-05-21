@@ -2,7 +2,7 @@
 
 This report compares the validator-facing structured spell markdown block to the live runtime spell JSON that the glossary renders.
 
-Generated: 2026-05-14T11:40:17.787Z
+Generated: 2026-05-20T23:48:32.144Z
 Markdown files scanned: 459
 Spell files compared: 459
 Total mismatches: 0
