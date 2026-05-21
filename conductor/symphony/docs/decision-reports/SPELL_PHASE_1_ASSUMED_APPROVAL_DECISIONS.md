@@ -774,8 +774,9 @@ Copy this block for each decision.
   - Retry or bypass the rejected push through another mechanism.
 - Decision made by agent: Create local branch
   `codex/spell-phase1-symphony-package2-setup`, commit the durable setup/proof
-  artifacts as `290cccb8`, attempt the remote push, and stop when the Codex tool
-  approval flow rejected the push before Git ran.
+  artifacts as `290cccb8`, commit the push-boundary receipt as `dee53c47`,
+  attempt the remote push, and stop when the Codex tool approval flow rejected
+  the push before Git ran.
 - Model routing: Stronger foreman decision for the Git boundary, because this
   determines whether Jules can see the task context and separates project
   approval from tool approval.
@@ -790,7 +791,8 @@ Copy this block for each decision.
 - Scope guardrails: Do not dispatch Jules until the branch context is externally
   visible or a later decision explicitly chooses a different branch/source of
   truth.
-- Result: Package 2 setup is locally committed but not remotely synced.
+- Result: Package 2 setup is locally committed through `dee53c47` but not
+  remotely synced.
 - Next expected proof: Complete remote Git sync for the setup branch, rerun the
   Symphony task queue or Git preflight for `draft-1779344522441-vdy0hi`, then
   continue to Package 2 Jules dispatch only if the draft is ready.
@@ -800,8 +802,8 @@ Copy this block for each decision.
 1. Decide the Git sync repair path for `draft-1779344522441-vdy0hi`: commit and
    push the current Spell Phase 1/Symphony proof branch, move unrelated work out
    of the launch path, or record a narrower waiver if the blocker is only local
-   fetch visibility. The local commit now exists as `290cccb8`, but the remote
-   push has not completed.
+   fetch visibility. The local branch now exists through `dee53c47`, but the
+   remote push has not completed.
 2. Rerun the Symphony task queue or Git preflight and record whether Package 2
    is ready to promote/dispatch.
 3. Dispatch Jules with

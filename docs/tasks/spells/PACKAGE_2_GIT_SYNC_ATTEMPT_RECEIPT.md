@@ -8,17 +8,19 @@ Local branch:
 
 - `codex/spell-phase1-symphony-package2-setup`
 
-Local commit:
+Local commits:
 
 - `290cccb8 Document spell phase 1 Symphony package 2 setup`
+- `dee53c47 Record Package 2 push boundary`
 
-What this commit contains:
+What these commits contain:
 
 - Spell Phase 1 plan, Package 2 task, prompt, receipts, and evidence screenshots
 - Symphony post-ARA-6 contract updates
 - Package 2 local draft submission receipt for `draft-1779344522441-vdy0hi`
 - Verifiers that protect the Package 2 environment snapshot and local Symphony
   draft boundary
+- The receipt and decision entry that record the rejected push boundary
 
 Push attempted:
 

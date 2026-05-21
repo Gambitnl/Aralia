@@ -92,6 +92,7 @@ assert.match(report, /Did\s+not dispatch Jules/);
 assert.match(report, /Decision 19: Commit Package 2 Setup Locally And Stop When Push Approval Fails/);
 assert.match(report, /codex\/spell-phase1-symphony-package2-setup/);
 assert.match(report, /290cccb8/);
+assert.match(report, /dee53c47/);
 assert.match(report, /git push -u origin codex\/spell-phase1-symphony-package2-setup/);
 assert.match(report, /rejected by user/);
 assert.match(report, /Did\s+not push a remote branch/);
