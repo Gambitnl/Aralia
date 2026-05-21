@@ -93,7 +93,7 @@ assert.match(report, /Decision 19: Commit Package 2 Setup Locally And Stop When 
 assert.match(report, /codex\/spell-phase1-symphony-package2-setup/);
 assert.match(report, /290cccb8/);
 assert.match(report, /dee53c47/);
-assert.match(report, /c547c1ed/);
+assert.match(report, /git log --oneline/);
 assert.match(report, /git push -u origin codex\/spell-phase1-symphony-package2-setup/);
 assert.match(report, /rejected by user/);
 assert.match(report, /Did\s+not push a remote branch/);
@@ -103,7 +103,7 @@ assert.match(report, /SPELL_PHASE_1_BASELINE_REPORT\.md/);
 
 assert.match(report, /Open Decisions For The Next Slice/);
 assert.match(report, /Git sync repair path/);
-assert.match(report, /remote\s+push has not completed/);
+assert.match(report, /[Rr]emote push has not\s+completed/);
 assert.match(report, /[Rr]erun the Symphony task queue or Git preflight/);
 assert.match(report, /Decision 4: Reserve Package 2 Branch And Worktree Names Without Creating Them/);
 assert.match(report, /jules\/spells-package2-premade-party-gear/);

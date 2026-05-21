@@ -8,11 +8,14 @@ Local branch:
 
 - `codex/spell-phase1-symphony-package2-setup`
 
-Local commits:
+Initial local commits recorded for this boundary:
 
 - `290cccb8 Document spell phase 1 Symphony package 2 setup`
 - `dee53c47 Record Package 2 push boundary`
 - `c547c1ed Clarify Package 2 local branch head`
+
+Later local-only bookkeeping commits may advance the branch head. Use
+`git log --oneline` for the current local head before any remote-sync attempt.
 
 What these commits contain:
 
@@ -22,8 +25,8 @@ What these commits contain:
 - Verifiers that protect the Package 2 environment snapshot and local Symphony
   draft boundary
 - The receipt and decision entry that record the rejected push boundary
-- The follow-up correction that makes `c547c1ed` the documented local branch
-  head before the next remote-sync attempt
+- The follow-up correction that stops treating any receipt hash as a permanent
+  branch head before the next remote-sync attempt
 
 Push attempted:
 

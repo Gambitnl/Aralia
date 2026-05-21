@@ -775,8 +775,9 @@ Copy this block for each decision.
 - Decision made by agent: Create local branch
   `codex/spell-phase1-symphony-package2-setup`, commit the durable setup/proof
   artifacts as `290cccb8`, commit the push-boundary receipt as `dee53c47`,
-  correct the local branch-head receipt as `c547c1ed`, attempt the remote push,
-  and stop when the Codex tool approval flow rejected the push before Git ran.
+  correct the local branch-head wording in follow-up bookkeeping, attempt the
+  remote push, and stop when the Codex tool approval flow rejected the push
+  before Git ran.
 - Model routing: Stronger foreman decision for the Git boundary, because this
   determines whether Jules can see the task context and separates project
   approval from tool approval.
@@ -791,8 +792,9 @@ Copy this block for each decision.
 - Scope guardrails: Do not dispatch Jules until the branch context is externally
   visible or a later decision explicitly chooses a different branch/source of
   truth.
-- Result: Package 2 setup is locally committed through `c547c1ed` but not
-  remotely synced.
+- Result: Package 2 setup is locally committed on
+  `codex/spell-phase1-symphony-package2-setup` but not remotely synced. Use
+  `git log --oneline` for the current local head before the next push attempt.
 - Next expected proof: Complete remote Git sync for the setup branch, rerun the
   Symphony task queue or Git preflight for `draft-1779344522441-vdy0hi`, then
   continue to Package 2 Jules dispatch only if the draft is ready.
@@ -802,8 +804,8 @@ Copy this block for each decision.
 1. Decide the Git sync repair path for `draft-1779344522441-vdy0hi`: commit and
    push the current Spell Phase 1/Symphony proof branch, move unrelated work out
    of the launch path, or record a narrower waiver if the blocker is only local
-   fetch visibility. The local branch now exists through `c547c1ed`, but the
-   remote push has not completed.
+   fetch visibility. The local branch exists, but the remote push has not
+   completed.
 2. Rerun the Symphony task queue or Git preflight and record whether Package 2
    is ready to promote/dispatch.
 3. Dispatch Jules with

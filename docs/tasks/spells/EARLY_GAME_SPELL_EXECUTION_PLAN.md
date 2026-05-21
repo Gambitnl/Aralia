@@ -568,9 +568,11 @@ Current setup decision, 2026-05-21:
 - The matching Symphony task-draft payload was submitted to `/api/v1/task-drafts`
   and is recorded at
   `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
-- Local branch `codex/spell-phase1-symphony-package2-setup` exists through
-  `c547c1ed`, but remote push has not completed; the push-boundary receipt is
-  `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md`.
+- Local branch `codex/spell-phase1-symphony-package2-setup` exists locally, but
+  remote push has not completed; use `git log --oneline` for the current local
+  head, and use
+  `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md` for the
+  push-boundary history.
 
 ## Approval And Autonomy Rules For This Test Flow
 
