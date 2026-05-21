@@ -143,7 +143,7 @@ const SceneLighting: React.FC<{ biome: string }> = ({ biome }) => {
 
 /** Postprocessing stack — SSAO + Bloom + Vignette for BG3 atmosphere */
 const PostProcessingStack: React.FC = () => (
-  <EffectComposer>
+  <EffectComposer enableNormalPass>
     <SSAO
       blendFunction={BlendFunction.MULTIPLY}
       samples={30}

@@ -8,6 +8,7 @@
 // TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } from 'react';
 import BattleMap from './BattleMap';
+import BattleMap3D from './BattleMap3D';
 import { PlayerCharacter } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -40,6 +41,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [biome, setBiome] = useState<BiomeType>(initialBiome);
   const [seed, setSeed] = useState(() => Date.now());
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+  // [2026-05-21] 3D render mode toggle
+  const [renderMode, setRenderMode] = useState<'2d' | '3d'>('2d');
 
   const allSpells = useContext(SpellContext);
   const spellsRecord = useMemo(
@@ -231,6 +234,14 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         >
           End Turn
         </button>
+        {/* [2026-05-21] 2D/3D render mode toggle */}
+        <button
+          onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
+          className="self-end px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow font-bold text-sm"
+          title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+        >
+          {renderMode === '2d' ? '🎮 3D View' : '🗺️ 2D View'}
+        </button>
       </div>
 
       <div className="flex-grow grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
@@ -249,17 +260,31 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         {/* Center Pane */}
         <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
-            <BattleMap
-              mapData={mapData}
-              characters={characters}
-              combatState={{
-                turnManager: turnManager,
-                turnState: turnManager.turnState,
-                abilitySystem: abilitySystem,
-                isCharacterTurn: turnManager.isCharacterTurn,
-                onCharacterUpdate: handleCharacterUpdate
-              }}
-            />
+            {renderMode === '3d' ? (
+              <BattleMap3D
+                mapData={mapData}
+                characters={characters}
+                combatState={{
+                  turnManager: turnManager,
+                  turnState: turnManager.turnState,
+                  abilitySystem: abilitySystem,
+                  isCharacterTurn: turnManager.isCharacterTurn,
+                  onCharacterUpdate: handleCharacterUpdate
+                }}
+              />
+            ) : (
+              <BattleMap
+                mapData={mapData}
+                characters={characters}
+                combatState={{
+                  turnManager: turnManager,
+                  turnState: turnManager.turnState,
+                  abilitySystem: abilitySystem,
+                  isCharacterTurn: turnManager.isCharacterTurn,
+                  onCharacterUpdate: handleCharacterUpdate
+                }}
+              />
+            )}
           </ErrorBoundary>
         </div>
 
