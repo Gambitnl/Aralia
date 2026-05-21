@@ -75,6 +75,7 @@ tests/VoxelLogic.test.ts
 .agent_tools/
 .claude/
 .codex/skills/
+.codex/config.toml
 .codex/steer.md
 .DS_Store
 *.suo
