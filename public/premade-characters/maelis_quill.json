@@ -185,7 +185,19 @@
   "darkvisionRange": 0,
   "selectedWeaponMasteries": [],
   "transportMode": "foot",
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "quarterstaff",
+      "name": "Quarterstaff",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d6",
+      "damageType": "bludgeoning",
+      "properties": [
+        "versatile"
+      ]
+    }
+  },
   "activeEffects": [],
   "statusEffects": [],
   "limitedUses": {
@@ -220,9 +232,7 @@
       "mage-armor",
       "magic-missile",
       "shield",
-      "sleep",
-      "detect-magic",
-      "find-familiar"
+      "sleep"
     ]
   },
   "spellSlots": {

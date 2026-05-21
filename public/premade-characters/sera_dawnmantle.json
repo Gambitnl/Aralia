@@ -161,12 +161,37 @@
       "max": 1
     }
   ],
-  "armorClass": 16,
+  "armorClass": 18,
   "speed": 30,
   "darkvisionRange": 0,
   "selectedWeaponMasteries": [],
   "transportMode": "foot",
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "mace",
+      "name": "Mace",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d6",
+      "damageType": "bludgeoning",
+      "properties": []
+    },
+    "OffHand": {
+      "id": "shield",
+      "name": "Shield",
+      "type": "armor",
+      "armorCategory": "Shield",
+      "armorClassBonus": 2
+    },
+    "Torso": {
+      "id": "chain_mail",
+      "name": "Chain Mail",
+      "type": "armor",
+      "armorCategory": "Heavy",
+      "baseArmorClass": 16,
+      "stealthDisadvantage": true
+    }
+  },
   "activeEffects": [],
   "statusEffects": [],
   "limitedUses": {},

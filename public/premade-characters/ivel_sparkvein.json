@@ -169,7 +169,22 @@
   "darkvisionRange": 0,
   "selectedWeaponMasteries": [],
   "transportMode": "foot",
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "dagger",
+      "name": "Dagger",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d4",
+      "damageType": "piercing",
+      "properties": [
+        "finesse",
+        "light",
+        "thrown",
+        "range:20/60"
+      ]
+    }
+  },
   "activeEffects": [],
   "statusEffects": [],
   "limitedUses": {
