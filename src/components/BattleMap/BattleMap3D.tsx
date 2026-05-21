@@ -31,6 +31,7 @@ import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps } from './terrain';
 import { CharacterActor } from './characters';
 import { CameraController } from './camera';
+import { VFXSystem, LivingWorld } from './vfx';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -299,6 +300,21 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
             />
           );
         })}
+
+        {/* VFX — spell zones, weapon trails, damage numbers, AoE preview */}
+        <VFXSystem
+          mapData={mapData}
+          characters={characters}
+          aoePreviewTiles={abilitySystem.aoePreview?.affectedTiles
+            ? new Set(abilitySystem.aoePreview.affectedTiles.map(
+                (p: { x: number; y: number }) => `${p.x}-${p.y}`
+              ))
+            : undefined}
+          targetingMode={abilitySystem.targetingMode}
+        />
+
+        {/* Living world — ambient particles, fireflies, weather */}
+        <LivingWorld mapData={mapData} />
 
         {/* Postprocessing */}
         <PostProcessingStack />
