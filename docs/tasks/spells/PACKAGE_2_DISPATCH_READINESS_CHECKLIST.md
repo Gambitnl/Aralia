@@ -37,6 +37,8 @@ mutate Symphony, Jules, GitHub, or the local repository.
   `docs/tasks/spells/PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md`
 - Symphony draft submission receipt:
   `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`
+- Git sync attempt receipt:
+  `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md`
 
 ## Reserved Names
 
@@ -83,7 +85,10 @@ Evidence:
 - Symphony returned Package 2 draft id `draft-1779344522441-vdy0hi`.
 - That draft is currently `blocked_by_git_sync`.
 - No Package 2 Jules task has been dispatched.
-- No Package 2 branch or worktree has been created.
+- Local branch `codex/spell-phase1-symphony-package2-setup` exists with commit
+  `290cccb8`; remote push was not completed because the Codex tool approval
+  flow rejected the escalated push command before Git ran.
+- No Package 2 implementation branch or worktree has been created.
 - No Package 2 PR has been opened.
 - No Package 2 merge, deployment proof, local sync, or ROI receipt exists yet.
 - No Package 2 task-scoped ROI savings claim is allowed yet; the current ROI
@@ -92,12 +97,11 @@ Evidence:
 
 ## Next Dispatch Steps
 
-1. Resolve or explicitly classify the Git sync blockers reported by Symphony:
-   `Could not fetch origin`, `16 tracked file(s) have uncommitted changes`, and
-   `19 untracked file(s) are present`.
-2. Decide which current docs/verifier/proof changes belong in the Spell Phase 1
-   Symphony branch, preserving unrelated work instead of sweeping it into the
-   handoff.
+1. Complete remote Git sync for
+   `codex/spell-phase1-symphony-package2-setup`, or record an explicit waiver if
+   Package 2 will launch from another branch.
+2. Rerun or explicitly classify the remaining Git sync blockers reported by
+   Symphony: `Could not fetch origin`, tracked dirty files, and untracked files.
 3. Rerun the Git preflight or task queue snapshot and record the updated
    readiness state for `draft-1779344522441-vdy0hi`.
 4. Dispatch Jules with the exact prompt in

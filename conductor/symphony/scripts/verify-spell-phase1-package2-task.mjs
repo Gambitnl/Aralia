@@ -69,6 +69,10 @@ const draftSubmissionReceipt = readFileSync(
   join(repoRoot, 'docs', 'tasks', 'spells', 'PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md'),
   'utf8',
 );
+const gitSyncAttemptReceipt = readFileSync(
+  join(repoRoot, 'docs', 'tasks', 'spells', 'PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md'),
+  'utf8',
+);
 
 assert.match(task, /# Package 2 Jules Task: Premade Party And Gear/);
 assert.match(task, /Status: local Symphony draft created, blocked by Git sync before Jules dispatch/);
@@ -245,6 +249,7 @@ assert.match(readinessChecklist, /PACKAGE_2_FOREMAN_REVIEW_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_TASK_COMMUNICATION_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT\.md/);
+assert.match(readinessChecklist, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
 assert.match(readinessChecklist, /jules\/spells-package2-premade-party-gear/);
 assert.match(readinessChecklist, /codex\/spells-package2-premade-party-gear-review/);
 assert.match(readinessChecklist, /F:\\Repos\\Aralia\\\.worktrees\\spells-package2-premade-party-gear/);
@@ -256,14 +261,18 @@ assert.match(readinessChecklist, /local POST to `\/api\/v1\/task-drafts` has bee
 assert.match(readinessChecklist, /draft-1779344522441-vdy0hi/);
 assert.match(readinessChecklist, /blocked_by_git_sync/);
 assert.match(readinessChecklist, /No Package 2 Jules task has been dispatched/);
-assert.match(readinessChecklist, /No Package 2 branch or worktree has been created/);
+assert.match(readinessChecklist, /codex\/spell-phase1-symphony-package2-setup/);
+assert.match(readinessChecklist, /290cccb8/);
+assert.match(readinessChecklist, /remote push was not completed/);
+assert.match(readinessChecklist, /No Package 2 implementation branch or worktree has been created/);
 assert.match(readinessChecklist, /No Package 2 PR has been opened/);
 assert.match(readinessChecklist, /No Package 2 task-scoped ROI savings claim is allowed yet/);
 assert.match(readinessChecklist, /Next Dispatch Steps/);
-assert.match(readinessChecklist, /Resolve or explicitly classify the Git sync blockers/);
+assert.match(readinessChecklist, /Complete remote Git sync/);
+assert.match(readinessChecklist, /Rerun or explicitly classify the remaining Git sync blockers/);
 assert.match(readinessChecklist, /Could not fetch origin/);
-assert.match(readinessChecklist, /16 tracked file\(s\) have uncommitted changes/);
-assert.match(readinessChecklist, /19 untracked file\(s\) are present/);
+assert.match(readinessChecklist, /tracked dirty files/);
+assert.match(readinessChecklist, /untracked files/);
 assert.match(readinessChecklist, /Dispatch Jules with the exact prompt/);
 assert.match(readinessChecklist, /roi-foreman-usage/);
 assert.match(readinessChecklist, /roi-estimate/);
@@ -283,6 +292,17 @@ assert.match(draftSubmissionReceipt, /Could not fetch origin/);
 assert.match(draftSubmissionReceipt, /16 tracked file\(s\) have uncommitted changes/);
 assert.match(draftSubmissionReceipt, /19 untracked file\(s\) are present/);
 assert.match(draftSubmissionReceipt, /did not dispatch\s+Jules/);
+assert.match(draftSubmissionReceipt, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
+
+assert.match(gitSyncAttemptReceipt, /# Package 2 Git Sync Attempt Receipt/);
+assert.match(gitSyncAttemptReceipt, /Status: local branch committed, remote push not completed/);
+assert.match(gitSyncAttemptReceipt, /codex\/spell-phase1-symphony-package2-setup/);
+assert.match(gitSyncAttemptReceipt, /290cccb8 Document spell phase 1 Symphony package 2 setup/);
+assert.match(gitSyncAttemptReceipt, /git push -u origin codex\/spell-phase1-symphony-package2-setup/);
+assert.match(gitSyncAttemptReceipt, /approval flow rejected the escalated push command before Git\s+ran/);
+assert.match(gitSyncAttemptReceipt, /No remote branch was confirmed/);
+assert.match(gitSyncAttemptReceipt, /No Jules dispatch was claimed/);
+assert.match(gitSyncAttemptReceipt, /Do not dispatch Jules for Package 2 until the Package 2 branch context is\s+visible/);
 
 assert.match(roiBaselineReceipt, /# Spell Phase 1 ROI Baseline Receipt/);
 assert.match(roiBaselineReceipt, /Status: baseline recorded, no ROI claim/);

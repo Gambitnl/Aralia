@@ -44,3 +44,7 @@ Before dispatching Jules for Package 2, record:
 - the branch/worktree decision used for the Package 2 handoff;
 - whether the Symphony proof/docs changes were committed and pushed;
 - the handoff or Jules session id once dispatch actually happens.
+
+Follow-up local Git receipt:
+
+- `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md`

@@ -759,12 +759,49 @@ Copy this block for each decision.
   preflight or the task queue snapshot, then dispatch Jules only after the draft
   is no longer blocked.
 
+### Decision 19: Commit Package 2 Setup Locally And Stop When Push Approval Fails
+
+- Date/time: 2026-05-21 08:27 Europe/Amsterdam
+- Phase: `git_sync`
+- Active slice: Package 2, premade party and gear
+- Decision point: Whether to make the Spell Phase 1/Symphony setup state visible
+  as a scoped Git branch, and whether to continue after the remote push approval
+  was rejected by the Codex tool flow.
+- Options considered:
+  - Leave the docs/verifier setup uncommitted and keep the draft blocked.
+  - Create a scoped local branch and commit the durable setup/proof artifacts.
+  - Push the branch and continue toward PR/Jules dispatch.
+  - Retry or bypass the rejected push through another mechanism.
+- Decision made by agent: Create local branch
+  `codex/spell-phase1-symphony-package2-setup`, commit the durable setup/proof
+  artifacts as `290cccb8`, attempt the remote push, and stop when the Codex tool
+  approval flow rejected the push before Git ran.
+- Model routing: Stronger foreman decision for the Git boundary, because this
+  determines whether Jules can see the task context and separates project
+  approval from tool approval.
+- Rationale/evidence: The working tree contained the Spell Phase 1 plan,
+  Package 2 receipts, Symphony contract changes, and evidence screenshots. Those
+  belong together as the setup branch for Package 2. The attempted command was
+  `git push -u origin codex/spell-phase1-symphony-package2-setup`; the tool
+  returned `rejected by user` before executing Git.
+- Mutation performed or skipped: Created the local branch and local commit. Did
+  not push a remote branch, open a PR, dispatch Jules, merge, or sync local
+  master.
+- Scope guardrails: Do not dispatch Jules until the branch context is externally
+  visible or a later decision explicitly chooses a different branch/source of
+  truth.
+- Result: Package 2 setup is locally committed but not remotely synced.
+- Next expected proof: Complete remote Git sync for the setup branch, rerun the
+  Symphony task queue or Git preflight for `draft-1779344522441-vdy0hi`, then
+  continue to Package 2 Jules dispatch only if the draft is ready.
+
 ## Open Decisions For The Next Slice
 
 1. Decide the Git sync repair path for `draft-1779344522441-vdy0hi`: commit and
    push the current Spell Phase 1/Symphony proof branch, move unrelated work out
    of the launch path, or record a narrower waiver if the blocker is only local
-   fetch visibility.
+   fetch visibility. The local commit now exists as `290cccb8`, but the remote
+   push has not completed.
 2. Rerun the Symphony task queue or Git preflight and record whether Package 2
    is ready to promote/dispatch.
 3. Dispatch Jules with
