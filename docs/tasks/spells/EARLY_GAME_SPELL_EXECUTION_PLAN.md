@@ -18,8 +18,10 @@ Current live boundary: Package 2 has a local Symphony draft,
 `draft-1779344522441-vdy0hi`, created from
 `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`. The setup branch
 `codex/spell-phase1-symphony-package2-setup` has been pushed to origin at
-`6fc9e81a`; before Jules dispatch, rerun the Symphony task queue or Git preflight
-and record whether the prior `blocked_by_git_sync` state is cleared.
+`c5061afb`; PR #933 is the setup/context PR that must land or be superseded
+before Jules dispatch can cleanly start from `master`. Before dispatch, rerun
+the Symphony task queue or Git preflight and record whether the prior
+`blocked_by_git_sync` state is cleared.
 
 ## Project Goal
 
@@ -43,7 +45,8 @@ For this plan, "usable" means:
 - Symphony can coordinate the work sequentially through scoped task intake,
   branch/worktree isolation, Jules environment setup, Jules dispatch, PR
   follow-through, decision reporting, ROI evidence, deployment/local-sync proof,
-  and task-page evidence without relying on ad hoc terminal memory
+  task-page evidence, and artifact lifecycle filing without relying on ad hoc
+  terminal memory
 
 ## Combined Goal Text
 
@@ -108,6 +111,8 @@ shared schema/runtime change must stay compatible with them.
   - `conductor/symphony/docs/SYMPHONY_MIDDLEMAN_ARCHITECTURE.md`
   - `conductor/symphony/docs/decision-reports/`
   - `conductor/symphony/scripts/verify-*.mjs`
+- Artifact lifecycle and cleanup policy
+  - `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md`
 
 ## Current Baseline
 
@@ -198,6 +203,33 @@ following are true:
      spell-project PR
    - task-scoped Codex/Jules usage and avoided-work estimates are recorded
      before any ROI claim
+   - package artifacts are filed according to
+     `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` before a
+     slice is treated as closed
+
+## Artifact Lifecycle Policy
+
+Spell Phase 1 cleanup is non-destructive by default. The project should prevent
+stale setup files from confusing future agents, but it should not erase durable
+planning, prompt, receipt, or proof context merely because a slice is done.
+
+The canonical policy is
+`docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md`.
+
+Use it at every slice closeout to decide whether each task packet, prompt,
+receipt, proof screenshot, generated report, setup artifact, runtime file, and
+local app setting should be retained, marked completed, archived, ignored, or
+deleted.
+
+Package closeout must record:
+
+- retained canonical artifacts
+- completed evidence artifacts
+- superseded artifacts and their replacements
+- ignored or deleted runtime/temp artifacts
+- generated report refresh/archive status
+- targeted MemPalace mining status
+- the next package's active context file
 
 ## Premade Character Strategy
 
@@ -572,7 +604,8 @@ Current setup decision, 2026-05-21:
   and is recorded at
   `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
 - Local branch `codex/spell-phase1-symphony-package2-setup` now tracks
-  `origin/codex/spell-phase1-symphony-package2-setup` at `6fc9e81a`; use
+  `origin/codex/spell-phase1-symphony-package2-setup` at `c5061afb`; PR #933
+  carries the setup/context docs toward `master`. Use
   `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md` for the
   push-boundary history.
 
@@ -646,6 +679,9 @@ Outputs:
 - create the decision-report template for spell Phase 1 assumed approvals
 - confirm how Symphony will record branch push, PR open, PR merge, deployment,
   local sync, Atlas/gate refresh, and ROI evidence for the spell flow
+- define the artifact lifecycle policy for prompt packets, receipts, proof
+  screenshots, generated reports, setup artifacts, runtime files, and local app
+  settings
 
 Current Package 0 evidence:
 
@@ -682,6 +718,8 @@ Outputs:
   from later avoided-work estimates
 - current ROI baseline receipt:
   `docs/tasks/spells/SPELL_PHASE_1_ROI_BASELINE_RECEIPT.md`
+- artifact lifecycle policy:
+  `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md`
 
 ### Package 2: Premade Party And Gear
 
@@ -717,6 +755,8 @@ Outputs:
 - prove the full Symphony slice lifecycle on a bounded non-schema PR:
   branch/worktree, PR, review, merge, deployment/local-sync evidence, decision
   report, and ROI receipt
+- file Package 2 artifacts under the lifecycle policy before marking the slice
+  closed
 
 ### Package 3: Spellbook And Character Creator Visibility
 

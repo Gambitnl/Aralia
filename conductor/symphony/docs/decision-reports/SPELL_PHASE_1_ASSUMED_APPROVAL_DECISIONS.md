@@ -821,12 +821,15 @@ Copy this block for each decision.
 - Model routing: Stronger foreman reasoning for the Git/Symphony boundary,
   because the choice separates assumed project approval from Codex sandbox
   permission and prevents dispatch from stale local draft evidence.
-- Rationale/evidence: The pushed head is `6fc9e81a`. The command
+- Rationale/evidence: The pushed head was `6fc9e81a` at the first successful
+  remote-sync receipt and later advanced to `c5061afb` after the local Codex app
+  config ignore was added. The command
   `git push -u origin codex/spell-phase1-symphony-package2-setup` created
   remote branch `origin/codex/spell-phase1-symphony-package2-setup` and set the
   local branch to track it. The pre-push hook ran `npm run sync-check`, which
   passed sync checks and reported the stale intent gate line as existing gate
-  debt. GitHub returned the PR creation URL for the pushed branch.
+  debt. GitHub returned the PR creation URL for the pushed branch; PR #933 now
+  carries the setup/context branch toward `master`.
 - Mutation performed or skipped: Pushed the setup branch. Did not open a PR,
   dispatch Jules, create the Package 2 implementation branch/worktree, merge,
   deploy, or local-sync.
@@ -839,6 +842,44 @@ Copy this block for each decision.
 - Next expected proof: Rerun the Symphony task queue or Git preflight for
   `draft-1779344522441-vdy0hi`, then dispatch Jules only if the refreshed state
   is ready.
+
+### Decision 21: Add Non-Destructive Artifact Lifecycle Policy To Spell Phase 1
+
+- Date/time: 2026-05-21
+- Phase: `artifact_lifecycle`
+- Active slice: Package 0 to Package 2 handoff boundary
+- Decision point: Whether completed prompt packets, receipts, proof screenshots,
+  generated reports, and setup artifacts should be deleted, archived, or retained
+  after each package.
+- Options considered:
+  - Delete package files after completion to keep the tree smaller.
+  - Keep everything forever without status updates.
+  - Add a non-destructive lifecycle policy that keeps durable evidence, marks
+    completed/superseded artifacts, archives only when replacement context is
+    linked, and deletes only runtime/temp/duplicate/local-machine files.
+- Decision made by agent: Add
+  `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` and link it
+  from the Phase 1 plan.
+- Model routing: Stronger foreman reasoning, because this decides how future
+  agents preserve or remove human-readable project context.
+- Rationale/evidence: The updated thread goal explicitly requires a clear
+  retention/archive/delete policy. Aralia's repo instructions prefer preserving
+  unfinished intent and future optionality, so cleanup must prevent stale context
+  without making deletion the default.
+- Mutation performed or skipped: Created the lifecycle policy and linked it from
+  `docs/tasks/spells/EARLY_GAME_SPELL_EXECUTION_PLAN.md`. Did not delete any
+  package docs, receipts, screenshots, generated reports, or setup artifacts.
+- Scope guardrails: Deletion remains allowed for ignored runtime state,
+  generated junk with regeneration proof, local app settings, duplicate stale
+  files with linked replacements, or explicitly recorded cleanup decisions. Do
+  not delete canonical plans, decision reports, boundary receipts, referenced
+  proof images, or future-facing scaffolds just because a package is done.
+- Result: Spell Phase 1 now has a durable artifact filing policy that preserves
+  evidence while giving future agents a way to prevent stale setup files from
+  becoming active instructions.
+- Next expected proof: Apply the policy during Package 2 closeout after the
+  setup PR, Jules implementation result, review, Atlas/gate, PR/deployment/local
+  sync, task communication, and ROI receipts are complete.
 
 ## Open Decisions For The Next Slice
 
