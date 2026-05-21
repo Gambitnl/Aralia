@@ -30,6 +30,7 @@
  */
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import BattleMap from '../BattleMap/BattleMap';
+import BattleMap3D from '../BattleMap/BattleMap3D';
 import { PlayerCharacter, Item } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -132,6 +133,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [inspectedCharId, setInspectedCharId] = useState<string | null>(null);
   const [isBattleMapExpanded, setIsBattleMapExpanded] = useState(false);
+  // [2026-05-21] 3D combat map toggle — renders BattleMap3D (R3F scene) instead of 2D grid
+  const [renderMode, setRenderMode] = useState<'2d' | '3d'>('2d');
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
   // Battle State managed by hook
@@ -439,23 +442,45 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
 
       {isBattleMapExpanded && characters.length > 0 && mapData && (
         <WindowFrame
-          title="Battle Map"
+          title={`Battle Map (${renderMode.toUpperCase()})`}
           onClose={() => setIsBattleMapExpanded(false)}
           storageKey={WINDOW_KEYS.BATTLE_MAP_WINDOW}
           initialMaximized={false}
         >
-          <div className="h-full overflow-auto bg-gray-900 flex items-center justify-center p-2">
-            <BattleMap
-              mapData={mapData}
-              characters={characters}
-              combatState={{
-                turnManager: turnManager,
-                turnState: turnManager.turnState,
-                abilitySystem: abilitySystem,
-                isCharacterTurn: turnManager.isCharacterTurn,
-                onCharacterUpdate: handleCharacterUpdate
-              }}
-            />
+          <div className="h-full overflow-auto bg-gray-900 flex items-center justify-center p-2 relative">
+            {/* [2026-05-21] 2D/3D toggle in pop-out window */}
+            <button
+              onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
+              className="absolute top-2 right-2 z-10 text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors text-xs font-bold"
+              title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+            >
+              {renderMode === '2d' ? '3D' : '2D'}
+            </button>
+            {renderMode === '3d' ? (
+              <BattleMap3D
+                mapData={mapData}
+                characters={characters}
+                combatState={{
+                  turnManager: turnManager,
+                  turnState: turnManager.turnState,
+                  abilitySystem: abilitySystem,
+                  isCharacterTurn: turnManager.isCharacterTurn,
+                  onCharacterUpdate: handleCharacterUpdate
+                }}
+              />
+            ) : (
+              <BattleMap
+                mapData={mapData}
+                characters={characters}
+                combatState={{
+                  turnManager: turnManager,
+                  turnState: turnManager.turnState,
+                  abilitySystem: abilitySystem,
+                  isCharacterTurn: turnManager.isCharacterTurn,
+                  onCharacterUpdate: handleCharacterUpdate
+                }}
+              />
+            )}
           </div>
         </WindowFrame>
       )}
@@ -507,33 +532,57 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
             onSkipToCharacter={turnManager.skipToCharacter}
           />
           <div className="flex-1 flex items-center justify-center overflow-auto relative">
-            {/* Pop-out button */}
+            {/* Map controls: 2D/3D toggle + Pop-out */}
             {!isBattleMapExpanded && (
-              <button
-                onClick={() => setIsBattleMapExpanded(true)}
-                className="absolute top-2 right-2 z-10 text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors"
-                title="Pop out battle map into resizable window"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                </svg>
-              </button>
+              <div className="absolute top-2 right-2 z-10 flex gap-1">
+                {/* [2026-05-21] 2D/3D render mode toggle */}
+                <button
+                  onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
+                  className="text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors text-xs font-bold"
+                  title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+                >
+                  {renderMode === '2d' ? '3D' : '2D'}
+                </button>
+                <button
+                  onClick={() => setIsBattleMapExpanded(true)}
+                  className="text-gray-400 hover:text-white p-1 rounded hover:bg-gray-700/80 bg-gray-800/60 transition-colors"
+                  title="Pop out battle map into resizable window"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                </button>
+              </div>
             )}
             <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
               {isBattleMapExpanded ? (
                 <div className="text-gray-400 text-sm italic">Battle map is popped out.</div>
               ) : characters.length > 0 && mapData ? (
-                <BattleMap
-                  mapData={mapData}
-                  characters={characters}
-                  combatState={{
-                    turnManager: turnManager,
-                    turnState: turnManager.turnState,
-                    abilitySystem: abilitySystem,
-                    isCharacterTurn: turnManager.isCharacterTurn,
-                    onCharacterUpdate: handleCharacterUpdate
-                  }}
-                />
+                renderMode === '3d' ? (
+                  <BattleMap3D
+                    mapData={mapData}
+                    characters={characters}
+                    combatState={{
+                      turnManager: turnManager,
+                      turnState: turnManager.turnState,
+                      abilitySystem: abilitySystem,
+                      isCharacterTurn: turnManager.isCharacterTurn,
+                      onCharacterUpdate: handleCharacterUpdate
+                    }}
+                  />
+                ) : (
+                  <BattleMap
+                    mapData={mapData}
+                    characters={characters}
+                    combatState={{
+                      turnManager: turnManager,
+                      turnState: turnManager.turnState,
+                      abilitySystem: abilitySystem,
+                      isCharacterTurn: turnManager.isCharacterTurn,
+                      onCharacterUpdate: handleCharacterUpdate
+                    }}
+                  />
+                )
               ) : (
                 <div className="text-gray-400">Preparing battlefield...</div>
               )}
