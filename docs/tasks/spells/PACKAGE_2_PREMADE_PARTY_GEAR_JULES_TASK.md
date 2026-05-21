@@ -1,6 +1,7 @@
 # Package 2 Jules Task: Premade Party And Gear
 
-Status: local Symphony draft created, blocked by Git sync before Jules dispatch.
+Status: local Symphony draft created; setup branch pushed; fresh Symphony
+readiness preflight required before Jules dispatch.
 
 This is the first implementation slice for Spell Phase 1 after the Symphony
 post-ARA-6 cleanup and Package 1 baseline. It intentionally focuses on premade
@@ -68,8 +69,9 @@ dispatch.
 The matching Symphony task-draft payload is prepared at
 `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`. It was submitted
 to the local Symphony dashboard API and returned draft id
-`draft-1779344522441-vdy0hi`, but that draft is currently
-`blocked_by_git_sync`.
+`draft-1779344522441-vdy0hi`. That draft was initially
+`blocked_by_git_sync`; the setup branch has since been pushed, so a fresh
+Symphony task queue or Git preflight snapshot is required before dispatch.
 
 The dispatch-readiness checklist is prepared at
 `docs/tasks/spells/PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`. It is the

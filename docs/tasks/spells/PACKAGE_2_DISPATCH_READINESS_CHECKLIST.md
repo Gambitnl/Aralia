@@ -1,6 +1,7 @@
 # Package 2 Dispatch Readiness Checklist
 
-Status: Symphony draft submitted, blocked by Git sync before Jules dispatch.
+Status: setup branch pushed; fresh Symphony readiness preflight required before
+Jules dispatch.
 
 This checklist is the handoff guard between the prepared Package 2 artifacts and
 the first write-producing Jules implementation slice. It exists so a future
@@ -37,7 +38,7 @@ mutate Symphony, Jules, GitHub, or the local repository.
   `docs/tasks/spells/PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md`
 - Symphony draft submission receipt:
   `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`
-- Git sync attempt receipt:
+- Git sync receipt:
   `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md`
 
 ## Reserved Names
@@ -83,12 +84,11 @@ Evidence:
 
 - The local POST to `/api/v1/task-drafts` has been sent.
 - Symphony returned Package 2 draft id `draft-1779344522441-vdy0hi`.
-- That draft is currently `blocked_by_git_sync`.
+- That draft was returned as `blocked_by_git_sync` before the setup branch was
+  pushed.
 - No Package 2 Jules task has been dispatched.
-- Local branch `codex/spell-phase1-symphony-package2-setup` exists locally; use
-  `git log --oneline` for the current local head. Remote push was not completed
-  because the Codex tool approval flow rejected the escalated push command
-  before Git ran.
+- Local branch `codex/spell-phase1-symphony-package2-setup` now tracks
+  `origin/codex/spell-phase1-symphony-package2-setup` at `6fc9e81a`.
 - No Package 2 implementation branch or worktree has been created.
 - No Package 2 PR has been opened.
 - No Package 2 merge, deployment proof, local sync, or ROI receipt exists yet.
@@ -98,29 +98,26 @@ Evidence:
 
 ## Next Dispatch Steps
 
-1. Complete remote Git sync for
-   `codex/spell-phase1-symphony-package2-setup`, or record an explicit waiver if
-   Package 2 will launch from another branch.
-2. Rerun or explicitly classify the remaining Git sync blockers reported by
+1. Rerun or explicitly classify the remaining Git sync blockers reported by
    Symphony: `Could not fetch origin`, tracked dirty files, and untracked files.
-3. Rerun the Git preflight or task queue snapshot and record the updated
+2. Rerun the Git preflight or task queue snapshot and record the updated
    readiness state for `draft-1779344522441-vdy0hi`.
-4. Dispatch Jules with the exact prompt in
+3. Dispatch Jules with the exact prompt in
    `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`.
-5. Record the Jules handoff/session id, branch, PR URL, verification output,
+4. Record the Jules handoff/session id, branch, PR URL, verification output,
    Atlas/gate refresh result, and task-scoped ROI facts as they become
    available.
-6. Record `roi-foreman-usage` and `roi-estimate` receipts before making any
+5. Record `roi-foreman-usage` and `roi-estimate` receipts before making any
    Package 2 Symphony/Jules savings claim.
-7. Fill `docs/tasks/spells/PACKAGE_2_ATLAS_GATE_CHECKPOINT_RECEIPT.md` before
+6. Fill `docs/tasks/spells/PACKAGE_2_ATLAS_GATE_CHECKPOINT_RECEIPT.md` before
    deciding Package 3 can begin.
-8. Fill `docs/tasks/spells/PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md` with scope
+7. Fill `docs/tasks/spells/PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md` with scope
    review, failure classification, and the selected review outcome before
    deciding Package 2 is ready for PR follow-through or Package 3.
-9. Fill `docs/tasks/spells/PACKAGE_2_TASK_COMMUNICATION_RECEIPT.md` with
+8. Fill `docs/tasks/spells/PACKAGE_2_TASK_COMMUNICATION_RECEIPT.md` with
     task-scoped messages, clarifications, and operator/Jules communication facts
     before claiming the Symphony task page has complete Package 2 context.
-10. Fill `docs/tasks/spells/PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md`
+9. Fill `docs/tasks/spells/PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md`
     before claiming Package 2 has completed the GitHub, deployment, and local
     sync lifecycle.
 

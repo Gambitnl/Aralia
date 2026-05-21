@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
  * Protects the first Spell Phase 1 Jules implementation packet.
  *
  * Package 2 is intentionally drafted before dispatch so Codex can keep moving
- * while the external Jules Environment snapshot remains unproven. This verifier
- * makes that boundary durable: the task must be Jules-ready, must stay scoped to
- * premade party/gear work, and must keep the no-dispatch-until-snapshot guard.
+ * while preserving the external gates that Jules needs. This verifier makes the
+ * boundary durable: the task must be Jules-ready, must stay scoped to premade
+ * party/gear work, and must keep the no-dispatch-until-fresh-preflight guard.
  */
 
 const __filename = fileURLToPath(import.meta.url);
@@ -75,7 +75,7 @@ const gitSyncAttemptReceipt = readFileSync(
 );
 
 assert.match(task, /# Package 2 Jules Task: Premade Party And Gear/);
-assert.match(task, /Status: local Symphony draft created, blocked by Git sync before Jules dispatch/);
+assert.match(task, /Status: local Symphony draft created; setup branch pushed; fresh Symphony\s+readiness preflight required before Jules dispatch/);
 assert.match(task, /The Jules Environment `Run and Snapshot` proof has been captured/);
 assert.match(task, /npm ci --no-audit --no-fund/);
 assert.match(task, /npm run validate:spells/);
@@ -95,6 +95,8 @@ assert.match(task, /That prompt is not a dispatch receipt/);
 assert.match(task, /PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD\.json/);
 assert.match(task, /draft-1779344522441-vdy0hi/);
 assert.match(task, /blocked_by_git_sync/);
+assert.match(task, /setup branch has since been pushed/);
+assert.match(task, /fresh\s+Symphony task queue or Git preflight snapshot is required before dispatch/);
 assert.match(task, /PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT\.md/);
 assert.match(task, /PACKAGE_2_DISPATCH_READINESS_CHECKLIST\.md/);
 assert.match(task, /source of truth for what is ready, what remains blocked/);
@@ -236,7 +238,7 @@ assert.deepEqual(taskDraftPayload.verificationCommands, [
 ]);
 
 assert.match(readinessChecklist, /# Package 2 Dispatch Readiness Checklist/);
-assert.match(readinessChecklist, /Status: Symphony draft submitted, blocked by Git sync before Jules dispatch/);
+assert.match(readinessChecklist, /Status: setup branch pushed; fresh Symphony readiness preflight required before\s+Jules dispatch/);
 assert.match(readinessChecklist, /Ready Artifacts/);
 assert.match(readinessChecklist, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT\.md/);
@@ -262,13 +264,12 @@ assert.match(readinessChecklist, /draft-1779344522441-vdy0hi/);
 assert.match(readinessChecklist, /blocked_by_git_sync/);
 assert.match(readinessChecklist, /No Package 2 Jules task has been dispatched/);
 assert.match(readinessChecklist, /codex\/spell-phase1-symphony-package2-setup/);
-assert.match(readinessChecklist, /git log --oneline/);
-assert.match(readinessChecklist, /[Rr]emote push was not completed/);
+assert.match(readinessChecklist, /origin\/codex\/spell-phase1-symphony-package2-setup/);
+assert.match(readinessChecklist, /6fc9e81a/);
 assert.match(readinessChecklist, /No Package 2 implementation branch or worktree has been created/);
 assert.match(readinessChecklist, /No Package 2 PR has been opened/);
 assert.match(readinessChecklist, /No Package 2 task-scoped ROI savings claim is allowed yet/);
 assert.match(readinessChecklist, /Next Dispatch Steps/);
-assert.match(readinessChecklist, /Complete remote Git sync/);
 assert.match(readinessChecklist, /Rerun or explicitly classify the remaining Git sync blockers/);
 assert.match(readinessChecklist, /Could not fetch origin/);
 assert.match(readinessChecklist, /tracked dirty files/);
@@ -285,28 +286,34 @@ assert.match(readinessChecklist, /do not dispatch Package 2/);
 assert.match(readinessChecklist, /npm install --no-audit --no-fund/);
 
 assert.match(draftSubmissionReceipt, /# Package 2 Symphony Draft Submission Receipt/);
-assert.match(draftSubmissionReceipt, /Status: submitted to local Symphony, blocked by Git sync/);
+assert.match(draftSubmissionReceipt, /Status: submitted to local Symphony; old Git sync blocker needs refreshed\s+preflight after successful setup-branch push/);
 assert.match(draftSubmissionReceipt, /draft-1779344522441-vdy0hi/);
 assert.match(draftSubmissionReceipt, /blocked_by_git_sync/);
 assert.match(draftSubmissionReceipt, /Could not fetch origin/);
 assert.match(draftSubmissionReceipt, /16 tracked file\(s\) have uncommitted changes/);
 assert.match(draftSubmissionReceipt, /19 untracked file\(s\) are present/);
+assert.match(draftSubmissionReceipt, /origin\/codex\/spell-phase1-symphony-package2-setup/);
+assert.match(draftSubmissionReceipt, /6fc9e81a/);
+assert.match(draftSubmissionReceipt, /fresh Symphony task queue or Git preflight snapshot/);
 assert.match(draftSubmissionReceipt, /did not dispatch\s+Jules/);
 assert.match(draftSubmissionReceipt, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
 
 assert.match(gitSyncAttemptReceipt, /# Package 2 Git Sync Attempt Receipt/);
-assert.match(gitSyncAttemptReceipt, /Status: local branch committed, remote push not completed/);
+assert.match(gitSyncAttemptReceipt, /Status: remote branch pushed; Symphony readiness still needs a fresh preflight/);
 assert.match(gitSyncAttemptReceipt, /codex\/spell-phase1-symphony-package2-setup/);
 assert.match(gitSyncAttemptReceipt, /290cccb8 Document spell phase 1 Symphony package 2 setup/);
 assert.match(gitSyncAttemptReceipt, /dee53c47 Record Package 2 push boundary/);
 assert.match(gitSyncAttemptReceipt, /c547c1ed Clarify Package 2 local branch head/);
-assert.match(gitSyncAttemptReceipt, /git log --oneline/);
-assert.match(gitSyncAttemptReceipt, /stops treating any receipt hash as a permanent\s+branch head/);
+assert.match(gitSyncAttemptReceipt, /6fc9e81a Stabilize Package 2 git sync receipt/);
 assert.match(gitSyncAttemptReceipt, /git push -u origin codex\/spell-phase1-symphony-package2-setup/);
 assert.match(gitSyncAttemptReceipt, /approval flow rejected the escalated push command before Git\s+ran/);
 assert.match(gitSyncAttemptReceipt, /No remote branch was confirmed/);
+assert.match(gitSyncAttemptReceipt, /Git created remote branch\s+`origin\/codex\/spell-phase1-symphony-package2-setup`/);
+assert.match(gitSyncAttemptReceipt, /local branch now tracks\s+`origin\/codex\/spell-phase1-symphony-package2-setup`/);
+assert.match(gitSyncAttemptReceipt, /npm run sync-check/);
+assert.match(gitSyncAttemptReceipt, /stale intent gate/);
 assert.match(gitSyncAttemptReceipt, /No Jules dispatch was claimed/);
-assert.match(gitSyncAttemptReceipt, /Do not dispatch Jules for Package 2 until the Package 2 branch context is\s+visible/);
+assert.match(gitSyncAttemptReceipt, /Do not dispatch Jules for Package 2 until the Package 2 branch context is\s+confirmed visible/);
 
 assert.match(roiBaselineReceipt, /# Spell Phase 1 ROI Baseline Receipt/);
 assert.match(roiBaselineReceipt, /Status: baseline recorded, no ROI claim/);

@@ -799,15 +799,51 @@ Copy this block for each decision.
   Symphony task queue or Git preflight for `draft-1779344522441-vdy0hi`, then
   continue to Package 2 Jules dispatch only if the draft is ready.
 
+### Decision 20: Push Package 2 Setup Branch And Keep Dispatch Gated On Fresh Symphony Preflight
+
+- Date/time: 2026-05-21 17:32 Europe/Amsterdam
+- Phase: `git_sync`
+- Active slice: Package 2, premade party and gear
+- Decision point: Whether to retry the scoped setup-branch push after the
+  operator clarified that project-level approval was already granted, while the
+  Codex sandbox still needed command-level network permission.
+- Options considered:
+  - Leave the branch local and keep Package 2 blocked.
+  - Push the scoped setup branch, then immediately dispatch Jules from the old
+    draft state.
+  - Push the scoped setup branch, record the tool boundary separately from the
+    project decision, and rerun Symphony readiness before Jules dispatch.
+- Decision made by agent: Push
+  `codex/spell-phase1-symphony-package2-setup` to origin, record the successful
+  remote sync in the Package 2 receipt, and keep Jules dispatch gated until a
+  fresh Symphony task queue or Git preflight replaces the old
+  `blocked_by_git_sync` evidence.
+- Model routing: Stronger foreman reasoning for the Git/Symphony boundary,
+  because the choice separates assumed project approval from Codex sandbox
+  permission and prevents dispatch from stale local draft evidence.
+- Rationale/evidence: The pushed head is `6fc9e81a`. The command
+  `git push -u origin codex/spell-phase1-symphony-package2-setup` created
+  remote branch `origin/codex/spell-phase1-symphony-package2-setup` and set the
+  local branch to track it. The pre-push hook ran `npm run sync-check`, which
+  passed sync checks and reported the stale intent gate line as existing gate
+  debt. GitHub returned the PR creation URL for the pushed branch.
+- Mutation performed or skipped: Pushed the setup branch. Did not open a PR,
+  dispatch Jules, create the Package 2 implementation branch/worktree, merge,
+  deploy, or local-sync.
+- Scope guardrails: Treat the push permission prompt as a Codex sandbox/network
+  boundary, not as a new project approval gate. Do not dispatch Jules from the
+  old `blocked_by_git_sync` snapshot; refresh Symphony readiness first.
+- Result: Package 2 setup context is now visible on GitHub. The active blocker
+  has moved from "remote branch not pushed" to "fresh Symphony readiness proof
+  still missing."
+- Next expected proof: Rerun the Symphony task queue or Git preflight for
+  `draft-1779344522441-vdy0hi`, then dispatch Jules only if the refreshed state
+  is ready.
+
 ## Open Decisions For The Next Slice
 
-1. Decide the Git sync repair path for `draft-1779344522441-vdy0hi`: commit and
-   push the current Spell Phase 1/Symphony proof branch, move unrelated work out
-   of the launch path, or record a narrower waiver if the blocker is only local
-   fetch visibility. The local branch exists, but the remote push has not
-   completed.
-2. Rerun the Symphony task queue or Git preflight and record whether Package 2
+1. Rerun the Symphony task queue or Git preflight and record whether Package 2
    is ready to promote/dispatch.
-3. Dispatch Jules with
+2. Dispatch Jules with
    `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md` only after
    that readiness proof exists.

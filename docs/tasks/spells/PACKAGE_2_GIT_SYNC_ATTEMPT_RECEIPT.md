@@ -1,8 +1,9 @@
 # Package 2 Git Sync Attempt Receipt
 
-Status: local branch committed, remote push not completed.
+Status: remote branch pushed; Symphony readiness still needs a fresh preflight.
 
-Date/time: 2026-05-21 08:27 Europe/Amsterdam.
+First push-boundary receipt: 2026-05-21 08:27 Europe/Amsterdam.
+Successful remote sync update: 2026-05-21 17:32 Europe/Amsterdam.
 
 Local branch:
 
@@ -14,8 +15,9 @@ Initial local commits recorded for this boundary:
 - `dee53c47 Record Package 2 push boundary`
 - `c547c1ed Clarify Package 2 local branch head`
 
-Later local-only bookkeeping commits may advance the branch head. Use
-`git log --oneline` for the current local head before any remote-sync attempt.
+Remote-synced local head:
+
+- `6fc9e81a Stabilize Package 2 git sync receipt`
 
 What these commits contain:
 
@@ -34,7 +36,7 @@ Push attempted:
 git push -u origin codex/spell-phase1-symphony-package2-setup
 ```
 
-Result:
+First result:
 
 - The Codex tool approval flow rejected the escalated push command before Git
   ran.
@@ -42,11 +44,28 @@ Result:
 - No PR was opened.
 - No Jules dispatch was claimed.
 
+Second result:
+
+- The same scoped push command ran after the operator allowed the Codex sandbox
+  boundary.
+- Git created remote branch
+  `origin/codex/spell-phase1-symphony-package2-setup`.
+- The local branch now tracks
+  `origin/codex/spell-phase1-symphony-package2-setup`.
+- Pre-push ran `npm run sync-check`; it passed sync checks and reported the
+  stale intent gate line as existing gate debt.
+- GitHub offered the PR creation URL:
+  `https://github.com/Gambitnl/Aralia/pull/new/codex/spell-phase1-symphony-package2-setup`.
+- No PR was opened.
+- No Jules dispatch was claimed.
+
 ## Current Boundary
 
-The next foreman step is to complete remote Git sync for this branch, then rerun
-the Symphony task queue or Git preflight for `draft-1779344522441-vdy0hi`.
+The next foreman step is to rerun the Symphony task queue or Git preflight for
+`draft-1779344522441-vdy0hi` so the old `blocked_by_git_sync` state can be
+replaced with current evidence.
 
 Do not dispatch Jules for Package 2 until the Package 2 branch context is
-visible to the external worker or an explicit recorded waiver explains why local
-draft state is sufficient.
+confirmed visible to the external worker by that refreshed Symphony preflight,
+or an explicit recorded waiver explains why the pushed setup branch is
+sufficient despite any remaining local Symphony blocker.

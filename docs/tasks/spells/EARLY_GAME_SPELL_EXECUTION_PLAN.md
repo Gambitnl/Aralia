@@ -16,9 +16,10 @@ work, but only when the spell flow exposes a concrete workflow need.
 
 Current live boundary: Package 2 has a local Symphony draft,
 `draft-1779344522441-vdy0hi`, created from
-`docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`. It is blocked by
-Git sync before Jules dispatch, with the submission receipt recorded in
-`docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
+`docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`. The setup branch
+`codex/spell-phase1-symphony-package2-setup` has been pushed to origin at
+`6fc9e81a`; before Jules dispatch, rerun the Symphony task queue or Git preflight
+and record whether the prior `blocked_by_git_sync` state is cleared.
 
 ## Project Goal
 
@@ -561,16 +562,17 @@ Current setup decision, 2026-05-21:
 - The Package 2 task text has been drafted at
   `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`. It now has
   local Symphony draft id `draft-1779344522441-vdy0hi`, but remains
-  undispatched until remote Git sync is complete or explicitly waived.
+  undispatched until a refreshed Symphony task queue or Git preflight confirms
+  the prior Git sync blockers are cleared.
 - The Package 2 Jules prompt packet has been drafted at
   `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, but it is
-  also undispatched until `draft-1779344522441-vdy0hi` clears Git sync.
+  also undispatched until `draft-1779344522441-vdy0hi` clears the refreshed
+  readiness check.
 - The matching Symphony task-draft payload was submitted to `/api/v1/task-drafts`
   and is recorded at
   `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
-- Local branch `codex/spell-phase1-symphony-package2-setup` exists locally, but
-  remote push has not completed; use `git log --oneline` for the current local
-  head, and use
+- Local branch `codex/spell-phase1-symphony-package2-setup` now tracks
+  `origin/codex/spell-phase1-symphony-package2-setup` at `6fc9e81a`; use
   `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md` for the
   push-boundary history.
 
