@@ -17,11 +17,16 @@ work, but only when the spell flow exposes a concrete workflow need.
 Current live boundary: Package 2 has a local Symphony draft,
 `draft-1779344522441-vdy0hi`, created from
 `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`. The setup branch
-`codex/spell-phase1-symphony-package2-setup` has been pushed to origin at
-`c5061afb`; PR #933 is the setup/context PR that must land or be superseded
-before Jules dispatch can cleanly start from `master`. Before dispatch, rerun
-the Symphony task queue or Git preflight and record whether the prior
-`blocked_by_git_sync` state is cleared.
+`codex/spell-phase1-symphony-package2-setup` is tracked on origin through PR
+#933; that setup/context PR must land or be superseded before Jules dispatch can
+cleanly start from `master`. Before dispatch, rerun the Symphony task queue or
+Git preflight and record whether the prior `blocked_by_git_sync` state is
+cleared.
+
+The live task collection and status tracker is
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
+project file for package status, discovered tasks, detailed subtask links, and
+adjacent out-of-scope gaps.
 
 ## Project Goal
 
@@ -47,6 +52,9 @@ For this plan, "usable" means:
   follow-through, decision reporting, ROI evidence, deployment/local-sync proof,
   task-page evidence, and artifact lifecycle filing without relying on ad hoc
   terminal memory
+- a living task tracker records all discovered package tasks, links to detailed
+  subtask files, tracks status, and captures adjacent gaps that should not
+  silently expand the current slice
 
 ## Combined Goal Text
 
@@ -64,6 +72,8 @@ The result should be both:
 - a playable early-game spell band covering cantrips and spell levels 1-3
 - a proven Symphony operating pattern that is ready to repeat for spell levels
   4-9 later
+- a living task tracker that can guide future agents by recording package
+  status, detailed task files, newly found tasks, and adjacent out-of-scope gaps
 
 ## Scope
 
@@ -603,9 +613,9 @@ Current setup decision, 2026-05-21:
 - The matching Symphony task-draft payload was submitted to `/api/v1/task-drafts`
   and is recorded at
   `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
-- Local branch `codex/spell-phase1-symphony-package2-setup` now tracks
-  `origin/codex/spell-phase1-symphony-package2-setup` at `c5061afb`; PR #933
-  carries the setup/context docs toward `master`. Use
+- Local branch `codex/spell-phase1-symphony-package2-setup` tracks
+  `origin/codex/spell-phase1-symphony-package2-setup`; PR #933 carries the
+  setup/context docs toward `master`. Use
   `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md` for the
   push-boundary history.
 

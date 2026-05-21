@@ -881,6 +881,83 @@ Copy this block for each decision.
   setup PR, Jules implementation result, review, Atlas/gate, PR/deployment/local
   sync, task communication, and ROI receipts are complete.
 
+### Decision 22: Repair PR #933 Clean-Clone Typecheck Blocker For Local-Only Markdown Library Entry
+
+- Date/time: 2026-05-21
+- Phase: `github_pr`
+- Active slice: Package 2 setup/context PR #933
+- Decision point: Whether to repair the PR #933 Build failure before the setup
+  context can land on `master`.
+- Options considered:
+  - Commit the ignored `src/components/DesignPreview/` local developer tool so
+    `src/md-library-entry.tsx` can typecheck in CI.
+  - Delete the tracked markdown-library entry.
+  - Exclude only `src/md-library-entry.tsx` from repo-wide TypeScript checks
+    because it is a standalone local-tool entry importing ignored local-tool
+    implementation.
+- Decision made by agent: Exclude `src/md-library-entry.tsx` in `tsconfig.json`
+  so clean CI no longer typechecks a tracked entry that depends on ignored
+  local-only DesignPreview files.
+- Model routing: Stronger foreman reasoning, because this classifies a CI
+  blocker and chooses a repair that preserves local-tool optionality without
+  broad cleanup.
+- Rationale/evidence: PR #933 Build failed with
+  `TS2307: Cannot find module './components/DesignPreview/steps/PreviewMdLibrary'`.
+  The target file exists in this local checkout, but
+  `src/components/DesignPreview/` is intentionally ignored by `.gitignore`.
+  The tracked `src/md-library-entry.tsx` is documented as a standalone
+  Documentation Library Tool entry for `misc/md_library.html`, not as part of
+  the core app runtime.
+- Mutation performed or skipped: Updated `tsconfig.json` only. Did not delete
+  the entry, did not commit the ignored DesignPreview tool, did not change the
+  Package 2 task scope, and did not merge PR #933.
+- Scope guardrails: This is a setup/clean-clone repair for the setup PR. It does
+  not prove Package 2 implementation work, spellbook UI, combat spell execution,
+  or AI arbitration.
+- Result: The next proof is local and CI typecheck/build evidence after the
+  exclusion.
+- Next expected proof: Run `npx tsc --noEmit`, push the repair to PR #933, and
+  confirm GitHub Build no longer fails on the local-only markdown library entry.
+
+### Decision 23: Add Living Spell Phase 1 Task Tracker And Gap Log
+
+- Date/time: 2026-05-21
+- Phase: `project_tracking`
+- Active slice: Package 0 to Package 2 handoff boundary
+- Decision point: Whether the early-game spell project should rely only on the
+  long plan and package-specific files, or add a single living tracker that
+  future Codex/Jules runs can use as the project index.
+- Options considered:
+  - Keep using only `EARLY_GAME_SPELL_EXECUTION_PLAN.md` and package-specific
+    files.
+  - Put all package progress directly into the plan, making the plan a mixed
+    strategy and status document.
+  - Add a dedicated task tracker that points to the plan, package files,
+    receipts, decision report, PR, and adjacent-gap log.
+- Decision made by agent: Add
+  `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` as the live task collection
+  and status tracker, and link it from
+  `docs/tasks/spells/EARLY_GAME_SPELL_EXECUTION_PLAN.md`.
+- Model routing: Stronger foreman reasoning, because this decides how future
+  workers discover active work, blockers, detailed package files, and adjacent
+  gaps without flattening the project into a cleanup checklist.
+- Rationale/evidence: The updated active goal explicitly requires a primary
+  "look here first" project file. Aralia's repo instructions prefer preserving
+  intent and future optionality, so adjacent discoveries should be recorded and
+  classified instead of silently absorbed into the active slice or lost.
+- Mutation performed or skipped: Created the tracker with package statuses,
+  setup/PR tasks, detailed task-file index, and adjacent-gap log. Updated the
+  plan to point future agents at the tracker. Did not delete, archive, or
+  collapse the detailed package files.
+- Scope guardrails: The tracker is coordination infrastructure. It does not
+  itself prove spell mechanics, UI visibility, combat castability, Jules
+  dispatch, Atlas refresh, or Package 2 implementation.
+- Result: Spell Phase 1 now has a single guiding task/status file that can
+  absorb newly found tasks while keeping detailed sub-task files connected.
+- Next expected proof: Keep the tracker current after PR #933 repair, merge or
+  supersession, local sync, Package 2 readiness proof, Jules dispatch, and each
+  later Atlas/gate/checkpoint result.
+
 ## Open Decisions For The Next Slice
 
 1. Rerun the Symphony task queue or Git preflight and record whether Package 2

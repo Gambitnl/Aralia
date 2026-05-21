@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "scripts/**/*.js",
+    "src/md-library-entry.tsx",
     "**/*.test-d.ts"
   ],
   "references": [
