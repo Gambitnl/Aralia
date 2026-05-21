@@ -86,8 +86,8 @@ Evidence:
 - That draft is currently `blocked_by_git_sync`.
 - No Package 2 Jules task has been dispatched.
 - Local branch `codex/spell-phase1-symphony-package2-setup` exists with commits
-  `290cccb8` and `dee53c47`; remote push was not completed because the Codex
-  tool approval flow rejected the escalated push command before Git ran.
+  `290cccb8`, `dee53c47`, and `c547c1ed`; remote push was not completed because
+  the Codex tool approval flow rejected the escalated push command before Git ran.
 - No Package 2 implementation branch or worktree has been created.
 - No Package 2 PR has been opened.
 - No Package 2 merge, deployment proof, local sync, or ROI receipt exists yet.

@@ -559,14 +559,18 @@ Current setup decision, 2026-05-21:
 - The operator/browser-capable foreman runbook for that external action is
   `docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_OPERATOR_RUNBOOK.md`.
 - The Package 2 task text has been drafted at
-  `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, but remains
-  undispatched until the Symphony task draft/handoff is created.
+  `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`. It now has
+  local Symphony draft id `draft-1779344522441-vdy0hi`, but remains
+  undispatched until remote Git sync is complete or explicitly waived.
 - The Package 2 Jules prompt packet has been drafted at
   `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, but it is
-  also undispatched until the Symphony task draft/handoff is created.
-- The matching Symphony task-draft payload has been prepared at
-  `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`, but it has
-  not been submitted to `/api/v1/task-drafts`.
+  also undispatched until `draft-1779344522441-vdy0hi` clears Git sync.
+- The matching Symphony task-draft payload was submitted to `/api/v1/task-drafts`
+  and is recorded at
+  `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
+- Local branch `codex/spell-phase1-symphony-package2-setup` exists through
+  `c547c1ed`, but remote push has not completed; the push-boundary receipt is
+  `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md`.
 
 ## Approval And Autonomy Rules For This Test Flow
 

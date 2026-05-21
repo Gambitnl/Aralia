@@ -264,6 +264,7 @@ assert.match(readinessChecklist, /No Package 2 Jules task has been dispatched/);
 assert.match(readinessChecklist, /codex\/spell-phase1-symphony-package2-setup/);
 assert.match(readinessChecklist, /290cccb8/);
 assert.match(readinessChecklist, /dee53c47/);
+assert.match(readinessChecklist, /c547c1ed/);
 assert.match(readinessChecklist, /remote push was not completed/);
 assert.match(readinessChecklist, /No Package 2 implementation branch or worktree has been created/);
 assert.match(readinessChecklist, /No Package 2 PR has been opened/);
@@ -300,6 +301,7 @@ assert.match(gitSyncAttemptReceipt, /Status: local branch committed, remote push
 assert.match(gitSyncAttemptReceipt, /codex\/spell-phase1-symphony-package2-setup/);
 assert.match(gitSyncAttemptReceipt, /290cccb8 Document spell phase 1 Symphony package 2 setup/);
 assert.match(gitSyncAttemptReceipt, /dee53c47 Record Package 2 push boundary/);
+assert.match(gitSyncAttemptReceipt, /c547c1ed Clarify Package 2 local branch head/);
 assert.match(gitSyncAttemptReceipt, /git push -u origin codex\/spell-phase1-symphony-package2-setup/);
 assert.match(gitSyncAttemptReceipt, /approval flow rejected the escalated push command before Git\s+ran/);
 assert.match(gitSyncAttemptReceipt, /No remote branch was confirmed/);
