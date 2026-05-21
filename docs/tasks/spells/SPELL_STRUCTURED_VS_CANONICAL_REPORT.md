@@ -2,7 +2,7 @@
 
 This report compares the validator-facing structured spell markdown block to the raw canonical snapshot stored lower in the same file.
 
-Generated: 2026-05-20T23:48:31.155Z
+Generated: 2026-05-21T00:40:57.783Z
 Markdown files scanned: 459
 Spell files compared: 459
 Total mismatches: 3

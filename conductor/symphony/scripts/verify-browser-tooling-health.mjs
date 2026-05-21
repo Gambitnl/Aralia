@@ -97,7 +97,9 @@ try {
   assert.match(packet.summary, /not as proof that the Jules session cannot be observed/);
   assert.ok(packet.allowedUses.includes('Use the Browser plugin bridge for live Jules page checks.'));
   assert.ok(packet.disallowedUses.includes('Do not treat direct Playwright transport failure as evidence that Jules is unavailable.'));
-  assert.ok(packet.observedEvidence.some((entry) => entry.includes('4101281510355198885')));
+  assert.ok(packet.observedEvidence.some((entry) => entry.includes('historical Jules session')));
+  assert.ok(packet.observedEvidence.some((entry) => entry.includes('Transport closed')));
+  assert.ok(packet.observedEvidence.every((entry) => !/ARA-6|4101281510355198885/.test(entry)));
   assert.match(packet.nextExpectedProof, /Browser plugin in-app evidence/);
 
   const proof = await getText('http://127.0.0.1:8207/proof');

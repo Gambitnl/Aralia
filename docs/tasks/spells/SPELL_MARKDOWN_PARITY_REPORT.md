@@ -1,6 +1,6 @@
 # Spell Markdown Parity Report
 
-Generated: 2026-05-20T23:48:30.507Z
+Generated: 2026-05-21T00:40:48.004Z
 Markdown files scanned: 459
 Total mismatches: 801
 Grouped mismatch buckets: 19

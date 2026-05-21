@@ -4,9 +4,9 @@ import http from 'node:http';
 import { HttpServer } from '../dist/server.js';
 
 // Jules environment setup is an external Jules configuration action. This
-// verifier protects Symphony's local, read-only packet so the dashboard can
-// recommend an honest setup script without clicking Run and Snapshot or hiding
-// the current lockfile repair blocker.
+// verifier protects Symphony's local, read-only packet so the dashboard records
+// the actual Spell Phase 1 setup boundary and points to the next Package 2
+// dispatch proof instead of keeping a stale missing-snapshot blocker.
 
 const BASE_URL = 'http://127.0.0.1:8211';
 
@@ -67,30 +67,37 @@ try {
   const packet = response.body;
 
   assert.equal(response.statusCode, 200);
-  assert.equal(packet.status, 'blocked_by_lockfile_repair');
+  assert.equal(packet.status, 'package2_scoped_snapshot_passed');
   assert.equal(packet.mutatesExternalSystems, false);
   assert.equal(packet.mutatesLocalFiles, false);
   assert.deepEqual(packet.recommendedScript, [
     'npm ci --no-audit --no-fund',
-    'npm run typecheck',
+    'npm run validate:spells',
+    'npx vitest run src/utils/combat/__tests__/combatUtils_*.test.ts --reporter=verbose',
   ]);
   assert.deepEqual(packet.diagnosticScript, [
-    'npm install --no-audit --no-fund',
+    'npm ci --no-audit --no-fund',
     'npm run typecheck',
+    'npm run validate:spells',
   ]);
-  assert.match(packet.summary, /Do not run a Jules environment snapshot yet/);
-  assert.match(packet.currentBlockers.join('\n'), /PR #931 setup repair is prepared locally but not pushed/);
-  assert.match(packet.currentBlockers.join('\n'), /npm ci is expected to fail/);
+  assert.match(packet.summary, /snapshot boundary has been recorded/);
+  assert.match(packet.summary, /Package 2 scoped setup passed/);
+  assert.doesNotMatch(packet.summary, /ARA-6|PR #931/);
+  assert.match(packet.currentBlockers.join('\n'), /No environment-snapshot blocker remains for Package 2/);
+  assert.match(packet.currentBlockers.join('\n'), /Broad clean-clone typecheck remains classified/);
+  assert(packet.completedEvidence.includes('docs/tasks/spells/evidence/jules-env-config-spell-phase1-package2-scoped-snapshot-passed-2026-05-21.png'));
   assert.equal(packet.documentedJulesEnvironment.taskRuntime, 'short-lived Ubuntu VM');
   assert(packet.documentedJulesEnvironment.preinstalledTools.includes('rg'));
   assert.equal(packet.documentedJulesEnvironment.nodeVersion, '22.16.0');
   assert.equal(packet.documentedJulesEnvironment.npmVersion, '11.4.2');
   assert.equal(packet.documentedJulesEnvironment.sourceUrl, 'https://jules.google/docs/environment/');
-  assert.equal(packet.operatorAction.canRunNow, false);
-  assert.equal(packet.operatorAction.requiresOperatorApproval, true);
-  assert.equal(packet.operatorAction.mutatesExternalSystemsIfRun, true);
+  assert.equal(packet.operatorAction.canRunNow, true);
+  assert.equal(packet.operatorAction.requiresOperatorApproval, false);
+  assert.equal(packet.operatorAction.mutatesExternalSystemsIfRun, false);
   assert.equal(packet.operatorAction.mutatesLocalFilesIfRun, false);
-  assert.match(packet.nextExpectedProof, /Operator-approved Jules Environment page snapshot/);
+  assert.match(packet.operatorAction.detail, /environment snapshot gate is clear for Package 2/);
+  assert.match(packet.nextExpectedProof, /PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD\.json/);
+  assert.match(packet.nextExpectedProof, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT\.md/);
 } finally {
   await server.stop();
 }

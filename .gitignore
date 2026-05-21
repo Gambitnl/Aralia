@@ -44,7 +44,9 @@ conductor/symphony/scripts/*
 !conductor/symphony/scripts/verify-task-clarification-api.mjs
 !conductor/symphony/scripts/verify-task-disposition-api.mjs
 !conductor/symphony/scripts/verify-task-doc-consolidation.mjs
-!conductor/symphony/scripts/verify-ara6-assumed-approval-decision-report.mjs
+!conductor/symphony/scripts/verify-spell-phase1-assumed-approval-decision-report.mjs
+!conductor/symphony/scripts/verify-spell-phase1-package2-task.mjs
+!conductor/symphony/scripts/verify-spell-phase1-jules-environment-snapshot-receipt.mjs
 !conductor/symphony/scripts/verify-operator-question-packet.mjs
 !conductor/symphony/scripts/verify-operator-preferences.mjs
 !conductor/symphony/scripts/verify-operator-answer-recording.mjs
@@ -193,6 +195,7 @@ scripts/tooling/
 .symphony/
 conductor/symphony/.symphony/
 .jules/runs/
+.superpowers/
 .jules/verification/
 .jules/dashboard/
 .jules/orchestrator/

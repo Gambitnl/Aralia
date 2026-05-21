@@ -391,11 +391,17 @@ receipt events inside these phases.
    also failed because the Gemini workflow referenced unavailable
    `gemini-1.5-flash`. Symphony should report those as workflow/setup blockers,
    not as proof that Jules wrote the regression incorrectly.
-7. Jules environment snapshots are useful only after the setup script is honest
-   about repository health. Prefer `npm ci --no-audit --no-fund` once the
-   lockfile is repaired. While the lockfile is out of sync, any `npm install`
-   setup script is diagnostic and should be approved because it may update the
-   lockfile inside Jules' working copy.
+7. Jules environment snapshots are useful only when the setup script is honest
+   about the slice being delegated. Prefer `npm ci --no-audit --no-fund` and
+   task-scoped validation over hiding repository health problems. For Spell
+   Phase 1 Package 2, the broad `npm run typecheck` setup failed in a clean
+   Jules clone because repo-wide tracked-clone typecheck debt still exists, but
+   the accepted scoped snapshot passed `npm ci --no-audit --no-fund`,
+   `npm run validate:spells`, and
+   `npx vitest run src/utils/combat/__tests__/combatUtils_*.test.ts --reporter=verbose`.
+   Any future `npm install` setup script remains diagnostic and should be
+   recorded before use because it may update lockfile state inside Jules'
+   working copy.
 8. When the operator chooses `create_setup_repair_task`, the resulting
    setup-repair draft becomes the next actionable task-routing subject and
    should be handled as local-careful Codex work before Symphony sends further
@@ -409,12 +415,14 @@ receipt events inside these phases.
    operator-approved external action.
 10. Symphony exposes that decision as a read-only local packet at
     `GET /api/v1/jules-environment-setup` and on `/proof` as `Jules Environment
-    Setup`. The packet must show the post-repair `npm ci --no-audit --no-fund`
-    setup recommendation, the diagnostic-only `npm install --no-audit --no-fund`
-    fallback, the current PR #931 lockfile blocker, and `Run and Snapshot` as
-    `requiresOperatorApproval: true` plus `mutatesExternalSystemsIfRun: true`.
-    This packet does not query Jules or run the setup script; it keeps the
-    operator-owned environment mutation visible until the lockfile repair lands.
+    Setup`. The packet must show `package2_scoped_snapshot_passed`, the accepted
+    Package 2 scoped setup recommendation, the broader diagnostic typecheck
+    script, the failed and passed evidence screenshots, and the next expected
+    proof: submit `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`
+    to `POST /api/v1/task-drafts` and dispatch Jules with the exact Package 2
+    prompt. This packet does not query Jules or run the setup script; after the
+    Package 2 snapshot pass, it keeps the next workflow boundary visible without
+    claiming repo-wide typecheck health.
 
 ### Scout/Core Review And Merge Readiness
 

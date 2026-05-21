@@ -220,8 +220,11 @@ try {
   assert.match(html, /Known unreliable path: Direct Playwright MCP transport can report Transport closed/);
   assert.match(html, /Browser tooling health JSON/);
   assert.match(html, /Jules Environment Setup/);
-  assert.match(html, /blocked_by_lockfile_repair/);
-  assert.match(html, /npm ci --no-audit --no-fund &amp;&amp; npm run typecheck/);
+  assert.match(html, /package2_scoped_snapshot_passed/);
+  assert.match(html, /Package 2 scoped setup passed/);
+  assert.match(html, /Recommended snapshot script/);
+  assert.match(html, /npm ci --no-audit --no-fund &amp;&amp; npm run validate:spells &amp;&amp; npx vitest run src\/utils\/combat\/__tests__\/combatUtils_\*\.test\.ts --reporter=verbose/);
+  assert.match(html, /Submit Package 2 Symphony task draft can run now: yes/);
   assert.match(html, /Environment setup JSON/);
   assert.match(html, /GitHub sync: blocked/);
   assert.match(html, /Review Local Changes/);
