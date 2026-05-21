@@ -17,18 +17,19 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md
  */
-import React, { useMemo, useCallback, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { MapControls, Html, Environment } from '@react-three/drei';
+import { MapControls, Html } from '@react-three/drei';
 import { EffectComposer, SSAO, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData } from '../../types/combat';
+import { BattleMapData, CombatCharacter } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
+import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps } from './terrain';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -48,7 +49,6 @@ interface BattleMap3DProps {
 
 // Tile size in world units (1 tile = 1 unit in 3D space)
 const TILE_WORLD_SIZE = 1.0;
-const ELEVATION_SCALE = 0.25;
 
 // ---------------------------------------------------------------------------
 // Per-biome lighting presets
@@ -100,85 +100,8 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
 };
 
 // ---------------------------------------------------------------------------
-// Terrain color mapping (placeholder until splat-map textures in Phase 1)
-// ---------------------------------------------------------------------------
-
-const TERRAIN_COLORS: Record<string, number> = {
-  grass: 0x3a5a28,
-  rock: 0x6a6a6a,
-  water: 0x1a4a6a,
-  difficult: 0x5a4a20,
-  wall: 0x4a4a4a,
-  floor: 0x6a6050,
-  sand: 0xc8a860,
-  mud: 0x4a3a20,
-};
-
-// ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
-
-/** Ground plane built from tile data — placeholder for Phase 1's terrain mesh */
-const TerrainPlane: React.FC<{
-  mapData: BattleMapData;
-  validMoves: Set<string>;
-  activePath: { id: string }[];
-  actionMode: 'move' | 'ability' | null;
-  onTileClick: (tile: BattleMapTileData) => void;
-}> = ({ mapData, validMoves, activePath, actionMode, onTileClick }) => {
-
-  const activePathSet = useMemo(() => {
-    const set = new Set<string>();
-    activePath.forEach(p => set.add(p.id));
-    return set;
-  }, [activePath]);
-
-  const tiles = useMemo(() => Array.from(mapData.tiles.values()), [mapData]);
-
-  return (
-    <group>
-      {tiles.map(tile => {
-        const { x, y } = tile.coordinates;
-        const elevation = tile.elevation * ELEVATION_SCALE;
-        const isValidMove = actionMode === 'move' && validMoves.has(tile.id);
-        const isInPath = activePathSet.has(tile.id);
-
-        // Base terrain color
-        let color = TERRAIN_COLORS[tile.terrain] ?? 0x3a5a28;
-
-        // Highlight valid moves and path
-        if (isInPath) {
-          color = 0x4488ff;
-        } else if (isValidMove) {
-          color = 0x22aa44;
-        }
-
-        return (
-          <mesh
-            key={tile.id}
-            position={[x * TILE_WORLD_SIZE, elevation / 2, y * TILE_WORLD_SIZE]}
-            onClick={(e: ThreeEvent<MouseEvent>) => {
-              e.stopPropagation();
-              onTileClick(tile);
-            }}
-            receiveShadow
-          >
-            <boxGeometry args={[
-              TILE_WORLD_SIZE * 0.98,
-              Math.max(elevation, 0.1),
-              TILE_WORLD_SIZE * 0.98
-            ]} />
-            <meshStandardMaterial
-              color={color}
-              roughness={0.8}
-              metalness={0.1}
-            />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-};
 
 /** Character token rendered as a simple capsule — placeholder for Phase 2's glTF models */
 const CharacterMarker: React.FC<{
@@ -438,14 +361,23 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           screenSpacePanning={false}
         />
 
-        {/* Terrain */}
-        <TerrainPlane
+        {/* Terrain system — continuous heightfield mesh with vegetation and water */}
+        <TerrainMesh
           mapData={mapData}
           validMoves={validMoves}
           activePath={activePath}
           actionMode={actionMode}
           onTileClick={handleTileClick}
         />
+        <GridOverlay
+          mapData={mapData}
+          validMoves={validMoves}
+          activePath={activePath}
+          actionMode={actionMode}
+        />
+        <GrassLayer mapData={mapData} />
+        <WaterSystem mapData={mapData} />
+        <DecorationProps mapData={mapData} />
 
         {/* Characters */}
         {characters.map(character => {
