@@ -1731,10 +1731,96 @@ Copy this block for each decision.
   tests, CodeQL, and poison-file checks also passed.
 - Next expected proof: Merge PR #938, then continue to Package 3 packaging.
 
+### Decision 44: Package Character Creator And Spellbook Visibility As The Next Jules Slice
+
+- Date/time: 2026-05-22
+- Phase: `package_3_pre_dispatch`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: Whether Codex should repair the character creator/spellbook
+  UI locally, send a broad "finish spell UI" request to Jules, or create a
+  bounded Package 3 task packet for dashboard-first Jules offload.
+- Options considered:
+  - Implement the UI/assembly repairs locally in the foreman session.
+  - Send Jules a broad prompt covering character creator, spellbook, combat
+    simulator spell casting, AI arbitration, and level 2-3 fixtures together.
+  - Create a bounded Package 3 packet focused on character creator spell
+    selection and character sheet spellbook visibility, leaving combat and AI
+    arbitration to Packages 4 and 5.
+- Decision made by agent: Create the bounded Package 3 task packet for Jules
+  and keep Codex in the foreman role.
+- Model routing: Strong local foreman reasoning, because this defines the next
+  write-producing slice and prevents scope bleed into combat/runtime or
+  arbitration policy.
+- Rationale/evidence: Package 2 is merged and the Phase 1 plan names Package 3
+  as the next sequential slice. Current source inspection shows repeated
+  class-specific spell selectors, a live Spellbook tab/overlay surface, and a
+  possible known/prepared semantics ambiguity in character assembly. Those are
+  clear enough for a bounded Jules implementation task, while combat simulator
+  spell behavior and AI arbitration remain separate later packages.
+- Mutation performed or skipped: Created
+  `docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md`,
+  `docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md`,
+  `docs/tasks/spells/PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md`,
+  `docs/tasks/spells/PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`,
+  `docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`, and
+  `docs/tasks/spells/PACKAGE_3_VISUAL_PROOF_RECEIPT.md`. Updated the living
+  tracker to make Package 3 active and record adjacent gaps.
+- Scope guardrails: Package 3 excludes combat simulator casting behavior, broad
+  spell schema/runtime architecture, AI arbitration policy, and premade roster
+  semantics except tiny test fixtures if strictly necessary.
+- Result: Package 3 is packaged for dashboard draft creation. It is not yet
+  dispatched to Jules.
+- Next expected proof: Use the visible Symphony dashboard to create the Package
+  3 task draft from the payload, then record the draft id, any blocker, and the
+  handoff path in the Package 3 readiness checklist.
+
+### Decision 45: Do Not Push Diverged Local Master For The Package 3 Base
+
+- Date/time: 2026-05-22
+- Phase: `package_3_dashboard_git_gate`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: The visible Symphony dashboard blocked Package 3 draft work
+  at the Git sync gate. It showed local `master` with two local-only
+  racial-mechanics commits and three remote-only Spell Phase 1 commits, while
+  the active Package 3 docs were on `codex/spell-phase1-package3-planning`.
+- Options considered:
+  - Follow the dashboard-generated human command suggestion to push/pull
+    `master`.
+  - Reset or move local `master` to GitHub, discarding or burying the local-only
+    racial-mechanics commits.
+  - Record dashboard dispositions, keep the unrelated local `master` commits
+    local, and commit the Package 3 task packet on the package branch.
+- Decision made by agent: Record the dashboard dispositions visibly, keep the
+  unrelated local `master` commits local, and commit Package 3 docs on the
+  package branch.
+- Model routing: Strong local foreman reasoning, because this decision protects
+  unrelated local work and prevents a workflow tool suggestion from becoming a
+  destructive Git action.
+- Rationale/evidence: The dashboard Git Safety board identified local-only
+  commits `1cc84428` and `42af4f59`, both carrying broad racial-mechanics work
+  unrelated to Package 3. The same board identified the Package 3 docs as
+  untracked source artifacts needed for the Jules base. Pushing `master` would
+  publish unrelated work; resetting `master` would endanger it.
+- Mutation performed or skipped: Used the visible dashboard Git Safety board to
+  record `Local-only commits = Keep local` and
+  `Untracked artifacts = Commit for Jules base`. Skipped pushing or pulling
+  local `master`. Prepared the package branch commit instead.
+- Scope guardrails: Do not delete, reset, squash, or publish the unrelated
+  racial-mechanics local commits from this spell flow. Do not create a Jules
+  handoff until Package 3 docs are visible from a safe GitHub base.
+- Result: Dashboard-first flow exposed a valid Git ownership blocker and the
+  agent selected the non-destructive branch path.
+- Next expected proof: Commit and publish the Package 3 planning branch, open
+  the PR, merge it if checks pass, then re-enter the dashboard from a base that
+  can see the Package 3 docs without touching unrelated local `master` work.
+
 ## Open Decisions For The Next Slice
 
-1. Merge PR #938 after the clean check set.
+1. Create the Package 3 Symphony dashboard draft visibly from
+   `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
 2. Package and dispatch Package 3 for Jules: character creator spell selection
    and character sheet spellbook visibility.
-3. Keep Stitch MCP authentication as an adjacent tooling gap until an API key or
-   OAuth path is installed and Codex is restarted.
+3. Improve Symphony Git sync guidance so a planning branch can be published
+   without suggesting that unrelated local `master` commits should be pushed.
+4. Confirm the restarted Stitch MCP proxy path before claiming any
+   Stitch-generated dashboard redesign work.
