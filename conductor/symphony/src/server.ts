@@ -3166,7 +3166,7 @@ export class HttpServer {
       {
         id: 'jules_session',
         label: 'Jules session',
-        status: completedWithoutPr ? 'blocked' : hasSession ? 'active' : 'waiting',
+        status: completedWithoutPr ? 'blocked' : hasSession ? hasPr ? 'complete' : 'active' : 'waiting',
         sourceId: manifestHandoff?.id ?? null,
         sourceTitle: manifestHandoff?.title ?? null,
         detail: hasSession
@@ -3265,8 +3265,12 @@ export class HttpServer {
     const unresolvedCompletedJulesStage = completedWithoutPr
       ? stages.find(stage => stage.id === 'jules_session') ?? null
       : null;
+    const downstreamReviewBlocker = hasPr
+      ? stages.find(stage => (stage.id === 'github_pr' || stage.id === 'scout_core') && stage.status === 'blocked') ?? null
+      : null;
     const current = stages.find(stage => stage.status === 'ready')
       ?? unresolvedCompletedJulesStage
+      ?? downstreamReviewBlocker
       ?? liveJulesStage
       ?? stages.find(stage => stage.status === 'blocked')
       ?? activeStages[activeStages.length - 1]

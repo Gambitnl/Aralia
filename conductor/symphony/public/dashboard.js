@@ -3412,7 +3412,16 @@ function buildTaskNavigatorRecord(kind, item) {
   }
 
   const disposition = item.taskDisposition?.state || 'active';
-  const needsInput = Boolean(item.operatorQuestion);
+  const operatorQuestion = item.operatorQuestion || null;
+  const latestAnswer = Array.isArray(item.operatorAnswers) ? item.operatorAnswers[0] : null;
+  const operatorQuestionAnswered = Boolean(latestAnswer)
+    && (!operatorQuestion?.plainLanguageQuestion || latestAnswer.sourceQuestion === operatorQuestion.plainLanguageQuestion)
+    && (!operatorQuestion?.sourceStage || latestAnswer.sourceStage === operatorQuestion.sourceStage);
+  // A task can keep its old question for audit history after an answer is
+  // recorded. The navigator should only count it as "needs input" when the
+  // current question is still unanswered; otherwise the dashboard sends the
+  // foreman back to a decision that has already been filed.
+  const needsInput = Boolean(operatorQuestion && !operatorQuestionAnswered);
   const merged = item.githubPullRequestState === 'MERGED';
   const closed = item.githubPullRequestState === 'CLOSED' || item.status === 'observed_pr';
   const bucket = disposition === 'completed'

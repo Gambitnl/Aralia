@@ -1393,9 +1393,48 @@ Copy this block for each decision.
   dashboard draft path for `draft-1779410025252-nnowpt` if the workflow-config
   repair remains the chosen lane.
 
+### Decision 35: Move The Global Dashboard Boundary Past Completed Jules Sessions With PRs
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to accept the main dashboard's stale `Refresh Jules
+  Status` boundary after Package 2 had already captured PR #935, or repair the
+  global boundary ladder so it points at PR review/check repair.
+- Options considered:
+  - Ignore the top dashboard boundary and keep using the task detail page.
+  - Manually refresh PR checks from the raw endpoint whenever the top boundary
+    looks stale.
+  - Repair the global middleman path and task navigator so answered questions
+    and completed Jules sessions with PRs no longer mask the real PR blocker.
+- Decision made by agent: Repair the dashboard routing model.
+- Model routing: Standard foreman/frontend-backend reasoning, because the bug
+  crossed server-derived path state and client-side task navigator buckets.
+- Rationale/evidence: The visible dashboard showed Package 2 with PR #935 and
+  a local setup-repair draft, but `Current Foreman Boundary` still showed
+  `Jules session` / `Refresh Jules Status`, and the navigator still counted one
+  task as needing input even though `create_setup_repair_task` had been
+  recorded. That misdirected the human foreman back to a finished Jules polling
+  lane instead of the current PR/check blocker.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts`,
+  `conductor/symphony/public/dashboard.js`, added
+  `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`,
+  and extended
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`.
+- Scope guardrails: The change is read-only dashboard routing. It does not push
+  a branch, create a PR, merge, call Linear, launch Jules, or mutate Package 2
+  implementation files.
+- Result: After restart, the live dashboard reports `Needs input: 0`, selects
+  `Setup repair for ARA-7` as the open draft, and shows global
+  `Current Foreman Boundary` as `GitHub PR` with `Run GitHub PR` / PR-refresh
+  evidence instead of stale Jules status.
+- Next expected proof: Commit and file these Symphony dashboard fixes, then
+  resolve the Git sync/disposition blocker for `draft-1779410025252-nnowpt`.
+
 ## Open Decisions For The Next Slice
 
-1. File the Symphony dashboard fixes that enabled the local setup-repair draft,
+1. File the Symphony dashboard fixes that enabled the local setup-repair draft
+   and corrected the global PR boundary,
    then decide whether to advance `draft-1779410025252-nnowpt` through the
    normal dashboard draft gates.
 2. Decide whether PR #935's broad `Tests` failure is an ambient

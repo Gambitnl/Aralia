@@ -137,6 +137,26 @@ assert.match(completedNavigatorHtml, /GitHub PR/);
 assert.doesNotMatch(completedNavigatorHtml, /ARA-6 weapon proficiency regression/);
 assert.doesNotMatch(completedNavigatorHtml, /Setup repair draft/);
 
+const answeredRoot = {
+  html: '',
+  addEventListener() {},
+  set innerHTML(value) {
+    this.html = value;
+  },
+  get innerHTML() {
+    return this.html;
+  },
+  firstChild: { nodeValue: '' },
+};
+const answeredSandbox = buildSandbox(null, answeredRoot);
+vm.runInNewContext(executableSource, answeredSandbox, { filename: 'dashboard.js' });
+answeredSandbox.renderTaskIntake(buildAnsweredQuestionSnapshot());
+
+const answeredNavigatorHtml = extractNavigatorHtml(answeredRoot.innerHTML);
+assert.match(answeredNavigatorHtml, /Needs input: 0/);
+assert.match(answeredNavigatorHtml, /Resolve Workflow Config Blocker/);
+assert.doesNotMatch(answeredNavigatorHtml, /needs operator input/i);
+
 function extractNavigatorHtml(html) {
   const match = html.match(/<section class="task-navigator"[\s\S]*?<\/section>/);
   assert(match, 'Expected rendered dashboard HTML to include the task navigator section.');
@@ -322,4 +342,26 @@ function buildSnapshot() {
       stages: [],
     },
   };
+}
+
+function buildAnsweredQuestionSnapshot() {
+  const snapshot = buildSnapshot();
+  const handoff = snapshot.handoffs[0];
+  handoff.operatorQuestion.sourceStage = 'repair_decision';
+  handoff.operatorAnswers = [{
+    selectedAction: 'create_setup_repair_task',
+    answer: 'Create a setup repair task before asking Jules to change task code.',
+    answeredBy: 'operator',
+    answeredAt: snapshot.preflight.checkedAt,
+    sourceQuestion: handoff.operatorQuestion.plainLanguageQuestion,
+    sourceStage: handoff.operatorQuestion.sourceStage,
+  }];
+  handoff.next_action = {
+    code: 'repair_failed_checks',
+    tone: 'blocked',
+    label: 'Resolve Workflow Config Blocker',
+    summary: 'The decision has been recorded; repair the workflow setup before sending Jules feedback.',
+    steps: ['Create setup repair task.'],
+  };
+  return snapshot;
 }

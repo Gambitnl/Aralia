@@ -316,6 +316,32 @@ The draft is blocked by Git sync because this foreman branch now contains
 unfiled local Symphony dashboard fixes. That is a correct dashboard blocker,
 not a reason to bypass the draft gates.
 
+## Global Dashboard Boundary Repair
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After the local setup-repair draft was created, the main dashboard still showed
+`Current Foreman Boundary` as `Jules session` / `Refresh Jules Status`. That was
+stale: Package 2 already had PR #935, a recorded operator answer, and a local
+setup-repair draft. The useful boundary was PR review/check repair, not another
+Jules status poll.
+
+Repair path:
+
+- Decision report entry: Decision 35.
+- Code paths: `conductor/symphony/src/server.ts` and
+  `conductor/symphony/public/dashboard.js`.
+- Verifiers:
+  `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`
+  and `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`.
+- Live proof: after restarting the dashboard, the task navigator showed
+  `Needs input: 0`, selected `Setup repair for ARA-7` as the open draft, and
+  showed global `Current Foreman Boundary` as `GitHub PR` with PR-refresh proof.
+
+The next visible blocker is now Git sync/disposition for the setup-repair draft:
+tracked local dashboard fixes need filing, and local `master` is behind
+`origin/master`.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
