@@ -40,8 +40,12 @@ PR, and during closeout.
   `.jules/runs/symphony-handoff-1779443555192-bnpws7/manifest.json`.
 - Jules handoff launched: `yes`.
 - Jules session id: `2823658242418460192`.
-- Jules session state: `QUEUED` as of the dashboard refresh at
-  2026-05-22 11:54 local time.
+- Jules plan approval: `yes`, recorded through the dashboard at
+  2026-05-22 12:09 local time.
+- Jules session state: `COMPLETED` as of the dashboard refresh at
+  2026-05-22 12:10 local time.
+- Jules completion caveat: Symphony has no PR URL and visible Jules inspection
+  did not show a `View PR`, GitHub URL, or pull request text.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
@@ -60,14 +64,16 @@ Optional local review worktree:
 
 ## Next Dispatch Steps
 
-1. Refresh Jules status through the visible dashboard until Symphony captures a
-   PR URL or records why no PR exists yet.
-2. If Jules asks for plan approval or feedback, use the dashboard/Jules visible
-   path and record the decision before continuing.
-3. When a PR appears, run the Package 3 review path before Scout/Core merge:
+1. Reconcile the completed Jules session by capturing proof of one of three
+   outcomes: hidden PR exists, Jules completed without code changes, or the
+   session stalled after plan generation.
+2. If a PR appears, run the Package 3 review path before Scout/Core merge:
    scope check, relevant focused tests, visual proof, Atlas/gate checkpoint,
    and PR checks.
-4. Record the PR URL, verifier output, visual proof, and Atlas/gate checkpoint
+3. If no PR exists, record the no-code/no-PR result as a Package 3 blocker and
+   decide whether to relaunch Jules or split the task further.
+4. Record the PR URL or no-PR proof, verifier output, visual proof, and
+   Atlas/gate checkpoint
    in this checklist and the Package 3 receipts.
 5. Keep combat simulator casting and AI arbitration discoveries as Package 4/5
    gaps unless they are tiny fixture-only changes required to test Package 3.
