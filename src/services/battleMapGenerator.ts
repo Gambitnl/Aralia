@@ -52,7 +52,9 @@ export class BattleMapGenerator {
 
   private createBaseTile(x: number, y: number, biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp', noiseValue: number): BattleMapTile {
     let terrain: BattleMapTerrain = 'grass';
-    const elevation = Math.max(0, Math.floor(this.elevationNoise.get(x / 15, y / 15) * 3));
+    // Elevation: smaller scale (x/8) for visible terrain undulation, higher multiplier
+    const rawElev = this.elevationNoise.get(x / 8, y / 8);
+    const elevation = Math.max(0, Math.round(rawElev * 2.5 + 1.0)); // Range 0-3, centered around 1
 
     switch(biome) {
         case 'cave':

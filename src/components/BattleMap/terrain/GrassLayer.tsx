@@ -33,8 +33,8 @@ import { BattleMapData } from '../../../types/combat';
 const TILE_SIZE = 1.0;
 const BLADES_PER_TILE = 40;
 const BLADE_WIDTH = 0.06;
-const BLADE_HEIGHT_MIN = 0.15;
-const BLADE_HEIGHT_MAX = 0.50;
+const BLADE_HEIGHT_MIN = 0.08;
+const BLADE_HEIGHT_MAX = 0.25;
 const BLADE_SEGMENTS = 4; // Vertices along the blade height for bending
 
 const WIND_SPEED = 1.2;

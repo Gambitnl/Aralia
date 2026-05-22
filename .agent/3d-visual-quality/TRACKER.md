@@ -79,6 +79,32 @@
 
 ---
 
+## Phase 3 Tasks
+
+### Tier 1 — P0 (Breaks the illusion)
+
+| # | Task | Priority | Status | Notes |
+|---|------|----------|--------|-------|
+| 26 | Class-based character models | P0 | [x] | 3 archetypes: fighter (armor+sword+shield), caster (robes+staff+wizard hat), rogue (leather+hood+dual daggers). getArchetype() maps class name to visual loadout. |
+| 27 | Reduce grass height | P0 | [x] | BLADE_HEIGHT_MAX 0.50→0.25, MIN 0.15→0.08. Ankle-to-shin height. GrassLayer.tsx. |
+
+### Tier 2 — P1 (Hurts polish)
+
+| # | Task | Priority | Status | Notes |
+|---|------|----------|--------|-------|
+| 28 | Character facing direction | P1 | [x] | atan2 toward nearest living enemy. Seeded hash fallback for no-enemy case. Rotation applied to character model group. |
+| 29 | Reduce stump/log scale | P1 | [x] | Fallen log: radius 0.12→0.07, length 1.0→0.6. Stump: radius 0.14→0.08, height 0.25→0.15. ~40% size reduction. |
+| 30 | Enlarge HP pip spheres | P1 | [x] | Sphere 0.06→0.12 radius. Added team-colored ring (0.14-0.18 radius) around pip. Visible at tactical zoom. |
+
+### Tier 3 — P2 (Nice to have)
+
+| # | Task | Priority | Status | Notes |
+|---|------|----------|--------|-------|
+| 31 | Debug terrain elevation | P2 | [x] | Generator noise scale x/15→x/8, elevation formula `round(rawElev*2.5+1.0)` for range 0-3. Characters now use `tileElevation * ELEVATION_SCALE` for Y position. |
+| 32 | Reduce character emissive | P2 | [x] | All 3 archetype torsos: emissiveIntensity 0.15→0.05. Skin has zero emissive (was already 0). |
+
+---
+
 ## Progress Log
 
 | Date | Task # | Action | Result |
@@ -99,3 +125,8 @@
 | 2026-05-22 | 19 | Grass height/color variation | Per-instance tint attribute (warm→cool green). Cluster noise height patches. Bare spots near rocks/walls. Height range widened (0.15-0.50). |
 | 2026-05-22 | 17,23 | Ground scatter + decoration variety | GroundScatter.tsx: pebbles, leaves, twigs, mushrooms on open tiles. DecorationProps: fallen logs, stumps, bushes. Map generator updated for forest/swamp biomes. |
 | 2026-05-22 | 25 | Character/decal scale fix | Selection ring 0.42-0.48, turn ring 0.50-0.60. Arrows orbit at 0.58. Proportions match 2.5x character body. |
+| 2026-05-22 | — | Phase 3 critical review | 7 issues identified. Goal updated. Phase 3 tasks added. |
+| 2026-05-22 | 26,27 | Class-based chars + grass height | 3 archetypes (fighter/caster/rogue) with distinct silhouettes. Grass MAX 0.50→0.25. |
+| 2026-05-22 | 28,30 | Facing + HP pip | Characters face nearest enemy via atan2. HP pip 0.06→0.12 + team ring. |
+| 2026-05-22 | 29 | Stump/log scale | ~40% size reduction for fallen logs and stumps. |
+| 2026-05-22 | 31,32 | Elevation + emissive | Generator elevation range 0-3, chars sit at tile elevation. emissiveIntensity 0.15→0.05. |

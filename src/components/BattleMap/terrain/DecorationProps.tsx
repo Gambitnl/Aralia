@@ -310,14 +310,14 @@ function createMangroveGeometry(): PropGeometrySet[] {
 
 /** Fallen log — horizontal cylinder with slight taper, bark-colored */
 function createFallenLogGeometry(): PropGeometrySet[] {
-  const log = new THREE.CylinderGeometry(0.12, 0.15, 1.0, 8);
+  const log = new THREE.CylinderGeometry(0.07, 0.09, 0.6, 8);
   log.rotateZ(Math.PI / 2); // Lay horizontal
-  log.translate(0, 0.12, 0);
+  log.translate(0, 0.07, 0);
 
   // Broken end cap
-  const endCap = new THREE.SphereGeometry(0.12, 6, 4, 0, Math.PI * 2, 0, Math.PI / 2);
+  const endCap = new THREE.SphereGeometry(0.07, 6, 4, 0, Math.PI * 2, 0, Math.PI / 2);
   endCap.rotateZ(Math.PI / 2);
-  endCap.translate(-0.5, 0.12, 0);
+  endCap.translate(-0.3, 0.07, 0);
 
   const mat = new THREE.MeshStandardMaterial({
     color: 0x4a3018,
@@ -330,13 +330,13 @@ function createFallenLogGeometry(): PropGeometrySet[] {
 
 /** Tree stump — short thick cylinder with rough top */
 function createStumpGeometry(): PropGeometrySet[] {
-  const stump = new THREE.CylinderGeometry(0.14, 0.18, 0.25, 8);
-  stump.translate(0, 0.125, 0);
+  const stump = new THREE.CylinderGeometry(0.08, 0.11, 0.15, 8);
+  stump.translate(0, 0.075, 0);
 
   // Ring pattern on top
-  const ring = new THREE.RingGeometry(0.04, 0.13, 8);
+  const ring = new THREE.RingGeometry(0.02, 0.07, 8);
   ring.rotateX(-Math.PI / 2);
-  ring.translate(0, 0.255, 0);
+  ring.translate(0, 0.155, 0);
 
   const stumpMat = new THREE.MeshStandardMaterial({
     color: 0x5a3a1a,

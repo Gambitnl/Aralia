@@ -58,6 +58,8 @@ const TEAM_COLORS = {
 
 interface CharacterActorProps {
   character: CombatCharacter;
+  allCharacters: CombatCharacter[];
+  tileElevation: number;
   isSelected: boolean;
   isTurn: boolean;
   isTargetable: boolean;
@@ -66,16 +68,35 @@ interface CharacterActorProps {
 }
 
 // ---------------------------------------------------------------------------
+// Character archetype — determines visual loadout from class name
+// ---------------------------------------------------------------------------
+
+type CharacterArchetype = 'fighter' | 'caster' | 'rogue';
+
+function getArchetype(className: string): CharacterArchetype {
+  const name = className.toLowerCase();
+  if (['wizard', 'sorcerer', 'warlock', 'cleric', 'druid'].includes(name)) return 'caster';
+  if (['rogue', 'monk', 'bard', 'ranger'].includes(name)) return 'rogue';
+  return 'fighter'; // Fighter, Paladin, Barbarian, unknown
+}
+
+// ---------------------------------------------------------------------------
 // Procedural humanoid model (placeholder for glTF)
 // ---------------------------------------------------------------------------
 
-/** A simple humanoid shape built from primitives — much better than a capsule */
+/**
+ * Class-aware humanoid shape built from primitives.
+ * - Fighter: heavy armor + sword + shield
+ * - Caster: flowing robes + tall staff (no shield)
+ * - Rogue: hooded cowl + dual daggers (no shield)
+ */
 const HumanoidModel: React.FC<{
   teamColor: number;
   isAlive: boolean;
   animState: AnimationState;
   animTime: number;
-}> = ({ teamColor, isAlive, animState, animTime }) => {
+  archetype: CharacterArchetype;
+}> = ({ teamColor, isAlive, animState, animTime, archetype }) => {
   const groupRef = useRef<THREE.Group>(null);
 
   // Animation parameters
@@ -89,9 +110,13 @@ const HumanoidModel: React.FC<{
   const deathFall = animState === 'death'
     ? Math.min(animTime * 2, Math.PI / 2) : 0;
 
-  // Skin tone (warm neutral — works for procedural placeholder)
   const skinColor = 0xd4a57b;
   const armorColor = teamColor;
+  const armorDark = new THREE.Color(armorColor).multiplyScalar(0.7);
+  const armorDarker = new THREE.Color(armorColor).multiplyScalar(0.5);
+  const robeColor = archetype === 'caster'
+    ? new THREE.Color(armorColor).lerp(new THREE.Color(0x1a0a30), 0.4) // Deep purple-tinted
+    : armorColor;
 
   return (
     <group
@@ -103,98 +128,220 @@ const HumanoidModel: React.FC<{
       ]}
       position={[0, walkBob + idleBreathe, 0]}
     >
-      {/* Body / torso — armor colored with subtle emissive for visibility */}
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <boxGeometry args={[0.22, 0.28, 0.14]} />
-        <meshStandardMaterial
-          color={armorColor}
-          emissive={armorColor}
-          emissiveIntensity={0.15}
-          roughness={0.5}
-          metalness={0.3}
-        />
-      </mesh>
+      {/* ---- TORSO ---- */}
+      {archetype === 'caster' ? (
+        /* Caster: flowing robe — taller, wider at bottom */
+        <mesh position={[0, 0.30, 0]} castShadow>
+          <cylinderGeometry args={[0.08, 0.14, 0.35, 8]} />
+          <meshStandardMaterial
+            color={robeColor}
+            emissive={robeColor}
+            emissiveIntensity={0.05}
+            roughness={0.8}
+            metalness={0.0}
+          />
+        </mesh>
+      ) : archetype === 'rogue' ? (
+        /* Rogue: slim leather armor */
+        <mesh position={[0, 0.35, 0]} castShadow>
+          <boxGeometry args={[0.18, 0.26, 0.12]} />
+          <meshStandardMaterial
+            color={new THREE.Color(0x3a2a1a)} // Dark leather brown
+            emissive={new THREE.Color(0x3a2a1a)}
+            emissiveIntensity={0.05}
+            roughness={0.75}
+            metalness={0.1}
+          />
+        </mesh>
+      ) : (
+        /* Fighter: chunky plate armor */
+        <mesh position={[0, 0.35, 0]} castShadow>
+          <boxGeometry args={[0.24, 0.28, 0.15]} />
+          <meshStandardMaterial
+            color={armorColor}
+            emissive={armorColor}
+            emissiveIntensity={0.05}
+            roughness={0.4}
+            metalness={0.5}
+          />
+        </mesh>
+      )}
 
-      {/* Head */}
+      {/* ---- HEAD ---- */}
       <mesh position={[0, 0.58, 0]} castShadow>
         <sphereGeometry args={[0.08, 12, 8]} />
-        <meshStandardMaterial
-          color={skinColor}
-          roughness={0.7}
-          metalness={0.0}
-        />
+        <meshStandardMaterial color={skinColor} roughness={0.7} metalness={0.0} />
       </mesh>
 
-      {/* Helmet/hair — darker version of team color */}
-      <mesh position={[0, 0.63, 0]}>
-        <sphereGeometry args={[0.07, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial
-          color={new THREE.Color(armorColor).multiplyScalar(0.6)}
-          roughness={0.4}
-          metalness={0.4}
-        />
-      </mesh>
-
-      {/* Left arm */}
-      <group
-        position={[-0.16, 0.38, 0]}
-        rotation={[idleSway, 0, -0.1 + idleSway * 0.5]}
-      >
-        <mesh castShadow>
-          <boxGeometry args={[0.06, 0.22, 0.06]} />
-          <meshStandardMaterial color={skinColor} roughness={0.7} />
+      {/* ---- HEADGEAR ---- */}
+      {archetype === 'caster' ? (
+        /* Caster: pointed wizard hat */
+        <group position={[0, 0.66, 0]}>
+          {/* Brim */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.06, 0.11, 12]} />
+            <meshStandardMaterial color={armorDarker} roughness={0.8} side={THREE.DoubleSide} />
+          </mesh>
+          {/* Cone */}
+          <mesh position={[0, 0.06, 0]}>
+            <coneGeometry args={[0.06, 0.14, 8]} />
+            <meshStandardMaterial color={armorDarker} roughness={0.8} />
+          </mesh>
+        </group>
+      ) : archetype === 'rogue' ? (
+        /* Rogue: hood/cowl draped over head */
+        <mesh position={[0, 0.62, -0.01]}>
+          <sphereGeometry args={[0.09, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.7]} />
+          <meshStandardMaterial color={new THREE.Color(0x2a1a10)} roughness={0.8} />
         </mesh>
-      </group>
-
-      {/* Right arm — weapon arm */}
-      <group
-        position={[0.16, 0.38, 0]}
-        rotation={[attackSwing, 0, 0.1 - idleSway * 0.5]}
-      >
-        <mesh castShadow>
-          <boxGeometry args={[0.06, 0.22, 0.06]} />
-          <meshStandardMaterial color={skinColor} roughness={0.7} />
-        </mesh>
-        {/* Weapon (simple sword) */}
-        <mesh position={[0, -0.18, 0.02]} castShadow>
-          <boxGeometry args={[0.02, 0.2, 0.01]} />
-          <meshStandardMaterial color={0x888888} roughness={0.3} metalness={0.8} />
-        </mesh>
-      </group>
-
-      {/* Left leg */}
-      <group position={[-0.06, 0.1, 0]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.07, 0.2, 0.08]} />
+      ) : (
+        /* Fighter: half-sphere helmet */
+        <mesh position={[0, 0.63, 0]}>
+          <sphereGeometry args={[0.07, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
           <meshStandardMaterial
-            color={new THREE.Color(armorColor).multiplyScalar(0.7)}
-            roughness={0.6}
-            metalness={0.2}
+            color={new THREE.Color(armorColor).multiplyScalar(0.6)}
+            roughness={0.4}
+            metalness={0.6}
           />
         </mesh>
-      </group>
+      )}
 
-      {/* Right leg */}
-      <group position={[0.06, 0.1, 0]}>
+      {/* ---- LEFT ARM ---- */}
+      <group
+        position={[archetype === 'caster' ? -0.12 : -0.16, 0.38, 0]}
+        rotation={[
+          archetype === 'caster' ? -0.3 + idleSway : idleSway,
+          0,
+          archetype === 'caster' ? -0.4 : -0.1 + idleSway * 0.5,
+        ]}
+      >
         <mesh castShadow>
-          <boxGeometry args={[0.07, 0.2, 0.08]} />
+          <boxGeometry args={[0.05, 0.20, 0.05]} />
           <meshStandardMaterial
-            color={new THREE.Color(armorColor).multiplyScalar(0.7)}
-            roughness={0.6}
-            metalness={0.2}
+            color={archetype === 'caster' ? robeColor : skinColor}
+            roughness={0.7}
           />
         </mesh>
+        {/* Rogue: left-hand dagger */}
+        {archetype === 'rogue' && (
+          <mesh position={[0, -0.15, 0.02]} castShadow>
+            <boxGeometry args={[0.015, 0.12, 0.008]} />
+            <meshStandardMaterial color={0xaaaaaa} roughness={0.3} metalness={0.9} />
+          </mesh>
+        )}
       </group>
 
-      {/* Shield (for player team) */}
-      <mesh position={[-0.18, 0.32, 0.06]} rotation={[0, 0.3, 0]} castShadow>
-        <boxGeometry args={[0.02, 0.15, 0.12]} />
-        <meshStandardMaterial
-          color={new THREE.Color(armorColor).multiplyScalar(0.8)}
-          roughness={0.4}
-          metalness={0.5}
-        />
-      </mesh>
+      {/* ---- RIGHT ARM + WEAPON ---- */}
+      <group
+        position={[archetype === 'caster' ? 0.12 : 0.16, 0.38, 0]}
+        rotation={[
+          archetype === 'caster' ? 0.2 + attackSwing * 0.3 : attackSwing,
+          0,
+          archetype === 'caster' ? 0.3 : 0.1 - idleSway * 0.5,
+        ]}
+      >
+        <mesh castShadow>
+          <boxGeometry args={[0.05, 0.20, 0.05]} />
+          <meshStandardMaterial
+            color={archetype === 'caster' ? robeColor : skinColor}
+            roughness={0.7}
+          />
+        </mesh>
+        {archetype === 'caster' ? (
+          /* Staff — tall wooden rod with glowing orb on top */
+          <group position={[0, -0.08, 0.03]}>
+            <mesh castShadow>
+              <cylinderGeometry args={[0.012, 0.015, 0.50, 6]} />
+              <meshStandardMaterial color={0x5a3a18} roughness={0.7} metalness={0.0} />
+            </mesh>
+            {/* Glowing orb at staff top */}
+            <mesh position={[0, 0.28, 0]}>
+              <sphereGeometry args={[0.03, 8, 6]} />
+              <meshStandardMaterial
+                color={armorColor}
+                emissive={armorColor}
+                emissiveIntensity={1.0}
+                transparent
+                opacity={0.9}
+              />
+            </mesh>
+          </group>
+        ) : archetype === 'rogue' ? (
+          /* Rogue: right-hand dagger — shorter than a sword */
+          <mesh position={[0, -0.15, 0.02]} castShadow>
+            <boxGeometry args={[0.015, 0.12, 0.008]} />
+            <meshStandardMaterial color={0xaaaaaa} roughness={0.3} metalness={0.9} />
+          </mesh>
+        ) : (
+          /* Fighter: broadsword */
+          <mesh position={[0, -0.18, 0.02]} castShadow>
+            <boxGeometry args={[0.025, 0.22, 0.012]} />
+            <meshStandardMaterial color={0x888888} roughness={0.3} metalness={0.8} />
+          </mesh>
+        )}
+      </group>
+
+      {/* ---- LEGS ---- */}
+      {archetype === 'caster' ? (
+        /* Caster: robe skirt hides legs — just the robe bottom peeks */
+        <mesh position={[0, 0.08, 0]} castShadow>
+          <cylinderGeometry args={[0.12, 0.16, 0.15, 8]} />
+          <meshStandardMaterial color={robeColor} roughness={0.8} />
+        </mesh>
+      ) : (
+        <>
+          {/* Left leg */}
+          <group position={[-0.06, 0.1, 0]}>
+            <mesh castShadow>
+              <boxGeometry args={[0.07, 0.2, 0.08]} />
+              <meshStandardMaterial
+                color={archetype === 'rogue' ? new THREE.Color(0x2a1a10) : armorDark}
+                roughness={0.6}
+                metalness={archetype === 'rogue' ? 0.0 : 0.2}
+              />
+            </mesh>
+          </group>
+          {/* Right leg */}
+          <group position={[0.06, 0.1, 0]}>
+            <mesh castShadow>
+              <boxGeometry args={[0.07, 0.2, 0.08]} />
+              <meshStandardMaterial
+                color={archetype === 'rogue' ? new THREE.Color(0x2a1a10) : armorDark}
+                roughness={0.6}
+                metalness={archetype === 'rogue' ? 0.0 : 0.2}
+              />
+            </mesh>
+          </group>
+        </>
+      )}
+
+      {/* ---- SHIELD (Fighter only) ---- */}
+      {archetype === 'fighter' && (
+        <mesh position={[-0.20, 0.32, 0.06]} rotation={[0, 0.3, 0]} castShadow>
+          <boxGeometry args={[0.02, 0.16, 0.13]} />
+          <meshStandardMaterial
+            color={new THREE.Color(armorColor).multiplyScalar(0.8)}
+            roughness={0.4}
+            metalness={0.5}
+          />
+        </mesh>
+      )}
+
+      {/* ---- CASTER: shoulder cape ---- */}
+      {archetype === 'caster' && (
+        <mesh position={[0, 0.48, -0.05]} castShadow>
+          <boxGeometry args={[0.26, 0.08, 0.04]} />
+          <meshStandardMaterial color={armorDarker} roughness={0.8} />
+        </mesh>
+      )}
+
+      {/* ---- ROGUE: belt with buckle ---- */}
+      {archetype === 'rogue' && (
+        <mesh position={[0, 0.24, 0]}>
+          <boxGeometry args={[0.19, 0.025, 0.13]} />
+          <meshStandardMaterial color={0x4a3a1a} roughness={0.6} metalness={0.2} />
+        </mesh>
+      )}
     </group>
   );
 };
@@ -313,6 +460,8 @@ const TurnIndicator: React.FC<{ active: boolean }> = ({ active }) => {
 
 const CharacterActor: React.FC<CharacterActorProps> = ({
   character,
+  allCharacters,
+  tileElevation,
   isSelected,
   isTurn,
   isTargetable,
@@ -330,6 +479,36 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   const isAlive = character.currentHP > 0;
   const teamKey = isPlayer ? 'player' : character.team === 'enemy' ? 'enemy' : 'neutral';
   const teamColors = TEAM_COLORS[teamKey];
+  const archetype = useMemo(() => getArchetype(character.class?.name ?? ''), [character.class?.name]);
+
+  // Compute facing direction — face toward nearest enemy (or seeded random fallback)
+  const facingRotation = useMemo(() => {
+    const enemies = allCharacters.filter(c =>
+      c.team !== character.team && c.currentHP > 0
+    );
+    if (enemies.length === 0) {
+      // Seeded pseudo-random from character ID
+      let hash = 0;
+      for (let i = 0; i < character.id.length; i++) {
+        hash = ((hash << 5) - hash) + character.id.charCodeAt(i);
+        hash |= 0;
+      }
+      return (Math.abs(hash) % 628) / 100; // 0 to ~6.28 (2π)
+    }
+    // Find nearest enemy
+    let nearest = enemies[0];
+    let minDist = Infinity;
+    for (const e of enemies) {
+      const dx = e.position.x - x;
+      const dy = e.position.y - y;
+      const dist = dx * dx + dy * dy;
+      if (dist < minDist) { minDist = dist; nearest = e; }
+    }
+    // atan2 to face nearest enemy — R3F Z+ is "forward"
+    const dx = nearest.position.x - x;
+    const dy = nearest.position.y - y;
+    return Math.atan2(dx, dy);
+  }, [character.id, character.team, x, y, allCharacters]);
 
   // Detect HP changes to trigger hit_react animation
   useEffect(() => {
@@ -365,8 +544,8 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   // Target highlight color
   const showTargetHighlight = isTargetable && targetingMode;
 
-  // Elevation from tile data (approximate — terrain mesh handles exact positions)
-  const elevation = 0; // Characters sit on terrain surface
+  // Elevation from tile data — match terrain mesh (ELEVATION_SCALE = 0.3)
+  const elevation = tileElevation * ELEVATION_SCALE;
 
   // HP percentage for health bar
   const hpPercent = Math.max(0, character.currentHP / character.maxHP);
@@ -400,13 +579,14 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       {/* Active turn golden ring */}
       <TurnIndicator active={isTurn} />
 
-      {/* Character model — scaled up to be visible at tactical zoom */}
-      <group scale={[2.5, 2.5, 2.5]}>
+      {/* Character model — scaled up, rotated to face enemies */}
+      <group scale={[2.5, 2.5, 2.5]} rotation={[0, facingRotation, 0]}>
         <HumanoidModel
           teamColor={teamColors.primary}
           isAlive={isAlive}
           animState={isAlive ? animState : 'death'}
           animTime={animTimeRef.current}
+          archetype={archetype}
         />
       </group>
 
@@ -468,17 +648,33 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           </div>
         </Html>
       ) : (
-        /* Minimal HP pip — always visible, colored by health status */
-        <mesh position={[0, 1.85, 0]}>
-          <sphereGeometry args={[0.06, 8, 6]} />
-          <meshStandardMaterial
-            color={hpColor}
-            emissive={hpColor}
-            emissiveIntensity={0.8}
-            transparent
-            opacity={0.9}
-          />
-        </mesh>
+        /* Minimal HP pip — larger sphere + team ring for visibility at tactical zoom */
+        <group position={[0, 1.85, 0]}>
+          {/* HP color sphere */}
+          <mesh>
+            <sphereGeometry args={[0.12, 10, 8]} />
+            <meshStandardMaterial
+              color={hpColor}
+              emissive={hpColor}
+              emissiveIntensity={0.6}
+              transparent
+              opacity={0.9}
+            />
+          </mesh>
+          {/* Team-colored ring around pip */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
+            <ringGeometry args={[0.14, 0.18, 16]} />
+            <meshStandardMaterial
+              color={teamColors.selection}
+              emissive={teamColors.selection}
+              emissiveIntensity={0.5}
+              transparent
+              opacity={0.7}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+            />
+          </mesh>
+        </group>
       )}
     </group>
   );

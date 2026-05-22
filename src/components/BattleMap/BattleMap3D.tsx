@@ -368,11 +368,14 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         {characters.map(character => {
           const charTileId = `${character.position.x}-${character.position.y}`;
           const isTargetable = validTargetSet.has(charTileId);
+          const charTile = mapData.tiles.get(charTileId);
 
           return (
             <CharacterActor
               key={character.id}
               character={character}
+              allCharacters={characters}
+              tileElevation={charTile?.elevation ?? 0}
               isSelected={selectedCharacterId === character.id}
               isTurn={turnState.currentCharacterId === character.id}
               isTargetable={isTargetable}
