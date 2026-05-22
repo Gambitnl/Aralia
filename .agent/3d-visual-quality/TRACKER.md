@@ -74,8 +74,8 @@
 
 | # | Task | Priority | Status | Detail File | Notes |
 |---|------|----------|--------|-------------|-------|
-| 24 | CombatView 3D mode broken | P1 | [ ] | | R3F Canvas silently fails in CombatView ErrorBoundary. Only works via BattleMapDemo. Debug mounting issue. |
-| 25 | Character/decal scale ratio | P2 | [ ] | | Selection ring (0.36-0.39) larger than character body (0.11 half-width). Proportions need matching. |
+| 24 | CombatView 3D mode broken | P1 | [!] | | R3F Canvas silently fails in CombatView ErrorBoundary. Only works via BattleMapDemo. Spawned as separate task for debugging. |
+| 25 | Character/decal scale ratio | P2 | [x] | | Selection ring 0.28-0.35→0.42-0.48, turn ring 0.36-0.44→0.50-0.60. Rings now properly encompass 2.5x-scaled character body. |
 
 ---
 
@@ -98,3 +98,4 @@
 | 2026-05-22 | 21 | Ambient particle visibility | All biomes: larger particles (3-4x), more count, brighter. Firefly glow spheres enlarged, point lights stronger + wider range. Dungeon gets torch ember fireflies. |
 | 2026-05-22 | 19 | Grass height/color variation | Per-instance tint attribute (warm→cool green). Cluster noise height patches. Bare spots near rocks/walls. Height range widened (0.15-0.50). |
 | 2026-05-22 | 17,23 | Ground scatter + decoration variety | GroundScatter.tsx: pebbles, leaves, twigs, mushrooms on open tiles. DecorationProps: fallen logs, stumps, bushes. Map generator updated for forest/swamp biomes. |
+| 2026-05-22 | 25 | Character/decal scale fix | Selection ring 0.42-0.48, turn ring 0.50-0.60. Arrows orbit at 0.58. Proportions match 2.5x character body. |
