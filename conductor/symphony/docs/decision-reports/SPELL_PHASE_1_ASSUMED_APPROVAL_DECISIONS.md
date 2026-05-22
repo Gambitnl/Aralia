@@ -2525,6 +2525,47 @@ Copy this block for each decision.
   the dashboard PR packet, then run Scout/Core review, visual proof, and
   Package 3 acceptance checks before merge.
 
+### Decision 62: Merge The Dashboard Wait-Loop Repair Despite Advisory Gemini Quota Failure
+
+- Date/time: 2026-05-22 15:42 +02:00
+- Phase: `package_3_pr_review_and_dashboard_feedback_loop`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first hardening
+- Decision point: PR #955 contained the Symphony repair from Decision 61. Its
+  Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check lanes passed,
+  but the Gemini review lane failed before reviewing because
+  `gemini-2.5-flash` exhausted its daily quota.
+- Options considered:
+  - Block the merge until the Gemini review quota resets.
+  - Rerun or reconfigure the review lane before merging.
+  - Treat the Gemini quota failure as advisory, merge the PR, and keep Package
+    3 waiting on Jules repair through the now-correct dashboard state.
+- Decision made by agent: Merge PR #955 with squash merge and delete the remote
+  `codex/spell-phase1-package3-monitor-11` branch.
+- Model routing: Strong local foreman reasoning for merge readiness, because
+  this decision affects the dashboard workflow that governs the continuing
+  Package 3 handoff.
+- Rationale/evidence: The failed review log showed `TerminalQuotaError: You
+  have exhausted your daily quota on this model`, not a code or test failure.
+  The repository's normal CI lanes passed, the focused local verifier suite had
+  already passed, and the rendered task page showed the intended
+  `Wait for Jules Repair` boundary after a visible refresh.
+- Mutation performed or skipped: Merged PR #955 as
+  `f3f8abafbd99882e9d103853ab8c837845ea990b`. Skipped direct mutation of PR
+  #954, skipped a local Package 3 implementation repair, and skipped treating
+  Package 3 as ready while Build/Tests remain red.
+- Scope guardrails: This merge changes only Symphony dashboard routing and
+  durable decision/tracker docs. It does not change spell rules, spellbook UI,
+  character creator behavior, AI arbitration, premade roster semantics, or the
+  Jules implementation branch.
+- Result: `origin/master` now includes the wait-loop repair. The live dashboard
+  task page for `handoff-1779443555192-bnpws7` reports `Wait for Jules Repair`,
+  `Needs human input: No`, and no duplicate feedback command after running the
+  visible safe refresh.
+- Next expected proof: Monitor PR #954 for a Jules repair commit, refresh the
+  dashboard PR packet, and only advance to Scout/Core or merge review after
+  checks and rendered Package 3 proof are available.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the marked feedback comment.
