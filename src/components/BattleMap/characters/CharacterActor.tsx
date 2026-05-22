@@ -321,6 +321,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [animState, setAnimState] = useState<AnimationState>('idle');
+  const [hovered, setHovered] = useState(false);
   const animTimeRef = useRef(0);
   const prevHPRef = useRef(character.currentHP);
 
@@ -383,6 +384,11 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         e.stopPropagation();
         onClick(character);
       }}
+      onPointerEnter={(e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation();
+        setHovered(true);
+      }}
+      onPointerLeave={() => setHovered(false)}
     >
       {/* Selection decal — BG3 style ground ring */}
       <SelectionDecal
@@ -414,62 +420,66 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         />
       )}
 
-      {/* Nameplate — HTML overlay (raised to clear scaled-up model) */}
-      <Html
-        position={[0, 1.85, 0]}
-        center
-        distanceFactor={10}
-        style={{ pointerEvents: 'none' }}
-      >
-        <div style={{
-          background: 'rgba(0,0,0,0.8)',
-          padding: '3px 8px',
-          borderRadius: '4px',
-          whiteSpace: 'nowrap',
-          fontSize: '11px',
-          color: '#e6edf3',
-          textAlign: 'center',
-          borderLeft: `3px solid ${teamColors.nameAccent}`,
-          minWidth: '70px',
-        }}>
-          {/* Name */}
+      {/* Nameplate — shown on hover, selection, or active turn (BG3 style) */}
+      {(isSelected || isTurn || hovered) ? (
+        <Html
+          position={[0, 1.85, 0]}
+          center
+          distanceFactor={10}
+          style={{ pointerEvents: 'none' }}
+        >
           <div style={{
-            fontWeight: 600,
-            fontSize: '10px',
-            marginBottom: '2px',
-            letterSpacing: '0.5px',
-          }}>
-            {character.name}
-          </div>
-
-          {/* HP bar */}
-          <div style={{
-            width: '65px',
-            height: '5px',
-            background: '#1a1a2e',
-            borderRadius: '3px',
-            overflow: 'hidden',
-            position: 'relative',
+            background: 'rgba(0,0,0,0.85)',
+            padding: '3px 8px',
+            borderRadius: '4px',
+            whiteSpace: 'nowrap',
+            fontSize: '11px',
+            color: '#e6edf3',
+            textAlign: 'center',
+            borderLeft: `3px solid ${teamColors.nameAccent}`,
+            minWidth: '70px',
           }}>
             <div style={{
-              width: `${hpPercent * 100}%`,
-              height: '100%',
-              background: hpColor,
+              fontWeight: 600,
+              fontSize: '10px',
+              marginBottom: '2px',
+              letterSpacing: '0.5px',
+            }}>
+              {character.name}
+            </div>
+            <div style={{
+              width: '65px',
+              height: '5px',
+              background: '#1a1a2e',
               borderRadius: '3px',
-              transition: 'width 0.3s ease',
-            }} />
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                width: `${hpPercent * 100}%`,
+                height: '100%',
+                background: hpColor,
+                borderRadius: '3px',
+                transition: 'width 0.3s ease',
+              }} />
+            </div>
+            <div style={{ fontSize: '8px', color: '#9ca3af', marginTop: '1px' }}>
+              {character.currentHP}/{character.maxHP}
+            </div>
           </div>
-
-          {/* HP text */}
-          <div style={{
-            fontSize: '8px',
-            color: '#9ca3af',
-            marginTop: '1px',
-          }}>
-            {character.currentHP}/{character.maxHP}
-          </div>
-        </div>
-      </Html>
+        </Html>
+      ) : (
+        /* Minimal HP pip — always visible, colored by health status */
+        <mesh position={[0, 1.85, 0]}>
+          <sphereGeometry args={[0.06, 8, 6]} />
+          <meshStandardMaterial
+            color={hpColor}
+            emissive={hpColor}
+            emissiveIntensity={0.8}
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      )}
     </group>
   );
 };
