@@ -20,6 +20,7 @@
 import React, { useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
+import { ContactShadows } from '@react-three/drei';
 import { EffectComposer, SSAO, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
@@ -70,8 +71,8 @@ interface BiomeLighting {
 
 const BIOME_LIGHTING: Record<string, BiomeLighting> = {
   forest: {
-    sunColor: 0xffd080, sunIntensity: 1.6,
-    ambientColor: 0x304020, ambientIntensity: 0.4,
+    sunColor: 0xffe0a0, sunIntensity: 2.2,
+    ambientColor: 0x203018, ambientIntensity: 0.3,
     hemisphereTop: 0x87ceeb, hemisphereBottom: 0x3a2a1a,
     fogColor: 0x6a7a5a, fogNear: 8, fogFar: 22,
   },
@@ -142,13 +143,67 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
         shadow-camera-bottom={-15}
         shadow-bias={-0.001}
       />
-      {/* Rim/fill light from opposite side */}
+      {/* Cool fill light from opposite side for warm/cool contrast */}
       <directionalLight
-        color={0x8888ff}
-        intensity={0.3}
+        color={0x6080c0}
+        intensity={0.4}
         position={[cx - 8, 4, cz - 6]}
       />
     </>
+  );
+};
+
+/** Procedural gradient sky dome — prevents fade-to-void at map edges */
+const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
+  const skyMaterial = useMemo(() => {
+    // Per-biome sky colors
+    const skyPresets: Record<string, { top: string; horizon: string; bottom: string }> = {
+      forest:  { top: '#4a7ab5', horizon: '#8ab4d4', bottom: '#5a6a4a' },
+      cave:    { top: '#0a0a1a', horizon: '#1a1a3a', bottom: '#0a0a0a' },
+      dungeon: { top: '#2a2030', horizon: '#3a3040', bottom: '#1a1510' },
+      desert:  { top: '#6a8ac0', horizon: '#d8c8a0', bottom: '#c8a060' },
+      swamp:   { top: '#2a3a2a', horizon: '#4a5a3a', bottom: '#2a2a1a' },
+    };
+    const p = skyPresets[biome] ?? skyPresets.forest;
+
+    return new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      uniforms: {
+        uTopColor:     { value: new THREE.Color(p.top) },
+        uHorizonColor: { value: new THREE.Color(p.horizon) },
+        uBottomColor:  { value: new THREE.Color(p.bottom) },
+      },
+      vertexShader: /* glsl */ `
+        varying vec3 vWorldPos;
+        void main() {
+          vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uTopColor;
+        uniform vec3 uHorizonColor;
+        uniform vec3 uBottomColor;
+        varying vec3 vWorldPos;
+        void main() {
+          float h = normalize(vWorldPos).y;
+          vec3 color;
+          if (h > 0.0) {
+            color = mix(uHorizonColor, uTopColor, smoothstep(0.0, 0.5, h));
+          } else {
+            color = mix(uHorizonColor, uBottomColor, smoothstep(0.0, -0.3, h));
+          }
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `,
+    });
+  }, [biome]);
+
+  return (
+    <mesh material={skyMaterial} renderOrder={-1}>
+      <sphereGeometry args={[45, 32, 16]} />
+    </mesh>
   );
 };
 
@@ -250,6 +305,9 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
       >
+        {/* Sky dome — gradient background prevents fade-to-void */}
+        <SkyDome biome={biome} />
+
         {/* Fog */}
         <fog
           attach="fog"
@@ -293,6 +351,17 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         <GrassLayer mapData={mapData} />
         <WaterSystem mapData={mapData} />
         <DecorationProps mapData={mapData} />
+
+        {/* Contact shadows — soft ground darkening under objects (replaces broken SSAO) */}
+        <ContactShadows
+          position={[cameraTarget[0], 0.01, cameraTarget[2]]}
+          opacity={0.4}
+          scale={mapData.dimensions.width + 2}
+          blur={2}
+          far={4}
+          resolution={512}
+          color="#1a1a0a"
+        />
 
         {/* Characters — CharacterActor with animation state machine and BG3-style selection */}
         {characters.map(character => {

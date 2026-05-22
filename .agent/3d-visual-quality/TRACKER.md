@@ -58,16 +58,16 @@
 | # | Task | Priority | Status | Detail File | Notes |
 |---|------|----------|--------|-------------|-------|
 | 17 | Ground scatter objects | P1 | [ ] | | Instanced fallen leaves (flat quads), small rock clusters, twig bundles. 5-10 per open tile. Cheap instanced draw. |
-| 18 | Skybox / background | P1 | [ ] | | Map fades to void. Add gradient hemisphere sky or simple skybox with distant treeline silhouette. |
+| 18 | Skybox / background | P1 | [x] | | SkyDome component: gradient shader (top→horizon→bottom) per biome. BackSide sphere, renderOrder -1. |
 | 19 | Grass height/color variation | P1 | [ ] | | Too uniform. Add per-instance color tinting, height variation clusters, bare spots near rocks. |
 
 ### Tier 3 — Makes it feel alive
 
 | # | Task | Priority | Status | Detail File | Notes |
 |---|------|----------|--------|-------------|-------|
-| 20 | Lighting drama | P1 | [ ] | | Increase sun/fill contrast. Crisper shadows. Visible light direction. Warm/cool color temperature split. |
+| 20 | Lighting drama | P1 | [x] | | Sun 1.6→2.2, ambient 0.4→0.3. Warm sun (0xffe0a0) + cool fill (0x6080c0) for temperature split. |
 | 21 | Visible ambient particles | P1 | [ ] | | LivingWorld particles too small/few. Make dust motes larger and brighter. 20-30 visible at any time. |
-| 22 | Contact AO (SSAO or fake) | P1 | [ ] | | If SSAO can't be fixed, add dark circle/gradient at base of trees and characters. Objects look like they're floating without it. |
+| 22 | Contact AO (SSAO or fake) | P1 | [x] | | drei ContactShadows component: opacity 0.4, blur 2, resolution 512. Soft ground darkening under all objects. |
 | 23 | Decoration variety | P2 | [ ] | | Fallen logs, tree stumps, bushes, rock formations. 2-3 new types minimum. |
 
 ### Tier 4 — Polish
@@ -94,3 +94,4 @@
 | 2026-05-22 | 14 | Procedural terrain texturing | Replaced flat vertexColors with GLSL procedural noise (FBM, voronoi). 7 terrain types with distinct patterns. Edge blending + normal perturbation. |
 | 2026-05-22 | 16 | Tree variety | 4 species: oak, pine, wide/flat, dead/bare. Weighted random per instance. Visually distinct silhouettes. |
 | 2026-05-22 | 15 | Nameplate overlap fix | Hover-only full nameplates. Minimal HP pip spheres for non-selected chars. Scene much cleaner. |
+| 2026-05-22 | 18,20,22 | Skybox, lighting, contact AO | SkyDome gradient shader. Sun 2.2 warm + cool fill. drei ContactShadows for ground AO. |
