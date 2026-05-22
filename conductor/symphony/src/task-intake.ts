@@ -1211,6 +1211,7 @@ export function buildPullRequestNextAction(input: {
   state: string | null;
   isDraft: boolean | null;
   mergeable: string | null;
+  updatedAt?: string | null;
   checks: PullRequestCheckSummary | null;
   files: Pick<PullRequestFileSummary, 'risk' | 'riskReasons' | 'outOfScopeFiles'> | null;
   feedback?: Pick<PullRequestFeedbackSummary, 'julesFeedback'> | null;
@@ -1267,12 +1268,18 @@ export function buildPullRequestNextAction(input: {
   if (input.checks?.conclusion === 'failing') {
     const primaryBlocker = input.checks.blockers?.[0] ?? null;
     const hasJulesFeedback = (input.feedback?.julesFeedback.length ?? 0) > 0;
+    const latestJulesFeedbackAt = latestTimestamp(input.feedback?.julesFeedback.map(comment => comment.createdAt) ?? []);
+    const pullRequestUpdatedAt = parseTimestamp(input.updatedAt);
+    const postFeedbackRepairWindowMs = 60_000;
+    const hasPostFeedbackPullRequestUpdate = latestJulesFeedbackAt !== null
+      && pullRequestUpdatedAt !== null
+      && pullRequestUpdatedAt > latestJulesFeedbackAt + postFeedbackRepairWindowMs;
 
     // Once a marked Jules feedback comment exists, the human has already chosen
     // the external repair lane. Keep the dashboard on a wait-and-refresh path so
     // it does not ask for the same operator decision again before Jules has had
     // a chance to push a repair commit.
-    if (hasJulesFeedback) {
+    if (hasJulesFeedback && !hasPostFeedbackPullRequestUpdate) {
       return action('wait_for_checks', 'waiting', 'Wait for Jules Repair', null, null, input.refreshPullRequestUrl,
         'Jules feedback is already posted on the PR; wait for Jules to push a repair or for GitHub checks to change.',
         ['Wait for a new Jules commit or status update.', 'Refresh PR checks after Jules pushes a repair.', 'Do not send duplicate Jules feedback unless the next refresh shows no progress.']);
@@ -1313,6 +1320,25 @@ export function buildPullRequestNextAction(input: {
     input.refreshPullRequestUrl,
     'The PR looks ready for Core validation and merge after Scout clears it.',
     ['Run Core validation.', 'Merge only after Core accepts the PR.', 'Refresh PR state after merge, then check local sync.']);
+}
+
+function latestTimestamp(values: Array<string | null | undefined>): number | null {
+  // PR comments and GitHub PR metadata arrive as optional ISO timestamps. The
+  // dashboard only needs the newest valid moment so it can tell "waiting for a
+  // Jules repair" apart from "a repair arrived and still failed."
+  const parsed = values
+    .map(value => parseTimestamp(value))
+    .filter((value): value is number => value !== null);
+  return parsed.length > 0 ? Math.max(...parsed) : null;
+}
+
+function parseTimestamp(value: string | null | undefined): number | null {
+  // Invalid or missing timestamps should never unlock a risky next action. When
+  // GitHub does not provide usable timing, Symphony keeps the older wait state
+  // instead of inventing progress.
+  if (!value) return null;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function buildPullRequestRepairDecision(input: {
@@ -3146,6 +3172,7 @@ interface GitHubPullRequestView {
   headRefName?: string;
   baseRefName?: string;
   url?: string;
+  updatedAt?: string;
   additions?: number;
   deletions?: number;
   changedFiles?: number;
@@ -4208,7 +4235,7 @@ export class TaskIntakeStore {
           'view',
           prUrl,
           '--json',
-          'number,state,isDraft,mergeable,reviewDecision,headRefName,baseRefName,url,additions,deletions,changedFiles,files,comments,reviews,latestReviews,statusCheckRollup',
+          'number,state,isDraft,mergeable,reviewDecision,headRefName,baseRefName,url,updatedAt,additions,deletions,changedFiles,files,comments,reviews,latestReviews,statusCheckRollup',
         ],
         {
           cwd: this.repoRoot,
@@ -4224,6 +4251,7 @@ export class TaskIntakeStore {
         state: pr.state ?? null,
         isDraft: typeof pr.isDraft === 'boolean' ? pr.isDraft : null,
         mergeable: pr.mergeable ?? null,
+        updatedAt: pr.updatedAt ?? null,
         checks: pullRequestChecks,
         files: pullRequestFiles,
         feedback: pullRequestFeedback,
