@@ -16,8 +16,6 @@ implementation task for the deterministic combat spell pilot.
   `docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_TASK.md`
 - Exact Jules prompt:
   `docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_PROMPT.md`
-- Symphony draft payload:
-  `docs/tasks/spells/PACKAGE_4_SYMPHONY_TASK_DRAFT_PAYLOAD.json`
 - Package 4 combat proof receipt:
   `docs/tasks/spells/PACKAGE_4_COMBAT_PROOF_RECEIPT.md`
 - Package 4 Atlas/gate receipt:
@@ -70,8 +68,8 @@ Optional local review worktree:
 ## Next Dispatch Steps
 
 1. Create or link the dashboard-required Linear issue for Package 4.
-2. Let the dashboard route through manifest staging and
-   Jules launch. Do not use hidden endpoints to skip visible blockers.
+2. Let the dashboard route through manifest staging and Jules launch. Do not
+   use hidden endpoints to skip visible blockers.
 3. Refresh Jules state through the dashboard until it asks for plan approval,
    opens a PR, reports a blocker, or produces another visible action.
 4. After Jules returns, fill the combat proof and Atlas/gate receipts before
