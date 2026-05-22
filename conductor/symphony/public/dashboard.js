@@ -1613,6 +1613,14 @@ function renderForemanRunControl(action) {
     return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
   }
 
+  const localSyncRefreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-local-sync$/);
+  if (action.method === 'POST' && action.canRunNow && localSyncRefreshMatch) {
+    // After a PR merges, the next safe human action is a readiness check, not
+    // the final Git pull. This keeps the current-boundary button aligned with
+    // the two-step local return path.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-local-sync" data-handoff-id="${escapeAttribute(decodeURIComponent(localSyncRefreshMatch[1]))}">Check Local Sync</button>`;
+  }
+
   return `<a class="primary-dashboard-action" data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
 }
 

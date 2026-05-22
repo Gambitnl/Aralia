@@ -414,6 +414,8 @@ try {
   assert.match(page.body, /Local sync status<\/dt><dd>[^<]+/);
   assert.match(page.body, /Can sync local repo<\/dt><dd>No/);
   assert.match(page.body, /Sync mutates Git<\/dt><dd>(Yes|No)/);
+  assert.match(page.body, />Check Local Sync<\/button>/);
+  assert.match(page.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-local-sync"/);
   assert.match(page.body, /Deployment blockers: PR is not merged, so deployment state is not the next boundary yet/);
   assert.match(page.body, /Local sync blockers:/);
   assert.match(page.body, /Deployment proof or operator waiver|PR is not merged|No local sync blockers are recorded/);

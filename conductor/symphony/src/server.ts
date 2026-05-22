@@ -1867,7 +1867,7 @@ export class HttpServer {
         const isSafeRefreshEndpoint = Boolean(endpoint)
           && (method ?? 'POST').toUpperCase() === 'POST'
           && record.safety === 'guarded_symphony_endpoint'
-          && (/\/refresh-(?:pr|status)$/.test(endpoint ?? ''))
+        && (/\/refresh-(?:pr|status|local-sync)$/.test(endpoint ?? ''))
           && record.mutatesExternalSystemsIfRun !== true
           && record.mutatesLocalFilesIfRun !== true
           && record.mutatesGitIfRun !== true;
@@ -2235,6 +2235,12 @@ export class HttpServer {
     const deploymentCommands = this.recordFromUnknown(deployment.commands);
     const syncNextAction = this.recordFromUnknown(localSync.nextAction);
     const syncCommand = this.stringFromUnknown(syncNextAction.command);
+    // Local sync is a two-step return path: first prove the checkout is safe,
+    // then expose the actual pull only if that proof says it can run. These
+    // URLs let the task page show that first visible check instead of leaving
+    // the operator with raw endpoint text.
+    const refreshLocalSyncUrl = this.stringFromUnknown(localSync.refreshUrl);
+    const syncLocalUrl = this.stringFromUnknown(localSync.syncUrl);
 
     // Deployment and local sync are the final live boundaries in the Jules
     // handoff path. This card translates the existing readiness packets into a
@@ -2256,6 +2262,10 @@ export class HttpServer {
       ${localSyncBlockers.length ? `<p class="usage-summary">Local sync blockers: ${this.escapeHtml(localSyncBlockers.join('; '))}</p>` : '<p class="usage-summary">No local sync blockers are recorded.</p>'}
       ${this.renderTaskPageDeploymentCommands(deploymentCommands)}
       ${syncCommand ? `<p><strong>Operator-run sync command:</strong> <code>${this.escapeHtml(syncCommand)}</code></p>` : ''}
+      ${refreshLocalSyncUrl || syncLocalUrl ? `<ul class="task-page-actions">
+        ${refreshLocalSyncUrl ? `<li><button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(refreshLocalSyncUrl)}" data-guarded-safe-method="POST">Check Local Sync</button><p class="usage-summary" data-guarded-safe-status></p></li>` : ''}
+        ${syncLocalUrl && localSync.canSyncNow === true ? `<li><button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(syncLocalUrl)}" data-guarded-safe-method="POST">Sync Local Master</button><p class="usage-summary" data-guarded-safe-status></p></li>` : ''}
+      </ul>` : ''}
       <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(localSync.expectedNextProof) ?? 'Local sync remains unavailable until merge, deployment evidence or waiver, and Git safety checks are all proven.')}</p>
     </article>`;
   }
@@ -3226,7 +3236,10 @@ export class HttpServer {
       {
         id: 'github_pr',
         label: 'GitHub PR',
-        status: hasDashboardPr ? (hasPrBlocker ? 'blocked' : 'active') : hasObservedPr ? 'observed' : 'waiting',
+        // A merged PR is no longer the active GitHub-review boundary. Mark it
+        // complete so the ladder advances to local-sync proof instead of asking
+        // the operator to keep refreshing a PR that already landed.
+        status: hasDashboardPr ? (prState === 'MERGED' ? 'complete' : hasPrBlocker ? 'blocked' : 'active') : hasObservedPr ? 'observed' : 'waiting',
         sourceId: prHandoff?.id ?? null,
         sourceTitle: prHandoff?.title ?? null,
         detail: hasPr
@@ -3447,6 +3460,33 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedReason,
         instruction: `Refresh the GitHub PR evidence, then capture proof: ${stage.expectedProof}`,
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'local_sync' && stage.status === 'blocked' && stage.endpoint) {
+      // "Blocked" local sync usually means the safe-readiness check has not run
+      // yet, not that the operator should give up. Promote the non-mutating
+      // check as the current dashboard action while keeping the actual Git pull
+      // hidden until the readiness packet says it is safe.
+      const localSyncCheckEndpoint = evidenceEndpoint ?? stage.endpoint.replace(/\/sync-local$/, '/refresh-local-sync');
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Check Local Sync',
+        status: 'ready',
+        method: 'POST',
+        endpoint: localSyncCheckEndpoint,
+        evidenceEndpoint: localSyncCheckEndpoint,
+        recordEndpoint: null,
+        canRunNow: true,
+        requiresOperator: false,
+        safety: 'read_only',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: 'Run the guarded local sync readiness check. Only use the mutating sync step after that check proves the checkout can fast-forward safely.',
         expectedProof: stage.expectedProof,
       };
     }
@@ -4271,7 +4311,10 @@ export class HttpServer {
         // after the human or foreman acts. Preserve both so workers do not
         // collapse pending checks, failed checks, or Core readiness into a
         // generic Scout/Core label.
-        prAction.url || links.refreshPullRequest,
+        // Once GitHub reports a merge, the PR action label changes to local
+        // sync. Route that label to the local-readiness endpoint so the visible
+        // task queue does not send operators back to stale PR-refresh work.
+        prAction.code === 'check_local_sync' ? links.refreshLocalSync : prAction.url || links.refreshPullRequest,
         'POST',
         prAction.steps,
         {
