@@ -1850,9 +1850,11 @@ Copy this block for each decision.
 - Scope guardrails: This does not change local-sync behavior after a Jules PR
   merge, does not reset/pull/push local `master`, and does not dispatch Package
   3 until the dashboard gate repair is landed and verified.
-- Result: Focused build and `verify-git-preflight-blockers.mjs` pass locally.
-- Next expected proof: Publish and merge the Symphony gate repair, restart or
-  refresh the dashboard, then create the Package 3 dashboard draft visibly.
+- Result: Focused build and `verify-git-preflight-blockers.mjs` passed
+  locally. PR #940 passed GitHub checks and merged as
+  `ca35cf61fdc02f19e561ad1e4aff758548155ff6`.
+- Next expected proof: Re-enter the dashboard from a fresh worktree branch at
+  `origin/master`, then create the Package 3 dashboard draft visibly.
 
 ### Decision 47: Treat Stitch MCP As Still Blocked Despite The New API Key
 
@@ -1872,9 +1874,12 @@ Copy this block for each decision.
   and do not claim Stitch-generated dashboard work.
 - Model routing: Local Codex foreman, because this is a tooling/authentication
   classification decision.
-- Rationale/evidence: `stitch-mcp doctor` reports a healthy 200 API check, but
-  `mcp__stitch__.list_projects` returns `Auth required`. Direct CLI invocation
-  with the configured key reaches a separate Windows/package bug,
+- Rationale/evidence: The API key is present in
+  `C:\Users\Gambit\.codex\config.toml`, but `mcp__stitch__.list_projects`
+  returns `Auth required`. A fresh `stitch-mcp doctor` run now opens the Google
+  Cloud user-auth flow, which confirms the remaining blocker is authenticated
+  account access rather than missing API-key config. Direct CLI invocation with
+  the configured key also reaches a separate Windows/package bug,
   `Bun is not defined`, when using `--data-file`.
 - Mutation performed or skipped: Kept the API key configured. Did not alter
   Stitch project data, create designs, or use hidden dashboard edits as a
@@ -1888,13 +1893,58 @@ Copy this block for each decision.
   `list_projects` or an equivalent Stitch project read succeeds, then use
   Stitch for a deliberate dashboard redesign pass.
 
+### Decision 48: Scope Git Disposition Decisions To The Current Evidence
+
+- Date/time: 2026-05-22
+- Phase: `package_3_dashboard_git_gate_repair_followup`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After PR #940 landed and the dashboard was restarted on
+  `http://127.0.0.1:8139/`, the Git gate correctly compared the current
+  worktree branch against `origin/master`, but the Sync Decision Board reused
+  the older `keep_local` disposition recorded for unrelated local `master`
+  commits. The execution plan also described the current-branch commit as a
+  simple branch push even though the branch had already been pushed and the real
+  base-gate resolution is to publish and merge the branch or switch to a clean
+  checkout.
+- Options considered:
+  - Accept the stale disposition and manually open/merge a PR outside the
+    dashboard flow.
+  - Record another disposition for the same category and leave the category-only
+    reuse bug for later.
+  - Repair Symphony so Git dispositions expire when the underlying branch,
+    commits, counts, or file samples change, and make the current-branch plan
+    explicitly say publish or merge.
+- Decision made by agent: Repair Symphony with a focused failing regression,
+  then continue the dashboard-first Package 3 flow from the corrected guidance.
+- Model routing: Local Codex foreman with systematic debugging and focused TDD,
+  because this was orchestration/dashboard state logic, not spell feature
+  implementation suitable for Jules.
+- Rationale/evidence: The in-app browser showed `c6995536` as the only branch
+  commit, while the disposition note still described unrelated racial-mechanics
+  local `master` commits. The regression in
+  `verify-git-preflight-blockers.mjs` reproduced that stale-disposition leak in
+  a temporary repo, watched it fail, then verified the scoped fix.
+- Mutation performed or skipped: Added `scopeKey` to Git disposition records,
+  scoped recorded decisions to the live preflight evidence, filtered stale
+  decisions out of dashboard snapshots, and changed the Git sync plan label for
+  non-base branch commits to `Publish or merge current branch`.
+- Scope guardrails: This does not run Git, does not create or merge a PR by
+  itself, and does not bypass the dashboard gate. It only prevents stale
+  dashboard state from masquerading as a current operator decision.
+- Result: `npm run build`, `verify-git-preflight-blockers.mjs`,
+  `verify-git-sync-plan.mjs`, `verify-sync-decision-board.mjs`, and
+  `verify-task-dashboard-navigator.mjs` passed locally.
+- Next expected proof: Land this Symphony follow-up, restart the dashboard on
+  `8139`, record the current branch disposition visibly if still needed, and
+  continue to Package 3 draft creation only after the Git gate reports ready.
+
 ## Open Decisions For The Next Slice
 
 1. Create the Package 3 Symphony dashboard draft visibly from
    `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
 2. Package and dispatch Package 3 for Jules: character creator spell selection
    and character sheet spellbook visibility.
-3. Land the Symphony Git-gate repair so a clean worktree branch at GitHub base
-   can proceed without touching unrelated local `master` commits.
-4. Repair the Stitch MCP/tool path before claiming any Stitch-generated
+3. Land the scoped Git-disposition repair if checks pass, then clear the
+   current branch from the dashboard Git gate through the visible workflow.
+4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.

@@ -110,6 +110,45 @@ try {
   assert(unpublishedBranchPreflight.blockers.some(item => item.includes('Current branch feature/local-work has 1 commit(s) that are not on origin/master.')));
   assert.equal(unpublishedBranchPreflight.nextAction.code, 'publish_or_merge_current_branch');
 
+  const staleDispositionRoot = join(root, 'stale-disposition');
+  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", staleDispositionRoot]);
+  const staleDisposition = await prepareSyncedRepo(staleDispositionRoot);
+  const staleDispositionStore = new TaskIntakeStore({
+    repoRoot: staleDisposition.repo,
+    storePath: join(root, 'stores', 'stale-disposition.json'),
+  });
+
+  await writeAndCommit(staleDisposition.repo, 'MASTER_ONLY.md', 'master-only work\n', 'Keep local master work');
+  await staleDispositionStore.recordGitDisposition({
+    category: 'local_commits',
+    decision: 'keep_local',
+    note: 'This decision belongs to the old master-only commit.',
+  });
+  await git(staleDisposition.repo, ['checkout', '-B', 'feature/package-docs', 'origin/master']);
+  await writeAndCommit(staleDisposition.repo, 'PACKAGE_DOCS.md', 'handoff docs\n', 'Publish Package docs');
+
+  const staleDispositionSnapshot = await staleDispositionStore.snapshot();
+
+  // A disposition made for one set of commits must not silently apply to a
+  // different branch tip. The dashboard should ask for a fresh decision so the
+  // operator can say whether the new branch commit should be merged to GitHub.
+  const localCommitDisposition = staleDispositionSnapshot.gitDisposition.categories.find(item => item.category === 'local_commits');
+  assert.equal(localCommitDisposition?.decision, null);
+  assert.equal(staleDispositionSnapshot.gitSyncPlan.status, 'blocked_by_disposition');
+  assert(staleDispositionSnapshot.gitSyncPlan.blockers.some(item => item.includes('Local-only commits is not decided.')));
+
+  await staleDispositionStore.recordGitDisposition({
+    category: 'local_commits',
+    decision: 'commit_for_jules_base',
+    note: 'This package documentation should be merged before Jules starts.',
+  });
+
+  const currentBranchDispositionSnapshot = await staleDispositionStore.snapshot();
+
+  assert.equal(currentBranchDispositionSnapshot.gitSyncPlan.status, 'ready_for_human_execution');
+  assert(currentBranchDispositionSnapshot.gitSyncPlan.steps.some(step => step.label === 'Publish or merge current branch'));
+  assert(!currentBranchDispositionSnapshot.gitSyncPlan.steps.some(step => step.label === 'Push intended local commits'));
+
   const divergedRoot = join(root, 'diverged');
   await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", divergedRoot]);
   const diverged = await prepareSyncedRepo(divergedRoot);
