@@ -32,7 +32,7 @@ export const SpellCard: React.FC<SpellCardProps> = ({
 
     const healEffect = spell.effects.find((e: SpellEffect) => e.type === 'HEALING') as HealingEffect | undefined;
     if (healEffect) {
-      const text = healEffect.healing ? healEffect.healing.dice : healEffect.healingType;
+      const text = healEffect.healing ? healEffect.healing.dice : "";
       return {
         label: 'Healing',
         text: text,

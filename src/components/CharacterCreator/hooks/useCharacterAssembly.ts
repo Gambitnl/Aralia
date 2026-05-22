@@ -384,6 +384,7 @@ function assembleCastingProperties(state: CharacterCreationState): {
   let knownSpells: string[] = [];
   let preparedSpells: string[] = [];
 
+  const knownCasterIds = ['bard', 'sorcerer', 'warlock', 'ranger'];
   if (knownCasterIds.includes(selectedClass.id)) {
     // Known casters only know the spells they selected, and all are ready to cast.
     knownSpells = Array.from(spellIds);

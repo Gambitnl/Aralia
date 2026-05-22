@@ -3,34 +3,34 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SpellbookTab from '../Spellbook/SpellbookTab';
 import SpellContext from '../../../context/SpellContext';
-import { PlayerCharacter, Spell } from '../../../types';
+import { PlayerCharacter, Spell, SpellSchool } from '../../../types';
 
 describe('SpellbookTab', () => {
   const mockAction = vi.fn();
 
   const mockSpells: Record<string, Spell> = {
     'cantrip-1': {
-      id: 'cantrip-1', name: 'Test Cantrip', level: 0, school: 'Evocation',
+      id: 'cantrip-1', name: 'Test Cantrip', level: 0, school: SpellSchool.Evocation,
       classes: ['wizard'], subClasses: [], description: 'Test',
       castingTime: { value: 1, unit: 'action' },
-      range: { type: 'ranged', distance: 30, distanceUnit: 'ft' },
+      range: { type: 'ranged', distance: 30, distanceUnit: 'feet' },
       components: { verbal: true, somatic: true, material: false },
       duration: { type: 'instantaneous', concentration: false },
       targeting: { type: 'single' } as any,
       effects: []
     },
     'spell-1': {
-      id: 'spell-1', name: 'Test Spell 1', level: 1, school: 'Evocation',
+      id: 'spell-1', name: 'Test Spell 1', level: 1, school: SpellSchool.Evocation,
       classes: ['wizard'], subClasses: [], description: 'Test',
       castingTime: { value: 1, unit: 'action' },
-      range: { type: 'ranged', distance: 30, distanceUnit: 'ft' },
+      range: { type: 'ranged', distance: 30, distanceUnit: 'feet' },
       components: { verbal: true, somatic: true, material: false },
       duration: { type: 'instantaneous', concentration: false },
       targeting: { type: 'single' } as any,
       effects: []
     },
     'spell-2': {
-        id: 'spell-2', name: 'Test Spell 2', level: 1, school: 'Abjuration',
+        id: 'spell-2', name: 'Test Spell 2', level: 1, school: SpellSchool.Abjuration,
         classes: ['wizard'], subClasses: [], description: 'Test',
         castingTime: { value: 1, unit: 'action' },
         range: { type: 'self', distance: 0 },
@@ -92,7 +92,7 @@ describe('SpellbookTab', () => {
       preparedSpells: ['spell-1'],
       knownSpells: ['cantrip-1', 'spell-1', 'spell-2'],
     },
-    spellSlots: { level_1: { current: 2, max: 2 } },
+    spellSlots: { level_1: { current: 2, max: 2 }, level_2: { current: 0, max: 0 }, level_3: { current: 0, max: 0 }, level_4: { current: 0, max: 0 }, level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 }, level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 } },
     equippedItems: {},
   };
 
