@@ -184,6 +184,55 @@ assert.equal(riskAction.tone, 'blocked');
 assert.equal(riskAction.command, 'gh pr view 5 --comments');
 assert.equal(riskAction.feedbackCommand, 'gh pr comment 5 --body-file .jules/feedback/handoff-1-pr-feedback.md');
 
+const scoutFeedbackAlreadySentAction = buildPullRequestNextAction({
+  ...base,
+  updatedAt: '2026-05-22T14:25:46Z',
+  files: {
+    risk: 'high',
+    riskReasons: ['Scout found Package 3 acceptance blockers in changed files.'],
+    outOfScopeFiles: [],
+  },
+  feedback: {
+    julesFeedback: [{
+      author: 'Gambitnl',
+      body: '[Jules feedback]\nPlease repair the Scout acceptance blockers before Core merge.',
+      url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250',
+      createdAt: '2026-05-22T14:25:45Z',
+      source: 'comment',
+      conflictFile: null,
+      priorityPullRequest: null,
+    }],
+  },
+});
+assert.equal(scoutFeedbackAlreadySentAction.code, 'wait_for_checks');
+assert.equal(scoutFeedbackAlreadySentAction.tone, 'waiting');
+assert.equal(scoutFeedbackAlreadySentAction.label, 'Wait for Jules Repair');
+assert.equal(scoutFeedbackAlreadySentAction.feedbackCommand, null);
+assert.match(scoutFeedbackAlreadySentAction.summary, /Scout feedback is already posted/i);
+
+const scoutFeedbackAfterRepairAction = buildPullRequestNextAction({
+  ...base,
+  updatedAt: '2026-05-22T14:40:00Z',
+  files: {
+    risk: 'high',
+    riskReasons: ['Scout still sees risky files after a Jules repair commit.'],
+    outOfScopeFiles: [],
+  },
+  feedback: {
+    julesFeedback: [{
+      author: 'Gambitnl',
+      body: '[Jules feedback]\nPlease repair the Scout acceptance blockers before Core merge.',
+      url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250',
+      createdAt: '2026-05-22T14:25:45Z',
+      source: 'comment',
+      conflictFile: null,
+      priorityPullRequest: null,
+    }],
+  },
+});
+assert.equal(scoutFeedbackAfterRepairAction.code, 'scout_bridge_risk');
+assert.equal(scoutFeedbackAfterRepairAction.feedbackCommand, 'gh pr comment 5 --body-file .jules/feedback/handoff-1-pr-feedback.md');
+
 const readyAction = buildPullRequestNextAction(base);
 assert.equal(readyAction.code, 'core_validate_and_merge');
 assert.equal(readyAction.tone, 'ready');
