@@ -3504,11 +3504,81 @@ Copy this block for each decision.
   through Linear/manifest/Jules launch, and record the returned draft/handoff
   identifiers in the Package 4 readiness checklist.
 
+### Decision 82: Stabilize An Unrelated Seasonal Movement Test Blocking PR #976
+
+- Date/time: 2026-05-22 20:36 +02:00
+- Phase: `package_4_packet_publication`
+- Active slice: Publish Package 4 packet and keep the GitHub path green for
+  dashboard/Jules handoff work
+- Decision point: PR #976 was a Package 4 planning-doc packet, but GitHub
+  Tests failed twice on `handleMovement - Seasonal Effects > increases travel
+  time in Winter` with variable received values (`13500`, then `8100`) instead
+  of `2700`.
+- Options considered:
+  - Treat the failure as unrelated and keep rerunning CI.
+  - Merge or bypass the PR despite failing tests.
+  - Stabilize the narrow test that was leaking random procedural travel-event
+    delay into a seasonal multiplier assertion.
+- Decision made by agent: Stabilize the test in the same PR by mocking
+  `generateTravelEvent` to return `null` for the seasonal movement tests.
+- Model routing: Local Codex handled this small CI repair because it was a
+  pipeline unblocker discovered during PR publication, not Jules
+  implementation work. Jules remains the intended worker for Package 4 combat
+  implementation.
+- Rationale/evidence: The failing assertion was meant to test seasonal travel
+  multipliers, while procedural travel events are covered separately and can add
+  random delay time. The isolated file passed locally by chance, but the full
+  suite and GitHub lane exposed the uncontrolled dependency.
+- Mutation performed or skipped: Changed only
+  `src/hooks/actions/__tests__/handleMovement.test.ts`; skipped production
+  movement behavior changes and skipped hidden CI bypass.
+- Verification: Local focused Vitest passed. Local full `npm test -- --run`
+  passed with 316 test files passed, 1 skipped, 2096 tests passed, and 8
+  skipped. GitHub PR #976 then passed all checks.
+- Result: PR #976 merged as
+  `docs(spells): draft package 4 combat pilot packet`, merge commit
+  `33b42a4f0fb67bd7966de6416f5fc00b88ca2785`.
+
+### Decision 83: Create Package 4 Draft Through The Visible Dashboard And Stop At The Linear Boundary
+
+- Date/time: 2026-05-22 20:37 +02:00
+- Phase: `package_4_dashboard_intake`
+- Active slice: Dashboard-first Symphony/Jules dispatch
+- Decision point: After PR #976 merged and the monitor worktree moved to
+  `codex/spell-phase1-monitor-33`, the visible dashboard draft form could
+  accept the Package 4 payload. The dashboard then reported the new draft needs
+  a Linear issue before Symphony prepares a Jules handoff.
+- Options considered:
+  - Use the visible dashboard form to create the Package 4 draft.
+  - Use a hidden API endpoint to skip ahead to handoff preparation.
+  - Ignore the dashboard's Linear issue boundary and dispatch Jules manually.
+- Decision made by agent: Create the Package 4 draft through the visible
+  dashboard form and stop at the dashboard-reported Linear issue boundary.
+- Model routing: Local Codex performed dashboard operation and receipt updates.
+  Jules is still reserved for the implementation-heavy Package 4 work after
+  Symphony prepares the handoff.
+- Rationale/evidence: The active goal requires dashboard-first operation and
+  explicitly forbids bypassing Symphony UI blockers. The draft appeared in the
+  task navigator as `draft-1779475056546-wvf3oh` with status `open draft` and
+  the message that this workflow requires a Linear issue before handoff.
+- Mutation performed or skipped: Created the dashboard draft through the UI;
+  updated Package 4 tracker/checklist/payload receipts. Skipped hidden endpoint
+  use, skipped manifest staging, skipped Jules launch, and skipped local
+  `master` mutation.
+- Flow friction recorded: The dashboard still reports local sync blocked
+  because local `master` has 2 local-only commits and the current branch is
+  `codex/spell-phase1-monitor-33`, even though the monitor worktree is tracking
+  the merged `origin/master`. This remains a Symphony workflow refinement item.
+- Result: Package 4 is in Symphony as draft `draft-1779475056546-wvf3oh`.
+- Next expected proof: Create or link the Linear issue visibly, then use the
+  dashboard to prepare the Jules handoff and stage/launch the manifest.
+
 ## Open Decisions For The Next Slice
 
 1. Publish the Package 3 receipt reconciliation, then run targeted MemPalace
    mining for the durable task and decision docs.
-2. Create the Package 4 dashboard draft and route it through Symphony/Jules.
+2. Create or link the Package 4 Linear issue, then route the dashboard draft
+   through Symphony/Jules.
 3. Decide whether the semantically enabled Druid class-feature checkbox should
    be repaired immediately or batched into a creator accessibility pass.
 4. Decide whether Symphony should add first-class receipts and dashboard

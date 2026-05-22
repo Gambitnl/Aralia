@@ -7,7 +7,8 @@ combat simulator deterministic spell pilot.
 
 ## Current State
 
-- Package 4 Symphony draft created: `no`
+- Package 4 Symphony draft created: `yes`,
+  `draft-1779475056546-wvf3oh`
 - Package 4 Jules task dispatched: `no`
 - Package 4 implementation PR exists: `no`
 - Spell gate refresh run for Package 4: `not yet`
