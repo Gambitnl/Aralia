@@ -249,7 +249,19 @@ server.taskIntake = {
           ],
           artifacts: [],
         },
-        githubPullRequestFeedback: { totalComments: 0, julesFeedback: [], scoutConflictComments: [], externalReviewComments: [], summary: 'No PR feedback recorded.' },
+        githubPullRequestFeedback: {
+          totalComments: 1,
+          summary: '1 Jules feedback comment(s), 0 Scout conflict comment(s), 0 external review comment(s).',
+          julesFeedback: [{
+            author: 'Gambitnl',
+            body: '[Jules feedback]\nPlease repair the visible creator blocker before Core merge.',
+            url: 'https://github.com/Gambitnl/Aralia/pull/931#issuecomment-1',
+            createdAt: generatedAt,
+            source: 'comment',
+          }],
+          scoutConflictComments: [],
+          externalReviewComments: [],
+        },
         githubPullRequestNextAction: {
           label: 'Resolve CI Setup Blocker',
           summary: 'Prepare a marked Jules feedback comment if the operator rejects the setup repair.',
@@ -351,6 +363,9 @@ try {
   assert.match(page.body, /Local repair verification: npm ci --dry-run/);
   assert.match(page.body, /After-push check command:<\/strong> <code>gh pr checks 931 --repo Gambitnl\/Aralia<\/code>/);
   assert.match(page.body, /After-push PR refresh:<\/strong> <code>\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-pr<\/code>/);
+  assert.match(page.body, /PR feedback captured: 1 Jules feedback comment\(s\), 0 Scout conflict comment\(s\), 0 external review comment\(s\)\./);
+  assert.match(page.body, /Marked feedback proves a GitHub PR comment exists/);
+  assert.match(page.body, /active Jules session does not visibly show the latest feedback/);
   assert.match(page.body, /Operator Answer/);
   assert.match(page.body, /Record Operator Answer/);
   assert.match(page.body, /Record Selected Decision/);

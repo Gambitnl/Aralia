@@ -1929,12 +1929,14 @@ export class HttpServer {
     const readiness = this.recordFromUnknown(detail.repairPushReadiness);
     const result = this.recordFromUnknown(detail.repairPushResult);
     const scoutCore = this.recordFromUnknown(detail.scoutCoreReadiness);
+    const feedback = this.recordFromUnknown(detail.githubPullRequestFeedback);
     if (
       !Object.keys(checks).length
       && !Object.keys(nextAction).length
       && !Object.keys(readiness).length
       && !Object.keys(result).length
       && !Object.keys(scoutCore).length
+      && !Object.keys(feedback).length
     ) return '';
 
     const changedFiles = this.arrayFromUnknown(readiness.changedFiles);
@@ -1951,11 +1953,20 @@ export class HttpServer {
       ?? this.stringFromUnknown(postPush.refreshEndpoint)
       ?? this.stringFromUnknown(scoutCore.refreshEndpoint);
     const failedChecks = this.extractTaskPageFailedChecks(checks);
+    const julesFeedback = this.arrayFromUnknown(feedback.julesFeedback)
+      .map(item => this.recordFromUnknown(item))
+      .filter(item => Object.keys(item).length > 0);
+    const latestJulesFeedback = julesFeedback.at(-1) ?? {};
+    const latestJulesFeedbackUrl = this.stringFromUnknown(latestJulesFeedback.url);
+    const feedbackSummary = this.stringFromUnknown(feedback.summary);
 
     // The PR check and repair card is the operator-facing bridge between a
     // failing GitHub PR and the later Scout/Core gate. It does not rerun checks
     // or push code; it only makes the current failure count, prepared repair,
-    // and required after-push proof visible in one place.
+    // posted feedback, and required after-push proof visible in one place.
+    // Package 3 showed that a GitHub comment alone is not always enough proof
+    // that Jules visibly received the latest repair text, so the card keeps
+    // that delivery caveat close to the current PR boundary.
     return `<article class="card task-page-pr-repair">
       <h2>PR Checks And Repair</h2>
       <p class="usage-summary">Read-only summary of the GitHub check and prepared-repair boundary. This section does not push, rerun checks, comment on GitHub, merge, or edit local files.</p>
@@ -1970,6 +1981,8 @@ export class HttpServer {
       </dl>
       ${this.stringFromUnknown(nextAction.label) ? `<p><strong>${this.escapeHtml(this.stringFromUnknown(nextAction.label) ?? '')}</strong>: ${this.escapeHtml(this.stringFromUnknown(nextAction.summary) ?? '')}</p>` : ''}
       ${failedChecks.length ? `<ul>${failedChecks.map(check => `<li>${check.detailsUrl ? `<a href="${this.escapeHtml(check.detailsUrl)}">${this.escapeHtml(check.name)}</a>` : this.escapeHtml(check.name)}</li>`).join('')}</ul>` : ''}
+      ${feedbackSummary ? `<p class="usage-summary">PR feedback captured: ${this.escapeHtml(feedbackSummary)}</p>` : ''}
+      ${julesFeedback.length ? `<p class="usage-summary">Marked feedback proves a GitHub PR comment exists${latestJulesFeedbackUrl ? ` (<a href="${this.escapeHtml(latestJulesFeedbackUrl)}">latest comment</a>)` : ''}. If the active Jules session does not visibly show the latest feedback, open the Jules session and send or confirm the same bounded repair request there before assuming a repair is underway.</p>` : ''}
       ${changedFiles.length ? `<p class="usage-summary">Prepared repair files: ${this.escapeHtml(changedFiles.map(file => String(file)).join(', '))}</p>` : ''}
       ${verificationCommands.length ? `<p class="usage-summary">Local repair verification: ${this.escapeHtml(verificationCommands.map(command => String(command)).join('; '))}</p>` : ''}
       ${repairCommand && !Object.keys(result).length ? `<p><strong>Operator-owned repair push:</strong> <code>${this.escapeHtml(repairCommand)}</code></p>` : ''}
@@ -2536,6 +2549,7 @@ export class HttpServer {
       julesDialogue,
       julesStateReconciliation: handoff.julesStateReconciliation ?? null,
       githubPullRequestChecks: handoff.githubPullRequestChecks ?? null,
+      githubPullRequestFeedback: handoff.githubPullRequestFeedback ?? null,
       githubPullRequestNextAction: handoff.githubPullRequestNextAction ?? null,
       pullRequestChecksCommand: handoff.pullRequestChecksCommand ?? null,
       pullRequestViewCommand: handoff.pullRequestViewCommand ?? null,
