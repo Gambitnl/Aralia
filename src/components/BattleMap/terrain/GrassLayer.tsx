@@ -33,16 +33,20 @@ import { BattleMapData } from '../../../types/combat';
 const TILE_SIZE = 1.0;
 const BLADES_PER_TILE = 40;
 const BLADE_WIDTH = 0.06;
-const BLADE_HEIGHT_MIN = 0.18;
-const BLADE_HEIGHT_MAX = 0.40;
+const BLADE_HEIGHT_MIN = 0.15;
+const BLADE_HEIGHT_MAX = 0.50;
 const BLADE_SEGMENTS = 4; // Vertices along the blade height for bending
 
 const WIND_SPEED = 1.2;
 const WIND_STRENGTH = 0.12;
 
-// Colors
+// Colors — base palette, tinted per-instance
 const GRASS_BASE_COLOR = new THREE.Color(0.12, 0.22, 0.05); // Dark forest green base
 const GRASS_TIP_COLOR = new THREE.Color(0.28, 0.50, 0.12); // Medium green tips — not yellow
+
+// Height cluster parameters — creates meadow-like patches of tall/short grass
+const CLUSTER_SCALE = 3.5; // World-space scale of height clusters
+const CLUSTER_INFLUENCE = 0.6; // How much clusters affect height (0=none, 1=full)
 
 // ---------------------------------------------------------------------------
 // Blade geometry generator
@@ -123,8 +127,11 @@ const grassVertexShader = /* glsl */ `
   uniform float uWindSpeed;
   uniform float uWindStrength;
 
+  attribute vec3 instanceTint;
+
   varying float vHeight;
   varying vec2 vUv;
+  varying vec3 vTint;
 
   // Simple noise function for wind variation
   float hash(vec2 p) {
@@ -145,6 +152,7 @@ const grassVertexShader = /* glsl */ `
   void main() {
     vUv = uv;
     vHeight = position.y; // Normalized [0, 1]
+    vTint = instanceTint;
 
     // Get instance world position from instance matrix
     vec4 worldPos = instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
@@ -177,10 +185,13 @@ const grassFragmentShader = /* glsl */ `
 
   varying float vHeight;
   varying vec2 vUv;
+  varying vec3 vTint;
 
   void main() {
-    // Vertical gradient from base to tip color
-    vec3 color = mix(uBaseColor, uTipColor, vHeight);
+    // Vertical gradient from base to tip color, modulated by per-instance tint
+    vec3 base = uBaseColor * vTint;
+    vec3 tip = uTipColor * vTint;
+    vec3 color = mix(base, tip, vHeight);
 
     // Fake ambient occlusion: darker at base
     float ao = mix(0.4, 1.0, smoothstep(0.0, 0.3, vHeight));
@@ -223,6 +234,17 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
 
   const { width, height } = mapData.dimensions;
 
+  // Collect tiles that can't have grass (rocks, walls, water) for bare-spot detection
+  const nonGrassTileSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const [, tile] of mapData.tiles) {
+      if (tile.terrain === 'rock' || tile.terrain === 'wall' || tile.terrain === 'water') {
+        set.add(`${tile.coordinates.x},${tile.coordinates.y}`);
+      }
+    }
+    return set;
+  }, [mapData]);
+
   // Collect all grass-type tiles
   const grassTiles = useMemo(() => {
     const tiles: { x: number; y: number; elevation: number }[] = [];
@@ -244,14 +266,54 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
   // Blade geometry (shared by all instances)
   const bladeGeo = useMemo(() => createBladeGeometry(), []);
 
-  // Build instance matrices
-  const { matrices } = useMemo(() => {
+  // Simple spatial noise for height clusters (CPU-side)
+  const clusterNoise = (wx: number, wz: number): number => {
+    const px = wx / CLUSTER_SCALE;
+    const pz = wz / CLUSTER_SCALE;
+    // Simple value noise
+    const ix = Math.floor(px);
+    const iz = Math.floor(pz);
+    const fx = px - ix;
+    const fz = pz - iz;
+    const sfx = fx * fx * (3 - 2 * fx);
+    const sfz = fz * fz * (3 - 2 * fz);
+    const h = (a: number, b: number) => {
+      let s = a * 127.1 + b * 311.7;
+      s = Math.sin(s) * 43758.5453;
+      return s - Math.floor(s);
+    };
+    const a = h(ix, iz);
+    const b = h(ix + 1, iz);
+    const c = h(ix, iz + 1);
+    const d = h(ix + 1, iz + 1);
+    return (a * (1 - sfx) + b * sfx) * (1 - sfz) + (c * (1 - sfx) + d * sfx) * sfz;
+  };
+
+  // Check if a tile is adjacent to a non-grass tile (for bare spots)
+  const isNearRock = (tx: number, ty: number): boolean => {
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (nonGrassTileSet.has(`${tx + dx},${ty + dy}`)) return true;
+      }
+    }
+    return false;
+  };
+
+  // Build instance matrices + per-instance tint colors
+  const { matrices, tints } = useMemo(() => {
     const rand = seededRandom(mapData.seed ?? 42);
     const mats = new Float32Array(instanceCount * 16);
+    const tintArr = new Float32Array(instanceCount * 3);
     const dummy = new THREE.Object3D();
 
     let idx = 0;
     for (const tile of grassTiles) {
+      const nearRock = isNearRock(tile.x, tile.y);
+      // Fewer blades near rocks (bare spots)
+      const effectiveBlades = nearRock
+        ? Math.floor(BLADES_PER_TILE * 0.4)
+        : BLADES_PER_TILE;
+
       for (let b = 0; b < BLADES_PER_TILE; b++) {
         // Random position within tile
         const offsetX = rand() * TILE_SIZE;
@@ -260,23 +322,54 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
         const worldZ = tile.y * TILE_SIZE + offsetZ;
         const worldY = tile.elevation * 0.3; // Match terrain ELEVATION_SCALE
 
-        // Random rotation around Y
+        // Skip extra blades in bare spots (still consume rand() calls for determinism)
         const rotY = rand() * Math.PI * 2;
+        const randHeight = rand();
+        const tintR = rand();
 
-        // Random height
-        const bladeHeight = BLADE_HEIGHT_MIN + rand() * (BLADE_HEIGHT_MAX - BLADE_HEIGHT_MIN);
+        if (b >= effectiveBlades) {
+          // Place blade at scale 0 (invisible) to keep instance count consistent
+          dummy.position.set(worldX, worldY, worldZ);
+          dummy.rotation.set(0, rotY, 0);
+          dummy.scale.set(0, 0, 0);
+          dummy.updateMatrix();
+          dummy.matrix.toArray(mats, idx * 16);
+          tintArr[idx * 3] = 1;
+          tintArr[idx * 3 + 1] = 1;
+          tintArr[idx * 3 + 2] = 1;
+          idx++;
+          continue;
+        }
+
+        // Height clustering — patches of tall vs short grass
+        const cluster = clusterNoise(worldX, worldZ);
+        const heightRange = BLADE_HEIGHT_MAX - BLADE_HEIGHT_MIN;
+        const clusterHeight = BLADE_HEIGHT_MIN + (cluster * CLUSTER_INFLUENCE + randHeight * (1 - CLUSTER_INFLUENCE)) * heightRange;
+
+        // Near-rock blades are shorter
+        const bladeHeight = nearRock ? clusterHeight * 0.5 : clusterHeight;
 
         dummy.position.set(worldX, worldY, worldZ);
         dummy.rotation.set(0, rotY, 0);
         dummy.scale.set(1, bladeHeight, 1);
         dummy.updateMatrix();
-
         dummy.matrix.toArray(mats, idx * 16);
+
+        // Per-instance color tint — varies from warm to cool green
+        // Creates visible color patches across the meadow
+        const tintCluster = clusterNoise(worldX * 1.7 + 100, worldZ * 1.7 + 100);
+        const warmCool = tintCluster * 0.5 + tintR * 0.5; // 0 = warm, 1 = cool
+        // Warm: more yellow-green (1.1, 1.0, 0.8), Cool: more blue-green (0.8, 1.0, 1.1)
+        tintArr[idx * 3]     = 0.85 + warmCool * 0.3;  // R: 0.85-1.15
+        tintArr[idx * 3 + 1] = 0.9 + (1 - Math.abs(warmCool - 0.5)) * 0.2; // G: 0.9-1.1
+        tintArr[idx * 3 + 2] = 0.75 + (1 - warmCool) * 0.3; // B: 0.75-1.05
+
         idx++;
       }
     }
 
-    return { matrices: mats };
+    return { matrices: mats, tints: tintArr };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grassTiles, instanceCount, mapData.seed]);
 
   // Shader material
@@ -303,7 +396,7 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
     }
   });
 
-  // Apply instance matrices — useEffect (not useMemo) so meshRef.current is assigned
+  // Apply instance matrices + tint attribute — useEffect (not useMemo) so meshRef.current is assigned
   useEffect(() => {
     if (!meshRef.current) return;
     const mesh = meshRef.current;
@@ -314,7 +407,11 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
       mesh.setMatrixAt(i, dummy);
     }
     mesh.instanceMatrix.needsUpdate = true;
-  }, [matrices, instanceCount]);
+
+    // Set per-instance tint color as an instanced buffer attribute
+    const tintAttr = new THREE.InstancedBufferAttribute(tints, 3);
+    mesh.geometry.setAttribute('instanceTint', tintAttr);
+  }, [matrices, tints, instanceCount]);
 
   if (instanceCount === 0) return null;
 

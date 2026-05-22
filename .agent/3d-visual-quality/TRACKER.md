@@ -59,14 +59,14 @@
 |---|------|----------|--------|-------------|-------|
 | 17 | Ground scatter objects | P1 | [ ] | | Instanced fallen leaves (flat quads), small rock clusters, twig bundles. 5-10 per open tile. Cheap instanced draw. |
 | 18 | Skybox / background | P1 | [x] | | SkyDome component: gradient shader (top→horizon→bottom) per biome. BackSide sphere, renderOrder -1. |
-| 19 | Grass height/color variation | P1 | [ ] | | Too uniform. Add per-instance color tinting, height variation clusters, bare spots near rocks. |
+| 19 | Grass height/color variation | P1 | [x] | | Per-instance tint via instanceTint attribute. Cluster noise for height patches. Bare spots (40% blades) near rock/wall/water tiles. Warm-cool green tint variation. |
 
 ### Tier 3 — Makes it feel alive
 
 | # | Task | Priority | Status | Detail File | Notes |
 |---|------|----------|--------|-------------|-------|
 | 20 | Lighting drama | P1 | [x] | | Sun 1.6→2.2, ambient 0.4→0.3. Warm sun (0xffe0a0) + cool fill (0x6080c0) for temperature split. |
-| 21 | Visible ambient particles | P1 | [ ] | | LivingWorld particles too small/few. Make dust motes larger and brighter. 20-30 visible at any time. |
+| 21 | Visible ambient particles | P1 | [x] | | All biomes: particle size 3-4x larger, counts increased, opacity boosted. Firefly glow sphere 0.02→0.06, point light distance 2.5→4, intensity flicker range doubled. Dungeon now has torch ember fireflies. |
 | 22 | Contact AO (SSAO or fake) | P1 | [x] | | drei ContactShadows component: opacity 0.4, blur 2, resolution 512. Soft ground darkening under all objects. |
 | 23 | Decoration variety | P2 | [ ] | | Fallen logs, tree stumps, bushes, rock formations. 2-3 new types minimum. |
 
@@ -95,3 +95,5 @@
 | 2026-05-22 | 16 | Tree variety | 4 species: oak, pine, wide/flat, dead/bare. Weighted random per instance. Visually distinct silhouettes. |
 | 2026-05-22 | 15 | Nameplate overlap fix | Hover-only full nameplates. Minimal HP pip spheres for non-selected chars. Scene much cleaner. |
 | 2026-05-22 | 18,20,22 | Skybox, lighting, contact AO | SkyDome gradient shader. Sun 2.2 warm + cool fill. drei ContactShadows for ground AO. |
+| 2026-05-22 | 21 | Ambient particle visibility | All biomes: larger particles (3-4x), more count, brighter. Firefly glow spheres enlarged, point lights stronger + wider range. Dungeon gets torch ember fireflies. |
+| 2026-05-22 | 19 | Grass height/color variation | Per-instance tint attribute (warm→cool green). Cluster noise height patches. Bare spots near rocks/walls. Height range widened (0.15-0.50). |

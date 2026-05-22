@@ -72,15 +72,15 @@ interface BiomeAmbientConfig {
 
 const BIOME_AMBIENT: Record<string, BiomeAmbientConfig> = {
   forest: {
-    particleCount: 600,
+    particleCount: 800,
     particleColor: 0xeedd88,
-    particleSize: 0.015,
-    particleOpacity: 0.5,
+    particleSize: 0.06,
+    particleOpacity: 0.65,
     driftY: 0.03,
     driftXZ: 0.02,
     hasFireflies: true,
     fireflyColor: 0x88ff44,
-    fireflyCount: 6,
+    fireflyCount: 8,
     hasWeather: false,
     weatherType: 'none',
     weatherCount: 0,
@@ -88,15 +88,15 @@ const BIOME_AMBIENT: Record<string, BiomeAmbientConfig> = {
     weatherSpeed: 0,
   },
   cave: {
-    particleCount: 300,
-    particleColor: 0x4466aa,
-    particleSize: 0.012,
-    particleOpacity: 0.4,
+    particleCount: 500,
+    particleColor: 0x6688cc,
+    particleSize: 0.05,
+    particleOpacity: 0.55,
     driftY: -0.01,
     driftXZ: 0.005,
     hasFireflies: true,
     fireflyColor: 0x44aaff,
-    fireflyCount: 4,
+    fireflyCount: 6,
     hasWeather: false,
     weatherType: 'none',
     weatherCount: 0,
@@ -104,15 +104,15 @@ const BIOME_AMBIENT: Record<string, BiomeAmbientConfig> = {
     weatherSpeed: 0,
   },
   dungeon: {
-    particleCount: 400,
-    particleColor: 0xaa8855,
-    particleSize: 0.01,
-    particleOpacity: 0.35,
+    particleCount: 600,
+    particleColor: 0xcc9966,
+    particleSize: 0.045,
+    particleOpacity: 0.5,
     driftY: 0.01,
     driftXZ: 0.01,
-    hasFireflies: false,
+    hasFireflies: true,
     fireflyColor: 0xff8844,
-    fireflyCount: 0,
+    fireflyCount: 4,
     hasWeather: false,
     weatherType: 'none',
     weatherCount: 0,
@@ -120,10 +120,10 @@ const BIOME_AMBIENT: Record<string, BiomeAmbientConfig> = {
     weatherSpeed: 0,
   },
   desert: {
-    particleCount: 500,
+    particleCount: 700,
     particleColor: 0xddcc88,
-    particleSize: 0.018,
-    particleOpacity: 0.3,
+    particleSize: 0.05,
+    particleOpacity: 0.45,
     driftY: 0.005,
     driftXZ: 0.06,
     hasFireflies: false,
@@ -136,15 +136,15 @@ const BIOME_AMBIENT: Record<string, BiomeAmbientConfig> = {
     weatherSpeed: 0.15,
   },
   swamp: {
-    particleCount: 500,
-    particleColor: 0x88aa44,
-    particleSize: 0.014,
-    particleOpacity: 0.45,
+    particleCount: 700,
+    particleColor: 0x99bb55,
+    particleSize: 0.05,
+    particleOpacity: 0.55,
     driftY: 0.015,
     driftXZ: 0.015,
     hasFireflies: true,
     fireflyColor: 0x66ff88,
-    fireflyCount: 8,
+    fireflyCount: 10,
     hasWeather: false,
     weatherType: 'none',
     weatherCount: 0,
@@ -298,7 +298,7 @@ const Fireflies: React.FC<{
       const light = child.children[0] as THREE.PointLight | undefined;
       if (light && 'intensity' in light) {
         const flicker = (Math.sin(time * data.flickerSpeed + data.flickerPhase) + 1) * 0.5;
-        light.intensity = 0.1 + flicker * 0.4;
+        light.intensity = 0.2 + flicker * 0.8;
       }
     });
   });
@@ -311,13 +311,13 @@ const Fireflies: React.FC<{
         <group key={i} position={[data.homeX, data.homeY, data.homeZ]}>
           <pointLight
             color={config.fireflyColor}
-            intensity={0.3}
-            distance={2.5}
+            intensity={0.5}
+            distance={4}
             decay={2}
           />
           {/* Visible glow sphere */}
           <mesh>
-            <sphereGeometry args={[0.02, 6, 4]} />
+            <sphereGeometry args={[0.06, 8, 6]} />
             <meshBasicMaterial
               color={config.fireflyColor}
               transparent
