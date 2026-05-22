@@ -1,6 +1,6 @@
 # Package 2 Symphony Handoff Receipt
 
-Status: PR #935 returned; Codex foreman review and Scout/Core bridge active.
+Status: PR #935 merged; Package 2 closeout recorded.
 
 Date/time: 2026-05-21 23:54 Europe/Amsterdam.
 
@@ -444,19 +444,30 @@ Repair filing:
   the active PR-refresh boundary more visible while Stitch MCP authentication
   remains pending.
 
+Merge follow-through:
+
+- PR #937 merged on 2026-05-22 as
+  `aa58546aba965ed6c070922b37e6eb0bd8c4fdc6`.
+- A simple rerun of PR #935's failed jobs still used the stale PR merge ref and
+  therefore still showed `gemini-1.5-flash`.
+- Codex updated PR #935's branch with current `master` through GitHub's PR
+  branch update path. This changed PR #935 head to
+  `e4c4d47b1f99a4a8f6267faa756694857e4c30c6`.
+- The updated PR #935 check set passed CodeQL, poison check, build, lint,
+  quality scan, and tests. The earlier broad movement failure cleared on rerun.
+- Codex accepted the remaining JSON formatting churn as reviewable for this
+  package because the final file list stayed inside the Package 2 scope and the
+  helper files seen in the Jules workspace did not land in the PR.
+- PR #935 merged on 2026-05-22 as
+  `88c11e434c461823bc4226409059882a0ab9ceb6`.
+
 ## Next Expected Proof
 
-1. Review and merge PR #937 if its checks and review are acceptable.
-2. Refresh PR #935 through the Symphony dashboard after PR #937 lands, then
-   record whether the Gemini review job now reaches useful review output.
-3. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
-   test job has explicit disposition.
-4. Decide whether the large JSON formatting churn is acceptable after semantic
-   review or should be returned to Jules for a narrower rewrite.
-5. Update Atlas/gate, foreman review, task communication, PR/deployment/local
-   sync, and ROI receipts before Package 2 is treated as complete.
-6. Do not merge PR #935 until the dashboard/Scout/Core path records the
-   decision about the ambient CI blocker.
+1. Use the Package 2 closeout branch to publish tracker and receipt updates.
+2. Start Package 3 packaging for Jules: character creator spell selection and
+   character sheet spellbook visibility.
+3. Keep Stitch MCP authentication as an adjacent tooling gap until an API key or
+   OAuth path is installed and Codex is restarted.
 
 ## Dashboard-First Blocker Found
 

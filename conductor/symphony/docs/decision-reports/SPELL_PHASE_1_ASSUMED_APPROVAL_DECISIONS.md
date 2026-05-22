@@ -1625,14 +1625,116 @@ Copy this block for each decision.
   then refresh PR #935 through the Symphony dashboard and classify any remaining
   failed check separately.
 
+### Decision 41: Merge PR #937 And Update PR #935 Instead Of Sending Jules Feedback
+
+- Date/time: 2026-05-22
+- Phase: `package_2_setup_repair`
+- Active slice: Package 2 PR #935 failed-check follow-through
+- Decision point: Whether to leave PR #937 open, send Jules a follow-up, rerun
+  stale failed jobs, or merge the workflow repair and update PR #935 with
+  current `master`.
+- Options considered:
+  - Leave PR #937 open and keep PR #935 blocked.
+  - Send Jules feedback even though the failure was in repository review
+    infrastructure, not the Package 2 implementation.
+  - Rerun the failed PR #935 jobs without changing the PR merge ref.
+  - Merge PR #937, update PR #935's branch against current `master`, then let
+    GitHub produce a fresh check set.
+- Decision made by agent: Merge PR #937, rerun PR #935 once for evidence, then
+  update PR #935's branch when the rerun proved it was still using the stale
+  merge ref.
+- Model routing: Local Codex foreman, because this was GitHub/Symphony
+  workflow follow-through rather than spell implementation.
+- Rationale/evidence: PR #937 had clean CI and a clean merge state. Rerunning
+  the old PR #935 failed jobs still logged `gemini_model: gemini-1.5-flash`
+  from `refs/pull/935/merge`, proving rerun alone was insufficient. Updating
+  the PR branch created a fresh check set against current `master`.
+- Mutation performed or skipped: Merged PR #937 as
+  `aa58546aba965ed6c070922b37e6eb0bd8c4fdc6`, reran the failed PR #935 jobs,
+  then updated PR #935's branch to
+  `e4c4d47b1f99a4a8f6267faa756694857e4c30c6`.
+- Scope guardrails: Did not edit Jules implementation files directly. The PR
+  branch update only incorporated current `master` into PR #935 through
+  GitHub's branch update path.
+- Result: PR #935's refreshed CodeQL, poison, build, lint, quality scan, and
+  tests passed. The old movement failure cleared on rerun. A fresh Gemini
+  review check did not appear in the branch-update check set, so the useful
+  evidence is clean CI plus the earlier local/Scout-Core review, not new Gemini
+  prose.
+- Next expected proof: Decide whether the remaining JSON formatting churn is
+  acceptable, then merge or return PR #935.
+
+### Decision 42: Merge Package 2 PR #935 After Refreshed Checks Passed
+
+- Date/time: 2026-05-22
+- Phase: `package_2_merge_closeout`
+- Active slice: Package 2 premade party and gear
+- Decision point: Whether to merge PR #935 after clean refreshed checks, ask
+  Jules for a narrower JSON rewrite, or keep waiting for Gemini review output
+  that did not appear in the branch-update check set.
+- Options considered:
+  - Return PR #935 to Jules solely to reduce JSON formatting churn.
+  - Keep PR #935 open until a Gemini review check appears.
+  - Merge PR #935 using the clean refreshed CI, final in-scope file list,
+    focused local verification, and Scout/Core evidence.
+- Decision made by agent: Merge PR #935.
+- Model routing: Local Codex foreman, because this was merge disposition and
+  closeout evidence, not a new implementation task.
+- Rationale/evidence: The final PR file list contained thirteen premade
+  character JSON files, `src/utils/combat/combatUtils.ts`, and
+  `src/utils/combat/__tests__/combatUtils_premade.test.ts`, all within Package
+  2 scope. Helper files observed during the live Jules workspace did not land in
+  the PR. GitHub CI passed after updating the branch with current `master`.
+  Post-merge closeout verification passed spell validation, spell-gate
+  generation, and concrete combat utility tests.
+- Mutation performed or skipped: Merged PR #935 as
+  `88c11e434c461823bc4226409059882a0ab9ceb6`, created closeout branch
+  `codex/spell-phase1-package2-closeout` from updated `origin/master`, and
+  recorded Package 2 closeout evidence in the tracker and receipts.
+- Scope guardrails: Did not mark Spell Phase 1 complete. Package 3 and later
+  still own character creator spell selection, character sheet spellbook
+  visibility, combat simulator spell use, AI arbitration, and remaining
+  cantrip/level 1-3 mechanics closure.
+- Result: Package 2 implementation is merged. Package 3 can now be packaged for
+  Jules through the dashboard-first flow.
+- Next expected proof: Publish this closeout tracker update, then create the
+  Package 3 Jules task package from the Phase 1 plan.
+
+### Decision 43: Set Repository Gemini Model Variable After PR #938 Exposed The Missing Variable
+
+- Date/time: 2026-05-22
+- Phase: `package_2_closeout_ci_repair`
+- Active slice: Package 2 closeout PR #938
+- Decision point: Whether to change code again, leave PR #938 blocked, or set
+  the repository-level `GEMINI_MODEL` variable that the repaired workflow now
+  reads.
+- Options considered:
+  - Hardcode another model in `.github/workflows/gemini-review.yml`.
+  - Leave the PR blocked and treat Gemini review as optional.
+  - Set repository variable `GEMINI_MODEL` to a current Gemini API model.
+- Decision made by agent: Set GitHub repository variable `GEMINI_MODEL` to
+  `gemini-2.5-flash`.
+- Model routing: Local Codex foreman plus official Google AI docs lookup,
+  because the repair touched external GitHub configuration and needed a current
+  model name.
+- Rationale/evidence: PR #938 proved that the workflow code fix was only half
+  the repair: the action still fell back to `gemini-1.5-flash` when the
+  repository variable was missing. Official Google AI API docs show
+  `gemini-2.5-flash` as a supported `v1beta` `generateContent` model.
+- Mutation performed or skipped: Ran `gh variable set GEMINI_MODEL --repo
+  Gambitnl/Aralia --body gemini-2.5-flash`, confirmed the variable with
+  `gh variable get GEMINI_MODEL`, and reran the failed PR #938 Gemini review
+  job.
+- Scope guardrails: Did not store or change API keys, did not alter PR #935
+  implementation files, and did not hardcode the model back into workflow YAML.
+- Result: PR #938 `review / review` rerun passed, and the PR's build, lint,
+  tests, CodeQL, and poison-file checks also passed.
+- Next expected proof: Merge PR #938, then continue to Package 3 packaging.
+
 ## Open Decisions For The Next Slice
 
-1. Decide whether PR #937 is acceptable to merge after its checks/review finish,
-   then refresh PR #935 through the dashboard once the workflow repair is on
-   `master`.
-2. Decide whether PR #935's broad `Tests` failure is an ambient
-   test-infrastructure blocker to repair separately, a temporary failure to
-   rerun, or a blocker that should stop Package 2 merge.
-3. Decide whether PR #935's large premade JSON line churn is acceptable with the
-   semantic diff evidence, or whether Jules should do a narrow formatting-only
-   cleanup before merge.
+1. Merge PR #938 after the clean check set.
+2. Package and dispatch Package 3 for Jules: character creator spell selection
+   and character sheet spellbook visibility.
+3. Keep Stitch MCP authentication as an adjacent tooling gap until an API key or
+   OAuth path is installed and Codex is restarted.

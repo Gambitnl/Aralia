@@ -303,10 +303,10 @@ assert.match(draftSubmissionReceipt, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
 
 assert.match(handoffReceipt, /# Package 2 Symphony Handoff Receipt/);
 // The receipt is intentionally allowed to advance as the visible Jules handoff
-// advances. These assertions protect the current PR-review/setup-repair state
-// so future agents do not accidentally describe the handoff as still merely
-// queued or only waiting on Jules plan approval.
-assert.match(handoffReceipt, /Status: PR #935 returned; Codex foreman review and Scout\/Core bridge active/);
+// advances. These assertions now protect the merged Package 2 closeout state so
+// future agents do not accidentally describe the handoff as still waiting on PR
+// review or setup repair.
+assert.match(handoffReceipt, /Status: PR #935 merged; Package 2 closeout recorded/);
 assert.match(handoffReceipt, /40678de8bdc3ce58db0c97e062f5a170526e4fa7/);
 assert.match(handoffReceipt, /draft-1779400428597-mind7o/);
 assert.match(handoffReceipt, /ARA-7/);
@@ -323,6 +323,10 @@ assert.match(handoffReceipt, /Returned PR #935/);
 assert.match(handoffReceipt, /Setup Repair Root Cause/);
 assert.match(handoffReceipt, /gemini-review\.yml/);
 assert.match(handoffReceipt, /Focused local verification on synced `master` passed/);
+assert.match(handoffReceipt, /Merge follow-through/);
+assert.match(handoffReceipt, /PR #937 merged/);
+assert.match(handoffReceipt, /PR #935 merged on 2026-05-22/);
+assert.match(handoffReceipt, /88c11e434c461823bc4226409059882a0ab9ceb6/);
 
 assert.match(gitSyncAttemptReceipt, /# Package 2 Git Sync Attempt Receipt/);
 assert.match(gitSyncAttemptReceipt, /Status: remote branch pushed; Symphony readiness still needs a fresh preflight/);
@@ -356,22 +360,23 @@ assert.match(roiBaselineReceipt, /ROI is unknown/);
 assert.match(roiBaselineReceipt, /not measured savings/);
 
 assert.match(atlasGateCheckpointReceipt, /# Package 2 Atlas And Gate Checkpoint Receipt/);
-// The checkpoint receipt now tracks the returned PR #935 review state. These
-// assertions keep the gate evidence current without pretending Atlas has been
-// completed or that Package 3 can start.
-assert.match(atlasGateCheckpointReceipt, /Status: active Package 2 gate checkpoint/);
+// The checkpoint receipt now tracks the post-merge Package 2 gate state. These
+// assertions keep the proof current without pretending Package 3 visual work has
+// already been implemented.
+assert.match(atlasGateCheckpointReceipt, /Status: Package 2 gate checkpoint recorded after merge/);
 assert.match(atlasGateCheckpointReceipt, /Package 2 implementation PR exists: `yes`/);
 assert.match(atlasGateCheckpointReceipt, /Spell gate refresh run for Package 2: `yes`/);
-assert.match(atlasGateCheckpointReceipt, /Atlas review\/update run for Package 2: `not_yet`/);
+assert.match(atlasGateCheckpointReceipt, /Atlas review\/update run for Package 2: `recorded_no_content_change`/);
+assert.match(atlasGateCheckpointReceipt, /Can this receipt prove Package 2 gate completion yet: `yes_for_package_2`/);
 assert.match(atlasGateCheckpointReceipt, /Package 2 PR: `https:\/\/github\.com\/Gambitnl\/Aralia\/pull\/935`/);
 assert.match(atlasGateCheckpointReceipt, /459 \/ 459/);
 assert.match(atlasGateCheckpointReceipt, /16` tests passed/);
-assert.match(atlasGateCheckpointReceipt, /Scout\/Core now reports\s+`outOfScopeFiles: \[\]`/);
 assert.match(atlasGateCheckpointReceipt, /npm run validate:spells/);
 assert.match(atlasGateCheckpointReceipt, /npm run generate:spell-gates/);
 assert.match(atlasGateCheckpointReceipt, /npx vitest run src\/utils\/combat\/__tests__\/combatUtils_\*\.test\.ts --reporter=verbose/);
 assert.match(atlasGateCheckpointReceipt, /public\/data\/spell_gate_report\.json/);
-assert.match(atlasGateCheckpointReceipt, /Can Package 3 begin after this checkpoint: `no`/);
+assert.match(atlasGateCheckpointReceipt, /only timestamps/);
+assert.match(atlasGateCheckpointReceipt, /Can Package 3 begin after this checkpoint: `yes`/);
 assert.match(atlasGateCheckpointReceipt, /Do not mark this receipt complete before Package 2 has real implementation\s+evidence/);
 assert.match(atlasGateCheckpointReceipt, /Do not use this receipt to claim visual spellbook or character creator proof/);
 
@@ -436,12 +441,14 @@ assert.match(taskCommunicationReceipt, /Can Package 2 advance from a communicati
 assert.match(taskCommunicationReceipt, /Do not send Jules feedback just to make this receipt non-empty/);
 
 assert.match(prDeploymentLocalSyncReceipt, /# Package 2 PR, Deployment, And Local Sync Receipt/);
-assert.match(prDeploymentLocalSyncReceipt, /Status: pending Package 2 implementation/);
-assert.match(prDeploymentLocalSyncReceipt, /Package 2 Jules handoff exists: `no`/);
-assert.match(prDeploymentLocalSyncReceipt, /Package 2 PR exists: `no`/);
-assert.match(prDeploymentLocalSyncReceipt, /GitHub checks refreshed: `no`/);
-assert.match(prDeploymentLocalSyncReceipt, /Deployment proof or waiver recorded: `no`/);
-assert.match(prDeploymentLocalSyncReceipt, /Local sync proof recorded: `no`/);
+assert.match(prDeploymentLocalSyncReceipt, /Status: Package 2 PR merged; closeout evidence active/);
+assert.match(prDeploymentLocalSyncReceipt, /Package 2 Jules handoff exists: `yes`/);
+assert.match(prDeploymentLocalSyncReceipt, /Package 2 PR exists: `yes`/);
+assert.match(prDeploymentLocalSyncReceipt, /GitHub checks refreshed: `yes`/);
+assert.match(prDeploymentLocalSyncReceipt, /PR merged: `yes`/);
+assert.match(prDeploymentLocalSyncReceipt, /Deployment proof or waiver recorded: `waived_for_data_and_test_slice`/);
+assert.match(prDeploymentLocalSyncReceipt, /Local sync proof recorded: `yes_on_closeout_branch`/);
+assert.match(prDeploymentLocalSyncReceipt, /88c11e434c461823bc4226409059882a0ab9ceb6/);
 assert.match(prDeploymentLocalSyncReceipt, /Fields To Fill After PR Exists/);
 assert.match(prDeploymentLocalSyncReceipt, /PR head SHA/);
 assert.match(prDeploymentLocalSyncReceipt, /GitHub checks result/);
