@@ -3456,16 +3456,65 @@ Copy this block for each decision.
   MemPalace mining for the durable docs, and start Package 4 drafting through
   the dashboard-first Symphony/Jules flow.
 
+### Decision 81: Scope Package 4 As A Deterministic Combat Pilot For Jules
+
+- Date/time: 2026-05-22 20:25 +02:00
+- Phase: `package_4_intake`
+- Active slice: Combat simulator deterministic spell pilot plus Symphony
+  dashboard-first finalization
+- Decision point: Package 3 was closed and the living tracker moved Package 4
+  to active. The next choice was whether to ask Jules for broad combat support
+  across all cantrips and level 1-3 spells, start with AI arbitration, repair
+  the Atlas source gap first, or define a smaller deterministic pilot that
+  proves the simulator path before broader mechanics-bucket work.
+- Options considered:
+  - Ask Jules to make all level 0-3 deterministic spells work in combat.
+  - Start Package 5 AI arbitration before deterministic casting proof.
+  - Repair the Atlas missing-source gap before any combat work.
+  - Draft a bounded Jules task that proves representative damage, healing, and
+    simple buff/status spell behavior through the combat simulator.
+- Decision made by agent: Draft Package 4 as a bounded deterministic combat
+  pilot for Jules. The pilot spells are `fire-bolt` or an equivalent cantrip
+  damage spell, `magic-missile` or an equivalent level-1 damage spell,
+  `cure-wounds` or an equivalent healing spell, and `bless` or an equivalent
+  simple buff/status spell.
+- Model routing: Local Codex used strong foreman reasoning for scoping and
+  packet creation. Jules remains the intended implementation worker. Efficient
+  scanning is appropriate for later file/status checks, but behavior decisions
+  around runtime semantics should stay on the stronger foreman/review path.
+- Rationale/evidence: The current combat path already has
+  `useAbilitySystem`, `spellAbilityFactory`, `SpellCommandFactory`, command
+  tests, premade caster spellbooks, `AbilityPalette`, and `CombatLog`. A pilot
+  can prove action cost, spell slot cost, targeting, HP/status mutation, and log
+  output without pretending the full 652 scoped mechanics findings are solved.
+  This preserves the sequential Symphony/Jules operating model and avoids
+  collapsing Package 4 into an unbounded mechanics rewrite.
+- Mutation performed or skipped: Created the Package 4 Jules task, exact prompt,
+  Symphony draft payload, dispatch checklist, combat proof receipt, and
+  Atlas/gate receipt. Updated the living tracker. Skipped implementation work,
+  skipped local combat repair, skipped broad AI arbitration policy, and skipped
+  forcing the user's local `master` checkout to sync.
+- Scope guardrails: Package 4 may touch combat runtime and focused fixtures
+  needed for the selected pilot spells. It must not broaden into character
+  creator UI, spellbook UI, all level 2-3 spell mechanics, broad AI arbitration,
+  or Symphony orchestration files.
+- Result: Package 4 is ready for visible Symphony dashboard draft creation and
+  Jules dispatch once the dashboard path allows it.
+- Next expected proof: Create the Package 4 dashboard draft visibly, route
+  through Linear/manifest/Jules launch, and record the returned draft/handoff
+  identifiers in the Package 4 readiness checklist.
+
 ## Open Decisions For The Next Slice
 
 1. Publish the Package 3 receipt reconciliation, then run targeted MemPalace
    mining for the durable task and decision docs.
-2. Decide whether the semantically enabled Druid class-feature checkbox should
+2. Create the Package 4 dashboard draft and route it through Symphony/Jules.
+3. Decide whether the semantically enabled Druid class-feature checkbox should
    be repaired immediately or batched into a creator accessibility pass.
-3. Decide whether Symphony should add first-class receipts and dashboard
+4. Decide whether Symphony should add first-class receipts and dashboard
    controls for `feedback visible in Jules`, beyond the Decision 77 wording
    that prevents GitHub comments from being overstated as delivery proof.
-4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+5. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-5. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
+6. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
    dashboard redesign work.
