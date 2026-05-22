@@ -10,7 +10,7 @@ Prove that Symphony's complexity-based worker-mode recommendation is not only di
 
 ## Current Boundary
 
-Worker-mode packets already recommend modes such as `operator_only`, `local_fast`, `local_careful`, `jules_task`, `jules_plan`, and `observe_wait`. This task proves the recommendation influences a launch/readiness decision or actual worker launch.
+Worker-mode packets already recommend modes such as `operator_only`, `local_spark`, `local_fast`, `local_careful`, `jules_task`, `jules_plan`, and `observe_wait`. This task proves the recommendation influences a launch/readiness decision or actual worker launch.
 
 ## Read First
 

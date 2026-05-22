@@ -179,7 +179,8 @@ assert.match(audit, /idle lower monitoring sections collapse while urgent states
 assert.match(audit, /Idle Usage Tracker, Routine Approval Rules, Running Issues, and Retrying Issues now render as compact summary drawers/);
 assert.match(audit, /symphony-dashboard-density\.png/);
 assert.match(audit, /Dynamic Codex reasoning by complexity is now locally implemented as a worker-mode packet/);
-assert.match(audit, /`operator_only`, `local_fast`, `local_careful`, `jules_task`, `jules_plan`, and `observe_wait`/);
+assert.match(audit, /`operator_only`, `local_spark`, `local_fast`, `local_careful`, `jules_task`, `jules_plan`, or `observe_wait`/);
+assert.match(audit, /`local_spark` is reserved for bounded retrieval, scanning, status, and summarization tasks/);
 assert.match(audit, /verify-worker-mode-packet\.mjs/);
 assert.match(audit, /dynamic complexity-based mode selection/);
 assert.match(audit, /symphony-worker-mode-packet\.png/);

@@ -278,6 +278,7 @@ export interface TaskRoutingPlan {
 
 export type WorkerMode =
   | 'operator_only'
+  | 'local_spark'
   | 'local_fast'
   | 'local_careful'
   | 'jules_task'
@@ -298,6 +299,7 @@ export interface WorkerModeRecommendation {
     externalBoundary: boolean;
     blocked: boolean;
     dashboardStarted: boolean;
+    sparkEligible: boolean;
   };
   overridePolicy: string;
 }
@@ -6830,14 +6832,16 @@ function scoreDraftForRouting(draft: TaskDraft): {
   const reasons: string[] = [];
   const broadWords = ['multi-file', 'multi stage', 'multi-stage', 'architecture', 'system', 'plan first', 'make a plan'];
   const smallWords = ['typo', 'copy', 'wording', 'small', 'docs', 'verifier', 'dashboard wiring'];
+  const sparkWords = workerModeSparkKeywords();
   const setupRepair = text.includes('setup repair') || text.includes('setup/workflow blocker');
   const wantsJulesPlan = !setupRepair && (broadWords.some(word => text.includes(word)) || fileCount >= 4 || commandCount >= 2);
-  const localEnough = setupRepair || (!wantsJulesPlan && fileCount <= 2 && smallWords.some(word => text.includes(word)));
+  const localEnough = setupRepair || (!wantsJulesPlan && fileCount <= 2 && (smallWords.some(word => text.includes(word)) || sparkWords.some(word => text.includes(word))));
 
   if (fileCount <= 2) reasons.push('Small write scope.');
   if (fileCount >= 4) reasons.push('Broad multi-file write scope.');
   if (commandCount >= 2) reasons.push('Multiple verification commands suggest a larger task.');
   if (smallWords.some(word => text.includes(word))) reasons.push('Draft wording describes a small local change.');
+  if (sparkWords.some(word => text.includes(word))) reasons.push('Draft wording describes retrieval, scanning, status, or summarization work suitable for Codex Spark.');
   if (setupRepair) reasons.push('Setup repair draft should be handled locally before Jules receives more implementation feedback.');
   if (broadWords.some(word => text.includes(word))) reasons.push('Draft wording asks for Jules-scale planning or system work.');
   if (!reasons.length) reasons.push('Route based on expected file count and verification scope.');
@@ -6860,7 +6864,7 @@ function buildWorkerModeRecommendation(input: {
     : workerModeForRoute(input.route);
   const complexitySignals = buildWorkerModeComplexitySignals(subject, input.blocked, Boolean(input.externalBoundary), input.dashboardStarted);
   const modelAndEffort = modelAndEffortForWorkerMode(mode);
-  const dispatchable = !input.blocked && ['local_fast', 'local_careful', 'jules_task', 'jules_plan'].includes(mode);
+  const dispatchable = !input.blocked && ['local_spark', 'local_fast', 'local_careful', 'jules_task', 'jules_plan'].includes(mode);
   const modeReason = workerModeReason(mode, complexitySignals);
 
   // The worker-mode packet is advisory, not a dispatcher. It translates the
@@ -6890,6 +6894,13 @@ function workerModeForDraftRoute(
   if (route === 'jules_task') return 'jules_task';
 
   const signals = buildWorkerModeComplexitySignals(draft, false, false, true);
+  // Spark is only assigned when the work is both small and evidence-oriented.
+  // Larger or risky tasks keep the existing careful/default-model path so a
+  // cheap scan mode does not quietly inherit architectural decisions.
+  if (route === 'local_agent' && signals.sparkEligible && signals.expectedFileCount <= 2 && signals.verificationCommandCount <= 1 && signals.riskyKeywordCount === 0) {
+    return 'local_spark';
+  }
+
   if (route === 'local_agent' && (signals.expectedFileCount > 1 || signals.verificationCommandCount > 1 || signals.riskyKeywordCount > 0 || !score.localEnough)) {
     return 'local_careful';
   }
@@ -6911,6 +6922,7 @@ function modelAndEffortForWorkerMode(mode: WorkerMode): {
   reasoningEffort: WorkerModeRecommendation['recommendedReasoningEffort'];
 } {
   if (mode === 'operator_only') return { model: 'none', reasoningEffort: 'none' };
+  if (mode === 'local_spark') return { model: 'gpt-5.3-codex-spark', reasoningEffort: 'low' };
   if (mode === 'local_fast') return { model: 'default', reasoningEffort: 'low' };
   if (mode === 'local_careful') return { model: 'default', reasoningEffort: 'medium' };
   if (mode === 'jules_plan') return { model: 'default', reasoningEffort: 'high' };
@@ -6925,7 +6937,8 @@ function buildWorkerModeComplexitySignals(
   dashboardStarted: boolean
 ): WorkerModeRecommendation['complexitySignals'] {
   const text = subject ? `${subject.title}\n${'body' in subject ? subject.body : subject.prompt}` : '';
-  const riskyKeywordCount = workerModeRiskyKeywords().filter(keyword => text.toLowerCase().includes(keyword)).length;
+  const normalizedText = text.toLowerCase();
+  const riskyKeywordCount = workerModeRiskyKeywords().filter(keyword => normalizedText.includes(keyword)).length;
 
   return {
     expectedFileCount: subject?.expectedFiles.length ?? 0,
@@ -6934,7 +6947,28 @@ function buildWorkerModeComplexitySignals(
     externalBoundary,
     blocked,
     dashboardStarted,
+    sparkEligible: workerModeSparkKeywords().some(keyword => normalizedText.includes(keyword)),
   };
+}
+
+// These words describe read/search/report tasks where the worker should gather
+// or transform evidence rather than make implementation or policy decisions.
+function workerModeSparkKeywords(): string[] {
+  return [
+    'scan',
+    'search',
+    'retrieve',
+    'status',
+    'summarize',
+    'summary',
+    'report',
+    'extract',
+    'checklist',
+    'pr status',
+    'issue status',
+    'check status',
+    'status report',
+  ];
 }
 
 function workerModeRiskyKeywords(): string[] {
@@ -6954,6 +6988,7 @@ function workerModeRiskyKeywords(): string[] {
 
 function workerModeReason(mode: WorkerMode, signals: WorkerModeRecommendation['complexitySignals']): string {
   if (mode === 'operator_only') return 'Operator-only mode because a human decision or blocked gate is the current boundary.';
+  if (mode === 'local_spark') return 'Local-spark mode because the task is bounded retrieval, scanning, status, or summarization work that can use Codex Spark.';
   if (mode === 'local_fast') return 'Local-fast mode because the task has a small file and verification footprint.';
   if (mode === 'local_careful') return 'Local-careful mode because the task is local but has enough scope or risk to need normal reasoning.';
   if (mode === 'jules_plan') return 'Jules-plan mode because the task is broad enough to benefit from planning before execution.';
@@ -6966,6 +7001,7 @@ function workerModeReason(mode: WorkerMode, signals: WorkerModeRecommendation['c
 function workerModeSummary(mode: WorkerMode, dispatchable: boolean): string {
   const suffix = dispatchable ? 'Dispatch is allowed after normal gates.' : 'No worker should be dispatched from this packet right now.';
   if (mode === 'operator_only') return `Recommended mode: operator_only. ${suffix}`;
+  if (mode === 'local_spark') return `Recommended mode: local_spark. ${suffix}`;
   if (mode === 'local_fast') return `Recommended mode: local_fast. ${suffix}`;
   if (mode === 'local_careful') return `Recommended mode: local_careful. ${suffix}`;
   if (mode === 'jules_plan') return `Recommended mode: jules_plan. ${suffix}`;

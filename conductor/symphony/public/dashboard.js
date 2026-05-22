@@ -1574,6 +1574,7 @@ function renderWorkerModeRecommendation(workerMode) {
     ['External boundary', signals.externalBoundary ? 'yes' : 'no'],
     ['Blocked', signals.blocked ? 'yes' : 'no'],
     ['Dashboard-started', signals.dashboardStarted ? 'yes' : 'no'],
+    ['Spark eligible', signals.sparkEligible ? 'yes' : 'no'],
   ];
   const reasons = Array.isArray(workerMode.reasons) ? workerMode.reasons : [];
 

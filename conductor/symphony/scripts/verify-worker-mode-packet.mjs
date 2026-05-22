@@ -73,6 +73,21 @@ try {
   assert.equal(blocked.taskRouting.workerMode.recommendedReasoningEffort, 'none');
   assert.equal(blocked.taskRouting.workerMode.complexitySignals.blocked, true);
 
+  const sparkStore = await makeStore('symphony-worker-mode-spark-');
+  const spark = await sparkStore.createDraft({
+    title: 'Scan GitHub and Linear status',
+    body: 'Retrieve the latest GitHub PR status and Linear issue summary, then report the checklist without editing code.',
+    expectedFiles: ['conductor/symphony/docs/decision-reports/status-report.md'],
+    verificationCommands: ['npm.cmd run build'],
+  });
+
+  assert.equal(spark.taskRouting.route, 'local_agent');
+  assert.equal(spark.taskRouting.workerMode.mode, 'local_spark');
+  assert.equal(spark.taskRouting.workerMode.recommendedModel, 'gpt-5.3-codex-spark');
+  assert.equal(spark.taskRouting.workerMode.recommendedReasoningEffort, 'low');
+  assert.equal(spark.taskRouting.workerMode.complexitySignals.sparkEligible, true);
+  assert.equal(spark.taskRouting.workerMode.canDispatchNow, true);
+
   const fastStore = await makeStore('symphony-worker-mode-fast-');
   const fast = await fastStore.createDraft({
     title: 'Fix dashboard wording typo',

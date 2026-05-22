@@ -220,7 +220,7 @@ assert.match(spec, /package2_scoped_snapshot_passed/);
 assert.match(spec, /PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD\.json/);
 assert.match(spec, /dispatch Jules with the exact Package 2\s+prompt/);
 assert.match(spec, /worker-mode packet recommends a mode from task evidence/);
-assert.match(spec, /`operator_only` for blocked human decisions, `local_fast` for tiny local\s+edits\/verifiers\/docs, `local_careful`/);
+assert.match(spec, /`operator_only` for blocked human decisions, `local_spark` for bounded\s+retrieval\/scanning\/status\/summary tasks that should use\s+`gpt-5\.3-codex-spark`, `local_fast`/);
 assert.match(spec, /explicit config wins and the dashboard should say\s+when it is overriding the automatic recommendation/);
 assert.match(spec, /process startup defaults dispatch to paused, even without\s+`--dashboard-only`/);
 assert.match(spec, /backend dispatch-control endpoint is explicitly enabled/);
