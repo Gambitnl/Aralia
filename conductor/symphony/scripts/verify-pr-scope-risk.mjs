@@ -34,6 +34,30 @@ assert.equal(scopedSummary.outOfScopeFiles.length, 0);
 assert.equal(scopedSummary.risk, 'medium');
 assert(scopedSummary.riskReasons.includes('Registry/index file changed.'));
 
+const globScopedPr = {
+  changedFiles: 3,
+  additions: 80,
+  deletions: 20,
+  files: [
+    { path: 'public/premade-characters/kael_ironvow.json', additions: 40, deletions: 10 },
+    { path: 'src/utils/combat/__tests__/combatUtils_premade.test.ts', additions: 32, deletions: 0 },
+    { path: 'src/utils/combat/combatUtils.ts', additions: 8, deletions: 10 },
+  ],
+};
+
+// Spell Package 2 uses wildcard write scopes for premade fixtures and matching
+// combat utility tests. Scout/Core should treat matching files as in-scope so
+// real review focuses on CI, churn, and gameplay risk instead of a false scope
+// alarm.
+const globScopedSummary = summarizePullRequestFiles(globScopedPr, [
+  'public/premade-characters/*.json',
+  'src/utils/combat/combatUtils.ts',
+  'src/utils/combat/__tests__/combatUtils_*.test.ts',
+]);
+
+assert.equal(globScopedSummary.outOfScopeFiles.length, 0);
+assert.doesNotMatch(globScopedSummary.riskReasons.join(' '), /Outside declared Jules write scope/);
+
 const outOfScopePr = {
   changedFiles: 3,
   additions: 44,

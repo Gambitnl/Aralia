@@ -1749,6 +1749,71 @@ export class HttpServer {
         if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
       }
     });
+    // Some browser-control paths cannot reliably type into the dashboard text
+    // box. This button still keeps the decision visible and deliberate: it
+    // records the selected operator lane with a plain-language default answer
+    // instead of silently calling the local receipt endpoint.
+    const presetOperatorAnswerButton = operatorAnswerForm?.querySelector('[data-task-operator-answer-preset]');
+    presetOperatorAnswerButton?.addEventListener('click', async () => {
+      const status = operatorAnswerForm.querySelector('[data-task-operator-answer-status]');
+      const select = operatorAnswerForm.querySelector('select[name="selectedAction"]');
+      const selectedAction = String(select?.value || 'other');
+      const selectedLabel = select?.selectedOptions?.[0]?.textContent?.trim() || selectedAction;
+      const question = operatorAnswerForm.dataset.taskOperatorQuestion || 'This task needs an operator answer.';
+      const answerByAction = {
+        create_setup_repair_task: 'Create a setup repair task before asking Jules to change task code.',
+        send_jules_feedback: 'Send Jules feedback later after this blocker is classified.',
+        wait_for_manual_repair: 'Wait for manual repair before advancing this task.',
+        refresh_after_repair: 'Refresh the task after the repair has been completed.',
+        approve_repair_push: 'Approve the prepared repair push after confirming the readiness packet.',
+        reject_repair_push: 'Reject the prepared repair push and keep the task blocked.',
+        other: 'Use the selected operator decision and keep the details in the linked receipt.'
+      };
+      const answer = (answerByAction[selectedAction] || answerByAction.other)
+        + ' Selected on the visible task page as "' + selectedLabel + '". Question: ' + question;
+      if (status) status.textContent = 'Recording selected operator decision...';
+      try {
+        const response = await fetch(operatorAnswerForm.dataset.taskOperatorAnswerUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selectedAction, answer, answeredBy: 'operator' })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
+      }
+    });
+    // Safe endpoint buttons let the task page refresh Symphony-owned evidence
+    // without asking the operator to copy a raw POST URL into another tool.
+    const safeEndpointButtons = Array.from(document.querySelectorAll('[data-guarded-safe-endpoint]'));
+    safeEndpointButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        const endpoint = button.dataset.guardedSafeEndpoint;
+        const method = button.dataset.guardedSafeMethod || 'POST';
+        const statusNode = button.closest('li')?.querySelector('[data-guarded-safe-status]');
+        if (!endpoint) {
+          if (statusNode) statusNode.textContent = 'No endpoint is attached to this action.';
+          return;
+        }
+        button.disabled = true;
+        if (statusNode) statusNode.textContent = 'Running guarded Symphony action...';
+        try {
+          const response = await fetch(endpoint, { method });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || response.statusText);
+          }
+          window.location.reload();
+        } catch (error) {
+          button.disabled = false;
+          if (statusNode) statusNode.textContent = 'Guarded refresh failed: ' + (error?.message || error);
+        }
+      });
+    });
     const repairPushResultForm = document.querySelector('[data-task-repair-push-result-form]');
     repairPushResultForm?.addEventListener('submit', async event => {
       event.preventDefault();
@@ -1788,23 +1853,39 @@ export class HttpServer {
     const actions = this.arrayFromUnknown(detail.guardedActions);
     if (!actions.length) return '';
 
-    // Guarded actions are deliberately shown as runbook evidence, not as
-    // automatic buttons. This lets the operator see the next GitHub/Jules/Git
-    // command while Symphony still refuses to cross that boundary silently.
+    // Guarded actions stay visible and explicit. Read-only Symphony refresh
+    // endpoints can be run by a deliberate button, while Git/GitHub mutation
+    // commands remain runbook text for the operator to execute outside the page.
     return `<article class="card task-page-guarded-actions">
       <h2>Guarded Operator Actions</h2>
-      <p class="usage-summary">Commands and endpoints listed here require deliberate operator action or a guarded Symphony endpoint. This section does not run them.</p>
+      <p class="usage-summary">Commands and endpoints listed here require deliberate operator action. Safe Symphony refresh and local receipt endpoints can run here; GitHub, Git, and broad local mutation commands stay as runbook text.</p>
       <ol class="task-page-events">${actions.map(action => {
         const record = this.recordFromUnknown(action);
         const command = this.stringFromUnknown(record.command);
         const endpoint = this.stringFromUnknown(record.endpoint);
         const method = this.stringFromUnknown(record.method);
+        const isSafeRefreshEndpoint = Boolean(endpoint)
+          && (method ?? 'POST').toUpperCase() === 'POST'
+          && record.safety === 'guarded_symphony_endpoint'
+          && (/\/refresh-(?:pr|status)$/.test(endpoint ?? ''))
+          && record.mutatesExternalSystemsIfRun !== true
+          && record.mutatesLocalFilesIfRun !== true
+          && record.mutatesGitIfRun !== true;
+        const isLocalReceiptEndpoint = Boolean(endpoint)
+          && (method ?? 'POST').toUpperCase() === 'POST'
+          && record.safety === 'guarded_local_receipt'
+          && (/\/execute-repair-lane$/.test(endpoint ?? ''))
+          && record.mutatesExternalSystemsIfRun !== true
+          && record.mutatesGitIfRun !== true;
+        const canRunSafeEndpoint = isSafeRefreshEndpoint || isLocalReceiptEndpoint;
+        const buttonLabel = isLocalReceiptEndpoint ? 'Create Local Repair Draft' : 'Run Safe Symphony Refresh';
         return `<li>
           <strong>${this.escapeHtml(this.stringFromUnknown(record.label) ?? 'Guarded action')}</strong>
           <span>${this.escapeHtml(this.stringFromUnknown(record.safety) ?? 'operator approval required')}</span>
           <p>${this.escapeHtml(this.stringFromUnknown(record.summary) ?? '')}</p>
           ${command ? `<p><code>${this.escapeHtml(command)}</code></p>` : ''}
           ${endpoint ? `<p><code>${this.escapeHtml(`${method ?? 'POST'} ${endpoint}`)}</code></p>` : ''}
+          ${canRunSafeEndpoint ? `<button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(endpoint)}" data-guarded-safe-method="${this.escapeHtml(method ?? 'POST')}">${buttonLabel}</button><p class="usage-summary" data-guarded-safe-status></p>` : ''}
         </li>`;
       }).join('')}</ol>
     </article>`;
@@ -1961,7 +2042,7 @@ export class HttpServer {
       <h2>Operator Answer</h2>
       <p><strong>${this.escapeHtml(this.stringFromUnknown(question.plainLanguageQuestion) ?? this.stringFromUnknown(question.question) ?? 'This task needs an operator answer.')}</strong></p>
       <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(question.plainLanguageSummary) ?? 'Record the local decision so the foreman can move to the next guarded boundary.')}</p>
-      <form data-task-operator-answer-form data-task-operator-answer-url="${this.escapeHtml(actionUrl)}">
+      <form data-task-operator-answer-form data-task-operator-answer-url="${this.escapeHtml(actionUrl)}" data-task-operator-question="${this.escapeHtml(this.stringFromUnknown(question.plainLanguageQuestion) ?? this.stringFromUnknown(question.question) ?? 'This task needs an operator answer.')}">
         <label>Decision
           <select name="selectedAction">
             ${options.map(([value, label]) => `<option value="${this.escapeHtml(value)}">${this.escapeHtml(label)}</option>`).join('')}
@@ -1971,6 +2052,7 @@ export class HttpServer {
           <textarea name="answer" rows="3" placeholder="Write the human-readable decision or blocker."></textarea>
         </label>
         <button type="submit">Record Operator Answer</button>
+        <button type="button" data-task-operator-answer-preset>Record Selected Decision</button>
         <p class="usage-summary">Local receipt only. This does not send Jules feedback, create Linear work, push to GitHub, or mutate Git.</p>
         <p class="usage-summary" data-task-operator-answer-status></p>
       </form>
@@ -2342,15 +2424,26 @@ export class HttpServer {
       launch_readiness?: JulesLaunchReadinessPacket;
     },
   ): Record<string, unknown> {
+    const baseUrl = taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '');
+    const derivedNextAction = this.buildHandoffNextAction(baseUrl, handoff);
+    const effectiveNextAction = handoff.next_action ?? derivedNextAction;
     const timelineEvents = Array.isArray(handoff.handoffTimeline?.events)
       ? handoff.handoffTimeline.events
       : [];
     const clarificationState = this.buildTaskClarificationState(handoff.taskClarifications);
-    const needsHumanInput = Boolean(handoff.operatorQuestion)
-      || clarificationState.status === 'waiting_for_operator';
     const operatorQuestion = handoff.operatorQuestion as (typeof handoff.operatorQuestion & {
       question?: string;
     }) | null;
+    const latestOperatorAnswer = Array.isArray(handoff.operatorAnswers) ? handoff.operatorAnswers[0] : null;
+    const operatorQuestionText = operatorQuestion?.plainLanguageQuestion ?? operatorQuestion?.question ?? null;
+    const latestAnswerQuestion = latestOperatorAnswer?.sourceQuestion ?? null;
+    const latestAnswerStage = latestOperatorAnswer?.sourceStage ?? null;
+    const currentQuestionStage = operatorQuestion?.sourceStage ?? null;
+    const operatorQuestionAnswered = Boolean(latestOperatorAnswer)
+      && (!operatorQuestionText || latestAnswerQuestion === operatorQuestionText)
+      && (!currentQuestionStage || latestAnswerStage === currentQuestionStage);
+    const needsHumanInput = (Boolean(handoff.operatorQuestion) && !operatorQuestionAnswered)
+      || clarificationState.status === 'waiting_for_operator';
     const julesPrompt = handoff.prompt.trim()
       ? {
           status: handoff.manifestPath ? 'manifest_staged' : 'prompt_prepared',
@@ -2378,7 +2471,7 @@ export class HttpServer {
     };
     const currentBoundaryLabel = needsHumanInput
       ? 'Needs human input'
-      : this.readStringField(handoff.next_action, 'label') ?? handoff.status;
+      : this.readStringField(effectiveNextAction, 'label') ?? handoff.status;
     const guardedActions = this.buildHandoffGuardedActions(handoff);
     const approvalCheckpoint = this.buildTaskApprovalCheckpoint(handoff, guardedActions);
 
@@ -2390,16 +2483,16 @@ export class HttpServer {
       id: handoff.id,
       title: handoff.title,
       status: handoff.status,
-      summary: this.readStringField(handoff.next_action, 'summary')
+      summary: this.readStringField(effectiveNextAction, 'summary')
         ?? handoff.githubPullRequestFeedback?.summary
         ?? 'Handoff is waiting for the next recorded Symphony boundary.',
       currentBoundary: {
         label: currentBoundaryLabel,
         detail: needsHumanInput
           ? operatorQuestion?.plainLanguageQuestion ?? operatorQuestion?.question ?? null
-          : this.readStringField(handoff.next_action, 'detail'),
-        endpoint: this.readStringField(handoff.next_action, 'endpoint'),
-        method: this.readStringField(handoff.next_action, 'method'),
+          : this.readStringField(effectiveNextAction, 'detail'),
+        endpoint: this.readStringField(effectiveNextAction, 'endpoint') ?? this.readStringField(effectiveNextAction, 'url'),
+        method: this.readStringField(effectiveNextAction, 'method'),
       },
       needsHumanInput,
       expectedFiles: handoff.expectedFiles,
@@ -2421,6 +2514,7 @@ export class HttpServer {
         taskClarifications: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(handoff.id)}/clarifications`,
         taskDisposition: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/tasks/${encodeURIComponent(handoff.id)}/disposition`,
         operatorAnswer: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/operator-answer`,
+        executeRepairLane: `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/execute-repair-lane`,
         repairPushResult: handoff.repairPushReadiness && !handoff.repairPushResult
           ? `${taskQueueUrl.replace(/\/api\/v1\/task-drafts$/, '')}/api/v1/jules-handoffs/${encodeURIComponent(handoff.id)}/repair-push-result`
           : null,
@@ -2506,12 +2600,12 @@ export class HttpServer {
         summary: this.readStringField(nextAction, 'summary') ?? this.readStringField(nextAction, 'detail') ?? 'Use the guarded Symphony endpoint for the current boundary.',
         endpoint: nextEndpoint,
         method: nextMethod,
-        safety: 'guarded_symphony_endpoint',
+        safety: this.readStringField(nextAction, 'safety') ?? 'guarded_symphony_endpoint',
         requiresOperator: true,
         canRunNow: false,
-        mutatesExternalSystemsIfRun: false,
-        mutatesLocalFilesIfRun: false,
-        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: nextAction.mutatesExternalSystemsIfRun === true,
+        mutatesLocalFilesIfRun: nextAction.mutatesLocalFilesIfRun === true,
+        mutatesGitIfRun: nextAction.mutatesGitIfRun === true,
       });
     }
 
@@ -2968,6 +3062,7 @@ export class HttpServer {
     const hasDashboardPr = Boolean(dashboardHandoff?.githubPullRequestUrl);
     const hasObservedPr = Boolean(prHandoff?.status === 'observed_pr' && prHandoff.githubPullRequestUrl);
     const hasPr = hasDashboardPr || hasObservedPr;
+    const completedWithoutPr = Boolean(manifestHandoff?.julesState === 'COMPLETED' && !hasDashboardPr);
     const prState = prHandoff?.githubPullRequestState ?? null;
     const prChecks = prHandoff?.githubPullRequestChecks ?? null;
     const hasPrBlocker = prChecks?.failed ? prChecks.failed > 0 : false;
@@ -3071,20 +3166,28 @@ export class HttpServer {
       {
         id: 'jules_session',
         label: 'Jules session',
-        status: hasSession ? 'active' : 'waiting',
+        status: completedWithoutPr ? 'blocked' : hasSession ? hasPr ? 'complete' : 'active' : 'waiting',
         sourceId: manifestHandoff?.id ?? null,
         sourceTitle: manifestHandoff?.title ?? null,
         detail: hasSession
-          ? `Jules state is ${manifestHandoff?.julesState ?? 'unknown'}.`
+          ? completedWithoutPr
+            ? 'Jules reported COMPLETED, but Symphony has no PR URL or completion result yet.'
+            : `Jules state is ${manifestHandoff?.julesState ?? 'unknown'}.`
           : 'Waiting for Jules launch and status refresh.',
-        endpoint: manifestHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(manifestHandoff.id)}/refresh-status` : null,
-        method: manifestHandoff ? 'POST' : 'NONE',
+        endpoint: completedWithoutPr
+          ? manifestHandoff?.julesSessionUrl ?? null
+          : manifestHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(manifestHandoff.id)}/refresh-status` : null,
+        method: completedWithoutPr ? 'GET' : manifestHandoff ? 'POST' : 'NONE',
         canRunNow: Boolean(hasSession && manifestHandoff),
         mutatesGitIfRun: false,
         mutatesExternalSystemsIfRun: false,
-        mutatesLocalFilesIfRun: Boolean(hasSession && manifestHandoff),
-        blockedBy: hasSession ? [] : ['Jules session receipt is missing.'],
-        expectedProof: 'Refreshed Jules state, plan approval state, or PR/session boundary.',
+        mutatesLocalFilesIfRun: Boolean(hasSession && manifestHandoff && !completedWithoutPr),
+        blockedBy: completedWithoutPr
+          ? ['Jules completed without a captured PR URL; inspect the visible Jules session or API result before filing Package 2.']
+          : hasSession ? [] : ['Jules session receipt is missing.'],
+        expectedProof: completedWithoutPr
+          ? 'Visible Jules completion result proving PR URL, no-PR completion, failure, or required operator follow-up.'
+          : 'Refreshed Jules state, plan approval state, or PR/session boundary.',
         receipt: manifestHandoff?.julesSessionUrl ?? manifestHandoff?.julesSessionId ?? null,
       },
       {
@@ -3151,8 +3254,25 @@ export class HttpServer {
     ];
 
     const activeStages = stages.filter(stage => stage.status === 'active');
-    const current = stages.find(stage => stage.status === 'blocked')
-      ?? stages.find(stage => stage.status === 'ready')
+    // Once Jules has launched, refreshing that cloud session is a safe
+    // dashboard action even if the local receipt-writing branch later makes Git
+    // preflight red again. Keep the running Jules boundary visible so a human
+    // foreman can continue monitoring the live worker instead of being pushed
+    // back to a pre-launch Git gate that no longer owns the next proof.
+    const liveJulesStage = activeStages.find(stage => stage.id === 'github_pr')
+      ?? activeStages.find(stage => stage.id === 'jules_session')
+      ?? null;
+    const unresolvedCompletedJulesStage = completedWithoutPr
+      ? stages.find(stage => stage.id === 'jules_session') ?? null
+      : null;
+    const downstreamReviewBlocker = hasPr
+      ? stages.find(stage => (stage.id === 'github_pr' || stage.id === 'scout_core') && stage.status === 'blocked') ?? null
+      : null;
+    const current = stages.find(stage => stage.status === 'ready')
+      ?? unresolvedCompletedJulesStage
+      ?? downstreamReviewBlocker
+      ?? liveJulesStage
+      ?? stages.find(stage => stage.status === 'blocked')
       ?? activeStages[activeStages.length - 1]
       ?? stages.find(stage => stage.status === 'waiting')
       ?? stages[stages.length - 1];
@@ -3201,6 +3321,50 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedReason,
         instruction: 'Review the Git disposition packet, record human-owned decisions for local commits, tracked changes, untracked artifacts, and remote commits, then rerun the GitHub sync preflight.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'jules_session' && stage.status === 'active') {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Refresh Jules Status',
+        status: stage.status,
+        method: stage.endpoint ? stage.method : 'NONE',
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: Boolean(stage.endpoint),
+        requiresOperator: false,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: Boolean(stage.mutatesLocalFilesIfRun),
+        blockedReason,
+        instruction: 'Use the dashboard refresh control for this Jules session, then record whether Jules needs plan approval, feedback, a PR review, or more waiting.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'jules_session' && stage.status === 'blocked') {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Inspect Jules Completion',
+        status: stage.status,
+        method: stage.endpoint ? stage.method : 'NONE',
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: Boolean(stage.endpoint),
+        requiresOperator: true,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: 'Open the visible Jules session result, then record whether the completed run produced a PR URL, failed, or completed without code changes.',
         expectedProof: stage.expectedProof,
       };
     }
@@ -3814,6 +3978,11 @@ export class HttpServer {
         github_pull_request_url: handoff.githubPullRequestUrl,
       }
       : {};
+    const latestOperatorAnswer = Array.isArray(handoff.operatorAnswers) ? handoff.operatorAnswers[0] : null;
+    const hasExecutedSelectedRepairLane = Array.isArray(handoff.repairLaneExecutions)
+      && handoff.repairLaneExecutions.some(execution =>
+        execution.selectedAction === latestOperatorAnswer?.selectedAction && execution.createdDraftId
+      );
 
     const action = (
       code: string,
@@ -3829,6 +3998,21 @@ export class HttpServer {
     // This mirrors the dashboard's operator plan in a compact JSON shape. The
     // browser can render richer guidance, but headless Codex foremen need the
     // same safe next button without scraping client-side HTML or guessing URLs.
+    if (latestOperatorAnswer?.selectedAction === 'create_setup_repair_task' && !hasExecutedSelectedRepairLane) {
+      return action('execute_setup_repair_lane', 'ready', 'Create Local Setup Repair Draft',
+        'The operator chose the setup-repair lane. Create a local repair draft before sending Jules feedback or changing Package 2 code.',
+        links.executeRepairLane,
+        'POST',
+        ['Create the local setup repair draft.', 'Review the draft write scope and verification commands.', 'Continue through the normal Linear/Jules gates for that repair slice.'],
+        {
+          ...pullRequestContext,
+          safety: 'guarded_local_receipt',
+          mutatesExternalSystemsIfRun: false,
+          mutatesLocalFilesIfRun: true,
+          mutatesGitIfRun: false,
+        });
+    }
+
     if (handoff.status === 'observed_pr') {
       if (handoff.githubPullRequestState === 'CLOSED') {
         return action('record_observed_learning', 'waiting', 'Record Observed Learning',
@@ -3944,6 +4128,21 @@ export class HttpServer {
           request_body_example: {
             body: 'Short bounded feedback for Jules after inspecting the session request.',
           },
+        });
+    }
+
+    if (!hasPullRequest && handoff.julesState === 'COMPLETED') {
+      return action('inspect_jules_completion', 'blocked', 'Inspect Jules Completion',
+        'Jules reported COMPLETED, but Symphony has no PR URL or completion result. Open the visible Jules session before deciding whether this handoff produced a PR, failed, or completed without code changes.',
+        handoff.julesSessionUrl ?? null,
+        handoff.julesSessionUrl ? 'GET' : null,
+        ['Open the Jules session evidence link in the signed-in browser.', 'Record the visible result: PR URL, no-PR completion, failure, or operator follow-up.', 'Only move to PR review or filing after that proof is captured.'],
+        {
+          // A completed Jules session with no PR is a workflow decision point,
+          // not another polling loop. Carry the session link so the dashboard
+          // can show the human-readable inspection boundary directly.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
         });
     }
 
@@ -4384,6 +4583,7 @@ export class HttpServer {
       message: `${baseUrl}/api/v1/jules-handoffs/${encoded}/message`,
       approvePlan: `${baseUrl}/api/v1/jules-handoffs/${encoded}/approve-plan`,
       refreshPullRequest: `${baseUrl}/api/v1/jules-handoffs/${encoded}/refresh-pr`,
+      executeRepairLane: `${baseUrl}/api/v1/jules-handoffs/${encoded}/execute-repair-lane`,
       createFollowUpDraft: `${baseUrl}/api/v1/jules-handoffs/${encoded}/create-follow-up-draft`,
       deploymentReadiness: `${baseUrl}/api/v1/jules-handoffs/${encoded}/deployment-readiness`,
       refreshLocalSync: `${baseUrl}/api/v1/jules-handoffs/${encoded}/refresh-local-sync`,

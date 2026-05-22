@@ -73,6 +73,10 @@ const gitSyncAttemptReceipt = readFileSync(
   join(repoRoot, 'docs', 'tasks', 'spells', 'PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md'),
   'utf8',
 );
+const handoffReceipt = readFileSync(
+  join(repoRoot, 'docs', 'tasks', 'spells', 'PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md'),
+  'utf8',
+);
 
 assert.match(task, /# Package 2 Jules Task: Premade Party And Gear/);
 assert.match(task, /Status: local Symphony draft created; setup branch pushed; fresh Symphony\s+readiness preflight required before Jules dispatch/);
@@ -238,7 +242,7 @@ assert.deepEqual(taskDraftPayload.verificationCommands, [
 ]);
 
 assert.match(readinessChecklist, /# Package 2 Dispatch Readiness Checklist/);
-assert.match(readinessChecklist, /Status: setup branch pushed; fresh Symphony readiness preflight required before\s+Jules dispatch/);
+assert.match(readinessChecklist, /Status: dispatched to Jules; waiting on Jules queue\/plan\/PR state/);
 assert.match(readinessChecklist, /Ready Artifacts/);
 assert.match(readinessChecklist, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT\.md/);
@@ -252,6 +256,7 @@ assert.match(readinessChecklist, /PACKAGE_2_TASK_COMMUNICATION_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT\.md/);
 assert.match(readinessChecklist, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
+assert.match(readinessChecklist, /PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT\.md/);
 assert.match(readinessChecklist, /jules\/spells-package2-premade-party-gear/);
 assert.match(readinessChecklist, /codex\/spells-package2-premade-party-gear-review/);
 assert.match(readinessChecklist, /F:\\Repos\\Aralia\\\.worktrees\\spells-package2-premade-party-gear/);
@@ -262,19 +267,16 @@ assert.match(readinessChecklist, /jules-env-config-spell-phase1-package2-scoped-
 assert.match(readinessChecklist, /local POST to `\/api\/v1\/task-drafts` has been sent/);
 assert.match(readinessChecklist, /draft-1779344522441-vdy0hi/);
 assert.match(readinessChecklist, /blocked_by_git_sync/);
-assert.match(readinessChecklist, /No Package 2 Jules task has been dispatched/);
-assert.match(readinessChecklist, /codex\/spell-phase1-symphony-package2-setup/);
-assert.match(readinessChecklist, /origin\/codex\/spell-phase1-symphony-package2-setup/);
-assert.match(readinessChecklist, /6fc9e81a/);
+assert.match(readinessChecklist, /draft-1779400428597-mind7o/);
+assert.match(readinessChecklist, /Linear issue `ARA-7` has been created/);
+assert.match(readinessChecklist, /handoff-1779400495781-jauy49/);
+assert.match(readinessChecklist, /Jules session `15527431301408060204` is queued/);
 assert.match(readinessChecklist, /No Package 2 implementation branch or worktree has been created/);
 assert.match(readinessChecklist, /No Package 2 PR has been opened/);
 assert.match(readinessChecklist, /No Package 2 task-scoped ROI savings claim is allowed yet/);
 assert.match(readinessChecklist, /Next Dispatch Steps/);
-assert.match(readinessChecklist, /Rerun or explicitly classify the remaining Git sync blockers/);
-assert.match(readinessChecklist, /Could not fetch origin/);
-assert.match(readinessChecklist, /tracked dirty files/);
-assert.match(readinessChecklist, /untracked files/);
-assert.match(readinessChecklist, /Dispatch Jules with the exact prompt/);
+assert.match(readinessChecklist, /Refresh Jules session `15527431301408060204` until it leaves `QUEUED`/);
+assert.match(readinessChecklist, /asks for plan approval, opens a PR, or reports a\s+blocker/);
 assert.match(readinessChecklist, /roi-foreman-usage/);
 assert.match(readinessChecklist, /roi-estimate/);
 assert.match(readinessChecklist, /before\s+deciding Package 3 can begin/);
@@ -286,17 +288,41 @@ assert.match(readinessChecklist, /do not dispatch Package 2/);
 assert.match(readinessChecklist, /npm install --no-audit --no-fund/);
 
 assert.match(draftSubmissionReceipt, /# Package 2 Symphony Draft Submission Receipt/);
-assert.match(draftSubmissionReceipt, /Status: submitted to local Symphony; old Git sync blocker needs refreshed\s+preflight after successful setup-branch push/);
+assert.match(draftSubmissionReceipt, /Status: superseded by clean-base draft and Jules launch receipt/);
 assert.match(draftSubmissionReceipt, /draft-1779344522441-vdy0hi/);
 assert.match(draftSubmissionReceipt, /blocked_by_git_sync/);
 assert.match(draftSubmissionReceipt, /Could not fetch origin/);
 assert.match(draftSubmissionReceipt, /16 tracked file\(s\) have uncommitted changes/);
 assert.match(draftSubmissionReceipt, /19 untracked file\(s\) are present/);
-assert.match(draftSubmissionReceipt, /origin\/codex\/spell-phase1-symphony-package2-setup/);
-assert.match(draftSubmissionReceipt, /6fc9e81a/);
-assert.match(draftSubmissionReceipt, /fresh Symphony task queue or Git preflight snapshot/);
-assert.match(draftSubmissionReceipt, /did not dispatch\s+Jules/);
+assert.match(draftSubmissionReceipt, /40678de8bdc3ce58db0c97e062f5a170526e4fa7/);
+assert.match(draftSubmissionReceipt, /draft-1779400428597-mind7o/);
+assert.match(draftSubmissionReceipt, /ARA-7/);
+assert.match(draftSubmissionReceipt, /handoff-1779400495781-jauy49/);
+assert.match(draftSubmissionReceipt, /15527431301408060204/);
 assert.match(draftSubmissionReceipt, /PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT\.md/);
+
+assert.match(handoffReceipt, /# Package 2 Symphony Handoff Receipt/);
+// The receipt is intentionally allowed to advance as the visible Jules handoff
+// advances. These assertions protect the current PR-review/setup-repair state
+// so future agents do not accidentally describe the handoff as still merely
+// queued or only waiting on Jules plan approval.
+assert.match(handoffReceipt, /Status: PR #935 returned; Codex foreman review and Scout\/Core bridge active/);
+assert.match(handoffReceipt, /40678de8bdc3ce58db0c97e062f5a170526e4fa7/);
+assert.match(handoffReceipt, /draft-1779400428597-mind7o/);
+assert.match(handoffReceipt, /ARA-7/);
+assert.match(handoffReceipt, /handoff-1779400495781-jauy49/);
+assert.match(handoffReceipt, /15527431301408060204/);
+assert.match(handoffReceipt, /Latest dashboard-refreshed Jules state: `IN_PROGRESS`/);
+assert.match(handoffReceipt, /Dashboard-First Blocker Found/);
+assert.match(handoffReceipt, /visible Symphony dashboard/);
+assert.match(handoffReceipt, /Current Foreman Boundary/);
+assert.match(handoffReceipt, /Visible Jules Plan Approval Found/);
+assert.match(handoffReceipt, /dashboard-linked\s+Jules session did not show a finished Package 2 result/);
+assert.match(handoffReceipt, /Package 2 handoff reconciled to\s+`IN_PROGRESS`/);
+assert.match(handoffReceipt, /Returned PR #935/);
+assert.match(handoffReceipt, /Setup Repair Root Cause/);
+assert.match(handoffReceipt, /gemini-review\.yml/);
+assert.match(handoffReceipt, /Focused local verification on synced `master` passed/);
 
 assert.match(gitSyncAttemptReceipt, /# Package 2 Git Sync Attempt Receipt/);
 assert.match(gitSyncAttemptReceipt, /Status: remote branch pushed; Symphony readiness still needs a fresh preflight/);
@@ -330,25 +356,43 @@ assert.match(roiBaselineReceipt, /ROI is unknown/);
 assert.match(roiBaselineReceipt, /not measured savings/);
 
 assert.match(atlasGateCheckpointReceipt, /# Package 2 Atlas And Gate Checkpoint Receipt/);
-assert.match(atlasGateCheckpointReceipt, /Status: pending Package 2 implementation/);
-assert.match(atlasGateCheckpointReceipt, /Spell gate refresh run for Package 2: `no`/);
-assert.match(atlasGateCheckpointReceipt, /Atlas review\/update run for Package 2: `no`/);
+// The checkpoint receipt now tracks the returned PR #935 review state. These
+// assertions keep the gate evidence current without pretending Atlas has been
+// completed or that Package 3 can start.
+assert.match(atlasGateCheckpointReceipt, /Status: active Package 2 gate checkpoint/);
+assert.match(atlasGateCheckpointReceipt, /Package 2 implementation PR exists: `yes`/);
+assert.match(atlasGateCheckpointReceipt, /Spell gate refresh run for Package 2: `yes`/);
+assert.match(atlasGateCheckpointReceipt, /Atlas review\/update run for Package 2: `not_yet`/);
+assert.match(atlasGateCheckpointReceipt, /Package 2 PR: `https:\/\/github\.com\/Gambitnl\/Aralia\/pull\/935`/);
+assert.match(atlasGateCheckpointReceipt, /459 \/ 459/);
+assert.match(atlasGateCheckpointReceipt, /16` tests passed/);
+assert.match(atlasGateCheckpointReceipt, /Scout\/Core now reports\s+`outOfScopeFiles: \[\]`/);
 assert.match(atlasGateCheckpointReceipt, /npm run validate:spells/);
 assert.match(atlasGateCheckpointReceipt, /npm run generate:spell-gates/);
 assert.match(atlasGateCheckpointReceipt, /npx vitest run src\/utils\/combat\/__tests__\/combatUtils_\*\.test\.ts --reporter=verbose/);
 assert.match(atlasGateCheckpointReceipt, /public\/data\/spell_gate_report\.json/);
-assert.match(atlasGateCheckpointReceipt, /Can Package 3 begin after this checkpoint/);
+assert.match(atlasGateCheckpointReceipt, /Can Package 3 begin after this checkpoint: `no`/);
 assert.match(atlasGateCheckpointReceipt, /Do not mark this receipt complete before Package 2 has real implementation\s+evidence/);
 assert.match(atlasGateCheckpointReceipt, /Do not use this receipt to claim visual spellbook or character creator proof/);
 
 assert.match(foremanReviewReceipt, /# Package 2 Foreman Review And Failure Classification Receipt/);
-assert.match(foremanReviewReceipt, /Status: pending Package 2 implementation/);
-assert.match(foremanReviewReceipt, /Package 2 Jules handoff exists: `no`/);
-assert.match(foremanReviewReceipt, /Failure classification complete: `no`/);
+// The foreman receipt has advanced from a blank template to the active PR #935
+// review desk. It should prove the local Package 2 slice is reviewed while
+// keeping the failed GitHub checks and reviewability decision visible.
+assert.match(foremanReviewReceipt, /Status: active PR #935 foreman review/);
+assert.match(foremanReviewReceipt, /Package 2 Jules handoff exists: `yes`/);
+assert.match(foremanReviewReceipt, /Package 2 PR or patch exists: `yes`/);
+assert.match(foremanReviewReceipt, /Scope review complete: `yes`/);
+assert.match(foremanReviewReceipt, /Local verification complete: `yes`/);
+assert.match(foremanReviewReceipt, /Failure classification complete: `partial`/);
+assert.match(foremanReviewReceipt, /Can Package 3 begin from this receipt: `no`/);
+assert.match(foremanReviewReceipt, /outOfScopeFiles: \[\]/);
 assert.match(foremanReviewReceipt, /Scope Review Fields/);
 assert.match(foremanReviewReceipt, /Files within allowed write scope/);
 assert.match(foremanReviewReceipt, /Character creator UI touched/);
 assert.match(foremanReviewReceipt, /Verification Fields/);
+assert.match(foremanReviewReceipt, /459 \/ 459/);
+assert.match(foremanReviewReceipt, /16` tests passed/);
 assert.match(foremanReviewReceipt, /Failure Classification/);
 assert.match(foremanReviewReceipt, /`scope`/);
 assert.match(foremanReviewReceipt, /`data`/);
@@ -359,23 +403,36 @@ assert.match(foremanReviewReceipt, /Review Outcomes/);
 assert.match(foremanReviewReceipt, /ready_for_pr_follow_through/);
 assert.match(foremanReviewReceipt, /needs_jules_feedback/);
 assert.match(foremanReviewReceipt, /needs_codex_review_repair/);
+assert.match(foremanReviewReceipt, /Current outcome: `needs_operator_decision`/);
+assert.match(foremanReviewReceipt, /Gemini review job fails/);
+assert.match(foremanReviewReceipt, /large JSON formatting churn/);
 assert.match(foremanReviewReceipt, /blocked_do_not_advance/);
 assert.match(foremanReviewReceipt, /Do not mark Package 2 complete from Jules status alone/);
 assert.match(foremanReviewReceipt, /If Codex performs any review repair, record why Jules feedback was not the\s+better first repair path/);
 
 assert.match(taskCommunicationReceipt, /# Package 2 Task Communication Receipt/);
-assert.match(taskCommunicationReceipt, /Status: pending Package 2 Symphony task/);
-assert.match(taskCommunicationReceipt, /Symphony task draft exists: `no`/);
-assert.match(taskCommunicationReceipt, /Jules handoff\/session exists: `no`/);
-assert.match(taskCommunicationReceipt, /Task-scoped operator messages recorded: `no`/);
-assert.match(taskCommunicationReceipt, /Task-scoped Codex foreman messages recorded: `no`/);
+// Communication evidence is now partially live because the task page exists and
+// visible dashboard actions were used. The contract keeps the remaining
+// task-message typing gap visible instead of treating it as solved.
+assert.match(taskCommunicationReceipt, /Status: active Package 2 task communication receipt/);
+assert.match(taskCommunicationReceipt, /Symphony task draft exists: `yes`/);
+assert.match(taskCommunicationReceipt, /Jules handoff\/session exists: `yes`/);
+assert.match(taskCommunicationReceipt, /Task page communication available: `partial`/);
+assert.match(taskCommunicationReceipt, /Task-scoped operator messages recorded: `yes`/);
+assert.match(taskCommunicationReceipt, /Task-scoped Codex foreman messages recorded: `partial via receipts`/);
 assert.match(taskCommunicationReceipt, /Communication Channels To Record/);
 assert.match(taskCommunicationReceipt, /local task messages on the Package 2 task page/);
 assert.match(taskCommunicationReceipt, /structured task clarifications/);
 assert.match(taskCommunicationReceipt, /Jules prompt and any Jules dialogue/);
 assert.match(taskCommunicationReceipt, /Do not treat broad Codex thread context as task-scoped Package 2 communication/);
 assert.match(taskCommunicationReceipt, /Fields To Fill After Dispatch/);
-assert.match(taskCommunicationReceipt, /Can Package 2 advance from a communication standpoint/);
+assert.match(taskCommunicationReceipt, /draft-1779400428597-mind7o/);
+assert.match(taskCommunicationReceipt, /handoff-1779400495781-jauy49/);
+assert.match(taskCommunicationReceipt, /Run Safe Symphony Refresh/);
+assert.match(taskCommunicationReceipt, /Record Selected Decision/);
+assert.match(taskCommunicationReceipt, /Create Local Repair Draft/);
+assert.match(taskCommunicationReceipt, /draft-1779410025252-nnowpt/);
+assert.match(taskCommunicationReceipt, /Can Package 2 advance from a communication standpoint: `no`/);
 assert.match(taskCommunicationReceipt, /Do not send Jules feedback just to make this receipt non-empty/);
 
 assert.match(prDeploymentLocalSyncReceipt, /# Package 2 PR, Deployment, And Local Sync Receipt/);

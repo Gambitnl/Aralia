@@ -2264,7 +2264,12 @@ function buildSetupRepairDraftFromHandoff(
       '',
       'Keep this repair separate from Jules implementation feedback unless later evidence shows Jules changed the failing setup files.',
     ].filter(line => line !== '').join('\n'),
-    expectedFiles: ['package-lock.json', 'package.json', '.github/workflows/ci.yml'],
+    expectedFiles: [
+      'package-lock.json',
+      'package.json',
+      '.github/workflows/ci.yml',
+      '.github/workflows/gemini-review.yml',
+    ],
     verificationCommands: [
       'npm ci --no-audit --no-fund',
       'npm run build',
@@ -7920,10 +7925,31 @@ function repoPathsOverlap(scopePath: string, changedPath: string): boolean {
   if (!scope || !changed) return false;
   if (scope === changed) return true;
 
+  if (scope.includes('*')) {
+    // Expected-file entries often use lightweight glob patterns because a
+    // Jules slice can legitimately own a family of files. Treat those globs as
+    // review scope instead of marking every matching PR file out-of-scope.
+    return globScopeMatchesChangedPath(scope, changed);
+  }
+
   // A scope can be either a file (`src/foo.ts`) or a directory/prefix
   // (`src/components/CharacterCreator`). Treat either side containing the other
   // at a path boundary as in-scope so directory scopes remain ergonomic.
   return changed.startsWith(`${scope}/`) || scope.startsWith(`${changed}/`);
+}
+
+function globScopeMatchesChangedPath(scope: string, changed: string): boolean {
+  // This intentionally supports only the glob shapes used in task write scopes:
+  // `*` for one path segment and `**` for any nested path. It is not a shell;
+  // it is a small review-boundary matcher for dashboard risk classification.
+  const anyDepthToken = '___SYMPHONY_ANY_DEPTH___';
+  const escaped = scope
+    .replace(/\*\*/g, anyDepthToken)
+    .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '[^/]*')
+    .replace(new RegExp(anyDepthToken, 'g'), '.*');
+
+  return new RegExp(`^${escaped}$`).test(changed);
 }
 
 function classifyPullRequestFileRisk(path: string): { risk: 'low' | 'medium' | 'high'; reason: string | null } {

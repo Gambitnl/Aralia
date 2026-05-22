@@ -31,6 +31,8 @@ conductor/*
 conductor/symphony/*
 !conductor/symphony/scripts/
 conductor/symphony/scripts/*
+!conductor/symphony/scripts/verify-completed-jules-no-pr-boundary.mjs
+!conductor/symphony/scripts/verify-dashboard-interaction-stability.mjs
 !conductor/symphony/scripts/verify-delegation-roi-ledger.mjs
 !conductor/symphony/scripts/verify-gitignore-contract-boundary.mjs
 !conductor/symphony/scripts/verify-browser-tooling-health.mjs
