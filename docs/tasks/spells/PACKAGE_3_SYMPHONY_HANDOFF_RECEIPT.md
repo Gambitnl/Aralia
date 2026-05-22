@@ -48,6 +48,8 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | PR #954 captured | Waiting for repair | GitHub now has PR #954 on suffixed branch `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`. Dashboard PR refresh captured failing Build/Tests and Gemini review feedback. The agent recorded `send_jules_feedback`, posted marked feedback at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406`, and repaired Symphony so the task page now shows `Wait for Jules Repair` instead of repeating the workflow-config decision. |
 | Wait-loop repair merged | Done | PR #955 merged as `f3f8abafbd99882e9d103853ab8c837845ea990b` after Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The only failed lane was Gemini review quota exhaustion on `gemini-2.5-flash`, so the foreman treated it as advisory and kept Package 3 waiting on Jules. |
 | Post-feedback repair commit | Waiting for repair | Jules pushed PR head `0ce77a9c33adb230a0d52a1d4242434b846704f5`. Build and Lint are green, but Tests fail in `FeatureSelectionCheckboxes.test.tsx` because the edited feature-selection files no longer satisfy conditional disabled-prop coverage. The dashboard was patched to reopen the repair boundary after a post-feedback PR update, the visible task page recorded `send_jules_feedback`, and a second marked comment was posted at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519399645`. |
+| Post-feedback state-model repair merged | Done | PR #957 merged after Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The only failed lane was Gemini review quota exhaustion, so it was treated as advisory automation failure. |
+| Post-merge monitor branch resync | Done | After the PR #957 squash merge, the dashboard Git gate saw the local pre-squash monitor branch as ahead/behind. The foreman preserved that branch and switched this worktree to `codex/spell-phase1-monitor-13` from `origin/master`; the visible `Check GitHub Sync` control then reported ahead/behind `0 / 0` and a clean tree. |
 
 ## Current Boundary
 
@@ -60,7 +62,9 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   no PR movement from a post-feedback PR update that still fails. The live task
   page showed `Repair Failed Checks` after Jules' repair commit, then returned
   to `Wait for Jules Repair` after the selected Jules-feedback decision and PR
-  comment #4519399645.
+  comment #4519399645. PR #957 has merged that state model to `origin/master`.
+- Monitor worktree state: `codex/spell-phase1-monitor-13` is current with
+  `origin/master`; the visible dashboard Git sync gate reports ready.
 - Next proof: refresh the dashboard PR packet after Jules pushes a repair
   commit, then review checks, changed-file risk, Scout/Core readiness, and
   rendered spellbook/creator proof before merge.
@@ -184,3 +188,10 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   the foreman recorded `send_jules_feedback` through the visible decision
   control and posted the second marked PR comment at
   `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519399645`.
+- PR #957 merged that post-feedback state-model repair on 2026-05-22. The
+  normal project checks passed; the Gemini review lane failed only because the
+  configured model exhausted quota. After the squash merge, the dashboard Git
+  gate correctly exposed that the old local monitor branch still had the
+  pre-squash commit. The foreman preserved that branch, switched the worktree
+  to `codex/spell-phase1-monitor-13` from `origin/master`, and verified the
+  visible Git sync gate was clean before continuing to wait for Jules.
