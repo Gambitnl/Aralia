@@ -1,6 +1,6 @@
 # Package 3 Dispatch Readiness Checklist
 
-Status: launched to Jules; waiting for PR capture.
+Status: launched to Jules; visible Jules work in progress, waiting for PR capture.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task. It should be updated before dispatch, after Jules creates a
@@ -55,6 +55,11 @@ PR, and during closeout.
   `IN_PROGRESS`; visible Jules still showed the approved plan, no new feedback
   prompt, no PR link, and no visible failure. The agent kept the current Jules
   run alive rather than relaunching or splitting Package 3.
+- Post-PR #945 monitor: after the Package 3 monitor-decision docs merged, the
+  dashboard still reported `IN_PROGRESS` and no PR URL, while the visible Jules
+  page showed actual in-scope code changes and a `Working` pre-commit step. The
+  agent kept the current Jules run alive rather than downloading the zip,
+  rebuilding the diff locally, or relaunching the task.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
