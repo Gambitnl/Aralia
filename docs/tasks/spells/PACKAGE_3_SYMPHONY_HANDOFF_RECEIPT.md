@@ -44,6 +44,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Worktree local-sync gate repair | Done | PR #949 merged the Symphony repair that accepts a clean worktree branch at `origin/master` as a no-sync-needed proof; rendered dashboard inspection confirmed the blocker text disappeared on `codex/spell-phase1-package3-monitor-7`. |
 | Post-publish-request refresh | Waiting | After PR #949 merged and the dashboard restarted, the visible current-boundary refresh still reported Jules `IN_PROGRESS`, waiting for a PR, with no captured PR URL. GitHub still has no `jules/spells-package3-spellbook-creator-visibility` branch or PR. |
 | Task-routing focus repair | Done | The dashboard current-boundary lane stayed on Package 3, but the `Task routing and nudge plan` card selected older Package 2 because its post-merge local-sync receipt had the newest timestamp. PR #951 merged as `c9c97796cbeda7f1a765c371e7127543f2d1660f`, ranking live handoffs ahead of closed bookkeeping so Package 3 remains the visible route. |
+| Visible zip fallback attempt | Blocked | After PR #952 merged, the restarted dashboard still showed Package 3 `IN_PROGRESS` with no PR URL and GitHub still had no expected branch. The visible Jules page showed more Package 3 code updates and a `Download zip` control. Clicking that control failed because Codex's in-app browser does not support downloads. |
 
 ## Current Boundary
 
@@ -127,3 +128,13 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   Tests run hit the known ambient winter travel-time failure in
   `handleMovement.test.ts`; rerunning the same GitHub job passed without code
   changes.
+- PR #952 merged the closeout docs for the route-selector repair. The
+  post-merge dashboard on `codex/spell-phase1-package3-monitor-10` reported a
+  clean Git gate, kept task routing focused on Package 3, and still showed
+  Jules `IN_PROGRESS` with no PR URL. GitHub still had no expected Package 3
+  branch or PR.
+- The visible Jules session showed further Package 3 updates and a `Download
+  zip` control after the publish request. The foreman clicked the visible
+  control as the next fallback, but Codex's in-app browser reported that
+  downloads are not supported and no recent zip appeared locally. The foreman
+  stopped there instead of scraping code panes or using hidden export paths.
