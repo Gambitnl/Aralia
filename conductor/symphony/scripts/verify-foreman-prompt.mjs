@@ -60,6 +60,7 @@ assert(firstTurnPrompt.includes('Use `next_action.url` and `next_action.method` 
 assert(firstTurnPrompt.includes('When `next_action.request_body_schema` is present, follow that JSON shape exactly'));
 assert(firstTurnPrompt.includes('When `next_action.affected_pr_urls` is present, open those Jules PRs before giving Scout/Core guidance'));
 assert(firstTurnPrompt.includes('When `next_action.github_pull_request_url` is present, open that Jules PR before refreshing checks, giving Scout/Core guidance, or syncing local master'));
+assert(firstTurnPrompt.includes('The checked-out worktree must match that GitHub base commit before Jules starts'));
 assert(firstTurnPrompt.includes('When `next_action.jules_session_url` is present, inspect that Jules session before approving plans or sending feedback'));
 assert(firstTurnPrompt.includes('`conflict_watch.status` as `blocked`'));
 assert(firstTurnPrompt.includes('`conflict_watch.status` as `attention`'));

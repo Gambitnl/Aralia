@@ -888,6 +888,7 @@ export interface GitSyncNextAction {
     | 'ready_for_jules'
     | 'inspect_git_state'
     | 'switch_base_branch'
+    | 'publish_or_merge_current_branch'
     | 'review_local_changes'
     | 'resolve_divergence'
     | 'pull_fast_forward'
@@ -983,6 +984,21 @@ export function buildGitSyncNextAction(input: {
   }
 
   if (input.currentBranch !== input.baseBranch) {
+    if ((input.ahead ?? 0) > 0 || (input.behind ?? 0) > 0) {
+      return {
+        code: 'publish_or_merge_current_branch',
+        tone: 'blocked',
+        label: 'Publish or merge current branch',
+        command: null,
+        summary: `Symphony is on ${input.currentBranch || 'a detached branch'}, and that checkout does not yet match ${input.remoteBranch}. Jules must start from the GitHub base commit.`,
+        steps: [
+          'Publish the current branch and merge the intended handoff base to GitHub, or switch to a checkout that already matches GitHub.',
+          'Do not push unrelated local master commits just to clear this gate.',
+          'Re-run Check GitHub Sync after GitHub has the intended base commit.',
+        ],
+      };
+    }
+
     return {
       code: 'switch_base_branch',
       tone: 'blocked',
@@ -4985,18 +5001,21 @@ export class TaskIntakeStore {
     if (!currentBranchResult.ok) {
       blockers.push('Could not determine the current branch.');
       details.push(currentBranchResult.message);
-    } else if (currentBranch !== this.baseBranch) {
-      blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
     }
 
     // Capture the exact commits on both sides of the sync gate. The ahead /
-    // behind counts are useful, but the human-facing proof is "these two hashes
-    // match", because Jules will clone the GitHub commit rather than the local
-    // working tree.
-    const localCommitResult = await this.git(['rev-parse', this.baseBranch]);
+    // behind counts are useful, but the human-facing proof is "this checked-out
+    // worktree commit matches GitHub's base commit." That lets a clean planning
+    // worktree based on origin/master pass without dragging unrelated local
+    // master commits into the Jules handoff.
+    const localRef = currentBranch === this.baseBranch ? this.baseBranch : 'HEAD';
+    const localRefLabel = currentBranch === this.baseBranch
+      ? this.baseBranch
+      : (currentBranch || 'detached HEAD');
+    const localCommitResult = await this.git(['rev-parse', localRef]);
     const localCommit = localCommitResult.ok ? localCommitResult.stdout.trim() || null : null;
     if (!localCommitResult.ok) {
-      blockers.push(`Could not read the local ${this.baseBranch} commit.`);
+      blockers.push(`Could not read the local ${localRefLabel} commit.`);
       details.push(localCommitResult.message);
     }
 
@@ -5033,7 +5052,7 @@ export class TaskIntakeStore {
       'rev-list',
       '--left-right',
       '--count',
-      `${this.baseBranch}...${remoteBranch}`,
+      `${localRef}...${remoteBranch}`,
     ]);
     const [aheadRaw, behindRaw] = divergenceResult.ok
       ? divergenceResult.stdout.trim().split(/\s+/)
@@ -5042,26 +5061,34 @@ export class TaskIntakeStore {
     const behind = Number.isFinite(Number(behindRaw)) ? Number(behindRaw) : null;
 
     if (!divergenceResult.ok) {
-      blockers.push(`Could not compare ${this.baseBranch} with ${remoteBranch}.`);
+      blockers.push(`Could not compare ${localRefLabel} with ${remoteBranch}.`);
       details.push(divergenceResult.message);
     } else {
-      if ((ahead ?? 0) > 0) blockers.push(`${this.baseBranch} has ${ahead} unpushed commit(s).`);
-      if ((behind ?? 0) > 0) blockers.push(`${this.baseBranch} is behind ${remoteBranch} by ${behind} commit(s).`);
+      if (currentBranch !== this.baseBranch && ((ahead ?? 0) > 0 || (behind ?? 0) > 0)) {
+        if ((ahead ?? 0) > 0) blockers.push(`Current branch ${localRefLabel} has ${ahead} commit(s) that are not on ${remoteBranch}.`);
+        if ((behind ?? 0) > 0) blockers.push(`Current branch ${localRefLabel} is behind ${remoteBranch} by ${behind} commit(s).`);
+      } else {
+        if ((ahead ?? 0) > 0) blockers.push(`${this.baseBranch} has ${ahead} unpushed commit(s).`);
+        if ((behind ?? 0) > 0) blockers.push(`${this.baseBranch} is behind ${remoteBranch} by ${behind} commit(s).`);
+      }
     }
 
     const ok = blockers.length === 0;
     const commands = {
       status: `git -C ${this.repoRoot} status --short`,
       fetch: `git -C ${this.repoRoot} fetch ${this.remoteName}`,
-      showLocalCommit: `git -C ${this.repoRoot} rev-parse ${this.baseBranch}`,
+      showLocalCommit: `git -C ${this.repoRoot} rev-parse ${localRef}`,
       showRemoteCommit: `git -C ${this.repoRoot} rev-parse ${remoteBranch}`,
-      inspectDivergence: `git -C ${this.repoRoot} log --oneline --left-right ${this.baseBranch}...${remoteBranch}`,
+      inspectDivergence: `git -C ${this.repoRoot} log --oneline --left-right ${localRef}...${remoteBranch}`,
       pullFastForward: `git -C ${this.repoRoot} pull --ff-only ${this.remoteName} ${this.baseBranch}`,
-      pushBase: `git -C ${this.repoRoot} push ${this.remoteName} ${this.baseBranch}`,
+      pushBase: currentBranch === this.baseBranch
+        ? `git -C ${this.repoRoot} push ${this.remoteName} ${this.baseBranch}`
+        : `git -C ${this.repoRoot} push ${this.remoteName} HEAD:${currentBranch || this.baseBranch}`,
     };
     const resolutionPacket = await this.buildGitResolutionPacket({
       checkedAt,
       remoteBranch,
+      localRef,
       commands,
       statusLines,
     });
@@ -5092,7 +5119,7 @@ export class TaskIntakeStore {
       untrackedFiles,
       blockers,
       summary: ok
-        ? `Ready: ${this.baseBranch} matches ${remoteBranch} and the working tree is clean.`
+        ? `Ready: ${localRefLabel} matches ${remoteBranch} and the working tree is clean.`
         : `Blocked: ${blockers[0]}`,
       details,
       dirtyFileSamples,
@@ -5138,7 +5165,12 @@ export class TaskIntakeStore {
     // Jules starts from GitHub, so anything local-only must either be pushed,
     // intentionally set aside, or left blocked before a cloud task begins.
     if (input.currentBranch !== input.baseBranch) {
-      steps.push(`Switch to ${input.baseBranch} before starting Jules, or intentionally change the Symphony base branch.`);
+      if ((input.ahead ?? 0) > 0 || (input.behind ?? 0) > 0) {
+        steps.push(`Publish or merge ${input.currentBranch || 'the current branch'} so the intended handoff base is visible on ${input.remoteBranch}.`);
+        steps.push('Do not push unrelated local master commits just to clear this branch gate.');
+      } else {
+        steps.push(`Switch to ${input.baseBranch} before starting Jules, or intentionally change the Symphony base branch.`);
+      }
     }
 
     if (input.dirtyFiles > 0 || input.untrackedFiles > 0) {
@@ -5173,6 +5205,7 @@ export class TaskIntakeStore {
   private async buildGitResolutionPacket(input: {
     checkedAt: string;
     remoteBranch: string;
+    localRef: string;
     commands: GitSyncPreflight['commands'];
     statusLines: string[];
   }): Promise<GitResolutionPacket> {
@@ -5196,7 +5229,7 @@ export class TaskIntakeStore {
       'log',
       '--oneline',
       '--left-right',
-      `${this.baseBranch}...${input.remoteBranch}`,
+      `${input.localRef}...${input.remoteBranch}`,
     ]);
     const divergenceLines = divergenceResult.ok
       ? divergenceResult.stdout.split(/\r?\n/).filter(Boolean)

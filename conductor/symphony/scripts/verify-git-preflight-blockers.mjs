@@ -77,19 +77,38 @@ try {
   assert(missingRemotePreflight.blockers.some(item => item.includes('Could not read the GitHub origin/master commit.')));
   assert.equal(missingRemotePreflight.nextAction.code, 'inspect_git_state');
 
-  const wrongBranchRoot = join(root, 'wrong-branch');
-  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", wrongBranchRoot]);
-  const wrongBranch = await prepareSyncedRepo(wrongBranchRoot);
-  await git(wrongBranch.repo, ['checkout', '-b', 'feature/local-work']);
+  const cleanWorktreeBranchRoot = join(root, 'clean-worktree-branch');
+  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", cleanWorktreeBranchRoot]);
+  const cleanWorktreeBranch = await prepareSyncedRepo(cleanWorktreeBranchRoot);
+  await git(cleanWorktreeBranch.repo, ['checkout', '-b', 'codex/spell-phase1-dashboard-stitch-flow']);
 
-  const wrongBranchPreflight = await new TaskIntakeStore({
-    repoRoot: wrongBranch.repo,
-    storePath: join(root, 'stores', 'wrong-branch.json'),
+  const cleanWorktreeBranchPreflight = await new TaskIntakeStore({
+    repoRoot: cleanWorktreeBranch.repo,
+    storePath: join(root, 'stores', 'clean-worktree-branch.json'),
   }).runGitSyncPreflight();
 
-  assert.equal(wrongBranchPreflight.ok, false);
-  assert(wrongBranchPreflight.blockers.some(item => item.includes('Current branch is feature/local-work, not master.')));
-  assert.equal(wrongBranchPreflight.nextAction.code, 'switch_base_branch');
+  // A named worktree branch is safe when its checked-out commit exactly matches
+  // GitHub's base commit. This protects the dashboard-first flow from pulling
+  // unrelated local master work into a Jules handoff just to satisfy branch name.
+  assert.equal(cleanWorktreeBranchPreflight.ok, true);
+  assert.equal(cleanWorktreeBranchPreflight.currentBranch, 'codex/spell-phase1-dashboard-stitch-flow');
+  assert.equal(cleanWorktreeBranchPreflight.localCommit, cleanWorktreeBranchPreflight.remoteCommit);
+  assert.equal(cleanWorktreeBranchPreflight.nextAction.code, 'ready_for_jules');
+
+  const unpublishedBranchRoot = join(root, 'unpublished-branch');
+  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", unpublishedBranchRoot]);
+  const unpublishedBranch = await prepareSyncedRepo(unpublishedBranchRoot);
+  await git(unpublishedBranch.repo, ['checkout', '-b', 'feature/local-work']);
+  await writeAndCommit(unpublishedBranch.repo, 'LOCAL_BRANCH.md', 'branch-local work\n', 'Move current branch only');
+
+  const unpublishedBranchPreflight = await new TaskIntakeStore({
+    repoRoot: unpublishedBranch.repo,
+    storePath: join(root, 'stores', 'unpublished-branch.json'),
+  }).runGitSyncPreflight();
+
+  assert.equal(unpublishedBranchPreflight.ok, false);
+  assert(unpublishedBranchPreflight.blockers.some(item => item.includes('Current branch feature/local-work has 1 commit(s) that are not on origin/master.')));
+  assert.equal(unpublishedBranchPreflight.nextAction.code, 'publish_or_merge_current_branch');
 
   const divergedRoot = join(root, 'diverged');
   await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", divergedRoot]);

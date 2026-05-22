@@ -1814,13 +1814,87 @@ Copy this block for each decision.
   the PR, merge it if checks pass, then re-enter the dashboard from a base that
   can see the Package 3 docs without touching unrelated local `master` work.
 
+### Decision 46: Repair The Dashboard Git Gate For Clean Worktree Branches
+
+- Date/time: 2026-05-22
+- Phase: `package_3_dashboard_git_gate_repair`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After PR #939 merged, the visible dashboard still blocked on
+  `Switch to master` while the isolated worktree was on
+  `codex/spell-phase1-dashboard-stitch-flow` at the merged `origin/master`
+  commit and local `master` still carried unrelated racial-mechanics commits.
+- Options considered:
+  - Switch the root checkout to `master` and pull/push/reset until the old
+    single-checkout gate passed.
+  - Use terminal/API calls to create the Package 3 draft and ignore the visible
+    dashboard blocker.
+  - Fix the Symphony preflight so a clean worktree branch whose `HEAD` matches
+    `origin/master` can pass while unpublished branch commits still block.
+- Decision made by agent: Fix the Symphony preflight and keep using the
+  dashboard as the pressure test.
+- Model routing: Local Codex foreman with focused debugging/TDD, because this
+  is Symphony orchestration code and should be repaired locally before asking
+  Jules to implement Package 3.
+- Rationale/evidence: The dashboard blocker was reproducible in the in-app
+  browser. `runGitSyncPreflight()` compared local `master...origin/master` and
+  blocked any non-`master` current branch, which is wrong for linked worktrees
+  where the checked-out branch is a clean view of GitHub and local `master`
+  belongs to unrelated user work.
+- Mutation performed or skipped: Added a failing regression case to
+  `conductor/symphony/scripts/verify-git-preflight-blockers.mjs`, then updated
+  `conductor/symphony/src/task-intake.ts` so the preflight compares the checked
+  out commit (`HEAD`) to `origin/master` when the current branch is not the base
+  branch. Unpublished or stale current-branch commits now block with
+  `publish_or_merge_current_branch` instead of suggesting unrelated local
+  `master` pushes.
+- Scope guardrails: This does not change local-sync behavior after a Jules PR
+  merge, does not reset/pull/push local `master`, and does not dispatch Package
+  3 until the dashboard gate repair is landed and verified.
+- Result: Focused build and `verify-git-preflight-blockers.mjs` pass locally.
+- Next expected proof: Publish and merge the Symphony gate repair, restart or
+  refresh the dashboard, then create the Package 3 dashboard draft visibly.
+
+### Decision 47: Treat Stitch MCP As Still Blocked Despite The New API Key
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_ux_stitch_tooling`
+- Active slice: Symphony dashboard UX and Package 3 dashboard flow
+- Decision point: The operator asked Codex to use Stitch for dashboard UX. A
+  restricted Stitch API key was created and set, but the restarted
+  `mcp__stitch__` tool call still failed with `Auth required`.
+- Options considered:
+  - Claim Stitch was available because `stitch-mcp doctor` reports the API
+    healthy.
+  - Use local dashboard judgement and label the result as Stitch-generated.
+  - Record the Stitch tool path as blocked and continue with dashboard workflow
+    repairs that are independently justified by visible dashboard use.
+- Decision made by agent: Record Stitch as blocked for actual design generation
+  and do not claim Stitch-generated dashboard work.
+- Model routing: Local Codex foreman, because this is a tooling/authentication
+  classification decision.
+- Rationale/evidence: `stitch-mcp doctor` reports a healthy 200 API check, but
+  `mcp__stitch__.list_projects` returns `Auth required`. Direct CLI invocation
+  with the configured key reaches a separate Windows/package bug,
+  `Bun is not defined`, when using `--data-file`.
+- Mutation performed or skipped: Kept the API key configured. Did not alter
+  Stitch project data, create designs, or use hidden dashboard edits as a
+  substitute for Stitch output.
+- Scope guardrails: Continue improving the dashboard only where the visible
+  dashboard-first flow exposes a concrete blocker. Do not call future UI changes
+  Stitch-driven until a Stitch project/screen/tool call succeeds.
+- Result: Stitch remains an active tooling gap, while the Package 3 Git-gate
+  repair proceeds as a dashboard-first workflow blocker.
+- Next expected proof: Repair or reconfigure the Stitch MCP/CLI path until
+  `list_projects` or an equivalent Stitch project read succeeds, then use
+  Stitch for a deliberate dashboard redesign pass.
+
 ## Open Decisions For The Next Slice
 
 1. Create the Package 3 Symphony dashboard draft visibly from
    `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
 2. Package and dispatch Package 3 for Jules: character creator spell selection
    and character sheet spellbook visibility.
-3. Improve Symphony Git sync guidance so a planning branch can be published
-   without suggesting that unrelated local `master` commits should be pushed.
-4. Confirm the restarted Stitch MCP proxy path before claiming any
-   Stitch-generated dashboard redesign work.
+3. Land the Symphony Git-gate repair so a clean worktree branch at GitHub base
+   can proceed without touching unrelated local `master` commits.
+4. Repair the Stitch MCP/tool path before claiming any Stitch-generated
+   dashboard redesign work.
