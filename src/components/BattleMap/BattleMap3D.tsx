@@ -74,31 +74,31 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     sunColor: 0xffe0a0, sunIntensity: 2.2,
     ambientColor: 0x203018, ambientIntensity: 0.3,
     hemisphereTop: 0x87ceeb, hemisphereBottom: 0x3a2a1a,
-    fogColor: 0x6a7a5a, fogNear: 8, fogFar: 22,
+    fogColor: 0x6a7a5a, fogNear: 12, fogFar: 32,
   },
   cave: {
     sunColor: 0x404060, sunIntensity: 0.3,
     ambientColor: 0x101830, ambientIntensity: 0.2,
     hemisphereTop: 0x1a1a3a, hemisphereBottom: 0x0a0a1a,
-    fogColor: 0x0a0a1a, fogNear: 4, fogFar: 14,
+    fogColor: 0x0a0a1a, fogNear: 6, fogFar: 20,
   },
   dungeon: {
     sunColor: 0xc89050, sunIntensity: 0.6,
     ambientColor: 0x202030, ambientIntensity: 0.3,
     hemisphereTop: 0x404050, hemisphereBottom: 0x1a1510,
-    fogColor: 0x1a1520, fogNear: 6, fogFar: 18,
+    fogColor: 0x1a1520, fogNear: 8, fogFar: 24,
   },
   desert: {
     sunColor: 0xfff0d0, sunIntensity: 2.2,
     ambientColor: 0x806040, ambientIntensity: 0.5,
     hemisphereTop: 0xe8e0c8, hemisphereBottom: 0xc8a060,
-    fogColor: 0xd8c8a0, fogNear: 10, fogFar: 25,
+    fogColor: 0xd8c8a0, fogNear: 14, fogFar: 35,
   },
   swamp: {
     sunColor: 0xa0b040, sunIntensity: 0.7,
     ambientColor: 0x203020, ambientIntensity: 0.25,
     hemisphereTop: 0x405030, hemisphereBottom: 0x2a2010,
-    fogColor: 0x2a3020, fogNear: 5, fogFar: 15,
+    fogColor: 0x2a3020, fogNear: 8, fogFar: 22,
   },
 };
 
@@ -131,16 +131,16 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
         ref={directionalRef}
         color={preset.sunColor}
         intensity={preset.sunIntensity}
-        position={[cx + 8, 12, cz + 8]}
+        position={[cx + 12, 16, cz + 12]}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-near={0.5}
-        shadow-camera-far={40}
-        shadow-camera-left={-15}
-        shadow-camera-right={15}
-        shadow-camera-top={15}
-        shadow-camera-bottom={-15}
+        shadow-camera-far={60}
+        shadow-camera-left={-25}
+        shadow-camera-right={25}
+        shadow-camera-top={25}
+        shadow-camera-bottom={-25}
         shadow-bias={-0.001}
       />
       {/* Cool fill light from opposite side for warm/cool contrast */}
@@ -290,9 +290,9 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           near: 0.1,
           far: 100,
           position: [
-            cameraTarget[0] + 5,
-            7,
-            cameraTarget[2] + 5,
+            cameraTarget[0] + 8,
+            10,
+            cameraTarget[2] + 8,
           ],
         }}
         gl={{

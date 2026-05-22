@@ -258,7 +258,7 @@ const CameraController: React.FC<CameraControllerProps> = ({
       ref={controlsRef}
       target={[mapCenter[0], 0, mapCenter[2]]}
       minDistance={5}
-      maxDistance={20}
+      maxDistance={35}
       minPolarAngle={Math.PI * 0.15}   // ~27° from horizon
       maxPolarAngle={Math.PI * 0.42}    // ~75° from horizon
       enableDamping

@@ -610,7 +610,7 @@ const InstancedPropMesh: React.FC<{
       args={[geometry, material, count]}
       castShadow
       receiveShadow
-      frustumCulled
+      frustumCulled={false}
     />
   );
 };

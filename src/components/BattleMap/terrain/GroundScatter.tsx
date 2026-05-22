@@ -341,7 +341,7 @@ const ScatterInstancedMesh: React.FC<{
       ref={meshRef}
       args={[geometry, material, count]}
       receiveShadow
-      frustumCulled
+      frustumCulled={false}
     />
   );
 };

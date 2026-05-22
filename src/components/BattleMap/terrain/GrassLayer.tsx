@@ -419,7 +419,7 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
     <instancedMesh
       ref={meshRef}
       args={[bladeGeo, shaderMaterial, instanceCount]}
-      frustumCulled={true}
+      frustumCulled={false}
     />
   );
 };

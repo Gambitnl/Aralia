@@ -7,7 +7,7 @@
 // General Map Configuration
 export const MAP_GRID_SIZE = { rows: 20, cols: 30 };
 export const SUBMAP_DIMENSIONS = { rows: 20, cols: 30 };
-export const BATTLE_MAP_DIMENSIONS = { width: 30, height: 20 };
+export const BATTLE_MAP_DIMENSIONS = { width: 40, height: 30 };
 export const TILE_SIZE_PX = 32;
 
 // Compass Direction Vectors
