@@ -1265,21 +1265,24 @@ export function buildPullRequestNextAction(input: {
       ['Have Scout bridge the conflict and identify overlapping files.', 'Leave a GitHub PR comment for Jules with the conflict course correction.', 'Send follow-up work to Jules or repair the branch.', 'Refresh PR checks after conflicts are resolved.']);
   }
 
+  // Marked Jules feedback is the visible proof that the operator already chose
+  // the external repair lane. A PR update after that comment means Jules may
+  // have responded; without that update, the safe next action is to wait and
+  // refresh rather than presenting another duplicate feedback command.
+  const latestJulesFeedbackAt = latestTimestamp(input.feedback?.julesFeedback.map(comment => comment.createdAt) ?? []);
+  const pullRequestUpdatedAt = parseTimestamp(input.updatedAt);
+  const postFeedbackRepairWindowMs = 60_000;
+  const hasJulesFeedbackWaitingForRepair = latestJulesFeedbackAt !== null
+    && (pullRequestUpdatedAt === null || pullRequestUpdatedAt <= latestJulesFeedbackAt + postFeedbackRepairWindowMs);
+
   if (input.checks?.conclusion === 'failing') {
     const primaryBlocker = input.checks.blockers?.[0] ?? null;
-    const hasJulesFeedback = (input.feedback?.julesFeedback.length ?? 0) > 0;
-    const latestJulesFeedbackAt = latestTimestamp(input.feedback?.julesFeedback.map(comment => comment.createdAt) ?? []);
-    const pullRequestUpdatedAt = parseTimestamp(input.updatedAt);
-    const postFeedbackRepairWindowMs = 60_000;
-    const hasPostFeedbackPullRequestUpdate = latestJulesFeedbackAt !== null
-      && pullRequestUpdatedAt !== null
-      && pullRequestUpdatedAt > latestJulesFeedbackAt + postFeedbackRepairWindowMs;
 
     // Once a marked Jules feedback comment exists, the human has already chosen
     // the external repair lane. Keep the dashboard on a wait-and-refresh path so
     // it does not ask for the same operator decision again before Jules has had
     // a chance to push a repair commit.
-    if (hasJulesFeedback && !hasPostFeedbackPullRequestUpdate) {
+    if (hasJulesFeedbackWaitingForRepair) {
       return action('wait_for_checks', 'waiting', 'Wait for Jules Repair', null, null, input.refreshPullRequestUrl,
         'Jules feedback is already posted on the PR; wait for Jules to push a repair or for GitHub checks to change.',
         ['Wait for a new Jules commit or status update.', 'Refresh PR checks after Jules pushes a repair.', 'Do not send duplicate Jules feedback unless the next refresh shows no progress.']);
@@ -1309,6 +1312,12 @@ export function buildPullRequestNextAction(input: {
   }
 
   if (input.files?.risk === 'medium' || input.files?.risk === 'high') {
+    if (hasJulesFeedbackWaitingForRepair) {
+      return action('wait_for_checks', 'waiting', 'Wait for Jules Repair', null, null, input.refreshPullRequestUrl,
+        'Scout feedback is already posted on the PR; wait for Jules to push a repair or for the PR to change.',
+        ['Wait for a new Jules commit or status update.', 'Refresh PR checks and Scout/Core readiness after Jules pushes a repair.', 'Do not send duplicate Scout feedback unless the next refresh shows new PR activity.']);
+    }
+
     return action('scout_bridge_risk', 'blocked', 'Scout Bridge Risk', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
       'Changed files need Scout review before Core merges.',
       ['Have Scout review risky, out-of-scope, or conflict-prone files.', 'Record accept, repair, or reject disposition.', 'Leave a GitHub PR comment for Jules if the risky files need course correction.', 'Refresh PR checks after Scout/Core updates.']);

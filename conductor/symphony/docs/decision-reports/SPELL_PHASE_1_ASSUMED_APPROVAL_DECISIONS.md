@@ -2776,6 +2776,62 @@ Copy this block for each decision.
   packet through the visible Scout/Core action and rerun Scout/Core acceptance
   review before any Core merge.
 
+### Decision 67: Route Posted Scout Feedback To Wait For Jules Repair
+
+- Date/time: 2026-05-22 17:12 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  dashboard-first Scout/Core review
+- Decision point: After Decision 66 made the Scout/Core evidence refresh
+  visible, clicking the dashboard `Run Safe Symphony Refresh` control updated
+  PR #954 checks to passing but still showed `Scout Bridge Risk` plus a
+  duplicate `Prepare Jules PR feedback comment` command. GitHub already had
+  the third marked `[Jules feedback]` comment at
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`, and
+  PR #954 had no later Jules repair commit. The actual Package 3 blockers were
+  still present: `DruidFeatureSelection.tsx` comments claimed
+  `Speak with Animals` was rendered as locked/pre-selected, but the Level 1 UI
+  only mapped `availableSpellsL1` after filtering `speak-with-animals` out;
+  `SpellCard.tsx` still used explicit `any` in `formatCastingTime` and
+  `formatRange`.
+- Options considered:
+  - Send the same Scout feedback command again.
+  - Repair the Package 3 implementation locally.
+  - Merge PR #954 because GitHub checks were green.
+  - Patch the Symphony PR next-action model so already-posted Scout feedback
+    produces a wait-and-refresh boundary until Jules changes the PR.
+- Decision made by agent: Patch Symphony to route posted Scout feedback to
+  `Wait for Jules Repair` when no later PR update exists, preserving the
+  existing behavior that re-opens Scout review if Jules pushes a later repair
+  and risk remains.
+- Model routing: Local Codex handled the dashboard/workflow repair because it
+  is Symphony infrastructure exposed by dashboard-first use. Jules remains the
+  Package 3 implementation worker.
+- Rationale/evidence: The dashboard-first goal requires fixing workflow
+  blockers instead of bypassing them. Duplicate feedback would add noise and
+  could make Jules reprocess the same instruction, while local implementation
+  repair would undercut the intended Jules offload path. The safe operator
+  state is waiting for a Jules commit or PR update, then refreshing the PR
+  evidence.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/task-intake.ts` and
+  `conductor/symphony/scripts/verify-pr-next-action.mjs`. Restarted the local
+  dashboard from `codex/spell-phase1-monitor-16` and clicked the visible safe
+  refresh control. Skipped local Package 3 implementation repair, skipped
+  duplicate GitHub feedback, and skipped Core merge.
+- Scope guardrails: This only changes Symphony PR next-action routing after
+  marked feedback. It does not change spell rules, character creator behavior,
+  spellbook UI, AI arbitration, premade roster semantics, or the Jules
+  implementation branch.
+- Result: `npm run build` and `node
+  conductor/symphony/scripts/verify-pr-next-action.mjs` passed. Rendered
+  dashboard proof showed `Wait for Jules Repair`, summary `Scout feedback is
+  already posted on the PR; wait for Jules to push a repair or for the PR to
+  change.`, and no duplicate feedback command after the safe refresh.
+- Next expected proof: Wait for Jules to push another PR #954 repair commit,
+  refresh the dashboard PR packet, and only then rerun Scout/Core acceptance
+  review and rendered creator/spellbook proof before Core merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback
