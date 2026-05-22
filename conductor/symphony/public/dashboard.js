@@ -4501,6 +4501,7 @@ function renderPullRequestFeedbackSummary(feedback) {
   const renderComment = comment => `<li>
     <strong>${escapeHtml(comment.author || 'unknown')}</strong>
     ${comment.url ? `<a href="${escapeAttribute(comment.url)}" target="_blank" rel="noreferrer">${escapeHtml(comment.source || 'comment')}</a>` : `<span>${escapeHtml(comment.source || 'comment')}</span>`}
+    ${comment.createdAt ? `<small>${escapeHtml(formatTimestamp(comment.createdAt))}</small>` : ''}
     <em>${escapeHtml((comment.body || '').split(/\r?\n/)[0].slice(0, 160))}</em>
   </li>`;
   const renderScoutConflict = comment => `<li>

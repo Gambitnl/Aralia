@@ -3075,7 +3075,14 @@ export class HttpServer {
     const prState = prHandoff?.githubPullRequestState ?? null;
     const prChecks = prHandoff?.githubPullRequestChecks ?? null;
     const hasPrBlocker = prChecks?.failed ? prChecks.failed > 0 : false;
-    const scoutAttention = conflictWatch.status === 'blocked' || conflictWatch.status === 'attention';
+    const prNextActionCode = prHandoff?.githubPullRequestNextAction?.code ?? null;
+    // If marked Jules feedback has already been posted, the PR next-action
+    // model owns the current wait state. File risk still matters after Jules
+    // pushes a new repair, but until then the main dashboard should match the
+    // task page and wait for the PR to change instead of repeatedly surfacing
+    // Scout/Core as the active boundary.
+    const scoutAttention = prNextActionCode !== 'wait_for_checks'
+      && (conflictWatch.status === 'blocked' || conflictWatch.status === 'attention');
     const localSyncHandoff = hasDashboardPr ? prHandoff : null;
     const localSync = localSyncHandoff?.localSyncStatus ?? null;
     const localSyncSafe = Boolean(localSync?.safeToPull);
@@ -3209,7 +3216,8 @@ export class HttpServer {
         sourceId: prHandoff?.id ?? null,
         sourceTitle: prHandoff?.title ?? null,
         detail: hasPr
-          ? `PR state is ${prState ?? 'unknown'}${hasObservedPr ? '; observed records stay watch-only.' : '.'}`
+          ? prHandoff?.githubPullRequestNextAction?.summary
+            ?? `PR state is ${prState ?? 'unknown'}${hasObservedPr ? '; observed records stay watch-only.' : '.'}`
           : 'Waiting for Jules to create a PR.',
         endpoint: prHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(prHandoff.id)}/refresh-pr` : null,
         method: prHandoff ? 'POST' : 'NONE',
@@ -3403,6 +3411,28 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedReason,
         instruction: 'Refresh the GitHub PR evidence that Scout/Core depends on, then decide whether Scout should send Jules feedback, accept the risk, or keep the PR blocked.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'github_pr' && stage.status === 'active' && stage.endpoint) {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Refresh GitHub PR',
+        status: stage.status,
+        method: stage.method,
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: true,
+        requiresOperator: false,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: `Refresh the GitHub PR evidence, then capture proof: ${stage.expectedProof}`,
         expectedProof: stage.expectedProof,
       };
     }
@@ -4943,6 +4973,7 @@ export class HttpServer {
     if (handoff.githubPullRequestState === 'MERGED' || actionCode === 'check_local_sync') return 'merged';
     if (handoff.repairPushResult?.status === 'pushed') return 'waiting_for_checks_rerun';
     if (actionCode === 'core_validate_and_merge') return 'ready_for_core';
+    if (actionCode === 'wait_for_checks') return 'waiting';
     if (
       actionCode === 'scout_bridge_risk'
       || handoff.githubPullRequestFiles?.risk === 'medium'

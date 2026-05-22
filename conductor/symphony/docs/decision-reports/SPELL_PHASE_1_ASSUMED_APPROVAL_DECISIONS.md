@@ -2877,6 +2877,55 @@ Copy this block for each decision.
   a new repair commit, then rerun Scout/Core acceptance review and rendered
   creator/spellbook proof before any Core merge.
 
+### Decision 69: Align Main Dashboard Boundary With Posted-Feedback Wait State
+
+- Date/time: 2026-05-22 17:35 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: After PR #961 and PR #962 landed, the task detail page for
+  handoff `handoff-1779443555192-bnpws7` correctly showed
+  `Wait for Jules Repair`, but the main dashboard still promoted the same
+  handoff as `Scout/Core review`. The mismatch happened because the global
+  middleman ladder and Scout/Core readiness packet prioritized changed-file
+  risk even when the PR next-action model had already decided that marked
+  Scout feedback was posted and Symphony should wait for a Jules repair.
+- Options considered:
+  - Leave the mismatch because the task detail page was correct.
+  - Repair PR #954 locally so the risk disappeared.
+  - Send another GitHub feedback comment to Jules.
+  - Patch the dashboard server path so the main dashboard, task navigator, and
+    task detail page agree on the posted-feedback wait state.
+- Decision made by agent: Patch the Symphony server so `wait_for_checks`
+  next-actions suppress the active Scout/Core boundary until the PR changes,
+  and make the GitHub PR current-boundary action read as `Refresh GitHub PR`
+  instead of the vague `Run GitHub PR`. Also expose PR feedback timestamps in
+  the main dashboard feedback summary so the operator can see when marked
+  feedback was posted.
+- Model routing: Local Codex handled the dashboard/workflow repair. Jules
+  remains the Package 3 implementation worker for PR #954.
+- Rationale/evidence: The dashboard-first flow should not force the operator
+  to choose between conflicting surfaces. Since PR #954 has no post-feedback
+  Jules repair commit, the correct state is still waiting for Jules, with a
+  safe PR refresh available.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/server.ts` and
+  `conductor/symphony/public/dashboard.js`. Restarted the dashboard from
+  `codex/spell-phase1-monitor-18` and clicked the main `Refresh GitHub PR`
+  action. Skipped local Package 3 implementation repair, skipped duplicate
+  GitHub feedback, and skipped Core merge.
+- Scope guardrails: This only changes Symphony dashboard routing/copy. It does
+  not change spell rules, character creator behavior, spellbook UI, AI
+  arbitration, premade roster semantics, or the Jules implementation branch.
+- Result: `npm run build` passed. Rendered main-dashboard proof showed the
+  first-viewport action as `Refresh GitHub PR`, and the task navigator kept
+  Package 3 labeled `Wait for Jules Repair` with the summary `Scout feedback
+  is already posted on the PR; wait for Jules to push a repair or for the PR
+  to change.`
+- Next expected proof: Publish this dashboard repair, then continue waiting
+  for Jules to push a PR #954 repair commit before rerunning Scout/Core
+  acceptance review and rendered creator/spellbook proof.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback
