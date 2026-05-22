@@ -87,6 +87,60 @@ assert.equal(feedbackAlreadySentAction.label, 'Wait for Jules Repair');
 assert.equal(feedbackAlreadySentAction.feedbackCommand, null);
 assert(feedbackAlreadySentAction.steps.some(step => /Refresh PR checks after Jules pushes a repair/i.test(step)));
 
+const feedbackCommentUpdatedPrAction = buildPullRequestNextAction({
+  ...base,
+  updatedAt: '2026-05-22T13:30:45Z',
+  checks: { ...base.checks, passing: 1, failing: 1, conclusion: 'failing' },
+  feedback: {
+    julesFeedback: [{
+      author: 'Gambitnl',
+      body: '[Jules feedback]\nPlease repair the failing Package 3 checks.',
+      url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406',
+      createdAt: '2026-05-22T13:30:25Z',
+      source: 'comment',
+      conflictFile: null,
+      priorityPullRequest: null,
+    }],
+  },
+});
+assert.equal(feedbackCommentUpdatedPrAction.code, 'wait_for_checks');
+assert.equal(feedbackCommentUpdatedPrAction.feedbackCommand, null);
+
+const feedbackFollowUpAction = buildPullRequestNextAction({
+  ...base,
+  updatedAt: '2026-05-22T13:54:14Z',
+  checks: {
+    ...base.checks,
+    passing: 8,
+    failing: 1,
+    conclusion: 'failing',
+    blockers: [{
+      category: 'jules_implementation',
+      severity: 'blocking',
+      checkNames: ['🧪 Tests'],
+      evidence: ['🧪 Tests: FeatureSelectionCheckboxes.test.tsx failed after the repair commit.'],
+      summary: 'Package implementation tests still fail after Jules pushed a repair.',
+      nextAction: 'Send Jules the new focused test failure.',
+      mutatesExternalSystems: false,
+    }],
+  },
+  feedback: {
+    julesFeedback: [{
+      author: 'Gambitnl',
+      body: '[Jules feedback]\nPlease repair the failing Package 3 checks.',
+      url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406',
+      createdAt: '2026-05-22T13:30:25Z',
+      source: 'comment',
+      conflictFile: null,
+      priorityPullRequest: null,
+    }],
+  },
+});
+assert.equal(feedbackFollowUpAction.code, 'repair_failed_checks');
+assert.equal(feedbackFollowUpAction.tone, 'blocked');
+assert.equal(feedbackFollowUpAction.feedbackCommand, 'gh pr comment 5 --body-file .jules/feedback/handoff-1-pr-feedback.md');
+assert.match(feedbackFollowUpAction.summary, /GitHub checks are failing/i);
+
 const setupBlockedChecksAction = buildPullRequestNextAction({
   ...base,
   checks: {

@@ -47,17 +47,20 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Visible zip fallback attempt | Blocked | After PR #952 merged, the restarted dashboard still showed Package 3 `IN_PROGRESS` with no PR URL and GitHub still had no expected branch. The visible Jules page showed more Package 3 code updates and a `Download zip` control. Clicking that control failed because Codex's in-app browser does not support downloads. |
 | PR #954 captured | Waiting for repair | GitHub now has PR #954 on suffixed branch `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`. Dashboard PR refresh captured failing Build/Tests and Gemini review feedback. The agent recorded `send_jules_feedback`, posted marked feedback at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406`, and repaired Symphony so the task page now shows `Wait for Jules Repair` instead of repeating the workflow-config decision. |
 | Wait-loop repair merged | Done | PR #955 merged as `f3f8abafbd99882e9d103853ab8c837845ea990b` after Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The only failed lane was Gemini review quota exhaustion on `gemini-2.5-flash`, so the foreman treated it as advisory and kept Package 3 waiting on Jules. |
+| Post-feedback repair commit | Waiting for repair | Jules pushed PR head `0ce77a9c33adb230a0d52a1d4242434b846704f5`. Build and Lint are green, but Tests fail in `FeatureSelectionCheckboxes.test.tsx` because the edited feature-selection files no longer satisfy conditional disabled-prop coverage. The dashboard was patched to reopen the repair boundary after a post-feedback PR update, the visible task page recorded `send_jules_feedback`, and a second marked comment was posted at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519399645`. |
 
 ## Current Boundary
 
 - Jules state: Symphony reports the historical Jules session as `FAILED`, but
   the returned implementation is now visible as PR #954.
 - PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
-- Current PR boundary: waiting for Jules to repair failing Build/Tests after
-  marked PR feedback.
-- Dashboard workflow state: PR #955 is merged, and the live task page now shows
-  `Wait for Jules Repair`, `Needs human input: No`, and no duplicate feedback
-  command after a visible `Run Safe Symphony Refresh`.
+- Current PR boundary: waiting for Jules to repair the remaining Tests failure
+  after the second marked PR feedback comment.
+- Dashboard workflow state: local Symphony now distinguishes old feedback with
+  no PR movement from a post-feedback PR update that still fails. The live task
+  page showed `Repair Failed Checks` after Jules' repair commit, then returned
+  to `Wait for Jules Repair` after the selected Jules-feedback decision and PR
+  comment #4519399645.
 - Next proof: refresh the dashboard PR packet after Jules pushes a repair
   commit, then review checks, changed-file risk, Scout/Core readiness, and
   rendered spellbook/creator proof before merge.
@@ -169,3 +172,15 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   Gemini review lane failed only because the configured model exhausted its
   daily quota, so it was recorded as an advisory automation failure rather than
   a code blocker.
+- Jules pushed repair commit `0ce77a9c33adb230a0d52a1d4242434b846704f5`.
+  GitHub Build and Lint passed, but the Tests lane failed nine assertions in
+  `src/components/CharacterCreator/Class/__tests__/FeatureSelectionCheckboxes.test.tsx`.
+  The failing assertion expects conditional disabled props for selection-limit
+  enforcement across the edited class feature-selection files.
+- The first post-repair dashboard refresh still said `Wait for Jules Repair`
+  because any prior `[Jules feedback]` comment suppressed new feedback. The
+  foreman repaired Symphony locally so a clearly later PR update reopens the
+  repair boundary. After the visible task page showed `Repair Failed Checks`,
+  the foreman recorded `send_jules_feedback` through the visible decision
+  control and posted the second marked PR comment at
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519399645`.

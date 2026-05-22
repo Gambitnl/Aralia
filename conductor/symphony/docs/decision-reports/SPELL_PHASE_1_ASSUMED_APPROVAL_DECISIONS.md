@@ -2566,9 +2566,63 @@ Copy this block for each decision.
   dashboard PR packet, and only advance to Scout/Core or merge review after
   checks and rendered Package 3 proof are available.
 
+### Decision 63: Send Follow-Up Jules Feedback After The Repair Commit Still Failed Tests
+
+- Date/time: 2026-05-22 16:06 +02:00
+- Phase: `package_3_post_feedback_repair_loop`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first hardening
+- Decision point: Jules pushed repair commit
+  `0ce77a9c33adb230a0d52a1d4242434b846704f5` to PR #954. GitHub Build and
+  Lint passed, but the Tests lane failed nine assertions in
+  `src/components/CharacterCreator/Class/__tests__/FeatureSelectionCheckboxes.test.tsx`.
+  The failed assertions cover conditional disabled props for selection-limit
+  enforcement across the Package 3 edited feature-selection files.
+- Options considered:
+  - Repair the failing Package 3 code locally.
+  - Treat the failure as an ambient test issue and rerun without feedback.
+  - Send a second focused Jules feedback comment, because the remaining failure
+    is in the Package 3 implementation surface Jules just changed.
+  - Leave the dashboard in `Wait for Jules Repair` because an older Jules
+    feedback comment already exists.
+- Decision made by agent: Patch Symphony so a PR update clearly later than the
+  latest marked Jules feedback reopens the repair boundary if checks still fail.
+  Then record `send_jules_feedback` through the visible task-page decision
+  control and post a second marked Jules feedback comment on PR #954.
+- Model routing: Local Codex foreman handled the dashboard state-model repair
+  and PR failure classification. Jules remains the implementation worker for
+  the Package 3 code repair.
+- Rationale/evidence: The failed test names point directly at files in PR
+  #954's edited character creator scope. The user asked to offload as much
+  suitable implementation as possible to Jules. The dashboard-first rule also
+  means the stale wait state is a workflow defect: after a repair commit lands,
+  the next failed-check refresh should allow a fresh course-correction instead
+  of hiding behind the old feedback comment.
+- Mutation performed or skipped: Edited `conductor/symphony/src/task-intake.ts`
+  to pass GitHub PR `updatedAt` into `buildPullRequestNextAction` and added a
+  timing guard around the old "feedback already sent" wait state. Extended
+  `conductor/symphony/scripts/verify-pr-next-action.mjs` with fixtures for both
+  same-comment PR updates and post-feedback repair updates. Posted
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519399645`.
+  Skipped local Package 3 implementation repair, skipped direct mutation of the
+  Jules branch, and skipped merge/Scout/Core because Tests are still red.
+- Scope guardrails: The Symphony change only affects PR next-action routing
+  after marked Jules feedback. It does not change spell rules, character
+  creator behavior, spellbook UI, AI arbitration, premade roster semantics, or
+  PR #954 code.
+- Result: `npm run build`, `node scripts/verify-pr-next-action.mjs`,
+  `node scripts/verify-task-detail-api.mjs`, and `git diff --check` passed.
+  Rendered dashboard proof showed `Repair Failed Checks` after the post-feedback
+  repair commit, and then `Wait for Jules Repair` after the selected Jules
+  feedback decision plus second marked PR comment.
+- Next expected proof: Wait for Jules to push the next PR #954 repair commit,
+  refresh the dashboard PR packet, and proceed to Scout/Core/visual proof only
+  after GitHub checks pass.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor PR #954 for a Jules repair commit after the marked feedback comment.
+1. Monitor PR #954 for a Jules repair commit after the second marked feedback
+   comment.
 2. Review PR #954 for scope, focused tests, rendered spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
 3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
