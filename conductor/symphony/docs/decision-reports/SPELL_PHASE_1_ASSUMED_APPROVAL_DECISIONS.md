@@ -1938,13 +1938,59 @@ Copy this block for each decision.
   `8139`, record the current branch disposition visibly if still needed, and
   continue to Package 3 draft creation only after the Git gate reports ready.
 
+### Decision 49: Dispatch Package 3 Through The Visible Dashboard Flow
+
+- Date/time: 2026-05-22
+- Phase: `package_3_dashboard_dispatch`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: With PR #941 merged and the dashboard Git gate reporting
+  ready, the operator-facing choice was whether to continue Package 3 through
+  the visible dashboard controls or use terminal/API endpoints to create the
+  draft, Linear issue, handoff, manifest, and Jules launch faster.
+- Options considered:
+  - Use hidden API calls because the draft and handoff controls were available
+    as known endpoints.
+  - Pause Package 3 dispatch and repair the dashboard before any further
+    progress.
+  - Use the visible dashboard controls, reopening the relevant drawer when the
+    dashboard rerender collapsed it, and record that drawer friction as a UX
+    gap rather than a dispatch blocker.
+- Decision made by agent: Use the visible dashboard controls and continue
+  dispatch while recording the collapsed-drawer friction as an adjacent
+  Symphony UX gap.
+- Model routing: Local Codex foreman for orchestration and evidence capture;
+  Jules receives the implementation task itself.
+- Rationale/evidence: The dashboard showed Package 3 in the task navigator and
+  the `Task Intake And Records` drawer contained the correct enabled controls.
+  The visible `Prepare Handoff`, `Stage Jules Manifest`, `Launch Jules`, and
+  current-boundary `Refresh Jules Status` buttons all worked once the relevant
+  drawer/control was visible. Using hidden POST endpoints would have skipped
+  the dashboard-first pressure test the operator explicitly requested.
+- Mutation performed or skipped: Created dashboard draft
+  `draft-1779442977969-w2vsy4`, attached Linear issue ARA-9, promoted handoff
+  `handoff-1779443555192-bnpws7`, staged its manifest, launched Jules session
+  `2823658242418460192`, and refreshed status through the dashboard. Did not
+  bypass any blocked dashboard step with direct endpoint calls.
+- Scope guardrails: Package 3 remains limited to character creator spell
+  selection and character sheet spellbook visibility. Combat simulator casting,
+  broad spell schema/runtime architecture, AI arbitration policy, and premade
+  roster semantics remain later packages or adjacent gaps unless needed only as
+  tiny test fixtures.
+- Result: Jules reports `QUEUED`; no PR URL has been captured yet. The Package
+  3 handoff receipt and readiness checklist now carry the draft, Linear,
+  handoff, manifest, and session ids.
+- Next expected proof: Continue refreshing Jules status through the dashboard
+  until Symphony captures a PR URL, a plan-approval gate, a feedback request, or
+  a durable reason that Jules has not produced a PR yet.
+
 ## Open Decisions For The Next Slice
 
-1. Create the Package 3 Symphony dashboard draft visibly from
-   `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
-2. Package and dispatch Package 3 for Jules: character creator spell selection
-   and character sheet spellbook visibility.
-3. Land the scoped Git-disposition repair if checks pass, then clear the
-   current branch from the dashboard Git gate through the visible workflow.
+1. Monitor Package 3 Jules session `2823658242418460192` through the visible
+   dashboard until it exposes a PR, plan approval, feedback need, or durable
+   no-PR state.
+2. Review any Package 3 PR for scope, focused tests, rendered spellbook/creator
+   proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
+3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+   on a task opens the `Task Intake And Records` group automatically.
 4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.

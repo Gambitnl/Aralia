@@ -54,6 +54,16 @@ Statuses:
   `https://github.com/Gambitnl/Aralia/pull/938`
 - Package 3 handoff packet PR:
   `https://github.com/Gambitnl/Aralia/pull/939`
+- Symphony worktree Git-gate repair PR:
+  `https://github.com/Gambitnl/Aralia/pull/940`
+- Symphony scoped Git-disposition repair PR:
+  `https://github.com/Gambitnl/Aralia/pull/941`
+- Package 3 dashboard draft: `draft-1779442977969-w2vsy4`
+- Package 3 Linear issue:
+  `https://linear.app/aralia/issue/ARA-9/spell-phase-1-package-3-spellbook-and-character-creator-visibility`
+- Package 3 Symphony handoff: `handoff-1779443555192-bnpws7`
+- Package 3 Jules session:
+  `https://jules.google.com/session/2823658242418460192`
 
 ## Active Package Queue
 
@@ -64,7 +74,7 @@ Statuses:
 | P2 | done | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`, `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | PR #935 merged on 2026-05-22 after PR #937 repaired the review workflow, the PR branch was updated with current `master`, GitHub CI reran clean, and post-merge local gate checks passed on the closeout branch |
 | P2D | done | Codex foreman | Dashboard-first hardening for Package 2 handoff monitoring | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`; Decisions 26-42; PR #936; PR #937 | Dashboard-first Package 2 blockers exposed useful repairs: safe PR refresh buttons, Scout/Core glob handling, visible operator decision buttons, setup-repair lane routing, global PR boundary routing, Git Safety visibility, current-boundary action buttons, and first-viewport focus strip; Stitch MCP server entry exists but still needs authentication/restart before Stitch-generated redesigns can be used |
 | P2R | done | Codex foreman local-careful | Workflow-config repair lane for PR #935 failed `review / review` automation | local draft `draft-1779410025252-nnowpt` (`Setup repair for ARA-7`); Decisions 38, 40, 41; PR #937 | PR #937 merged, PR #935 branch was updated against current `master`, rerun CI passed, and PR #935 then merged |
-| P3 | active | Jules preferred after dashboard draft | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md`, `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md`, `PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`, `PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`, `PACKAGE_3_VISUAL_PROOF_RECEIPT.md` | Package 3 task packet landed in PR #939; Symphony worktree-branch Git gate repair landed in PR #940; dashboard-first draft creation is the next visible action |
+| P3 | waiting | Jules implementation, Codex foreman monitoring | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md`, `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md`, `PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`, `PACKAGE_3_SYMPHONY_HANDOFF_RECEIPT.md`, `PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`, `PACKAGE_3_VISUAL_PROOF_RECEIPT.md` | Package 3 dashboard draft `draft-1779442977969-w2vsy4`, Linear issue ARA-9, handoff `handoff-1779443555192-bnpws7`, and Jules session `2823658242418460192` were created through the visible dashboard; Jules is queued and no PR is captured yet |
 | P4 | not_started | Jules preferred after P3 | Combat simulator deterministic spell pilot | create `PACKAGE_4_*` docs after P3 | Waiting on P2/P3 |
 | P5 | not_started | Jules preferred after P4 | AI arbitration pilot for open-ended spells | create `PACKAGE_5_*` docs after deterministic pilot | Waiting on P4 |
 | P6 | not_started | Jules preferred after pilots | First mechanics bucket closure for levels 0-3 | create bucket-specific docs from current mechanics-discovery evidence | Waiting on pilot evidence |
@@ -115,7 +125,8 @@ package queue or a linked detailed task file.
 | G24 | active | Package 3 planning | Current character creator assembly may place the full class spell list in `knownSpells` while selected level 1 spells become `preparedSpells` | This may be intentional spell availability modeling, but it can make the UI look like every class spell belongs to the character if labels are unclear | Package 3 task requires Jules to preserve or repair the distinction and document the resulting known/prepared semantics |
 | G25 | active | Package 3 planning | Spellbook and spell creator surfaces need rendered proof, not just source edits | Visual verification belongs in Package 3; Package 2 deliberately did not claim this proof | `PACKAGE_3_VISUAL_PROOF_RECEIPT.md` |
 | G26 | active | Package 3 dashboard Git gate | The dashboard Git sync plan suggested pushing/pulling local `master` even though local-only `master` commits are unrelated racial-mechanics work and the active Package 3 docs are on a package branch | This is a Symphony workflow-guidance gap exposed by dashboard-first use; the agent recorded dispositions visibly, chose a non-destructive branch publication path, and landed a regression-tested Symphony fix so a clean worktree branch at `origin/master` can pass the gate without touching local `master` | Decisions 45 and 46; PR #940 merged as `ca35cf61fdc02f19e561ad1e4aff758548155ff6`; next proof is successful visible Package 3 dashboard draft creation from the repaired branch |
-| G27 | active | Package 3 dashboard Git gate follow-up | After PR #940, the dashboard correctly compared the current branch to `origin/master`, but reused an older `keep_local` disposition for unrelated local `master` commits and under-described the needed current-branch merge step as a push | This is a Symphony dashboard state-scoping defect; stale operator decisions must not carry across unrelated Git evidence | Decision 48; `conductor/symphony/src/task-intake.ts`; `conductor/symphony/scripts/verify-git-preflight-blockers.mjs`; next proof is PR/check/merge of the scoped-disposition repair, then visible Package 3 draft creation |
+| G27 | done | Package 3 dashboard Git gate follow-up | After PR #940, the dashboard correctly compared the current branch to `origin/master`, but reused an older `keep_local` disposition for unrelated local `master` commits and under-described the needed current-branch merge step as a push | This is a Symphony dashboard state-scoping defect; stale operator decisions must not carry across unrelated Git evidence | Decision 48; PR #941 merged as `3647c87d35d42dbe937e971493e12dfd16d69f9a`; the restarted dashboard Git gate reported ready on `codex/spell-phase1-package3-dashboard-flow` |
+| G28 | active | Package 3 dashboard draft/handoff launch | The dashboard task navigator showed Package 3, but the actual draft and handoff controls lived inside the collapsed `Task Intake And Records` drawer after each render; the operator had to reopen the drawer after promote/stage/launch before the next per-card button was reachable | This is a Symphony dashboard UX affordance gap, not a Package 3 spell implementation blocker; the current-boundary button did work for later Jules status refreshes | Decision 49; continue with current-boundary controls when available, and consider opening the relevant details group automatically when the selected task boundary belongs there |
 
 ## Detailed Task File Index
 
@@ -130,10 +141,11 @@ package queue or a linked detailed task file.
 | `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | Package 2 PR/deployment/local-sync target | done for Package 2 |
 | `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Retain/archive/delete policy for package artifacts | active |
 | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Clean-base Package 2 draft, Linear issue, handoff, manifest, Jules launch, PR #935, and scoped verification receipt | done for Package 2 |
-| `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md` | Package 3 scope and acceptance criteria | active draft |
-| `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md` | Exact Jules prompt for Package 3 | prompt-ready, not dispatched |
-| `PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md` | Handoff guard for Package 3 | active |
-| `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json` | Dashboard draft payload for Package 3 | draft-ready |
+| `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_TASK.md` | Package 3 scope and acceptance criteria | dispatched to Jules; waiting for PR |
+| `PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md` | Exact Jules prompt for Package 3 | dispatched to Jules; waiting for PR |
+| `PACKAGE_3_DISPATCH_READINESS_CHECKLIST.md` | Handoff guard for Package 3 | active; launched to Jules and waiting for PR |
+| `PACKAGE_3_SYMPHONY_HANDOFF_RECEIPT.md` | Package 3 dashboard draft, Linear issue, handoff, manifest, Jules launch, and queued status receipt | active; waiting for Jules PR |
+| `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json` | Dashboard draft payload for Package 3 | used for dashboard draft `draft-1779442977969-w2vsy4` |
 | `PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md` | Package 3 Atlas/gate proof target | pending implementation |
 | `PACKAGE_3_VISUAL_PROOF_RECEIPT.md` | Package 3 rendered/test visual proof target | pending implementation |
 
