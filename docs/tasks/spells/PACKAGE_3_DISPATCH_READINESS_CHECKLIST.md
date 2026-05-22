@@ -51,6 +51,10 @@ PR, and during closeout.
 - GitHub PR/branch check: no PR and no
   `jules/spells-package3-spellbook-creator-visibility` branch were visible in
   GitHub after the confirmation refresh.
+- Post-PR #944 monitor: a later dashboard-first refresh still reported
+  `IN_PROGRESS`; visible Jules still showed the approved plan, no new feedback
+  prompt, no PR link, and no visible failure. The agent kept the current Jules
+  run alive rather than relaunching or splitting Package 3.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
