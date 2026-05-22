@@ -308,6 +308,75 @@ function createMangroveGeometry(): PropGeometrySet[] {
   ];
 }
 
+/** Fallen log — horizontal cylinder with slight taper, bark-colored */
+function createFallenLogGeometry(): PropGeometrySet[] {
+  const log = new THREE.CylinderGeometry(0.12, 0.15, 1.0, 8);
+  log.rotateZ(Math.PI / 2); // Lay horizontal
+  log.translate(0, 0.12, 0);
+
+  // Broken end cap
+  const endCap = new THREE.SphereGeometry(0.12, 6, 4, 0, Math.PI * 2, 0, Math.PI / 2);
+  endCap.rotateZ(Math.PI / 2);
+  endCap.translate(-0.5, 0.12, 0);
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x4a3018,
+    roughness: 0.95,
+    metalness: 0.0,
+  });
+
+  return [{ geometry: mergeGeometries([log, endCap]), material: mat }];
+}
+
+/** Tree stump — short thick cylinder with rough top */
+function createStumpGeometry(): PropGeometrySet[] {
+  const stump = new THREE.CylinderGeometry(0.14, 0.18, 0.25, 8);
+  stump.translate(0, 0.125, 0);
+
+  // Ring pattern on top
+  const ring = new THREE.RingGeometry(0.04, 0.13, 8);
+  ring.rotateX(-Math.PI / 2);
+  ring.translate(0, 0.255, 0);
+
+  const stumpMat = new THREE.MeshStandardMaterial({
+    color: 0x5a3a1a,
+    roughness: 0.9,
+    metalness: 0.0,
+  });
+
+  const ringMat = new THREE.MeshStandardMaterial({
+    color: 0x7a5a30,
+    roughness: 0.9,
+    metalness: 0.0,
+    side: THREE.DoubleSide,
+  });
+
+  return [
+    { geometry: stump, material: stumpMat },
+    { geometry: ring, material: ringMat },
+  ];
+}
+
+/** Bush — cluster of small spheres close to the ground */
+function createBushGeometry(): PropGeometrySet[] {
+  const s1 = new THREE.SphereGeometry(0.25, 8, 6);
+  s1.translate(0, 0.22, 0);
+  const s2 = new THREE.SphereGeometry(0.2, 7, 5);
+  s2.translate(0.15, 0.18, 0.1);
+  const s3 = new THREE.SphereGeometry(0.18, 7, 5);
+  s3.translate(-0.12, 0.16, -0.08);
+  const s4 = new THREE.SphereGeometry(0.15, 6, 4);
+  s4.translate(0.05, 0.32, -0.05);
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x2a5a1a,
+    roughness: 0.85,
+    metalness: 0.0,
+  });
+
+  return [{ geometry: mergeGeometries([s1, s2, s3, s4]), material: mat }];
+}
+
 /** Simple geometry merge (no dependencies on three-stdlib) */
 function mergeGeometries(geometries: THREE.BufferGeometry[]): THREE.BufferGeometry {
   const merged = new THREE.BufferGeometry();
@@ -363,6 +432,9 @@ const PROP_FACTORIES: Record<NonNullable<BattleMapDecoration>, () => PropGeometr
   pillar: createPillarGeometry,
   cactus: createCactusGeometry,
   mangrove: createMangroveGeometry,
+  fallen_log: createFallenLogGeometry,
+  stump: createStumpGeometry,
+  bush: createBushGeometry,
 };
 
 // ---------------------------------------------------------------------------

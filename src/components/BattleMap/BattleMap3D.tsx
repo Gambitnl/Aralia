@@ -29,7 +29,7 @@ import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps } from './terrain';
+import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter } from './terrain';
 import { CharacterActor } from './characters';
 import { CameraController } from './camera';
 import { VFXSystem, LivingWorld } from './vfx';
@@ -351,6 +351,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         <GrassLayer mapData={mapData} />
         <WaterSystem mapData={mapData} />
         <DecorationProps mapData={mapData} />
+        <GroundScatter mapData={mapData} />
 
         {/* Contact shadows — soft ground darkening under objects (replaces broken SSAO) */}
         <ContactShadows
