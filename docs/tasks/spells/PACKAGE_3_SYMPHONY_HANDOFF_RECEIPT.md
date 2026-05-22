@@ -36,6 +36,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Inspect visible Jules session | Done | Browser inspection showed Jules was actually waiting for visible operator input on the plan/checklist surface, with no `View PR`, GitHub URL, or pull request text |
 | Send visible Jules confirmation | Done | The agent used the signed-in Jules page to confirm the bounded Package 3 plan and tell Jules to proceed, preserving the declared write scope |
 | Refresh after visible confirmation | Waiting | Dashboard refresh moved the handoff back to Jules state `IN_PROGRESS`; GitHub branch and PR checks still found no `jules/spells-package3-spellbook-creator-visibility` branch or PR |
+| Post-PR #944 monitor refresh | Waiting | After the Package 3 reconciliation docs merged, the visible dashboard still reported `IN_PROGRESS`; the visible Jules page showed `Plan approved` with no new feedback gate or PR link, and GitHub still had no expected branch or PR |
 
 ## Current Boundary
 
@@ -64,3 +65,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   Package 2` during Package 3. The Symphony boundary wording was repaired to
   say `before filing the next handoff`, with
   `verify-completed-jules-no-pr-boundary.mjs` protecting the regression.
+- A later monitor pass after PR #944 confirmed that the run is still not a
+  durable no-code completion: Symphony says `IN_PROGRESS`, Jules shows the
+  approved plan rather than a new question, and GitHub has no expected branch
+  or PR. The foreman kept waiting instead of relaunching or splitting the task.

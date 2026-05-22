@@ -2063,6 +2063,41 @@ Copy this block for each decision.
 - Next expected proof: Continue dashboard-first status refreshes until a PR
   URL, feedback request, failure, or durable no-code/no-PR result is captured.
 
+### Decision 52: Keep Package 3 Waiting After Post-Confirmation Monitor
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_monitoring`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After PR #944 merged the Package 3 reconciliation docs and
+  Symphony no-PR wording repair, the dashboard still reported Jules session
+  `2823658242418460192` as `IN_PROGRESS`. The visible Jules page still showed
+  `Plan approved`, with no new feedback prompt, no PR link, no visible failure,
+  and no expected branch/PR visible in GitHub.
+- Options considered:
+  - Relaunch Package 3 immediately as a new Jules task.
+  - Split Package 3 into smaller tasks before the current Jules run finishes.
+  - Keep the current Jules run alive and continue dashboard-first monitoring.
+- Decision made by agent: Keep the current Jules run alive and continue
+  dashboard-first monitoring.
+- Model routing: Local Codex foreman reasoning; no Jules implementation work
+  was performed locally.
+- Rationale/evidence: The current evidence says the run is active rather than a
+  durable no-code completion. Relaunching now could create duplicate work, and
+  splitting now would be premature without a Jules failure, feedback request,
+  or scope-conflict report. GitHub branch and PR checks remain empty, so there
+  is still nothing for Scout/Core to review.
+- Mutation performed or skipped: Used the visible dashboard `Refresh Jules
+  Status` control and inspected the visible Jules session. Skipped relaunching,
+  splitting Package 3, local implementation, and hidden endpoint mutation.
+- Scope guardrails: Package 3 remains limited to character creator spell
+  selection and character sheet spellbook visibility. Combat simulator casting,
+  AI arbitration, broad spell schema/runtime architecture, and premade roster
+  semantics remain out of this active slice.
+- Result: Package 3 remains waiting on Jules. No code PR exists yet.
+- Next expected proof: Another dashboard refresh should capture a PR URL,
+  feedback request, failure/no-code result, or continued `IN_PROGRESS` state
+  with GitHub branch/PR evidence checked separately.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor Package 3 Jules session `2823658242418460192`, which now reports
