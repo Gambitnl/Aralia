@@ -88,6 +88,89 @@ function createTreeGeometry(): PropGeometrySet[] {
   ];
 }
 
+/** Tall pine/conifer — narrow layered cone canopy, dark green */
+function createTallPineGeometry(): PropGeometrySet[] {
+  const trunk = new THREE.CylinderGeometry(0.05, 0.10, 1.6, 6);
+  trunk.translate(0, 0.8, 0);
+  const trunkMat = new THREE.MeshStandardMaterial({
+    color: 0x3a2010, roughness: 0.95, metalness: 0.0,
+  });
+
+  // Layered cone canopy — 3 tiers for spruce look
+  const cone1 = new THREE.ConeGeometry(0.45, 0.6, 8);
+  cone1.translate(0, 1.9, 0);
+  const cone2 = new THREE.ConeGeometry(0.34, 0.5, 8);
+  cone2.translate(0, 2.3, 0);
+  const cone3 = new THREE.ConeGeometry(0.20, 0.4, 6);
+  cone3.translate(0, 2.6, 0);
+
+  const canopyMat = new THREE.MeshStandardMaterial({
+    color: 0x0f4a1a, roughness: 0.85, metalness: 0.0,
+  });
+
+  return [
+    { geometry: trunk, material: trunkMat },
+    { geometry: mergeGeometries([cone1, cone2, cone3]), material: canopyMat },
+  ];
+}
+
+/** Wide flat canopy — acacia/spreading oak style */
+function createWideFlatTreeGeometry(): PropGeometrySet[] {
+  const trunk = new THREE.CylinderGeometry(0.10, 0.16, 0.9, 8);
+  trunk.translate(0, 0.45, 0);
+  const trunkMat = new THREE.MeshStandardMaterial({
+    color: 0x5a3a1a, roughness: 0.95, metalness: 0.0,
+  });
+
+  const canopy1 = new THREE.SphereGeometry(0.7, 10, 8);
+  canopy1.scale(1, 0.38, 1);
+  canopy1.translate(0, 1.2, 0);
+  const canopy2 = new THREE.SphereGeometry(0.5, 8, 6);
+  canopy2.scale(1, 0.35, 1);
+  canopy2.translate(0.3, 1.1, 0.2);
+  const canopy3 = new THREE.SphereGeometry(0.45, 8, 6);
+  canopy3.scale(1, 0.35, 1);
+  canopy3.translate(-0.25, 1.15, -0.15);
+
+  const canopyMat = new THREE.MeshStandardMaterial({
+    color: 0x2a6a22, roughness: 0.85, metalness: 0.0,
+  });
+
+  return [
+    { geometry: trunk, material: trunkMat },
+    { geometry: mergeGeometries([canopy1, canopy2, canopy3]), material: canopyMat },
+  ];
+}
+
+/** Dead/bare tree — trunk with angled branches, no canopy */
+function createDeadTreeGeometry(): PropGeometrySet[] {
+  const trunk = new THREE.CylinderGeometry(0.05, 0.12, 1.4, 6);
+  trunk.translate(0, 0.7, 0);
+  const branch1 = new THREE.CylinderGeometry(0.02, 0.04, 0.5, 4);
+  branch1.rotateZ(-0.7);
+  branch1.translate(0.25, 1.1, 0);
+  const branch2 = new THREE.CylinderGeometry(0.02, 0.03, 0.4, 4);
+  branch2.rotateZ(0.5);
+  branch2.translate(-0.18, 0.9, 0.1);
+  const branch3 = new THREE.CylinderGeometry(0.015, 0.03, 0.35, 4);
+  branch3.rotateX(0.6);
+  branch3.translate(0.05, 1.2, -0.2);
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x4a3520, roughness: 0.9, metalness: 0.0,
+  });
+
+  return [{ geometry: mergeGeometries([trunk, branch1, branch2, branch3]), material: mat }];
+}
+
+// Tree variant factories for random per-instance species selection
+const TREE_VARIANTS: (() => PropGeometrySet[])[] = [
+  createTreeGeometry,        // Oak (40%)
+  createTallPineGeometry,    // Pine (25%)
+  createWideFlatTreeGeometry,// Wide/flat (25%)
+  createDeadTreeGeometry,    // Dead/bare (10%)
+];
+
 function createBoulderGeometry(): PropGeometrySet[] {
   const geo = new THREE.IcosahedronGeometry(0.35, 1);
   // Jitter vertices for organic look
@@ -327,23 +410,18 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
       }[];
     }[] = [];
 
-    for (const [decorationType, tiles] of decorationGroups) {
-      const factory = PROP_FACTORIES[decorationType];
-      if (!factory) continue;
-
-      const geoSets = factory();
-      const count = tiles.length;
-
-      // Build instance matrices (same for all parts of this prop type)
-      const matrices = new Float32Array(count * 16);
+    /** Helper: build instance matrices for a set of tiles */
+    const buildMatrices = (
+      tiles: { x: number; y: number; elevation: number }[],
+    ): Float32Array => {
+      const matrices = new Float32Array(tiles.length * 16);
       const dummy = new THREE.Object3D();
-
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < tiles.length; i++) {
         const tile = tiles[i];
         const jitterX = (rand() - 0.5) * 2 * POSITION_JITTER;
         const jitterZ = (rand() - 0.5) * 2 * POSITION_JITTER;
         const rotY = rand() * Math.PI * 2;
-        const scaleVariation = 0.8 + rand() * 0.4; // 80% to 120%
+        const scaleVariation = 0.8 + rand() * 0.4;
 
         dummy.position.set(
           tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jitterX,
@@ -355,6 +433,44 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
         dummy.updateMatrix();
         dummy.matrix.toArray(matrices, i * 16);
       }
+      return matrices;
+    };
+
+    for (const [decorationType, tiles] of decorationGroups) {
+      // --- Tree variant handling: split tiles across 2-4 species ---
+      if (decorationType === 'tree') {
+        const variantRand = seededRandom((mapData.seed ?? 42) + 12345);
+        // Weighted random: oak 40%, pine 25%, wide 25%, dead 10%
+        const buckets: { x: number; y: number; elevation: number }[][] = TREE_VARIANTS.map(() => []);
+        for (const tile of tiles) {
+          const r = variantRand();
+          const v = r < 0.40 ? 0 : r < 0.65 ? 1 : r < 0.90 ? 2 : 3;
+          buckets[v].push(tile);
+        }
+
+        for (let v = 0; v < TREE_VARIANTS.length; v++) {
+          if (buckets[v].length === 0) continue;
+          const geoSets = TREE_VARIANTS[v]();
+          const matrices = buildMatrices(buckets[v]);
+          result.push({
+            key: `tree-v${v}`,
+            parts: geoSets.map(gs => ({
+              geometry: gs.geometry,
+              material: gs.material,
+              matrices,
+              count: buckets[v].length,
+            })),
+          });
+        }
+        continue;
+      }
+
+      // --- Normal (non-tree) decoration handling ---
+      const factory = PROP_FACTORIES[decorationType];
+      if (!factory) continue;
+
+      const geoSets = factory();
+      const matrices = buildMatrices(tiles);
 
       result.push({
         key: decorationType,
@@ -362,7 +478,7 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
           geometry: gs.geometry,
           material: gs.material,
           matrices,
-          count,
+          count: tiles.length,
         })),
       });
     }

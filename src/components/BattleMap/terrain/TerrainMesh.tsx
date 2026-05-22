@@ -1,19 +1,19 @@
 /**
  * @file TerrainMesh.tsx
- * Continuous heightfield terrain mesh generated from BattleMapTile data.
+ * Continuous heightfield terrain mesh with procedural PBR-like texturing.
  *
- * Replaces the Phase 0 box-per-tile approach with a single subdivided PlaneGeometry
- * whose vertex Y positions are set from tile elevation values, smoothed with bicubic
- * interpolation across tile boundaries for an organic look.
+ * Uses a single subdivided PlaneGeometry whose vertex Y positions are set from
+ * tile elevation values via bicubic interpolation. Surface detail comes from
+ * GLSL procedural noise injected into MeshStandardMaterial via onBeforeCompile,
+ * giving us free lighting, shadows, fog, and tone mapping.
  *
- * Research references:
- * - Heightmap vertex displacement: https://dev.to/sanderdebr/let-s-build-3d-procedural-landscape-with-react-and-three-js-47a0
- * - Bicubic interpolation for smooth terrain: https://en.wikipedia.org/wiki/Bicubic_interpolation
- * - R3F BufferGeometry: https://r3f.docs.pmnd.rs/api/objects
+ * Terrain types (grass, rock, dirt, sand, etc.) are encoded in a DataTexture
+ * and the fragment shader selects per-type color + noise patterns. Edge blending
+ * softens transitions between adjacent terrain types.
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Terrain System" section
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapTile } from '../../../types/combat';
@@ -35,13 +35,9 @@ const MICRO_NOISE_AMPLITUDE = 0.04;
 const TILE_SIZE = 1.0;
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers — interpolation & noise (CPU side, for geometry generation)
 // ---------------------------------------------------------------------------
 
-/**
- * Cubic interpolation between 4 values at parameter t ∈ [0,1].
- * Uses Catmull-Rom spline weights for C1 continuity.
- */
 function cubicInterpolate(v0: number, v1: number, v2: number, v3: number, t: number): number {
   const t2 = t * t;
   const t3 = t2 * t;
@@ -53,10 +49,6 @@ function cubicInterpolate(v0: number, v1: number, v2: number, v3: number, t: num
   );
 }
 
-/**
- * Bicubic interpolation on a 2D grid of elevation values.
- * Returns the smoothly interpolated elevation at fractional tile coordinates (fx, fy).
- */
 function bicubicSample(
   getElevation: (tx: number, ty: number) => number,
   fx: number,
@@ -69,7 +61,6 @@ function bicubicSample(
   const dx = fx - ix;
   const dy = fy - iy;
 
-  // Sample 4x4 neighborhood (clamped at boundaries)
   const cols: number[] = [];
   for (let j = -1; j <= 2; j++) {
     const row: number[] = [];
@@ -84,25 +75,16 @@ function bicubicSample(
   return cubicInterpolate(cols[0], cols[1], cols[2], cols[3], dy);
 }
 
-/**
- * Simple seeded pseudo-random for deterministic micro-noise.
- * Uses a simple hash function to generate noise at integer coordinates.
- */
 function pseudoNoise(x: number, y: number, seed: number): number {
   const n = Math.sin(x * 127.1 + y * 311.7 + seed * 73.13) * 43758.5453;
-  return n - Math.floor(n);  // fractional part → [0, 1)
+  return n - Math.floor(n);
 }
 
-/**
- * Smooth noise via bilinear interpolation of pseudoNoise at integer grid points.
- */
 function smoothNoise(x: number, y: number, seed: number): number {
   const ix = Math.floor(x);
   const iy = Math.floor(y);
   const fx = x - ix;
   const fy = y - iy;
-
-  // Smoothstep for smoother interpolation
   const sx = fx * fx * (3 - 2 * fx);
   const sy = fy * fy * (3 - 2 * fy);
 
@@ -118,19 +100,285 @@ function smoothNoise(x: number, y: number, seed: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Terrain color mapping (procedural — until PBR textures in splat shader)
+// Terrain type encoding for the GPU data texture
 // ---------------------------------------------------------------------------
 
-const TERRAIN_VERTEX_COLORS: Record<string, [number, number, number]> = {
-  grass:     [0.23, 0.35, 0.16],
-  rock:      [0.42, 0.42, 0.42],
-  water:     [0.10, 0.29, 0.42],
-  difficult: [0.35, 0.29, 0.13],
-  wall:      [0.29, 0.29, 0.29],
-  floor:     [0.42, 0.38, 0.31],
-  sand:      [0.78, 0.66, 0.38],
-  mud:       [0.29, 0.23, 0.13],
+const TERRAIN_TYPE_INDEX: Record<string, number> = {
+  grass: 0,
+  rock: 1,
+  difficult: 2,
+  sand: 3,
+  water: 4,
+  wall: 5,
+  floor: 6,
+  mud: 2, // same visual as difficult
 };
+
+/**
+ * Creates a DataTexture encoding the terrain type per tile.
+ * R channel = type index (0–7), used by the fragment shader.
+ */
+function createTerrainTypeTexture(
+  mapData: BattleMapData,
+  width: number,
+  height: number,
+): THREE.DataTexture {
+  const data = new Uint8Array(width * height * 4);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const tile = mapData.tiles.get(`${x}-${y}`);
+      const terrainType = tile?.terrain ?? 'grass';
+      data[idx] = TERRAIN_TYPE_INDEX[terrainType] ?? 0;
+      data[idx + 1] = 0;
+      data[idx + 2] = 0;
+      data[idx + 3] = 255;
+    }
+  }
+
+  const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+// ---------------------------------------------------------------------------
+// GLSL procedural terrain texturing — injected via onBeforeCompile
+// ---------------------------------------------------------------------------
+
+const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
+  varying vec3 vTerrainWorldPos;
+  uniform sampler2D uTerrainTypeMap;
+  uniform float uMapWidth;
+  uniform float uMapHeight;
+
+  // ---- Hash / noise functions (Dave Hoskins style) ----
+  float hash21(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+  }
+
+  float vnoise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+  }
+
+  float fbm4(vec2 p) {
+    float v = 0.0;
+    float a = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += a * vnoise(p);
+      p = p * 2.03 + vec2(1.7, 9.2);
+      a *= 0.5;
+    }
+    return v;
+  }
+
+  float voronoi(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float md = 1.0;
+    for (int y = -1; y <= 1; y++) {
+      for (int x = -1; x <= 1; x++) {
+        vec2 nb = vec2(float(x), float(y));
+        float h = hash21(i + nb);
+        vec2 pt = vec2(fract(h * 17.31), fract(h * 43.47));
+        md = min(md, length(nb + pt - f));
+      }
+    }
+    return md;
+  }
+
+  // ---- Per-terrain-type color functions ----
+
+  vec3 getGrassColor(vec2 wXZ) {
+    float n1 = fbm4(wXZ * 4.0);
+    float n2 = fbm4(wXZ * 5.6 + vec2(5.7, 3.2));
+    float detail = n1 * 0.3 + n2 * 0.15;
+    vec3 c = mix(vec3(0.10, 0.20, 0.05), vec3(0.25, 0.42, 0.16), detail + 0.55);
+    // Dirt patches
+    float dp = smoothstep(0.42, 0.58, fbm4(wXZ * 1.5 + vec2(42.0, 17.0)));
+    c = mix(c, vec3(0.30, 0.24, 0.14), dp * 0.35);
+    // Fine grain
+    c += vnoise(wXZ * 16.0) * 0.08 - 0.04;
+    return c;
+  }
+
+  vec3 getRockColor(vec2 wXZ) {
+    float n = fbm4(wXZ * 3.6);
+    float crack = voronoi(wXZ * 4.5);
+    vec3 c = mix(vec3(0.25, 0.24, 0.22), vec3(0.50, 0.48, 0.44),
+                 n * 0.4 + crack * 0.35 + 0.35);
+    c *= 0.7 + 0.3 * smoothstep(0.0, 0.08, crack);
+    c += vec3(0.03, -0.01, -0.02) * fbm4(wXZ * 1.5 + vec2(11.0, 7.0));
+    return c;
+  }
+
+  vec3 getDirtColor(vec2 wXZ) {
+    float n = fbm4(wXZ * 3.15 + vec2(17.0, 23.0));
+    vec3 c = mix(vec3(0.20, 0.14, 0.07), vec3(0.42, 0.34, 0.22), n + 0.45);
+    c += vec3(0.05, 0.04, 0.02) * step(0.7, vnoise(wXZ * 12.0));
+    c += vnoise(wXZ * 20.0) * 0.06 - 0.03;
+    return c;
+  }
+
+  vec3 getSandColor(vec2 wXZ) {
+    float n = fbm4(wXZ * 1.5 + vec2(33.0, 41.0));
+    float ripple = sin(wXZ.x * 12.0 + wXZ.y * 4.0 + n * 3.0) * 0.5 + 0.5;
+    vec3 c = mix(vec3(0.70, 0.60, 0.38), vec3(0.85, 0.75, 0.52),
+                 n * 0.3 + ripple * 0.2 + 0.4);
+    c += vec3(0.05) * step(0.92, vnoise(wXZ * 30.0));
+    return c;
+  }
+
+  vec3 getWaterBedColor(vec2 wXZ) {
+    float n = fbm4(wXZ * 3.0 + vec2(7.0, 13.0));
+    return mix(vec3(0.08, 0.18, 0.25), vec3(0.12, 0.28, 0.35), n);
+  }
+
+  vec3 getWallColor(vec2 wXZ) {
+    float n = fbm4(wXZ * 2.5 + vec2(71.0, 59.0));
+    float crack = voronoi(wXZ * 2.0);
+    return mix(vec3(0.18, 0.17, 0.16), vec3(0.38, 0.36, 0.34),
+               n * 0.35 + crack * 0.3 + 0.35);
+  }
+
+  vec3 getFloorColor(vec2 wXZ) {
+    float n = fbm4(wXZ * 3.0 + vec2(51.0, 37.0));
+    float tileLine = step(0.03, fract(wXZ.x)) * step(0.03, fract(wXZ.y));
+    vec3 c = mix(vec3(0.32, 0.28, 0.24), vec3(0.48, 0.44, 0.38), n * 0.4 + 0.45);
+    c *= 0.85 + 0.15 * tileLine;
+    return c;
+  }
+
+  vec3 getTerrainColor(float idx, vec2 wXZ) {
+    int t = int(idx + 0.5);
+    if (t == 0) return getGrassColor(wXZ);
+    if (t == 1) return getRockColor(wXZ);
+    if (t == 2) return getDirtColor(wXZ);
+    if (t == 3) return getSandColor(wXZ);
+    if (t == 4) return getWaterBedColor(wXZ);
+    if (t == 5) return getWallColor(wXZ);
+    if (t == 6) return getFloorColor(wXZ);
+    return getGrassColor(wXZ);
+  }
+`;
+
+const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
+  // ---- Procedural terrain texturing ----
+  vec2 _tileUV = vec2(
+    (floor(vTerrainWorldPos.x) + 0.5) / uMapWidth,
+    (floor(vTerrainWorldPos.z) + 0.5) / uMapHeight
+  );
+  float _terrainIdx = texture2D(uTerrainTypeMap, _tileUV).r * 255.0;
+  vec3 _terrainColor = getTerrainColor(_terrainIdx, vTerrainWorldPos.xz);
+
+  // Edge blending: soften transitions between different terrain types
+  vec2 _tileFrac = fract(vTerrainWorldPos.xz);
+  float _edgeW = 0.18;
+  float _ex = min(_tileFrac.x, 1.0 - _tileFrac.x);
+  float _ez = min(_tileFrac.y, 1.0 - _tileFrac.y);
+  float _edgeDist = min(_ex, _ez);
+
+  if (_edgeDist < _edgeW) {
+    float _blend = 1.0 - smoothstep(0.0, _edgeW, _edgeDist);
+    vec2 _nOff = vec2(0.0);
+    if (_ex < _ez) {
+      _nOff.x = _tileFrac.x < 0.5 ? -1.0 : 1.0;
+    } else {
+      _nOff.y = _tileFrac.y < 0.5 ? -1.0 : 1.0;
+    }
+    vec2 _nUV = vec2(
+      (floor(vTerrainWorldPos.x + _nOff.x) + 0.5) / uMapWidth,
+      (floor(vTerrainWorldPos.z + _nOff.y) + 0.5) / uMapHeight
+    );
+    if (_nUV.x >= 0.0 && _nUV.x <= 1.0 && _nUV.y >= 0.0 && _nUV.y <= 1.0) {
+      float _nIdx = texture2D(uTerrainTypeMap, _nUV).r * 255.0;
+      if (abs(_nIdx - _terrainIdx) > 0.5) {
+        vec3 _nColor = getTerrainColor(_nIdx, vTerrainWorldPos.xz);
+        _terrainColor = mix(_terrainColor, _nColor, _blend * 0.5);
+      }
+    }
+  }
+
+  diffuseColor.rgb = _terrainColor;
+`;
+
+const TERRAIN_NORMAL_FRAGMENT = /* glsl */ `
+  // ---- Procedural normal perturbation for terrain bumps ----
+  float _bs = 0.2;
+  vec2 _bu1 = vTerrainWorldPos.xz * 4.0;
+  vec2 _bu2 = vTerrainWorldPos.xz * 12.0;
+  float _bh  = vnoise(_bu1) * 0.6 + vnoise(_bu2) * 0.4;
+  float _bhx = vnoise(_bu1 + vec2(0.05, 0.0)) * 0.6 + vnoise(_bu2 + vec2(0.05, 0.0)) * 0.4;
+  float _bhz = vnoise(_bu1 + vec2(0.0, 0.05)) * 0.6 + vnoise(_bu2 + vec2(0.0, 0.05)) * 0.4;
+  vec3 _wb = normalize(vec3(-(_bh - _bhx) / 0.05 * _bs, 1.0, -(_bh - _bhz) / 0.05 * _bs));
+  vec3 _vb = normalize(mat3(viewMatrix) * _wb);
+  normal = normalize(mix(normal, _vb, 0.3));
+`;
+
+// ---------------------------------------------------------------------------
+// Custom terrain material factory
+// ---------------------------------------------------------------------------
+
+function createTerrainMaterial(
+  terrainTypeTex: THREE.DataTexture,
+  mapWidth: number,
+  mapHeight: number,
+  seed: number,
+): THREE.MeshStandardMaterial {
+  const mat = new THREE.MeshStandardMaterial({
+    roughness: 0.88,
+    metalness: 0.02,
+    side: THREE.FrontSide,
+  });
+
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTerrainTypeMap = { value: terrainTypeTex };
+    shader.uniforms.uMapWidth = { value: mapWidth };
+    shader.uniforms.uMapHeight = { value: mapHeight };
+
+    // --- Vertex shader: pass world position ---
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      '#include <common>\nvarying vec3 vTerrainWorldPos;',
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      '#include <begin_vertex>\nvTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+    );
+
+    // --- Fragment shader: inject noise functions + uniforms ---
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>\n${TERRAIN_GLSL_PREAMBLE}`,
+    );
+
+    // Replace vertex-color fragment with procedural terrain color
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <color_fragment>',
+      TERRAIN_COLOR_FRAGMENT,
+    );
+
+    // Add normal perturbation after normal mapping
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <normal_fragment_maps>',
+      `#include <normal_fragment_maps>\n${TERRAIN_NORMAL_FRAGMENT}`,
+    );
+  };
+
+  mat.customProgramCacheKey = () => `terrain-pbr-v2-${mapWidth}-${mapHeight}-${seed}`;
+  return mat;
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -156,7 +404,6 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   onTileClick,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-
   const { width, height } = mapData.dimensions;
 
   // Build tile lookup for fast access
@@ -171,7 +418,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     return grid;
   }, [mapData, width, height]);
 
-  // Generate the heightfield geometry
+  // Generate the heightfield geometry (no vertex colors — shader handles color)
   const geometry = useMemo(() => {
     const segsX = width * SUBDIVISIONS_PER_TILE;
     const segsZ = height * SUBDIVISIONS_PER_TILE;
@@ -183,16 +430,10 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       segsZ,
     );
 
-    // PlaneGeometry is XY-oriented; rotate to XZ (ground plane)
     geo.rotateX(-Math.PI / 2);
-
     const positions = geo.attributes.position as THREE.BufferAttribute;
     const vertexCount = positions.count;
 
-    // Add vertex colors for terrain type visualization
-    const colors = new Float32Array(vertexCount * 3);
-
-    // Elevation lookup helper (clamped)
     const getElevation = (tx: number, ty: number): number => {
       const cx = Math.max(0, Math.min(width - 1, tx));
       const cy = Math.max(0, Math.min(height - 1, ty));
@@ -202,57 +443,41 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     const seed = mapData.seed ?? 42;
 
     for (let i = 0; i < vertexCount; i++) {
-      // Get vertex world position (PlaneGeometry centers at origin after creation)
-      let vx = positions.getX(i);
+      const vx = positions.getX(i);
       const vz = positions.getZ(i);
 
-      // Convert from geometry-local to tile coordinates
-      // PlaneGeometry goes from -width/2 to +width/2, we want 0 to width
       const tileX = (vx / TILE_SIZE) + width / 2;
       const tileZ = (vz / TILE_SIZE) + height / 2;
 
-      // Bicubic interpolation of elevation
-      const smoothElevation = bicubicSample(
-        getElevation,
-        tileX,
-        tileZ,
-        width,
-        height,
-      );
-
-      // Add micro-noise for organic feel
+      const smoothElevation = bicubicSample(getElevation, tileX, tileZ, width, height);
       const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
       const microDetail = noise * MICRO_NOISE_AMPLITUDE;
 
-      // Set Y (up) to elevation
       positions.setY(i, smoothElevation * ELEVATION_SCALE + microDetail);
-
-      // Shift X and Z so tile (0,0) is at world origin
       positions.setX(i, vx + (width / 2) * TILE_SIZE);
       positions.setZ(i, vz + (height / 2) * TILE_SIZE);
-
-      // Vertex color from nearest tile terrain type
-      const nearestTileX = Math.max(0, Math.min(width - 1, Math.floor(tileX)));
-      const nearestTileZ = Math.max(0, Math.min(height - 1, Math.floor(tileZ)));
-      const tile = tileGrid[nearestTileZ]?.[nearestTileX];
-      const terrainType = tile?.terrain ?? 'grass';
-      const baseColor = TERRAIN_VERTEX_COLORS[terrainType] ?? TERRAIN_VERTEX_COLORS.grass;
-
-      // Add slight color variation based on noise for natural look
-      const colorNoise = smoothNoise(tileX * 2.1, tileZ * 2.1, seed + 100) * 0.1 - 0.05;
-      colors[i * 3] = Math.max(0, Math.min(1, baseColor[0] + colorNoise));
-      colors[i * 3 + 1] = Math.max(0, Math.min(1, baseColor[1] + colorNoise * 0.7));
-      colors[i * 3 + 2] = Math.max(0, Math.min(1, baseColor[2] + colorNoise * 0.5));
     }
 
-    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geo.computeVertexNormals();
-
-    // Mark for update
     positions.needsUpdate = true;
-
     return geo;
   }, [tileGrid, width, height, mapData.seed]);
+
+  // Terrain type data texture (per-tile, for the GPU)
+  const terrainTypeTex = useMemo(
+    () => createTerrainTypeTexture(mapData, width, height),
+    [mapData, width, height],
+  );
+
+  // Custom material with procedural GLSL texturing
+  const material = useMemo(
+    () => createTerrainMaterial(terrainTypeTex, width, height, mapData.seed ?? 42),
+    [terrainTypeTex, width, height, mapData.seed],
+  );
+
+  // Dispose GPU resources on change/unmount
+  useEffect(() => () => { terrainTypeTex.dispose(); }, [terrainTypeTex]);
+  useEffect(() => () => { material.dispose(); }, [material]);
 
   // Active path set for quick lookup
   const activePathSet = useMemo(() => {
@@ -279,6 +504,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     <mesh
       ref={meshRef}
       geometry={geometry}
+      material={material}
       receiveShadow
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
@@ -286,14 +512,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
           handleClick(e.intersections[0]);
         }
       }}
-    >
-      <meshStandardMaterial
-        vertexColors
-        roughness={0.85}
-        metalness={0.05}
-        side={THREE.FrontSide}
-      />
-    </mesh>
+    />
   );
 };
 

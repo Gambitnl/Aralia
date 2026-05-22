@@ -49,9 +49,9 @@
 
 | # | Task | Priority | Status | Detail File | Notes |
 |---|------|----------|--------|-------------|-------|
-| 14 | Terrain PBR textures | P0 | [ ] | | Replace vertexColors with tiling diffuse+normal maps per terrain type (grass/dirt/rock). Splat-map blending based on tile terrain. Even procedural Canvas2D textures would transform the scene. Biggest single visual gap. |
+| 14 | Terrain PBR textures | P0 | [x] | | Replaced vertexColors with onBeforeCompile GLSL procedural texturing. 7 terrain types (grass/rock/dirt/sand/water/wall/floor) with FBM noise, voronoi cracks, edge blending, normal perturbation. |
 | 15 | Nameplate overlap fix | P0 | [ ] | | Characters clustered = illegible text wall. Options: hover-only nameplates, occlusion stacking, or minimal HP-pip default with hover detail. |
-| 16 | Tree variety (2-3 species) | P0 | [ ] | | Every tree is identical shape. Add: tall narrow canopy, wide flat canopy, bare/dead tree. Random selection per instance. |
+| 16 | Tree variety (2-3 species) | P0 | [x] | | 4 tree variants: oak (40%), pine/conifer (25%), wide/flat (25%), dead/bare (10%). Weighted random selection per instance via separate seed. |
 
 ### Tier 2 — Expected but missing
 
@@ -91,3 +91,5 @@
 | 2026-05-22 | 8 | Fog tightening | All biome fog distances reduced. Visible at map edges. |
 | 2026-05-22 | 9 | Grid refinement | Width/opacity reduced, mode-gated. |
 | 2026-05-22 | — | Phase 2 critical assessment | 12 new tasks identified. Terrain textures, nameplate overlap, tree variety are top priority. |
+| 2026-05-22 | 14 | Procedural terrain texturing | Replaced flat vertexColors with GLSL procedural noise (FBM, voronoi). 7 terrain types with distinct patterns. Edge blending + normal perturbation. |
+| 2026-05-22 | 16 | Tree variety | 4 species: oak, pine, wide/flat, dead/bare. Weighted random per instance. Visually distinct silhouettes. |
