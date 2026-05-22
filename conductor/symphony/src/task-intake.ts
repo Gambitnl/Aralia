@@ -1093,6 +1093,7 @@ export function buildLocalSyncNextAction(input: {
   safeToPull: boolean;
   upToDate: boolean;
   currentBranch: string | null;
+  currentBranchCanStandInForBase?: boolean;
   baseBranch: string;
   dirtyFiles: number;
   untrackedFiles: number;
@@ -1118,7 +1119,7 @@ export function buildLocalSyncNextAction(input: {
     };
   }
 
-  if (input.currentBranch !== input.baseBranch) {
+  if (input.currentBranch !== input.baseBranch && !input.currentBranchCanStandInForBase) {
     return {
       code: 'switch_base_branch',
       tone: 'blocked',
@@ -5509,8 +5510,6 @@ export class TaskIntakeStore {
     if (!currentBranchResult.ok) {
       blockers.push('Could not determine the current branch.');
       details.push(currentBranchResult.message);
-    } else if (currentBranch !== this.baseBranch) {
-      blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
     }
 
     const statusResult = await this.git(['status', '--porcelain']);
@@ -5560,11 +5559,43 @@ export class TaskIntakeStore {
       details.push(remoteCommitResult.message);
     }
 
+    const headCommitResult = await this.git(['rev-parse', 'HEAD']);
+    const headCommit = headCommitResult.ok ? headCommitResult.stdout.trim() || null : null;
+    if (!headCommitResult.ok) {
+      blockers.push('Could not read the current checkout commit.');
+      details.push(headCommitResult.message);
+    }
+
+    // Isolated Symphony worktrees often cannot check out `master` because the
+    // user's main repo already owns that branch. A clean monitor branch at the
+    // exact GitHub base commit is still a valid "nothing to pull" proof, while
+    // any real fast-forward need or local difference remains blocked below.
+    const currentBranchCanStandInForBase = currentBranch !== null
+      && currentBranch !== this.baseBranch
+      && dirtyFiles === 0
+      && untrackedFiles === 0
+      && (ahead ?? 0) === 0
+      && (behind ?? 0) === 0
+      && headCommit !== null
+      && remoteCommit !== null
+      && headCommit === remoteCommit;
+
+    if (currentBranchResult.ok && currentBranch !== this.baseBranch && !currentBranchCanStandInForBase) {
+      blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
+    }
+
+    if (currentBranchCanStandInForBase) {
+      details.push(
+        `Current branch ${currentBranch} is a clean worktree branch at ${remoteBranch}; no local sync command is needed in this worktree.`,
+      );
+    }
+
     const safeToPull = blockers.length === 0 && (behind ?? 0) > 0;
     const upToDate = blockers.length === 0 && (behind ?? 0) === 0;
     const remediation = this.buildLocalSyncRemediation({
       prMerged,
       currentBranch,
+      currentBranchCanStandInForBase,
       dirtyFiles,
       untrackedFiles,
       ahead,
@@ -5600,6 +5631,7 @@ export class TaskIntakeStore {
         safeToPull,
         upToDate,
         currentBranch,
+        currentBranchCanStandInForBase,
         baseBranch: this.baseBranch,
         dirtyFiles,
         untrackedFiles,
@@ -5613,6 +5645,7 @@ export class TaskIntakeStore {
   private buildLocalSyncRemediation(input: {
     prMerged: boolean;
     currentBranch: string | null;
+    currentBranchCanStandInForBase: boolean;
     dirtyFiles: number;
     untrackedFiles: number;
     ahead: number | null;
@@ -5628,7 +5661,7 @@ export class TaskIntakeStore {
       steps.push('Wait for GitHub to report the Jules PR as merged before syncing local master.');
     }
 
-    if (input.currentBranch !== this.baseBranch) {
+    if (input.currentBranch !== this.baseBranch && !input.currentBranchCanStandInForBase) {
       steps.push(`Switch to ${this.baseBranch} before syncing local work.`);
     }
 
