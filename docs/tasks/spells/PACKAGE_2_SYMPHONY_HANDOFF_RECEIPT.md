@@ -263,6 +263,59 @@ This means the active Package 2 blockers are no longer scope-classification
 errors. The remaining blockers are the failed GitHub workflow/test checks and
 the reviewability decision about the large premade JSON diff.
 
+## Operator-Answer Text Entry Blocker
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After the Scout/Core scope evidence was repaired, the task page correctly asked
+whether Symphony should route the failed workflow/review automation check to a
+setup repair task before asking Jules to change Package 2 code. Codex attempted
+to answer through the visible operator-answer form, but the in-app browser hit
+the same virtual-clipboard text-entry limitation that blocked task messages.
+
+Repair path:
+
+- Decision report entry: Decision 33.
+- Code path: `conductor/symphony/src/server.ts`.
+- Verifier: `conductor/symphony/scripts/verify-task-detail-page.mjs`.
+- Live proof: the visible `Record Selected Decision` button recorded
+  `create_setup_repair_task` without calling the hidden endpoint.
+
+Guardrail: the no-typing button records only a local operator receipt. It does
+not create the repair task, send Jules feedback, push to GitHub, mutate Git, or
+edit local files.
+
+## Selected Repair-Lane Dashboard Routing
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After the no-typing operator answer was recorded, the dashboard still showed
+the old PR-refresh/Jules-feedback boundary. That was a second dashboard blocker:
+the selected decision said to create a setup repair task before asking Jules to
+change Package 2 code, but the visible next action did not offer that route.
+
+Repair path:
+
+- Decision report entry: Decision 34.
+- Code path: `conductor/symphony/src/server.ts`.
+- Verifier: `conductor/symphony/scripts/verify-task-detail-page.mjs` plus the
+  existing repair-lane draft verifiers.
+- Live proof: the Package 2 task page showed `Create Local Repair Draft`, Codex
+  clicked that visible button, and Symphony created local draft
+  `draft-1779410025252-nnowpt` titled `Setup repair for ARA-7`.
+
+Current state after the visible action:
+
+- Operator answer: `create_setup_repair_task`
+- Repair lane execution: `local_draft_created`
+- Created draft: `draft-1779410025252-nnowpt`
+- Created draft status: `blocked_by_git_sync`
+- External mutation performed: `none`
+
+The draft is blocked by Git sync because this foreman branch now contains
+unfiled local Symphony dashboard fixes. That is a correct dashboard blocker,
+not a reason to bypass the draft gates.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub

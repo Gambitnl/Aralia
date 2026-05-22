@@ -24,6 +24,18 @@ not installed. The dashboard now exposes a visible safe refresh button for PR
 evidence, but durable foreman notes still need to be carried by receipts until
 the visible note-entry path is repaired.
 
+Follow-up dashboard repair: the operator-answer form hit the same no-typing
+limitation when Codex tried to record the workflow-config repair decision from
+the visible page. Decision 33 adds a `Record Selected Decision` button that
+records the selected local answer without requiring text entry. This keeps the
+decision on the visible task page instead of using the hidden endpoint.
+
+Second follow-up: after that local answer was recorded, the visible next action
+still pointed at PR refresh/Jules feedback. Decision 34 connects the selected
+`create_setup_repair_task` answer to a visible `Create Local Repair Draft`
+button. Codex used that button to create local draft
+`draft-1779410025252-nnowpt`.
+
 ## Communication Channels To Record
 
 After Package 2 dispatches, record communication through the existing Symphony
@@ -54,7 +66,11 @@ Do not treat broad Codex thread context as task-scoped Package 2 communication.
   `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md`
 - Dashboard-triggered communication/evidence events: Codex clicked the visible
   `Run Safe Symphony Refresh` button on the Package 2 task page; that action
-  refreshed PR checks and Scout/Core evidence without using a hidden endpoint
+  refreshed PR checks and Scout/Core evidence without using a hidden endpoint;
+  Codex then attempted to record the operator answer through the visible form,
+  hit the text-entry blocker, and repaired the visible form with `Record
+  Selected Decision`; Codex then used the visible `Create Local Repair Draft`
+  action to create `draft-1779410025252-nnowpt`
 - Structured clarifications recorded: none
 - Jules dialogue affecting scope or repair: visible plan-approval gate; PR #935
   generated from the approved Package 2 scope
@@ -64,7 +80,9 @@ Do not treat broad Codex thread context as task-scoped Package 2 communication.
   infrastructure are blocking, waived, or repaired before merge
 - Communication blockers: dashboard task-message text entry failed from Codex
   because the browser surface reported no virtual clipboard; task-page PR
-  refresh is repaired, but task-page note entry remains a dashboard workflow gap
+  refresh is repaired, operator-answer no-typing receipt is implemented, and
+  selected repair-lane draft creation is visible; task-page note entry remains a
+  dashboard workflow gap
 - Can Package 2 advance from a communication standpoint: `no`, because the
   failed-check disposition still needs to be recorded through the Scout/Core
   bridge

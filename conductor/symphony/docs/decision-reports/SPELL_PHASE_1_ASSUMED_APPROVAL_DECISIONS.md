@@ -1319,11 +1319,88 @@ Copy this block for each decision.
   workflow/test checks and whether the large JSON diff is acceptable or should
   go back to Jules for a narrower rewrite.
 
+### Decision 33: Add A Visible No-Typing Operator Decision Button
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to use the hidden operator-answer endpoint after the
+  visible text box failed in the in-app browser, or repair the dashboard so the
+  operator decision can still be recorded from the visible task page.
+- Options considered:
+  - Call the local operator-answer endpoint directly with the desired answer.
+  - Retry fragile browser text entry and leave the dashboard unchanged.
+  - Add a visible button that records the selected decision with a
+    plain-language default answer, while keeping the free-text answer box for
+    humans who can type normally.
+- Decision made by agent: Add `Record Selected Decision` to the task-page
+  operator-answer form.
+- Model routing: Standard foreman/frontend reasoning, because this is a narrow
+  dashboard affordance repair exposed by the live task flow.
+- Rationale/evidence: The Package 2 task page correctly asked whether Symphony
+  should route the failed workflow/review automation check to setup repair
+  before asking Jules to change task code. The visible answer form existed, but
+  browser-driven text entry failed with the same virtual-clipboard limitation
+  already seen on task notes. Calling the endpoint directly would bypass the
+  dashboard-first test.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts` and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Did not send Jules
+  feedback, create Linear work, push to GitHub, or mutate Git.
+- Scope guardrails: The new button records only a local operator receipt for
+  the selected decision. It does not execute the selected repair lane or perform
+  any external mutation.
+- Result: The task page now has both `Record Operator Answer` for typed answers
+  and `Record Selected Decision` for visible no-typing decisions. The live
+  Package 2 task used the new button to record `create_setup_repair_task`.
+- Next expected proof: Follow the recorded repair lane from the visible task
+  page instead of sending Jules feedback or calling hidden endpoints.
+
+### Decision 34: Surface The Selected Setup-Repair Lane As A Visible Local-Draft Action
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: After `create_setup_repair_task` was recorded, the dashboard
+  still showed the old PR-refresh/Jules-feedback boundary instead of the
+  selected setup-repair lane.
+- Options considered:
+  - Treat the local answer as enough and manually call the hidden
+    `execute-repair-lane` endpoint.
+  - Send Jules feedback even though the selected decision said to create setup
+    repair first.
+  - Wire the selected repair lane into the task page as a visible guarded local
+    receipt action.
+- Decision made by agent: Add a visible `Create Local Repair Draft` guarded
+  action after the selected operator answer.
+- Model routing: Standard foreman/backend reasoning, because this is a narrow
+  workflow-routing repair that keeps the dashboard path aligned with the
+  recorded decision.
+- Rationale/evidence: The live task page recorded the operator answer, but the
+  current boundary and guarded actions still offered PR refresh and Jules
+  feedback. Symphony already had a local `execute-repair-lane` endpoint; the
+  missing piece was dashboard routing from the selected answer to that endpoint.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts` and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Then used the
+  visible `Create Local Repair Draft` button on the Package 2 task page.
+- Scope guardrails: The action creates only a local setup-repair draft. It does
+  not create Linear work, launch Jules, send Jules feedback, comment on GitHub,
+  push, merge, or edit spell implementation files.
+- Result: The visible task page created local setup-repair draft
+  `draft-1779410025252-nnowpt` titled `Setup repair for ARA-7`. The draft is
+  currently `blocked_by_git_sync`, which is expected while this foreman branch
+  still has unfiled local Symphony changes.
+- Next expected proof: File these Symphony dashboard fixes, then use the
+  dashboard draft path for `draft-1779410025252-nnowpt` if the workflow-config
+  repair remains the chosen lane.
+
 ## Open Decisions For The Next Slice
 
-1. Decide whether PR #935's failed `review / review` and broad `Tests` checks
-   are workflow/test-infrastructure blockers to repair separately, temporary
-   failures to rerun, or blockers that should stop Package 2 merge.
-2. Decide whether PR #935's large premade JSON line churn is acceptable with the
+1. File the Symphony dashboard fixes that enabled the local setup-repair draft,
+   then decide whether to advance `draft-1779410025252-nnowpt` through the
+   normal dashboard draft gates.
+2. Decide whether PR #935's broad `Tests` failure is an ambient
+   test-infrastructure blocker to repair separately, a temporary failure to
+   rerun, or a blocker that should stop Package 2 merge.
+3. Decide whether PR #935's large premade JSON line churn is acceptable with the
    semantic diff evidence, or whether Jules should do a narrow formatting-only
    cleanup before merge.
