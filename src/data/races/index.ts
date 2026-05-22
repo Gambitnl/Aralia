@@ -30,6 +30,14 @@
  * 3. That's it! The race will be automatically included.
  */
 import { Race } from '../../types/index.js';
+import { buildRacialTraitLibrary, setRacialTraitLibraryInstance } from './racialTraits.js';
+export {
+  buildRacialTraitLibrary,
+  getRacialChoiceRequirementsForRace,
+  getRacialSpellCastingAbilityChoiceForRace,
+  getRacialSpellCastingAbilityChoicesForRace,
+  hasRacialSpellCastingAbilityChoiceForRace,
+} from './racialTraits.js';
 
 // Auto-import all race files using Vite's import.meta.glob
 // This scans for all .ts files in the current directory, excluding index.ts and raceGroups.ts
@@ -80,6 +88,9 @@ export const RACE_DATA_BUNDLE = {
   tieflingLegacies: FIENDISH_LEGACIES_DATA,
   gnomeSubraces: [] as any[], // Deprecated - will be removed
 };
+
+export const RACE_TRAIT_LIBRARY = buildRacialTraitLibrary(ALL_RACES_DATA);
+setRacialTraitLibraryInstance(RACE_TRAIT_LIBRARY);
 
 // Array for iteration (e.g., character creator list)
 // Updated to filter out legacy or helper entries if needed

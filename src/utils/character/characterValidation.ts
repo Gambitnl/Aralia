@@ -5,7 +5,7 @@
  *
  * Last Sync: 27/02/2026, 09:30:42
  * Dependents: character/index.ts
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,7 +21,9 @@
  */
 import { PlayerCharacter, MissingChoice } from '../../types';
 import { RACE_DATA_BUNDLE } from '../../data/races/index';
+import { getRacialSpellCastingAbilityChoicesForRace } from '../../data/races';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../data/dndData';
+import { getRacialSpellGrantsForCharacter } from './characterUtils';
 
 export const validateCharacterChoices = (character: PlayerCharacter): MissingChoice[] => {
   const missingChoices: MissingChoice[] = [];
@@ -105,12 +107,13 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
   }
 
   // Racial Spellcasting Ability Checks (Generic)
-  // Check if race has a racialSpellChoice definition but no selection in state
-  if (race.racialSpellChoice && !racialSelections?.[race.id]?.spellAbility) {
+  const raceSpellAbilityChoices = getRacialSpellCastingAbilityChoicesForRace(race.id);
+  if (raceSpellAbilityChoices.length > 0 && !racialSelections?.[race.id]?.spellAbility) {
+      const sourceChoice = raceSpellAbilityChoices[0];
       missingChoices.push({
           id: 'racial_spell_ability',
-          label: `${race.racialSpellChoice.traitName} Ability`,
-          description: race.racialSpellChoice.traitDescription,
+          label: `${sourceChoice.sourceTraitName} Ability`,
+          description: sourceChoice.sourceTraitDescription,
           type: 'race',
           options: RELEVANT_SPELLCASTING_ABILITIES.map(ability => ({
               id: ability,
@@ -119,18 +122,6 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
           }))
       });
   }
-  
-  // Specific checks for Elf/Gnome/Tiefling spell abilities if they made the main choice but missed the stat
-  if (race.id === 'elf' && racialSelections?.elf?.choiceId && !racialSelections?.elf?.spellAbility) {
-      missingChoices.push({
-          id: 'racial_spell_ability',
-          label: 'Lineage Spellcasting Ability',
-          description: 'Choose the ability score for your Elven Lineage spells.',
-          type: 'race',
-          options: RELEVANT_SPELLCASTING_ABILITIES.map(ability => ({ id: ability, label: ability }))
-      });
-  }
-
 
   // --- SPELL VALIDATION ---
   
@@ -140,76 +131,74 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
 
   // Helper to check and add missing spell option
   const checkMissingSpell = (spellId: string, levelReq: number, sourceName: string, isCantrip: boolean) => {
+      if (!spellId) return;
       if (level >= levelReq) {
-          const hasSpell = isCantrip ? knownCantrips.has(spellId) : knownSpells.has(spellId);
+          const spellIdUnderscore = spellId.replace(/-/g, '_');
+          const spellIdHyphen = spellId.replace(/_/g, '-');
+          
+          const hasSpell = isCantrip 
+              ? (knownCantrips.has(spellIdUnderscore) || knownCantrips.has(spellIdHyphen))
+              : (knownSpells.has(spellIdUnderscore) || knownSpells.has(spellIdHyphen));
+
           if (!hasSpell) {
                missingChoices.push({
                   id: 'missing_racial_spell',
                   label: `Missing Spell: ${sourceName}`,
-                  description: `Your ${sourceName} trait grants you the ${spellId.replace(/_/g, ' ')} spell, but it is missing from your spellbook.`,
+                  description: `Your ${sourceName} trait grants you the ${spellId.replace(/[-_]/g, ' ')} spell, but it is missing from your spellbook.`,
                   type: 'race',
                   options: [{
                       id: spellId,
-                      label: `Learn ${spellId.replace(/_/g, ' ')}`,
+                      label: `Learn ${spellId.replace(/[-_]/g, ' ')}`,
                       description: 'Add this spell to your known spells.',
-                      isCantrip: isCantrip
+                      isCantrip
                   }]
               });
           }
       }
   };
 
-  // Dynamic check based on race data
-  if (race.knownSpells) {
-      race.knownSpells.forEach(s => {
-         // We determine if it's a cantrip loosely based on level or if we had spell data. 
-         // For validation, we assume level 1 spells might be cantrips or 1st level.
-         // In the absence of full spell data, we check both lists or check based on known ID conventions.
-         // A robust solution would pass spell data to this function, but for now we'll rely on the fact 
-         // that checkMissingSpell checks the appropriate list based on the boolean flag.
-         // We will guess isCantrip based on level 1 for now or specific IDs if known.
-         // Or we can just check both lists inside checkMissingSpell if we merge the flag logic.
-         
-         // Simplification: Assume all racial spells < level 3 in this list are cantrips unless specified.
-         // Actually, we can be explicit in data or just check hardcoded IDs for common cantrips.
-         const isCantrip = ['druidcraft', 'produce-flame', 'acid-splash', 'shocking-grasp', 'light', 'mage-hand', 'blade-ward'].includes(s.spellId);
-         checkMissingSpell(s.spellId, s.minLevel, race.name + ' Magic', isCantrip);
-      });
-  }
-  
-  // Tiefling (Based on Legacy)
-  if (race.id === 'tiefling' && racialSelections?.tiefling?.choiceId) {
-      const legacyId = racialSelections.tiefling.choiceId;
-      const legacy = RACE_DATA_BUNDLE.tieflingLegacies.find(l => l.id === legacyId);
-      if (legacy) {
-          checkMissingSpell('thaumaturgy', 1, 'Otherworldly Presence', true);
-          checkMissingSpell(legacy.level1Benefit.cantripId, 1, 'Fiendish Legacy', true);
-          checkMissingSpell(legacy.level3SpellId, 3, 'Fiendish Legacy', false);
-          checkMissingSpell(legacy.level5SpellId, 5, 'Fiendish Legacy', false);
-      }
-  }
-  
-  // Drow Elf
-  if (race.id === 'elf' && racialSelections?.elf?.choiceId === 'drow') {
-      checkMissingSpell('dancing_lights', 1, 'Drow Magic', true);
-      checkMissingSpell('faerie_fire', 3, 'Drow Magic', false);
-      checkMissingSpell('darkness', 5, 'Drow Magic', false);
-  }
-  
-  // High Elf
-  if (race.id === 'elf' && racialSelections?.elf?.choiceId === 'high_elf') {
-      checkMissingSpell('prestidigitation', 1, 'Cantrip', true); // High Elf gets prestidigitation + 1 choice (choice hard to validate here)
-      checkMissingSpell('detect_magic', 3, 'High Elf Magic', false);
-      checkMissingSpell('misty_step', 5, 'High Elf Magic', false);
-  }
-  
-   // Wood Elf
-  if (race.id === 'elf' && racialSelections?.elf?.choiceId === 'wood_elf') {
-      checkMissingSpell('druidcraft', 1, 'Wood Elf Magic', true);
-      checkMissingSpell('longstrider', 3, 'Wood Elf Magic', false);
-      checkMissingSpell('pass_without_trace', 5, 'Wood Elf Magic', false);
-  }
+  const likelyCantripIds = new Set([
+    'acidsplash',
+    'acid-splash',
+    'blade-ward',
+    'dancing_lights',
+    'dancing-lights',
+    'druidcraft',
+    'faerie_fire',
+    'light',
+    'mage-hand',
+    'misty_step',
+    'pass_without_trace',
+    'prestidigitation',
+    'produce-flame',
+    'shocking-grasp',
+    'thaumaturgy',
+    'thunderclap',
+  ]);
 
+  const isLikelyCantrip = (spellId: string): boolean => {
+    return likelyCantripIds.has(spellId);
+  };
+
+  const racialSpellGrants = getRacialSpellGrantsForCharacter(character, level);
+  racialSpellGrants.forEach((grant) => {
+    const spellId = grant.spellId;
+    if (!spellId) return;
+    const isCantrip = isLikelyCantrip(spellId) || knownCantrips.has(spellId);
+    const hasCantrip = knownCantrips.has(spellId);
+    const hasPreparedOrKnown = knownSpells.has(spellId);
+
+    if (!hasCantrip && !hasPreparedOrKnown) {
+      let sourceName = `${grant.sourceRaceName || race.name} racial spells`;
+      if (grant.traitName) {
+        sourceName = grant.traitName;
+      }
+      if (spellId === 'prestidigitation') {
+        sourceName = 'Cantrip';
+      }
+      checkMissingSpell(spellId, grant.minLevel, sourceName, isCantrip);
+    }
+  });
 
   // --- CLASS VALIDATION ---
 
@@ -242,7 +231,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
           }))
       });
   }
-  
+
   // Druid: Primal Order
   if (charClass.id === 'druid' && !character.selectedDruidOrder && charClass.primalOrders) {
        missingChoices.push({

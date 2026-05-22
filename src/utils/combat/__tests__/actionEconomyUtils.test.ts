@@ -65,6 +65,94 @@ describe('actionEconomyUtils', () => {
   });
 
   describe('canAffordActionCost and consumeActionCost', () => {
+    it('supports racial once-per-rest spells by consuming limited uses before spell slots and allowing fallback when enabled', () => {
+      const character = createMockCombatCharacter({
+        limitedUses: {
+          racial_deep_gnome_disguise_self: {
+            name: 'Deep Gnome: disguise self',
+            current: 1,
+            max: 1,
+            resetOn: 'long_rest',
+          },
+        },
+        spellSlots: {
+          level_1: { current: 1, max: 1 },
+          level_3: { current: 2, max: 2 },
+        },
+        spellbook: {
+          cantrips: [],
+          knownSpells: [],
+          preparedSpells: ['disguise-self'],
+          racialSpellGrants: [
+            {
+              sourceRaceId: 'deep_gnome',
+              spellId: 'disguise-self',
+              minLevel: 3,
+              castingMethod: 'once_per_long_rest',
+              upcastable: false,
+              maxCastLevel: 3,
+              countsAsPrepared: false,
+            },
+          ],
+        },
+      });
+
+      const racialCost = { type: 'action' as const, spellSlotLevel: 3, castSource: { type: 'racial' as const, spellId: 'disguise-self', allowSlotFallback: true } };
+
+      expect(canAffordActionCost(character, racialCost)).toBe(true);
+      const afterLimitedUse = consumeActionCost(character, racialCost);
+      expect(afterLimitedUse.limitedUses?.racial_deep_gnome_disguise_self.current).toBe(0);
+      expect(afterLimitedUse.spellSlots?.level_3.current).toBe(2);
+      expect(afterLimitedUse.actionEconomy.action.used).toBe(true);
+
+      const limitedFallbackCharacter = createMockCombatCharacter({
+        ...character,
+        actionEconomy: { ...character.actionEconomy, action: { used: false, remaining: 1 } },
+        limitedUses: {
+          racial_deep_gnome_disguise_self: {
+            name: 'Deep Gnome: disguise self',
+            current: 0,
+            max: 1,
+            resetOn: 'long_rest',
+          },
+        },
+      });
+
+      expect(canAffordActionCost(limitedFallbackCharacter, racialCost)).toBe(true);
+      const limitedFallback = consumeActionCost(limitedFallbackCharacter, racialCost);
+      expect(limitedFallback.limitedUses?.racial_deep_gnome_disguise_self.current).toBe(0);
+      expect(limitedFallback.spellSlots?.level_3.current).toBe(1);
+      expect(limitedFallback.actionEconomy.action.used).toBe(true);
+    });
+
+    it('blocks racial spells cast above the racial max when upcast is disabled', () => {
+      const character = createMockCombatCharacter({
+        spellSlots: {
+          level_5: { current: 1, max: 1 },
+        },
+        spellbook: {
+          cantrips: [],
+          knownSpells: [],
+          preparedSpells: ['nondetection'],
+          racialSpellGrants: [
+            {
+              sourceRaceId: 'deep_gnome',
+              spellId: 'nondetection',
+              minLevel: 5,
+              castingMethod: 'once_per_long_rest',
+              upcastable: false,
+              maxCastLevel: 5,
+              countsAsPrepared: false,
+            },
+          ],
+        },
+      });
+
+      const racialCost = { type: 'action' as const, spellSlotLevel: 6, castSource: { type: 'racial' as const, spellId: 'nondetection', allowSlotFallback: true } };
+      expect(canAffordActionCost(character, racialCost)).toBe(false);
+      expect(consumeActionCost(character, racialCost).spellSlots?.level_6).toBeUndefined();
+    });
+
     it('marks an action as spent so a second action cannot be afforded', () => {
       const character = createMockCombatCharacter();
 

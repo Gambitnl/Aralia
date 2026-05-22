@@ -18,8 +18,15 @@ import {
 import { WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
 import { SKILLS_DATA } from '../../../data/skills';
 import { BACKGROUNDS } from '../../../data/backgrounds';
+import { getRacialSpellCastingAbilityChoicesForRace } from '../../../data/races';
 import { CharacterCreationState } from '../state/characterCreatorState';
-import { getAbilityModifierValue, applyAllFeats, buildHitPointDicePools } from '../../../utils/characterUtils';
+import {
+  getAbilityModifierValue,
+  applyAllFeats,
+  buildHitPointDicePools,
+  applyRacialSpellGrantsByLevel,
+  getRacialSpellAbilityFromSelection,
+} from '../../../utils/characterUtils';
 
 // --- Helper Functions for Character Assembly ---
 
@@ -271,7 +278,7 @@ function validateAllSelectionsMade(state: CharacterCreationState): boolean {
   if (selectedRace.id === 'changeling' && (!racialSelections['changeling']?.skillIds || racialSelections['changeling'].skillIds.length !== 2)) return false;
 
   // Check consolidated racial spell ability choices for races that have them
-  if (selectedRace.racialSpellChoice && !racialSelections[selectedRace.id]?.spellAbility) return false;
+  if (getRacialSpellCastingAbilityChoicesForRace(selectedRace.id).length > 0 && !racialSelections[selectedRace.id]?.spellAbility) return false;
 
   // Check human skill
   if (selectedRace.id === 'human' && !racialSelections['human']?.skillIds?.[0]) return false;
@@ -311,17 +318,14 @@ function calculateCharacterSpeed(race: Race, lineageId?: string): number {
   }
   return speed;
 }
-// TODO(lint-intent): 'subraceId' is an unused parameter, which suggests a planned input for this flow.
-// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
-function calculateCharacterDarkvision(race: Race, lineageId?: string, _subraceId?: string): number {
+function calculateCharacterDarkvision(race: Race, lineageId?: string): number {
   let range = 0;
   const dvTrait = race.traits.find(t => t.toLowerCase().includes('darkvision'));
   if (dvTrait) {
     const match = dvTrait.match(/(\d+)/);
     if (match) range = parseInt(match[1], 10);
   }
-  if ((race.id === 'elf' && lineageId === 'drow') || race.id === 'deep_gnome' || race.id === 'duergar' || race.id === 'dwarf' || race.id === 'orc') {
+  if ((race.id === 'elf' && lineageId === 'drow') || race.id === 'duergar' || race.id === 'dwarf' || race.id === 'orc') {
     range = Math.max(range, 120);
   }
   return range;
@@ -385,6 +389,14 @@ function assembleCastingProperties(state: CharacterCreationState): {
     knownSpells: [...(selectedClass.spellcasting?.spellList || []), ...Array.from(spellIds)],
   };
 
+  const selectedRaceSpellAbility = selectedRace
+    ? getRacialSpellAbilityFromSelection(selectedRace.id, racialSelections)?.toLowerCase() as
+      | 'intelligence'
+      | 'wisdom'
+      | 'charisma'
+      | undefined
+    : undefined;
+
   let spellSlots: SpellSlots | undefined = undefined;
   if (['cleric', 'wizard', 'sorcerer', 'artificer', 'paladin', 'druid', 'bard', 'warlock', 'ranger'].includes(selectedClass.id)) {
     spellSlots = {
@@ -399,7 +411,7 @@ function assembleCastingProperties(state: CharacterCreationState): {
     }
   }
 
-  return { spellbook, spellSlots, spellcastingAbility: classAbility, limitedUses };
+  return { spellbook, spellSlots, spellcastingAbility: classAbility ?? selectedRaceSpellAbility, limitedUses };
 }
 
 
@@ -486,7 +498,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       hitPointDice: undefined,
       armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),
       speed: calculateCharacterSpeed(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
-      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined, racialSelections['gnome']?.choiceId as 'forest_gnome' | 'rock_gnome' | 'deep_gnome' | undefined),
+      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
@@ -545,6 +557,8 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
         (currentState.featChoices as unknown as Record<string, import('../../../types/character').FeatChoice>) || {}
       );
     }
+
+    assembledCharacter = applyRacialSpellGrantsByLevel(assembledCharacter, assembledCharacter.level || 1);
 
     return assembledCharacter;
 

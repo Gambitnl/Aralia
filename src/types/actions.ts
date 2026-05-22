@@ -25,6 +25,22 @@ import { DialogueSession } from './dialogue.js';
 // Actions & payloads
 // -----------------------------------------------------------------------------
 
+export interface CastSpellSource {
+  type: 'racial';
+  /**
+   * If true, and no racial resource is available, allow falling back to spell slots.
+   * Useful for traits that can alternatively be cast with class spell slots.
+   */
+  allowSlotFallback?: boolean;
+}
+
+export interface CastSpellPayload {
+  characterId: string;
+  spellLevel: number;
+  spellId?: string;
+  castSource?: CastSpellSource;
+}
+
 export type ActionType =
   | 'move'
   | 'look_around'
@@ -284,7 +300,7 @@ export type Action =
   | { type: 'HIDE_ENCOUNTER_MODAL'; payload?: never; label?: string }
   | { type: 'START_BATTLE_MAP_ENCOUNTER'; payload?: { startBattleMapEncounterData: StartBattleMapEncounterPayload }; label?: string }
   | { type: 'END_BATTLE'; payload?: never; label?: string }
-  | { type: 'CAST_SPELL'; payload: { characterId: string; spellLevel: number }; label?: string }
+  | { type: 'CAST_SPELL'; payload: CastSpellPayload; label?: string }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string }; label?: string }
   | { type: 'LONG_REST'; payload?: never; label?: string }
   | { type: 'SHORT_REST'; payload?: { hitPointDiceSpend?: HitPointDiceSpendMap }; label?: string }

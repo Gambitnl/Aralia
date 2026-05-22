@@ -52,6 +52,7 @@ import {
 import { CharacterVisualConfig } from '../../../services/CharacterAssetService';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { calculateFixedRacialBonuses, evaluateFeatPrerequisites } from '../../../utils/characterUtils';
+import { getRacialSpellCastingAbilityChoiceForRace } from '../../../data/races';
 
 // --- Enums and Types ---
 export enum CreationStep {
@@ -415,11 +416,12 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       }
 
       const nextStep = determineNextStepAfterRace(race);
-      const spellChoiceContext = race.racialSpellChoice
+      const racialSpellChoice = getRacialSpellCastingAbilityChoiceForRace(race.id);
+      const spellChoiceContext = racialSpellChoice
         ? {
-          raceName: race.name,
-          traitName: race.racialSpellChoice.traitName,
-          traitDescription: race.racialSpellChoice.traitDescription,
+          raceName: racialSpellChoice.sourceRaceName || race.name,
+          traitName: racialSpellChoice.sourceTraitName,
+          traitDescription: racialSpellChoice.sourceTraitDescription,
         }
         : null;
 

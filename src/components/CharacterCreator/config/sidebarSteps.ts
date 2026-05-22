@@ -20,6 +20,7 @@
  * display labels, groupings, and selection summary functions.
  */
 import { CreationStep, CharacterCreationState } from '../state/characterCreatorState';
+import { hasRacialSpellCastingAbilityChoiceForRace } from '../../../data/races';
 
 export type StepGroup = 'origin' | 'class' | 'abilities' | 'final';
 
@@ -43,7 +44,7 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
     case CreationStep.Race:
       if (!state.selectedRace) return false;
       // Races that require spell ability choice must have it set.
-      if (state.selectedRace.racialSpellChoice) {
+      if (hasRacialSpellCastingAbilityChoiceForRace(state.selectedRace.id)) {
         const ability = state.racialSelections[state.selectedRace.id]?.spellAbility;
         if (!ability) return false;
       }

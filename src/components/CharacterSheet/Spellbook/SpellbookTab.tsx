@@ -8,7 +8,7 @@ import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { PlayerCharacter, Spell, Action } from '../../../types';
 import SpellContext from '../../../context/SpellContext';
 import { CLASSES_DATA } from '../../../constants';
-import { getMaxPreparedSpells } from '../../../utils/character/characterUtils';
+import { getMaxPreparedSpells, getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation } from '../../../utils/character/characterUtils';
 import SpellSlotDisplay from './SpellSlotDisplay';
 import SpellDetailPane from './SpellDetailPane';
 
@@ -89,7 +89,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
     const pageTitle = currentLevel === 0 ? "Cantrips" : `Level ${currentLevel} Spells`;
 
     // Calculate prepared spell count and limit
-    const preparedCount = preparedSpellIds.size;
+    const preparedCount = getPreparedSpellsAffectingLimit(character).size;
     const maxPrepared = getMaxPreparedSpells(character);
     const isAtPrepLimit = maxPrepared !== null && preparedCount >= maxPrepared;
 
@@ -125,9 +125,11 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                         <div className="space-y-1">
                             {spellsToDisplay.map(spell => {
                                 const isAlwaysPrepared = character.class.id === 'druid' && spell.id === 'speak-with-animals';
+                                const isRacialAlwaysPrepared = isRacialSpellLockedForPreparation(character, spell.id);
                                 const isKnown = knownSpellIds.has(spell.id);
-                                const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared;
+                                const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared || isRacialAlwaysPrepared;
                                 const isSelected = selectedSpellId === spell.id;
+                                const isLocked = isAlwaysPrepared || isRacialAlwaysPrepared;
 
                                 return (
                                     <div
@@ -151,7 +153,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                             </span>
                                             {isPrepared && (
                                                 <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
-                                                    {isAlwaysPrepared ? 'Always' : 'Prep'}
+                                                    {isAlwaysPrepared || isRacialAlwaysPrepared ? 'Always' : 'Prep'}
                                                 </span>
                                             )}
                                             {!isPrepared && isKnown && spell.level > 0 && (
@@ -161,15 +163,15 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                             )}
                                         </div>
                                         {/* Prepare/Unprepare button - only for leveled spells */}
-                                        {spell.level > 0 && isKnown && (
-                                            <button
-                                                className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isAlwaysPrepared
+                                            {spell.level > 0 && isKnown && (
+                                                <button
+                                                className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
                                                     ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
                                                     : isAtPrepLimit && !isPrepared
                                                         ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                                                         : 'bg-purple-600/80 text-white hover:bg-purple-500'
                                                     }`}
-                                                disabled={isAlwaysPrepared || (!isPrepared && isAtPrepLimit)}
+                                                disabled={isLocked || (!isPrepared && isAtPrepLimit)}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     onAction({
@@ -179,9 +181,9 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                                     });
                                                 }}
                                             >
-                                                {isPrepared ? (isAlwaysPrepared ? '—' : 'Unprep') : 'Prep'}
-                                            </button>
-                                        )
+                                                {isPrepared ? (isLocked ? '—' : 'Unprep') : 'Prep'}
+                                                </button>
+                                            )
                                         }
                                     </div>
                                 );

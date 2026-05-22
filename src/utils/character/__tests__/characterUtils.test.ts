@@ -1,8 +1,20 @@
 import { describe, it, expect, vi } from 'vitest';
-import { canEquipItem, performLevelUp, applyFeatToCharacter, buildHitPointDicePools, normalizeCharacterRaceData } from '../characterUtils';
+import {
+  canEquipItem,
+  performLevelUp,
+  applyFeatToCharacter,
+  buildHitPointDicePools,
+  normalizeCharacterRaceData,
+  applyRacialSpellGrantsByLevel,
+  getPreparedSpellsAffectingLimit,
+  isRacialSpellCastLevelAllowed,
+  isRacialSpellLockedForPreparation,
+  resolveRacialSpellLimitedUseId,
+} from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 // TODO(lint-intent): 'ArmorCategory' is unused in this test; use it in the assertion path or remove it.
 import { Item, ArmorCategory as _ArmorCategory, Feat, AbilityScoreName, Class } from '../../../types';
+import { DEEP_GNOME_DATA } from '../../../data/races/deep_gnome';
 // The module is mocked below, so we don't import the real data for use, but we might import types if needed.
 
 // Mock the feats data to control what performLevelUp sees
@@ -672,6 +684,101 @@ describe('characterUtils', () => {
       });
 
       expect(result.savingThrowProficiencies).toContain('Wisdom');
+    });
+  });
+
+  describe('Deep Gnome racial spell mechanics', () => {
+    const wizardClass: Class = {
+      id: 'wizard',
+      name: 'Wizard',
+      description: 'A master of arcane magic.',
+      hitDie: 6,
+      primaryAbility: ['Intelligence'] as AbilityScoreName[],
+      savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+      skillProficienciesAvailable: [],
+      numberOfSkillProficiencies: 2,
+      armorProficiencies: [],
+      weaponProficiencies: [],
+      features: [],
+      spellcasting: {
+        ability: 'Intelligence',
+        knownCantrips: 4,
+        knownSpellsL1: 8,
+        spellList: [],
+      },
+    };
+
+    const createDeepGnomeWithSpells = (level = 5) => createMockPlayerCharacter({
+      level,
+      race: DEEP_GNOME_DATA,
+      class: wizardClass,
+      racialSelections: {
+        deep_gnome: { spellAbility: 'Intelligence' },
+      },
+      spellbook: {
+        knownSpells: ['fireball'],
+        cantrips: [],
+        preparedSpells: ['fireball'],
+      },
+    });
+
+    it('should add deep gnome racial spell grants and long-rest limited use resources', () => {
+      const character = createDeepGnomeWithSpells(5);
+      const updated = applyRacialSpellGrantsByLevel(character, 5);
+
+      expect(updated.spellbook?.racialSpellGrants).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            sourceRaceId: 'deep_gnome',
+            spellId: 'disguise-self',
+            minLevel: 3,
+            castingMethod: 'once_per_long_rest',
+            upcastable: false,
+            maxCastLevel: 3,
+            countsAsPrepared: false,
+          }),
+          expect.objectContaining({
+            sourceRaceId: 'deep_gnome',
+            spellId: 'nondetection',
+            minLevel: 5,
+            castingMethod: 'once_per_long_rest',
+            upcastable: false,
+            maxCastLevel: 5,
+            countsAsPrepared: false,
+          }),
+        ])
+      );
+      expect(updated.limitedUses?.[resolveRacialSpellLimitedUseId('deep_gnome', 'disguise-self')]).toMatchObject({
+        current: 1,
+        max: 1,
+        resetOn: 'long_rest',
+      });
+      expect(updated.limitedUses?.[resolveRacialSpellLimitedUseId('deep_gnome', 'nondetection')]).toMatchObject({
+        current: 1,
+        max: 1,
+        resetOn: 'long_rest',
+      });
+      expect(updated.spellbook?.preparedSpells).toEqual(expect.arrayContaining(['disguise-self', 'nondetection']));
+    });
+
+    it('should prevent racial spell upcast when upcastability is explicitly disabled', () => {
+      const character = createDeepGnomeWithSpells(5);
+      const updated = applyRacialSpellGrantsByLevel(character, 5);
+
+      expect(isRacialSpellCastLevelAllowed(updated, 'disguise-self', 3)).toBe(true);
+      expect(isRacialSpellCastLevelAllowed(updated, 'disguise-self', 4)).toBe(false);
+      expect(isRacialSpellCastLevelAllowed(updated, 'nondetection', 5)).toBe(true);
+      expect(isRacialSpellCastLevelAllowed(updated, 'nondetection', 6)).toBe(false);
+    });
+
+    it('should not count deep gnome racial spells against prepared-spell limits', () => {
+      const character = createDeepGnomeWithSpells(5);
+      const updated = applyRacialSpellGrantsByLevel(character, 5);
+      const limitSet = getPreparedSpellsAffectingLimit(updated);
+
+      expect(Array.from(limitSet).sort()).toEqual(['fireball']);
+      expect(isRacialSpellLockedForPreparation(updated, 'disguise-self')).toBe(true);
+      expect(isRacialSpellLockedForPreparation(updated, 'fireball')).toBe(false);
     });
   });
 });

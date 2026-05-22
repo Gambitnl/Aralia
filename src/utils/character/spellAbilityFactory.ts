@@ -28,7 +28,7 @@
  */
 import { Spell, AbilityScoreName, PlayerCharacter } from '../../types';
 import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType, ActionCostType } from '../../types/combat';
-import { getAbilityModifierValue } from './characterUtils';
+import { getAbilityModifierValue, getRacialSpellGrantForSpell, resolveRacialSpellCastingAbility } from './characterUtils';
 import { logger } from '../core/logger';
 
 // TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
@@ -246,8 +246,15 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
 
     try {
         let spellcastingStat: AbilityScoreName = 'Intelligence';
+        const racialCastGrant = caster ? getRacialSpellGrantForSpell(caster, spell.id) : undefined;
+        const racialCastSource = racialCastGrant
+          ? { type: 'racial' as const, spellId: spell.id, allowSlotFallback: true }
+          : undefined;
 
-        if (caster && caster.spellcastingAbility) {
+        const racialCastingAbility = caster ? resolveRacialSpellCastingAbility(caster, spell.id) : undefined;
+        if (racialCastingAbility) {
+            spellcastingStat = racialCastingAbility;
+        } else if (caster && caster.spellcastingAbility) {
             spellcastingStat = (caster.spellcastingAbility.charAt(0).toUpperCase() + caster.spellcastingAbility.slice(1)) as AbilityScoreName;
         }
 
@@ -274,7 +281,8 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
 
         const cost: AbilityCost = {
             type: costType as ActionCostType,
-            spellSlotLevel: spell.level
+            spellSlotLevel: spell.level,
+            castSource: racialCastSource,
         };
 
         // 2. Determine Range
