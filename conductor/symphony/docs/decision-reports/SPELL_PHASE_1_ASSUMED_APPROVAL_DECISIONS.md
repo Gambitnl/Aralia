@@ -3112,6 +3112,50 @@ Copy this block for each decision.
   waiting for Jules to push a PR #954 repair commit before rerunning Scout/Core
   acceptance review and rendered creator/spellbook proof.
 
+### Decision 74: Merge The Promoted-Draft Navigator Cleanup And Resync The Monitor Branch
+
+- Date/time: 2026-05-22 18:29 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: PR #967 carried the Decision 73 dashboard navigator cleanup.
+  GitHub Build, Tests, Lint, CodeQL, Quality Scan, Poison File Check, and
+  CodeQL analysis lanes all passed. The GitHub CLI again failed only during
+  local post-merge cleanup because `master` is checked out in the user's main
+  repository, after GitHub had already marked PR #967 merged.
+- Options considered:
+  - Leave PR #967 open despite all normal gates passing.
+  - Merge PR #967 under the approved PR boundary, preserve the user's main
+    checkout, and move the monitor worktree to a fresh branch from
+    `origin/master`.
+  - Mutate or switch the user's main `master` checkout so the CLI local cleanup
+    could complete.
+- Decision made by agent: Merge PR #967, do not alter the user's main
+  checkout, and continue on `codex/spell-phase1-monitor-23` from
+  `origin/master`.
+- Model routing: Local Codex handled CI classification, merge, and monitor
+  branch hygiene. Jules remains the Package 3 implementation worker for PR
+  #954.
+- Rationale/evidence: The repair was narrow, visually checked, locally
+  verified, and fully green in CI. The local cleanup error was the same
+  multi-worktree limitation seen in earlier merged repair PRs, not a failed
+  merge.
+- Mutation performed or skipped: Merged PR #967 and switched the monitor
+  worktree to `codex/spell-phase1-monitor-23` from `origin/master`. Skipped
+  local Package 3 implementation repair, duplicate GitHub feedback, Core merge
+  of PR #954, and mutation of the user's main `master` checkout.
+- Scope guardrails: This only records the dashboard navigator repair
+  lifecycle. It does not change spell rules, character creator behavior,
+  spellbook UI, AI arbitration, premade roster semantics, or the Jules
+  implementation branch.
+- Result: PR #967 merged at 2026-05-22 16:28:56 UTC. The active monitor branch
+  is now `codex/spell-phase1-monitor-23` from `origin/master`. PR #954 still
+  has no Jules repair commit after the third marked feedback comment.
+- Next expected proof: Continue monitoring PR #954 through the dashboard. When
+  Jules pushes a repair commit, refresh the PR packet, rerun Scout/Core
+  acceptance review, and collect rendered creator/spellbook proof before Core
+  merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback
