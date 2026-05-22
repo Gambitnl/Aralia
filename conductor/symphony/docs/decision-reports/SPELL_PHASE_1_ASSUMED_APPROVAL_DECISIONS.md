@@ -2318,22 +2318,23 @@ Copy this block for each decision.
   character creator behavior, AI arbitration, premade roster semantics, or
   Jules task content.
 - Result: `npm run build` in `conductor/symphony` and
-  `node scripts/verify-local-sync-next-action.mjs` passed. The restarted
-  dashboard no longer rendered `Local sync is blocked` or
+  `node scripts/verify-local-sync-next-action.mjs` passed. PR #949 merged on
+  2026-05-22 after Build, Tests, Lint, CodeQL, Quality Scan, and Poison File
+  Check passed; the Gemini review lane failed in the known advisory quota path.
+  The restarted dashboard no longer rendered `Local sync is blocked` or
   `Blocked: Current branch` for the clean monitor worktree.
-- Next expected proof: Commit, push, and open a PR for the repair; after it
-  lands, refresh the dashboard and keep monitoring Package 3 Jules PR
-  publication.
+- Next expected proof: Keep monitoring Package 3 Jules PR publication through
+  the repaired dashboard.
 
 ### Decision 58: Record The Repeated Package 3 No-PR State After The Publish Request
 
 - Date/time: 2026-05-22
 - Phase: `package_3_jules_publish_reconciliation`
 - Active slice: Package 3 spellbook and character creator visibility
-- Decision point: After the visible Jules publish request and after the local
-  worktree dashboard gate was repaired, the dashboard current-boundary refresh
-  still reported Package 3 Jules `IN_PROGRESS`, waiting for a PR, with no
-  captured PR URL. GitHub still had no
+- Decision point: After the visible Jules publish request and after PR #949
+  landed the local worktree dashboard gate repair, the dashboard
+  current-boundary refresh still reported Package 3 Jules `IN_PROGRESS`,
+  waiting for a PR, with no captured PR URL. GitHub still had no
   `jules/spells-package3-spellbook-creator-visibility` branch or PR.
 - Options considered:
   - Treat the repeated no-PR state as permission to download the Jules zip or

@@ -41,8 +41,8 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Known-caster prep-control feedback | Feedback sent | Dashboard refreshed to `Send Jules Feedback`; visible Jules asked whether to change `getMaxPreparedSpells.ts`, hide Prep/Unprep controls locally for Bard/Sorcerer/Warlock/Ranger, or allow those classes to prepare/unprepare. The agent chose option B and sent the bounded instruction through the visible Jules chat. |
 | Completed-no-PR routing repair | Done | PR #947 merged after normal CI passed; dashboard JSON now keeps the waiting PR lane attached to Package 3 handoff `handoff-1779443555192-bnpws7` instead of old Package 2 PR #935. |
 | Explicit Jules publish request | Waiting | The agent opened the visible Jules session, confirmed code edits were visible but no PR URL/branch existed, and sent a visible chat request asking Jules to push `jules/spells-package3-spellbook-creator-visibility` and open a PR, or state why it cannot and whether Download zip is the only available handoff path. |
-| Worktree local-sync gate repair | Verified locally | The dashboard blocked the isolated monitor worktree because its branch name was not literally `master`, while the user's main repo already owned `master`. A local Symphony repair now accepts a clean worktree branch at `origin/master` as a no-sync-needed proof; rendered dashboard inspection confirmed the blocker text disappeared. |
-| Post-publish-request refresh | Waiting | After the local gate repair and dashboard restart, the visible current-boundary `Refresh Jules Status` still reported Jules `IN_PROGRESS`, waiting for a PR, with no captured PR URL. GitHub still has no `jules/spells-package3-spellbook-creator-visibility` branch or PR. |
+| Worktree local-sync gate repair | Done | PR #949 merged the Symphony repair that accepts a clean worktree branch at `origin/master` as a no-sync-needed proof; rendered dashboard inspection confirmed the blocker text disappeared on `codex/spell-phase1-package3-monitor-7`. |
+| Post-publish-request refresh | Waiting | After PR #949 merged and the dashboard restarted, the visible current-boundary refresh still reported Jules `IN_PROGRESS`, waiting for a PR, with no captured PR URL. GitHub still has no `jules/spells-package3-spellbook-creator-visibility` branch or PR. |
 
 ## Current Boundary
 
@@ -111,6 +111,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   clean branch that exactly matches `origin/master` as "no local sync command
   needed" while preserving blockers for dirty, ahead, behind, detached, or
   pull-needed states.
-- With that local repair running, the dashboard no longer showed the local
-  sync branch blocker. The real current boundary remains Package 3 Jules:
-  `IN_PROGRESS`, no captured PR, and waiting for Jules to create a PR.
+- PR #949 merged that local-sync gate repair on 2026-05-22. With the repaired
+  dashboard running from `origin/master`, the local sync branch blocker stayed
+  gone. The real current boundary remains Package 3 Jules: `IN_PROGRESS`, no
+  captured PR, and waiting for Jules to create a PR.
