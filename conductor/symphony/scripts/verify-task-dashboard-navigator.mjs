@@ -59,10 +59,11 @@ const html = taskIntakeRoot.innerHTML;
 const navigatorHtml = extractNavigatorHtml(html);
 
 assert.match(navigatorHtml, /Task navigator/);
-assert.match(navigatorHtml, /All tasks: 3/);
+assert.match(navigatorHtml, /All tasks: 4/);
 assert.match(navigatorHtml, /Needs input: 1/);
 assert.match(navigatorHtml, /Open: 2/);
 assert.match(navigatorHtml, /Completed: 1/);
+assert.match(navigatorHtml, /Archived: 1/);
 assert.match(navigatorHtml, /data-task-filter="all"/);
 assert.match(navigatorHtml, /data-task-filter="needs_input"/);
 assert.match(navigatorHtml, /data-task-filter="open"/);
@@ -90,6 +91,8 @@ assert.match(navigatorHtml, /Jules session/);
 assert.match(navigatorHtml, /GitHub PR/);
 assert.match(navigatorHtml, /Timeline events: 2/);
 assert.match(navigatorHtml, /Needs human input/);
+assert.match(navigatorHtml, /Promoted draft record/);
+assert.match(navigatorHtml, /Promoted to handoff handoff-merged/);
 
 const needsInputRoot = {
   html: '',
@@ -112,6 +115,7 @@ assert.match(needsInputNavigatorHtml, /Filter: Needs input/);
 assert.match(needsInputNavigatorHtml, /ARA-6 weapon proficiency regression/);
 assert.doesNotMatch(needsInputNavigatorHtml, /Setup repair draft/);
 assert.doesNotMatch(needsInputNavigatorHtml, /Merged dashboard-started proof/);
+assert.doesNotMatch(needsInputNavigatorHtml, /Promoted draft record/);
 
 const completedRoot = {
   html: '',
@@ -136,6 +140,30 @@ assert.match(completedNavigatorHtml, /Wait for deployment proof/);
 assert.match(completedNavigatorHtml, /GitHub PR/);
 assert.doesNotMatch(completedNavigatorHtml, /ARA-6 weapon proficiency regression/);
 assert.doesNotMatch(completedNavigatorHtml, /Setup repair draft/);
+assert.doesNotMatch(completedNavigatorHtml, /Promoted draft record/);
+
+const archivedRoot = {
+  html: '',
+  addEventListener() {},
+  set innerHTML(value) {
+    this.html = value;
+  },
+  get innerHTML() {
+    return this.html;
+  },
+  firstChild: { nodeValue: '' },
+};
+const archivedSandbox = buildSandbox('archived', archivedRoot);
+vm.runInNewContext(executableSource, archivedSandbox, { filename: 'dashboard.js' });
+archivedSandbox.renderTaskIntake(buildSnapshot());
+
+const archivedNavigatorHtml = extractNavigatorHtml(archivedRoot.innerHTML);
+assert.match(archivedNavigatorHtml, /Filter: Archived/);
+assert.match(archivedNavigatorHtml, /Promoted draft record/);
+assert.match(archivedNavigatorHtml, /promoted/);
+assert.match(archivedNavigatorHtml, /Promoted to handoff handoff-merged/);
+assert.doesNotMatch(archivedNavigatorHtml, /Setup repair draft/);
+assert.doesNotMatch(archivedNavigatorHtml, /ARA-6 weapon proficiency regression/);
 
 const answeredRoot = {
   html: '',
@@ -263,6 +291,25 @@ function buildSnapshot() {
       links: {
         taskDetail: '/api/v1/tasks/draft-setup-repair',
       },
+    }, {
+      id: 'draft-promoted',
+      title: 'Promoted draft record',
+      body: 'This draft already became a Jules handoff.',
+      status: 'ready_for_handoff',
+      expectedFiles: ['src/components/Widget.tsx'],
+      verificationCommands: ['npm test'],
+      createdAt: generatedAt,
+      updatedAt: generatedAt,
+      next_action: {
+        code: 'stage_jules_manifest',
+        tone: 'ready',
+        label: 'Stage Jules Manifest',
+        summary: 'This old draft should not be counted as open once a handoff exists.',
+        steps: ['Stage manifest.'],
+      },
+      links: {
+        taskDetail: '/api/v1/tasks/draft-promoted',
+      },
     }],
     handoffs: [{
       id: 'handoff-ara6',
@@ -304,6 +351,7 @@ function buildSnapshot() {
       },
     }, {
       id: 'handoff-merged',
+      draftId: 'draft-promoted',
       title: 'Merged dashboard-started proof',
       status: 'sent_to_jules',
       createdAt: generatedAt,

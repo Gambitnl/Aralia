@@ -3275,8 +3275,13 @@ function handoffCard(handoff) {
 }
 
 function renderTaskNavigator(drafts = [], handoffs = []) {
+  const handoffByDraftId = new Map(
+    handoffs
+      .filter(handoff => handoff?.draftId)
+      .map(handoff => [handoff.draftId, handoff]),
+  );
   const records = [
-    ...drafts.map(draft => buildTaskNavigatorRecord('draft', draft)),
+    ...drafts.map(draft => buildTaskNavigatorRecord('draft', draft, { handoffByDraftId })),
     ...handoffs.map(handoff => buildTaskNavigatorRecord('handoff', handoff)),
   ].sort((a, b) => {
     const priority = { needs_input: 0, open: 1, completed: 2, archived: 3 };
@@ -3466,16 +3471,20 @@ function renderOperatorPreferences(preferences = {}) {
   </details>`;
 }
 
-function buildTaskNavigatorRecord(kind, item) {
+function buildTaskNavigatorRecord(kind, item, context = {}) {
   const title = item.title || item.id || 'Untitled Symphony task';
   const id = item.id || title;
   const updatedAt = item.updatedAt || item.createdAt || null;
 
   if (kind === 'draft') {
     const waitingOnLinear = !item.linearIssueIdentifier && item.next_action?.code === 'create_linear_issue';
+    const promotedHandoff = context.handoffByDraftId?.get?.(id) || null;
     const summary = item.next_action?.summary || item.body || 'Draft is waiting for the next Symphony gate.';
     const disposition = item.taskDisposition?.state || 'active';
-    const disposed = disposition !== 'active';
+    const disposed = disposition !== 'active' || Boolean(promotedHandoff);
+    const promotedSummary = promotedHandoff
+      ? `Promoted to handoff ${promotedHandoff.id}; the live handoff now owns the next action.`
+      : null;
 
     return {
       kind,
@@ -3485,8 +3494,8 @@ function buildTaskNavigatorRecord(kind, item) {
       anchor: `task-draft-${id}`,
       bucket: disposition === 'completed' ? 'completed' : disposed ? 'archived' : 'open',
       badgeClass: disposed ? 'approval' : waitingOnLinear ? 'approval' : 'running',
-      statusLabel: disposed ? disposition : waitingOnLinear ? 'open draft' : 'open',
-      summary: disposed && item.taskDisposition?.reason ? item.taskDisposition.reason : summary,
+      statusLabel: promotedHandoff ? 'promoted' : disposed ? disposition : waitingOnLinear ? 'open draft' : 'open',
+      summary: promotedSummary || (disposed && item.taskDisposition?.reason ? item.taskDisposition.reason : summary),
       currentBoundary: item.next_action?.label || item.status || 'Draft',
       expectedFileCount: Array.isArray(item.expectedFiles) ? item.expectedFiles.length : 0,
       verificationCommandCount: Array.isArray(item.verificationCommands) ? item.verificationCommands.length : 0,

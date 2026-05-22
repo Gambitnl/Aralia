@@ -3066,6 +3066,52 @@ Copy this block for each decision.
   acceptance review, and collect rendered creator/spellbook proof before Core
   merge.
 
+### Decision 73: Archive Promoted Drafts In The Task Navigator
+
+- Date/time: 2026-05-22 18:22 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: While monitoring PR #954 through the visible dashboard, the
+  task navigator counted the Package 2 and Package 3 source drafts as open
+  work even though both drafts had already been promoted into live handoffs.
+  That made the open queue look larger than it was and left historical setup
+  records beside the actual Package 3 `Wait for Jules Repair` handoff.
+- Options considered:
+  - Ignore the clutter because the live handoff was still visible.
+  - Delete the historical draft records after promotion.
+  - Mutate stored draft dispositions when a handoff exists.
+  - Derive a navigator-only `promoted` archived state from matching
+    `handoff.draftId` values while preserving the raw records.
+- Decision made by agent: Derive promoted draft records in the dashboard
+  navigator and place them in the archived bucket with a summary that points to
+  the live handoff that now owns the next action.
+- Model routing: Local Codex handled the Symphony dashboard repair and
+  regression check. Jules remains the Package 3 implementation worker for PR
+  #954.
+- Rationale/evidence: The dashboard-first workflow should make the current
+  operator path obvious. Historical drafts are useful provenance, but they
+  should not compete with live handoffs in the open task count after promotion.
+  A derived display state preserves audit history without rewriting task data.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/public/dashboard.js`,
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`, and the
+  spell tracker. Skipped local Package 3 implementation repair, skipped
+  duplicate GitHub feedback, skipped Core merge, and skipped deleting or
+  mutating historical draft task files.
+- Scope guardrails: This only changes dashboard task-navigator presentation
+  and verification coverage. It does not change spell rules, character creator
+  behavior, spellbook UI, AI arbitration, premade roster semantics, or the
+  Jules implementation branch.
+- Result: `npm run build`,
+  `node scripts/verify-task-dashboard-navigator.mjs`, and `git diff --check`
+  passed. Rendered dashboard proof showed `Open: 2` and `Archived: 2`; both
+  promoted drafts displayed as `promoted`, with summaries pointing at their
+  live handoffs.
+- Next expected proof: Publish this dashboard-friction repair, then continue
+  waiting for Jules to push a PR #954 repair commit before rerunning Scout/Core
+  acceptance review and rendered creator/spellbook proof.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback
@@ -3074,5 +3120,5 @@ Copy this block for each decision.
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
 3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
+4. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
    dashboard redesign work.
