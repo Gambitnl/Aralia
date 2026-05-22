@@ -1,6 +1,6 @@
 # Spell Phase 1 Assumed-Approval Decisions
 
-Last Updated: 2026-05-21
+Last Updated: 2026-05-22
 
 This report records decision points for the early-game spell execution flow:
 cantrips and spell levels 1-3. The operator has approved the test flow to assume
@@ -2024,10 +2024,50 @@ Copy this block for each decision.
   status endpoint to reconcile the completed-no-PR state before reviewing or
   merging any Package 3 implementation.
 
+### Decision 51: Confirm The Visible Jules Plan Gate And Repair Package-Neutral No-PR Wording
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_reconciliation`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: The dashboard had already recorded plan approval, but the
+  signed-in Jules page still displayed the Package 3 plan and asked whether the
+  plan looked good. At the same time, Symphony's reusable no-PR blocker text
+  incorrectly said `before filing Package 2` while Package 3 was active.
+- Options considered:
+  - Relaunch Package 3 as a new Jules task.
+  - Treat the completed-without-PR state as final and start a no-PR recovery
+    package.
+  - Confirm the bounded plan in the visible Jules session, refresh through the
+    dashboard, and repair the misleading Symphony blocker wording locally.
+- Decision made by agent: Confirm the bounded Package 3 plan in the visible
+  Jules chat, then repair the package-specific no-PR wording in Symphony.
+- Model routing: Local Codex foreman with focused debugging/TDD for the
+  Symphony blocker; Jules remains the implementation worker for Package 3.
+- Rationale/evidence: Visible Jules showed an operator input gate rather than
+  a durable no-code result or PR link. After the confirmation, dashboard refresh
+  moved Package 3 back to `IN_PROGRESS`. GitHub still had no
+  `jules/spells-package3-spellbook-creator-visibility` branch or PR. The
+  hardcoded `Package 2` text was reproduced in
+  `verify-completed-jules-no-pr-boundary.mjs` before the production change.
+- Mutation performed or skipped: Sent the visible Jules confirmation preserving
+  Package 3's declared write scope. Added a failing regression to
+  `conductor/symphony/scripts/verify-completed-jules-no-pr-boundary.mjs`, then
+  changed `conductor/symphony/src/server.ts` so the reusable blocker says
+  `before filing the next handoff`.
+- Scope guardrails: Did not relaunch Jules, did not implement Package 3
+  locally, did not broaden into combat simulator casting, AI arbitration,
+  shared spell schema/runtime architecture, or premade roster semantics.
+- Result: Package 3 remains waiting on Jules in `IN_PROGRESS` state with no PR
+  captured. The misleading Package 2 blocker is fixed and covered by a focused
+  verifier.
+- Next expected proof: Continue dashboard-first status refreshes until a PR
+  URL, feedback request, failure, or durable no-code/no-PR result is captured.
+
 ## Open Decisions For The Next Slice
 
-1. Reconcile Package 3 Jules session `2823658242418460192`, which now reports
-   `COMPLETED` but has no captured PR URL.
+1. Monitor Package 3 Jules session `2823658242418460192`, which now reports
+   `IN_PROGRESS` after visible plan confirmation but still has no captured PR
+   URL.
 2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.

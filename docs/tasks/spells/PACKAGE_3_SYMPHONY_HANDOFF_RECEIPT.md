@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: Jules reported completed; no PR captured yet.
+Status: Jules in progress after visible plan confirmation; no PR captured yet.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -32,15 +32,17 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Launch Jules | Done | Dashboard launched Jules session `2823658242418460192` |
 | Refresh Jules status | Done | Dashboard reported Jules state `QUEUED` and no PR captured yet |
 | Approve Jules plan | Done | Dashboard recorded approval for Jules session `2823658242418460192` |
-| Refresh after approval | Needs reconciliation | Dashboard later reported Jules state `COMPLETED`, but still had no PR URL |
-| Inspect visible Jules session | Needs reconciliation | Browser inspection showed the plan/checklist surface and no `View PR`, GitHub URL, or pull request text |
+| Refresh after approval | Reconciled to visible confirmation gate | Dashboard later reported Jules state `COMPLETED`, but still had no PR URL |
+| Inspect visible Jules session | Done | Browser inspection showed Jules was actually waiting for visible operator input on the plan/checklist surface, with no `View PR`, GitHub URL, or pull request text |
+| Send visible Jules confirmation | Done | The agent used the signed-in Jules page to confirm the bounded Package 3 plan and tell Jules to proceed, preserving the declared write scope |
+| Refresh after visible confirmation | Waiting | Dashboard refresh moved the handoff back to Jules state `IN_PROGRESS`; GitHub branch and PR checks still found no `jules/spells-package3-spellbook-creator-visibility` branch or PR |
 
 ## Current Boundary
 
-- Jules state: `COMPLETED`
+- Jules state: `IN_PROGRESS`
 - PR URL: none captured yet
-- Next proof: reconcile whether Jules produced a hidden PR, completed without
-  code changes, or stalled after plan generation.
+- Next proof: continue dashboard refreshes until Symphony captures a PR URL, a
+  feedback/approval request, a failure, or a durable no-code/no-PR result.
 
 ## Dashboard UX Notes
 
@@ -54,3 +56,11 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 - After approval, Symphony recorded `COMPLETED` from Jules without a PR URL.
   The visible Jules page was accessible and signed in, but did not expose PR
   text or a GitHub link in the inspected page content.
+- The visible Jules page still required explicit plan confirmation even though
+  Symphony had already recorded dashboard approval. The agent used the visible
+  Jules chat rather than relaunching the handoff or treating the no-PR
+  completion as final.
+- The reusable dashboard no-PR blocker message incorrectly said `before filing
+  Package 2` during Package 3. The Symphony boundary wording was repaired to
+  say `before filing the next handoff`, with
+  `verify-completed-jules-no-pr-boundary.mjs` protecting the regression.
