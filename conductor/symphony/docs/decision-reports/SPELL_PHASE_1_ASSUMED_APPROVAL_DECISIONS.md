@@ -2926,6 +2926,49 @@ Copy this block for each decision.
   for Jules to push a PR #954 repair commit before rerunning Scout/Core
   acceptance review and rendered creator/spellbook proof.
 
+### Decision 70: Merge The Main-Dashboard Wait-State Alignment And Resync The Monitor Branch
+
+- Date/time: 2026-05-22 17:43 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: PR #963 carried the Decision 69 dashboard alignment repair.
+  Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The
+  only failed lane was `review / review`, and its log again showed Gemini API
+  quota exhaustion for `gemini-2.5-flash`, not a repository regression. The
+  GitHub CLI post-merge cleanup again failed locally because `master` is
+  checked out in the user's main repository.
+- Options considered:
+  - Wait for Gemini quota to reset even though normal gates passed.
+  - Leave PR #963 open and keep using the local patch only.
+  - Merge PR #963 under the approved PR boundary, preserve the old monitor
+    branch, and switch the worktree to a fresh branch from `origin/master`.
+  - Mutate the user's main `master` checkout to let the CLI cleanup complete.
+- Decision made by agent: Merge PR #963, preserve the user's main checkout,
+  and create `codex/spell-phase1-monitor-19` from `origin/master` for
+  continued Package 3 monitoring.
+- Model routing: Local Codex handled CI classification, merge, and monitor
+  branch hygiene. Jules remains the implementation worker for PR #954.
+- Rationale/evidence: The normal project gates proved the narrow dashboard
+  repair. The failed review lane was quota infrastructure. The local cleanup
+  error happened after GitHub reported the PR merged, so it was not a reason to
+  disturb the user's main worktree.
+- Mutation performed or skipped: Merged PR #963, fetched `origin/master`, and
+  created `codex/spell-phase1-monitor-19` from `origin/master`. Skipped local
+  Package 3 implementation repair, skipped duplicate GitHub feedback, skipped
+  Core merge of PR #954, and skipped mutation of the user's main `master`
+  checkout.
+- Scope guardrails: This only records the Symphony dashboard repair lifecycle.
+  It does not change spell rules, character creator behavior, spellbook UI, AI
+  arbitration, premade roster semantics, or the Jules implementation branch.
+- Result: PR #963 merged at 2026-05-22 15:42:35 UTC. The active monitor branch
+  is now `codex/spell-phase1-monitor-19` from `origin/master`. PR #954 still
+  has no Jules repair commit after the third marked feedback comment.
+- Next expected proof: Continue monitoring PR #954 through the dashboard. When
+  Jules pushes a repair commit, refresh the PR packet, rerun Scout/Core
+  acceptance review, and collect rendered creator/spellbook proof before Core
+  merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback
