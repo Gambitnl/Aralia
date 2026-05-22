@@ -1,6 +1,6 @@
 # Package 2 Task Communication Receipt
 
-Status: pending Package 2 Symphony task.
+Status: active Package 2 task communication receipt.
 
 This receipt is the durable communication log for Package 2 once the Symphony
 draft, Jules handoff, or task page exists. It keeps task-scoped messages,
@@ -9,16 +9,32 @@ first Spell Phase 1 Jules slice can prove how Codex acted as foreman.
 
 ## Current State
 
-- Symphony task draft exists: `no`
-- Jules handoff/session exists: `no`
-- Task page communication available: `no`
-- Task-scoped operator messages recorded: `no`
-- Task-scoped Codex foreman messages recorded: `no`
+- Symphony task draft exists: `yes`
+- Jules handoff/session exists: `yes`
+- Task page communication available: `partial`
+- Task-scoped operator messages recorded: `yes`
+- Task-scoped Codex foreman messages recorded: `partial via receipts`
 - Open clarifications: `none`
-- Can this receipt prove task-scoped communication yet: `no`
+- Can this receipt prove task-scoped communication yet: `partial`
 
-Reason: Package 2 is still blocked on the Jules Environment snapshot receipt.
-No Package 2 Symphony draft or Jules handoff exists yet.
+Reason: the task page exists and contains at least one operator message, but
+Codex could not add the latest foreman PR-review note through the visible form
+because the in-app browser input path reported that its virtual clipboard is
+not installed. The dashboard now exposes a visible safe refresh button for PR
+evidence, but durable foreman notes still need to be carried by receipts until
+the visible note-entry path is repaired.
+
+Follow-up dashboard repair: the operator-answer form hit the same no-typing
+limitation when Codex tried to record the workflow-config repair decision from
+the visible page. Decision 33 adds a `Record Selected Decision` button that
+records the selected local answer without requiring text entry. This keeps the
+decision on the visible task page instead of using the hidden endpoint.
+
+Second follow-up: after that local answer was recorded, the visible next action
+still pointed at PR refresh/Jules feedback. Decision 34 connects the selected
+`create_setup_repair_task` answer to a visible `Create Local Repair Draft`
+button. Codex used that button to create local draft
+`draft-1779410025252-nnowpt`.
 
 ## Communication Channels To Record
 
@@ -35,18 +51,41 @@ Do not treat broad Codex thread context as task-scoped Package 2 communication.
 
 ## Fields To Fill After Dispatch
 
-- Symphony draft id:
-- Jules handoff/session id:
+- Symphony draft id: `draft-1779400428597-mind7o`
+- Jules handoff/session id: `handoff-1779400495781-jauy49` /
+  `15527431301408060204`
 - Task page URL or JSON endpoint:
-- Initial Jules prompt recorded: `yes` or `no`
-- Operator messages recorded:
-- Codex foreman messages recorded:
-- Structured clarifications recorded:
-- Jules dialogue affecting scope or repair:
-- GitHub PR comments affecting scope or repair:
-- Open questions remaining:
-- Communication blockers:
-- Can Package 2 advance from a communication standpoint: `yes` or `no`
+  `http://127.0.0.1:8139/tasks/handoff-1779400495781-jauy49`
+- Initial Jules prompt recorded: `yes`
+- Operator messages recorded: the task page includes an operator note that the
+  visible Jules plan was approved after sign-in and the dashboard reconciled
+  Package 2 to `IN_PROGRESS`
+- Codex foreman messages recorded: latest PR-review note could not be written
+  through the visible form; it is recorded in
+  `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` and
+  `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md`
+- Dashboard-triggered communication/evidence events: Codex clicked the visible
+  `Run Safe Symphony Refresh` button on the Package 2 task page; that action
+  refreshed PR checks and Scout/Core evidence without using a hidden endpoint;
+  Codex then attempted to record the operator answer through the visible form,
+  hit the text-entry blocker, and repaired the visible form with `Record
+  Selected Decision`; Codex then used the visible `Create Local Repair Draft`
+  action to create `draft-1779410025252-nnowpt`
+- Structured clarifications recorded: none
+- Jules dialogue affecting scope or repair: visible plan-approval gate; PR #935
+  generated from the approved Package 2 scope
+- GitHub PR comments affecting scope or repair: none from human/foreman review;
+  automated comments report the Gemini review workflow started and then failed
+- Open questions remaining: whether failed broad GitHub tests and Gemini review
+  infrastructure are blocking, waived, or repaired before merge
+- Communication blockers: dashboard task-message text entry failed from Codex
+  because the browser surface reported no virtual clipboard; task-page PR
+  refresh is repaired, operator-answer no-typing receipt is implemented, and
+  selected repair-lane draft creation is visible; task-page note entry remains a
+  dashboard workflow gap
+- Can Package 2 advance from a communication standpoint: `no`, because the
+  failed-check disposition still needs to be recorded through the Scout/Core
+  bridge
 
 ## Rules
 

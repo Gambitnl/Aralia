@@ -1453,15 +1453,36 @@ function renderForemanConsole(parts) {
   // remove any controls or packets; it makes the current boundary primary and
   // tucks the supporting evidence into job-based groups so the operator can
   // decide what matters now before scanning every receipt.
+  const gitSafetyNeedsAttention = shouldOpenGitSafetyGroup({
+    gitSafety,
+    path: parts.path,
+  });
+
   return `<div class="foreman-console">
     ${renderForemanCurrentBoundary(parts.path, parts.queueNextAction, parts.taskRouting)}
     <div class="foreman-detail-grid">
-      ${renderForemanDetailGroup('Git Safety', 'Preflight, disposition, sync plan, and the global path evidence.', gitSafety)}
+      ${renderForemanDetailGroup('Git Safety', 'Preflight, disposition, sync plan, and the global path evidence.', gitSafety, gitSafetyNeedsAttention)}
       ${renderForemanDetailGroup('Jules Lifecycle', 'Kickoff, launch/session preparation, and timed nudge receipts.', julesLifecycle)}
       ${renderForemanDetailGroup('PR Review And Local Return', 'Handoff board, Scout/Core conflict watch, PR review, and local-return context.', prAndReturn)}
       ${renderForemanDetailGroup('Task Intake And Records', 'Draft new work, watch existing PRs, and review stored drafts/handoffs.', `${parts.taskForms}${parts.records}`)}
     </div>
   </div>`;
+}
+
+function shouldOpenGitSafetyGroup({ gitSafety, path }) {
+  // The Git Safety drawer normally stays compact so the dashboard first screen
+  // is not dominated by raw receipts. When the active blocker is Git sync or a
+  // disposition decision, however, the operator must see the actual control
+  // without guessing that it is hidden under a collapsed evidence drawer.
+  const boundaryText = [
+    path?.currentBoundaryLabel,
+    path?.foremanAction?.boundaryLabel,
+    path?.foremanAction?.label,
+    path?.foremanAction?.instruction,
+    path?.foremanAction?.blockedReason,
+  ].filter(Boolean).join(' ');
+  const safetyText = String(gitSafety || '');
+  return /GitHub sync|Check GitHub Sync|Git disposition|Sync Decision Board|Guarded Git sync plan|blocked_by_disposition/i.test(`${boundaryText} ${safetyText}`);
 }
 
 function renderBrowserFollowAlongGuidance() {
@@ -1525,6 +1546,14 @@ function renderForemanRunControl(action) {
     // a list of API URLs. For active Jules monitoring, reuse the existing
     // guarded dashboard button path so the visible UI owns the refresh action.
     return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
+  }
+
+  const prRefreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-pr$/);
+  if (action.method === 'POST' && action.canRunNow && prRefreshMatch) {
+    // PR review is also a safe external-read boundary. Exposing it as a button
+    // keeps the operator on the dashboard path instead of making them open a
+    // raw POST endpoint that a browser cannot execute as the intended action.
+    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
   }
 
   return `<a data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
@@ -3412,7 +3441,16 @@ function buildTaskNavigatorRecord(kind, item) {
   }
 
   const disposition = item.taskDisposition?.state || 'active';
-  const needsInput = Boolean(item.operatorQuestion);
+  const operatorQuestion = item.operatorQuestion || null;
+  const latestAnswer = Array.isArray(item.operatorAnswers) ? item.operatorAnswers[0] : null;
+  const operatorQuestionAnswered = Boolean(latestAnswer)
+    && (!operatorQuestion?.plainLanguageQuestion || latestAnswer.sourceQuestion === operatorQuestion.plainLanguageQuestion)
+    && (!operatorQuestion?.sourceStage || latestAnswer.sourceStage === operatorQuestion.sourceStage);
+  // A task can keep its old question for audit history after an answer is
+  // recorded. The navigator should only count it as "needs input" when the
+  // current question is still unanswered; otherwise the dashboard sends the
+  // foreman back to a decision that has already been filed.
+  const needsInput = Boolean(operatorQuestion && !operatorQuestionAnswered);
   const merged = item.githubPullRequestState === 'MERGED';
   const closed = item.githubPullRequestState === 'CLOSED' || item.status === 'observed_pr';
   const bucket = disposition === 'completed'

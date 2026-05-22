@@ -50,6 +50,8 @@ server.taskIntake = {
         title: 'ARA-6 task page proof',
         executor: 'jules',
         status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-detail-page\\manifest.json',
+        julesSessionId: '4101281510355198885',
         prompt: 'Show the operator one task workspace without sending Jules feedback.',
         expectedFiles: ['conductor/symphony/src/server.ts', 'conductor/symphony/public/dashboard.css'],
         verificationCommands: ['npm run verify:jules-contract'],
@@ -321,7 +323,9 @@ try {
   assert.match(page.body, /This does not send feedback to Jules, create Linear work, push to GitHub, or mutate Git/);
   assert.match(page.body, /data-task-clarification-url="http:\/\/127\.0\.0\.1:8199\/api\/v1\/tasks\/handoff-detail-page\/clarifications"/);
   assert.match(page.body, /Guarded Operator Actions/);
-  assert.match(page.body, /This section does not run them/);
+  assert.match(page.body, /Safe Symphony refresh and local receipt endpoints can run here/);
+  assert.match(page.body, /Run Safe Symphony Refresh/);
+  assert.match(page.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-pr"/);
   assert.match(page.body, /Resolve CI Setup Blocker/);
   assert.match(page.body, /Prepare Jules PR feedback comment/);
   assert.match(page.body, /gh pr comment/);
@@ -349,6 +353,8 @@ try {
   assert.match(page.body, /After-push PR refresh:<\/strong> <code>\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-pr<\/code>/);
   assert.match(page.body, /Operator Answer/);
   assert.match(page.body, /Record Operator Answer/);
+  assert.match(page.body, /Record Selected Decision/);
+  assert.match(page.body, /data-task-operator-question="How should Symphony handle the setup blocker\?"/);
   assert.match(page.body, /Approve repair push/);
   assert.match(page.body, /data-task-operator-answer-url="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-detail-page\/operator-answer"/);
   assert.match(page.body, /does not send Jules feedback, create Linear work, push to GitHub, or mutate Git/);

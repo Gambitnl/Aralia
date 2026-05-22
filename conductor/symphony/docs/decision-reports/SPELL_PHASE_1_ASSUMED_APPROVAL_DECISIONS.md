@@ -1240,9 +1240,278 @@ Copy this block for each decision.
   request, then perform scope review and verification before merge or local
   sync.
 
+### Decision 31: Turn Safe Guarded PR Refresh Endpoints Into Visible Task-Page Controls
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to keep the Package 2 task page showing only the raw
+  `POST /refresh-pr` endpoint, or add a deliberate visible button for safe
+  Symphony refresh endpoints.
+- Options considered:
+  - Continue copying the endpoint from the task page and calling it outside the
+    dashboard.
+  - Leave all guarded actions as read-only runbook text.
+  - Keep Git/GitHub/local mutation actions as runbook text, but allow
+    non-mutating Symphony refresh endpoints to run from a visible task-page
+    button.
+- Decision made by agent: Add a visible `Run Safe Symphony Refresh` button for
+  guarded Symphony `refresh-pr` / `refresh-status` endpoints that declare no
+  Git, local-file, or external-system mutation.
+- Model routing: Standard foreman/frontend reasoning, because this is a narrow
+  dashboard UX repair exposed by the live task flow.
+- Rationale/evidence: The Package 2 task page reached `Bridge Through
+  Scout/Core` and listed `POST
+  http://127.0.0.1:8139/api/v1/jules-handoffs/handoff-1779400495781-jauy49/refresh-pr`
+  under `Guarded Operator Actions`, but there was no visible control to run it.
+  Calling the endpoint manually would work technically, but it weakens the
+  dashboard-first test because the human-facing page is supposed to carry the
+  flow.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts`,
+  `conductor/symphony/public/dashboard.css`, and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Did not add buttons
+  for Git pushes, GitHub comments, local sync, manifest staging, or other
+  mutation actions.
+- Scope guardrails: Only safe refresh endpoints are clickable. Mutation
+  commands remain explicit runbook text and still require separate operator
+  action and receipts.
+- Result: The live Package 2 task page now shows one visible `Run Safe Symphony
+  Refresh` button, and clicking it refreshes PR evidence from the task page.
+- Next expected proof: Use the visible refresh button before each Scout/Core
+  disposition so PR checks and file-risk evidence are current.
+
+### Decision 32: Treat Expected-File Globs As Real Jules Write Scope
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to accept Scout/Core's false out-of-scope warning for
+  Package 2 files, or repair the scope matcher to understand the write-scope
+  patterns used by the handoff.
+- Options considered:
+  - Ignore the dashboard warning because Codex manually confirmed the file list
+    was in scope.
+  - Rewrite the Package 2 task scope to enumerate every premade JSON file and
+    exact combat test file.
+  - Repair the Scout/Core scope matcher so expected-file globs such as
+    `public/premade-characters/*.json` and
+    `src/utils/combat/__tests__/combatUtils_*.test.ts` are honored.
+- Decision made by agent: Repair the Symphony PR scope classifier to support
+  the lightweight glob patterns used in task write scopes.
+- Model routing: Standard foreman/backend reasoning, because this is a narrow
+  evidence-classification bug that blocked dashboard-first PR review.
+- Rationale/evidence: After the visible safe refresh, the task detail correctly
+  fetched PR #935 checks but falsely reported fourteen out-of-scope files,
+  including every premade JSON file and the new `combatUtils_premade.test.ts`.
+  Those files were explicitly covered by the Package 2 expected write scope.
+- Mutation performed or skipped: Updated
+  `conductor/symphony/src/task-intake.ts` and
+  `conductor/symphony/scripts/verify-pr-scope-risk.mjs`. Did not broaden the
+  Package 2 scope or waive actual out-of-scope detection.
+- Scope guardrails: The matcher supports only the small review-boundary glob
+  shapes used in expected file paths: `*` for one path segment and `**` for
+  nested paths. Non-matching files still trigger the out-of-scope warning.
+- Result: After restarting the dashboard and clicking the visible safe refresh,
+  Package 2 Scout/Core evidence reports `outOfScopeFiles: []`, file risk
+  `medium`, and the remaining risk reason `Large diff: 1,500 or more changed
+  lines.`
+- Next expected proof: Decide the remaining Package 2 blockers: failed
+  workflow/test checks and whether the large JSON diff is acceptable or should
+  go back to Jules for a narrower rewrite.
+
+### Decision 33: Add A Visible No-Typing Operator Decision Button
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to use the hidden operator-answer endpoint after the
+  visible text box failed in the in-app browser, or repair the dashboard so the
+  operator decision can still be recorded from the visible task page.
+- Options considered:
+  - Call the local operator-answer endpoint directly with the desired answer.
+  - Retry fragile browser text entry and leave the dashboard unchanged.
+  - Add a visible button that records the selected decision with a
+    plain-language default answer, while keeping the free-text answer box for
+    humans who can type normally.
+- Decision made by agent: Add `Record Selected Decision` to the task-page
+  operator-answer form.
+- Model routing: Standard foreman/frontend reasoning, because this is a narrow
+  dashboard affordance repair exposed by the live task flow.
+- Rationale/evidence: The Package 2 task page correctly asked whether Symphony
+  should route the failed workflow/review automation check to setup repair
+  before asking Jules to change task code. The visible answer form existed, but
+  browser-driven text entry failed with the same virtual-clipboard limitation
+  already seen on task notes. Calling the endpoint directly would bypass the
+  dashboard-first test.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts` and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Did not send Jules
+  feedback, create Linear work, push to GitHub, or mutate Git.
+- Scope guardrails: The new button records only a local operator receipt for
+  the selected decision. It does not execute the selected repair lane or perform
+  any external mutation.
+- Result: The task page now has both `Record Operator Answer` for typed answers
+  and `Record Selected Decision` for visible no-typing decisions. The live
+  Package 2 task used the new button to record `create_setup_repair_task`.
+- Next expected proof: Follow the recorded repair lane from the visible task
+  page instead of sending Jules feedback or calling hidden endpoints.
+
+### Decision 34: Surface The Selected Setup-Repair Lane As A Visible Local-Draft Action
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: After `create_setup_repair_task` was recorded, the dashboard
+  still showed the old PR-refresh/Jules-feedback boundary instead of the
+  selected setup-repair lane.
+- Options considered:
+  - Treat the local answer as enough and manually call the hidden
+    `execute-repair-lane` endpoint.
+  - Send Jules feedback even though the selected decision said to create setup
+    repair first.
+  - Wire the selected repair lane into the task page as a visible guarded local
+    receipt action.
+- Decision made by agent: Add a visible `Create Local Repair Draft` guarded
+  action after the selected operator answer.
+- Model routing: Standard foreman/backend reasoning, because this is a narrow
+  workflow-routing repair that keeps the dashboard path aligned with the
+  recorded decision.
+- Rationale/evidence: The live task page recorded the operator answer, but the
+  current boundary and guarded actions still offered PR refresh and Jules
+  feedback. Symphony already had a local `execute-repair-lane` endpoint; the
+  missing piece was dashboard routing from the selected answer to that endpoint.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts` and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Then used the
+  visible `Create Local Repair Draft` button on the Package 2 task page.
+- Scope guardrails: The action creates only a local setup-repair draft. It does
+  not create Linear work, launch Jules, send Jules feedback, comment on GitHub,
+  push, merge, or edit spell implementation files.
+- Result: The visible task page created local setup-repair draft
+  `draft-1779410025252-nnowpt` titled `Setup repair for ARA-7`. The draft is
+  currently `blocked_by_git_sync`, which is expected while this foreman branch
+  still has unfiled local Symphony changes.
+- Next expected proof: File these Symphony dashboard fixes, then use the
+  dashboard draft path for `draft-1779410025252-nnowpt` if the workflow-config
+  repair remains the chosen lane.
+
+### Decision 35: Move The Global Dashboard Boundary Past Completed Jules Sessions With PRs
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to accept the main dashboard's stale `Refresh Jules
+  Status` boundary after Package 2 had already captured PR #935, or repair the
+  global boundary ladder so it points at PR review/check repair.
+- Options considered:
+  - Ignore the top dashboard boundary and keep using the task detail page.
+  - Manually refresh PR checks from the raw endpoint whenever the top boundary
+    looks stale.
+  - Repair the global middleman path and task navigator so answered questions
+    and completed Jules sessions with PRs no longer mask the real PR blocker.
+- Decision made by agent: Repair the dashboard routing model.
+- Model routing: Standard foreman/frontend-backend reasoning, because the bug
+  crossed server-derived path state and client-side task navigator buckets.
+- Rationale/evidence: The visible dashboard showed Package 2 with PR #935 and
+  a local setup-repair draft, but `Current Foreman Boundary` still showed
+  `Jules session` / `Refresh Jules Status`, and the navigator still counted one
+  task as needing input even though `create_setup_repair_task` had been
+  recorded. That misdirected the human foreman back to a finished Jules polling
+  lane instead of the current PR/check blocker.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts`,
+  `conductor/symphony/public/dashboard.js`, added
+  `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`,
+  and extended
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`.
+- Scope guardrails: The change is read-only dashboard routing. It does not push
+  a branch, create a PR, merge, call Linear, launch Jules, or mutate Package 2
+  implementation files.
+- Result: After restart, the live dashboard reports `Needs input: 0`, selects
+  `Setup repair for ARA-7` as the open draft, and shows global
+  `Current Foreman Boundary` as `GitHub PR` with `Run GitHub PR` / PR-refresh
+  evidence instead of stale Jules status.
+- Next expected proof: Commit and file these Symphony dashboard fixes, then
+  resolve the Git sync/disposition blocker for `draft-1779410025252-nnowpt`.
+
+### Decision 36: Open Git Safety When Git Disposition Is The Active Blocker
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 setup-repair routing
+- Decision point: Whether to use the hidden Git disposition endpoint or repair
+  the dashboard after the visible workflow showed the disposition button inside
+  a collapsed Git Safety drawer.
+- Options considered:
+  - Call `/api/v1/git-disposition` directly and move past the blocker.
+  - Ask the operator to know that Git Safety must be expanded manually.
+  - Make the Git Safety drawer open automatically when Git sync, disposition,
+    or guarded sync-plan evidence is the active blocker.
+- Decision made by agent: Repair the dashboard so the required Git disposition
+  controls are visible when they are the next decision surface.
+- Model routing: Standard foreman/frontend reasoning, because this was a narrow
+  dashboard visibility defect exposed by human-style browser use.
+- Rationale/evidence: The live dashboard showed `Check GitHub Sync` and a
+  pending disposition path, but the actionable `Record Git disposition` button
+  was not clickable until the hidden drawer state was corrected. After the fix,
+  the in-app browser showed `Sync Decision Board`, both disposition cards, the
+  recorded remote-commit decision, and a visible tracked-changes decision.
+- Mutation performed or skipped: Updated
+  `conductor/symphony/public/dashboard.js` and
+  `conductor/symphony/scripts/verify-sync-decision-board.mjs`. Then used the
+  visible Sync Decision Board to record `tracked_changes` as
+  `commit_for_jules_base`.
+- Scope guardrails: The dashboard action records operator intent only. It does
+  not pull, push, stash, clean, switch branches, launch Jules, create Linear
+  work, or edit spell implementation files.
+- Result: The live dashboard reports `ready_for_human_execution` for the guarded
+  Git sync plan after both visible decisions are recorded:
+  `tracked_changes=commit_for_jules_base` and
+  `remote_commits=integrate_after_local_safe`.
+- Next expected proof: Commit this dashboard repair, re-run `Check GitHub Sync`,
+  and continue only from the visible guarded sync plan or the next dashboard
+  blocker it exposes.
+
+### Decision 37: Make Current-Boundary PR Refresh A Real Dashboard Button
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to open the raw PR refresh endpoint from the current
+  boundary or repair the current-boundary renderer so `Run GitHub PR` is a
+  clickable dashboard action.
+- Options considered:
+  - Use the raw `/refresh-pr` endpoint link even though a browser link cannot
+    perform the intended guarded POST action.
+  - Scroll down to a lower handoff card and use its existing refresh button,
+    leaving the top current-boundary action misleading.
+  - Reuse the existing safe `refresh-pr` dashboard action in the
+    current-boundary panel.
+- Decision made by agent: Add a `Refresh GitHub PR` button to the
+  current-boundary panel for safe PR refresh actions.
+- Model routing: Standard foreman/frontend reasoning, because this was a narrow
+  dashboard affordance repair using an existing safe button path.
+- Rationale/evidence: The visible dashboard showed `Run GitHub PR`,
+  `Method POST`, `Can run now yes`, but exposed only `Evidence` and `Endpoint`
+  links. The current-boundary surface should be operable without asking the
+  operator to know where the lower duplicate handoff controls live.
+- Mutation performed or skipped: Updated
+  `conductor/symphony/public/dashboard.js` and extended
+  `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`.
+- Scope guardrails: The button reuses the existing `refresh-pr` handler. It
+  only reads GitHub PR state/checks/comments/risk evidence; it does not push,
+  merge, comment, launch Jules, create Linear work, or mutate local files.
+- Result: The next dashboard reload can expose the current PR boundary as a
+  visible `Refresh GitHub PR` button instead of a raw POST endpoint link.
+- Next expected proof: Reload the dashboard, click the current-boundary
+  `Refresh GitHub PR` button, and capture the refreshed Package 2 PR evidence.
+
 ## Open Decisions For The Next Slice
 
-1. Refresh Jules session `15527431301408060204` and record whether it produces
-   a PR, reports a blocker, or needs follow-up after the approved plan run.
-2. Inspect any Package 2 PR against the declared write scope before Scout/Core
-   review, merge, deployment proof, local sync, or Package 3 planning.
+1. File the Symphony dashboard fixes that enabled the local setup-repair draft
+   and corrected the global PR boundary,
+   then decide whether to advance `draft-1779410025252-nnowpt` through the
+   normal dashboard draft gates.
+2. Decide whether PR #935's broad `Tests` failure is an ambient
+   test-infrastructure blocker to repair separately, a temporary failure to
+   rerun, or a blocker that should stop Package 2 merge.
+3. Decide whether PR #935's large premade JSON line churn is acceptable with the
+   semantic diff evidence, or whether Jules should do a narrow formatting-only
+   cleanup before merge.
