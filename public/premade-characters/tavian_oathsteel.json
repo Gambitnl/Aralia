@@ -153,7 +153,34 @@
     "javelin"
   ],
   "transportMode": "foot",
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "longsword",
+      "name": "Longsword",
+      "type": "weapon",
+      "category": "Martial Melee Weapon",
+      "damageDice": "1d8",
+      "damageType": "slashing",
+      "properties": [
+        "versatile"
+      ]
+    },
+    "OffHand": {
+      "id": "shield",
+      "name": "Shield",
+      "type": "armor",
+      "armorCategory": "Shield",
+      "armorClassBonus": 2
+    },
+    "Torso": {
+      "id": "chain_mail",
+      "name": "Chain Mail",
+      "type": "armor",
+      "armorCategory": "Heavy",
+      "baseArmorClass": 16,
+      "stealthDisadvantage": true
+    }
+  },
   "activeEffects": [],
   "statusEffects": [],
   "limitedUses": {

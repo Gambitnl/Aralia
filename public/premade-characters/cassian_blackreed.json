@@ -168,7 +168,30 @@
   "darkvisionRange": 0,
   "selectedWeaponMasteries": [],
   "transportMode": "foot",
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "dagger",
+      "name": "Dagger",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d4",
+      "damageType": "piercing",
+      "properties": [
+        "finesse",
+        "light",
+        "thrown",
+        "range:20/60"
+      ]
+    },
+    "Torso": {
+      "id": "leather_armor",
+      "name": "Leather Armor",
+      "type": "armor",
+      "armorCategory": "Light",
+      "baseArmorClass": 11,
+      "addsDexterityModifier": true
+    }
+  },
   "activeEffects": [],
   "statusEffects": [],
   "limitedUses": {},
