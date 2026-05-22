@@ -1535,12 +1535,13 @@ Copy this block for each decision.
 - Scope guardrails: Did not edit PR #935 spell implementation files, premade
   character JSON, movement runtime code, movement tests, package files, or
   lockfiles.
-- Result: Focused local verification passed. The setup repair is now scoped to
-  the actual failing workflow file, and future Symphony setup-repair drafts can
-  name that file instead of implying only `ci.yml` or lockfile repairs.
-- Next expected proof: File the setup-repair branch, rerun or refresh PR #935
-  checks after the workflow repair lands, and record whether the movement test
-  failure clears or remains an independent blocker.
+- Result: Focused local verification passed, and draft PR #937 now carries the
+  setup repair. The repair is scoped to the actual failing workflow file, and
+  future Symphony setup-repair drafts can name that file instead of implying
+  only `ci.yml` or lockfile repairs.
+- Next expected proof: Review/merge PR #937, rerun or refresh PR #935 checks
+  after the workflow repair lands, and record whether the movement test failure
+  clears or remains an independent blocker.
 
 ### Decision 39: Improve Dashboard First-Viewport UX While Stitch MCP Auth Is Pending
 
@@ -1580,21 +1581,55 @@ Copy this block for each decision.
 - Scope guardrails: Did not store a Stitch API key, did not claim Stitch output,
   did not add new backend endpoints, did not alter Jules/GitHub/Linear/Git
   mutation policy, and did not change PR #935 implementation files.
-- Result: Pending final visual and contract verification. Stitch is now listed
-  as a Codex MCP server, but live Stitch use still requires authentication and a
-  Codex restart. The dashboard UX pass is explicitly local and should be judged
-  by rendered dashboard inspection, not by Stitch provenance.
+- Result: Local contract verification and rendered dashboard inspection passed,
+  and draft PR #937 now carries the first-viewport dashboard UX repair. Stitch
+  is listed as a Codex MCP server, but live Stitch use still requires
+  authentication and a Codex restart. The dashboard UX pass is explicitly local
+  and should be judged by rendered dashboard inspection, not by Stitch
+  provenance.
 - Next expected proof: Restart Codex after installing a Stitch API key or OAuth
   headers, confirm Stitch tools are visible, and use Stitch for the next design
-  iteration. For this local pass, run dashboard verifiers and inspect the
-  rendered dashboard first viewport.
+  iteration. For this local pass, review PR #937 and keep the rendered
+  first-viewport evidence attached to its verification notes.
+
+### Decision 40: File Setup-Review Repair As PR #937
+
+- Date/time: 2026-05-22
+- Phase: `package_2_setup_repair`
+- Active slice: Package 2 PR #935 failed-check follow-through
+- Decision point: Whether to leave the verified setup-repair branch local,
+  send more Jules feedback first, or publish the repair for GitHub review.
+- Options considered:
+  - Keep the branch local and continue gathering evidence.
+  - Send Jules follow-up on PR #935 before the broken review workflow can run.
+  - Push the setup-repair branch and open a draft PR so the workflow repair can
+    land separately from the Package 2 spell implementation PR.
+- Decision made by agent: Push
+  `codex/spell-phase1-package2-setup-repair` and open draft PR #937.
+- Model routing: Local Codex foreman, because this is GitHub/Symphony workflow
+  follow-through rather than a Jules implementation task.
+- Rationale/evidence: The repair branch had fresh Symphony contract checks,
+  rendered dashboard inspection, the Gemini model-name guard, and focused
+  movement-test verification. The user had already authorized branch pushing and
+  PR creation for this test flow, so stopping for another approval prompt would
+  reintroduce the approval blockage this flow is meant to measure.
+- Mutation performed or skipped: Committed the repair as `4d29f43b`, pushed the
+  branch, and opened draft PR #937. Did not merge PR #937 or PR #935.
+- Scope guardrails: Did not modify PR #935 spell implementation files, did not
+  reroute Jules, did not store a Stitch API key, and did not bypass the
+  dashboard-first blocker model except for allowed verification and publishing
+  mechanics.
+- Result: Draft PR #937 is filed at
+  `https://github.com/Gambitnl/Aralia/pull/937`.
+- Next expected proof: Let PR #937 checks/review run, merge it if acceptable,
+  then refresh PR #935 through the Symphony dashboard and classify any remaining
+  failed check separately.
 
 ## Open Decisions For The Next Slice
 
-1. File the Symphony dashboard fixes that enabled the local setup-repair draft
-   and corrected the global PR boundary,
-   then decide whether to advance `draft-1779410025252-nnowpt` through the
-   normal dashboard draft gates.
+1. Decide whether PR #937 is acceptable to merge after its checks/review finish,
+   then refresh PR #935 through the dashboard once the workflow repair is on
+   `master`.
 2. Decide whether PR #935's broad `Tests` failure is an ambient
    test-infrastructure blocker to repair separately, a temporary failure to
    rerun, or a blocker that should stop Package 2 merge.
