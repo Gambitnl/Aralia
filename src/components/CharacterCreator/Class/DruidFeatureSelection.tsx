@@ -154,6 +154,22 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {allSpells['speak-with-animals'] && (
+                  <div className="relative group">
+                    <div className="absolute inset-0 z-10 cursor-not-allowed"></div>
+                    <SpellCard
+                      spell={allSpells['speak-with-animals']}
+                      selected={true}
+                      disabled={false}
+                      onToggle={() => {}}
+                      idPrefix="spell1-feature"
+                      className="opacity-70 grayscale-[20%]"
+                    />
+                    <div className="absolute -top-2 right-2 px-1.5 py-0.5 bg-amber-600/90 text-amber-100 text-[9px] uppercase font-bold rounded shadow-md pointer-events-none z-20 border border-amber-500/50">
+                      Class Feature
+                    </div>
+                  </div>
+                )}
                 {availableSpellsL1.map(spell => {
                   const isSelected = selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id);
                   const isDisabled = !selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= numSpellsL1ToSelect;

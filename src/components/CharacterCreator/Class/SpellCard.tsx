@@ -1,5 +1,5 @@
 import React from 'react';
-import { Spell, SpellEffect, DamageEffect, HealingEffect } from '../../../types';
+import { Spell, SpellEffect, DamageEffect, HealingEffect, CastingTime, Range } from '../../../types';
 
 interface SpellCardProps {
   spell: Spell;
@@ -46,14 +46,14 @@ export const SpellCard: React.FC<SpellCardProps> = ({
   const summary = getSpellSummary(spell);
   const inputId = `${idPrefix}-${spell.id}`;
 
-  const formatCastingTime = (ct: any) => {
+  const formatCastingTime = (ct: CastingTime) => {
     if (ct.unit === 'action') return `${ct.value} Action`;
     if (ct.unit === 'bonus_action') return `${ct.value} Bonus Action`;
     if (ct.unit === 'reaction') return 'Reaction';
     return `${ct.value} ${ct.unit}${ct.value > 1 ? 's' : ''}`;
   };
 
-  const formatRange = (r: any) => {
+  const formatRange = (r: Range) => {
     if (r.type === 'self') return 'Self';
     if (r.type === 'touch') return 'Touch';
     if (r.type === 'ranged' || r.type === 'sight') return `${r.distance} ${r.distanceUnit || 'ft'}`;
