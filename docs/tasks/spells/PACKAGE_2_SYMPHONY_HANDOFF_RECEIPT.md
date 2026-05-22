@@ -401,15 +401,61 @@ Repair path:
   browser, and the task navigator refreshed Package 2 into
   `Resolve Workflow Config Blocker` with updated PR evidence.
 
+## Setup Repair Root Cause
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After PR #936 merged and local `master` fast-forwarded to
+`origin/master@3ee80a11`, the dashboard `Check GitHub Sync` gate passed:
+branch `master`, ahead `0`, behind `0`, tracked `0`, untracked `0`. Codex then
+used the visible `Create Linear Issue` button for `Setup repair for ARA-7`.
+The dashboard routed the repair as `local_careful`.
+
+Failure evidence:
+
+- `review / review` failed before useful review because
+  `.github/workflows/gemini-review.yml` hardcoded `gemini-1.5-flash`.
+- The Gemini CLI reported `ModelNotFoundError: models/gemini-1.5-flash is not
+  found for API version v1beta`.
+- Other Gemini workflows already use `${{ vars.GEMINI_MODEL }}`.
+- `Tests` failed one full-suite assertion in
+  `src/hooks/actions/__tests__/handleMovement.test.ts`, expecting `2700` and
+  receiving `8100`.
+- Focused local verification on synced `master` passed:
+  `npm test -- --run src/hooks/actions/__tests__/handleMovement.test.ts`.
+
+Repair direction:
+
+- Update `.github/workflows/gemini-review.yml` to use
+  `${{ vars.GEMINI_MODEL }}`.
+- Update Symphony's setup-repair draft scope so future repair drafts include
+  `.github/workflows/gemini-review.yml` when workflow automation itself is the
+  failing setup surface.
+- Do not edit PR #935 spell implementation, premade JSON, movement runtime, or
+  movement tests unless a rerun proves a non-ambient Package 2 blocker.
+
+Repair filing:
+
+- Codex committed the setup-review repair as `4d29f43b` on branch
+  `codex/spell-phase1-package2-setup-repair`.
+- Draft PR #937 now carries this repair:
+  `https://github.com/Gambitnl/Aralia/pull/937`.
+- The branch also carries the local dashboard first-viewport repair that made
+  the active PR-refresh boundary more visible while Stitch MCP authentication
+  remains pending.
+
 ## Next Expected Proof
 
-1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
-   test job and Gemini review infrastructure failure have explicit disposition.
-2. Decide whether the large JSON formatting churn is acceptable after semantic
+1. Review and merge PR #937 if its checks and review are acceptable.
+2. Refresh PR #935 through the Symphony dashboard after PR #937 lands, then
+   record whether the Gemini review job now reaches useful review output.
+3. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
+   test job has explicit disposition.
+4. Decide whether the large JSON formatting churn is acceptable after semantic
    review or should be returned to Jules for a narrower rewrite.
-3. Update Atlas/gate, foreman review, task communication, PR/deployment/local
+5. Update Atlas/gate, foreman review, task communication, PR/deployment/local
    sync, and ROI receipts before Package 2 is treated as complete.
-4. Do not merge PR #935 until the dashboard/Scout/Core path records the
+6. Do not merge PR #935 until the dashboard/Scout/Core path records the
    decision about the ambient CI blocker.
 
 ## Dashboard-First Blocker Found

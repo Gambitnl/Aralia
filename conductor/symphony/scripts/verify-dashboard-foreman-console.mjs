@@ -11,6 +11,7 @@ import vm from 'node:vm';
 const dashboardSource = await readFile(new URL('../public/dashboard.js', import.meta.url), 'utf8');
 
 assert.match(dashboardSource, /function renderForemanConsole/);
+assert.match(dashboardSource, /function renderDashboardFocusStrip/);
 assert.match(dashboardSource, /function renderForemanCurrentBoundary/);
 assert.match(dashboardSource, /function renderForemanDetailGroup/);
 assert.match(dashboardSource, /function renderBrowserFollowAlongGuidance/);
@@ -88,9 +89,14 @@ sandbox.renderTaskIntake(buildSnapshot());
 const html = taskIntakeRoot.innerHTML;
 
 assert.match(html, /foreman-console/);
+assert.match(html, /dashboard-focus-strip/);
 assert.match(html, /Current Foreman Boundary/);
+assert.match(html, /What needs attention now/);
 assert.match(html, /Resolve Git disposition before Linear\/Jules/);
-assert.match(html, /Safety: operator_only/);
+assert.match(html, /<dt>Safety<\/dt><dd>operator_only<\/dd>/);
+assert.match(html, /<dt>Git<\/dt><dd>Git sync blocked<\/dd>/);
+assert.match(html, /<dt>Drafts<\/dt><dd>1<\/dd>/);
+assert.match(html, /<dt>PRs<\/dt><dd>1\/1<\/dd>/);
 assert.match(html, /Next proof/);
 assert.match(html, /Git Safety/);
 assert.match(html, /Jules Lifecycle/);
