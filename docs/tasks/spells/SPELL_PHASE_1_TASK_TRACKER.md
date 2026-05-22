@@ -6,6 +6,9 @@ This is the single task collection and status tracker for Spell Phase 1. It
 does not replace detailed package docs, receipts, Atlas trackers, or PR notes.
 It points to them, keeps the package queue coherent, and records adjacent gaps
 that should not quietly expand the active slice.
+Symphony draft ids, workflow logs, click receipts, and local run state stay
+external unless a short excerpt is needed in a durable Aralia-facing packet or
+temporary migration note.
 
 ## How To Use This File
 
@@ -35,8 +38,12 @@ Statuses:
 - Plan: `docs/tasks/spells/EARLY_GAME_SPELL_EXECUTION_PLAN.md`
 - Lifecycle policy:
   `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md`
-- Decision report:
+- External decision report:
   `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+- Package 3 packet:
+  `docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`
+- Package 4 packet:
+  `docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`
 - Setup PR: `https://github.com/Gambitnl/Aralia/pull/933` (merged
   2026-05-21)
 - Package 2 clean-base draft: `draft-1779400428597-mind7o`
@@ -58,8 +65,8 @@ Statuses:
 | P2 | active | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | PR #935 is visible and mergeable; Scout/Core now reports no out-of-scope files after the expected-file glob repair; scoped local verification passed; broad GitHub test job is failing in unrelated `handleMovement` seasonal test and needs Scout/Core disposition before merge |
 | P2D | active | Codex foreman | Dashboard-first hardening for Package 2 handoff monitoring | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`; Decisions 26-37; PR #936 | Task detail now has a visible safe PR-refresh button, Scout/Core honors Package 2 write-scope globs, operator decisions have a visible no-typing receipt button, the selected setup-repair lane can create a local draft visibly, the global dashboard boundary now points at PR review after a PR exists, Git Safety opens automatically when Git disposition is the active blocker, and current-boundary PR refresh renders as a real dashboard button; repair branch is filed as draft PR #936; task-note entry still fails from the in-app browser clipboard/input surface, so keep recording durable evidence here until the dashboard has a robust note path |
 | P2R | active | Codex foreman, Jules preferred after filing | Workflow-config repair lane for PR #935 failed `review / review` automation | local draft `draft-1779410025252-nnowpt` (`Setup repair for ARA-7`) | Created through the visible Package 2 task page after the recorded `create_setup_repair_task` answer; currently `blocked_by_git_sync` until these Symphony dashboard fixes are filed and the draft can pass normal dashboard gates |
-| P3 | not_started | Jules preferred after P2 | Character creator spell selection and character sheet spellbook visibility | create `PACKAGE_3_*` docs when P2 review says ready | Waiting on P2 |
-| P4 | not_started | Jules preferred after P3 | Combat simulator deterministic spell pilot | create `PACKAGE_4_*` docs after P3 | Waiting on P2/P3 |
+| P3 | done | Codex foreman closeout | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Local proof and the merged GitHub work now cover wizard spell selection, selected-spell assembly, and spellbook visibility for cantrips plus levels 1-3; keep the packet durable and separate from transient Symphony state |
+| P4 | done | Jules implementation, Codex foreman closeout | Combat simulator deterministic spell pilot | `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` | Package 4 was linked to Linear issue ARA-10, the Jules handoff produced PR #979, and that PR merged cleanly on 2026-05-22. Local proof now covers `fire-bolt`, `magic-missile`, `scorching-ray`, and `fireball` in `src/hooks/__tests__/useAbilitySystem.package4.test.tsx`. Keep transient Symphony state external while the combat proof remains documented here. |
 | P5 | not_started | Jules preferred after P4 | AI arbitration pilot for open-ended spells | create `PACKAGE_5_*` docs after deterministic pilot | Waiting on P4 |
 | P6 | not_started | Jules preferred after pilots | First mechanics bucket closure for levels 0-3 | create bucket-specific docs from current mechanics-discovery evidence | Waiting on pilot evidence |
 
@@ -101,6 +108,8 @@ package queue or a linked detailed task file.
 | G16 | done | Main dashboard boundary after PR capture | The global `Current Foreman Boundary` still showed `Jules session` / `Refresh Jules Status` after Package 2 had captured PR #935 and recorded the setup-repair lane | This was a dashboard routing bug; completed Jules session receipts should not mask the PR/check boundary once a PR exists | Decision 35; `conductor/symphony/src/server.ts`; `conductor/symphony/public/dashboard.js`; live dashboard now shows `GitHub PR` and `Needs input: 0` |
 | G17 | done | Git disposition through visible dashboard | The required Git disposition controls existed inside Git Safety, but the drawer was collapsed by default while Git sync/disposition was the active blocker | This was a dashboard visibility bug exposed by the dashboard-first rule; calling the disposition endpoint directly would bypass the human workflow being tested | Decision 36; `conductor/symphony/public/dashboard.js`; `conductor/symphony/scripts/verify-sync-decision-board.mjs`; live dashboard now opens Git Safety and recorded `tracked_changes=commit_for_jules_base` plus `remote_commits=integrate_after_local_safe` visibly |
 | G18 | done | Current-boundary PR review | The top `Current Foreman Boundary` said `Run GitHub PR` with `Method POST` and `Can run now yes`, but rendered only raw links instead of the existing safe PR-refresh button | This was a dashboard affordance bug; using the raw POST endpoint or hunting for a lower duplicate button would weaken the dashboard-first workflow | Decision 37; `conductor/symphony/public/dashboard.js`; `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`; current-boundary PR refresh now renders as `Refresh GitHub PR` |
+| G19 | done | Phase 1 spellbook assembly audit | `useCharacterAssembly` was carrying the full class spell list into `knownSpells`, which made the creator spellbook look like every class spell was already known instead of only the selected/prepared subset | This was adjacent to the spellbook-visibility work rather than the combat pilot; the creator hook needed a narrow data fix, not a broader UI rewrite | `src/components/CharacterCreator/hooks/useCharacterAssembly.ts`; `src/components/CharacterCreator/hooks/__tests__/useCharacterAssembly.test.tsx`; `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx`; `src/components/CharacterSheet/__tests__/CharacterSheetModal.test.tsx` |
+| G20 | active | Visible Package 4 dashboard audit | The dashboard is still surfacing a local-sync blocker on the master checkout even though Package 4 now has PR #979 ready for review | This is external Symphony/local git state, not an Aralia repo artifact; the blocker belongs in the dashboard/local sync lane or local ignored state, not in the task packet as runtime junk | `http://127.0.0.1:8139/` current boundary; separate from `docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` |
 
 ## Detailed Task File Index
 
@@ -113,6 +122,8 @@ package queue or a linked detailed task file.
 | `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md` | Package 2 Codex review/failure classification target | pending implementation |
 | `PACKAGE_2_TASK_COMMUNICATION_RECEIPT.md` | Package 2 task-scoped communication target | pending implementation |
 | `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | Package 2 PR/deployment/local-sync target | pending implementation |
+| `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Package 3 spell-selection and spellbook visibility packet | active |
+| `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` | Package 4 deterministic combat simulator pilot packet | waiting on PR review after visible handoff through Linear issue ARA-10 |
 | `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Retain/archive/delete policy for package artifacts | active |
 | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Clean-base Package 2 draft, Linear issue, handoff, manifest, Jules launch, PR #935, and scoped verification receipt | active, PR review in progress |
 
@@ -122,6 +133,8 @@ package queue or a linked detailed task file.
 - Update it after every package-level PR, merge, local sync, Jules dispatch,
   Jules result, foreman review, Atlas/gate checkpoint, or artifact filing
   decision.
+- When a change only preserves Symphony runtime state, classify it as external
+  or ignored unless the Aralia tracker needs a short durable summary.
 - If a detailed package file contradicts this tracker, treat that as a tracking
   bug: reconcile the two instead of assuming either one is silently correct.
 - Adjacent gaps should stay visible here until they are either promoted,
