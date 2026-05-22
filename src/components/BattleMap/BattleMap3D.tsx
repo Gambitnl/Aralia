@@ -73,31 +73,31 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     sunColor: 0xffd080, sunIntensity: 1.6,
     ambientColor: 0x304020, ambientIntensity: 0.4,
     hemisphereTop: 0x87ceeb, hemisphereBottom: 0x3a2a1a,
-    fogColor: 0x8a9a7a, fogNear: 15, fogFar: 35,
+    fogColor: 0x6a7a5a, fogNear: 8, fogFar: 22,
   },
   cave: {
     sunColor: 0x404060, sunIntensity: 0.3,
     ambientColor: 0x101830, ambientIntensity: 0.2,
     hemisphereTop: 0x1a1a3a, hemisphereBottom: 0x0a0a1a,
-    fogColor: 0x0a0a1a, fogNear: 6, fogFar: 18,
+    fogColor: 0x0a0a1a, fogNear: 4, fogFar: 14,
   },
   dungeon: {
     sunColor: 0xc89050, sunIntensity: 0.6,
     ambientColor: 0x202030, ambientIntensity: 0.3,
     hemisphereTop: 0x404050, hemisphereBottom: 0x1a1510,
-    fogColor: 0x1a1520, fogNear: 10, fogFar: 25,
+    fogColor: 0x1a1520, fogNear: 6, fogFar: 18,
   },
   desert: {
     sunColor: 0xfff0d0, sunIntensity: 2.2,
     ambientColor: 0x806040, ambientIntensity: 0.5,
     hemisphereTop: 0xe8e0c8, hemisphereBottom: 0xc8a060,
-    fogColor: 0xd8c8a0, fogNear: 20, fogFar: 40,
+    fogColor: 0xd8c8a0, fogNear: 10, fogFar: 25,
   },
   swamp: {
     sunColor: 0xa0b040, sunIntensity: 0.7,
     ambientColor: 0x203020, ambientIntensity: 0.25,
     hemisphereTop: 0x405030, hemisphereBottom: 0x2a2010,
-    fogColor: 0x2a3020, fogNear: 8, fogFar: 20,
+    fogColor: 0x2a3020, fogNear: 5, fogFar: 15,
   },
 };
 
@@ -106,9 +106,19 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
 // ---------------------------------------------------------------------------
 
 /** Lighting rig driven by biome presets */
-const SceneLighting: React.FC<{ biome: string }> = ({ biome }) => {
+const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, number, number] }> = ({ biome, mapCenter }) => {
   const preset = BIOME_LIGHTING[biome] ?? BIOME_LIGHTING.forest;
   const directionalRef = useRef<THREE.DirectionalLight>(null);
+  const cx = mapCenter?.[0] ?? 0;
+  const cz = mapCenter?.[2] ?? 0;
+
+  // Point directional light at map center so shadow frustum covers the battlefield
+  React.useEffect(() => {
+    if (directionalRef.current) {
+      directionalRef.current.target.position.set(cx, 0, cz);
+      directionalRef.current.target.updateMatrixWorld();
+    }
+  }, [cx, cz]);
 
   return (
     <>
@@ -120,22 +130,23 @@ const SceneLighting: React.FC<{ biome: string }> = ({ biome }) => {
         ref={directionalRef}
         color={preset.sunColor}
         intensity={preset.sunIntensity}
-        position={[10, 15, 10]}
+        position={[cx + 8, 12, cz + 8]}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-near={0.5}
-        shadow-camera-far={50}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
+        shadow-camera-far={40}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
         shadow-camera-top={15}
         shadow-camera-bottom={-15}
+        shadow-bias={-0.001}
       />
       {/* Rim/fill light from opposite side */}
       <directionalLight
         color={0x8888ff}
         intensity={0.3}
-        position={[-8, 4, -6]}
+        position={[cx - 8, 4, cz - 6]}
       />
     </>
   );
@@ -224,9 +235,9 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           near: 0.1,
           far: 100,
           position: [
-            cameraTarget[0] + 12,
-            14,
-            cameraTarget[2] + 12,
+            cameraTarget[0] + 5,
+            7,
+            cameraTarget[2] + 5,
           ],
         }}
         gl={{
@@ -250,7 +261,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         />
 
         {/* Lighting rig */}
-        <SceneLighting biome={biome} />
+        <SceneLighting biome={biome} mapCenter={cameraTarget} />
 
         {/* Camera controller — BG3-style orbit with snap-to-character and cinematic cam */}
         <CameraController

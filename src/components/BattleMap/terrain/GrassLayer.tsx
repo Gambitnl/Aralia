@@ -21,7 +21,7 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Vegetation Layer" section
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData } from '../../../types/combat';
@@ -31,18 +31,18 @@ import { BattleMapData } from '../../../types/combat';
 // ---------------------------------------------------------------------------
 
 const TILE_SIZE = 1.0;
-const BLADES_PER_TILE = 70;
-const BLADE_WIDTH = 0.04;
-const BLADE_HEIGHT_MIN = 0.15;
-const BLADE_HEIGHT_MAX = 0.35;
+const BLADES_PER_TILE = 40;
+const BLADE_WIDTH = 0.06;
+const BLADE_HEIGHT_MIN = 0.18;
+const BLADE_HEIGHT_MAX = 0.40;
 const BLADE_SEGMENTS = 4; // Vertices along the blade height for bending
 
 const WIND_SPEED = 1.2;
 const WIND_STRENGTH = 0.12;
 
 // Colors
-const GRASS_BASE_COLOR = new THREE.Color(0.15, 0.28, 0.08);
-const GRASS_TIP_COLOR = new THREE.Color(0.35, 0.55, 0.18);
+const GRASS_BASE_COLOR = new THREE.Color(0.12, 0.22, 0.05); // Dark forest green base
+const GRASS_TIP_COLOR = new THREE.Color(0.28, 0.50, 0.12); // Medium green tips — not yellow
 
 // ---------------------------------------------------------------------------
 // Blade geometry generator
@@ -303,8 +303,8 @@ const GrassLayer: React.FC<GrassLayerProps> = ({ mapData }) => {
     }
   });
 
-  // Apply instance matrices
-  useMemo(() => {
+  // Apply instance matrices — useEffect (not useMemo) so meshRef.current is assigned
+  useEffect(() => {
     if (!meshRef.current) return;
     const mesh = meshRef.current;
     const dummy = new THREE.Matrix4();

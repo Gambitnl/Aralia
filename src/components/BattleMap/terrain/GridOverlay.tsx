@@ -26,7 +26,7 @@ import { BattleMapData, BattleMapTile } from '../../../types/combat';
 // ---------------------------------------------------------------------------
 
 const TILE_SIZE = 1.0;
-const GRID_LINE_WIDTH = 0.03;
+const GRID_LINE_WIDTH = 0.02;
 const OVERLAY_HEIGHT_OFFSET = 0.02; // Slight offset above terrain to prevent z-fighting
 
 // ---------------------------------------------------------------------------
@@ -84,9 +84,9 @@ const gridFragmentShader = /* glsl */ `
     float isActivePath = tileState.g;
     float isBlocked = tileState.b;
 
-    // Base color: transparent with faint grid lines
+    // Base color: nearly invisible grid lines
     vec3 color = vec3(0.5, 0.6, 0.7); // Neutral blue-gray for grid lines
-    float alpha = gridLine * 0.25;
+    float alpha = gridLine * 0.12;
 
     // Valid move highlight (green-blue)
     if (isValidMove > 0.5) {
@@ -142,8 +142,8 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
 
   const { width, height } = mapData.dimensions;
 
-  // Update target opacity based on action mode
-  targetOpacity.current = actionMode === 'move' ? 1.0 : 0.0;
+  // Grid visible only during movement mode, and faintly during ability targeting
+  targetOpacity.current = actionMode === 'move' ? 1.0 : actionMode === 'ability' ? 0.4 : 0.0;
 
   // Active path set
   const activePathSet = useMemo(() => {

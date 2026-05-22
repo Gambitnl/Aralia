@@ -103,11 +103,13 @@ const HumanoidModel: React.FC<{
       ]}
       position={[0, walkBob + idleBreathe, 0]}
     >
-      {/* Body / torso — armor colored */}
+      {/* Body / torso — armor colored with subtle emissive for visibility */}
       <mesh position={[0, 0.35, 0]} castShadow>
         <boxGeometry args={[0.22, 0.28, 0.14]} />
         <meshStandardMaterial
           color={armorColor}
+          emissive={armorColor}
+          emissiveIntensity={0.15}
           roughness={0.5}
           metalness={0.3}
         />
@@ -392,13 +394,15 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       {/* Active turn golden ring */}
       <TurnIndicator active={isTurn} />
 
-      {/* Character model */}
-      <HumanoidModel
-        teamColor={teamColors.primary}
-        isAlive={isAlive}
-        animState={isAlive ? animState : 'death'}
-        animTime={animTimeRef.current}
-      />
+      {/* Character model — scaled up to be visible at tactical zoom */}
+      <group scale={[2.5, 2.5, 2.5]}>
+        <HumanoidModel
+          teamColor={teamColors.primary}
+          isAlive={isAlive}
+          animState={isAlive ? animState : 'death'}
+          animTime={animTimeRef.current}
+        />
+      </group>
 
       {/* Target reticle glow when targetable */}
       {showTargetHighlight && (
@@ -410,9 +414,9 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         />
       )}
 
-      {/* Nameplate — HTML overlay */}
+      {/* Nameplate — HTML overlay (raised to clear scaled-up model) */}
       <Html
-        position={[0, 0.85, 0]}
+        position={[0, 1.85, 0]}
         center
         distanceFactor={10}
         style={{ pointerEvents: 'none' }}

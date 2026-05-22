@@ -17,7 +17,7 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Decorations as 3D Props" section
  */
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapDecoration } from '../../../types/combat';
 
@@ -51,29 +51,36 @@ type PropGeometrySet = {
 };
 
 function createTreeGeometry(): PropGeometrySet[] {
-  // Trunk
-  const trunk = new THREE.CylinderGeometry(0.06, 0.08, 0.5, 8);
-  trunk.translate(0, 0.25, 0);
+  // Trunk — thick, tall, visible at tactical zoom
+  const trunk = new THREE.CylinderGeometry(0.08, 0.14, 1.2, 8);
+  trunk.translate(0, 0.6, 0);
   const trunkMat = new THREE.MeshStandardMaterial({
-    color: 0x5a3a1a,
-    roughness: 0.9,
+    color: 0x4a2a10,
+    roughness: 0.95,
     metalness: 0.0,
   });
 
-  // Canopy (two stacked cones for more natural look)
-  const canopy1 = new THREE.ConeGeometry(0.3, 0.5, 8);
-  canopy1.translate(0, 0.7, 0);
-  const canopy2 = new THREE.ConeGeometry(0.22, 0.4, 8);
-  canopy2.translate(0, 0.95, 0);
+  // Multi-sphere canopy for natural, fluffy tree crown
+  // Main canopy sphere
+  const canopy1 = new THREE.SphereGeometry(0.55, 10, 8);
+  canopy1.translate(0, 1.5, 0);
+  // Side clusters for volume
+  const canopy2 = new THREE.SphereGeometry(0.4, 8, 6);
+  canopy2.translate(0.25, 1.3, 0.15);
+  const canopy3 = new THREE.SphereGeometry(0.38, 8, 6);
+  canopy3.translate(-0.2, 1.35, -0.15);
+  // Top cluster
+  const canopy4 = new THREE.SphereGeometry(0.32, 8, 6);
+  canopy4.translate(0.05, 1.8, 0.05);
 
   const canopyMat = new THREE.MeshStandardMaterial({
-    color: 0x1a4a1a,
-    roughness: 0.8,
+    color: 0x1a5a1a,
+    roughness: 0.85,
     metalness: 0.0,
   });
 
-  // Merge canopies
-  const mergedCanopy = mergeGeometries([canopy1, canopy2]);
+  // Merge all canopy spheres
+  const mergedCanopy = mergeGeometries([canopy1, canopy2, canopy3, canopy4]);
 
   return [
     { geometry: trunk, material: trunkMat },
@@ -82,35 +89,35 @@ function createTreeGeometry(): PropGeometrySet[] {
 }
 
 function createBoulderGeometry(): PropGeometrySet[] {
-  const geo = new THREE.IcosahedronGeometry(0.2, 1);
+  const geo = new THREE.IcosahedronGeometry(0.35, 1);
   // Jitter vertices for organic look
   const positions = geo.attributes.position as THREE.BufferAttribute;
   for (let i = 0; i < positions.count; i++) {
     const x = positions.getX(i);
     const y = positions.getY(i);
     const z = positions.getZ(i);
-    const jitter = 0.03;
+    const jitter = 0.05;
     positions.setXYZ(
       i,
-      x + (Math.sin(x * 100) * jitter),
-      Math.max(0, y * 0.7 + 0.1) + (Math.sin(y * 100) * jitter * 0.5), // Flatten bottom
+      x * 1.1 + (Math.sin(x * 100) * jitter),
+      Math.max(0, y * 0.6 + 0.12) + (Math.sin(y * 100) * jitter * 0.5), // Flatten bottom
       z + (Math.sin(z * 100) * jitter),
     );
   }
   geo.computeVertexNormals();
 
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x6a6a6a,
-    roughness: 0.85,
-    metalness: 0.1,
+    color: 0x5a5a5a,
+    roughness: 0.9,
+    metalness: 0.05,
   });
 
   return [{ geometry: geo, material: mat }];
 }
 
 function createStalagmiteGeometry(): PropGeometrySet[] {
-  const geo = new THREE.ConeGeometry(0.12, 0.6, 6);
-  geo.translate(0, 0.3, 0);
+  const geo = new THREE.ConeGeometry(0.18, 1.0, 6);
+  geo.translate(0, 0.5, 0);
 
   const mat = new THREE.MeshStandardMaterial({
     color: 0x5a5a50,
@@ -122,12 +129,16 @@ function createStalagmiteGeometry(): PropGeometrySet[] {
 }
 
 function createPillarGeometry(): PropGeometrySet[] {
-  const geo = new THREE.CylinderGeometry(0.1, 0.1, 0.8, 8);
-  geo.translate(0, 0.4, 0);
+  const geo = new THREE.CylinderGeometry(0.14, 0.16, 1.4, 8);
+  geo.translate(0, 0.7, 0);
 
   // Add a simple capital (top piece)
-  const capital = new THREE.CylinderGeometry(0.14, 0.1, 0.08, 8);
-  capital.translate(0, 0.8, 0);
+  const capital = new THREE.CylinderGeometry(0.2, 0.14, 0.1, 8);
+  capital.translate(0, 1.4, 0);
+
+  // Base
+  const base = new THREE.CylinderGeometry(0.16, 0.2, 0.1, 8);
+  base.translate(0, 0.05, 0);
 
   const mat = new THREE.MeshStandardMaterial({
     color: 0x8a8070,
@@ -135,23 +146,31 @@ function createPillarGeometry(): PropGeometrySet[] {
     metalness: 0.1,
   });
 
-  const merged = mergeGeometries([geo, capital]);
+  const merged = mergeGeometries([base, geo, capital]);
   return [{ geometry: merged, material: mat }];
 }
 
 function createCactusGeometry(): PropGeometrySet[] {
-  // Main body
-  const body = new THREE.CylinderGeometry(0.08, 0.1, 0.5, 8);
-  body.translate(0, 0.25, 0);
+  // Main body — tall saguaro style
+  const body = new THREE.CylinderGeometry(0.1, 0.13, 1.0, 8);
+  body.translate(0, 0.5, 0);
+
+  // Rounded top
+  const top = new THREE.SphereGeometry(0.1, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2);
+  top.translate(0, 1.0, 0);
 
   // Arms (simplified as smaller cylinders)
-  const armR = new THREE.CylinderGeometry(0.04, 0.05, 0.2, 6);
-  armR.rotateZ(-Math.PI / 4);
-  armR.translate(0.12, 0.35, 0);
+  const armR = new THREE.CylinderGeometry(0.05, 0.06, 0.35, 6);
+  armR.rotateZ(-Math.PI / 3.5);
+  armR.translate(0.18, 0.65, 0);
+  const armRTop = new THREE.CylinderGeometry(0.05, 0.05, 0.2, 6);
+  armRTop.translate(0.28, 0.78, 0);
 
-  const armL = new THREE.CylinderGeometry(0.04, 0.05, 0.15, 6);
-  armL.rotateZ(Math.PI / 4);
-  armL.translate(-0.1, 0.3, 0);
+  const armL = new THREE.CylinderGeometry(0.05, 0.06, 0.3, 6);
+  armL.rotateZ(Math.PI / 3.5);
+  armL.translate(-0.15, 0.55, 0);
+  const armLTop = new THREE.CylinderGeometry(0.05, 0.05, 0.18, 6);
+  armLTop.translate(-0.25, 0.68, 0);
 
   const mat = new THREE.MeshStandardMaterial({
     color: 0x2a6a2a,
@@ -159,14 +178,24 @@ function createCactusGeometry(): PropGeometrySet[] {
     metalness: 0.0,
   });
 
-  const merged = mergeGeometries([body, armR, armL]);
+  const merged = mergeGeometries([body, top, armR, armRTop, armL, armLTop]);
   return [{ geometry: merged, material: mat }];
 }
 
 function createMangroveGeometry(): PropGeometrySet[] {
-  // Root/trunk — thicker at base
-  const trunk = new THREE.CylinderGeometry(0.04, 0.12, 0.4, 6);
-  trunk.translate(0, 0.2, 0);
+  // Root/trunk — thicker at base, tall
+  const trunk = new THREE.CylinderGeometry(0.06, 0.18, 0.9, 6);
+  trunk.translate(0, 0.45, 0);
+
+  // Exposed root legs
+  const root1 = new THREE.CylinderGeometry(0.03, 0.05, 0.5, 4);
+  root1.rotateZ(0.4);
+  root1.translate(0.15, 0.15, 0.08);
+  const root2 = new THREE.CylinderGeometry(0.03, 0.05, 0.5, 4);
+  root2.rotateZ(-0.35);
+  root2.translate(-0.12, 0.15, -0.1);
+
+  const trunkGeo = mergeGeometries([trunk, root1, root2]);
 
   const trunkMat = new THREE.MeshStandardMaterial({
     color: 0x3a2a1a,
@@ -174,10 +203,15 @@ function createMangroveGeometry(): PropGeometrySet[] {
     metalness: 0.0,
   });
 
-  // Wide, flat canopy
-  const canopy = new THREE.SphereGeometry(0.3, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2);
-  canopy.scale(1, 0.4, 1);
-  canopy.translate(0, 0.5, 0);
+  // Wide, flat canopy — multi-sphere
+  const canopy1 = new THREE.SphereGeometry(0.45, 8, 6);
+  canopy1.scale(1, 0.45, 1);
+  canopy1.translate(0, 1.1, 0);
+  const canopy2 = new THREE.SphereGeometry(0.3, 8, 6);
+  canopy2.scale(1, 0.4, 1);
+  canopy2.translate(0.2, 1.0, 0.15);
+
+  const canopyGeo = mergeGeometries([canopy1, canopy2]);
 
   const canopyMat = new THREE.MeshStandardMaterial({
     color: 0x1a3a18,
@@ -186,8 +220,8 @@ function createMangroveGeometry(): PropGeometrySet[] {
   });
 
   return [
-    { geometry: trunk, material: trunkMat },
-    { geometry: canopy, material: canopyMat },
+    { geometry: trunkGeo, material: trunkMat },
+    { geometry: canopyGeo, material: canopyMat },
   ];
 }
 
@@ -367,8 +401,8 @@ const InstancedPropMesh: React.FC<{
 }> = ({ geometry, material, matrices, count }) => {
   const meshRef = React.useRef<THREE.InstancedMesh>(null);
 
-  // Apply instance matrices
-  useMemo(() => {
+  // Apply instance matrices — useEffect (not useMemo) so meshRef.current is assigned
+  useEffect(() => {
     if (!meshRef.current) return;
     const mesh = meshRef.current;
     const dummy = new THREE.Matrix4();
