@@ -42,8 +42,8 @@ PR, and during closeout.
 - Jules session id: `2823658242418460192`.
 - Jules plan approval: `yes`, recorded through the dashboard at
   2026-05-22 12:09 local time.
-- Jules session state: `IN_PROGRESS` after visible Jules plan confirmation and
-  a dashboard refresh on 2026-05-22.
+- Jules session state: feedback answered after Symphony reported
+  `AWAITING_USER_FEEDBACK` on 2026-05-22.
 - Jules confirmation caveat: Symphony's dashboard approval did not clear the
   visible Jules input gate by itself. The visible Jules session still asked
   whether the plan looked good; the agent confirmed the bounded Package 3 plan
@@ -60,6 +60,17 @@ PR, and during closeout.
   page showed actual in-scope code changes and a `Working` pre-commit step. The
   agent kept the current Jules run alive rather than downloading the zip,
   rebuilding the diff locally, or relaunching the task.
+- Known-caster prep-control feedback: a later dashboard refresh reported
+  `Send Jules Feedback`. The visible Jules session asked whether to change the
+  shared 2024 `getMaxPreparedSpells.ts` behavior, localize the fixed-known
+  caster Prep/Unprep visibility rule in the spellbook UI, or allow those
+  classes to prepare/unprepare. The agent chose the localized UI rule and sent
+  that feedback through the visible Jules chat.
+- Completed-no-PR routing repair: after option B feedback, Symphony again
+  reported Jules `COMPLETED` with no PR URL. The dashboard required visible
+  Jules inspection, but its middleman PR lane reused old Package 2 PR #935
+  instead of keeping the waiting PR boundary on Package 3. The foreman patched
+  Symphony and verifier coverage for this active-handoff routing defect.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
@@ -79,14 +90,15 @@ Optional local review worktree:
 ## Next Dispatch Steps
 
 1. Continue dashboard-first Jules status refreshes until one of these outcomes
-   is captured: PR URL, feedback/approval request, failure, or durable no-code
-   completion.
+   is captured: resumed work, PR URL, another feedback/approval request,
+   failure, or durable no-code completion.
 2. If a PR appears, run the Package 3 review path before Scout/Core merge:
    scope check, relevant focused tests, visual proof, Atlas/gate checkpoint,
    and PR checks.
-3. If Jules returns to completed-without-PR, record the visible no-code/no-PR
-   result as a Package 3 blocker before deciding whether to relaunch Jules or
-   split the task further.
+3. If Jules remains completed-without-PR after the active-handoff routing
+   repair, record the visible no-code/no-PR result as a Package 3 blocker
+   before deciding whether to relaunch Jules, use a visible Jules export path,
+   or split the task further.
 4. Record the PR URL or no-PR proof, verifier output, visual proof, and
    Atlas/gate checkpoint
    in this checklist and the Package 3 receipts.

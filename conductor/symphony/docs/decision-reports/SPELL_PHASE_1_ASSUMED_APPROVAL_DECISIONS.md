@@ -2146,11 +2146,103 @@ Copy this block for each decision.
   until a PR URL, feedback request, failure/no-code result, or publish-ready
   Jules state appears.
 
+### Decision 54: Keep Shared 2024 Prep Semantics And Localize Fixed-Known Caster UI Controls
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_feedback`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: Dashboard refresh moved Package 3 to `Send Jules Feedback`.
+  The visible Jules session asked whether to change `getMaxPreparedSpells.ts`
+  so Bard, Sorcerer, Warlock, and Ranger return `null`, keep the shared 2024
+  preparation table intact but hide Prep/Unprep controls locally for those
+  fixed-known caster classes, or allow those classes to prepare/unprepare like
+  prepared casters in this UI.
+- Options considered:
+  - Modify `getMaxPreparedSpells.ts` so the fixed-known caster classes return
+    `null`.
+  - Keep `getMaxPreparedSpells.ts` and the shared 2024 preparation table
+    intact, then localize the Package 3 UI rule in `SpellbookTab` and
+    `SpellbookOverlay`.
+  - Allow Bard, Sorcerer, Warlock, and Ranger to use Prep/Unprep controls in
+    this implementation.
+- Decision made by agent: Choose option B. Keep the shared 2024 preparation
+  utility intact and ask Jules to hide Prep/Unprep controls locally for Bard,
+  Sorcerer, Warlock, and Ranger in the Package 3 spellbook UI, with focused
+  `SpellbookTab` coverage proving the controls stay hidden for at least one
+  fixed-known caster and remain available where appropriate for prepared
+  casters.
+- Model routing: Local Codex foreman reasoning for a bounded scope/rules
+  boundary; Jules remains the implementation worker for the UI/test changes.
+- Rationale/evidence: Changing `getMaxPreparedSpells.ts` would alter shared
+  2024 rules/runtime semantics beyond the Package 3 UI-visibility slice.
+  Allowing fixed-known casters to prepare/unprepare would contradict the
+  Package 3 prompt language Jules already used for known-caster visibility.
+  The local UI rule satisfies the player-facing spellbook goal while preserving
+  broader spell-preparation optionality for a later rules package.
+- Mutation performed or skipped: Sent the option B instruction through the
+  visible Jules chat. Skipped editing `getMaxPreparedSpells.ts`, skipped local
+  implementation, skipped downloading the Jules zip, and skipped relaunching
+  Package 3.
+- Scope guardrails: Package 3 remains limited to character creator spell
+  selection and character sheet spellbook visibility. Shared spell preparation
+  semantics, combat simulator casting, AI arbitration, broad spell schema or
+  runtime architecture, and premade roster semantics remain out of the active
+  Jules slice.
+- Result: Jules has the bounded feedback needed to continue the Package 3
+  implementation without broadening into shared rules semantics.
+- Next expected proof: Refresh the dashboard/Jules state until resumed work, a
+  PR URL, another feedback request, a failure/no-code result, or publish-ready
+  Jules state appears.
+
+### Decision 55: Keep The Completed-No-PR PR Lane Attached To The Active Package 3 Handoff
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_reconciliation`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After option B feedback, Symphony again reported Jules
+  `COMPLETED` with no captured PR URL. Visible Jules showed no PR link, GitHub
+  had no Package 3 branch or PR, and the dashboard middleman path mixed the
+  active Package 3 no-PR handoff with old Package 2 PR #935 in the GitHub PR,
+  Scout/Core, and local-sync lanes.
+- Options considered:
+  - Ignore the mixed PR lane because the top boundary still said to inspect
+    Jules completion.
+  - Download the Jules zip or recreate the visible diff locally to force a
+    Package 3 result despite the missing PR.
+  - Patch Symphony so the PR lane stays attached to the active dashboard
+    handoff when that handoff has no PR, then keep Package 3 in the
+    completed-no-PR inspection boundary until durable proof appears.
+- Decision made by agent: Patch the Symphony middleman routing. The active
+  dashboard handoff now owns the PR lane first; older observed/merged PRs are
+  only used when no dashboard-started handoff owns the current workflow.
+- Model routing: Local Codex foreman with focused Symphony repair and verifier
+  coverage. Jules remains the implementation worker; no Package 3 code was
+  downloaded or recreated locally.
+- Rationale/evidence: Borrowing old Package 2 PR state could make a human or
+  agent think Package 3 is ready for PR review or local sync when it still has
+  no PR. The dashboard-first goal treats this as a workflow defect to fix
+  before continuing through the UI.
+- Mutation performed or skipped: Edited `conductor/symphony/src/server.ts` and
+  extended `conductor/symphony/scripts/verify-completed-jules-no-pr-boundary.mjs`
+  with a fixture containing an older Package 2 PR. Skipped local Package 3
+  implementation, skipped Jules zip download, skipped relaunch, and skipped
+  treating old PR #935 as Package 3 proof.
+- Scope guardrails: The repair changes only Symphony routing/visibility. It
+  does not alter spell runtime, character creator behavior, spellbook UI, AI
+  arbitration, premade roster semantics, or GitHub PR state.
+- Result: The active Package 3 completed-no-PR state has a regression test that
+  prevents historical Package 2 PR state from becoming the current Package 3 PR
+  boundary.
+- Next expected proof: Run the focused verifier, restart/refresh the dashboard,
+  and confirm the live middleman path keeps Package 3 as the waiting PR source
+  until a real Package 3 PR, no-PR proof, or failure is captured.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor Package 3 Jules session `2823658242418460192`, which now reports
-   `IN_PROGRESS` in Symphony while visible Jules shows in-scope code edits and
-   pre-commit work, but still has no captured PR URL.
+1. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
+   has now received option B feedback for the known-caster prep-control
+   boundary and then returned to completed-without-PR inspection with no
+   captured Package 3 PR URL.
 2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
