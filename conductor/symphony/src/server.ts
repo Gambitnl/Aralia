@@ -3622,7 +3622,7 @@ export class HttpServer {
       title: 'How to start a Jules task',
       summary: 'Draft locally, create the tracking issue when Linear is available, then let Symphony stage and launch the bounded Jules handoff after GitHub sync passes.',
       steps: [
-        { label: 'Check GitHub Sync', detail: 'Local master must match GitHub and the working tree must be intentionally clean before Jules starts.' },
+        { label: 'Check GitHub Sync', detail: 'The checked-out worktree must match the GitHub base commit and be intentionally clean before Jules starts.' },
         { label: 'Save Draft', detail: 'Capture the task in plain language with expected files and verification commands.' },
         {
           label: 'Create Linear Issue',
@@ -3933,7 +3933,7 @@ export class HttpServer {
         'GitHub sync must pass before this draft can become a Jules handoff.',
         `${baseUrl}/api/v1/git-preflight`,
         'POST',
-        ['Clean, commit, or push the intended local work.', 'Recheck the GitHub sync gate.', 'Only prepare a handoff once local master and GitHub agree.']);
+        ['Clean, commit, or publish the intended local work.', 'Recheck the GitHub sync gate.', 'Only prepare a handoff once the checked-out worktree and GitHub base agree.']);
     }
 
     if (options.requiresLinearIssueForHandoff && !draft.linearIssueId) {

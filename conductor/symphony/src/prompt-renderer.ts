@@ -35,7 +35,7 @@ function buildJulesForemanContract(dashboardBaseUrl: string): string {
   return [
   'Symphony foreman contract:',
   '- Your default job is to coordinate a bounded Jules task, not to implement broad code changes locally.',
-  '- Treat GitHub master as the starting point Jules will see. If local master is dirty, behind, ahead, or otherwise unsynced, report that as a blocker before asking Jules to work.',
+  '- Treat GitHub master as the starting point Jules will see. The checked-out worktree must match that GitHub base commit before Jules starts; local master may be unrelated in a linked-worktree workflow.',
   '- Prefer preparing or monitoring a Jules handoff: clarify the task, identify risky files, watch the Jules session, inspect the PR, checks, and conflict risk, then help sync local master after merge.',
   `- Use the local Symphony dashboard/API as your control surface when it is running: \`${dashboardBaseUrl}/api/v1/state\` for the whole dashboard state, \`/api/v1/<issue>\` for your assigned issue, and \`/api/v1/<issue>/activity\` for readable activity.`,
   // These endpoint names are spelled out because headless workers cannot see

@@ -53,7 +53,7 @@ const gitPreflightCommand = context.humanizeActivity({
 assert.equal(gitPreflightCommand.title, 'Checked GitHub sync gate');
 assert.equal(
   gitPreflightCommand.operatorSummary,
-  'The worker is checking whether local master and GitHub master are aligned before Jules starts cloud work.',
+  'The worker is checking whether the current worktree and GitHub master are aligned before Jules starts cloud work.',
 );
 
 const rawJsonAssistantMessage = context.humanizeActivity({

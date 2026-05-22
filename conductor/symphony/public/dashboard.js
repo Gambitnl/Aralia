@@ -5579,7 +5579,7 @@ function summarizeCommandForOperator(title) {
     case 'Checked Jules task queue':
       return 'The worker is reading the Jules task queue so it can see drafts, handoffs, and available actions.';
     case 'Checked GitHub sync gate':
-      return 'The worker is checking whether local master and GitHub master are aligned before Jules starts cloud work.';
+      return 'The worker is checking whether the current worktree and GitHub master are aligned before Jules starts cloud work.';
     case 'Refreshed tracked Jules handoffs':
       return 'The worker is refreshing every tracked Jules handoff so PR, check, conflict, and local-sync status stay current.';
     case 'Checked local sync readiness':
