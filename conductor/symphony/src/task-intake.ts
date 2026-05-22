@@ -1213,6 +1213,7 @@ export function buildPullRequestNextAction(input: {
   mergeable: string | null;
   checks: PullRequestCheckSummary | null;
   files: Pick<PullRequestFileSummary, 'risk' | 'riskReasons' | 'outOfScopeFiles'> | null;
+  feedback?: Pick<PullRequestFeedbackSummary, 'julesFeedback'> | null;
   scoutReviewCommand: string | null;
   julesFeedbackCommand?: string | null;
   coreValidationCommand: string | null;
@@ -1265,6 +1266,17 @@ export function buildPullRequestNextAction(input: {
 
   if (input.checks?.conclusion === 'failing') {
     const primaryBlocker = input.checks.blockers?.[0] ?? null;
+    const hasJulesFeedback = (input.feedback?.julesFeedback.length ?? 0) > 0;
+
+    // Once a marked Jules feedback comment exists, the human has already chosen
+    // the external repair lane. Keep the dashboard on a wait-and-refresh path so
+    // it does not ask for the same operator decision again before Jules has had
+    // a chance to push a repair commit.
+    if (hasJulesFeedback) {
+      return action('wait_for_checks', 'waiting', 'Wait for Jules Repair', null, null, input.refreshPullRequestUrl,
+        'Jules feedback is already posted on the PR; wait for Jules to push a repair or for GitHub checks to change.',
+        ['Wait for a new Jules commit or status update.', 'Refresh PR checks after Jules pushes a repair.', 'Do not send duplicate Jules feedback unless the next refresh shows no progress.']);
+    }
 
     if (primaryBlocker?.category === 'workflow_setup') {
       return action('repair_failed_checks', 'blocked', 'Resolve CI Setup Blocker', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
@@ -4214,6 +4226,7 @@ export class TaskIntakeStore {
         mergeable: pr.mergeable ?? null,
         checks: pullRequestChecks,
         files: pullRequestFiles,
+        feedback: pullRequestFeedback,
         scoutReviewCommand: commands.scoutReviewCommand,
         julesFeedbackCommand,
         coreValidationCommand: commands.coreValidationCommand,
