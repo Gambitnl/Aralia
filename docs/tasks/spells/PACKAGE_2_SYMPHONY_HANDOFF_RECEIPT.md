@@ -342,6 +342,35 @@ The next visible blocker is now Git sync/disposition for the setup-repair draft:
 tracked local dashboard fixes need filing, and local `master` is behind
 `origin/master`.
 
+## Git Disposition Visibility Repair
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+The visible dashboard exposed one more Symphony blocker before the setup-repair
+draft could move: Git disposition controls were present in the DOM, but Git
+Safety was collapsed while Git sync/disposition was the active blocker. Calling
+the disposition endpoint directly would have bypassed the dashboard-first test,
+so the dashboard was repaired instead.
+
+Repair path:
+
+- Decision report entry: Decision 36.
+- Code path: `conductor/symphony/public/dashboard.js`.
+- Verifier: `conductor/symphony/scripts/verify-sync-decision-board.mjs`.
+- Live proof: after reload, Git Safety opened by default, the Sync Decision
+  Board was visible, the already-recorded remote-commit decision appeared as
+  `Integrate after local work is safe`, and the tracked dashboard edits were
+  recorded visibly as `Commit for Jules base`.
+
+Recorded visible decisions:
+
+- `tracked_changes`: `commit_for_jules_base`
+- `remote_commits`: `integrate_after_local_safe`
+
+The guarded Git sync plan now reports `ready_for_human_execution`. Symphony has
+still not pulled, pushed, switched branches, stashed, cleaned, launched Jules,
+or created Linear work from this repair.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub

@@ -1453,15 +1453,36 @@ function renderForemanConsole(parts) {
   // remove any controls or packets; it makes the current boundary primary and
   // tucks the supporting evidence into job-based groups so the operator can
   // decide what matters now before scanning every receipt.
+  const gitSafetyNeedsAttention = shouldOpenGitSafetyGroup({
+    gitSafety,
+    path: parts.path,
+  });
+
   return `<div class="foreman-console">
     ${renderForemanCurrentBoundary(parts.path, parts.queueNextAction, parts.taskRouting)}
     <div class="foreman-detail-grid">
-      ${renderForemanDetailGroup('Git Safety', 'Preflight, disposition, sync plan, and the global path evidence.', gitSafety)}
+      ${renderForemanDetailGroup('Git Safety', 'Preflight, disposition, sync plan, and the global path evidence.', gitSafety, gitSafetyNeedsAttention)}
       ${renderForemanDetailGroup('Jules Lifecycle', 'Kickoff, launch/session preparation, and timed nudge receipts.', julesLifecycle)}
       ${renderForemanDetailGroup('PR Review And Local Return', 'Handoff board, Scout/Core conflict watch, PR review, and local-return context.', prAndReturn)}
       ${renderForemanDetailGroup('Task Intake And Records', 'Draft new work, watch existing PRs, and review stored drafts/handoffs.', `${parts.taskForms}${parts.records}`)}
     </div>
   </div>`;
+}
+
+function shouldOpenGitSafetyGroup({ gitSafety, path }) {
+  // The Git Safety drawer normally stays compact so the dashboard first screen
+  // is not dominated by raw receipts. When the active blocker is Git sync or a
+  // disposition decision, however, the operator must see the actual control
+  // without guessing that it is hidden under a collapsed evidence drawer.
+  const boundaryText = [
+    path?.currentBoundaryLabel,
+    path?.foremanAction?.boundaryLabel,
+    path?.foremanAction?.label,
+    path?.foremanAction?.instruction,
+    path?.foremanAction?.blockedReason,
+  ].filter(Boolean).join(' ');
+  const safetyText = String(gitSafety || '');
+  return /GitHub sync|Check GitHub Sync|Git disposition|Sync Decision Board|Guarded Git sync plan|blocked_by_disposition/i.test(`${boundaryText} ${safetyText}`);
 }
 
 function renderBrowserFollowAlongGuidance() {

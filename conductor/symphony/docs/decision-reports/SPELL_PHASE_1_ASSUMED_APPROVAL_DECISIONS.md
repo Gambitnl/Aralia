@@ -1431,6 +1431,44 @@ Copy this block for each decision.
 - Next expected proof: Commit and file these Symphony dashboard fixes, then
   resolve the Git sync/disposition blocker for `draft-1779410025252-nnowpt`.
 
+### Decision 36: Open Git Safety When Git Disposition Is The Active Blocker
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 setup-repair routing
+- Decision point: Whether to use the hidden Git disposition endpoint or repair
+  the dashboard after the visible workflow showed the disposition button inside
+  a collapsed Git Safety drawer.
+- Options considered:
+  - Call `/api/v1/git-disposition` directly and move past the blocker.
+  - Ask the operator to know that Git Safety must be expanded manually.
+  - Make the Git Safety drawer open automatically when Git sync, disposition,
+    or guarded sync-plan evidence is the active blocker.
+- Decision made by agent: Repair the dashboard so the required Git disposition
+  controls are visible when they are the next decision surface.
+- Model routing: Standard foreman/frontend reasoning, because this was a narrow
+  dashboard visibility defect exposed by human-style browser use.
+- Rationale/evidence: The live dashboard showed `Check GitHub Sync` and a
+  pending disposition path, but the actionable `Record Git disposition` button
+  was not clickable until the hidden drawer state was corrected. After the fix,
+  the in-app browser showed `Sync Decision Board`, both disposition cards, the
+  recorded remote-commit decision, and a visible tracked-changes decision.
+- Mutation performed or skipped: Updated
+  `conductor/symphony/public/dashboard.js` and
+  `conductor/symphony/scripts/verify-sync-decision-board.mjs`. Then used the
+  visible Sync Decision Board to record `tracked_changes` as
+  `commit_for_jules_base`.
+- Scope guardrails: The dashboard action records operator intent only. It does
+  not pull, push, stash, clean, switch branches, launch Jules, create Linear
+  work, or edit spell implementation files.
+- Result: The live dashboard reports `ready_for_human_execution` for the guarded
+  Git sync plan after both visible decisions are recorded:
+  `tracked_changes=commit_for_jules_base` and
+  `remote_commits=integrate_after_local_safe`.
+- Next expected proof: Commit this dashboard repair, re-run `Check GitHub Sync`,
+  and continue only from the visible guarded sync plan or the next dashboard
+  blocker it exposes.
+
 ## Open Decisions For The Next Slice
 
 1. File the Symphony dashboard fixes that enabled the local setup-repair draft
