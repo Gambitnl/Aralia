@@ -371,6 +371,15 @@ The guarded Git sync plan now reports `ready_for_human_execution`. Symphony has
 still not pulled, pushed, switched branches, stashed, cleaned, launched Jules,
 or created Linear work from this repair.
 
+Filing proof:
+
+- Branch pushed: `codex/spell-phase1-package2-jules-return`
+- Draft PR opened:
+  `https://github.com/Gambitnl/Aralia/pull/936`
+- Local push proof: Aralia sync-check passed before push; full type/lint was
+  intentionally skipped by the local pre-push policy, matching the repo's
+  documented push policy.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
