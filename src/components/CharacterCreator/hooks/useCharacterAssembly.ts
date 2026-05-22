@@ -1,4 +1,20 @@
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 22/05/2026, 22:26:21
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/CharacterCreator/hooks/useCharacterAssembly.ts
  * Custom hook for character assembly logic during creation.
@@ -404,10 +420,10 @@ function assembleCastingProperties(state: CharacterCreationState): {
     preparedSpells = Array.from(spellIds).slice(0, prepLimit);
   } else {
     // Prepared casters (Cleric, Druid, Paladin, Artificer) have access to their whole
-    // spell list, and prepare a specific subset.
-    knownSpells = [...(selectedClass.spellcasting?.spellList || []), ...Array.from(spellIds)];
-    // Ensure uniqueness
-    knownSpells = Array.from(new Set(knownSpells));
+    // spell list, and prepare a specific subset. The assembled character only
+    // carries the selected spells so the creator does not overstate what the
+    // player actually picked.
+    knownSpells = Array.from(spellIds);
     preparedSpells = Array.from(spellIds);
   }
 
