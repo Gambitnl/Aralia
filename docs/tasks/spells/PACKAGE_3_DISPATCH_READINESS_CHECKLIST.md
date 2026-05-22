@@ -42,10 +42,15 @@ PR, and during closeout.
 - Jules session id: `2823658242418460192`.
 - Jules plan approval: `yes`, recorded through the dashboard at
   2026-05-22 12:09 local time.
-- Jules session state: `COMPLETED` as of the dashboard refresh at
-  2026-05-22 12:10 local time.
-- Jules completion caveat: Symphony has no PR URL and visible Jules inspection
-  did not show a `View PR`, GitHub URL, or pull request text.
+- Jules session state: `IN_PROGRESS` after visible Jules plan confirmation and
+  a dashboard refresh on 2026-05-22.
+- Jules confirmation caveat: Symphony's dashboard approval did not clear the
+  visible Jules input gate by itself. The visible Jules session still asked
+  whether the plan looked good; the agent confirmed the bounded Package 3 plan
+  in that signed-in Jules surface, then refreshed the dashboard.
+- GitHub PR/branch check: no PR and no
+  `jules/spells-package3-spellbook-creator-visibility` branch were visible in
+  GitHub after the confirmation refresh.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
@@ -64,14 +69,15 @@ Optional local review worktree:
 
 ## Next Dispatch Steps
 
-1. Reconcile the completed Jules session by capturing proof of one of three
-   outcomes: hidden PR exists, Jules completed without code changes, or the
-   session stalled after plan generation.
+1. Continue dashboard-first Jules status refreshes until one of these outcomes
+   is captured: PR URL, feedback/approval request, failure, or durable no-code
+   completion.
 2. If a PR appears, run the Package 3 review path before Scout/Core merge:
    scope check, relevant focused tests, visual proof, Atlas/gate checkpoint,
    and PR checks.
-3. If no PR exists, record the no-code/no-PR result as a Package 3 blocker and
-   decide whether to relaunch Jules or split the task further.
+3. If Jules returns to completed-without-PR, record the visible no-code/no-PR
+   result as a Package 3 blocker before deciding whether to relaunch Jules or
+   split the task further.
 4. Record the PR URL or no-PR proof, verifier output, visual proof, and
    Atlas/gate checkpoint
    in this checklist and the Package 3 receipts.

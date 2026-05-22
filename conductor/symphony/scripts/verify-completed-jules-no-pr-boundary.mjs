@@ -175,6 +175,12 @@ try {
   assert.equal(queue.middleman_path.foremanAction.safety, 'external_read');
   assert.equal(queue.middleman_path.foremanAction.endpoint, 'https://jules.google.com/session/15527431301408060204');
   assert.match(queue.middleman_path.foremanAction.instruction, /visible Jules session result/);
+
+  // The Jules no-PR completion boundary is reusable across packages. This
+  // assertion protects Package 3 and later handoffs from inheriting Package 2
+  // wording that would send the operator to file the wrong follow-up task.
+  assert.doesNotMatch(JSON.stringify(queue.middleman_path), /Package 2/);
+  assert.match(JSON.stringify(queue.middleman_path), /before filing the next handoff/i);
 } finally {
   await server.stop();
 }

@@ -3183,7 +3183,10 @@ export class HttpServer {
         mutatesExternalSystemsIfRun: false,
         mutatesLocalFilesIfRun: Boolean(hasSession && manifestHandoff && !completedWithoutPr),
         blockedBy: completedWithoutPr
-          ? ['Jules completed without a captured PR URL; inspect the visible Jules session or API result before filing Package 2.']
+          // This boundary is shared by every Jules package. Keep the wording
+          // package-neutral so a copied Package 2 instruction does not send
+          // later Spell Phase 1 work toward the wrong follow-up task.
+          ? ['Jules completed without a captured PR URL; inspect the visible Jules session or API result before filing the next handoff.']
           : hasSession ? [] : ['Jules session receipt is missing.'],
         expectedProof: completedWithoutPr
           ? 'Visible Jules completion result proving PR URL, no-PR completion, failure, or required operator follow-up.'
