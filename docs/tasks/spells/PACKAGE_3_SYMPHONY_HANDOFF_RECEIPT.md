@@ -46,6 +46,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Task-routing focus repair | Done | The dashboard current-boundary lane stayed on Package 3, but the `Task routing and nudge plan` card selected older Package 2 because its post-merge local-sync receipt had the newest timestamp. PR #951 merged as `c9c97796cbeda7f1a765c371e7127543f2d1660f`, ranking live handoffs ahead of closed bookkeeping so Package 3 remains the visible route. |
 | Visible zip fallback attempt | Blocked | After PR #952 merged, the restarted dashboard still showed Package 3 `IN_PROGRESS` with no PR URL and GitHub still had no expected branch. The visible Jules page showed more Package 3 code updates and a `Download zip` control. Clicking that control failed because Codex's in-app browser does not support downloads. |
 | PR #954 captured | Waiting for repair | GitHub now has PR #954 on suffixed branch `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`. Dashboard PR refresh captured failing Build/Tests and Gemini review feedback. The agent recorded `send_jules_feedback`, posted marked feedback at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406`, and repaired Symphony so the task page now shows `Wait for Jules Repair` instead of repeating the workflow-config decision. |
+| Wait-loop repair merged | Done | PR #955 merged as `f3f8abafbd99882e9d103853ab8c837845ea990b` after Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The only failed lane was Gemini review quota exhaustion on `gemini-2.5-flash`, so the foreman treated it as advisory and kept Package 3 waiting on Jules. |
 
 ## Current Boundary
 
@@ -54,6 +55,9 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 - PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
 - Current PR boundary: waiting for Jules to repair failing Build/Tests after
   marked PR feedback.
+- Dashboard workflow state: PR #955 is merged, and the live task page now shows
+  `Wait for Jules Repair`, `Needs human input: No`, and no duplicate feedback
+  command after a visible `Run Safe Symphony Refresh`.
 - Next proof: refresh the dashboard PR packet after Jules pushes a repair
   commit, then review checks, changed-file risk, Scout/Core readiness, and
   rendered spellbook/creator proof before merge.
@@ -161,3 +165,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   action to `Wait for Jules Repair`, removes the duplicate feedback command,
   and keeps the operator on a wait-and-refresh path until Jules pushes a repair
   or GitHub checks change.
+- PR #955 merged that repair on 2026-05-22. The project CI checks passed; the
+  Gemini review lane failed only because the configured model exhausted its
+  daily quota, so it was recorded as an advisory automation failure rather than
+  a code blocker.
