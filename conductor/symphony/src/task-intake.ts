@@ -2264,7 +2264,12 @@ function buildSetupRepairDraftFromHandoff(
       '',
       'Keep this repair separate from Jules implementation feedback unless later evidence shows Jules changed the failing setup files.',
     ].filter(line => line !== '').join('\n'),
-    expectedFiles: ['package-lock.json', 'package.json', '.github/workflows/ci.yml'],
+    expectedFiles: [
+      'package-lock.json',
+      'package.json',
+      '.github/workflows/ci.yml',
+      '.github/workflows/gemini-review.yml',
+    ],
     verificationCommands: [
       'npm ci --no-audit --no-fund',
       'npm run build',

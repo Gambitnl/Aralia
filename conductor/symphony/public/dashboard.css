@@ -10,12 +10,14 @@
   color-scheme: light;
   --page-bg: #f9f9f9;
   --panel-bg: #ffffff;
+  --panel-raised: #fbfcfd;
   --text: #222222;
   --muted: #666666;
   --border: #eeeeee;
   --table-head: #f5f5f5;
   --shadow: rgba(0, 0, 0, 0.1);
   --accent: #0066cc;
+  --accent-strong: #004f9e;
   --code-bg: #f5f5f5;
   --running-bg: #e8f5ee;
   --running-text: #17633a;
@@ -36,12 +38,14 @@
   color-scheme: dark;
   --page-bg: #0f1115;
   --panel-bg: #171a21;
+  --panel-raised: #1d222c;
   --text: #e7eaf0;
   --muted: #a3aab7;
   --border: #2a2f3a;
   --table-head: #20242d;
   --shadow: rgba(0, 0, 0, 0.35);
   --accent: #78aaff;
+  --accent-strong: #a8c5ff;
   --code-bg: #10131a;
   --running-bg: #143422;
   --running-text: #8de0ad;
@@ -64,12 +68,14 @@
     color-scheme: dark;
     --page-bg: #0f1115;
     --panel-bg: #171a21;
+    --panel-raised: #1d222c;
     --text: #e7eaf0;
     --muted: #a3aab7;
     --border: #2a2f3a;
     --table-head: #20242d;
     --shadow: rgba(0, 0, 0, 0.35);
     --accent: #78aaff;
+    --accent-strong: #a8c5ff;
     --code-bg: #10131a;
     --running-bg: #143422;
     --running-text: #8de0ad;
@@ -93,7 +99,7 @@ body {
 main {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.25rem 1.5rem;
+  padding: 0.9rem 1.25rem 1.5rem;
 }
 
 h1,
@@ -139,7 +145,18 @@ textarea {
   align-items: start;
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.9rem;
+  margin-bottom: 0.65rem;
+}
+
+.page-header h1 {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.refresh-note {
+  margin: 0.2rem 0 0;
 }
 
 .page-actions {
@@ -174,14 +191,16 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 2px 4px var(--shadow);
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
   padding: 1rem;
 }
 
 .stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
+  align-items: stretch;
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, max-content));
+  padding: 0.65rem;
 }
 
 .section-heading {
@@ -239,8 +258,8 @@ textarea {
      the dashboard opens on task state instead of endpoint bookkeeping. */
   border: 1px solid var(--border);
   border-radius: 8px;
-  min-width: min(100%, 260px);
-  padding: 0.45rem 0.6rem;
+  min-width: min(100%, 220px);
+  padding: 0.38rem 0.55rem;
 }
 
 .control-surface summary {
@@ -261,14 +280,21 @@ textarea {
 
 .worker-roster {
   /* Worker designations are assigned by Symphony, not invented by the model.
-     This compact roster keeps those identities visible when several foremen
-     are coordinating Jules handoffs at the same time. */
+     The roster is collapsed unless an approval is waiting, so the first
+     viewport focuses on the current workflow boundary instead of workspace and
+     thread identifiers. */
   border: 1px solid var(--border);
   border-radius: 8px;
-  display: grid;
-  gap: 0.5rem;
   min-width: min(100%, 420px);
-  padding: 0.75rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.worker-roster summary {
+  align-items: baseline;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .worker-roster span,
@@ -280,7 +306,7 @@ textarea {
   display: grid;
   gap: 0.55rem;
   list-style: none;
-  margin: 0;
+  margin: 0.65rem 0 0;
   padding: 0;
 }
 
@@ -371,14 +397,95 @@ textarea {
   gap: 1rem;
 }
 
-.foreman-current-boundary {
-  background: var(--code-bg);
-  border: 1px solid var(--border);
+.dashboard-focus-strip {
+  /* Stitch's docs recommend starting complex dashboard work with the real
+     content and iterating one major hierarchy change at a time. This strip is
+     that hierarchy change: it gives the operator the current decision, proof,
+     and workload counts before the detailed task map and evidence drawers. */
+  align-items: stretch;
+  background: linear-gradient(135deg, var(--panel-raised), var(--panel-bg));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
   border-left: 6px solid var(--retrying-text);
   border-radius: 8px;
   display: grid;
   gap: 0.75rem;
-  padding: 1rem;
+  grid-template-columns: minmax(260px, 1.25fr) minmax(220px, 1fr) minmax(280px, 1.3fr);
+  margin: 0.85rem 0;
+  padding: 0.8rem;
+}
+
+.dashboard-focus-strip.ready,
+.dashboard-focus-strip.complete {
+  border-left-color: var(--running-text);
+}
+
+.dashboard-focus-strip.blocked {
+  border-left-color: var(--approval-text);
+}
+
+.focus-main,
+.focus-proof {
+  align-items: start;
+  display: flex;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.focus-main > div,
+.focus-proof {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.focus-main strong {
+  font-size: 1.05rem;
+}
+
+.focus-main span:not(.badge),
+.focus-proof span {
+  color: var(--muted);
+}
+
+.focus-proof strong {
+  overflow-wrap: anywhere;
+}
+
+.focus-metrics {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+}
+
+.focus-metrics div {
+  background: color-mix(in srgb, var(--panel-bg) 82%, var(--code-bg));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 0;
+  padding: 0.45rem;
+}
+
+.focus-metrics dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.focus-metrics dd {
+  font-weight: 700;
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.foreman-current-boundary {
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--retrying-text);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
 }
 
 .foreman-current-boundary.ready,
@@ -399,6 +506,7 @@ textarea {
 }
 
 .foreman-current-boundary h3 {
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
   margin: 0;
 }
 
@@ -415,8 +523,8 @@ textarea {
 
 .foreman-current-boundary dl {
   display: grid;
-  gap: 0.55rem;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   margin: 0;
 }
 
@@ -424,7 +532,7 @@ textarea {
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.65rem;
+  padding: 0.5rem 0.6rem;
 }
 
 .foreman-current-boundary dt {
@@ -439,6 +547,39 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.foreman-action-summary {
+  background: color-mix(in srgb, var(--panel-bg) 78%, var(--code-bg));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+}
+
+.foreman-action-summary span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.foreman-action-summary strong {
+  display: block;
+}
+
+.primary-dashboard-action {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primary-dashboard-action:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
 .foreman-detail-grid {
   align-items: start;
   display: grid;
@@ -450,7 +591,7 @@ textarea {
 .foreman-detail-group {
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.85rem;
+  padding: 0.7rem 0.8rem;
 }
 
 .foreman-detail-group[open] {
@@ -458,9 +599,11 @@ textarea {
 }
 
 .foreman-detail-group summary {
+  align-items: baseline;
   cursor: pointer;
-  display: grid;
-  gap: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
 }
 
 .foreman-detail-group summary span {
@@ -1538,13 +1681,38 @@ textarea {
 .task-detail-preview {
   /* This preview is the first focused task-detail surface. It summarizes the
      selected navigator record and links to the full receipt card instead of
-     duplicating the deep controls or owning task state itself. */
+     duplicating the deep controls or owning task state itself. It now opens
+     only for real human-input cases so the task navigator behaves like a
+     scan-first queue rather than a second full task page. */
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.task-detail-preview[open] {
   display: grid;
   gap: 0.55rem;
-  padding: 0.75rem;
+}
+
+.task-detail-preview summary {
+  align-items: baseline;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  justify-content: space-between;
+}
+
+.task-detail-preview summary > span {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.task-detail-preview summary small {
+  color: var(--muted);
 }
 
 .task-detail-preview h4,
@@ -2302,6 +2470,26 @@ pre {
 }
 
 @media (max-width: 760px) {
+  main {
+    padding: 0.75rem;
+  }
+
+  .page-header {
+    display: grid;
+  }
+
+  .page-actions {
+    justify-content: start;
+  }
+
+  .dashboard-focus-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .foreman-detail-grid,
   .task-intake-grid {
     grid-template-columns: 1fr;

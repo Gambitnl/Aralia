@@ -1503,6 +1503,92 @@ Copy this block for each decision.
 - Next expected proof: Reload the dashboard, click the current-boundary
   `Refresh GitHub PR` button, and capture the refreshed Package 2 PR evidence.
 
+### Decision 38: Repair Gemini Review Setup Before Sending More Jules Feedback
+
+- Date/time: 2026-05-22
+- Phase: `package_2_setup_repair`
+- Active slice: Package 2 PR #935 failed-check classification
+- Decision point: Whether to send PR #935 back to Jules, merge despite failed
+  checks, or repair the workflow setup failure first.
+- Options considered:
+  - Ask Jules to change Package 2 implementation code without first fixing the
+    failing review automation.
+  - Merge PR #935 because its changed files are inside scope and focused local
+    verification had passed.
+  - Repair the workflow/setup blocker locally, then rerun/refresh PR #935
+    evidence through Symphony.
+- Decision made by agent: Repair the setup blocker locally first.
+- Model routing: `local_careful`, matching the dashboard routing packet after
+  the setup-repair draft passed Git sync and Linear gates.
+- Rationale/evidence: GitHub `review / review` failed before code review with
+  `ModelNotFoundError: models/gemini-1.5-flash is not found...`. The sibling
+  Gemini workflows already use `${{ vars.GEMINI_MODEL }}`, while
+  `.github/workflows/gemini-review.yml` hardcoded the retired model. The PR
+  test job also failed one movement-seasonal assertion, but the focused
+  movement test passed locally on synced `master`, so that remains a rerun or
+  ambient/full-suite classification item instead of an implementation change.
+- Mutation performed or skipped: Updated
+  `.github/workflows/gemini-review.yml` to use `${{ vars.GEMINI_MODEL }}` and
+  updated Symphony setup-repair draft scope in
+  `conductor/symphony/src/task-intake.ts` plus its verifier to include
+  `.github/workflows/gemini-review.yml`.
+- Scope guardrails: Did not edit PR #935 spell implementation files, premade
+  character JSON, movement runtime code, movement tests, package files, or
+  lockfiles.
+- Result: Focused local verification passed. The setup repair is now scoped to
+  the actual failing workflow file, and future Symphony setup-repair drafts can
+  name that file instead of implying only `ci.yml` or lockfile repairs.
+- Next expected proof: File the setup-repair branch, rerun or refresh PR #935
+  checks after the workflow repair lands, and record whether the movement test
+  failure clears or remains an independent blocker.
+
+### Decision 39: Improve Dashboard First-Viewport UX While Stitch MCP Auth Is Pending
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review and setup-repair visibility
+- Decision point: Whether to keep changing the dashboard directly, wait for
+  Stitch design generation, or configure Stitch and clearly separate the
+  authentication blocker from local dashboard UX work.
+- Options considered:
+  - Claim the dashboard pass was Stitch-generated even though no Stitch MCP tool
+    was available in the running Codex session.
+  - Stop all dashboard work until the operator creates and installs a Stitch API
+    key.
+  - Configure the Stitch MCP server entry, record that authentication/restart is
+    still required, and continue a clearly local dashboard hierarchy pass.
+- Decision made by agent: Configure the Stitch MCP server entry outside the
+  repo, record the remaining auth/restart blocker, and continue only a local
+  dashboard hierarchy improvement.
+- Model routing: Local Codex frontend reasoning, because this pass edits the
+  existing static Symphony dashboard and does not use a live Stitch generation
+  result.
+- Rationale/evidence: Stitch docs show a remote MCP server at
+  `https://stitch.googleapis.com/mcp` with API-key or OAuth headers. The current
+  Codex config did not include Stitch, and the running tool registry still did
+  not expose Stitch tools after adding the server entry because Codex needs a
+  restart and authentication headers. The operator-visible dashboard remained
+  difficult to scan: the current action was still separated from high-level
+  metrics and the task-detail preview consumed too much of the first viewport.
+- Mutation performed or skipped: Added a user-level Codex config entry for
+  `[mcp_servers.stitch]` at `C:\Users\Gambit\.codex\config.toml` after writing
+  a backup. In the repo, updated `conductor/symphony/public/dashboard.js` and
+  `conductor/symphony/public/dashboard.css` to add a first-viewport focus
+  strip, put the current safe action in that strip, collapse worker roster
+  details unless approval is needed, collapse task-detail preview unless human
+  input is required, and tighten the surrounding dashboard spacing.
+- Scope guardrails: Did not store a Stitch API key, did not claim Stitch output,
+  did not add new backend endpoints, did not alter Jules/GitHub/Linear/Git
+  mutation policy, and did not change PR #935 implementation files.
+- Result: Pending final visual and contract verification. Stitch is now listed
+  as a Codex MCP server, but live Stitch use still requires authentication and a
+  Codex restart. The dashboard UX pass is explicitly local and should be judged
+  by rendered dashboard inspection, not by Stitch provenance.
+- Next expected proof: Restart Codex after installing a Stitch API key or OAuth
+  headers, confirm Stitch tools are visible, and use Stitch for the next design
+  iteration. For this local pass, run dashboard verifiers and inspect the
+  rendered dashboard first viewport.
+
 ## Open Decisions For The Next Slice
 
 1. File the Symphony dashboard fixes that enabled the local setup-repair draft

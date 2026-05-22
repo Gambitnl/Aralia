@@ -1227,6 +1227,7 @@ function renderWorkerRoster(roster) {
   const workers = Array.isArray(roster) ? roster : [];
   if (!workers.length) return '';
 
+  const needsApproval = workers.some(worker => Boolean(worker.waiting_on_approval));
   const rows = workers.slice(0, 6).map(worker => {
     const designation = worker.designation || 'unassigned worker';
     const issue = worker.issue_identifier || 'unknown issue';
@@ -1265,14 +1266,14 @@ function renderWorkerRoster(roster) {
     ? `<small>${escapeHtml(workers.length - 6)} more worker(s) hidden.</small>`
     : '';
 
-  return `<div class="worker-roster">
-    <div>
+  return `<details class="worker-roster" ${needsApproval ? 'open' : ''}>
+    <summary>
       <strong>Worker roster</strong>
-      <span>Symphony-assigned identities for active or retrying agents.</span>
-    </div>
+      <span>${escapeHtml(`${workers.length} assigned worker${workers.length === 1 ? '' : 's'}${needsApproval ? '; approval needed' : ''}`)}</span>
+    </summary>
     <ol>${rows}</ol>
     ${more}
-  </div>`;
+  </details>`;
 }
 
 function renderTaskIntake(snapshot) {
@@ -1354,6 +1355,16 @@ function renderTaskIntake(snapshot) {
         <button type="submit">Watch PR</button>
       </form>
     </div>`;
+  const focusStrip = renderDashboardFocusStrip({
+    drafts,
+    handoffs,
+    operatorPlan,
+    path: snapshot.middleman_path,
+    pendingHumanInputCount,
+    preflight,
+    queueNextAction: snapshot.next_action,
+    taskRouting: snapshot.taskRouting,
+  });
   const syncGate = `
     <div class="sync-gate ${escapeAttribute(gateClass)}">
       <div class="sync-gate-header">
@@ -1391,8 +1402,8 @@ function renderTaskIntake(snapshot) {
   const nextHtml = `
     <div class="section-heading">
       <div>
-        <h2>New Jules Task</h2>
-        <p class="usage-summary">Draft work here first. Symphony will only allow Jules handoff after the GitHub sync gate passes.</p>
+        <h2>Symphony Workflow</h2>
+        <p class="usage-summary">Use this page as the human operating surface for Jules handoffs, PR review, and local-return evidence.</p>
         ${pendingHumanInputCount ? `<span class="badge pending-human-input">Needs your input: ${escapeHtml(String(pendingHumanInputCount))}</span>` : ''}
       </div>
       <div class="heading-actions">
@@ -1400,6 +1411,8 @@ function renderTaskIntake(snapshot) {
         <button type="button" ${handoffs.length ? '' : 'disabled'} data-task-action="bulk-refresh-jules" title="${escapeAttribute(handoffs.length ? 'Refresh status and PR data for all tracked Jules handoffs.' : 'No Jules handoffs exist yet.')}">Refresh All Jules</button>
       </div>
     </div>
+
+    ${focusStrip}
 
     ${taskNavigator}
 
@@ -1428,6 +1441,45 @@ function renderTaskIntake(snapshot) {
   if (taskIntakeRoot.innerHTML === nextHtml) return;
 
   taskIntakeRoot.innerHTML = nextHtml;
+}
+
+function renderDashboardFocusStrip({ drafts, handoffs, operatorPlan, path, pendingHumanInputCount, preflight, queueNextAction, taskRouting }) {
+  const action = path?.foremanAction ?? {};
+  const status = path?.status || action.status || queueNextAction?.tone || operatorPlan?.tone || 'waiting';
+  const boundary = path?.currentBoundaryLabel || action.boundaryLabel || queueNextAction?.label || 'Task queue';
+  const actionLabel = action.label || queueNextAction?.label || taskRouting?.nextAction?.label || operatorPlan?.title || 'Review dashboard state';
+  const proof = path?.nextExpectedProof || action.expectedProof || 'Record the next durable receipt.';
+  const runControl = renderForemanRunControl(action);
+  const preflightLabel = preflight?.ok ? 'GitHub synced' : 'Git sync blocked';
+  const prCount = handoffs.filter(handoff => Boolean(handoff.githubPullRequestUrl)).length;
+  const runningHandoffs = handoffs.filter(handoff => !['MERGED', 'CLOSED', 'ARCHIVED'].includes(String(handoff.githubPullRequestState || handoff.status || '').toUpperCase())).length;
+  const badgeClass = status === 'ready' || status === 'complete' ? 'running' : status === 'blocked' ? 'approval' : 'retrying';
+
+  // This strip is the dashboard's at-a-glance operator brief. It does not
+  // replace the receipt panels below; it compresses the same middleman, Git,
+  // draft, and PR facts into the first viewport so the user sees the live
+  // decision before opening any detailed drawer.
+  return `<section class="dashboard-focus-strip ${escapeAttribute(status)}" aria-label="Current dashboard focus">
+    <div class="focus-main">
+      <span class="badge ${badgeClass}">${escapeHtml(status)}</span>
+      <div>
+        <strong>${escapeHtml(boundary)}</strong>
+        <span>${escapeHtml(actionLabel)}</span>
+      </div>
+    </div>
+    <div class="focus-proof">
+      <span>Next proof</span>
+      <strong>${escapeHtml(proof)}</strong>
+      ${runControl ? `<div class="focus-action">${runControl}</div>` : ''}
+    </div>
+    <dl class="focus-metrics">
+      <div><dt>Git</dt><dd>${escapeHtml(preflightLabel)}</dd></div>
+      <div><dt>Drafts</dt><dd>${escapeHtml(String(drafts.length))}</dd></div>
+      <div><dt>PRs</dt><dd>${escapeHtml(`${prCount}/${handoffs.length}`)}</dd></div>
+      <div><dt>Input</dt><dd>${escapeHtml(String(pendingHumanInputCount))}</dd></div>
+      <div><dt>Active</dt><dd>${escapeHtml(String(runningHandoffs))}</dd></div>
+    </dl>
+  </section>`;
 }
 
 function renderForemanConsole(parts) {
@@ -1506,7 +1558,7 @@ function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
   const actionLabel = action.label || queueNextAction?.label || taskRouting?.label || 'Review dashboard state';
   const expectedProof = path?.nextExpectedProof || action.expectedProof || 'Capture the next boundary receipt.';
   const safety = action.safety || 'read_only';
-  const canRun = action.canRunNow ? 'yes' : 'no';
+  const canRun = action.canRunNow ? 'Ready' : 'Blocked';
   const method = action.method || queueNextAction?.method || 'NONE';
   const instruction = action.instruction || queueNextAction?.summary || 'Review the grouped evidence below before advancing.';
   const endpoints = [
@@ -1521,15 +1573,20 @@ function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
   return `<section class="foreman-current-boundary ${escapeAttribute(status)}" aria-label="Current Foreman Boundary">
     <div>
       <span class="badge ${escapeAttribute(status)}">${escapeHtml(status)}</span>
-      <span class="foreman-eyebrow">Current Foreman Boundary</span>
+      <span class="foreman-eyebrow">What needs attention now</span>
     </div>
     <h3>${escapeHtml(boundary)}</h3>
-    <p><strong>${escapeHtml(actionLabel)}</strong></p>
-    <p>${escapeHtml(instruction)}</p>
+    <div class="foreman-action-summary">
+      <div>
+        <span>Action</span>
+        <strong>${escapeHtml(actionLabel)}</strong>
+      </div>
+      <p>${escapeHtml(instruction)}</p>
+    </div>
     <dl>
-      <div><dt>Safety</dt><dd>${escapeHtml(`Safety: ${safety}`)}</dd></div>
+      <div><dt>Safety</dt><dd>${escapeHtml(safety)}</dd></div>
       <div><dt>Method</dt><dd>${escapeHtml(method)}</dd></div>
-      <div><dt>Can run now</dt><dd>${canRun}</dd></div>
+      <div><dt>Run state</dt><dd>${canRun}</dd></div>
       <div><dt>Next proof</dt><dd>${escapeHtml(expectedProof)}</dd></div>
     </dl>
     ${action.blockedReason ? `<p class="usage-summary">${escapeHtml(action.blockedReason)}</p>` : ''}
@@ -1545,7 +1602,7 @@ function renderForemanRunControl(action) {
     // The current-boundary panel should be operable by a human foreman, not just
     // a list of API URLs. For active Jules monitoring, reuse the existing
     // guarded dashboard button path so the visible UI owns the refresh action.
-    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
   }
 
   const prRefreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-pr$/);
@@ -1553,10 +1610,10 @@ function renderForemanRunControl(action) {
     // PR review is also a safe external-read boundary. Exposing it as a button
     // keeps the operator on the dashboard path instead of making them open a
     // raw POST endpoint that a browser cannot execute as the intended action.
-    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
   }
 
-  return `<a data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
+  return `<a class="primary-dashboard-action" data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
 }
 
 function renderForemanDetailGroup(title, summary, body, open = false) {
@@ -3313,11 +3370,14 @@ function renderTaskDetailPreview(record) {
   // This is the first single-task detail slice. It is intentionally read-only
   // and compact: the full receipt card still owns the deep controls below, while
   // this preview lets the operator understand the selected task before jumping.
-  return `<article class="task-detail-preview" aria-label="Task detail" data-task-detail-preview="${escapeAttribute(record.id)}">
-    <div>
-      <span class="badge ${escapeAttribute(record.badgeClass)}">${escapeHtml(record.statusLabel)}</span>
-      <strong>Task detail</strong>
-    </div>
+  return `<details class="task-detail-preview" ${record.needsInput ? 'open' : ''} aria-label="Task detail" data-task-detail-preview="${escapeAttribute(record.id)}">
+    <summary>
+      <span>
+        <span class="badge ${escapeAttribute(record.badgeClass)}">${escapeHtml(record.statusLabel)}</span>
+        <strong>Task detail</strong>
+      </span>
+      <small>${escapeHtml(record.needsInput ? 'Open because this task needs input.' : 'Closed to keep the dashboard scan-first.')}</small>
+    </summary>
     <h4>${escapeHtml(record.title)}</h4>
     <p>${escapeHtml(record.summary)}</p>
     <dl>
@@ -3348,7 +3408,7 @@ function renderTaskDetailPreview(record) {
       Record Task Message
     </button>
     <p><a href="#${escapeAttribute(record.anchor)}">Open full receipt</a></p>
-  </article>`;
+  </details>`;
 }
 
 function taskNavigatorRecordMatchesFilter(record, filter) {

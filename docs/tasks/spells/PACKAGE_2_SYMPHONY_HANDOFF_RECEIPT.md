@@ -401,6 +401,39 @@ Repair path:
   browser, and the task navigator refreshed Package 2 into
   `Resolve Workflow Config Blocker` with updated PR evidence.
 
+## Setup Repair Root Cause
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After PR #936 merged and local `master` fast-forwarded to
+`origin/master@3ee80a11`, the dashboard `Check GitHub Sync` gate passed:
+branch `master`, ahead `0`, behind `0`, tracked `0`, untracked `0`. Codex then
+used the visible `Create Linear Issue` button for `Setup repair for ARA-7`.
+The dashboard routed the repair as `local_careful`.
+
+Failure evidence:
+
+- `review / review` failed before useful review because
+  `.github/workflows/gemini-review.yml` hardcoded `gemini-1.5-flash`.
+- The Gemini CLI reported `ModelNotFoundError: models/gemini-1.5-flash is not
+  found for API version v1beta`.
+- Other Gemini workflows already use `${{ vars.GEMINI_MODEL }}`.
+- `Tests` failed one full-suite assertion in
+  `src/hooks/actions/__tests__/handleMovement.test.ts`, expecting `2700` and
+  receiving `8100`.
+- Focused local verification on synced `master` passed:
+  `npm test -- --run src/hooks/actions/__tests__/handleMovement.test.ts`.
+
+Repair direction:
+
+- Update `.github/workflows/gemini-review.yml` to use
+  `${{ vars.GEMINI_MODEL }}`.
+- Update Symphony's setup-repair draft scope so future repair drafts include
+  `.github/workflows/gemini-review.yml` when workflow automation itself is the
+  failing setup surface.
+- Do not edit PR #935 spell implementation, premade JSON, movement runtime, or
+  movement tests unless a rerun proves a non-ambient Package 2 blocker.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
