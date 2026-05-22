@@ -1700,9 +1700,40 @@ Copy this block for each decision.
 - Next expected proof: Publish this closeout tracker update, then create the
   Package 3 Jules task package from the Phase 1 plan.
 
+### Decision 43: Set Repository Gemini Model Variable After PR #938 Exposed The Missing Variable
+
+- Date/time: 2026-05-22
+- Phase: `package_2_closeout_ci_repair`
+- Active slice: Package 2 closeout PR #938
+- Decision point: Whether to change code again, leave PR #938 blocked, or set
+  the repository-level `GEMINI_MODEL` variable that the repaired workflow now
+  reads.
+- Options considered:
+  - Hardcode another model in `.github/workflows/gemini-review.yml`.
+  - Leave the PR blocked and treat Gemini review as optional.
+  - Set repository variable `GEMINI_MODEL` to a current Gemini API model.
+- Decision made by agent: Set GitHub repository variable `GEMINI_MODEL` to
+  `gemini-2.5-flash`.
+- Model routing: Local Codex foreman plus official Google AI docs lookup,
+  because the repair touched external GitHub configuration and needed a current
+  model name.
+- Rationale/evidence: PR #938 proved that the workflow code fix was only half
+  the repair: the action still fell back to `gemini-1.5-flash` when the
+  repository variable was missing. Official Google AI API docs show
+  `gemini-2.5-flash` as a supported `v1beta` `generateContent` model.
+- Mutation performed or skipped: Ran `gh variable set GEMINI_MODEL --repo
+  Gambitnl/Aralia --body gemini-2.5-flash`, confirmed the variable with
+  `gh variable get GEMINI_MODEL`, and reran the failed PR #938 Gemini review
+  job.
+- Scope guardrails: Did not store or change API keys, did not alter PR #935
+  implementation files, and did not hardcode the model back into workflow YAML.
+- Result: PR #938 `review / review` rerun passed, and the PR's build, lint,
+  tests, CodeQL, and poison-file checks also passed.
+- Next expected proof: Merge PR #938, then continue to Package 3 packaging.
+
 ## Open Decisions For The Next Slice
 
-1. Publish the Package 2 closeout tracker/receipt update.
+1. Merge PR #938 after the clean check set.
 2. Package and dispatch Package 3 for Jules: character creator spell selection
    and character sheet spellbook visibility.
 3. Keep Stitch MCP authentication as an adjacent tooling gap until an API key or
