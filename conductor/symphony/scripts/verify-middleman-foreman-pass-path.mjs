@@ -285,12 +285,29 @@ const mergedHandoff = {
   localSyncCommand: 'git pull --ff-only origin master',
 };
 
+const mergedNeedsLocalSyncCheckHandoff = {
+  ...prHandoff,
+  githubPullRequestState: 'MERGED',
+  githubPullRequestNextAction: {
+    code: 'check_local_sync',
+    tone: 'ready',
+    label: 'Check Local Sync',
+    command: null,
+    feedbackCommand: null,
+    url: null,
+    summary: 'GitHub reports the PR merged. The next step is the guarded local sync check.',
+    steps: ['Run Check Local Sync.', 'Only sync local master if the local sync gate says it is safe.'],
+  },
+  localSyncStatus: null,
+};
+
 const snapshots = {
   linear: makeSnapshot({ drafts: [draft], handoffs: [] }),
   manifest: makeSnapshot({ drafts: [linearDraft], handoffs: [baseHandoff] }),
   launch: makeSnapshot({ drafts: [linearDraft], handoffs: [stagedHandoff] }),
   session: makeSnapshot({ drafts: [linearDraft], handoffs: [launchedHandoff] }),
   pr: makeSnapshot({ drafts: [linearDraft], handoffs: [prHandoff] }),
+  localCheck: makeSnapshot({ drafts: [linearDraft], handoffs: [mergedNeedsLocalSyncCheckHandoff] }),
   localSync: makeSnapshot({ drafts: [linearDraft], handoffs: [mergedHandoff] }),
 };
 
@@ -383,6 +400,20 @@ try {
     mutatesGitIfRun: false,
   });
 
+  await assertForeman('localCheck', {
+    boundary: 'local_sync',
+    safety: 'read_only',
+    method: 'POST',
+    endpoint: `${BASE_URL}/api/v1/jules-handoffs/handoff-pass-path/refresh-local-sync`,
+    evidenceEndpoint: `${BASE_URL}/api/v1/jules-handoffs/handoff-pass-path/refresh-local-sync`,
+    nextActionUrl: `${BASE_URL}/api/v1/jules-handoffs/handoff-pass-path/refresh-local-sync`,
+    requiresOperator: false,
+    instructionPattern: /readiness check/i,
+    mutatesExternalSystemsIfRun: false,
+    mutatesLocalFilesIfRun: false,
+    mutatesGitIfRun: false,
+  });
+
   await assertForeman('localSync', {
     boundary: 'local_sync',
     safety: 'git_mutation',
@@ -420,6 +451,9 @@ async function assertForeman(snapshotName, expected) {
   assert.equal(action.method, expected.method, `${snapshotName}: method`);
   assert.equal(action.endpoint, expected.endpoint, `${snapshotName}: endpoint`);
   assert.equal(action.evidenceEndpoint, expected.evidenceEndpoint, `${snapshotName}: evidence endpoint`);
+  if (expected.nextActionUrl) {
+    assert.equal(response.next_action.url, expected.nextActionUrl, `${snapshotName}: queue next action URL`);
+  }
   assert.equal(action.canRunNow, true, `${snapshotName}: canRunNow`);
   // Jules status refresh is an approved monitoring action: it reads Jules and
   // may refresh local receipt state, but it should not stop on an operator

@@ -19,6 +19,8 @@ assert.match(dashboardSource, /task-navigator/);
 assert.match(dashboardSource, /data-task-filter/);
 assert.match(dashboardSource, /normalizeTaskNavigatorFilter/);
 assert.match(dashboardSource, /function renderTaskDetailPreview/);
+assert.match(dashboardSource, /refresh-local-sync/);
+assert.match(dashboardSource, /Check Local Sync/);
 assert.match(dashboardCss, /\.task-navigator/);
 assert.match(dashboardCss, /\.task-navigator-filters/);
 assert.match(dashboardCss, /\.task-detail-preview/);

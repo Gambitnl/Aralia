@@ -3355,10 +3355,66 @@ Copy this block for each decision.
   sync/deployment gates as appropriate, update MemPalace targeted drawers, and
   then prepare Package 4's combat simulator deterministic spell pilot.
 
+### Decision 79: Repair The Visible Local-Sync Check After Package 3 Merge
+
+- Date/time: 2026-05-22 19:42 +02:00
+- Phase: `package_3_closeout`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: Dashboard-first use after PR #954 merged showed the task
+  navigator moving Package 3 to `Check local sync`, but the current boundary
+  and task page still exposed raw local-sync endpoint text instead of a visible
+  `Check Local Sync` control. The queue-level action also routed the
+  `check_local_sync` state back to PR refresh, keeping the operator in a stale
+  GitHub-review loop.
+- Options considered:
+  - Call the raw `refresh-local-sync` endpoint directly and keep moving.
+  - Ignore the dashboard blocker and file closeout receipts from terminal
+    evidence only.
+  - Repair the Package 3 implementation locally.
+  - Treat the missing visible control and stale boundary routing as Symphony
+    workflow defects, then repair the dashboard/server transition before
+    continuing Package 3 closeout.
+- Decision made by agent: Repair the Symphony local-sync transition. A merged
+  Jules PR now completes the GitHub PR boundary, promotes the read-only
+  `Check Local Sync` readiness endpoint as the visible next action, and keeps
+  the mutating `Sync Local Master` action hidden until the readiness packet
+  says it is safe.
+- Model routing: Local Codex handled this Symphony workflow repair because the
+  blocker is in the orchestration dashboard, not in the spell implementation.
+  Jules remains the preferred implementation worker for future spell packages.
+- Rationale/evidence: The goal explicitly requires using the dashboard like a
+  human operator and fixing workflow blockers rather than bypassing them. The
+  safe action after a merge is not a Git pull; it is a visible readiness check
+  that records branch, dirty-file, ahead/behind, deployment, and fast-forward
+  safety evidence.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/server.ts`,
+  `conductor/symphony/public/dashboard.js`,
+  `conductor/symphony/scripts/verify-middleman-foreman-pass-path.mjs`,
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`, and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Skipped the raw
+  endpoint bypass as the primary workflow path, skipped local spell repair, and
+  skipped mutating local `master`.
+- Scope guardrails: This only changes Symphony's Package 3 closeout workflow
+  visibility. It does not change spell rules, creator/spellbook behavior,
+  combat-simulator casting, premade roster semantics, AI arbitration, or Jules
+  package scope.
+- Result: `npm run build`, `node scripts/verify-middleman-foreman-pass-path.mjs`,
+  `node scripts/verify-task-detail-page.mjs`, and
+  `node scripts/verify-task-dashboard-navigator.mjs` passed. Rendered task-page
+  proof on the repaired dashboard showed one visible `Check Local Sync` button
+  in `Deployment And Local Sync`; clicking it ran the guarded readiness check
+  and recorded blockers instead of pulling Git.
+- Next expected proof: Publish this Symphony workflow repair, then continue
+  Package 3 closeout by recording deployment/local-sync status honestly and
+  updating the Package 3 proof receipts before Package 4 drafting.
+
 ## Open Decisions For The Next Slice
 
-1. Close out Package 3 with durable proof receipts, local-sync/deployment
-   evidence, and targeted MemPalace mining.
+1. Publish the Package 3 local-sync dashboard repair, then close out Package 3
+   with durable proof receipts, deployment/local-sync evidence, and targeted
+   MemPalace mining.
 2. Decide whether the semantically enabled Druid class-feature checkbox should
    be repaired immediately or batched into a creator accessibility pass.
 3. Decide whether Symphony should add first-class receipts and dashboard
