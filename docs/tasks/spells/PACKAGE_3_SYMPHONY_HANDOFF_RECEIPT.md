@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: PR #954 captured; Jules feedback sent for failing checks; waiting for Jules repair.
+Status: PR #954 captured; Scout feedback sent after green checks; waiting for Jules repair.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -50,20 +50,22 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Post-feedback repair commit | Waiting for repair | Jules pushed PR head `0ce77a9c33adb230a0d52a1d4242434b846704f5`. Build and Lint are green, but Tests fail in `FeatureSelectionCheckboxes.test.tsx` because the edited feature-selection files no longer satisfy conditional disabled-prop coverage. The dashboard was patched to reopen the repair boundary after a post-feedback PR update, the visible task page recorded `send_jules_feedback`, and a second marked comment was posted at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519399645`. |
 | Post-feedback state-model repair merged | Done | PR #957 merged after Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The only failed lane was Gemini review quota exhaustion, so it was treated as advisory automation failure. |
 | Post-merge monitor branch resync | Done | After the PR #957 squash merge, the dashboard Git gate saw the local pre-squash monitor branch as ahead/behind. The foreman preserved that branch and switched this worktree to `codex/spell-phase1-monitor-13` from `origin/master`; the visible `Check GitHub Sync` control then reported ahead/behind `0 / 0` and a clean tree. |
+| PR #958 monitor docs merged | Done | PR #958 merged the Decision 64/tracker receipt update after ordinary checks passed; the Gemini review lane failed only from quota exhaustion. The foreman preserved the pre-squash branch and switched to `codex/spell-phase1-monitor-14` from `origin/master`; visible `Check GitHub Sync` reported ready. |
+| Scout review after green checks | Waiting for repair | Jules pushed PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39` and all ordinary GitHub checks passed. Scout review found Druid `Speak with Animals` is included only on submit, not visibly rendered as the requested locked/pre-selected creator card, and `SpellCard.tsx` still uses explicit `any` formatting helpers. A third marked Jules feedback comment was posted at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`. |
 
 ## Current Boundary
 
 - Jules state: Symphony reports the historical Jules session as `FAILED`, but
   the returned implementation is now visible as PR #954.
 - PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
-- Current PR boundary: waiting for Jules to repair the remaining Tests failure
-  after the second marked PR feedback comment.
+- Current PR boundary: waiting for Jules to repair Scout feedback after green
+  checks on PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`.
 - Dashboard workflow state: local Symphony now distinguishes old feedback with
   no PR movement from a post-feedback PR update that still fails. The live task
   page showed `Repair Failed Checks` after Jules' repair commit, then returned
   to `Wait for Jules Repair` after the selected Jules-feedback decision and PR
   comment #4519399645. PR #957 has merged that state model to `origin/master`.
-- Monitor worktree state: `codex/spell-phase1-monitor-13` is current with
+- Monitor worktree state: `codex/spell-phase1-monitor-14` is current with
   `origin/master`; the visible dashboard Git sync gate reports ready.
 - Next proof: refresh the dashboard PR packet after Jules pushes a repair
   commit, then review checks, changed-file risk, Scout/Core readiness, and
@@ -195,3 +197,16 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   pre-squash commit. The foreman preserved that branch, switched the worktree
   to `codex/spell-phase1-monitor-13` from `origin/master`, and verified the
   visible Git sync gate was clean before continuing to wait for Jules.
+- PR #958 merged the monitor-doc update, producing the same squash-merge
+  branch-hygiene wrinkle. The foreman preserved the local branch and switched
+  to `codex/spell-phase1-monitor-14` from `origin/master`; visible dashboard
+  proof showed the Git sync gate ready.
+- Jules pushed PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`, and the
+  ordinary GitHub checks passed. The dashboard moved to `Scout/Core review`,
+  but only exposed an operator-only wait state and a raw evidence link, not a
+  visible Scout feedback control. Scout review still found two Package 3
+  acceptance blockers: Druid `Speak with Animals` is not rendered as the
+  requested locked/pre-selected creator card, and `SpellCard.tsx` still uses
+  explicit `any` for casting-time/range formatting. A third marked Jules
+  feedback comment was posted at
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`.

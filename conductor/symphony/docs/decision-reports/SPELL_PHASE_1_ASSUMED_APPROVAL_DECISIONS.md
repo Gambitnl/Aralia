@@ -2669,9 +2669,63 @@ Copy this block for each decision.
   commit after the second marked feedback comment, then refresh the dashboard
   PR packet and proceed only if checks pass.
 
+### Decision 65: Send Scout Feedback After Green Checks Still Missed Package 3 Acceptance
+
+- Date/time: 2026-05-22 16:31 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  dashboard-first Scout/Core review
+- Decision point: Jules pushed PR #954 head
+  `c02bf58ea3687f65ad57ca78581f46ae7cadad39`. GitHub Build, Tests, Lint,
+  CodeQL, Quality Scan, and Poison File Check passed. After PR #958 merged the
+  monitor docs, the dashboard Git gate was clean on
+  `codex/spell-phase1-monitor-14` and the visible boundary moved to
+  `Scout/Core review`. Scout inspection found that
+  `DruidFeatureSelection.tsx` still filters `speak-with-animals` out of the
+  visible Level 1 card list and only pushes it into the submitted spell list,
+  so the Druid creator flow does not actually show the locked/pre-selected
+  class-feature card requested in earlier feedback. Scout also found
+  `SpellCard.tsx` still uses explicit `any` in `formatCastingTime` and
+  `formatRange`.
+- Options considered:
+  - Merge PR #954 because all GitHub checks passed.
+  - Repair the Package 3 implementation locally.
+  - Treat the Druid creator visibility miss as a follow-up outside Package 3.
+  - Send another focused Jules feedback comment because the issue is still
+    inside the Package 3 acceptance surface.
+- Decision made by agent: Do not merge PR #954. Send a third marked
+  `[Jules feedback]` PR comment asking Jules to render Druid
+  `Speak with Animals` visibly as locked/pre-selected without consuming a
+  selectable spell slot, and to finish typing the `SpellCard` formatting
+  helpers.
+- Model routing: Local Codex performed Scout-style inspection and feedback
+  drafting. Jules remains the Package 3 implementation worker. Core merge is
+  blocked until the visible creator acceptance issue is repaired and
+  rechecked.
+- Rationale/evidence: The user explicitly cares that spells are properly
+  visible in the character creator and spellbook, not just functionally present
+  after submit. The earlier Jules feedback specifically requested the visible
+  Druid `Speak with Animals` creator card. Passing CI is not enough when the
+  acceptance condition is missing from the rendered/player-facing flow.
+- Mutation performed or skipped: Posted
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`.
+  Skipped local Package 3 implementation repair, skipped direct mutation of the
+  Jules branch, and skipped Core merge despite green checks.
+- Scope guardrails: Feedback is limited to Package 3 creator visibility and
+  local `SpellCard` typing. It does not request combat simulator casting,
+  shared spell schema/runtime architecture, broad AI arbitration policy,
+  premade roster semantics, or Symphony orchestration changes.
+- Result: PR #954 remains open for a Jules repair after green checks. The
+  dashboard exposed a useful but incomplete Scout/Core path: it identified the
+  Scout/Core boundary, but did not provide a visible "send Scout feedback"
+  control, so the feedback was posted directly to the PR and recorded here.
+- Next expected proof: Wait for Jules to push another PR #954 repair commit,
+  refresh the dashboard PR packet, then re-run Scout/Core review and rendered
+  creator/spellbook proof before any Core merge.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor PR #954 for a Jules repair commit after the second marked feedback
+1. Monitor PR #954 for a Jules repair commit after the third marked feedback
    comment.
 2. Review PR #954 for scope, focused tests, rendered spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
