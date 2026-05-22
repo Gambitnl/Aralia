@@ -1850,9 +1850,11 @@ Copy this block for each decision.
 - Scope guardrails: This does not change local-sync behavior after a Jules PR
   merge, does not reset/pull/push local `master`, and does not dispatch Package
   3 until the dashboard gate repair is landed and verified.
-- Result: Focused build and `verify-git-preflight-blockers.mjs` pass locally.
-- Next expected proof: Publish and merge the Symphony gate repair, restart or
-  refresh the dashboard, then create the Package 3 dashboard draft visibly.
+- Result: Focused build and `verify-git-preflight-blockers.mjs` passed
+  locally. PR #940 passed GitHub checks and merged as
+  `ca35cf61fdc02f19e561ad1e4aff758548155ff6`.
+- Next expected proof: Re-enter the dashboard from a fresh worktree branch at
+  `origin/master`, then create the Package 3 dashboard draft visibly.
 
 ### Decision 47: Treat Stitch MCP As Still Blocked Despite The New API Key
 
@@ -1872,9 +1874,12 @@ Copy this block for each decision.
   and do not claim Stitch-generated dashboard work.
 - Model routing: Local Codex foreman, because this is a tooling/authentication
   classification decision.
-- Rationale/evidence: `stitch-mcp doctor` reports a healthy 200 API check, but
-  `mcp__stitch__.list_projects` returns `Auth required`. Direct CLI invocation
-  with the configured key reaches a separate Windows/package bug,
+- Rationale/evidence: The API key is present in
+  `C:\Users\Gambit\.codex\config.toml`, but `mcp__stitch__.list_projects`
+  returns `Auth required`. A fresh `stitch-mcp doctor` run now opens the Google
+  Cloud user-auth flow, which confirms the remaining blocker is authenticated
+  account access rather than missing API-key config. Direct CLI invocation with
+  the configured key also reaches a separate Windows/package bug,
   `Bun is not defined`, when using `--data-file`.
 - Mutation performed or skipped: Kept the API key configured. Did not alter
   Stitch project data, create designs, or use hidden dashboard edits as a
@@ -1894,7 +1899,7 @@ Copy this block for each decision.
    `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
 2. Package and dispatch Package 3 for Jules: character creator spell selection
    and character sheet spellbook visibility.
-3. Land the Symphony Git-gate repair so a clean worktree branch at GitHub base
-   can proceed without touching unrelated local `master` commits.
-4. Repair the Stitch MCP/tool path before claiming any Stitch-generated
+3. Resolve the remaining dashboard Git-sync/stale-state signal if it blocks
+   visible Package 3 draft creation after the PR #940 repair.
+4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.
