@@ -52,6 +52,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Post-merge monitor branch resync | Done | After the PR #957 squash merge, the dashboard Git gate saw the local pre-squash monitor branch as ahead/behind. The foreman preserved that branch and switched this worktree to `codex/spell-phase1-monitor-13` from `origin/master`; the visible `Check GitHub Sync` control then reported ahead/behind `0 / 0` and a clean tree. |
 | PR #958 monitor docs merged | Done | PR #958 merged the Decision 64/tracker receipt update after ordinary checks passed; the Gemini review lane failed only from quota exhaustion. The foreman preserved the pre-squash branch and switched to `codex/spell-phase1-monitor-14` from `origin/master`; visible `Check GitHub Sync` reported ready. |
 | Scout review after green checks | Waiting for repair | Jules pushed PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39` and all ordinary GitHub checks passed. Scout review found Druid `Speak with Animals` is included only on submit, not visibly rendered as the requested locked/pre-selected creator card, and `SpellCard.tsx` still uses explicit `any` formatting helpers. A third marked Jules feedback comment was posted at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`. |
+| Visible Jules repair request | Waiting for repair | Dashboard refresh on 2026-05-22 18:37 +02:00 still showed `Wait for Jules Repair` and PR #954 still had head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`. The dashboard-linked Jules session showed earlier GitHub feedback but not the latest Scout `Speak with Animals` / `SpellCard` repair text, so the agent sent the same bounded repair request visibly in Jules with the Package 3 scope guardrails. |
 
 ## Current Boundary
 
@@ -60,6 +61,10 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 - PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
 - Current PR boundary: waiting for Jules to repair Scout feedback after green
   checks on PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`.
+- Latest repair-routing proof: the third marked GitHub feedback comment exists
+  on PR #954, and the same bounded repair request was also sent visibly in the
+  Jules session at 2026-05-22 18:41 +02:00 after the session page did not show
+  that latest Scout feedback text.
 - Dashboard workflow state: local Symphony now distinguishes old feedback with
   no PR movement from a post-feedback PR update that still fails. The live task
   page showed `Repair Failed Checks` after Jules' repair commit, then returned

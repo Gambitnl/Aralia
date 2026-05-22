@@ -3156,13 +3156,64 @@ Copy this block for each decision.
   acceptance review, and collect rendered creator/spellbook proof before Core
   merge.
 
+### Decision 75: Send The Latest Scout Repair Request Into The Visible Jules Session
+
+- Date/time: 2026-05-22 18:41 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: The dashboard and GitHub PR #954 still showed the correct
+  high-level boundary, `Wait for Jules Repair`, with PR head
+  `c02bf58ea3687f65ad57ca78581f46ae7cadad39` unchanged after the third marked
+  GitHub feedback comment. Visible inspection of the dashboard-linked Jules
+  session showed earlier GitHub feedback arriving as `Sent from GitHub`, but
+  the page content did not show the latest Scout repair request for Druid
+  `Speak with Animals` visibility or `SpellCard.tsx` explicit `any` cleanup.
+- Options considered:
+  - Keep waiting because the GitHub PR comment exists.
+  - Repair PR #954 locally.
+  - Send a duplicate GitHub PR comment.
+  - Send the same bounded repair request through the visible Jules session so
+    the active worker surface has the instruction, then continue waiting for a
+    Jules repair commit.
+- Decision made by agent: Send the bounded repair request through the visible
+  Jules session, explicitly naming the two remaining Scout blockers and the
+  Package 3 scope guardrails, then keep PR #954 in the Jules repair lane.
+- Model routing: Local Codex handled dashboard inspection, PR evidence
+  inspection, and the visible Jules message. Jules remains the Package 3
+  implementation worker for PR #954.
+- Rationale/evidence: The goal is to offload as much implementation work as
+  possible to Jules. Waiting was only meaningful if the repair instruction was
+  actually visible where Jules can act on it. Sending the same bounded feedback
+  into Jules avoided local implementation repair and avoided another duplicate
+  GitHub comment while improving the handoff's chance of progressing.
+- Mutation performed or skipped: Used the dashboard as the primary surface,
+  opened the linked Jules session, and sent a visible message asking Jules to
+  repair PR #954 on the existing branch by rendering Druid `Speak with Animals`
+  as a locked/pre-selected Level 1 spell card and typing `SpellCard.tsx`
+  formatting helpers without explicit `any`. Skipped local Package 3 code
+  repair, skipped Core merge, and skipped another GitHub PR comment.
+- Scope guardrails: This only changes workflow state and project tracking. It
+  does not change spell rules, character creator behavior, spellbook UI, AI
+  arbitration, premade roster semantics, or Symphony orchestration code.
+- Result: The visible Jules page text now contains the repair request,
+  including `locked/pre-selected spell card` and `npx tsc --noEmit`. PR #954
+  remains open at head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`; normal
+  GitHub checks are green, but Scout acceptance blockers remain until Jules
+  pushes a new repair commit.
+- Next expected proof: Refresh PR #954 through the dashboard after Jules
+  pushes a new commit. If a repair commit appears, rerun Scout/Core acceptance
+  review and collect rendered creator/spellbook proof before Core merge.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor PR #954 for a Jules repair commit after the third marked feedback
-   comment.
+1. Monitor PR #954 for a Jules repair commit after the third marked GitHub
+   feedback comment and the visible Jules repair message.
 2. Review PR #954 for scope, focused tests, rendered spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
-3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+3. Decide whether Symphony should explicitly model `feedback visible in Jules`
+   separately from `feedback posted on GitHub`.
+4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-4. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
+5. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
    dashboard redesign work.
