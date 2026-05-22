@@ -3205,6 +3205,49 @@ Copy this block for each decision.
   pushes a new commit. If a repair commit appears, rerun Scout/Core acceptance
   review and collect rendered creator/spellbook proof before Core merge.
 
+### Decision 76: Merge The Visible-Jules Repair Request Record And Resync The Monitor Branch
+
+- Date/time: 2026-05-22 18:48 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: PR #969 recorded Decision 75, the Package 3 handoff receipt
+  update, and the tracker gap for Jules feedback-delivery visibility. GitHub
+  Build, Tests, Lint, CodeQL, Quality Scan, Poison File Check, and CodeQL
+  analysis lanes passed. The `review / review` lane failed only because Gemini
+  exhausted the daily quota on `gemini-2.5-flash`.
+- Options considered:
+  - Leave PR #969 open despite all normal gates passing.
+  - Merge PR #969 under the approved PR boundary, preserve the user's main
+    checkout, and move the monitor worktree to a fresh branch from
+    `origin/master`.
+  - Mutate or switch the user's main `master` checkout so the GitHub CLI local
+    cleanup could complete.
+- Decision made by agent: Merge PR #969, do not alter the user's main
+  checkout, and continue on `codex/spell-phase1-monitor-25` from
+  `origin/master`.
+- Model routing: Local Codex handled CI classification, merge, and monitor
+  branch hygiene. Jules remains the Package 3 implementation worker for PR
+  #954.
+- Rationale/evidence: The docs-only tracking PR preserved the real decision
+  point created by dashboard-first use. The failed Gemini lane was quota
+  infrastructure, while the normal repository gates passed. The repeated local
+  cleanup error is a known multi-worktree limitation and not a failed merge.
+- Mutation performed or skipped: Merged PR #969 and switched the monitor
+  worktree to `codex/spell-phase1-monitor-25` from `origin/master`. Skipped
+  local Package 3 implementation repair, duplicate GitHub feedback, Core merge
+  of PR #954, and mutation of the user's main `master` checkout.
+- Scope guardrails: This only records the workflow decision lifecycle. It does
+  not change spell rules, character creator behavior, spellbook UI, AI
+  arbitration, premade roster semantics, or Symphony orchestration code.
+- Result: PR #969 merged at 2026-05-22 16:47:52 UTC. The active monitor branch
+  is now `codex/spell-phase1-monitor-25` from `origin/master`. PR #954 still
+  has no post-visible-Jules repair commit.
+- Next expected proof: Continue monitoring PR #954 through the dashboard. When
+  Jules pushes a repair commit, refresh the PR packet, rerun Scout/Core
+  acceptance review, and collect rendered creator/spellbook proof before Core
+  merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked GitHub
