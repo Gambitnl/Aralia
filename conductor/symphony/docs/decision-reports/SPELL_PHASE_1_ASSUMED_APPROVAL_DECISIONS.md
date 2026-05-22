@@ -2408,25 +2408,24 @@ Copy this block for each decision.
 - Scope guardrails: This changes only Symphony routing/focus behavior. It does
   not alter spell rules, character creator behavior, spellbook UI, AI
   arbitration, premade roster semantics, or Jules task content.
-- Result: PR #951 carries the local build, focused task-routing verifier,
-  rendered dashboard proof, and docs updates. Merge proof is still required
-  before this repair is treated as landed.
-- Next expected proof: Run focused Symphony verification, publish and merge the
-  repair PR if normal checks pass, restart the dashboard from synced
-  `origin/master`, and confirm the task-routing panel points at Package 3 while
-  Package 2 stays historical.
+- Result: PR #951 merged as `c9c97796cbeda7f1a765c371e7127543f2d1660f` on
+  2026-05-22. Build, Lint, CodeQL, Quality Scan, and Poison File Check passed.
+  The first Tests run failed in the known ambient winter travel-time case
+  outside this PR's touched files; rerunning the failed Tests job passed without
+  code changes.
+- Next expected proof: Restart the dashboard from synced `origin/master`, and
+  confirm the task-routing panel points at Package 3 while Package 2 stays
+  historical.
 
 ## Open Decisions For The Next Slice
 
-1. Land the Package 3 task-routing focus repair so the dashboard's route card
-   cannot be stolen by older Package 2 local-sync bookkeeping.
-2. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
+1. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
    has now received option B feedback and a follow-up visible publish request,
    but still has no captured Package 3 PR URL.
-3. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
+2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
-4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-5. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
+4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.
