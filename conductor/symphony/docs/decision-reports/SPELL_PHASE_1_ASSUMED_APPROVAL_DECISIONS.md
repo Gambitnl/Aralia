@@ -2969,6 +2969,59 @@ Copy this block for each decision.
   acceptance review, and collect rendered creator/spellbook proof before Core
   merge.
 
+### Decision 71: Align Queue-Level Next Action With Posted-Feedback Wait State
+
+- Date/time: 2026-05-22 18:02 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: On fresh branch `codex/spell-phase1-monitor-20`, the visible
+  dashboard first viewport and task navigator correctly showed Package 3 as
+  `Wait for Jules Repair`. A direct read of `/api/v1/task-drafts`, however,
+  still exposed the queue-level `next_action` as `Bridge Conflict-Prone Files`
+  because the conflict-watch risk signal outranked the PR-specific next action.
+  That would steer headless foremen or API consumers toward a merge-adjacent
+  Scout/Core bridge even though marked Scout feedback had already been posted
+  and PR #954 had no newer Jules repair commit.
+- Options considered:
+  - Ignore the API mismatch because the visible browser dashboard was usable.
+  - Repair PR #954 locally so the risky-file signal disappeared.
+  - Send another GitHub feedback comment to Jules.
+  - Patch the queue-action priority so cross-PR conflicts still block first,
+    but single-PR risk does not override an affected PR's explicit
+    posted-feedback wait state.
+- Decision made by agent: Patch the Symphony queue-action priority and add a
+  regression case that includes both an older merged/local-sync handoff and the
+  active risky Package 3-style PR waiting after Scout feedback.
+- Model routing: Local Codex handled the Symphony dashboard/API repair. Jules
+  remains the Package 3 implementation worker for PR #954.
+- Rationale/evidence: The goal requires dashboard-first use and clear reports
+  at decision points. Once Scout feedback is already posted, the safe next
+  action is to wait for Jules or refresh PR evidence after new PR activity. A
+  duplicate Scout/Core bridge instruction is confusing and can lead to repeated
+  feedback rather than useful progress.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/server.ts`,
+  `conductor/symphony/scripts/verify-queue-next-action.mjs`, and the spell
+  tracker. Restarted the dashboard from the worktree and clicked the visible
+  `Refresh GitHub PR` action. Skipped local Package 3 implementation repair,
+  skipped duplicate GitHub feedback, skipped Core merge, and skipped any
+  mutation of the user's main `master` checkout.
+- Scope guardrails: This only changes Symphony queue/dashboard routing and
+  tracking documentation. It does not change spell rules, character creator
+  behavior, spellbook UI, AI arbitration, premade roster semantics, or the
+  Jules implementation branch.
+- Result: `npm run build` passed, and
+  `node scripts/verify-queue-next-action.mjs` passed. Rendered dashboard proof
+  still showed first-viewport `Refresh GitHub PR` and task navigator
+  `Wait for Jules Repair`. GitHub PR #954 remained open at head
+  `c02bf58ea3687f65ad57ca78581f46ae7cadad39` with no post-feedback Jules
+  repair commit.
+- Next expected proof: Publish this queue-action repair, then continue
+  dashboard monitoring of PR #954. When Jules pushes a repair commit, refresh
+  the PR packet, rerun Scout/Core acceptance review, and collect rendered
+  creator/spellbook proof before Core merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback

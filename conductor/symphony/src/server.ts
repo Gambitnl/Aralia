@@ -3745,11 +3745,28 @@ export class HttpServer {
       );
     }
 
+    const firstHandoff = this.pickQueueHandoff(handoffs);
+    const waitForPostedFeedbackHandoff = conflictWatch.status === 'attention'
+      ? handoffs.find(handoff => {
+          const actionCode = this.readStringField(handoff.next_action, 'code');
+          const actionTone = this.readStringField(handoff.next_action, 'tone');
+          const ownsRiskFile = conflictWatch.risk_files.some(file => file.handoff_id === handoff.id);
+          return ownsRiskFile && actionCode === 'wait_for_checks' && actionTone === 'waiting';
+        })
+      : null;
+
+    // Cross-PR overlaps are still the strongest Scout/Core stop because two
+    // workers can collide on the same file. Single-PR risk is softer: if the
+    // affected PR-specific state has already posted Scout feedback and is
+    // waiting for Jules, the queue must not reopen a merge-adjacent risk bridge.
+    if (waitForPostedFeedbackHandoff?.next_action) {
+      return attachSource(waitForPostedFeedbackHandoff.next_action, 'handoff', waitForPostedFeedbackHandoff.id);
+    }
+
     if (conflictWatch.next_action) {
       return attachSource(conflictWatch.next_action, 'conflict_watch', null);
     }
 
-    const firstHandoff = this.pickQueueHandoff(handoffs);
     if (firstHandoff?.next_action) {
       return attachSource(firstHandoff.next_action, 'handoff', firstHandoff.id);
     }
