@@ -43,6 +43,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Explicit Jules publish request | Waiting | The agent opened the visible Jules session, confirmed code edits were visible but no PR URL/branch existed, and sent a visible chat request asking Jules to push `jules/spells-package3-spellbook-creator-visibility` and open a PR, or state why it cannot and whether Download zip is the only available handoff path. |
 | Worktree local-sync gate repair | Done | PR #949 merged the Symphony repair that accepts a clean worktree branch at `origin/master` as a no-sync-needed proof; rendered dashboard inspection confirmed the blocker text disappeared on `codex/spell-phase1-package3-monitor-7`. |
 | Post-publish-request refresh | Waiting | After PR #949 merged and the dashboard restarted, the visible current-boundary refresh still reported Jules `IN_PROGRESS`, waiting for a PR, with no captured PR URL. GitHub still has no `jules/spells-package3-spellbook-creator-visibility` branch or PR. |
+| Task-routing focus repair | In local verification | The dashboard current-boundary lane stayed on Package 3, but the `Task routing and nudge plan` card selected older Package 2 because its post-merge local-sync receipt had the newest timestamp. The foreman patched Symphony to rank live handoffs ahead of closed bookkeeping so Package 3 remains the visible route. |
 
 ## Current Boundary
 
@@ -115,3 +116,9 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   dashboard running from `origin/master`, the local sync branch blocker stayed
   gone. The real current boundary remains Package 3 Jules: `IN_PROGRESS`, no
   captured PR, and waiting for Jules to create a PR.
+- After the local-sync gate repair, the dashboard's current-boundary cards
+  correctly showed Package 3, but the separate task-routing/nudge panel showed
+  stale Package 2 local-sync work because it chose the newest updated handoff.
+  The foreman treated that as another dashboard workflow defect and repaired
+  the route selector so live Package 3 handoffs outrank old merged-package
+  bookkeeping.

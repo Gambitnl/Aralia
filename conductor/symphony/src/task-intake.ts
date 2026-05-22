@@ -6318,7 +6318,7 @@ function buildTaskRoutingPlan(
   preflight: GitSyncPreflight
 ): TaskRoutingPlan {
   const generatedAt = preflight.checkedAt || new Date().toISOString();
-  const latestHandoff = newestByUpdatedAt(handoffs);
+  const latestHandoff = selectHandoffForRouting(handoffs);
   const latestDraft = newestByUpdatedAt(drafts);
   const candidates = [
     ...drafts.slice(0, 6).map(draft => buildRoutingCandidateForDraft(draft, preflight)),
@@ -7072,6 +7072,43 @@ function newestByUpdatedAt<T extends { updatedAt?: string; createdAt?: string }>
   return [...items].sort((a, b) => {
     return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
   })[0] ?? null;
+}
+
+function selectHandoffForRouting(handoffs: JulesHandoff[]): JulesHandoff | null {
+  // Task routing is a "what should the foreman look at next?" surface, not an
+  // audit log. A closed or post-merge handoff can receive fresh bookkeeping
+  // timestamps after the next package has already started. Rank the live
+  // workflow boundary first so a Package 2 local-sync receipt cannot steal the
+  // visible route from a Package 3 Jules session that still needs a PR.
+  return [...handoffs].sort((a, b) => {
+    const priorityDifference = handoffRoutingPriority(b) - handoffRoutingPriority(a);
+    if (priorityDifference !== 0) return priorityDifference;
+
+    return timestampForRouting(b) - timestampForRouting(a);
+  })[0] ?? null;
+}
+
+function handoffRoutingPriority(handoff: JulesHandoff): number {
+  if (handoff.status === 'observed_pr') return 1;
+
+  if (!handoff.githubPullRequestUrl) return 5;
+
+  if (
+    handoff.julesState === 'AWAITING_PLAN_APPROVAL'
+    || handoff.julesState === 'AWAITING_USER_FEEDBACK'
+  ) {
+    return 5;
+  }
+
+  if (handoff.githubPullRequestState !== 'MERGED' && handoff.githubPullRequestState !== 'CLOSED') {
+    return 4;
+  }
+
+  if (handoff.githubPullRequestState === 'MERGED' && !handoff.localSyncStatus?.upToDate) {
+    return 2;
+  }
+
+  return 0;
 }
 
 function timestampForRouting(item: { updatedAt?: string; createdAt?: string }): number {
