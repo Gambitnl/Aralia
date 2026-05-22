@@ -4521,12 +4521,16 @@ function renderPullRequestFeedbackSummary(feedback) {
 
   // PR comments from review agents are useful context, but they are not Jules
   // instructions unless the operator marks them with the explicit feedback tag.
+  // The extra delivery note preserves a lesson from Package 3: a GitHub
+  // comment can exist even when the active Jules session does not visibly show
+  // the latest repair request, so the dashboard should not overstate proof.
   // Scout conflict comments stay visible in their own lane because they are
   // handoff blockers that the foreman needs to route before Core can merge.
   return `<details class="pr-feedback-summary" open>
     <summary>PR comment routing</summary>
     <p>${escapeHtml(feedback.summary || 'PR comments are available for review.')}</p>
     <p>Only explicitly marked feedback is treated as Jules course correction.</p>
+    ${julesFeedback.length ? '<p class="muted">Marked feedback proves a GitHub PR comment exists. If the active Jules session does not visibly show the latest feedback, open the Jules session and send or confirm the same bounded repair request there before assuming a repair is underway.</p>' : ''}
     <div>
       <strong>Jules feedback comments</strong>
       ${julesFeedback.length ? `<ul>${julesFeedback.map(renderComment).join('')}</ul>` : '<p>No marked Jules feedback comments yet.</p>'}

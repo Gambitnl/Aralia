@@ -3248,14 +3248,71 @@ Copy this block for each decision.
   acceptance review, and collect rendered creator/spellbook proof before Core
   merge.
 
+### Decision 77: Clarify That GitHub Feedback Is Not Jules Delivery Proof
+
+- Date/time: 2026-05-22 19:10 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: After Decision 75, the dashboard correctly showed marked
+  `[Jules feedback]` comments on PR #954, but the earlier visible Jules
+  inspection proved that the active Jules session may not show the latest
+  GitHub feedback text. The task detail page and main dashboard therefore
+  risked overstating the meaning of a GitHub comment by implying the Jules
+  worker had visibly received the repair request.
+- Options considered:
+  - Leave the wording as-is because the GitHub comment is still useful
+    evidence.
+  - Treat any marked GitHub comment as proof that Jules is actively repairing.
+  - Repair Package 3 locally because the feedback-delivery path is uncertain.
+  - Keep Package 3 assigned to Jules, but update Symphony's dashboard and task
+    page language so marked feedback proves only that a GitHub PR comment
+    exists, and instructs the operator to verify or send the same bounded
+    request in the active Jules session when the latest feedback is not
+    visible there.
+- Decision made by agent: Refine Symphony's visible guidance instead of
+  changing Package 3 implementation ownership. Marked feedback remains useful
+  GitHub evidence, but the dashboard no longer treats it as delivery proof for
+  Jules.
+- Model routing: Local Codex handled the Symphony dashboard/task-page
+  wording, regression coverage, and project tracking. Jules remains the
+  Package 3 implementation worker for PR #954.
+- Rationale/evidence: The test flow's purpose is to reduce orchestration
+  friction while preserving the Jules offload path. The right repair is to
+  make the operator-facing state more honest about what is known: GitHub
+  comment posted is a recorded fact; Jules-visible delivery is a separate
+  proof that may still need inspection or action.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/public/dashboard.js`,
+  `conductor/symphony/src/server.ts`,
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`,
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`, and the spell
+  tracker. Skipped local Package 3 implementation repair, duplicate GitHub
+  feedback, Core merge of PR #954, and mutation of the user's main `master`
+  checkout.
+- Scope guardrails: This only changes Symphony operator guidance and
+  verification coverage. It does not change spell rules, character creator
+  behavior, spellbook UI, AI arbitration, premade roster semantics, or the
+  Jules implementation branch.
+- Result: Local build and focused dashboard verifiers passed. The dashboard
+  PR feedback summary and task-detail PR repair card now say that marked
+  feedback proves a GitHub PR comment exists, and that the active Jules
+  session must still be checked or given the same bounded request if the
+  latest feedback is not visibly present there.
+- Next expected proof: Publish and merge this Symphony friction repair, then
+  continue monitoring PR #954 through the dashboard. When Jules pushes a
+  repair commit, refresh the PR packet, rerun Scout/Core acceptance review,
+  and collect rendered creator/spellbook proof before Core merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked GitHub
    feedback comment and the visible Jules repair message.
 2. Review PR #954 for scope, focused tests, rendered spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
-3. Decide whether Symphony should explicitly model `feedback visible in Jules`
-   separately from `feedback posted on GitHub`.
+3. Decide whether Symphony should add first-class receipts and dashboard
+   controls for `feedback visible in Jules`, beyond the Decision 77 wording
+   that prevents GitHub comments from being overstated as delivery proof.
 4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
 5. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated

@@ -204,6 +204,8 @@ const scoutNavigatorHtml = extractNavigatorHtml(scoutRoot.innerHTML);
 assert.match(scoutNavigatorHtml, /Scout\/Core review/);
 assert.match(scoutNavigatorHtml, /Scout review must clear risky files/);
 assert.doesNotMatch(scoutNavigatorHtml, /Wait for PR Checks/);
+assert.match(scoutRoot.innerHTML, /Marked feedback proves a GitHub PR comment exists/);
+assert.match(scoutRoot.innerHTML, /active Jules session does not visibly show the latest feedback/);
 
 function extractNavigatorHtml(html) {
   const match = html.match(/<section class="task-navigator"[\s\S]*?<\/section>/);
@@ -448,6 +450,19 @@ function buildScoutCoreSnapshot() {
     githubPullRequestState: 'OPEN',
     githubPullRequestChecks: { conclusion: 'pending', pending: 4, failed: 0 },
     githubPullRequestFiles: { risk: 'high', riskReasons: ['Outside declared Jules write scope.'], outOfScopeFiles: ['src/components/CharacterCreator/Class/SpellCard.tsx'] },
+    githubPullRequestFeedback: {
+      totalComments: 1,
+      summary: '1 Jules feedback comment(s), 0 Scout conflict comment(s), 0 external review comment(s).',
+      julesFeedback: [{
+        author: 'Gambitnl',
+        body: '[Jules feedback]\nPlease repair the Scout acceptance blockers before Core merge.',
+        url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250',
+        createdAt: snapshot.preflight.checkedAt,
+        source: 'comment',
+      }],
+      scoutConflictComments: [],
+      externalReviewComments: [],
+    },
     handoffTimeline: { events: [] },
     next_action: {
       code: 'wait_for_checks',
