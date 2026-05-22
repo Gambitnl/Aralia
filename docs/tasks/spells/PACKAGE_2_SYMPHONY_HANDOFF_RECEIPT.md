@@ -396,9 +396,10 @@ Repair path:
 - Code path: `conductor/symphony/public/dashboard.js`.
 - Verifier:
   `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`.
-- Intended live proof: reload the dashboard and click the current-boundary
-  `Refresh GitHub PR` button to refresh Package 2 PR #935 through the visible
-  safe dashboard action.
+- Live proof: after reload, the current-boundary panel exposed one
+  `Refresh GitHub PR` button. Codex clicked that visible button in the in-app
+  browser, and the task navigator refreshed Package 2 into
+  `Resolve Workflow Config Blocker` with updated PR evidence.
 
 ## Next Expected Proof
 
