@@ -157,6 +157,26 @@ assert.match(answeredNavigatorHtml, /Needs input: 0/);
 assert.match(answeredNavigatorHtml, /Resolve Workflow Config Blocker/);
 assert.doesNotMatch(answeredNavigatorHtml, /needs operator input/i);
 
+const scoutRoot = {
+  html: '',
+  addEventListener() {},
+  set innerHTML(value) {
+    this.html = value;
+  },
+  get innerHTML() {
+    return this.html;
+  },
+  firstChild: { nodeValue: '' },
+};
+const scoutSandbox = buildSandbox(null, scoutRoot);
+vm.runInNewContext(executableSource, scoutSandbox, { filename: 'dashboard.js' });
+scoutSandbox.renderTaskIntake(buildScoutCoreSnapshot());
+
+const scoutNavigatorHtml = extractNavigatorHtml(scoutRoot.innerHTML);
+assert.match(scoutNavigatorHtml, /Scout\/Core review/);
+assert.match(scoutNavigatorHtml, /Scout review must clear risky files/);
+assert.doesNotMatch(scoutNavigatorHtml, /Wait for PR Checks/);
+
 function extractNavigatorHtml(html) {
   const match = html.match(/<section class="task-navigator"[\s\S]*?<\/section>/);
   assert(match, 'Expected rendered dashboard HTML to include the task navigator section.');
@@ -362,6 +382,69 @@ function buildAnsweredQuestionSnapshot() {
     label: 'Resolve Workflow Config Blocker',
     summary: 'The decision has been recorded; repair the workflow setup before sending Jules feedback.',
     steps: ['Create setup repair task.'],
+  };
+  return snapshot;
+}
+
+function buildScoutCoreSnapshot() {
+  const snapshot = buildSnapshot();
+  snapshot.drafts = [];
+  snapshot.handoffs = [{
+    id: 'handoff-scout-core',
+    title: 'Package 3 Scout/Core proof',
+    status: 'sent_to_jules',
+    createdAt: snapshot.preflight.checkedAt,
+    updatedAt: snapshot.preflight.checkedAt,
+    julesState: 'FAILED',
+    githubPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/954',
+    githubPullRequestState: 'OPEN',
+    githubPullRequestChecks: { conclusion: 'pending', pending: 4, failed: 0 },
+    githubPullRequestFiles: { risk: 'high', riskReasons: ['Outside declared Jules write scope.'], outOfScopeFiles: ['src/components/CharacterCreator/Class/SpellCard.tsx'] },
+    handoffTimeline: { events: [] },
+    next_action: {
+      code: 'wait_for_checks',
+      tone: 'waiting',
+      label: 'Wait for PR Checks',
+      summary: 'GitHub checks are not conclusively passing yet.',
+      steps: ['Refresh PR checks after GitHub updates.'],
+    },
+    scout_core_readiness: {
+      status: 'blocked_by_scout',
+      nextBoundary: 'scout_core',
+      canRefreshNow: true,
+      canScoutReviewNow: true,
+      canCoreValidateNow: false,
+      canCoreMergeNow: false,
+      refreshUrl: '/api/v1/jules-handoffs/handoff-scout-core/refresh-pr',
+      blockers: ['Scout review must clear risky files before Core validates.'],
+      expectedNextProof: 'Scout/Core readiness, conflict bridge result, or explicit review blocker.',
+      nextAction: {
+        code: 'wait_for_checks',
+        tone: 'waiting',
+        label: 'Wait for PR Checks',
+        summary: 'GitHub checks are not conclusively passing yet.',
+        steps: ['Refresh PR checks after GitHub updates.'],
+      },
+    },
+  }];
+  snapshot.middleman_path = {
+    status: 'blocked',
+    currentBoundary: 'scout_core',
+    currentBoundaryLabel: 'Scout/Core review',
+    summary: 'Scout/Core review: risky files need attention.',
+    nextExpectedProof: 'Scout/Core readiness, conflict bridge result, or explicit review blocker.',
+    foremanAction: {
+      boundary: 'scout_core',
+      boundaryLabel: 'Scout/Core review',
+      label: 'Refresh Scout/Core Evidence',
+      status: 'blocked',
+      safety: 'external_read',
+      canRunNow: true,
+      method: 'POST',
+      endpoint: '/api/v1/jules-handoffs/handoff-scout-core/refresh-pr',
+      instruction: 'Refresh the GitHub PR evidence that Scout/Core depends on.',
+    },
+    stages: [],
   };
   return snapshot;
 }

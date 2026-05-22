@@ -2723,6 +2723,59 @@ Copy this block for each decision.
   refresh the dashboard PR packet, then re-run Scout/Core review and rendered
   creator/spellbook proof before any Core merge.
 
+### Decision 66: Repair The Visible Scout/Core Evidence Refresh Path
+
+- Date/time: 2026-05-22 16:50 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  dashboard-first Scout/Core review
+- Decision point: The dashboard top boundary correctly said
+  `Scout/Core review`, but the action was `Wait for Scout/Core review` with
+  `Method NONE`, only a raw evidence link was visible, and the task navigator
+  still summarized the same Package 3 task as `Wait for PR Checks`. The real
+  safe PR refresh button existed lower in the handoff card but was effectively
+  hidden from the first-viewport human operator path.
+- Options considered:
+  - Use the raw API endpoint or a terminal command to refresh PR evidence.
+  - Ignore the stale dashboard surface because GitHub already showed green
+    checks.
+  - Patch the dashboard/Symphony middleman path so Scout/Core evidence refresh
+    is a visible read-only action at the current boundary.
+  - Repair Package 3 locally while waiting for Jules.
+- Decision made by agent: Patch Symphony so a blocked Scout/Core boundary
+  exposes `Refresh Scout/Core Evidence` as a read-only `Refresh GitHub PR`
+  dashboard button, and patch the task navigator so it prefers the richer
+  Scout/Core readiness packet over stale PR-check `next_action` wording.
+- Model routing: Local Codex handled the dashboard/workflow repair because it
+  is Symphony infrastructure exposed by dashboard-first use. Jules remains the
+  Package 3 implementation worker.
+- Rationale/evidence: The user explicitly asked that dashboard blockers be
+  fixed rather than bypassed. Refreshing PR evidence is an external read that
+  does not mutate GitHub, Git, Jules, or local files, so it belongs as a visible
+  dashboard control. After the repair, rendered browser proof showed the first
+  viewport action `Refresh Scout/Core Evidence`, a `Refresh GitHub PR` button,
+  and Package 3 labeled `Scout/Core review` in the task navigator.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/server.ts`,
+  `conductor/symphony/public/dashboard.js`, and
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`. Restarted
+  the local dashboard and clicked the new first-viewport `Refresh GitHub PR`
+  button. Skipped local Package 3 implementation repair, skipped direct
+  mutation of PR #954, and skipped Core merge.
+- Scope guardrails: This only changes the Symphony dashboard operator surface
+  and verifier coverage. It does not change spell rules, character creator
+  behavior, spellbook UI, AI arbitration, premade roster semantics, or the
+  Jules implementation branch.
+- Result: `npm run build`, `node
+  conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`, and
+  `git diff --check` passed. The dashboard refresh through the visible button
+  updated PR #954 evidence to `passing`, `9 passed`, `0 failed`, `0 pending`,
+  and the stored next action became `Scout Bridge Risk`.
+- Next expected proof: Continue waiting for Jules to push another PR #954
+  repair commit after comment #4519567250, then refresh the dashboard PR
+  packet through the visible Scout/Core action and rerun Scout/Core acceptance
+  review before any Core merge.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the third marked feedback

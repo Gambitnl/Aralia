@@ -3503,6 +3503,7 @@ function buildTaskNavigatorRecord(kind, item) {
   const disposition = item.taskDisposition?.state || 'active';
   const operatorQuestion = item.operatorQuestion || null;
   const latestAnswer = Array.isArray(item.operatorAnswers) ? item.operatorAnswers[0] : null;
+  const scoutBoundary = taskNavigatorScoutBoundary(item.scout_core_readiness);
   const operatorQuestionAnswered = Boolean(latestAnswer)
     && (!operatorQuestion?.plainLanguageQuestion || latestAnswer.sourceQuestion === operatorQuestion.plainLanguageQuestion)
     && (!operatorQuestion?.sourceStage || latestAnswer.sourceStage === operatorQuestion.sourceStage);
@@ -3528,6 +3529,8 @@ function buildTaskNavigatorRecord(kind, item) {
     ? disposition
     : needsInput
     ? 'needs operator input'
+    : scoutBoundary
+      ? scoutBoundary.statusLabel
     : merged
       ? 'completed'
       : closed
@@ -3537,6 +3540,8 @@ function buildTaskNavigatorRecord(kind, item) {
     ? item.taskDisposition.reason
     : needsInput
     ? item.operatorQuestion?.plainLanguageSummary || item.operatorQuestion?.plainLanguageQuestion || 'This handoff needs an operator answer.'
+    : scoutBoundary
+      ? scoutBoundary.summary
     : item.next_action?.summary || item.julesStateReconciliation?.summary || 'Handoff is waiting for the next proof boundary.';
 
   return {
@@ -3549,7 +3554,7 @@ function buildTaskNavigatorRecord(kind, item) {
     badgeClass: disposition !== 'active' ? 'approval' : needsInput ? 'pending-human-input' : merged ? 'running' : closed ? 'approval' : 'running',
     statusLabel,
     summary,
-    currentBoundary: item.next_action?.label || item.julesState || item.githubPullRequestState || item.status || 'Handoff',
+    currentBoundary: scoutBoundary?.currentBoundary || item.next_action?.label || item.julesState || item.githubPullRequestState || item.status || 'Handoff',
     expectedFileCount: Array.isArray(item.expectedFiles) ? item.expectedFiles.length : 0,
     verificationCommandCount: Array.isArray(item.verificationCommands) ? item.verificationCommands.length : 0,
     timelineEventCount: Array.isArray(item.handoffTimeline?.events) ? item.handoffTimeline.events.length : 0,
@@ -3561,6 +3566,49 @@ function buildTaskNavigatorRecord(kind, item) {
     linearIssueUrl: item.linearIssueUrl || null,
     julesSessionUrl: item.julesSessionUrl || null,
     githubPullRequestUrl: item.githubPullRequestUrl || null,
+  };
+}
+
+function taskNavigatorScoutBoundary(readiness) {
+  if (!readiness || !['blocked_by_scout', 'ready_for_core', 'waiting_for_checks_rerun', 'merged'].includes(readiness.status)) {
+    return null;
+  }
+
+  const firstBlocker = Array.isArray(readiness.blockers) ? readiness.blockers.find(Boolean) : null;
+  const summary = firstBlocker || readiness.expectedNextProof || readiness.nextAction?.summary || 'Scout/Core review owns the next proof boundary.';
+
+  // The navigator is the first scan surface a human sees. When the richer
+  // Scout/Core packet already proves this handoff is in review, prefer that
+  // packet over an older PR next-action label so stale check data cannot send
+  // the operator back to the wrong phase.
+  if (readiness.status === 'blocked_by_scout') {
+    return {
+      statusLabel: 'Scout/Core review',
+      currentBoundary: 'Scout/Core review',
+      summary,
+    };
+  }
+
+  if (readiness.status === 'ready_for_core') {
+    return {
+      statusLabel: 'Core validation ready',
+      currentBoundary: 'Core merge',
+      summary,
+    };
+  }
+
+  if (readiness.status === 'waiting_for_checks_rerun') {
+    return {
+      statusLabel: 'Wait for check rerun',
+      currentBoundary: 'GitHub PR',
+      summary,
+    };
+  }
+
+  return {
+    statusLabel: 'Check local sync',
+    currentBoundary: 'Local sync',
+    summary,
   };
 }
 

@@ -3234,7 +3234,11 @@ export class HttpServer {
             : 'Waiting for a Jules PR before Scout/Core can review.',
         endpoint: (prHandoff?.next_action?.url as string | null) ?? null,
         method: (prHandoff?.next_action?.method as 'GET' | 'POST' | 'NONE' | undefined) ?? 'NONE',
-        canRunNow: false,
+        // Scout/Core blockers still need a safe dashboard action. The operator
+        // is not allowed to merge or send feedback from this stage, but they
+        // must be able to refresh the PR evidence that feeds Scout/Core without
+        // digging for a hidden lower-page button or opening a raw POST URL.
+        canRunNow: Boolean(scoutAttention && prHandoff?.githubPullRequestUrl),
         mutatesGitIfRun: false,
         mutatesExternalSystemsIfRun: false,
         mutatesLocalFilesIfRun: false,
@@ -3377,6 +3381,28 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedReason,
         instruction: 'Open the visible Jules session result, then record whether the completed run produced a PR URL, failed, or completed without code changes.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'scout_core' && stage.status === 'blocked' && stage.endpoint) {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Refresh Scout/Core Evidence',
+        status: stage.status,
+        method: stage.method,
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: true,
+        requiresOperator: false,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: 'Refresh the GitHub PR evidence that Scout/Core depends on, then decide whether Scout should send Jules feedback, accept the risk, or keep the PR blocked.',
         expectedProof: stage.expectedProof,
       };
     }
