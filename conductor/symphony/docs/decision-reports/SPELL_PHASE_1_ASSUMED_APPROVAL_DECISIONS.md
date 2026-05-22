@@ -2366,15 +2366,67 @@ Copy this block for each decision.
   and record one fallback path: relaunch Jules, visible Download zip import, or
   split the task.
 
+### Decision 59: Keep Task Routing Focused On The Live Package 3 Handoff
+
+- Date/time: 2026-05-22 14:45 +02:00
+- Phase: `package_3_dashboard_task_routing`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first hardening
+- Decision point: After PR #950 landed the worktree-gate receipt update, the
+  dashboard current-boundary and middleman path correctly showed Package 3
+  Jules `IN_PROGRESS` with no PR. The separate `Task routing and nudge plan`
+  panel still selected old Package 2 because Package 2's post-merge
+  local-sync receipt had the newest `updatedAt` timestamp and carried a stale
+  local `master` blocker.
+- Options considered:
+  - Mutate or reconcile the user's main `master` checkout so the old Package 2
+    local-sync receipt stops looking blocked.
+  - Ignore the task-routing panel because other dashboard cards still pointed
+    at Package 3.
+  - Repair Symphony task routing so active/running handoffs outrank closed or
+    post-merge bookkeeping, then keep Package 3 as the visible route while
+    Package 2 remains historical evidence.
+- Decision made by agent: Patch the task-routing selector. The dashboard's
+  route-to-next-work card now chooses the live Package 3 handoff before older
+  merged-package bookkeeping, even when the older package received a newer
+  local-sync timestamp.
+- Model routing: Local Codex foreman with focused Symphony repair and verifier
+  coverage. Jules remains the Package 3 implementation worker.
+- Rationale/evidence: The dashboard-first goal depends on the human-visible UI
+  telling the operator what to do next. A stale Package 2 sync card can send
+  the operator toward unrelated local `master` work even though the real
+  boundary is still waiting for Package 3 Jules PR publication. Touching the
+  user's main checkout would solve the wrong problem and would not prevent the
+  dashboard from making the same timestamp mistake later.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/task-intake.ts` and extended
+  `conductor/symphony/scripts/verify-task-routing-nudging.mjs` with a fixture
+  where Package 3 is older but active and Package 2 is newer but merged with a
+  stale local-sync blocker. Skipped mutating the user's main `master` checkout,
+  skipped hidden dashboard endpoint bypasses, skipped Package 3 local
+  implementation, and skipped Download zip import.
+- Scope guardrails: This changes only Symphony routing/focus behavior. It does
+  not alter spell rules, character creator behavior, spellbook UI, AI
+  arbitration, premade roster semantics, or Jules task content.
+- Result: PR #951 carries the local build, focused task-routing verifier,
+  rendered dashboard proof, and docs updates. Merge proof is still required
+  before this repair is treated as landed.
+- Next expected proof: Run focused Symphony verification, publish and merge the
+  repair PR if normal checks pass, restart the dashboard from synced
+  `origin/master`, and confirm the task-routing panel points at Package 3 while
+  Package 2 stays historical.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
+1. Land the Package 3 task-routing focus repair so the dashboard's route card
+   cannot be stolen by older Package 2 local-sync bookkeeping.
+2. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
    has now received option B feedback and a follow-up visible publish request,
    but still has no captured Package 3 PR URL.
-2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
+3. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
-3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
+5. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.
