@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { createMockCombatCharacter } from '../../utils/core/factories';
-import type { BattleMapData, BattleMapTile, CombatCharacter } from '../../types/combat';
+import type { BattleMapData, BattleMapTile, CombatAction, CombatCharacter } from '../../types/combat';
+import type { SpellSlots } from '../../types/character';
 import type { PlayerCharacter } from '../../types';
 import maelisQuill from '../../../public/premade-characters/maelis_quill.json';
 import fireBolt from '../../../public/data/spells/level-0/fire-bolt.json';
@@ -81,13 +82,19 @@ const allSpellData = {
   sleep
 };
 
+// The premade JSON is runtime-correct but imported as a loose object, so we
+// narrow it once here and keep the regression typed without weakening the
+// production spell model.
+const maelisQuillCharacter = maelisQuill as unknown as PlayerCharacter;
+const maelisQuillSpellSlots = maelisQuillCharacter.spellSlots as SpellSlots;
+
 const buildLevelFiveWizard = (): CombatCharacter => {
   const highLevelWizard: PlayerCharacter = {
-    ...maelisQuill,
+    ...maelisQuillCharacter,
     level: 5,
     classLevels: { wizard: 5 },
     spellSlots: {
-      ...maelisQuill.spellSlots,
+      ...maelisQuillSpellSlots,
       level_1: { current: 4, max: 4 },
       level_2: { current: 3, max: 3 },
       level_3: { current: 2, max: 2 }
@@ -148,7 +155,9 @@ const openFloorMap = (width = 8, height = 8): BattleMapData => {
 };
 
 describe('useAbilitySystem - Package 4 multi-target spells', () => {
-  const onExecuteAction = vi.fn(() => true);
+  // The hook expects the full CombatAction contract, so the mock uses that
+  // signature instead of the default zero-arg tuple that Vitest infers.
+  const onExecuteAction = vi.fn<(action: CombatAction) => boolean>(() => true);
   const onCharacterUpdate = vi.fn();
   const onLogEntry = vi.fn();
   const onAbilityEffect = vi.fn();
@@ -158,7 +167,7 @@ describe('useAbilitySystem - Package 4 multi-target spells', () => {
   });
 
   it('routes a real multi-target spell through all legal targets instead of collapsing to one', async () => {
-    const caster = createPlayerCombatCharacter(maelisQuill as never, allSpellData as never);
+    const caster = createPlayerCombatCharacter(maelisQuillCharacter as never, allSpellData as never);
     const ability = caster.abilities.find(a => a.id === 'magic-missile');
 
     expect(ability).toBeDefined();
@@ -196,7 +205,7 @@ describe('useAbilitySystem - Package 4 multi-target spells', () => {
     expect(didSelect).toBe(true);
     expect(onExecuteAction).toHaveBeenCalledTimes(1);
 
-    const action = onExecuteAction.mock.calls[0][0] as { targetCharacterIds?: string[] };
+    const action = onExecuteAction.mock.calls[0][0];
     expect(action.targetCharacterIds).toHaveLength(3);
     expect(action.targetCharacterIds).toEqual(expect.arrayContaining(['target-1', 'target-2', 'target-3']));
   });
@@ -237,7 +246,7 @@ describe('useAbilitySystem - Package 4 multi-target spells', () => {
     expect(didSelect).toBe(true);
     expect(onExecuteAction).toHaveBeenCalledTimes(1);
 
-    const action = onExecuteAction.mock.calls[0][0] as { targetCharacterIds?: string[] };
+    const action = onExecuteAction.mock.calls[0][0];
     expect(action.targetCharacterIds).toHaveLength(3);
     expect(action.targetCharacterIds).toEqual(expect.arrayContaining(['ray-target-1', 'ray-target-2', 'ray-target-3']));
   });
@@ -278,7 +287,7 @@ describe('useAbilitySystem - Package 4 multi-target spells', () => {
     expect(didSelect).toBe(true);
     expect(onExecuteAction).toHaveBeenCalledTimes(1);
 
-    const action = onExecuteAction.mock.calls[0][0] as { targetCharacterIds?: string[] };
+    const action = onExecuteAction.mock.calls[0][0];
     expect(action.targetCharacterIds).toHaveLength(3);
     expect(action.targetCharacterIds).toEqual(expect.arrayContaining(['fireball-target-1', 'fireball-target-2', 'fireball-target-3']));
   });
