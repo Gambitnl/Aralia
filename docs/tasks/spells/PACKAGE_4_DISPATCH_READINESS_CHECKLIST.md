@@ -1,6 +1,7 @@
 # Package 4 Dispatch Readiness Checklist
 
-Status: draft artifacts prepared; not yet submitted to the Symphony dashboard.
+Status: Symphony dashboard draft created; waiting on the dashboard-required
+Linear issue boundary before Jules handoff preparation.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task for the deterministic combat spell pilot.
@@ -15,8 +16,6 @@ implementation task for the deterministic combat spell pilot.
   `docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_TASK.md`
 - Exact Jules prompt:
   `docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_PROMPT.md`
-- Symphony draft payload:
-  `docs/tasks/spells/PACKAGE_4_SYMPHONY_TASK_DRAFT_PAYLOAD.json`
 - Package 4 combat proof receipt:
   `docs/tasks/spells/PACKAGE_4_COMBAT_PROOF_RECEIPT.md`
 - Package 4 Atlas/gate receipt:
@@ -28,17 +27,29 @@ implementation task for the deterministic combat spell pilot.
 
 - Package 3 implementation merged: `yes`, PR #954.
 - Package 3 closeout receipts merged: `yes`, PR #974 and PR #975.
-- Local monitor branch: `codex/spell-phase1-monitor-32`, tracking
+- Local monitor branch: `codex/spell-phase1-monitor-33`, tracking
   `origin/master`.
 - Local-master sync blocker: still present. The user's local `master` checkout
   has 2 local-only commits, so the monitor worktree must not mutate it.
 - Package 4 scope mapped: `yes`.
-- Symphony dashboard draft created: `no`.
-- Linear issue created: `no`.
+- Symphony dashboard draft created: `yes`,
+  `draft-1779475056546-wvf3oh` at 2026-05-22 20:37 +02:00 through the visible
+  dashboard form.
+- Linear issue created: `no`; the dashboard now reports this workflow requires
+  a Linear issue before Symphony prepares the Jules handoff.
 - Symphony handoff prepared: `no`.
 - Jules manifest staged: `no`.
 - Jules handoff launched: `no`.
 - Jules implementation PR: `none`.
+- Flow blocker still visible: local-master sync is blocked because the user's
+  main `master` checkout has 2 local-only commits; the monitor worktree is
+  current on `origin/master`, but the dashboard base-branch sync model still
+  surfaces the main-checkout blocker.
+- CI friction repaired during packet publication: PR #976 initially failed on
+  `src/hooks/actions/__tests__/handleMovement.test.ts` because the seasonal
+  movement timing test allowed random procedural travel events to add delay
+  time. Codex stabilized that test by mocking `generateTravelEvent` to `null`
+  for the seasonal multiplier assertions, then local and GitHub Vitest passed.
 
 ## Reserved Names
 
@@ -56,15 +67,12 @@ Optional local review worktree:
 
 ## Next Dispatch Steps
 
-1. Use the visible Symphony dashboard to create the Package 4 draft from the
-   payload.
-2. Record the returned draft id in this checklist and in
-   `PACKAGE_4_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
-3. Let the dashboard route through Linear issue creation, manifest staging, and
-   Jules launch. Do not use hidden endpoints to skip visible blockers.
-4. Refresh Jules state through the dashboard until it asks for plan approval,
+1. Create or link the dashboard-required Linear issue for Package 4.
+2. Let the dashboard route through manifest staging and Jules launch. Do not
+   use hidden endpoints to skip visible blockers.
+3. Refresh Jules state through the dashboard until it asks for plan approval,
    opens a PR, reports a blocker, or produces another visible action.
-5. After Jules returns, fill the combat proof and Atlas/gate receipts before
+4. After Jules returns, fill the combat proof and Atlas/gate receipts before
    deciding whether Package 5 can begin.
 
 ## Abort Or Repair Path

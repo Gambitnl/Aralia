@@ -2,9 +2,9 @@
 
 Status: prompt-ready, not dispatched.
 
-Do not paste this into Jules until the matching Symphony draft is created from
-`docs/tasks/spells/PACKAGE_4_SYMPHONY_TASK_DRAFT_PAYLOAD.json` and the dashboard
-handoff path reaches the Jules launch boundary.
+Do not paste this into Jules until the visible Symphony dashboard draft is
+created and the handoff path reaches the Jules launch boundary. The raw
+dashboard payload is orchestration state, not a durable Aralia task artifact.
 
 ## Prompt To Send
 
@@ -101,8 +101,8 @@ Before sending:
 
 1. Confirm this prompt and the task file are committed or otherwise visible to
    Jules through the repository branch used for the handoff.
-2. Create the Symphony dashboard draft from
-   `PACKAGE_4_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
+2. Create the Symphony dashboard draft through the visible dashboard form and
+   record the returned draft id in the tracker.
 3. Create/link the Linear issue through the dashboard when the handoff path
    reaches that boundary.
 4. Stage the Jules manifest and launch the Jules session through the dashboard.
