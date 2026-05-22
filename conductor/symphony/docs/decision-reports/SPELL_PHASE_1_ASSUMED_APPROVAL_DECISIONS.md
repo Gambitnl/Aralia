@@ -2408,8 +2408,9 @@ Copy this block for each decision.
 - Scope guardrails: This changes only Symphony routing/focus behavior. It does
   not alter spell rules, character creator behavior, spellbook UI, AI
   arbitration, premade roster semantics, or Jules task content.
-- Result: Local build, focused task-routing verifier, rendered dashboard proof,
-  and PR/merge proof are required before this repair is treated as landed.
+- Result: PR #951 carries the local build, focused task-routing verifier,
+  rendered dashboard proof, and docs updates. Merge proof is still required
+  before this repair is treated as landed.
 - Next expected proof: Run focused Symphony verification, publish and merge the
   repair PR if normal checks pass, restart the dashboard from synced
   `origin/master`, and confirm the task-routing panel points at Package 3 while
