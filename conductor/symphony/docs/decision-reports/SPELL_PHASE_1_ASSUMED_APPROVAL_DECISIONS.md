@@ -1240,9 +1240,90 @@ Copy this block for each decision.
   request, then perform scope review and verification before merge or local
   sync.
 
+### Decision 31: Turn Safe Guarded PR Refresh Endpoints Into Visible Task-Page Controls
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to keep the Package 2 task page showing only the raw
+  `POST /refresh-pr` endpoint, or add a deliberate visible button for safe
+  Symphony refresh endpoints.
+- Options considered:
+  - Continue copying the endpoint from the task page and calling it outside the
+    dashboard.
+  - Leave all guarded actions as read-only runbook text.
+  - Keep Git/GitHub/local mutation actions as runbook text, but allow
+    non-mutating Symphony refresh endpoints to run from a visible task-page
+    button.
+- Decision made by agent: Add a visible `Run Safe Symphony Refresh` button for
+  guarded Symphony `refresh-pr` / `refresh-status` endpoints that declare no
+  Git, local-file, or external-system mutation.
+- Model routing: Standard foreman/frontend reasoning, because this is a narrow
+  dashboard UX repair exposed by the live task flow.
+- Rationale/evidence: The Package 2 task page reached `Bridge Through
+  Scout/Core` and listed `POST
+  http://127.0.0.1:8139/api/v1/jules-handoffs/handoff-1779400495781-jauy49/refresh-pr`
+  under `Guarded Operator Actions`, but there was no visible control to run it.
+  Calling the endpoint manually would work technically, but it weakens the
+  dashboard-first test because the human-facing page is supposed to carry the
+  flow.
+- Mutation performed or skipped: Updated `conductor/symphony/src/server.ts`,
+  `conductor/symphony/public/dashboard.css`, and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Did not add buttons
+  for Git pushes, GitHub comments, local sync, manifest staging, or other
+  mutation actions.
+- Scope guardrails: Only safe refresh endpoints are clickable. Mutation
+  commands remain explicit runbook text and still require separate operator
+  action and receipts.
+- Result: The live Package 2 task page now shows one visible `Run Safe Symphony
+  Refresh` button, and clicking it refreshes PR evidence from the task page.
+- Next expected proof: Use the visible refresh button before each Scout/Core
+  disposition so PR checks and file-risk evidence are current.
+
+### Decision 32: Treat Expected-File Globs As Real Jules Write Scope
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to accept Scout/Core's false out-of-scope warning for
+  Package 2 files, or repair the scope matcher to understand the write-scope
+  patterns used by the handoff.
+- Options considered:
+  - Ignore the dashboard warning because Codex manually confirmed the file list
+    was in scope.
+  - Rewrite the Package 2 task scope to enumerate every premade JSON file and
+    exact combat test file.
+  - Repair the Scout/Core scope matcher so expected-file globs such as
+    `public/premade-characters/*.json` and
+    `src/utils/combat/__tests__/combatUtils_*.test.ts` are honored.
+- Decision made by agent: Repair the Symphony PR scope classifier to support
+  the lightweight glob patterns used in task write scopes.
+- Model routing: Standard foreman/backend reasoning, because this is a narrow
+  evidence-classification bug that blocked dashboard-first PR review.
+- Rationale/evidence: After the visible safe refresh, the task detail correctly
+  fetched PR #935 checks but falsely reported fourteen out-of-scope files,
+  including every premade JSON file and the new `combatUtils_premade.test.ts`.
+  Those files were explicitly covered by the Package 2 expected write scope.
+- Mutation performed or skipped: Updated
+  `conductor/symphony/src/task-intake.ts` and
+  `conductor/symphony/scripts/verify-pr-scope-risk.mjs`. Did not broaden the
+  Package 2 scope or waive actual out-of-scope detection.
+- Scope guardrails: The matcher supports only the small review-boundary glob
+  shapes used in expected file paths: `*` for one path segment and `**` for
+  nested paths. Non-matching files still trigger the out-of-scope warning.
+- Result: After restarting the dashboard and clicking the visible safe refresh,
+  Package 2 Scout/Core evidence reports `outOfScopeFiles: []`, file risk
+  `medium`, and the remaining risk reason `Large diff: 1,500 or more changed
+  lines.`
+- Next expected proof: Decide the remaining Package 2 blockers: failed
+  workflow/test checks and whether the large JSON diff is acceptable or should
+  go back to Jules for a narrower rewrite.
+
 ## Open Decisions For The Next Slice
 
-1. Refresh Jules session `15527431301408060204` and record whether it produces
-   a PR, reports a blocker, or needs follow-up after the approved plan run.
-2. Inspect any Package 2 PR against the declared write scope before Scout/Core
-   review, merge, deployment proof, local sync, or Package 3 planning.
+1. Decide whether PR #935's failed `review / review` and broad `Tests` checks
+   are workflow/test-infrastructure blockers to repair separately, temporary
+   failures to rerun, or blockers that should stop Package 2 merge.
+2. Decide whether PR #935's large premade JSON line churn is acceptable with the
+   semantic diff evidence, or whether Jules should do a narrow formatting-only
+   cleanup before merge.

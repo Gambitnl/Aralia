@@ -58,6 +58,10 @@ If the exact combat test path changes, record the actual path used.
 - Follow-up bucket or UI work discovered: broad GitHub test failure in
   unrelated movement test; Gemini review infrastructure model failure; large
   JSON formatting churn reviewability question
+- Dashboard evidence checkpoint: Package 2 task-page safe refresh was repaired
+  and used through the visible UI; Scout/Core now reports
+  `outOfScopeFiles: []`, file risk `medium`, failed checks `2`, and pending
+  checks `0`
 - Can Package 3 begin after this checkpoint: `no`
 
 ## Rules

@@ -50,6 +50,8 @@ server.taskIntake = {
         title: 'ARA-6 task page proof',
         executor: 'jules',
         status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-detail-page\\manifest.json',
+        julesSessionId: '4101281510355198885',
         prompt: 'Show the operator one task workspace without sending Jules feedback.',
         expectedFiles: ['conductor/symphony/src/server.ts', 'conductor/symphony/public/dashboard.css'],
         verificationCommands: ['npm run verify:jules-contract'],
@@ -321,7 +323,9 @@ try {
   assert.match(page.body, /This does not send feedback to Jules, create Linear work, push to GitHub, or mutate Git/);
   assert.match(page.body, /data-task-clarification-url="http:\/\/127\.0\.0\.1:8199\/api\/v1\/tasks\/handoff-detail-page\/clarifications"/);
   assert.match(page.body, /Guarded Operator Actions/);
-  assert.match(page.body, /This section does not run them/);
+  assert.match(page.body, /Safe Symphony refresh endpoints can run here/);
+  assert.match(page.body, /Run Safe Symphony Refresh/);
+  assert.match(page.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-pr"/);
   assert.match(page.body, /Resolve CI Setup Blocker/);
   assert.match(page.body, /Prepare Jules PR feedback comment/);
   assert.match(page.body, /gh pr comment/);

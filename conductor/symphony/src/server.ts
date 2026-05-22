@@ -1749,6 +1749,33 @@ export class HttpServer {
         if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
       }
     });
+    // Safe endpoint buttons let the task page refresh Symphony-owned evidence
+    // without asking the operator to copy a raw POST URL into another tool.
+    const safeEndpointButtons = Array.from(document.querySelectorAll('[data-guarded-safe-endpoint]'));
+    safeEndpointButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        const endpoint = button.dataset.guardedSafeEndpoint;
+        const method = button.dataset.guardedSafeMethod || 'POST';
+        const statusNode = button.closest('li')?.querySelector('[data-guarded-safe-status]');
+        if (!endpoint) {
+          if (statusNode) statusNode.textContent = 'No endpoint is attached to this action.';
+          return;
+        }
+        button.disabled = true;
+        if (statusNode) statusNode.textContent = 'Running guarded Symphony refresh...';
+        try {
+          const response = await fetch(endpoint, { method });
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || response.statusText);
+          }
+          window.location.reload();
+        } catch (error) {
+          button.disabled = false;
+          if (statusNode) statusNode.textContent = 'Guarded refresh failed: ' + (error?.message || error);
+        }
+      });
+    });
     const repairPushResultForm = document.querySelector('[data-task-repair-push-result-form]');
     repairPushResultForm?.addEventListener('submit', async event => {
       event.preventDefault();
@@ -1788,23 +1815,31 @@ export class HttpServer {
     const actions = this.arrayFromUnknown(detail.guardedActions);
     if (!actions.length) return '';
 
-    // Guarded actions are deliberately shown as runbook evidence, not as
-    // automatic buttons. This lets the operator see the next GitHub/Jules/Git
-    // command while Symphony still refuses to cross that boundary silently.
+    // Guarded actions stay visible and explicit. Read-only Symphony refresh
+    // endpoints can be run by a deliberate button, while Git/GitHub mutation
+    // commands remain runbook text for the operator to execute outside the page.
     return `<article class="card task-page-guarded-actions">
       <h2>Guarded Operator Actions</h2>
-      <p class="usage-summary">Commands and endpoints listed here require deliberate operator action or a guarded Symphony endpoint. This section does not run them.</p>
+      <p class="usage-summary">Commands and endpoints listed here require deliberate operator action. Safe Symphony refresh endpoints can run here; GitHub, Git, and local mutation commands stay as runbook text.</p>
       <ol class="task-page-events">${actions.map(action => {
         const record = this.recordFromUnknown(action);
         const command = this.stringFromUnknown(record.command);
         const endpoint = this.stringFromUnknown(record.endpoint);
         const method = this.stringFromUnknown(record.method);
+        const canRunSafeEndpoint = Boolean(endpoint)
+          && (method ?? 'POST').toUpperCase() === 'POST'
+          && record.safety === 'guarded_symphony_endpoint'
+          && (/\/refresh-(?:pr|status)$/.test(endpoint ?? ''))
+          && record.mutatesExternalSystemsIfRun !== true
+          && record.mutatesLocalFilesIfRun !== true
+          && record.mutatesGitIfRun !== true;
         return `<li>
           <strong>${this.escapeHtml(this.stringFromUnknown(record.label) ?? 'Guarded action')}</strong>
           <span>${this.escapeHtml(this.stringFromUnknown(record.safety) ?? 'operator approval required')}</span>
           <p>${this.escapeHtml(this.stringFromUnknown(record.summary) ?? '')}</p>
           ${command ? `<p><code>${this.escapeHtml(command)}</code></p>` : ''}
           ${endpoint ? `<p><code>${this.escapeHtml(`${method ?? 'POST'} ${endpoint}`)}</code></p>` : ''}
+          ${canRunSafeEndpoint ? `<button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(endpoint)}" data-guarded-safe-method="${this.escapeHtml(method ?? 'POST')}">Run Safe Symphony Refresh</button><p class="usage-summary" data-guarded-safe-status></p>` : ''}
         </li>`;
       }).join('')}</ol>
     </article>`;

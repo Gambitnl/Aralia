@@ -22,6 +22,11 @@ broad test job and Gemini review job are still failing. The broad test failure
 is outside the Package 2 diff and needs an explicit Scout/Core disposition
 before merge or Package 3 readiness.
 
+Dashboard bridge status: the task-page safe refresh control now works from the
+visible Symphony page, and Scout/Core now honors Package 2 expected-file globs.
+Current Scout/Core evidence reports `outOfScopeFiles: []` and file risk
+`medium` due to large diff size, not write-scope escape.
+
 ## Scope Review Fields
 
 - Jules handoff/session id: `15527431301408060204`
@@ -33,6 +38,9 @@ before merge or Package 3 readiness.
   `src/utils/combat/__tests__/combatUtils_premade.test.ts`
 - Files within allowed write scope: `yes`
 - Out-of-scope files, if any: `none in final PR file list`
+- Scout/Core out-of-scope files after glob repair: `[]`
+- Scout/Core file risk after glob repair: `medium`, because the diff is still
+  large enough to require review attention
 - Premade identities preserved: `yes from semantic JSON diff; still review
   large formatting churn before merge`
 - Character creator UI touched: `no`
@@ -112,6 +120,16 @@ For each blocker, record:
 - Repair path: accept with semantic-diff evidence, or ask Jules to preserve
   prior formatting while keeping the same semantic changes.
 - Next proof: recorded reviewability decision.
+
+- Resolved blocker: Scout/Core initially reported Package 2 premade JSON files
+  and `combatUtils_premade.test.ts` as out of scope.
+- Classification: `dashboard_workflow` plus `scope_evidence`.
+- Evidence: expected-file globs were declared in the task scope, but the
+  classifier treated them as literals until Decision 32.
+- Agent decision: repair the dashboard evidence classifier instead of waiving
+  the false warning manually.
+- Result: visible safe refresh now reports `outOfScopeFiles: []`; this issue no
+  longer blocks PR review.
 
 ## Review Outcomes
 

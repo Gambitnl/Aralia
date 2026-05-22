@@ -1654,6 +1654,13 @@ textarea {
   font-size: 0.82rem;
 }
 
+.task-page-guarded-actions button {
+  /* Guarded refresh buttons are intentionally modest: they make safe
+     Symphony-owned refreshes clickable without visually equating them with
+     mutating GitHub, Git, or local-sync actions. */
+  margin-top: 0.4rem;
+}
+
 .task-page-terminal pre {
   /* The activity mirror is intentionally shaped like terminal scrollback while
      staying backed by durable task records. Wrapping keeps long GitHub URLs,

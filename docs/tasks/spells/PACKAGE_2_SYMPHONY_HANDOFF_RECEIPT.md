@@ -209,6 +209,60 @@ dashboard-first test flow.
 Durable breadcrumb: this receipt and tracker gaps G10/G11 now carry the PR
 review evidence until the dashboard has a more robust visible task-note path.
 
+## Task-Page Safe PR Refresh Control
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+The Package 2 task detail page reached `Bridge Through Scout/Core` and showed a
+guarded `POST /refresh-pr` endpoint, but initially exposed it only as raw
+runbook text. That was a dashboard-first blocker: a human foreman could see the
+safe action but could not perform it from the visible task page without copying
+an endpoint and leaving the workflow surface.
+
+Repair path:
+
+- Decision report entry: Decision 31.
+- Code path: `conductor/symphony/src/server.ts` and
+  `conductor/symphony/public/dashboard.css`.
+- Verifier: `conductor/symphony/scripts/verify-task-detail-page.mjs`.
+- Live proof: after restarting Symphony, the task page showed one visible
+  `Run Safe Symphony Refresh` button. Codex clicked that visible button in the
+  in-app browser, and the task page refreshed PR #935 check evidence.
+
+Guardrail: only non-mutating Symphony refresh endpoints that declare no Git,
+local-file, or external-system mutation are clickable. GitHub comments, pushes,
+manifest staging, local sync, and other mutation actions remain runbook text.
+
+## Scout/Core Scope Glob Repair
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+The first safe PR refresh loaded current PR checks but falsely reported fourteen
+out-of-scope files, including the premade JSON files and the new
+`combatUtils_premade.test.ts`. Those files were inside the Package 2 declared
+write scope, but Scout/Core had treated expected-file globs as literal paths.
+
+Repair path:
+
+- Decision report entry: Decision 32.
+- Code path: `conductor/symphony/src/task-intake.ts`.
+- Verifier: `conductor/symphony/scripts/verify-pr-scope-risk.mjs`.
+- Live proof: after restarting Symphony and clicking the visible safe refresh
+  button again, Scout/Core evidence reported `outOfScopeFiles: []`.
+
+Current Scout/Core evidence after the repair:
+
+- PR checks conclusion: `failing`
+- Failed checks: `2`
+- Pending checks: `0`
+- File risk: `medium`
+- Risk reason: `Large diff: 1,500 or more changed lines.`
+- Out-of-scope files: `[]`
+
+This means the active Package 2 blockers are no longer scope-classification
+errors. The remaining blockers are the failed GitHub workflow/test checks and
+the reviewability decision about the large premade JSON diff.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub

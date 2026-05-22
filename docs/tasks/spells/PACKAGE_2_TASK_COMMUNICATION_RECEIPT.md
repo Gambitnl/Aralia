@@ -13,14 +13,16 @@ first Spell Phase 1 Jules slice can prove how Codex acted as foreman.
 - Jules handoff/session exists: `yes`
 - Task page communication available: `partial`
 - Task-scoped operator messages recorded: `yes`
-- Task-scoped Codex foreman messages recorded: `partial`
+- Task-scoped Codex foreman messages recorded: `partial via receipts`
 - Open clarifications: `none`
 - Can this receipt prove task-scoped communication yet: `partial`
 
 Reason: the task page exists and contains at least one operator message, but
 Codex could not add the latest foreman PR-review note through the visible form
 because the in-app browser input path reported that its virtual clipboard is
-not installed.
+not installed. The dashboard now exposes a visible safe refresh button for PR
+evidence, but durable foreman notes still need to be carried by receipts until
+the visible note-entry path is repaired.
 
 ## Communication Channels To Record
 
@@ -50,6 +52,9 @@ Do not treat broad Codex thread context as task-scoped Package 2 communication.
   through the visible form; it is recorded in
   `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` and
   `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md`
+- Dashboard-triggered communication/evidence events: Codex clicked the visible
+  `Run Safe Symphony Refresh` button on the Package 2 task page; that action
+  refreshed PR checks and Scout/Core evidence without using a hidden endpoint
 - Structured clarifications recorded: none
 - Jules dialogue affecting scope or repair: visible plan-approval gate; PR #935
   generated from the approved Package 2 scope
@@ -58,7 +63,8 @@ Do not treat broad Codex thread context as task-scoped Package 2 communication.
 - Open questions remaining: whether failed broad GitHub tests and Gemini review
   infrastructure are blocking, waived, or repaired before merge
 - Communication blockers: dashboard task-message text entry failed from Codex
-  because the browser surface reported no virtual clipboard
+  because the browser surface reported no virtual clipboard; task-page PR
+  refresh is repaired, but task-page note entry remains a dashboard workflow gap
 - Can Package 2 advance from a communication standpoint: `no`, because the
   failed-check disposition still needs to be recorded through the Scout/Core
   bridge
