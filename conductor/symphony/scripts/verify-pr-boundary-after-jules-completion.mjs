@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import http from 'node:http';
 import { HttpServer } from '../dist/server.js';
 
@@ -9,6 +10,11 @@ import { HttpServer } from '../dist/server.js';
 
 const BASE_URL = 'http://127.0.0.1:8211';
 const generatedAt = '2026-05-22T00:00:00.000Z';
+const dashboardSource = await readFile(new URL('../public/dashboard.js', import.meta.url), 'utf8');
+
+assert.match(dashboardSource, /prRefreshMatch/);
+assert.match(dashboardSource, /data-task-action="refresh-pr"/);
+assert.match(dashboardSource, /Refresh GitHub PR/);
 
 const logger = {
   child() {

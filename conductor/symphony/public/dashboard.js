@@ -1548,6 +1548,14 @@ function renderForemanRunControl(action) {
     return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
   }
 
+  const prRefreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-pr$/);
+  if (action.method === 'POST' && action.canRunNow && prRefreshMatch) {
+    // PR review is also a safe external-read boundary. Exposing it as a button
+    // keeps the operator on the dashboard path instead of making them open a
+    // raw POST endpoint that a browser cannot execute as the intended action.
+    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
+  }
+
   return `<a data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
 }
 

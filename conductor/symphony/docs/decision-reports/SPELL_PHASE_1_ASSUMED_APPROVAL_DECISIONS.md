@@ -1469,6 +1469,40 @@ Copy this block for each decision.
   and continue only from the visible guarded sync plan or the next dashboard
   blocker it exposes.
 
+### Decision 37: Make Current-Boundary PR Refresh A Real Dashboard Button
+
+- Date/time: 2026-05-22
+- Phase: `dashboard_first_workflow`
+- Active slice: Package 2 PR review
+- Decision point: Whether to open the raw PR refresh endpoint from the current
+  boundary or repair the current-boundary renderer so `Run GitHub PR` is a
+  clickable dashboard action.
+- Options considered:
+  - Use the raw `/refresh-pr` endpoint link even though a browser link cannot
+    perform the intended guarded POST action.
+  - Scroll down to a lower handoff card and use its existing refresh button,
+    leaving the top current-boundary action misleading.
+  - Reuse the existing safe `refresh-pr` dashboard action in the
+    current-boundary panel.
+- Decision made by agent: Add a `Refresh GitHub PR` button to the
+  current-boundary panel for safe PR refresh actions.
+- Model routing: Standard foreman/frontend reasoning, because this was a narrow
+  dashboard affordance repair using an existing safe button path.
+- Rationale/evidence: The visible dashboard showed `Run GitHub PR`,
+  `Method POST`, `Can run now yes`, but exposed only `Evidence` and `Endpoint`
+  links. The current-boundary surface should be operable without asking the
+  operator to know where the lower duplicate handoff controls live.
+- Mutation performed or skipped: Updated
+  `conductor/symphony/public/dashboard.js` and extended
+  `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`.
+- Scope guardrails: The button reuses the existing `refresh-pr` handler. It
+  only reads GitHub PR state/checks/comments/risk evidence; it does not push,
+  merge, comment, launch Jules, create Linear work, or mutate local files.
+- Result: The next dashboard reload can expose the current PR boundary as a
+  visible `Refresh GitHub PR` button instead of a raw POST endpoint link.
+- Next expected proof: Reload the dashboard, click the current-boundary
+  `Refresh GitHub PR` button, and capture the refreshed Package 2 PR evidence.
+
 ## Open Decisions For The Next Slice
 
 1. File the Symphony dashboard fixes that enabled the local setup-repair draft

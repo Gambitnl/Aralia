@@ -380,6 +380,26 @@ Filing proof:
   intentionally skipped by the local pre-push policy, matching the repo's
   documented push policy.
 
+## Current-Boundary PR Refresh Repair
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After the branch was filed, the dashboard still exposed the Package 2 PR review
+boundary as `Run GitHub PR` with `Method POST` and `Can run now yes`, but the
+current-boundary panel rendered only raw `Evidence` / `Endpoint` links. That
+would force the foreman either to use a raw endpoint or to hunt for a lower
+duplicate handoff-card button.
+
+Repair path:
+
+- Decision report entry: Decision 37.
+- Code path: `conductor/symphony/public/dashboard.js`.
+- Verifier:
+  `conductor/symphony/scripts/verify-pr-boundary-after-jules-completion.mjs`.
+- Intended live proof: reload the dashboard and click the current-boundary
+  `Refresh GitHub PR` button to refresh Package 2 PR #935 through the visible
+  safe dashboard action.
+
 ## Next Expected Proof
 
 1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
