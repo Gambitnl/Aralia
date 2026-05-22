@@ -1893,13 +1893,58 @@ Copy this block for each decision.
   `list_projects` or an equivalent Stitch project read succeeds, then use
   Stitch for a deliberate dashboard redesign pass.
 
+### Decision 48: Scope Git Disposition Decisions To The Current Evidence
+
+- Date/time: 2026-05-22
+- Phase: `package_3_dashboard_git_gate_repair_followup`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After PR #940 landed and the dashboard was restarted on
+  `http://127.0.0.1:8139/`, the Git gate correctly compared the current
+  worktree branch against `origin/master`, but the Sync Decision Board reused
+  the older `keep_local` disposition recorded for unrelated local `master`
+  commits. The execution plan also described the current-branch commit as a
+  simple branch push even though the branch had already been pushed and the real
+  base-gate resolution is to publish and merge the branch or switch to a clean
+  checkout.
+- Options considered:
+  - Accept the stale disposition and manually open/merge a PR outside the
+    dashboard flow.
+  - Record another disposition for the same category and leave the category-only
+    reuse bug for later.
+  - Repair Symphony so Git dispositions expire when the underlying branch,
+    commits, counts, or file samples change, and make the current-branch plan
+    explicitly say publish or merge.
+- Decision made by agent: Repair Symphony with a focused failing regression,
+  then continue the dashboard-first Package 3 flow from the corrected guidance.
+- Model routing: Local Codex foreman with systematic debugging and focused TDD,
+  because this was orchestration/dashboard state logic, not spell feature
+  implementation suitable for Jules.
+- Rationale/evidence: The in-app browser showed `c6995536` as the only branch
+  commit, while the disposition note still described unrelated racial-mechanics
+  local `master` commits. The regression in
+  `verify-git-preflight-blockers.mjs` reproduced that stale-disposition leak in
+  a temporary repo, watched it fail, then verified the scoped fix.
+- Mutation performed or skipped: Added `scopeKey` to Git disposition records,
+  scoped recorded decisions to the live preflight evidence, filtered stale
+  decisions out of dashboard snapshots, and changed the Git sync plan label for
+  non-base branch commits to `Publish or merge current branch`.
+- Scope guardrails: This does not run Git, does not create or merge a PR by
+  itself, and does not bypass the dashboard gate. It only prevents stale
+  dashboard state from masquerading as a current operator decision.
+- Result: `npm run build`, `verify-git-preflight-blockers.mjs`,
+  `verify-git-sync-plan.mjs`, `verify-sync-decision-board.mjs`, and
+  `verify-task-dashboard-navigator.mjs` passed locally.
+- Next expected proof: Land this Symphony follow-up, restart the dashboard on
+  `8139`, record the current branch disposition visibly if still needed, and
+  continue to Package 3 draft creation only after the Git gate reports ready.
+
 ## Open Decisions For The Next Slice
 
 1. Create the Package 3 Symphony dashboard draft visibly from
    `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
 2. Package and dispatch Package 3 for Jules: character creator spell selection
    and character sheet spellbook visibility.
-3. Resolve the remaining dashboard Git-sync/stale-state signal if it blocks
-   visible Package 3 draft creation after the PR #940 repair.
+3. Land the scoped Git-disposition repair if checks pass, then clear the
+   current branch from the dashboard Git gate through the visible workflow.
 4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.

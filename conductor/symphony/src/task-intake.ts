@@ -176,6 +176,7 @@ export interface GitDispositionRecord {
   decisionLabel: string;
   note: string;
   updatedAt: string | null;
+  scopeKey?: string | null;
 }
 
 export interface GitDispositionSummary {
@@ -3271,6 +3272,7 @@ export class TaskIntakeStore {
     const decision = normalizeGitDispositionDecision(input.decision);
     const note = typeof input.note === 'string' ? input.note.trim().slice(0, 600) : '';
     const stored = await this.readStoredDrafts();
+    const preflight = await this.runGitSyncPreflight();
     const now = new Date().toISOString();
     const existing = new Map(stored.gitDisposition.map(record => [record.category, record]));
     const definition = GIT_DISPOSITION_CATEGORIES.find(item => item.category === category);
@@ -3290,6 +3292,7 @@ export class TaskIntakeStore {
       decisionLabel: GIT_DISPOSITION_DECISION_LABELS[decision],
       note,
       updatedAt: now,
+      scopeKey: gitDispositionScopeKey(preflight, category),
     });
 
     stored.gitDisposition = buildGitDispositionSummary(Array.from(existing.values())).categories;
@@ -3490,7 +3493,7 @@ export class TaskIntakeStore {
     preflight: GitSyncPreflight,
     codexUsage?: DelegationRoiCodexUsageInput | null
   ): TaskDraftSnapshot {
-    const gitDisposition = buildGitDispositionSummary(stored.gitDisposition);
+    const gitDisposition = buildGitDispositionSummary(stored.gitDisposition, preflight);
     const operatorPreferences = normalizeOperatorPreferences(stored.operatorPreferences);
     const taskRouting = buildTaskRoutingPlan(stored.drafts, stored.handoffs, preflight);
 
@@ -5868,7 +5871,7 @@ function normalizeTaskDisposition(
   };
 }
 
-function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
+function buildGitDispositionSummary(value: unknown, preflight?: GitSyncPreflight): GitDispositionSummary {
   const rawRecords = Array.isArray(value) ? value : [];
   const byCategory = new Map<GitDispositionCategory, GitDispositionRecord>();
 
@@ -5883,6 +5886,13 @@ function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
 
       if (!definition) continue;
 
+      // Git disposition decisions are only safe to reuse while the underlying
+      // Git evidence is the same. This prevents a "keep local" decision made
+      // for old local master commits from silently applying to a newer package
+      // branch commit that should probably be merged before Jules starts.
+      const expectedScope = preflight ? gitDispositionScopeKey(preflight, category) : null;
+      if (expectedScope && candidate.scopeKey && candidate.scopeKey !== expectedScope) continue;
+
       byCategory.set(category, {
         category,
         label: definition.label,
@@ -5890,6 +5900,7 @@ function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
         decisionLabel: decision ? GIT_DISPOSITION_DECISION_LABELS[decision] : 'Not decided',
         note: typeof candidate.note === 'string' ? candidate.note : '',
         updatedAt: typeof candidate.updatedAt === 'string' ? candidate.updatedAt : null,
+        scopeKey: typeof candidate.scopeKey === 'string' ? candidate.scopeKey : null,
       });
     } catch {
       // Hand-edited queue files should not crash the dashboard. Invalid
@@ -5906,6 +5917,7 @@ function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
       decisionLabel: 'Not decided',
       note: '',
       updatedAt: null,
+      scopeKey: preflight ? gitDispositionScopeKey(preflight, definition.category) : null,
     };
   });
   const decidedCount = categories.filter(category => Boolean(category.decision)).length;
@@ -6084,7 +6096,15 @@ function buildGitSyncPlan(preflight: GitSyncPreflight, disposition: GitDispositi
     });
   }
 
-  if ((preflight.ahead ?? 0) > 0) {
+  if ((preflight.ahead ?? 0) > 0 && preflight.nextAction?.code === 'publish_or_merge_current_branch') {
+    steps.push({
+      kind: 'push',
+      label: 'Publish or merge current branch',
+      detail: `${decisionDetail(dispositionByCategory.get('local_commits'))} Push the branch if GitHub cannot see it yet, then open or merge a PR so ${preflight.remoteBranch} contains the intended base commit. Pushing the side branch alone does not clear this gate.`,
+      command: commands.pushBase || null,
+      destructive: true,
+    });
+  } else if ((preflight.ahead ?? 0) > 0) {
     steps.push({
       kind: 'push',
       label: 'Push intended local commits',
@@ -7038,6 +7058,27 @@ function activeGitDispositionCategories(preflight: GitSyncPreflight): GitDisposi
   if ((preflight.untrackedFiles ?? 0) > 0) categories.push('untracked_artifacts');
   if ((preflight.behind ?? 0) > 0) categories.push('remote_commits');
   return categories;
+}
+
+function gitDispositionScopeKey(preflight: GitSyncPreflight, category: GitDispositionCategory): string {
+  // The same category name can describe very different ownership questions over
+  // time. Including the current branch, commits, counts, and visible samples
+  // makes the saved decision expire when the evidence changes.
+  const parts = [
+    category,
+    `branch=${preflight.currentBranch ?? 'unknown'}`,
+    `base=${preflight.baseBranch}`,
+    `remote=${preflight.remoteBranch}`,
+    `local=${preflight.localCommit ?? 'unknown'}`,
+    `github=${preflight.remoteCommit ?? 'unknown'}`,
+  ];
+
+  if (category === 'local_commits') parts.push(`ahead=${preflight.ahead ?? 'unknown'}`);
+  if (category === 'remote_commits') parts.push(`behind=${preflight.behind ?? 'unknown'}`);
+  if (category === 'tracked_changes') parts.push(`dirty=${preflight.dirtyFiles}`, ...preflight.dirtyFileSamples);
+  if (category === 'untracked_artifacts') parts.push(`untracked=${preflight.untrackedFiles}`, ...preflight.untrackedFileSamples);
+
+  return parts.join('|');
 }
 
 function gitDispositionLabel(category: GitDispositionCategory): string {
