@@ -1,6 +1,7 @@
 # Package 3 Dispatch Readiness Checklist
 
-Status: launched to Jules; visible Jules work exists, waiting for PR capture or publish explanation.
+Status: Package 3 dispatched to Jules, returned through PR #954, merged, and
+in closeout reconciliation.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task. It should be updated before dispatch, after Jules creates a
@@ -80,7 +81,16 @@ PR, and during closeout.
   but no PR link, so the agent sent a visible Jules chat request asking Jules
   to push/open the expected PR or state that it cannot and whether Download zip
   is the only remaining handoff path.
-- Package 3 implementation PR: `none`.
+- Package 3 implementation PR:
+  `https://github.com/Gambitnl/Aralia/pull/954`, opened by Jules on suffixed
+  branch `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`
+  and merged on 2026-05-22.
+- Package 3 merge commit:
+  `7f8d8935a08143ca6c0c1c5c78f4fedae0e4de27`.
+- Package 3 closeout docs PR:
+  `https://github.com/Gambitnl/Aralia/pull/972`, merged as `be517051`.
+- Package 3 local-sync dashboard repair PR:
+  `https://github.com/Gambitnl/Aralia/pull/973`, merged as `d705a9bd`.
 
 ## Reserved Names
 
@@ -98,21 +108,17 @@ Optional local review worktree:
 
 ## Next Dispatch Steps
 
-1. Continue dashboard-first Jules status refreshes until one of these outcomes
-   is captured: resumed work, PR URL, another feedback/approval request,
-   failure, or durable no-code completion.
-2. If a PR appears, run the Package 3 review path before Scout/Core merge:
-   scope check, relevant focused tests, visual proof, Atlas/gate checkpoint,
-   and PR checks.
-3. If Jules remains completed-without-PR after the explicit visible publish
-   request, record the no-PR result as a Package 3 publish blocker before
-   deciding whether to relaunch Jules, use the visible Jules Download zip
-   export path, or split the task further.
-4. Record the PR URL or no-PR proof, verifier output, visual proof, and
-   Atlas/gate checkpoint
-   in this checklist and the Package 3 receipts.
-5. Keep combat simulator casting and AI arbitration discoveries as Package 4/5
-   gaps unless they are tiny fixture-only changes required to test Package 3.
+1. Merge this receipt reconciliation so future foremen do not read the stale
+   pre-PR Package 3 state.
+2. Keep the visible dashboard local-sync result as the closeout boundary:
+   monitor branch `codex/spell-phase1-monitor-30` matches `origin/master`, but
+   mutating the user's local `master` checkout is blocked because that checkout
+   has local-only commits and this worktree is not `master`.
+3. Draft Package 4 from the tracker after the closeout receipts land. Package
+   4 owns combat simulator casting proof, deterministic spell pilot coverage,
+   and any test-fixture roster expansion needed for level 2-3 spell testing.
+4. Keep AI arbitration discoveries as Package 5 gaps unless Package 4 uncovers
+   a tiny fixture-only prerequisite.
 
 ## Abort Or Repair Path
 

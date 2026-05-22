@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: PR #954 captured; Scout feedback sent after green checks; waiting for Jules repair.
+Status: PR #954 merged; Package 3 closeout receipts are being reconciled.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -53,28 +53,31 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | PR #958 monitor docs merged | Done | PR #958 merged the Decision 64/tracker receipt update after ordinary checks passed; the Gemini review lane failed only from quota exhaustion. The foreman preserved the pre-squash branch and switched to `codex/spell-phase1-monitor-14` from `origin/master`; visible `Check GitHub Sync` reported ready. |
 | Scout review after green checks | Waiting for repair | Jules pushed PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39` and all ordinary GitHub checks passed. Scout review found Druid `Speak with Animals` is included only on submit, not visibly rendered as the requested locked/pre-selected creator card, and `SpellCard.tsx` still uses explicit `any` formatting helpers. A third marked Jules feedback comment was posted at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250`. |
 | Visible Jules repair request | Waiting for repair | Dashboard refresh on 2026-05-22 18:37 +02:00 still showed `Wait for Jules Repair` and PR #954 still had head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`. The dashboard-linked Jules session showed earlier GitHub feedback but not the latest Scout `Speak with Animals` / `SpellCard` repair text, so the agent sent the same bounded repair request visibly in Jules with the Package 3 scope guardrails. |
+| Jules repair accepted | Done | Jules pushed repair commit `b77b03581016c3ed0c950e242a1a8eca82f3e756`. Focused creator/spellbook tests, local build, rendered creator inspection, and GitHub checks supported accepting the repair. The foreman posted the Scout/Core result at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4521118630`. |
+| PR #954 merged | Done | PR #954 merged on 2026-05-22 as `7f8d8935a08143ca6c0c1c5c78f4fedae0e4de27`. Package 3 implementation is now on `origin/master`; G46 records the remaining class-feature checkbox semantics follow-up. |
+| Package 3 merge docs | Done | PR #972 merged as `be517051`, recording the PR #954 merge decision and preserving the post-merge monitor state. |
+| Local-sync dashboard repair | Done | PR #973 merged as `d705a9bd`, making a merged PR advance to a visible `Check Local Sync` readiness action instead of a stale PR-refresh loop. |
+| Visible local-sync check after PR #973 | Blocked for local-master mutation | The rendered dashboard on `http://127.0.0.1:8139/` reported `Ready: codex/spell-phase1-monitor-30 matches origin/master and the working tree is clean` with `origin/master @ d705a9bd9d025b49b24014f822cba78ce0e20862`. The mutating local sync remains blocked because the user's local `master` checkout has 2 local commit(s) not on `origin/master`, and this isolated worktree is on `codex/spell-phase1-monitor-30`, not `master`. |
 
 ## Current Boundary
 
-- Jules state: Symphony reports the historical Jules session as `FAILED`, but
-  the returned implementation is now visible as PR #954.
+- Jules state: PR #954 was returned by Jules and merged.
 - PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
-- Current PR boundary: waiting for Jules to repair Scout feedback after green
-  checks on PR head `c02bf58ea3687f65ad57ca78581f46ae7cadad39`.
-- Latest repair-routing proof: the third marked GitHub feedback comment exists
-  on PR #954, and the same bounded repair request was also sent visibly in the
-  Jules session at 2026-05-22 18:41 +02:00 after the session page did not show
-  that latest Scout feedback text.
-- Dashboard workflow state: local Symphony now distinguishes old feedback with
-  no PR movement from a post-feedback PR update that still fails. The live task
-  page showed `Repair Failed Checks` after Jules' repair commit, then returned
-  to `Wait for Jules Repair` after the selected Jules-feedback decision and PR
-  comment #4519399645. PR #957 has merged that state model to `origin/master`.
-- Monitor worktree state: `codex/spell-phase1-monitor-14` is current with
-  `origin/master`; the visible dashboard Git sync gate reports ready.
-- Next proof: refresh the dashboard PR packet after Jules pushes a repair
-  commit, then review checks, changed-file risk, Scout/Core readiness, and
-  rendered spellbook/creator proof before merge.
+- Current PR boundary: complete. PR #954 merged as
+  `7f8d8935a08143ca6c0c1c5c78f4fedae0e4de27`.
+- Current closeout boundary: reconcile receipts and preserve the dashboard
+  local-sync proof. The isolated monitor branch is clean and current with
+  `origin/master`, but the user's local `master` checkout has local-only work,
+  so no mutating sync was performed.
+- Dashboard workflow state: PR #973 repaired the post-merge local-sync
+  transition. The dashboard now exposes `Check Local Sync` as the visible
+  readiness action and keeps `Sync Local Master` gated behind a safe readiness
+  packet.
+- Monitor worktree state: `codex/spell-phase1-monitor-30` matches
+  `origin/master` at `d705a9bd9d025b49b24014f822cba78ce0e20862`; the visible
+  dashboard readiness check reports a clean tree.
+- Next proof: merge these receipt updates, targeted-mine the durable spell and
+  Symphony decision docs, then draft Package 4 from the living tracker.
 
 ## Dashboard UX Notes
 

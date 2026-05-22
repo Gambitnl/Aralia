@@ -3410,11 +3410,56 @@ Copy this block for each decision.
   Package 3 closeout by recording deployment/local-sync status honestly and
   updating the Package 3 proof receipts before Package 4 drafting.
 
+### Decision 80: Record Monitor-Branch Sync Proof Instead Of Mutating Local Master
+
+- Date/time: 2026-05-22 20:05 +02:00
+- Phase: `package_3_closeout`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: After PR #973 merged, the visible dashboard `Check Local
+  Sync` action proved that `codex/spell-phase1-monitor-30` matched
+  `origin/master` at `d705a9bd9d025b49b24014f822cba78ce0e20862` and had a clean
+  worktree. The same readiness packet still blocked mutating local sync because
+  the user's local `master` checkout has 2 local commit(s) that are not on
+  `origin/master`, and this isolated worktree is not on `master`.
+- Options considered:
+  - Force the user's local `master` checkout to match `origin/master`.
+  - Run the mutating local-sync path from the isolated monitor branch.
+  - Ignore the local-sync boundary and proceed without a receipt.
+  - Treat the clean monitor branch plus `origin/master` merge proof as the safe
+    Package 3 closeout evidence, while recording that local `master` sync is
+    intentionally blocked by user-owned local work.
+- Decision made by agent: Do not mutate the user's local `master` checkout.
+  Record the visible dashboard readiness result, preserve the local-master
+  blocker, and reconcile the stale Package 3 receipts before Package 4.
+- Model routing: Local Codex handled this closeout/receipt decision because it
+  concerns the orchestration workflow and the operator's local checkout. Jules
+  remains the preferred implementation worker for future spell packages.
+- Rationale/evidence: The goal allows assumed approvals for the test flow, but
+  it does not authorize overwriting user-owned local commits. The dashboard's
+  repaired readiness packet gave the right friction signal: `origin/master` is
+  current in the monitor worktree, but local `master` is not safe to pull or
+  fast-forward automatically.
+- Mutation performed or skipped: Updated Package 3 receipts, the living task
+  tracker, and the public spell gate report. Skipped local `master` mutation,
+  skipped hidden local-sync endpoint use, and skipped local Package 3
+  implementation repair.
+- Scope guardrails: This only records closeout proof and gate state. It does
+  not change spell mechanics, character creator behavior, character sheet
+  behavior, combat simulator casting, AI arbitration, or premade roster
+  semantics.
+- Result: Package 3 can close from the GitHub/master and monitor-worktree
+  perspective after these receipts merge. The user's main checkout remains
+  protected until the user decides what to do with the 2 local-only `master`
+  commits.
+- Next expected proof: Publish the receipt reconciliation, run targeted
+  MemPalace mining for the durable docs, and start Package 4 drafting through
+  the dashboard-first Symphony/Jules flow.
+
 ## Open Decisions For The Next Slice
 
-1. Publish the Package 3 local-sync dashboard repair, then close out Package 3
-   with durable proof receipts, deployment/local-sync evidence, and targeted
-   MemPalace mining.
+1. Publish the Package 3 receipt reconciliation, then run targeted MemPalace
+   mining for the durable task and decision docs.
 2. Decide whether the semantically enabled Druid class-feature checkbox should
    be repaired immediately or batched into a creator accessibility pass.
 3. Decide whether Symphony should add first-class receipts and dashboard
