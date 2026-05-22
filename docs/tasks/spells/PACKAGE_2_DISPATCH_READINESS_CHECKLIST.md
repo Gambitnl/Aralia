@@ -2,6 +2,11 @@
 
 Status: dispatched to Jules; waiting on Jules queue/plan/PR state.
 
+Historical closeout note: Package 2 has since completed the dispatch, Jules
+session, PR, review, merge, and closeout path. This checklist is retained as
+evidence of the handoff guard that was used; the current active package state
+lives in `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
+
 This checklist is the handoff guard between the prepared Package 2 artifacts and
 the first write-producing Jules implementation slice. It exists so a future
 foreman can tell exactly what is ready, what is blocked, and which action would
