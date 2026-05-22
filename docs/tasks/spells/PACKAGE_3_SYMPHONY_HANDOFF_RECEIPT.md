@@ -57,7 +57,7 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | PR #954 merged | Done | PR #954 merged on 2026-05-22 as `7f8d8935a08143ca6c0c1c5c78f4fedae0e4de27`. Package 3 implementation is now on `origin/master`; G46 records the remaining class-feature checkbox semantics follow-up. |
 | Package 3 merge docs | Done | PR #972 merged as `be517051`, recording the PR #954 merge decision and preserving the post-merge monitor state. |
 | Local-sync dashboard repair | Done | PR #973 merged as `d705a9bd`, making a merged PR advance to a visible `Check Local Sync` readiness action instead of a stale PR-refresh loop. |
-| Visible local-sync check after PR #973 | Blocked for local-master mutation | The rendered dashboard on `http://127.0.0.1:8139/` reported `Ready: codex/spell-phase1-monitor-30 matches origin/master and the working tree is clean` with `origin/master @ d705a9bd9d025b49b24014f822cba78ce0e20862`. The mutating local sync remains blocked because the user's local `master` checkout has 2 local commit(s) not on `origin/master`, and this isolated worktree is on `codex/spell-phase1-monitor-30`, not `master`. |
+| Visible local-sync check after PR #974 | Blocked for local-master mutation | PR #974 merged the stale receipt reconciliation as `cd588daf7f16c360ddb44df566aa5c47d10151de`. The worktree was moved to `codex/spell-phase1-monitor-31` from `origin/master`; the rendered dashboard check reports the monitor branch as current and clean, while the mutating local sync remains blocked because the user's local `master` checkout has 2 local commit(s) not on `origin/master`, and this isolated worktree is not `master`. |
 
 ## Current Boundary
 
@@ -65,19 +65,18 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 - PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
 - Current PR boundary: complete. PR #954 merged as
   `7f8d8935a08143ca6c0c1c5c78f4fedae0e4de27`.
-- Current closeout boundary: reconcile receipts and preserve the dashboard
-  local-sync proof. The isolated monitor branch is clean and current with
-  `origin/master`, but the user's local `master` checkout has local-only work,
-  so no mutating sync was performed.
+- Current closeout boundary: complete for Package 3. The isolated monitor
+  branch is clean and current with `origin/master`, but the user's local
+  `master` checkout has local-only work, so no mutating sync was performed.
 - Dashboard workflow state: PR #973 repaired the post-merge local-sync
   transition. The dashboard now exposes `Check Local Sync` as the visible
   readiness action and keeps `Sync Local Master` gated behind a safe readiness
   packet.
-- Monitor worktree state: `codex/spell-phase1-monitor-30` matches
-  `origin/master` at `d705a9bd9d025b49b24014f822cba78ce0e20862`; the visible
-  dashboard readiness check reports a clean tree.
-- Next proof: merge these receipt updates, targeted-mine the durable spell and
-  Symphony decision docs, then draft Package 4 from the living tracker.
+- Monitor worktree state: `codex/spell-phase1-monitor-31` matches
+  `origin/master`; the visible dashboard readiness check reports a clean tree
+  and preserves the local-master blocker.
+- Next proof: targeted-mine the durable spell and Symphony decision docs, then
+  draft Package 4 from the living tracker.
 
 ## Dashboard UX Notes
 
