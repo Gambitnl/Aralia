@@ -57,7 +57,7 @@
 
 | # | Task | Priority | Status | Detail File | Notes |
 |---|------|----------|--------|-------------|-------|
-| 17 | Ground scatter objects | P1 | [ ] | | Instanced fallen leaves (flat quads), small rock clusters, twig bundles. 5-10 per open tile. Cheap instanced draw. |
+| 17 | Ground scatter objects | P1 | [x] | | GroundScatter.tsx: instanced pebbles, leaves, twigs, mushrooms. 4-8 per open grass tile, weighted random. ~3000-5000 instances in 4 draw calls. |
 | 18 | Skybox / background | P1 | [x] | | SkyDome component: gradient shader (top→horizon→bottom) per biome. BackSide sphere, renderOrder -1. |
 | 19 | Grass height/color variation | P1 | [x] | | Per-instance tint via instanceTint attribute. Cluster noise for height patches. Bare spots (40% blades) near rock/wall/water tiles. Warm-cool green tint variation. |
 
@@ -68,7 +68,7 @@
 | 20 | Lighting drama | P1 | [x] | | Sun 1.6→2.2, ambient 0.4→0.3. Warm sun (0xffe0a0) + cool fill (0x6080c0) for temperature split. |
 | 21 | Visible ambient particles | P1 | [x] | | All biomes: particle size 3-4x larger, counts increased, opacity boosted. Firefly glow sphere 0.02→0.06, point light distance 2.5→4, intensity flicker range doubled. Dungeon now has torch ember fireflies. |
 | 22 | Contact AO (SSAO or fake) | P1 | [x] | | drei ContactShadows component: opacity 0.4, blur 2, resolution 512. Soft ground darkening under all objects. |
-| 23 | Decoration variety | P2 | [ ] | | Fallen logs, tree stumps, bushes, rock formations. 2-3 new types minimum. |
+| 23 | Decoration variety | P2 | [x] | | 3 new types: fallen logs, tree stumps, bushes. Added to BattleMapDecoration type + map generator. Bushes/stumps provide cover without blocking movement. |
 
 ### Tier 4 — Polish
 
@@ -97,3 +97,4 @@
 | 2026-05-22 | 18,20,22 | Skybox, lighting, contact AO | SkyDome gradient shader. Sun 2.2 warm + cool fill. drei ContactShadows for ground AO. |
 | 2026-05-22 | 21 | Ambient particle visibility | All biomes: larger particles (3-4x), more count, brighter. Firefly glow spheres enlarged, point lights stronger + wider range. Dungeon gets torch ember fireflies. |
 | 2026-05-22 | 19 | Grass height/color variation | Per-instance tint attribute (warm→cool green). Cluster noise height patches. Bare spots near rocks/walls. Height range widened (0.15-0.50). |
+| 2026-05-22 | 17,23 | Ground scatter + decoration variety | GroundScatter.tsx: pebbles, leaves, twigs, mushrooms on open tiles. DecorationProps: fallen logs, stumps, bushes. Map generator updated for forest/swamp biomes. |

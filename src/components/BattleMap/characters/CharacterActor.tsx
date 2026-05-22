@@ -226,7 +226,7 @@ const SelectionDecal: React.FC<{
       rotation={[-Math.PI / 2, 0, 0]}
       visible={visible}
     >
-      <ringGeometry args={[0.28, 0.35, 32]} />
+      <ringGeometry args={[0.42, 0.48, 32]} />
       <meshStandardMaterial
         color={color}
         emissive={color}
@@ -260,7 +260,7 @@ const TurnIndicator: React.FC<{ active: boolean }> = ({ active }) => {
     <group ref={ringRef} position={[0, 0.03, 0]}>
       {/* Inner ring */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.36, 0.39, 32]} />
+        <ringGeometry args={[0.50, 0.54, 32]} />
         <meshStandardMaterial
           color={0xfbbf24}
           emissive={0xfbbf24}
@@ -273,7 +273,7 @@ const TurnIndicator: React.FC<{ active: boolean }> = ({ active }) => {
       </mesh>
       {/* Outer glow ring */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.39, 0.44, 32]} />
+        <ringGeometry args={[0.54, 0.60, 32]} />
         <meshStandardMaterial
           color={0xfbbf24}
           emissive={0xfbbf24}
@@ -289,13 +289,13 @@ const TurnIndicator: React.FC<{ active: boolean }> = ({ active }) => {
         <mesh
           key={i}
           position={[
-            Math.cos(angle) * 0.42,
+            Math.cos(angle) * 0.58,
             0,
-            Math.sin(angle) * 0.42,
+            Math.sin(angle) * 0.58,
           ]}
           rotation={[-Math.PI / 2, 0, -angle + Math.PI / 2]}
         >
-          <coneGeometry args={[0.025, 0.05, 3]} />
+          <coneGeometry args={[0.03, 0.06, 3]} />
           <meshStandardMaterial
             color={0xfbbf24}
             emissive={0xfbbf24}
