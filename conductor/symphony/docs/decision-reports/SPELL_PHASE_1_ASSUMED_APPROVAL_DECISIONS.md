@@ -1983,12 +1983,53 @@ Copy this block for each decision.
   until Symphony captures a PR URL, a plan-approval gate, a feedback request, or
   a durable reason that Jules has not produced a PR yet.
 
+### Decision 50: Approve The Package 3 Jules Plan But Do Not Treat Completion As Implemented Without PR Proof
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_plan_approval`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: Jules session `2823658242418460192` moved from `QUEUED` to
+  `AWAITING_PLAN_APPROVAL`. The operator had already authorized assumed
+  approvals for this dashboard test flow, but wanted decision points recorded
+  clearly.
+- Options considered:
+  - Stop and ask for manual approval before allowing Jules to continue.
+  - Approve the plan through the visible dashboard and record the decision as
+    assumed approval.
+  - Bypass the dashboard approval path and call the Jules/orchestrator approval
+    command directly.
+- Decision made by agent: Approve the Jules plan through the visible dashboard
+  control, using the user's standing approval for this test flow.
+- Model routing: Local Codex foreman for orchestration; Jules remains the
+  implementation worker for Package 3.
+- Rationale/evidence: The Package 3 task packet was already bounded, the
+  dashboard exposed an enabled `Approve Jules Plan` button, and direct terminal
+  approval would have bypassed the dashboard-first pressure test. The dashboard
+  recorded approval command
+  `npx tsx .jules/orchestrator/cli.ts approve 2823658242418460192`.
+- Mutation performed or skipped: Recorded plan approval through the dashboard.
+  Did not broaden Package 3 scope and did not perform the implementation
+  locally.
+- Follow-up decision point: After approval, dashboard refresh reported Jules
+  state `COMPLETED`, but no PR URL was captured. The visible Jules session was
+  opened in the signed-in browser and showed the plan/checklist surface without
+  `View PR`, GitHub URL, or pull request text.
+- Decision made by agent: Do not treat Package 3 as implemented or complete
+  without PR/code/no-change proof. Record this as a Jules/Symphony
+  reconciliation gap and keep Package 3 in waiting/reconciliation state.
+- Result: Package 3 has a launched/approved Jules session but no captured PR.
+  The next valid proof is evidence that a hidden PR exists, Jules completed
+  without code changes, or the session stalled after plan generation.
+- Next expected proof: Use the dashboard/Jules visible path or a Symphony-owned
+  status endpoint to reconcile the completed-no-PR state before reviewing or
+  merging any Package 3 implementation.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor Package 3 Jules session `2823658242418460192` through the visible
-   dashboard until it exposes a PR, plan approval, feedback need, or durable
-   no-PR state.
-2. Review any Package 3 PR for scope, focused tests, rendered spellbook/creator
+1. Reconcile Package 3 Jules session `2823658242418460192`, which now reports
+   `COMPLETED` but has no captured PR URL.
+2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
+   spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
 3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.

@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: launched to Jules; waiting for PR capture.
+Status: Jules reported completed; no PR captured yet.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -31,13 +31,16 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Stage Jules manifest | Done | Dashboard staged `.jules/runs/symphony-handoff-1779443555192-bnpws7/manifest.json` |
 | Launch Jules | Done | Dashboard launched Jules session `2823658242418460192` |
 | Refresh Jules status | Done | Dashboard reported Jules state `QUEUED` and no PR captured yet |
+| Approve Jules plan | Done | Dashboard recorded approval for Jules session `2823658242418460192` |
+| Refresh after approval | Needs reconciliation | Dashboard later reported Jules state `COMPLETED`, but still had no PR URL |
+| Inspect visible Jules session | Needs reconciliation | Browser inspection showed the plan/checklist surface and no `View PR`, GitHub URL, or pull request text |
 
 ## Current Boundary
 
-- Jules state: `QUEUED`
+- Jules state: `COMPLETED`
 - PR URL: none captured yet
-- Next proof: refresh Jules status through the dashboard until Symphony either
-  captures a PR URL or records why no PR exists yet.
+- Next proof: reconcile whether Jules produced a hidden PR, completed without
+  code changes, or stalled after plan generation.
 
 ## Dashboard UX Notes
 
@@ -48,3 +51,6 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   than posting to hidden endpoints.
 - The top current-boundary `Refresh Jules Status` button correctly targeted
   `handoff-1779443555192-bnpws7` once the session existed.
+- After approval, Symphony recorded `COMPLETED` from Jules without a PR URL.
+  The visible Jules page was accessible and signed in, but did not expose PR
+  text or a GitHub link in the inspected page content.
