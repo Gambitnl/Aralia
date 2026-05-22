@@ -90,9 +90,46 @@ export interface FiendishLegacy {
   level5SpellId: string;
 }
 
+export type RacialSpellCastingMethod = 'at_will' | 'once_per_long_rest' | 'once_per_short_rest';
+
 export interface RacialSpell {
   minLevel: number;
   spellId: string;
+  /**
+   * How this racial spell can be cast.
+   */
+  castingMethod?: RacialSpellCastingMethod;
+  /**
+   * Which ability score applies to this racial spell.
+   * Use 'subrace_choice' when the player-selected ability should be used.
+   */
+  spellAbility?: AbilityScoreName | 'subrace_choice';
+  /**
+   * Optional level cap when casting without explicit upcast support.
+   */
+  maxCastLevel?: number;
+  /**
+   * Whether this racial spell can be cast using higher-level spell slots.
+   */
+  upcastable?: boolean;
+  /**
+   * Whether the spell participates in standard prepared spell limits.
+   * If false, it is treated as always prepared.
+   */
+  countsAsPrepared?: boolean;
+}
+
+export interface RacialSpellGrant {
+  sourceRaceId: string;
+  sourceRaceName?: string;
+  minLevel: number;
+  spellId: string;
+  castingMethod: RacialSpellCastingMethod;
+  spellAbility?: AbilityScoreName | 'subrace_choice';
+  maxCastLevel?: number;
+  upcastable?: boolean;
+  countsAsPrepared: boolean;
+  traitName?: string;
 }
 
 export type DraconicAncestorType =
@@ -377,6 +414,7 @@ export interface SpellbookData {
   knownSpells: string[];
   preparedSpells: string[];
   cantrips: string[];
+  racialSpellGrants?: RacialSpellGrant[];
 }
 
 export type ResetCondition = 'short_rest' | 'long_rest' | 'daily' | 'combat';

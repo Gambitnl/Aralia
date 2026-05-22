@@ -25,6 +25,40 @@
 
 import { CombatCharacter, ActionEconomyState, AbilityCost } from '../../types/combat';
 import { SpellSlots } from '../../types';
+import { resolveRacialSpellLimitedUseId } from '../character/characterUtils';
+
+const canAffordActionByType = (economy: ActionEconomyState, cost: AbilityCost): boolean => {
+    switch (cost.type) {
+        case 'action':
+            return !economy.action.used;
+        case 'bonus':
+            return !economy.bonusAction.used;
+        case 'reaction':
+            return !economy.reaction.used;
+        case 'legendary':
+            return (economy.legendary.total - economy.legendary.used) >= (cost.quantity || 1);
+        case 'free':
+            return economy.freeActions > 0;
+        case 'movement-only':
+            return true;
+        default:
+            return false;
+    }
+};
+
+const getRacialGrantForSpell = (character: CombatCharacter, spellId?: string) => {
+    if (!spellId || !character.spellbook?.racialSpellGrants) return undefined;
+    return character.spellbook.racialSpellGrants.find(grant => grant.spellId === spellId);
+};
+
+const isRacialCastLevelAllowed = (grant: { maxCastLevel?: number; upcastable?: boolean; minLevel: number; }, castLevel: number): boolean => {
+    if (!grant || grant.upcastable !== false) {
+        return true;
+    }
+
+    const maxCastLevel = grant.maxCastLevel ?? grant.minLevel;
+    return castLevel <= maxCastLevel;
+};
 
 // ============================================================================
 // Economy Creation And Reset
@@ -88,11 +122,47 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
     if (!character) return false;
 
     const economy = character.actionEconomy;
+    const castSource = cost.castSource;
+    const racialGrant = castSource?.type === 'racial'
+        ? getRacialGrantForSpell(character, castSource.spellId)
+        : undefined;
 
     // Movement-only actions are legal only while the character still has enough
     // movement left for the path being attempted.
     if ((cost.movementCost || 0) > economy.movement.total - economy.movement.used) {
         return false;
+    }
+
+    if (racialGrant) {
+        if (!isRacialCastLevelAllowed(racialGrant, cost.spellSlotLevel ?? 0)) {
+            return false;
+        }
+
+        const hasActionEconomyResource = canAffordActionByType(economy, cost);
+        if (!hasActionEconomyResource) {
+            return false;
+        }
+
+        if (racialGrant.castingMethod === 'at_will') {
+            return true;
+        }
+
+        const allowSlotFallback = castSource?.allowSlotFallback ?? true;
+        const limitedUseId = resolveRacialSpellLimitedUseId(racialGrant.sourceRaceId, castSource.spellId);
+        const limitedUse = character.limitedUses?.[limitedUseId];
+
+        if (limitedUse && limitedUse.current > 0) {
+            return true;
+        }
+
+        if (!allowSlotFallback || !cost.spellSlotLevel || cost.spellSlotLevel <= 0) {
+            return false;
+        }
+
+        if (!character.spellSlots) return false;
+        const slotKey = `level_${cost.spellSlotLevel}` as keyof SpellSlots;
+        const slot = character.spellSlots[slotKey];
+        return Boolean(slot && slot.current > 0);
     }
 
     // Leveled spells consume from the same action path, but also need an
@@ -108,22 +178,7 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
 
     // The cost type maps onto the D&D combat economy. A creature normally has
     // one action, one bonus action, one reaction, and one free object use.
-    switch (cost.type) {
-        case 'action':
-            return !economy.action.used;
-        case 'bonus':
-            return !economy.bonusAction.used;
-        case 'reaction':
-            return !economy.reaction.used;
-        case 'legendary':
-            return (economy.legendary.total - economy.legendary.used) >= (cost.quantity || 1);
-        case 'free':
-            return economy.freeActions > 0;
-        case 'movement-only':
-            return true;
-        default:
-            return false;
-    }
+    return canAffordActionByType(economy, cost);
 }
 
 /**
@@ -143,6 +198,13 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
             used: character.actionEconomy.movement.used + (cost.movementCost || 0)
         },
     };
+
+    const castSource = cost.castSource;
+    const racialGrant = castSource?.type === 'racial'
+        ? getRacialGrantForSpell(character, castSource.spellId)
+        : undefined;
+
+    let newCharacter: CombatCharacter = { ...character, actionEconomy: newEconomy };
 
     // Spending the named resource marks it unavailable for the rest of this
     // creature's turn. Movement-only actions only change the movement counter.
@@ -165,8 +227,39 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
         default:
             break;
     }
+    newCharacter = { ...character, actionEconomy: newEconomy };
 
-    let newCharacter: CombatCharacter = { ...character, actionEconomy: newEconomy };
+    if (racialGrant) {
+        const allowedByCastLevel = isRacialCastLevelAllowed(racialGrant, cost.spellSlotLevel ?? 0);
+        if (!allowedByCastLevel) {
+            return newCharacter;
+        }
+
+        if (racialGrant.castingMethod === 'at_will') {
+            return newCharacter;
+        }
+
+        const allowSlotFallback = castSource?.allowSlotFallback ?? true;
+        const limitedUseId = resolveRacialSpellLimitedUseId(racialGrant.sourceRaceId, castSource!.spellId);
+        const limitedUse = character.limitedUses?.[limitedUseId];
+
+        if (limitedUse && limitedUse.current > 0) {
+            return {
+                ...newCharacter,
+                limitedUses: {
+                    ...character.limitedUses,
+                    [limitedUseId]: {
+                        ...limitedUse,
+                        current: limitedUse.current - 1,
+                    },
+                },
+            };
+        }
+
+        if (!allowSlotFallback || !cost.spellSlotLevel || cost.spellSlotLevel <= 0) {
+            return newCharacter;
+        }
+    }
 
     // Spell slots are part of the same "pay the cost" operation, so a spell
     // cannot resolve and then restore the slot by replaying an older character.

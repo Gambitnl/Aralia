@@ -12,6 +12,7 @@ import { Z_INDEX } from '../../../styles/zIndex';
 import { FullEntryDisplay } from '../../Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../../../utils/glossaryUtils';
 import SpellSlotDisplay from './SpellSlotDisplay';
+import { getPreparedSpellsAffectingLimit, isRacialSpellLockedForPreparation, getMaxPreparedSpells } from '../../../utils/character/characterUtils';
 
 interface SpellbookOverlayProps {
   isOpen: boolean;
@@ -118,6 +119,9 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
   };
 
   const pageTitle = currentLevel === 0 ? "Cantrips" : `Level ${currentLevel} Spells`;
+  const preparedCount = getPreparedSpellsAffectingLimit(character).size;
+  const maxPrepared = getMaxPreparedSpells(character);
+  const isAtPrepLimit = maxPrepared !== null && preparedCount >= maxPrepared;
 
   return (
     <div
@@ -173,10 +177,12 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                 <p className="text-slate-500 italic text-sm px-1">No spells at this level.</p>
               ) : (
                 <div className="space-y-1">
-                  {spellsToDisplay.map(spell => {
+                    {spellsToDisplay.map(spell => {
                     const isAlwaysPrepared = character.class.id === 'druid' && spell.id === 'speak-with-animals';
+                    const isRacialAlwaysPrepared = isRacialSpellLockedForPreparation(character, spell.id);
                     const isKnown = knownSpellIds.has(spell.id);
-                    const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared;
+                    const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared || isRacialAlwaysPrepared;
+                    const isLocked = isAlwaysPrepared || isRacialAlwaysPrepared;
                     const isSelected = selectedSpellId === spell.id;
 
                     return (
@@ -199,21 +205,23 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                             }`}>
                             {spell.name}
                           </span>
-                          {isPrepared && (
-                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
-                              {isAlwaysPrepared ? 'Always' : 'Prep'}
-                            </span>
-                          )}
+                            {isPrepared && (
+                                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
+                              {isAlwaysPrepared || isRacialAlwaysPrepared ? 'Always' : 'Prep'}
+                                </span>
+                            )}
                         </div>
 
                         {/* Prepare/Unprepare button - only for leveled spells */}
                         {spell.level > 0 && isKnown && (
                           <button
-                            className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isAlwaysPrepared
+                            className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
                                 ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
-                                : 'bg-purple-600/80 text-white hover:bg-purple-500'
+                                : isAtPrepLimit && !isPrepared
+                                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                                  : 'bg-purple-600/80 text-white hover:bg-purple-500'
                               }`}
-                            disabled={isAlwaysPrepared}
+                            disabled={isLocked || (!isPrepared && isAtPrepLimit)}
                             onClick={(e) => {
                               e.stopPropagation();
                               onAction({
@@ -223,7 +231,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
                               });
                             }}
                           >
-                            {isPrepared ? (isAlwaysPrepared ? '—' : 'Unprep') : 'Prep'}
+                            {isPrepared ? (isLocked ? '—' : 'Unprep') : 'Prep'}
                           </button>
                         )}
                       </div>
@@ -238,7 +246,17 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Right Header - Spell Slots & Toggle */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700 bg-slate-800/20">
-              <SpellSlotDisplay spellSlots={character.spellSlots} />
+              <div className="flex items-center gap-4">
+                <SpellSlotDisplay spellSlots={character.spellSlots} />
+                {maxPrepared !== null && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-slate-400">Prepared</span>
+                    <span className={`text-sm font-bold ${isAtPrepLimit ? 'text-amber-400' : 'text-purple-400'}`}>
+                      {preparedCount} / {maxPrepared}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <label className="flex items-center gap-2 cursor-pointer group">
                 <span className="text-sm text-slate-400 group-hover:text-slate-200 transition-colors">

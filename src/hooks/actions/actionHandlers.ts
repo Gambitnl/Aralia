@@ -215,7 +215,7 @@ export function buildActionHandlers({
 
     // Spellcasting and resource management (handleResourceActions.ts).
     CAST_SPELL: (action) => {
-      handleCastSpell(dispatch, action.payload as { characterId: string; spellLevel: number });
+      handleCastSpell(dispatch, action.payload);
     },
     USE_LIMITED_ABILITY: (action) => {
       handleUseLimitedAbility(dispatch, action.payload as { characterId: string; abilityId: string });

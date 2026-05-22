@@ -147,15 +147,15 @@ describe('validateCharacterChoices', () => {
 
       const issues = validateCharacterChoices(char);
 
-      // Should miss dancing_lights (1), faerie_fire (3), darkness (5)
+      // Should miss dancing-lights (1), faerie-fire (3), darkness (5)
       expect(issues).toContainEqual(expect.objectContaining({
         id: 'missing_racial_spell',
         label: 'Missing Spell: Drow Magic',
-        options: expect.arrayContaining([expect.objectContaining({ id: 'dancing_lights' })])
+        options: expect.arrayContaining([expect.objectContaining({ id: 'dancing-lights' })])
       }));
       expect(issues).toContainEqual(expect.objectContaining({
         id: 'missing_racial_spell',
-        options: expect.arrayContaining([expect.objectContaining({ id: 'faerie_fire' })])
+        options: expect.arrayContaining([expect.objectContaining({ id: 'faerie-fire' })])
       }));
       expect(issues).toContainEqual(expect.objectContaining({
         id: 'missing_racial_spell',
@@ -182,14 +182,14 @@ describe('validateCharacterChoices', () => {
       char.racialSelections = {
         elf: { choiceId: 'drow', spellAbility: 'Charisma' }
       };
-      // Add dancing_lights to known cantrips
+      // Add dancing-lights to known cantrips
       if (char.spellbook) {
-        char.spellbook.cantrips = ['dancing_lights'];
+        char.spellbook.cantrips = ['dancing-lights'];
       }
 
       const issues = validateCharacterChoices(char);
       expect(issues).not.toContainEqual(expect.objectContaining({
-        options: expect.arrayContaining([expect.objectContaining({ id: 'dancing_lights' })])
+        options: expect.arrayContaining([expect.objectContaining({ id: 'dancing-lights' })])
       }));
     });
   });

@@ -37,7 +37,17 @@ import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './
 import { DialogueSession } from '../types/dialogue.js';
 import { WorldHistoryEvent } from '../types/history.js';
 import { CrewRole } from '../types/naval.js';
-import { InspectSubmapTilePayload, UpdateInspectedTileDescriptionPayload, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload } from '../types/actions.js';
+import {
+  CastSpellPayload,
+  InspectSubmapTilePayload,
+  UpdateInspectedTileDescriptionPayload,
+  EquipItemPayload,
+  UnequipItemPayload,
+  UseItemPayload,
+  DropItemPayload,
+  ShowEncounterModalPayload,
+  StartBattleMapEncounterPayload
+} from '../types/actions.js';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -124,7 +134,7 @@ export type AppAction =
   | { type: 'MODIFY_GOLD'; payload: { amount: number } }
   | { type: 'GRANT_EXPERIENCE'; payload: { amount: number } }
   | { type: 'MODIFY_PARTY_HEALTH'; payload: { amount: number; characterIds?: string[] } }
-  | { type: 'CAST_SPELL'; payload: { characterId: string; spellLevel: number } }
+  | { type: 'CAST_SPELL'; payload: CastSpellPayload }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
   | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[] } }

@@ -38,7 +38,24 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory, AbilityScoreName } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, buildHitPointDicePools, updateDerivedStats } from '../../utils/characterUtils';
+import {
+  calculateArmorClass,
+  createPlayerCharacterFromTemp,
+  calculateFinalAbilityScores,
+  getAbilityModifierValue,
+  applyXpAndHandleLevelUps,
+  canLevelUp,
+  performLevelUp,
+  getCharacterMaxArmorProficiency,
+  getArmorCategoryHierarchy,
+  buildHitPointDicePools,
+  updateDerivedStats,
+  getPreparedSpellsAffectingLimit,
+  isRacialSpellLockedForPreparation,
+  getRacialSpellGrantForSpell,
+  isRacialSpellCastLevelAllowed,
+  resolveRacialSpellLimitedUseId,
+} from '../../utils/characterUtils';
 import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
 import { isWeaponProficient } from '../../utils/weaponUtils';
 // TODO(lint-intent): 'LOCATIONS' is imported but unused; it hints at a helper/type the module was meant to use.
@@ -344,19 +361,23 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const charToUpdate = { ...state.party[charIndex] };
             if (!charToUpdate.spellbook) return {};
 
+            const isLockedForRacialPrep = isRacialSpellLockedForPreparation(charToUpdate, spellId);
             const spellbook = { ...charToUpdate.spellbook };
             const preparedSpells = new Set(spellbook.preparedSpells);
 
             if (preparedSpells.has(spellId)) {
-                // Always allow unpreparing
+                if (isLockedForRacialPrep) {
+                    return {};
+                }
                 preparedSpells.delete(spellId);
             } else {
                 // Check limit before adding
                 const maxPrepared = getMaxPreparedSpells(charToUpdate);
+                const preparedSpellCountAffectingLimit = getPreparedSpellsAffectingLimit(charToUpdate).size;
 
                 // If maxPrepared is null (known caster), no limit applies
                 // Otherwise, enforce the limit
-                if (maxPrepared !== null && preparedSpells.size >= maxPrepared) {
+                if (maxPrepared !== null && preparedSpellCountAffectingLimit >= maxPrepared) {
                     console.log(`Cannot prepare more spells. Already at max (${maxPrepared}).`);
                     return {}; // Don't add - already at limit
                 }
@@ -377,15 +398,70 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'CAST_SPELL': {
-            const { characterId, spellLevel } = action.payload;
+            const { characterId, spellLevel, spellId, castSource } = action.payload;
             if (spellLevel === 0) return {};
+            const explicitRacialCastSource = castSource?.type === 'racial';
+            const defaultRacialConsumption = castSource == null || explicitRacialCastSource;
+            const allowSlotFallbackForRacialCast = explicitRacialCastSource
+                ? (castSource.allowSlotFallback ?? true)
+                : true;
 
             const slotKey = `level_${spellLevel}` as keyof SpellSlots;
             const newParty = state.party.map(char => {
-                if (char.id === characterId && char.spellSlots?.[slotKey] && char.spellSlots[slotKey].current > 0) {
-                    return { ...char, spellSlots: { ...char.spellSlots, [slotKey]: { ...char.spellSlots[slotKey], current: char.spellSlots[slotKey].current - 1 } } };
+                if (char.id !== characterId) return char;
+
+                const grant = spellId ? getRacialSpellGrantForSpell(char, spellId) : undefined;
+                if (grant) {
+                    if (!isRacialSpellCastLevelAllowed(char, spellId, spellLevel)) {
+                        return char;
+                    }
+
+                    if (grant.castingMethod === 'at_will') {
+                        return char;
+                    }
+
+                    if (defaultRacialConsumption && grant.castingMethod !== 'at_will') {
+                        const limitedUseId = resolveRacialSpellLimitedUseId(grant.sourceRaceId, spellId);
+                        const limitedUse = char.limitedUses?.[limitedUseId];
+
+                        if (limitedUse && limitedUse.current > 0) {
+                            return {
+                                ...char,
+                                limitedUses: {
+                                    ...char.limitedUses,
+                                    [limitedUseId]: {
+                                        ...limitedUse,
+                                        current: limitedUse.current - 1,
+                                    },
+                                },
+                            };
+                        }
+                    }
+
+                    if (allowSlotFallbackForRacialCast && spellLevel > 0 && char.spellSlots?.[slotKey] && char.spellSlots[slotKey].current > 0) {
+                        return {
+                            ...char,
+                            spellSlots: {
+                                ...char.spellSlots,
+                                [slotKey]: { ...char.spellSlots[slotKey], current: char.spellSlots[slotKey].current - 1 },
+                            },
+                        };
+                    }
+
+                    return char;
                 }
-                return char;
+
+                if (!char.spellSlots?.[slotKey] || char.spellSlots[slotKey].current <= 0) {
+                    return char;
+                }
+
+                return {
+                    ...char,
+                    spellSlots: {
+                        ...char.spellSlots,
+                        [slotKey]: { ...char.spellSlots[slotKey], current: char.spellSlots[slotKey].current - 1 },
+                    },
+                };
             });
             return { party: newParty };
         }

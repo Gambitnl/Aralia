@@ -316,6 +316,11 @@ export type AppAction = {
     payload: {
         characterId: string;
         spellLevel: number;
+        spellId?: string;
+        castSource?: {
+            type: 'racial';
+            allowSlotFallback?: boolean;
+        };
     };
 } | {
     type: 'USE_LIMITED_ABILITY';

@@ -27,7 +27,7 @@ The file exports a single constant:
     *   **Darkvision**: Superior Darkvision with a range of 120 feet.
     *   **Gift of the Svirfneblin**: Grants the ability to cast *Disguise Self* (starting at 3rd character level) and *Nondetection* (starting at 5th character level). The spellcasting ability for these spells (Intelligence, Wisdom, or Charisma) is chosen by the player during character creation via the `DeepGnomeSpellcastingAbilitySelection.tsx` component. Spells can be cast once per Long Rest without a spell slot, or using appropriate spell slots if available.
     *   **Gnomish Magic Resistance**: Advantage on Intelligence, Wisdom, and Charisma saving throws against spells.
-    *   **Svirfneblin Camouflage**: Advantage on Dexterity (Stealth) checks, usable a number of times equal to proficiency bonus per long rest. (Note: Usage tracking and specific mechanical enforcement of this trait in varied terrain are not yet fully implemented in game logic).
+    *   **Svirfneblin Camouflage**: Advantage on Dexterity (Stealth) checks, usable a number of times equal to proficiency bonus per long rest.
     *   **Languages**: Common and one other language (typically Undercommon or Gnomish).
 *   `elvenLineages`, `gnomeSubraces`, `giantAncestryChoices`, `fiendishLegacies`: These are `undefined` for the standalone Deep Gnome race as it does not have these specific sub-options.
 

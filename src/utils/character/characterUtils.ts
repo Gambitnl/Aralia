@@ -47,8 +47,10 @@ import {
   FeatChoice,
   HitDieSize,
   HitPointDicePool,
+  RacialSpellGrant,
 } from '../../types';
-import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE } from '../../data/races';
+import { RacialFeatureTrait, RacialResourceMechanic } from '../../data/races/racialTraits';
+import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, RACE_TRAIT_LIBRARY } from '../../data/races';
 import { CLASSES_DATA } from '../../data/classes';
 import { SKILLS_DATA } from '../../data/skills';
 
@@ -128,6 +130,145 @@ export function getCharacterRaceDisplayString(character: PlayerCharacter): strin
 }
 
 const HIT_DIE_SIZES: HitDieSize[] = [6, 8, 10, 12];
+
+const DEFAULT_RACIAL_SPELL_CASTING_METHOD = 'at_will' as const;
+const DEFAULT_RACIAL_SPELL_COUNTS_AS_PREPARED = false;
+
+const normalizeRacialSpellGrantSource = (
+  character: PlayerCharacter,
+  entry: RacialSpellGrant,
+): RacialSpellGrant => ({
+  sourceRaceId: entry.sourceRaceId || character.race.id,
+  sourceRaceName: entry.sourceRaceName || character.race.name,
+  minLevel: entry.minLevel,
+  spellId: entry.spellId,
+  castingMethod: entry.castingMethod || DEFAULT_RACIAL_SPELL_CASTING_METHOD,
+  spellAbility: entry.spellAbility,
+  maxCastLevel: entry.maxCastLevel,
+  upcastable: entry.upcastable === undefined ? true : entry.upcastable,
+  countsAsPrepared: entry.countsAsPrepared ?? DEFAULT_RACIAL_SPELL_COUNTS_AS_PREPARED,
+  traitName: entry.traitName || (entry as any).traitName,
+});
+
+const getRacialAbilityFromSelection = (
+  character: PlayerCharacter,
+  sourceRaceId: string,
+  spellAbility?: RacialSpellGrant['spellAbility'],
+): AbilityScoreName | undefined => {
+  if (!spellAbility) return undefined;
+  if (spellAbility === 'subrace_choice') {
+    return character.racialSelections?.[sourceRaceId]?.spellAbility;
+  }
+  return spellAbility;
+};
+
+export const getRacialSpellAbilityFromSelection = (
+  sourceRaceId: string,
+  racialSelections: PlayerCharacter['racialSelections'] = {},
+): AbilityScoreName | undefined => racialSelections?.[sourceRaceId]?.spellAbility;
+
+export const getRacialSpellGrantsForCharacter = (
+  character: PlayerCharacter,
+  targetLevel = character.level || 1,
+): RacialSpellGrant[] => {
+  if (!character || !character.race) return [];
+  const { race } = character;
+
+  // 1. Gather all race/subrace IDs to query
+  const queryIds = [race.id];
+  const choiceId = character.racialSelections?.[race.id]?.choiceId;
+  if (choiceId) {
+    queryIds.push(choiceId);
+    queryIds.push(`${choiceId}_${race.id}`);
+  }
+
+  // 2. Gather library grants for all matching IDs
+  const libraryGrants: RacialSpellGrant[] = [];
+  queryIds.forEach(id => {
+    const grants = RACE_TRAIT_LIBRARY.byRaceId[id];
+    if (grants) {
+      grants.forEach(grant => {
+        if (grant.type === 'spell') {
+          libraryGrants.push(grant);
+        }
+      });
+    }
+  });
+
+  const legacyRaceGrants = (race as any).knownSpells ?? [];
+  const spellbookGrants = character.spellbook?.racialSpellGrants || [];
+
+  if (libraryGrants.length === 0 && legacyRaceGrants.length === 0 && spellbookGrants.length === 0) {
+    return [];
+  }
+
+  const activeGrants = [...libraryGrants, ...legacyRaceGrants]
+    .filter(entry => targetLevel >= entry.minLevel)
+    .map(entry => normalizeRacialSpellGrantSource(character, entry));
+
+  const byId = new Map<string, RacialSpellGrant>();
+
+  [...spellbookGrants, ...activeGrants].forEach(grant => {
+    byId.set(grant.spellId, grant);
+  });
+
+  return Array.from(byId.values()).filter(grant => targetLevel >= grant.minLevel);
+};
+
+export const getRacialSpellGrantForSpell = (
+  character: PlayerCharacter,
+  spellId: string,
+  targetLevel = character.level || 1,
+): RacialSpellGrant | undefined => {
+  return getRacialSpellGrantsForCharacter(character, targetLevel)
+    .find(grant => grant.spellId === spellId);
+};
+
+export const isRacialSpellCastLevelAllowed = (
+  character: PlayerCharacter,
+  spellId: string,
+  castLevel: number,
+): boolean => {
+  const grant = getRacialSpellGrantForSpell(character, spellId);
+  if (!grant) return true;
+  if (grant.upcastable === false) {
+    const maxCastLevel = grant.maxCastLevel ?? grant.minLevel;
+    return castLevel <= maxCastLevel;
+  }
+  return true;
+};
+
+export const getPreparedSpellsAffectingLimit = (character: PlayerCharacter): Set<string> => {
+  const preparedSpellIds = new Set(character.spellbook?.preparedSpells || []);
+  const grants = getRacialSpellGrantsForCharacter(character);
+
+  grants.forEach(grant => {
+    if (grant.countsAsPrepared === false) {
+      preparedSpellIds.delete(grant.spellId);
+    }
+  });
+
+  return preparedSpellIds;
+};
+
+export const isRacialSpellLockedForPreparation = (
+  character: PlayerCharacter,
+  spellId: string,
+): boolean => {
+  const grant = getRacialSpellGrantForSpell(character, spellId);
+  return !!grant && grant.countsAsPrepared === false;
+};
+
+export const resolveRacialSpellCastingAbility = (
+  character: PlayerCharacter,
+  spellId: string,
+): AbilityScoreName | undefined => {
+  const grant = getRacialSpellGrantForSpell(character, spellId);
+  if (!grant) return undefined;
+  return getRacialAbilityFromSelection(character, grant.sourceRaceId, grant.spellAbility);
+};
+
+export const resolveRacialSpellLimitedUseId = (sourceRaceId: string, spellId: string): string => `racial_${sourceRaceId}_${spellId}`;
 
 const isHitDieSize = (value: number | undefined): value is HitDieSize =>
   typeof value === 'number' && HIT_DIE_SIZES.includes(value as HitDieSize);
@@ -474,9 +615,10 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     equippedItems: {},
     proficiencyBonus: Math.floor((tempMember.level - 1) / 4) + 2,
   };
-  newChar.hitPointDice = buildHitPointDicePools(newChar, { classLevels });
-  newChar.armorClass = calculateArmorClass(newChar, newChar.activeEffects);
-  return newChar;
+  const charWithRacialSpells = applyRacialSpellGrantsByLevel(newChar, newChar.level);
+  charWithRacialSpells.hitPointDice = buildHitPointDicePools(charWithRacialSpells, { classLevels });
+  charWithRacialSpells.armorClass = calculateArmorClass(charWithRacialSpells, charWithRacialSpells.activeEffects);
+  return charWithRacialSpells;
 };
 
 /**
@@ -590,6 +732,105 @@ const getSpeedBonusFromFeats = (featIds: string[]): number => featIds.reduce((bo
   const speedIncrease = feat?.benefits?.speedIncrease ?? 0;
   return bonus + speedIncrease;
 }, 0);
+
+export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, targetLevel: number): PlayerCharacter => {
+  const { race } = character;
+  const racialGrants = getRacialSpellGrantsForCharacter(character, targetLevel);
+  const racialFeatureTraits = (RACE_TRAIT_LIBRARY.byRaceId[race.id] ?? [])
+    .filter((trait): trait is RacialFeatureTrait =>
+      trait.type !== 'spell' &&
+      targetLevel >= trait.minLevel &&
+      (trait.maxLevel === undefined || targetLevel <= trait.maxLevel)
+    )
+    .filter((trait): trait is RacialFeatureTrait & { resources: RacialResourceMechanic[] } =>
+      !!trait.resources && trait.resources.length > 0
+    );
+
+  if (racialGrants.length === 0 && racialFeatureTraits.length === 0) {
+    return character;
+  }
+
+  const next: PlayerCharacter = {
+    ...character,
+    limitedUses: character.limitedUses ? { ...character.limitedUses } : {},
+    spellbook: character.spellbook ? {
+      cantrips: [...(character.spellbook?.cantrips || [])],
+      knownSpells: [...(character.spellbook?.knownSpells || [])],
+      preparedSpells: [...(character.spellbook?.preparedSpells || [])],
+      racialSpellGrants: [...(character.spellbook?.racialSpellGrants || [])],
+    } : undefined,
+  };
+
+  if (!next.spellbook && racialGrants.length > 0) {
+    next.spellbook = {
+      cantrips: [],
+      knownSpells: [],
+      preparedSpells: [],
+      racialSpellGrants: [],
+    };
+  }
+
+  if (next.spellbook) {
+    const knownSpellsSet = new Set(next.spellbook.knownSpells);
+    const preparedSpellsSet = new Set(next.spellbook.preparedSpells);
+    const grantsBySpell = new Map<string, RacialSpellGrant>();
+
+    next.spellbook.racialSpellGrants.forEach((grant) => {
+      grantsBySpell.set(grant.spellId, grant);
+    });
+
+    racialGrants.forEach((grant) => {
+      knownSpellsSet.add(grant.spellId);
+      grantsBySpell.set(grant.spellId, grant);
+      if (!grant.countsAsPrepared) {
+        preparedSpellsSet.add(grant.spellId);
+      }
+
+      if (grant.castingMethod === 'once_per_long_rest' || grant.castingMethod === 'once_per_short_rest') {
+        const limitedUseKey = resolveRacialSpellLimitedUseId(grant.sourceRaceId, grant.spellId);
+        if (!next.limitedUses![limitedUseKey]) {
+          next.limitedUses![limitedUseKey] = {
+            name: `${grant.sourceRaceName || race.name}: ${grant.spellId.replace(/-/g, ' ')}`,
+            current: 1,
+            max: 1,
+            resetOn: grant.castingMethod === 'once_per_short_rest' ? 'short_rest' : 'long_rest',
+          };
+        }
+      }
+    });
+
+    next.limitedUses = next.limitedUses && Object.keys(next.limitedUses).length > 0 ? next.limitedUses : undefined;
+    next.spellbook.knownSpells = Array.from(knownSpellsSet);
+    next.spellbook.preparedSpells = Array.from(preparedSpellsSet);
+    next.spellbook.racialSpellGrants = Array.from(grantsBySpell.values());
+  }
+
+  racialFeatureTraits.forEach((trait) => {
+    const sourceLabel = `${trait.sourceRaceName}: ${trait.traitName}`;
+    trait.resources?.forEach((resource) => {
+      const resourceKey = `racial_feature_${resource.id}`;
+      const nextMax = typeof resource.maxUses === 'number'
+        ? resource.maxUses
+        : next.proficiencyBonus || 2;
+      const existing = next.limitedUses![resourceKey];
+      const nextCurrent = existing ? Math.min(existing.current, nextMax) : nextMax;
+
+      next.limitedUses![resourceKey] = {
+        ...existing,
+        name: resource.sourceLabel ? `${sourceLabel} (${resource.sourceLabel})` : sourceLabel,
+        current: nextCurrent,
+        max: resource.maxUses,
+        resetOn: resource.resetOn,
+      };
+    });
+  });
+
+  if (next.limitedUses && Object.keys(next.limitedUses).length === 0) {
+    next.limitedUses = undefined;
+  }
+
+  return next;
+};
 
 /**
  * Applies spell benefits from a feat to the character.
@@ -940,7 +1181,6 @@ export function calculateCharacterDarkvisionFromRace(race: PlayerCharacter['race
 
   if (
     (race.id === 'elf' && racialSelections?.elf?.choiceId === 'drow') ||
-    race.id === 'deep_gnome' ||
     race.id === 'duergar' ||
     race.id === 'dwarf' ||
     race.id === 'orc'
@@ -1094,6 +1334,7 @@ export const performLevelUp = (
 
   // TODO(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // Recalculate derived scores after ASI/feat adjustments.
+  updatedCharacter = applyRacialSpellGrantsByLevel(updatedCharacter, newLevel);
   updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);
 
   // Calculate HP increase (Average of Hit Die + Con Mod) plus any feat bonuses.

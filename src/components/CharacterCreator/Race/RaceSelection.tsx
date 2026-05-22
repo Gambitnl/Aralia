@@ -42,12 +42,15 @@ import { CreationStepLayout } from '../ui/CreationStepLayout';
 import { SplitPaneLayout } from '../../ui/SplitPaneLayout';
 import { RaceDetailPane, RaceDetailData, RacialChoiceData } from './RaceDetailPane';
 import { getRaceGroupById } from '../../../data/races/raceGroups';
+import { getRacialSpellCastingAbilityChoiceForRace } from '../../../data/races';
 import { Button } from '../../ui/Button';
 
 // Helper to transform raw Race data into the detail pane format
 const transformRaceData = (race: Race): RaceDetailData => {
   const baseTraits: RaceDetailData['baseTraits'] = {};
   const feats: RaceDetailData['feats'] = [];
+  const parsedSpellAbilityChoice = getRacialSpellCastingAbilityChoiceForRace(race.id);
+  type RacialSpellChoiceSource = 'parser' | 'legacy';
 
   const coreTraitKeywords = ['creature type:', 'size:', 'speed:', 'vision:'];
 
@@ -110,6 +113,20 @@ const transformRaceData = (race: Race): RaceDetailData => {
     ? "Your choice of this race will unlock additional options in the next steps of character creation."
     : undefined;
 
+  const raceSpellAbilityChoice = parsedSpellAbilityChoice
+    ? {
+      traitName: parsedSpellAbilityChoice.sourceTraitName,
+      traitDescription: parsedSpellAbilityChoice.sourceTraitDescription,
+      source: 'parser' as RacialSpellChoiceSource,
+    }
+    : race.racialSpellChoice
+      ? {
+        traitName: race.racialSpellChoice.traitName,
+        traitDescription: race.racialSpellChoice.traitDescription,
+        source: 'legacy' as RacialSpellChoiceSource,
+      }
+      : undefined;
+
   return {
     id: race.id,
     name: race.name,
@@ -120,7 +137,7 @@ const transformRaceData = (race: Race): RaceDetailData => {
     baseTraits,
     feats,
     furtherChoicesNote,
-    racialSpellChoice: race.racialSpellChoice,
+    racialSpellChoice: raceSpellAbilityChoice,
     spellsOfTheMark: race.spellsOfTheMark,
   };
 };
@@ -183,6 +200,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
   // Avoid setState-in-effect by treating the first variant as the implicit selection.
   const effectiveRaceId = selectedRaceId ?? defaultRaceId;
   const selectedRace = races.find(r => r.id === effectiveRaceId);
+  const selectedRaceSpellAbilityChoice = selectedRace ? getRacialSpellCastingAbilityChoiceForRace(selectedRace.id) : null;
 
   // When the viewed race changes, clear per-race local choice state so we don't accidentally carry it over.
   useEffect(() => {
@@ -292,14 +310,14 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
       }}
       disabled={
         !!(
-          (selectedRace.racialSpellChoice && !selectedSpellAbility) ||
+          (selectedRaceSpellAbilityChoice && !selectedSpellAbility) ||
           (selectedRace.id === 'elf' && !selectedKeenSensesSkillId) ||
           (selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId) ||
           (selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2)
         )
       }
       title={
-        selectedRace.racialSpellChoice && !selectedSpellAbility
+        selectedRaceSpellAbilityChoice && !selectedSpellAbility
           ? 'Please select a spellcasting ability first'
           : selectedRace.id === 'elf' && !selectedKeenSensesSkillId
             ? 'Please select a Keen Senses skill first'

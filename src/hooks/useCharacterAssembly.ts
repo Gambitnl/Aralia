@@ -17,9 +17,16 @@ import {
 import { SKILLS_DATA } from '../data/skills';
 import { WEAPONS_DATA } from '../data/items';
 import { ALL_RACES_DATA as RACES_DATA } from '../data/races';
+import { getRacialSpellCastingAbilityChoicesForRace } from '../data/races';
 import { TIEFLING_LEGACIES } from '../constants';
 import { CharacterCreationState } from '../components/CharacterCreator/state/characterCreatorState'; 
-import { getAbilityModifierValue, applyFeatToCharacter, buildHitPointDicePools } from '../utils/characterUtils';
+import {
+  getAbilityModifierValue,
+  applyFeatToCharacter,
+  buildHitPointDicePools,
+  applyRacialSpellGrantsByLevel,
+  getRacialSpellAbilityFromSelection,
+} from '../utils/characterUtils';
 import { FEATS_DATA } from '../data/feats/featsData';
 import type { FiendishLegacy, FeatChoice, MagicInitiateSource } from '../types/character';
 
@@ -43,7 +50,7 @@ function validateAllSelectionsMade(state: CharacterCreationState): boolean {
   if (selectedRace.id === 'changeling' && (!racialSelections['changeling']?.skillIds || racialSelections['changeling'].skillIds.length !== 2)) return false;
   
   // Check consolidated racial spell ability choices for races that have them
-  if (selectedRace.racialSpellChoice && !racialSelections[selectedRace.id]?.spellAbility) return false;
+  if (getRacialSpellCastingAbilityChoicesForRace(selectedRace.id).length > 0 && !racialSelections[selectedRace.id]?.spellAbility) return false;
   
   // Check human skill
   if (selectedRace.id === 'human' && !racialSelections['human']?.skillIds?.[0]) return false;
@@ -91,10 +98,10 @@ function calculateCharacterDarkvision(race: Race, lineageId?: string): number {
         const match = dvTrait.match(/(\d+)/);
         if (match) range = parseInt(match[1], 10);
     }
-    if ((race.id === 'elf' && lineageId === 'drow') || race.id === 'deep_gnome' || race.id === 'duergar' || race.id === 'dwarf' || race.id === 'orc') {
+    if ((race.id === 'elf' && lineageId === 'drow') || race.id === 'duergar' || race.id === 'dwarf' || race.id === 'orc') {
         range = Math.max(range, 120);
     }
-    return range;
+  return range;
 }
 
 function assembleCastingProperties(state: CharacterCreationState): {
@@ -123,6 +130,7 @@ function assembleCastingProperties(state: CharacterCreationState): {
   const cantripIds = new Set<string>(selectedCantrips.map(s => s.id));
   const spellIds = new Set<string>(selectedSpellsL1.map(s => s.id));
 
+  // Racial spells gained at creation level (currently used by deep_gnome’s racial mechanics).
   if (selectedClass.id === 'druid') {
       spellIds.add('speak-with-animals');
   }
@@ -169,7 +177,15 @@ function assembleCastingProperties(state: CharacterCreationState): {
       }
   }
 
-  return { spellbook, spellSlots, spellcastingAbility: classAbility, limitedUses };
+  const selectedRaceSpellAbility = getRacialSpellAbilityFromSelection(selectedRace.id, racialSelections)
+    ?.toLowerCase() as 'intelligence' | 'wisdom' | 'charisma' | undefined;
+
+  return {
+    spellbook,
+    spellSlots,
+    spellcastingAbility: classAbility ?? selectedRaceSpellAbility,
+    limitedUses
+  };
 }
 
 
@@ -286,6 +302,8 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
         });
       }
     }
+
+    assembledCharacter = applyRacialSpellGrantsByLevel(assembledCharacter, assembledCharacter.level || 1);
     
     return assembledCharacter;
 

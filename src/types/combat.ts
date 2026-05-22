@@ -256,6 +256,11 @@ export interface AbilityCost {
   movementCost?: number;
   spellSlotLevel?: number;
   quantity?: number;
+  castSource?: {
+    type: 'racial';
+    spellId: string;
+    allowSlotFallback?: boolean;
+  };
   limitations?: {
     oncePerTurn?: boolean;
     oncePerRound?: boolean;

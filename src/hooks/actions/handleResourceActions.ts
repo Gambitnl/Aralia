@@ -11,6 +11,7 @@ import { checkPlanarRestRules } from '../../systems/planar/rest';
 import { buildHitPointDicePools, getAbilityModifierValue } from '../../utils/characterUtils';
 import { rollDice } from '../../utils/combatUtils';
 import { formatDuration, getGameDay } from '../../utils/core';
+import { CastSpellPayload } from '../../types/actions';
 
 interface HandleRestProps {
     gameState: GameState; // Pass full gameState for context
@@ -27,7 +28,7 @@ const SHORT_REST_DURATION_SECONDS = 1 * 3600;
 const SHORT_REST_COOLDOWN_SECONDS = 2 * 3600;
 const SHORT_REST_MAX_PER_DAY = 3;
 
-export function handleCastSpell(dispatch: React.Dispatch<AppAction>, payload: { characterId: string; spellLevel: number }): void {
+export function handleCastSpell(dispatch: React.Dispatch<AppAction>, payload: CastSpellPayload): void {
     dispatch({ type: 'CAST_SPELL', payload });
 }
 

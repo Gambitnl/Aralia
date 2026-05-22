@@ -86,6 +86,20 @@ export interface UseItemPayload {
     itemId: string;
     characterId: string;
 }
+export interface CastSpellSource {
+    type: 'racial';
+    /**
+     * If true, and no racial resource is available, allow falling back to spell slots.
+     * Useful for traits that can alternatively be cast with class spell slots.
+     */
+    allowSlotFallback?: boolean;
+}
+export interface CastSpellPayload {
+    characterId: string;
+    spellLevel: number;
+    spellId?: string;
+    castSource?: CastSpellSource;
+}
 export interface DropItemPayload {
     itemId: string;
     characterId: string;
@@ -315,10 +329,7 @@ export type Action = {
     label?: string;
 } | {
     type: 'CAST_SPELL';
-    payload: {
-        characterId: string;
-        spellLevel: number;
-    };
+    payload: CastSpellPayload;
     label?: string;
 } | {
     type: 'USE_LIMITED_ABILITY';

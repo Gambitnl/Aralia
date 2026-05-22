@@ -69,6 +69,7 @@ export interface RaceDetailData {
     racialSpellChoice?: {
         traitName: string;
         traitDescription: string;
+        source?: 'parser' | 'legacy';
     };
     spellsOfTheMark?: { minLevel: number; spells: string[] }[];
 }
