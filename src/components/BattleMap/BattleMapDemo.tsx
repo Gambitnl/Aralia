@@ -36,6 +36,82 @@ interface BattleMapDemoProps {
 
 type BiomeType = 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
 
+// ---------------------------------------------------------------------------
+// 3D Controls Help Panel
+// ---------------------------------------------------------------------------
+
+const ControlsHelp: React.FC<{ visible: boolean }> = ({ visible }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!visible) return null;
+
+  return (
+    <div className="absolute bottom-4 left-4 z-20 select-none flex flex-col-reverse items-start gap-1.5" style={{ pointerEvents: 'auto' }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/90 hover:bg-gray-700/90 border border-gray-600/50 rounded-lg text-xs text-gray-300 backdrop-blur-sm shadow-lg transition-colors"
+        title="Toggle controls help"
+      >
+        <span className="text-amber-400">?</span>
+        <span>Controls</span>
+        <span className="text-gray-500 ml-0.5">{expanded ? '▾' : '▸'}</span>
+      </button>
+
+      {expanded && (
+        <div className="bg-gray-900/95 border border-gray-700/60 rounded-lg p-3 backdrop-blur-sm shadow-xl text-xs leading-relaxed max-w-[280px]">
+          {/* Camera */}
+          <div className="text-amber-400 font-semibold mb-1.5 text-[11px] uppercase tracking-wide">Camera</div>
+          <div className="space-y-1 text-gray-300 mb-3">
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Right-drag</span>
+              <span>Rotate view</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Middle-drag</span>
+              <span>Pan across map</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Scroll wheel</span>
+              <span>Zoom in / out</span>
+            </div>
+          </div>
+
+          {/* Selection */}
+          <div className="text-amber-400 font-semibold mb-1.5 text-[11px] uppercase tracking-wide">Selection</div>
+          <div className="space-y-1 text-gray-300 mb-3">
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Left-click</span>
+              <span>Select character (your turn only)</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Hover</span>
+              <span>Show name &amp; HP bar</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="text-amber-400 font-semibold mb-1.5 text-[11px] uppercase tracking-wide">Actions</div>
+          <div className="space-y-1 text-gray-300">
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Click tile</span>
+              <span>Move selected character</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Use ability</span>
+              <span>Pick from right panel, then click target</span>
+            </div>
+          </div>
+
+          <div className="mt-2.5 pt-2 border-t border-gray-700/40 text-gray-500 text-[10px]">
+            Active turn character is highlighted with a golden ring.
+            Enemies have red selection rings when targetable.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters, party }) => {
   const initialBiome: BiomeType = 'forest';
   const [biome, setBiome] = useState<BiomeType>(initialBiome);
@@ -258,7 +334,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
 
         {/* Center Pane */}
-        <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
+        <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2 relative">
+          <ControlsHelp visible={renderMode === '3d'} />
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             {renderMode === '3d' ? (
               <BattleMap3D
