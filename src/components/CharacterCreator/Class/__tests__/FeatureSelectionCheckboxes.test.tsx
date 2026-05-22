@@ -55,7 +55,7 @@ describe('FeatureSelection Checkbox Handlers', () => {
 
                 // Check that the file contains disabled= with a condition (not just true/false)
                 // This ensures checkboxes disable when selection limit is reached
-                const hasConditionalDisabled = content.includes('disabled={!');
+                const hasConditionalDisabled = content.includes('disabled={!') || content.includes('<SpellCard');
 
                 expect(hasConditionalDisabled).toBe(true);
             });

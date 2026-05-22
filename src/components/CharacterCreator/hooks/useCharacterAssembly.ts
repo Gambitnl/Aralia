@@ -379,10 +379,42 @@ function assembleCastingProperties(state: CharacterCreationState): {
     }
   }
 
+
+
+  let knownSpells: string[] = [];
+  let preparedSpells: string[] = [];
+
+  const knownCasterIds = ['bard', 'sorcerer', 'warlock', 'ranger'];
+  if (knownCasterIds.includes(selectedClass.id)) {
+    // Known casters only know the spells they selected, and all are ready to cast.
+    knownSpells = Array.from(spellIds);
+    preparedSpells = Array.from(spellIds);
+  } else if (selectedClass.id === 'wizard') {
+    // Wizards "know" the spells in their spellbook (the ones they selected).
+    // The wizard prepares a subset of them (INT mod + level). Since we don't ask
+    // them to pick which ones to prepare in the creator yet, we just auto-prepare
+    // up to their limit.
+    knownSpells = Array.from(spellIds);
+    const { finalAbilityScores } = state;
+    let prepLimit = spellIds.size; // Default to all
+    if (finalAbilityScores) {
+      const intMod = Math.floor((finalAbilityScores.Intelligence - 10) / 2);
+      prepLimit = Math.max(1, intMod + 1); // Wizard level is 1
+    }
+    preparedSpells = Array.from(spellIds).slice(0, prepLimit);
+  } else {
+    // Prepared casters (Cleric, Druid, Paladin, Artificer) have access to their whole
+    // spell list, and prepare a specific subset.
+    knownSpells = [...(selectedClass.spellcasting?.spellList || []), ...Array.from(spellIds)];
+    // Ensure uniqueness
+    knownSpells = Array.from(new Set(knownSpells));
+    preparedSpells = Array.from(spellIds);
+  }
+
   const spellbook: SpellbookData = {
     cantrips: Array.from(cantripIds),
-    preparedSpells: Array.from(spellIds),
-    knownSpells: [...(selectedClass.spellcasting?.spellList || []), ...Array.from(spellIds)],
+    preparedSpells: preparedSpells,
+    knownSpells: knownSpells,
   };
 
   let spellSlots: SpellSlots | undefined = undefined;
