@@ -3,12 +3,14 @@ import { handleMovement } from '../handleMovement';
 import * as GeminiService from '../../../services/geminiService';
 import { GameState, Action, PlayerCharacter } from '../../../types';
 import * as SeasonalSystem from '../../../systems/time/SeasonalSystem';
+import * as TravelEventService from '../../../services/travelEventService';
 import { Season } from '../../../utils/core';
 import { initialGameState } from '../../../state/initialState';
 
 // Mocks
 vi.mock('../../../services/geminiService');
 vi.mock('../../../systems/time/SeasonalSystem');
+vi.mock('../../../services/travelEventService');
 
 // Mock submapUtils (partial) so travel event helpers can access createSeededRandom.
 vi.mock('../../../utils/submapUtils', async (importOriginal) => {
@@ -107,6 +109,9 @@ describe('handleMovement - Seasonal Effects', () => {
       description: 'Spring breeze.',
       elements: []
     });
+    // Seasonal multiplier assertions need a stable baseline; procedural travel
+    // events can add random delay time and are covered by their own service tests.
+    vi.mocked(TravelEventService.generateTravelEvent).mockReturnValue(null);
   });
 
   it('applies standard travel time in Spring', async () => {
