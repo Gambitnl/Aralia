@@ -3304,12 +3304,63 @@ Copy this block for each decision.
   repair commit, refresh the PR packet, rerun Scout/Core acceptance review,
   and collect rendered creator/spellbook proof before Core merge.
 
+### Decision 78: Accept The Jules Repair Commit And Merge Package 3 PR #954
+
+- Date/time: 2026-05-22 19:22 +02:00
+- Phase: `package_3_scout_core_review`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first finalization
+- Decision point: Jules pushed repair commit
+  `b77b03581016c3ed0c950e242a1a8eca82f3e756` after the visible Jules repair
+  request. GitHub Build, Tests, Lint, CodeQL, Quality Scan, Poison File Check,
+  and CodeQL analysis lanes passed. A visible dashboard refresh moved the task
+  from `Wait for Jules Repair` to `Scout Bridge Risk`, which meant the next
+  decision was whether Scout/Core should accept the repaired PR or send more
+  feedback to Jules.
+- Options considered:
+  - Keep waiting even though Jules had pushed a new repair commit and checks
+    were green.
+  - Send another Jules feedback comment.
+  - Repair the Package 3 branch locally.
+  - Accept the Jules repair after focused tests, local build, scope review, and
+    rendered creator proof, then merge PR #954 under the pre-approved merge
+    boundary.
+- Decision made by agent: Accept the Jules repair and merge PR #954. Record the
+  remaining class-feature checkbox semantics issue as an adjacent accessibility
+  follow-up, not as a merge blocker.
+- Model routing: Jules remained the implementation worker. Local Codex handled
+  dashboard refresh, Scout/Core review, focused verification, rendered
+  inspection, PR comment reporting, and the approved merge action.
+- Rationale/evidence: The two prior Scout blockers were resolved: Druid
+  `Speak with Animals` now renders as a checked `Class Feature` card in the
+  Level 1 spell section, and `SpellCard.tsx` no longer uses explicit `any`
+  formatting helpers. Focused creator/spellbook tests passed, local production
+  build passed, GitHub checks passed, and rendered inspection showed the
+  repaired Druid creator surface. The remaining checkbox semantics issue does
+  not undo the visible/behavioral lock required by the original blocker.
+- Mutation performed or skipped: Posted a Scout/Core result comment on PR #954
+  because GitHub would not allow approving a same-owner PR through review,
+  merged PR #954, and moved the monitor worktree to
+  `codex/spell-phase1-monitor-28` from updated `origin/master`. Skipped local
+  Package 3 code repair, skipped another Jules feedback request, and skipped
+  mutation of the user's main `master` checkout.
+- Scope guardrails: This accepts the Package 3 creator/spellbook visibility
+  implementation. It does not claim levels 0-3 combat-simulator coverage,
+  broad AI arbitration, higher-level caster fixtures, or the Package 4/5
+  pilots.
+- Result: PR #954 merged at 2026-05-22 17:22:22 UTC as
+  `7f8d8935a08143ca6c0c1c5c78f4fedae0e4de27`. The active monitor branch is
+  now `codex/spell-phase1-monitor-28` from `origin/master`.
+- Next expected proof: Record Package 3 closeout receipts, run or record local
+  sync/deployment gates as appropriate, update MemPalace targeted drawers, and
+  then prepare Package 4's combat simulator deterministic spell pilot.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor PR #954 for a Jules repair commit after the third marked GitHub
-   feedback comment and the visible Jules repair message.
-2. Review PR #954 for scope, focused tests, rendered spellbook/creator
-   proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
+1. Close out Package 3 with durable proof receipts, local-sync/deployment
+   evidence, and targeted MemPalace mining.
+2. Decide whether the semantically enabled Druid class-feature checkbox should
+   be repaired immediately or batched into a creator accessibility pass.
 3. Decide whether Symphony should add first-class receipts and dashboard
    controls for `feedback visible in Jules`, beyond the Decision 77 wording
    that prevents GitHub comments from being overstated as delivery proof.
