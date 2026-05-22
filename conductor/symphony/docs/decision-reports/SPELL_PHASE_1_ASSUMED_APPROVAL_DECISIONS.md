@@ -2619,6 +2619,56 @@ Copy this block for each decision.
   refresh the dashboard PR packet, and proceed to Scout/Core/visual proof only
   after GitHub checks pass.
 
+### Decision 64: Merge The Post-Feedback State-Model Repair And Resync The Monitor Worktree
+
+- Date/time: 2026-05-22 16:16 +02:00
+- Phase: `package_3_post_feedback_repair_loop`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first hardening
+- Decision point: PR #957 carried the local Symphony repair from Decision 63.
+  Build, Tests, Lint, CodeQL, Quality Scan, and Poison File Check passed. The
+  only failed lane was `review / review`, and its log showed Gemini API quota
+  exhaustion for `gemini-2.5-flash`, not a repository regression. After the
+  squash merge, the dashboard Git gate saw the old local monitor branch as one
+  commit ahead and one commit behind because the local pre-squash commit and
+  remote squash commit had different SHAs.
+- Options considered:
+  - Wait for the Gemini review quota lane even though the normal project gates
+    were already green.
+  - Leave PR #957 open and continue Package 3 monitoring with the local patch
+    only.
+  - Merge PR #957 under the previously approved PR boundary, then preserve the
+    old local branch and switch the monitor worktree to a fresh branch from
+    `origin/master`.
+  - Reset the old local branch in place.
+- Decision made by agent: Merge PR #957 and switch the worktree to
+  `codex/spell-phase1-monitor-13` from `origin/master`, preserving
+  `codex/spell-phase1-monitor-12` rather than resetting it.
+- Model routing: Local Codex handled CI classification, merge, and monitor
+  branch hygiene. Jules remains the implementation worker for PR #954.
+- Rationale/evidence: The failed Gemini review lane reported quota exhaustion,
+  while the ordinary CI lanes passed. The dashboard-first rule made the
+  post-merge ahead/behind state visible as a sync blocker. Because the merged
+  remote commit already contained the repair as a squash commit, a fresh
+  monitor branch from `origin/master` removed the false blocker without
+  destroying local branch evidence.
+- Mutation performed or skipped: Merged PR #957, fetched `origin/master`, and
+  created `codex/spell-phase1-monitor-13` at `origin/master`. Skipped direct
+  mutation of PR #954, skipped local Package 3 implementation repair, and
+  skipped resetting the old local monitoring branch.
+- Scope guardrails: This only changes Symphony state-model availability and
+  the local monitoring branch position. It does not change spell rules,
+  character creator behavior, spellbook UI, AI arbitration, premade roster
+  semantics, or the Jules implementation branch.
+- Result: The dashboard `Check GitHub Sync` control reported
+  `codex/spell-phase1-monitor-13` matches `origin/master`, with ahead/behind
+  `0 / 0` and a clean working tree. Package 3 remained in `Wait for Jules
+  Repair`; PR #954 still has head
+  `0ce77a9c33adb230a0d52a1d4242434b846704f5` and failing Tests.
+- Next expected proof: Continue waiting for Jules to push a new PR #954 repair
+  commit after the second marked feedback comment, then refresh the dashboard
+  PR packet and proceed only if checks pass.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor PR #954 for a Jules repair commit after the second marked feedback
