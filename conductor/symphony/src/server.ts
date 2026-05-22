@@ -3048,7 +3048,12 @@ export class HttpServer {
     const latestDraft = drafts[0] ?? null;
     const latestHandoff = handoffs[0] ?? null;
     const dashboardHandoff = handoffs.find(handoff => handoff.status !== 'observed_pr') ?? null;
-    const prHandoff = handoffs.find(handoff => Boolean(handoff.githubPullRequestUrl)) ?? latestHandoff;
+    // Keep the PR lane attached to the active dashboard handoff first.
+    // Without this, an older merged Package 2 PR can leak into a Package 3
+    // no-PR completion boundary and make the dashboard look like the wrong
+    // implementation slice is ready for review.
+    const observedPrHandoff = handoffs.find(handoff => handoff.status === 'observed_pr' && Boolean(handoff.githubPullRequestUrl)) ?? null;
+    const prHandoff = dashboardHandoff ?? observedPrHandoff ?? latestHandoff;
     const gitBlocked = !snapshot.preflight.ok;
     const hasLinearReceipt = Boolean(
       latestHandoff?.linearIssueIdentifier
@@ -3060,7 +3065,11 @@ export class HttpServer {
     const hasManifest = Boolean(manifestHandoff?.manifestPath);
     const hasSession = Boolean(manifestHandoff?.julesSessionId || manifestHandoff?.julesSessionUrl || manifestHandoff?.julesState);
     const hasDashboardPr = Boolean(dashboardHandoff?.githubPullRequestUrl);
-    const hasObservedPr = Boolean(prHandoff?.status === 'observed_pr' && prHandoff.githubPullRequestUrl);
+    // Observed PRs are useful only when there is no dashboard-started handoff
+    // currently owning the workflow. Once a Package 3 handoff exists, older
+    // observed Package 2 PRs must stay historical rather than becoming the
+    // active PR boundary.
+    const hasObservedPr = Boolean(!dashboardHandoff && observedPrHandoff?.githubPullRequestUrl);
     const hasPr = hasDashboardPr || hasObservedPr;
     const completedWithoutPr = Boolean(manifestHandoff?.julesState === 'COMPLETED' && !hasDashboardPr);
     const prState = prHandoff?.githubPullRequestState ?? null;

@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: Jules in pre-commit work after visible plan confirmation; no PR captured yet.
+Status: Jules feedback sent after known-caster prep-control question; no PR captured yet.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -38,14 +38,16 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Refresh after visible confirmation | Waiting | Dashboard refresh moved the handoff back to Jules state `IN_PROGRESS`; GitHub branch and PR checks still found no `jules/spells-package3-spellbook-creator-visibility` branch or PR |
 | Post-PR #944 monitor refresh | Waiting | After the Package 3 reconciliation docs merged, the visible dashboard still reported `IN_PROGRESS`; the visible Jules page showed `Plan approved` with no new feedback gate or PR link, and GitHub still had no expected branch or PR |
 | Post-PR #945 monitor refresh | Jules working, not publish-ready | After PR #945 merged the monitor decision docs, the dashboard still reported `IN_PROGRESS` with no PR URL, GitHub still had no Package 3 branch or PR, but the visible Jules page showed actual edits in the Package 3 scope and a `Working` pre-commit step |
+| Known-caster prep-control feedback | Feedback sent | Dashboard refreshed to `Send Jules Feedback`; visible Jules asked whether to change `getMaxPreparedSpells.ts`, hide Prep/Unprep controls locally for Bard/Sorcerer/Warlock/Ranger, or allow those classes to prepare/unprepare. The agent chose option B and sent the bounded instruction through the visible Jules chat. |
 
 ## Current Boundary
 
-- Jules state: `IN_PROGRESS` in Symphony; visible Jules page shows `Working`
-  on pre-commit verification after editing Package 3 files.
+- Jules state: `AWAITING_USER_FEEDBACK` was captured by Symphony, then the
+  agent sent bounded option B feedback through the visible Jules chat.
 - PR URL: none captured yet
-- Next proof: continue dashboard refreshes until Symphony captures a PR URL, a
-  feedback/approval request, a failure, or a durable no-code/no-PR result.
+- Next proof: refresh the dashboard/Jules status until Symphony captures
+  resumed work, a PR URL, a follow-up feedback/approval request, a failure, or
+  a durable no-code/no-PR result.
 
 ## Dashboard UX Notes
 
@@ -77,3 +79,16 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   `useCharacterAssembly.ts`, spellbook components, and `SpellbookTab` tests,
   with Jules working through pre-commit verification. The foreman kept the
   run alive instead of downloading the zip or recreating the diff locally.
+- The next dashboard refresh did surface a `Send Jules Feedback` boundary, but
+  the dashboard did not expose the actual question in the first visible
+  boundary card. The agent opened the dashboard-linked Jules session and found
+  the question: whether to change shared 2024 preparation utility semantics,
+  hide Prep/Unprep controls locally for fixed-known casters, or allow those
+  classes to prepare/unprepare. The agent chose the local UI treatment and sent
+  the answer visibly in Jules.
+- After option B feedback, the dashboard reported Jules `COMPLETED` again with
+  no captured PR. Visible Jules still showed no PR link and GitHub had no
+  Package 3 branch/PR, while the middleman PR lane borrowed old Package 2 PR
+  #935 as the active PR boundary. The foreman patched Symphony so completed
+  no-PR Package 3 handoffs keep the PR lane attached to the active handoff
+  instead of historical Package 2 PR state.

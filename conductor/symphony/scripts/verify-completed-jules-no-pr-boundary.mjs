@@ -106,12 +106,27 @@ const handoff = {
   next_action: null,
 };
 
+const olderPackage2PrHandoff = {
+  ...handoff,
+  id: 'handoff-older-package-2-pr',
+  draftId: 'draft-older-package-2-pr',
+  title: 'Spell Phase 1 Package 2: premade party and gear',
+  status: 'sent_to_jules',
+  julesState: 'COMPLETED',
+  githubPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/935',
+  githubPullRequestState: 'MERGED',
+};
+
 const server = new HttpServer(8207, orchestrator, logger);
 server.taskIntake = {
   async snapshot() {
     return {
       drafts: [],
-      handoffs: [handoff],
+      // The current Package 3-style handoff has no PR. The older Package 2
+      // handoff does have a merged PR, and this fixture proves the middleman
+      // path does not accidentally borrow that historical PR as the active
+      // review boundary.
+      handoffs: [handoff, olderPackage2PrHandoff],
       preflight: {
         ok: false,
         checkedAt: generatedAt,
@@ -175,6 +190,10 @@ try {
   assert.equal(queue.middleman_path.foremanAction.safety, 'external_read');
   assert.equal(queue.middleman_path.foremanAction.endpoint, 'https://jules.google.com/session/15527431301408060204');
   assert.match(queue.middleman_path.foremanAction.instruction, /visible Jules session result/);
+  const githubStage = queue.middleman_path.stages.find(stage => stage.id === 'github_pr');
+  assert.equal(githubStage.sourceId, 'handoff-completed-no-pr');
+  assert.equal(githubStage.status, 'waiting');
+  assert.equal(githubStage.receipt, null);
 
   // The Jules no-PR completion boundary is reusable across packages. This
   // assertion protects Package 3 and later handoffs from inheriting Package 2
