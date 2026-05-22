@@ -1,6 +1,6 @@
 # Package 3 Dispatch Readiness Checklist
 
-Status: draft prepared; waiting for Symphony dashboard draft creation.
+Status: launched to Jules; waiting for PR capture.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task. It should be updated before dispatch, after Jules creates a
@@ -22,6 +22,8 @@ PR, and during closeout.
   `docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
 - Package 3 visual proof receipt:
   `docs/tasks/spells/PACKAGE_3_VISUAL_PROOF_RECEIPT.md`
+- Package 3 Symphony handoff receipt:
+  `docs/tasks/spells/PACKAGE_3_SYMPHONY_HANDOFF_RECEIPT.md`
 - Decision report:
   `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
 
@@ -30,10 +32,16 @@ PR, and during closeout.
 - Package 2 merged: `yes`, PR #935 merged as Package 2 implementation.
 - Package 2 closeout docs merged: `yes`, PR #938 recorded closeout.
 - Package 3 scope mapped: `yes`.
-- Symphony dashboard draft created: `no`.
-- Linear issue created: `not yet`.
-- Jules handoff launched: `no`.
-- Jules session id: `none`.
+- Symphony dashboard draft created: `yes`, `draft-1779442977969-w2vsy4`.
+- Linear issue created: `yes`, ARA-9:
+  `https://linear.app/aralia/issue/ARA-9/spell-phase-1-package-3-spellbook-and-character-creator-visibility`.
+- Symphony handoff prepared: `yes`, `handoff-1779443555192-bnpws7`.
+- Jules manifest staged: `yes`,
+  `.jules/runs/symphony-handoff-1779443555192-bnpws7/manifest.json`.
+- Jules handoff launched: `yes`.
+- Jules session id: `2823658242418460192`.
+- Jules session state: `QUEUED` as of the dashboard refresh at
+  2026-05-22 11:54 local time.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
@@ -52,15 +60,17 @@ Optional local review worktree:
 
 ## Next Dispatch Steps
 
-1. Use the Symphony dashboard as the primary path to create the Package 3 task
-   draft from `PACKAGE_3_SYMPHONY_TASK_DRAFT_PAYLOAD.json`.
-2. If dashboard input blocks the visible flow, record the blocker and repair the
-   dashboard/workflow rather than silently posting to hidden endpoints.
-3. Create or link the Package 3 Linear issue if Symphony exposes that gate.
-4. Launch the Jules handoff from the visible task page once the draft passes its
-   gates.
-5. Record the draft id, handoff id, Jules session id, branch name, PR URL, and
-   verifier output in this checklist and the Package 3 receipts.
+1. Refresh Jules status through the visible dashboard until Symphony captures a
+   PR URL or records why no PR exists yet.
+2. If Jules asks for plan approval or feedback, use the dashboard/Jules visible
+   path and record the decision before continuing.
+3. When a PR appears, run the Package 3 review path before Scout/Core merge:
+   scope check, relevant focused tests, visual proof, Atlas/gate checkpoint,
+   and PR checks.
+4. Record the PR URL, verifier output, visual proof, and Atlas/gate checkpoint
+   in this checklist and the Package 3 receipts.
+5. Keep combat simulator casting and AI arbitration discoveries as Package 4/5
+   gaps unless they are tiny fixture-only changes required to test Package 3.
 
 ## Abort Or Repair Path
 
