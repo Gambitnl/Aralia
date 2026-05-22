@@ -2237,12 +2237,55 @@ Copy this block for each decision.
   and confirm the live middleman path keeps Package 3 as the waiting PR source
   until a real Package 3 PR, no-PR proof, or failure is captured.
 
+### Decision 56: Ask Jules To Publish Before Falling Back To Download Zip
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_publish_reconciliation`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: PR #947 merged the Symphony active-handoff no-PR routing
+  repair. After switching to a fresh branch from `origin/master`, the live
+  dashboard Git gate was green and the Package 3 handoff owned the waiting PR
+  lane, but the current boundary still reported Jules completed without a
+  captured PR URL. The visible Jules session showed in-scope code edits and
+  accepted option B feedback, yet still showed no PR link or publish result.
+- Options considered:
+  - Download the visible Jules zip and import/recreate the implementation
+    locally.
+  - Relaunch or split Package 3 immediately.
+  - Send one more visible Jules chat request asking Jules to push/open the
+    expected PR, or explicitly state why it cannot and whether Download zip is
+    the only remaining handoff path.
+- Decision made by agent: Send the visible Jules publish request and continue
+  monitoring before taking over the code locally.
+- Model routing: Jules remains the implementation worker. Local Codex foreman
+  handled dashboard verification, PR #947 merge, and documentation.
+- Rationale/evidence: The goal asks to offload as much suitable implementation
+  work as possible to Jules through the Symphony flow. The visible Jules page
+  still had a chat input and showed code edits, so the least-bypass next step
+  was to ask Jules to publish the expected branch/PR or explain the no-PR
+  result before using the visible export fallback.
+- Mutation performed or skipped: Sent a visible Jules chat message requesting
+  branch `jules/spells-package3-spellbook-creator-visibility` and a PR against
+  `master`, or an exact explanation that publishing is unavailable and
+  Download zip is the only handoff path. Skipped local Package 3
+  implementation, skipped zip download, skipped relaunch, and skipped treating
+  completed-without-PR as durable final proof.
+- Scope guardrails: Package 3 remains limited to character creator spell
+  selection and character sheet spellbook visibility. Combat simulator casting,
+  AI arbitration, broad spell schema/runtime architecture, and premade roster
+  semantics remain out of scope for this package.
+- Result: Package 3 is now waiting on Jules publish proof, a no-publish
+  explanation, a new feedback/failure state, or a captured PR.
+- Next expected proof: Refresh the dashboard/Jules state. If no PR or response
+  appears after the publish request, record the repeated no-PR state as a
+  Package 3 publish blocker before choosing between relaunch, visible Download
+  zip import, or task split.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
-   has now received option B feedback for the known-caster prep-control
-   boundary and then returned to completed-without-PR inspection with no
-   captured Package 3 PR URL.
+   has now received option B feedback and a follow-up visible publish request,
+   but still has no captured Package 3 PR URL.
 2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.

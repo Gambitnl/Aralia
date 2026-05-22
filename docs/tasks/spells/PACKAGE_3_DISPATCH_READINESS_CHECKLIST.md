@@ -1,6 +1,6 @@
 # Package 3 Dispatch Readiness Checklist
 
-Status: launched to Jules; visible Jules work in progress, waiting for PR capture.
+Status: launched to Jules; visible Jules work exists, waiting for PR capture or publish explanation.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task. It should be updated before dispatch, after Jules creates a
@@ -71,6 +71,15 @@ PR, and during closeout.
   Jules inspection, but its middleman PR lane reused old Package 2 PR #935
   instead of keeping the waiting PR boundary on Package 3. The foreman patched
   Symphony and verifier coverage for this active-handoff routing defect.
+- Completed-no-PR routing repair merged: PR #947 merged on 2026-05-22 after
+  the ambient full-suite movement-test failure was rerun successfully. The
+  remaining Gemini review failure was quota-related advisory automation.
+- Explicit publish request: after PR #947 landed and the dashboard was checked
+  from a fresh `origin/master` branch, the live dashboard still reported
+  Package 3 completed-without-PR. The visible Jules session still showed code
+  but no PR link, so the agent sent a visible Jules chat request asking Jules
+  to push/open the expected PR or state that it cannot and whether Download zip
+  is the only remaining handoff path.
 - Package 3 implementation PR: `none`.
 
 ## Reserved Names
@@ -95,10 +104,10 @@ Optional local review worktree:
 2. If a PR appears, run the Package 3 review path before Scout/Core merge:
    scope check, relevant focused tests, visual proof, Atlas/gate checkpoint,
    and PR checks.
-3. If Jules remains completed-without-PR after the active-handoff routing
-   repair, record the visible no-code/no-PR result as a Package 3 blocker
-   before deciding whether to relaunch Jules, use a visible Jules export path,
-   or split the task further.
+3. If Jules remains completed-without-PR after the explicit visible publish
+   request, record the no-PR result as a Package 3 publish blocker before
+   deciding whether to relaunch Jules, use the visible Jules Download zip
+   export path, or split the task further.
 4. Record the PR URL or no-PR proof, verifier output, visual proof, and
    Atlas/gate checkpoint
    in this checklist and the Package 3 receipts.

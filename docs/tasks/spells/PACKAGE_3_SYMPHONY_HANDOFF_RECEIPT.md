@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: Jules feedback sent after known-caster prep-control question; no PR captured yet.
+Status: Jules asked to publish visible Package 3 work; no PR captured yet.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -39,15 +39,18 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Post-PR #944 monitor refresh | Waiting | After the Package 3 reconciliation docs merged, the visible dashboard still reported `IN_PROGRESS`; the visible Jules page showed `Plan approved` with no new feedback gate or PR link, and GitHub still had no expected branch or PR |
 | Post-PR #945 monitor refresh | Jules working, not publish-ready | After PR #945 merged the monitor decision docs, the dashboard still reported `IN_PROGRESS` with no PR URL, GitHub still had no Package 3 branch or PR, but the visible Jules page showed actual edits in the Package 3 scope and a `Working` pre-commit step |
 | Known-caster prep-control feedback | Feedback sent | Dashboard refreshed to `Send Jules Feedback`; visible Jules asked whether to change `getMaxPreparedSpells.ts`, hide Prep/Unprep controls locally for Bard/Sorcerer/Warlock/Ranger, or allow those classes to prepare/unprepare. The agent chose option B and sent the bounded instruction through the visible Jules chat. |
+| Completed-no-PR routing repair | Done | PR #947 merged after normal CI passed; dashboard JSON now keeps the waiting PR lane attached to Package 3 handoff `handoff-1779443555192-bnpws7` instead of old Package 2 PR #935. |
+| Explicit Jules publish request | Waiting | The agent opened the visible Jules session, confirmed code edits were visible but no PR URL/branch existed, and sent a visible chat request asking Jules to push `jules/spells-package3-spellbook-creator-visibility` and open a PR, or state why it cannot and whether Download zip is the only available handoff path. |
 
 ## Current Boundary
 
-- Jules state: `AWAITING_USER_FEEDBACK` was captured by Symphony, then the
-  agent sent bounded option B feedback through the visible Jules chat.
+- Jules state: Symphony reports completed-without-PR after option B feedback;
+  the agent has sent one additional visible Jules request to publish the
+  existing Package 3 work or explain why it cannot.
 - PR URL: none captured yet
 - Next proof: refresh the dashboard/Jules status until Symphony captures
   resumed work, a PR URL, a follow-up feedback/approval request, a failure, or
-  a durable no-code/no-PR result.
+  a durable no-PR response that justifies using the visible export fallback.
 
 ## Dashboard UX Notes
 
@@ -92,3 +95,11 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   #935 as the active PR boundary. The foreman patched Symphony so completed
   no-PR Package 3 handoffs keep the PR lane attached to the active handoff
   instead of historical Package 2 PR state.
+- PR #947 merged that routing repair on 2026-05-22. After switching to a fresh
+  branch from `origin/master`, the live dashboard Git gate was green and the
+  middleman path kept Package 3 as the source for the waiting PR lane.
+- The visible Jules session showed in-scope code edits and option B feedback,
+  but still no publish result after a dashboard refresh. The foreman sent one
+  more visible Jules chat request asking for the expected branch/PR or a clear
+  statement that the session cannot publish and Download zip is the only
+  available handoff path.
