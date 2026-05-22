@@ -282,7 +282,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
   }
 
   return (
-    <div style={{ width: '100%', height: '600px', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', flex: '1 1 0%', minHeight: '300px', borderRadius: '8px', overflow: 'hidden' }}>
       <Canvas
         shadows
         camera={{

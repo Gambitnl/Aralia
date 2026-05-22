@@ -241,7 +241,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4">
+    <div className="bg-gray-900 text-white h-screen flex flex-col p-4 overflow-hidden">
       {sheetCharacter && (
         <CharacterSheetModal
           isOpen={!!sheetCharacter}
@@ -320,7 +320,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </button>
       </div>
 
-      <div className="flex-grow grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
+      <div className="flex-grow min-h-0 grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
         {/* Left Pane */}
         <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
           <PartyDisplay
@@ -334,10 +334,11 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
 
         {/* Center Pane */}
-        <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2 relative">
+        <div className="xl:col-span-3 flex flex-col overflow-hidden p-2 relative">
           <ControlsHelp visible={renderMode === '3d'} />
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             {renderMode === '3d' ? (
+              /* 3D canvas fills entire center pane vertically */
               <BattleMap3D
                 mapData={mapData}
                 characters={characters}
