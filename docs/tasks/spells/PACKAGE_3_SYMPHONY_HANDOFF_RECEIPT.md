@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: Jules asked to publish visible Package 3 work; no PR captured yet.
+Status: PR #954 captured; Jules feedback sent for failing checks; waiting for Jules repair.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -45,15 +45,18 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Post-publish-request refresh | Waiting | After PR #949 merged and the dashboard restarted, the visible current-boundary refresh still reported Jules `IN_PROGRESS`, waiting for a PR, with no captured PR URL. GitHub still has no `jules/spells-package3-spellbook-creator-visibility` branch or PR. |
 | Task-routing focus repair | Done | The dashboard current-boundary lane stayed on Package 3, but the `Task routing and nudge plan` card selected older Package 2 because its post-merge local-sync receipt had the newest timestamp. PR #951 merged as `c9c97796cbeda7f1a765c371e7127543f2d1660f`, ranking live handoffs ahead of closed bookkeeping so Package 3 remains the visible route. |
 | Visible zip fallback attempt | Blocked | After PR #952 merged, the restarted dashboard still showed Package 3 `IN_PROGRESS` with no PR URL and GitHub still had no expected branch. The visible Jules page showed more Package 3 code updates and a `Download zip` control. Clicking that control failed because Codex's in-app browser does not support downloads. |
+| PR #954 captured | Waiting for repair | GitHub now has PR #954 on suffixed branch `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`. Dashboard PR refresh captured failing Build/Tests and Gemini review feedback. The agent recorded `send_jules_feedback`, posted marked feedback at `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406`, and repaired Symphony so the task page now shows `Wait for Jules Repair` instead of repeating the workflow-config decision. |
 
 ## Current Boundary
 
-- Jules state: Symphony reports `IN_PROGRESS` after the explicit visible
-  publish request.
-- PR URL: none captured yet
-- Next proof: refresh the dashboard/Jules status until Symphony captures
-  resumed work, a PR URL, a follow-up feedback/approval request, a failure, or
-  a durable no-PR response that justifies using the visible export fallback.
+- Jules state: Symphony reports the historical Jules session as `FAILED`, but
+  the returned implementation is now visible as PR #954.
+- PR URL: `https://github.com/Gambitnl/Aralia/pull/954`
+- Current PR boundary: waiting for Jules to repair failing Build/Tests after
+  marked PR feedback.
+- Next proof: refresh the dashboard PR packet after Jules pushes a repair
+  commit, then review checks, changed-file risk, Scout/Core readiness, and
+  rendered spellbook/creator proof before merge.
 
 ## Dashboard UX Notes
 
@@ -138,3 +141,23 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   control as the next fallback, but Codex's in-app browser reported that
   downloads are not supported and no recent zip appeared locally. The foreman
   stopped there instead of scraping code panes or using hidden export paths.
+- Jules later opened PR #954 on suffixed branch
+  `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`.
+  Dashboard PR refresh captured failing Build and Tests. The Build log showed
+  TypeScript errors in `SpellCard.tsx`, `useCharacterAssembly.ts`, and the new
+  `SpellbookTab.test.tsx`; Gemini review independently flagged the missing
+  `knownCasterIds`, invalid `HealingEffect.healingType` access, `any` helper
+  types, known-caster duplication/ranger semantics, and the Druid `Speak with
+  Animals` visibility regression.
+- The task page asked whether to route a workflow-config repair before asking
+  Jules to change task code. The foreman recorded `send_jules_feedback`
+  through the visible operator-answer form because the failing evidence was in
+  Jules' Package 3 code/test diff. A marked `[Jules feedback]` PR comment was
+  posted at
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406`.
+- After the marked feedback was captured, the task page still looped on
+  `Resolve Workflow Config Blocker`. The foreman repaired Symphony's PR
+  next-action model so a captured Jules feedback comment changes the next
+  action to `Wait for Jules Repair`, removes the duplicate feedback command,
+  and keeps the operator on a wait-and-refresh path until Jules pushes a repair
+  or GitHub checks change.

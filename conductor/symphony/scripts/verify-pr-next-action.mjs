@@ -66,6 +66,27 @@ assert.equal(failedChecksAction.tone, 'blocked');
 assert.equal(failedChecksAction.feedbackCommand, 'gh pr comment 5 --body-file .jules/feedback/handoff-1-pr-feedback.md');
 assert(failedChecksAction.steps.some(step => /PR comment/i.test(step) && /Jules/i.test(step)));
 
+const feedbackAlreadySentAction = buildPullRequestNextAction({
+  ...base,
+  checks: { ...base.checks, passing: 1, failing: 1, conclusion: 'failing' },
+  feedback: {
+    julesFeedback: [{
+      author: 'Gambitnl',
+      body: '[Jules feedback]\nPlease repair the failing Package 3 checks.',
+      url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406',
+      createdAt: '2026-05-22T13:30:25Z',
+      source: 'comment',
+      conflictFile: null,
+      priorityPullRequest: null,
+    }],
+  },
+});
+assert.equal(feedbackAlreadySentAction.code, 'wait_for_checks');
+assert.equal(feedbackAlreadySentAction.tone, 'waiting');
+assert.equal(feedbackAlreadySentAction.label, 'Wait for Jules Repair');
+assert.equal(feedbackAlreadySentAction.feedbackCommand, null);
+assert(feedbackAlreadySentAction.steps.some(step => /Refresh PR checks after Jules pushes a repair/i.test(step)));
+
 const setupBlockedChecksAction = buildPullRequestNextAction({
   ...base,
   checks: {

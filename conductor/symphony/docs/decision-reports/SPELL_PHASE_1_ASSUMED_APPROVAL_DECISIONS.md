@@ -2463,18 +2463,74 @@ Copy this block for each decision.
   place the zip where Codex can inspect it without bypassing the browser
   blocker.
 
+### Decision 61: Send Jules Feedback For PR #954 And Stop The Repeated Workflow-Config Decision Loop
+
+- Date/time: 2026-05-22 15:33 +02:00
+- Phase: `package_3_pr_review_and_dashboard_feedback_loop`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first hardening
+- Decision point: Jules opened PR #954 on suffixed branch
+  `jules/spells-package3-spellbook-creator-visibility-2823658242418460192`.
+  The dashboard PR refresh captured failing Build, Tests, and Gemini review.
+  The Build log named TypeScript errors in Package 3 files:
+  `SpellCard.tsx`, `useCharacterAssembly.ts`, and
+  `SpellbookTab.test.tsx`. Gemini review also flagged matching code issues,
+  including missing `knownCasterIds`, invalid `HealingEffect.healingType`,
+  `any` helper types, known-caster/ranger semantics, and Druid `Speak with
+  Animals` visibility. Symphony nevertheless classified the failed checks as
+  `workflow_config` because the review automation lane was among the failed
+  checks, and asked whether to route workflow repair before asking Jules to
+  change task code.
+- Options considered:
+  - Create a local workflow-config repair task before sending any Package 3
+    feedback to Jules.
+  - Repair PR #954 locally on a Codex branch or push directly to the Jules
+    branch.
+  - Record the operator decision as `send_jules_feedback`, post marked
+    `[Jules feedback]` on PR #954, and wait for Jules to push the repair.
+  - Ignore the dashboard decision loop and continue from terminal-only PR
+    inspection.
+- Decision made by agent: Record `send_jules_feedback` on the visible task
+  page, post a marked `[Jules feedback]` comment on PR #954, and repair
+  Symphony so a captured Jules feedback comment moves the task page to
+  `Wait for Jules Repair` instead of repeating the same workflow-config
+  question.
+- Model routing: Jules remains the Package 3 implementation worker. Local
+  Codex foreman handled failure classification, feedback composition,
+  dashboard receipt recording, and the small Symphony routing repair.
+- Rationale/evidence: The failure evidence was in Jules' Package 3 code/test
+  changes, not a shared CI setup break. The user asked to offload as much as
+  possible to Jules, so the repair request belongs on the PR before any local
+  implementation takeover. Once the marked feedback exists, asking the same
+  repair-lane question again creates dashboard friction and risks duplicate
+  comments instead of useful monitoring.
+- Mutation performed or skipped: Created the feedback body, posted
+  `https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519121406`,
+  edited `conductor/symphony/src/task-intake.ts`, and extended
+  `conductor/symphony/scripts/verify-pr-next-action.mjs`. Skipped direct
+  mutation of the Jules branch, skipped a local Package 3 repair branch,
+  skipped Core merge, and skipped treating the PR as ready while checks fail.
+- Scope guardrails: The Symphony repair changes only PR next-action routing
+  after marked Jules feedback is captured. It does not change spell rules,
+  character creator behavior, spellbook UI, AI arbitration, premade roster
+  semantics, or the Package 3 implementation itself.
+- Result: `npm run build` in `conductor/symphony`,
+  `node scripts/verify-pr-next-action.mjs`,
+  `node scripts/verify-task-detail-api.mjs`, and
+  `node scripts/verify-scout-core-readiness-packet.mjs` passed. After
+  restarting the dashboard and clicking the visible `Run Safe Symphony
+  Refresh` control, the task page showed `Wait for Jules Repair`, no human
+  input required, and no duplicate feedback command.
+- Next expected proof: Wait for Jules to push a PR #954 repair commit, refresh
+  the dashboard PR packet, then run Scout/Core review, visual proof, and
+  Package 3 acceptance checks before merge.
+
 ## Open Decisions For The Next Slice
 
-1. Resolve the Package 3 usable-handoff blocker: Jules has visible code updates
-   and a `Download zip` control but no PR, while the Codex in-app browser cannot
-   download the zip.
-2. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
-   has now received option B feedback and a follow-up visible publish request,
-   but still has no captured Package 3 PR URL.
-3. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
-   spellbook/creator
+1. Monitor PR #954 for a Jules repair commit after the marked feedback comment.
+2. Review PR #954 for scope, focused tests, rendered spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
-4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-5. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
+4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.
