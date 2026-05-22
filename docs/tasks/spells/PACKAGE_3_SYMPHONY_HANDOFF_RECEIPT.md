@@ -1,6 +1,6 @@
 # Package 3 Symphony Handoff Receipt
 
-Status: Jules in progress after visible plan confirmation; no PR captured yet.
+Status: Jules in pre-commit work after visible plan confirmation; no PR captured yet.
 
 This receipt records the dashboard-first path from the Package 3 planning
 packet to an active Jules session. It exists so future foremen do not need to
@@ -37,10 +37,12 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
 | Send visible Jules confirmation | Done | The agent used the signed-in Jules page to confirm the bounded Package 3 plan and tell Jules to proceed, preserving the declared write scope |
 | Refresh after visible confirmation | Waiting | Dashboard refresh moved the handoff back to Jules state `IN_PROGRESS`; GitHub branch and PR checks still found no `jules/spells-package3-spellbook-creator-visibility` branch or PR |
 | Post-PR #944 monitor refresh | Waiting | After the Package 3 reconciliation docs merged, the visible dashboard still reported `IN_PROGRESS`; the visible Jules page showed `Plan approved` with no new feedback gate or PR link, and GitHub still had no expected branch or PR |
+| Post-PR #945 monitor refresh | Jules working, not publish-ready | After PR #945 merged the monitor decision docs, the dashboard still reported `IN_PROGRESS` with no PR URL, GitHub still had no Package 3 branch or PR, but the visible Jules page showed actual edits in the Package 3 scope and a `Working` pre-commit step |
 
 ## Current Boundary
 
-- Jules state: `IN_PROGRESS`
+- Jules state: `IN_PROGRESS` in Symphony; visible Jules page shows `Working`
+  on pre-commit verification after editing Package 3 files.
 - PR URL: none captured yet
 - Next proof: continue dashboard refreshes until Symphony captures a PR URL, a
   feedback/approval request, a failure, or a durable no-code/no-PR result.
@@ -69,3 +71,9 @@ infer the handoff state from transient dashboard JSON or terminal scrollback.
   durable no-code completion: Symphony says `IN_PROGRESS`, Jules shows the
   approved plan rather than a new question, and GitHub has no expected branch
   or PR. The foreman kept waiting instead of relaunching or splitting the task.
+- A later monitor pass after PR #945 found the dashboard still unable to expose
+  the in-progress file-level Jules work. The visible Jules page showed edits to
+  character creator feature-selection components, `SpellCard.tsx`,
+  `useCharacterAssembly.ts`, spellbook components, and `SpellbookTab` tests,
+  with Jules working through pre-commit verification. The foreman kept the
+  run alive instead of downloading the zip or recreating the diff locally.

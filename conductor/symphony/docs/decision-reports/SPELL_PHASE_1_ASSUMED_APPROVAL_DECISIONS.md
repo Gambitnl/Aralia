@@ -2098,11 +2098,59 @@ Copy this block for each decision.
   feedback request, failure/no-code result, or continued `IN_PROGRESS` state
   with GitHub branch/PR evidence checked separately.
 
+### Decision 53: Merge Monitor Docs And Keep Visible Jules Work In Jules
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_monitoring`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: PR #945 was a docs-only monitor-decision PR. Its GitHub CI
+  rerun passed, while `review / review` failed before review due Gemini
+  `gemini-2.5-flash` daily quota exhaustion. After merge, the dashboard still
+  reported Package 3 Jules session `2823658242418460192` as `IN_PROGRESS` with
+  no PR URL, but the signed-in Jules page showed actual Package 3 code edits
+  and a `Working` pre-commit step.
+- Options considered:
+  - Wait for Gemini quota and hold the docs-only PR open.
+  - Merge the docs-only monitor PR after CI passed and record the quota failure
+    as an advisory automation limit.
+  - Download the Jules zip or recreate the visible Jules diff locally because
+    the dashboard had no PR URL yet.
+  - Keep the Jules run alive and wait for a PR, feedback request, failure, or
+    explicit no-code result through the Jules/Symphony flow.
+- Decision made by agent: Merge PR #945 after required CI passed, treat the
+  Gemini review failure as quota-gated advisory automation, refresh the
+  dashboard, inspect visible Jules, and keep the active Package 3
+  implementation inside Jules rather than extracting or recreating the diff
+  locally.
+- Model routing: Local Codex foreman for monitoring and documentation; Jules
+  remains the implementation worker for Package 3.
+- Rationale/evidence: The failed `review / review` log showed
+  `TerminalQuotaError: You have exhausted your daily quota on this model`.
+  The rerun GitHub `Tests` job passed. GitHub still had no open Package 3 PR
+  and no expected `jules/spells-package3-spellbook-creator-visibility` branch.
+  Visible Jules showed edits to character creator feature-selection files,
+  `SpellCard.tsx`, `useCharacterAssembly.ts`, spellbook components, and
+  `SpellbookTab` tests, then showed `Working` on pre-commit verification.
+- Mutation performed or skipped: Merged PR #945 with the previously authorized
+  PR merge boundary. Skipped local implementation, skipped downloading the
+  Jules zip, skipped relaunching Package 3, and skipped splitting the task
+  while Jules was actively working.
+- Scope guardrails: Package 3 remains limited to character creator spell
+  selection and character sheet spellbook visibility. Combat simulator casting,
+  AI arbitration, broad spell schema/runtime architecture, and premade roster
+  semantics remain out of the active Jules slice.
+- Result: Package 3 has visible in-progress Jules code work, but no PR is
+  captured yet. The dashboard is still too coarse to show that Jules has moved
+  from plan-approved waiting into file-edit/pre-commit work.
+- Next expected proof: Continue dashboard refreshes and visible Jules checks
+  until a PR URL, feedback request, failure/no-code result, or publish-ready
+  Jules state appears.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor Package 3 Jules session `2823658242418460192`, which now reports
-   `IN_PROGRESS` after visible plan confirmation but still has no captured PR
-   URL.
+   `IN_PROGRESS` in Symphony while visible Jules shows in-scope code edits and
+   pre-commit work, but still has no captured PR URL.
 2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
