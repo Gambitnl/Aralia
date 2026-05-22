@@ -1,6 +1,8 @@
 # Package 4 Jules Task: Combat Simulator Deterministic Spell Pilot
 
-Status: package draft prepared for Symphony dashboard intake.
+Status: active handoff packet launched through the visible dashboard via Linear issue `ARA-10`.
+
+This is the durable scope and acceptance record for the launched Package 4 handoff. The live orchestration state stays in the dashboard and Jules system instead of being treated as repo state.
 
 This is the next Spell Phase 1 implementation slice after Package 3 merged the
 character creator and spellbook visibility work. Package 4 should prove that a
@@ -13,8 +15,8 @@ Default worker: Jules.
 
 Codex role: foreman. Codex owns scoping, dashboard handoff, review,
 verification, decision reporting, and Atlas/gate receipts. Jules should own the
-implementation-heavy runtime, fixture, and focused test work once the Symphony
-task is created.
+implementation-heavy runtime, fixture, and focused test work for this launched
+handoff.
 
 ## Branch And Worktree
 

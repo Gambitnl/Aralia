@@ -1,7 +1,8 @@
 # Package 4 Dispatch Readiness Checklist
 
-Status: Symphony dashboard draft created; waiting on the dashboard-required
-Linear issue boundary before Jules handoff preparation.
+Status: dashboard draft created, Linear issue `ARA-10` linked, Jules handoff
+launched, and the package is waiting on a refreshed Jules state or PR
+boundary.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task for the deterministic combat spell pilot.
@@ -12,6 +13,8 @@ implementation task for the deterministic combat spell pilot.
   `docs/tasks/spells/EARLY_GAME_SPELL_EXECUTION_PLAN.md`
 - Living tracker:
   `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
+- Linear issue:
+  `ARA-10`
 - Package 4 task:
   `docs/tasks/spells/PACKAGE_4_COMBAT_SIMULATOR_DETERMINISTIC_PILOT_JULES_TASK.md`
 - Exact Jules prompt:
@@ -23,7 +26,7 @@ implementation task for the deterministic combat spell pilot.
 - Decision report:
   `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
 
-## Pre-Dispatch State
+## Launch State
 
 - Package 3 implementation merged: `yes`, PR #954.
 - Package 3 closeout receipts merged: `yes`, PR #974 and PR #975.
@@ -32,15 +35,16 @@ implementation task for the deterministic combat spell pilot.
 - Local-master sync blocker: still present. The user's local `master` checkout
   has 2 local-only commits, so the monitor worktree must not mutate it.
 - Package 4 scope mapped: `yes`.
+- Linear issue linked: `yes`, `ARA-10`.
 - Symphony dashboard draft created: `yes`,
   `draft-1779475056546-wvf3oh` at 2026-05-22 20:37 +02:00 through the visible
   dashboard form.
-- Linear issue created: `no`; the dashboard now reports this workflow requires
-  a Linear issue before Symphony prepares the Jules handoff.
-- Symphony handoff prepared: `no`.
-- Jules manifest staged: `no`.
-- Jules handoff launched: `no`.
+- Symphony handoff prepared: `yes`.
+- Jules manifest staged: `yes`.
+- Jules handoff launched: `yes`.
+- Jules session: `IN_PROGRESS`; no PR URL captured yet.
 - Jules implementation PR: `none`.
+- Visible next boundary: refreshed Jules state, plan approval, PR, or blocker.
 - Flow blocker still visible: local-master sync is blocked because the user's
   main `master` checkout has 2 local-only commits; the monitor worktree is
   current on `origin/master`, but the dashboard base-branch sync model still
@@ -65,14 +69,11 @@ Optional local review worktree:
 
 - `F:\Repos\Aralia\.worktrees\spells-package4-combat-deterministic-pilot`
 
-## Next Dispatch Steps
+## Current Watch Steps
 
-1. Create or link the dashboard-required Linear issue for Package 4.
-2. Let the dashboard route through manifest staging and Jules launch. Do not
-   use hidden endpoints to skip visible blockers.
-3. Refresh Jules state through the dashboard until it asks for plan approval,
+1. Refresh Jules state through the dashboard until it asks for plan approval,
    opens a PR, reports a blocker, or produces another visible action.
-4. After Jules returns, fill the combat proof and Atlas/gate receipts before
+2. After Jules returns, fill the combat proof and Atlas/gate receipts before
    deciding whether Package 5 can begin.
 
 ## Abort Or Repair Path

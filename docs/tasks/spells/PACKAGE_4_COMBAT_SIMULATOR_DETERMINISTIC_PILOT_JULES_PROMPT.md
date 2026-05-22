@@ -1,10 +1,11 @@
 # Package 4 Jules Prompt: Combat Simulator Deterministic Spell Pilot
 
-Status: prompt-ready, not dispatched.
+Status: dispatched through the visible dashboard; durable prompt record for the
+launched Jules handoff.
 
-Do not paste this into Jules until the visible Symphony dashboard draft is
-created and the handoff path reaches the Jules launch boundary. The raw
-dashboard payload is orchestration state, not a durable Aralia task artifact.
+This file records the prompt that was used for the launched Package 4 handoff.
+Keep the live dashboard and launch receipts external; use this prompt as the
+durable Aralia text packet for future contributors.
 
 ## Prompt To Send
 
@@ -97,7 +98,7 @@ Completion report:
 
 ## Foreman Dispatch Checklist
 
-Before sending:
+Launch steps used:
 
 1. Confirm this prompt and the task file are committed or otherwise visible to
    Jules through the repository branch used for the handoff.
