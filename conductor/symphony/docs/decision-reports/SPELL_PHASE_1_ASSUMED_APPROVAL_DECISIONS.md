@@ -2281,6 +2281,90 @@ Copy this block for each decision.
   Package 3 publish blocker before choosing between relaunch, visible Download
   zip import, or task split.
 
+### Decision 57: Accept A Clean Worktree Monitor Branch As A Local-Sync Stand-In
+
+- Date/time: 2026-05-22
+- Phase: `package_3_dashboard_worktree_gate`
+- Active slice: Package 3 spellbook and character creator visibility plus
+  Symphony dashboard-first hardening
+- Decision point: After PR #948 merged, the isolated Symphony worktree was on
+  `codex/spell-phase1-package3-monitor-6`, clean, and aligned with
+  `origin/master`. The dashboard top GitHub sync gate was ready, but the local
+  sync return-path card still blocked because the current branch name was not
+  literally `master`. A direct `git checkout master` could not work because the
+  user's main Aralia checkout already had `master` checked out.
+- Options considered:
+  - Force the main repo or this worktree to move `master` anyway.
+  - Ignore the dashboard blocker and continue with direct terminal checks.
+  - Repair Symphony so a clean worktree branch at the exact GitHub base commit
+    is treated as a no-sync-needed proof, while still blocking dirty, ahead,
+    behind, detached, or pull-needed states.
+- Decision made by agent: Patch the Symphony local-sync gate with the narrow
+  worktree stand-in rule.
+- Model routing: Local Codex foreman with focused TypeScript repair and
+  verifier coverage; no Jules implementation code was touched.
+- Rationale/evidence: The dashboard-first goal requires fixing workflow
+  blockers instead of bypassing the UI. Forcing `master` would interfere with
+  the user's main checkout and is not necessary when the isolated worktree is
+  clean and exactly at `origin/master`. The repair preserves the safety rule
+  for any state where a real pull or local-disposition decision is needed.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/src/task-intake.ts` and extended
+  `conductor/symphony/scripts/verify-local-sync-next-action.mjs`. Skipped
+  switching or mutating the user's main `master` checkout, skipped hidden
+  dashboard endpoint bypasses, and skipped Package 3 local implementation.
+- Scope guardrails: This repair changes only Symphony local-sync readiness and
+  dashboard routing evidence. It does not change spell rules, spellbook UI,
+  character creator behavior, AI arbitration, premade roster semantics, or
+  Jules task content.
+- Result: `npm run build` in `conductor/symphony` and
+  `node scripts/verify-local-sync-next-action.mjs` passed. The restarted
+  dashboard no longer rendered `Local sync is blocked` or
+  `Blocked: Current branch` for the clean monitor worktree.
+- Next expected proof: Commit, push, and open a PR for the repair; after it
+  lands, refresh the dashboard and keep monitoring Package 3 Jules PR
+  publication.
+
+### Decision 58: Record The Repeated Package 3 No-PR State After The Publish Request
+
+- Date/time: 2026-05-22
+- Phase: `package_3_jules_publish_reconciliation`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After the visible Jules publish request and after the local
+  worktree dashboard gate was repaired, the dashboard current-boundary refresh
+  still reported Package 3 Jules `IN_PROGRESS`, waiting for a PR, with no
+  captured PR URL. GitHub still had no
+  `jules/spells-package3-spellbook-creator-visibility` branch or PR.
+- Options considered:
+  - Treat the repeated no-PR state as permission to download the Jules zip or
+    recreate the visible implementation locally immediately.
+  - Relaunch or split Package 3 immediately.
+  - Record the repeated no-PR state as a publish blocker, keep the run in
+    dashboard/Jules monitoring, and only choose a fallback after durable
+    no-publish proof or another clear boundary appears.
+- Decision made by agent: Record the repeated no-PR/publish gap and continue
+  monitoring through the dashboard-first flow for now.
+- Model routing: Jules remains the implementation worker. Local Codex foreman
+  handles workflow repair, evidence recording, and PR publication for Symphony
+  docs/tooling changes.
+- Rationale/evidence: The user explicitly wants as much implementation work as
+  possible offloaded to Jules. The visible Jules session has shown in-scope code
+  edits, so taking over locally before Jules returns a PR, failure, or
+  no-publish explanation would weaken the Symphony/Jules test flow.
+- Mutation performed or skipped: Updated the tracker and handoff receipt.
+  Skipped local Package 3 implementation, skipped zip download, skipped task
+  relaunch, and skipped claiming Package 3 complete.
+- Scope guardrails: Package 3 still does not include combat simulator casting,
+  AI arbitration, broad spell schema/runtime architecture, or premade roster
+  semantics.
+- Result: Package 3 remains waiting for Jules PR publication or a clear
+  no-publish response. The next fallback decision should be explicit and
+  recorded.
+- Next expected proof: Recheck dashboard/Jules and GitHub branch/PR state after
+  the worktree local-sync repair PR lands. If still no PR or response, choose
+  and record one fallback path: relaunch Jules, visible Download zip import, or
+  split the task.
+
 ## Open Decisions For The Next Slice
 
 1. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules

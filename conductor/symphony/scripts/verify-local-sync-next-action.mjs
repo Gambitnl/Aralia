@@ -74,6 +74,26 @@ assert.equal(currentAction.code, 'local_master_current');
 assert.equal(currentAction.tone, 'ready');
 assert.equal(currentAction.command, null);
 
+const worktreeMonitorAction = buildLocalSyncNextAction({
+  ...base,
+  currentBranch: 'codex/spell-phase1-package3-monitor-6',
+  currentBranchCanStandInForBase: true,
+  upToDate: true,
+});
+
+assert.equal(worktreeMonitorAction.code, 'local_master_current');
+assert.equal(worktreeMonitorAction.tone, 'ready');
+assert.equal(worktreeMonitorAction.command, null);
+
+const wrongBranchAction = buildLocalSyncNextAction({
+  ...base,
+  currentBranch: 'codex/spell-phase1-package3-monitor-6',
+});
+
+assert.equal(wrongBranchAction.code, 'switch_base_branch');
+assert.equal(wrongBranchAction.tone, 'blocked');
+assert.equal(wrongBranchAction.command, null);
+
 const unknownAction = buildLocalSyncNextAction(base);
 
 assert.equal(unknownAction.code, 'inspect_local_sync');
