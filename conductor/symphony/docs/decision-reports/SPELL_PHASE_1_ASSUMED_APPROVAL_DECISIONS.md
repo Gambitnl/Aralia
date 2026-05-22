@@ -2417,15 +2417,64 @@ Copy this block for each decision.
   confirm the task-routing panel points at Package 3 while Package 2 stays
   historical.
 
+### Decision 60: Attempt The Visible Jules Zip Fallback, Then Stop At The Browser Download Blocker
+
+- Date/time: 2026-05-22 15:10 +02:00
+- Phase: `package_3_jules_publish_reconciliation`
+- Active slice: Package 3 spellbook and character creator visibility
+- Decision point: After PR #952 merged the routing-focus closeout, the
+  dashboard was restarted from synced `origin/master`. The dashboard Git gate
+  was clean, the task-routing card correctly focused Package 3, and the visible
+  refresh still reported Jules `IN_PROGRESS` with no PR URL. GitHub still had
+  no `jules/spells-package3-spellbook-creator-visibility` branch or PR. The
+  visible Jules session showed more Package 3 code updates and a `Download zip`
+  control after the prior publish request, but no PR link or no-publish
+  explanation.
+- Options considered:
+  - Keep waiting for Jules to publish a PR even though the visible publish
+    request had already been sent and GitHub still had no branch.
+  - Relaunch or split Package 3 immediately.
+  - Use the visible `Download zip` control as Jules' implementation handoff,
+    then review/import locally while keeping Jules as the implementation
+    worker of record.
+- Decision made by agent: Choose the visible zip fallback as the next path, but
+  stop when the Codex in-app browser reported that downloads are not supported.
+- Model routing: Jules remains the implementation worker. Local Codex foreman
+  performed dashboard/Jules inspection and blocked at the browser export
+  capability instead of scraping code panes or using hidden endpoints.
+- Rationale/evidence: The goal asks to offload as much suitable implementation
+  as possible to Jules, and the visible Jules page now exposes code updates plus
+  `Download zip` but no PR. The zip path would preserve Jules' work product
+  while moving the stalled handoff forward. However, the dashboard-first rule
+  says UI blockers should be flagged rather than bypassed with hacky methods.
+- Mutation performed or skipped: Clicked the visible Jules `Download zip`
+  control. The in-app browser returned `Downloads are not supported by Codex
+  In-app Browser`, and no recent zip appeared in local download locations.
+  Skipped scraping visible file panes, skipped hidden Jules/API export paths,
+  skipped local Package 3 recreation, and skipped relaunching Package 3.
+- Scope guardrails: This decision does not change spell code, spell rules,
+  character creator behavior, spellbook UI, AI arbitration, premade roster
+  semantics, or Symphony source. It records the handoff/export blocker exposed
+  by dashboard-first operation.
+- Result: Package 3 remains waiting on a usable implementation handoff: Jules
+  PR, operator-accessible zip download, or an explicit relaunch/split decision.
+- Next expected proof: Either get a usable visible export path for the Jules
+  zip, relaunch/split Package 3 through Symphony, or have a human download and
+  place the zip where Codex can inspect it without bypassing the browser
+  blocker.
+
 ## Open Decisions For The Next Slice
 
-1. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
+1. Resolve the Package 3 usable-handoff blocker: Jules has visible code updates
+   and a `Download zip` control but no PR, while the Codex in-app browser cannot
+   download the zip.
+2. Monitor Package 3 Jules session `2823658242418460192`, where visible Jules
    has now received option B feedback and a follow-up visible publish request,
    but still has no captured Package 3 PR URL.
-2. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
+3. Review any Package 3 PR, if one appears, for scope, focused tests, rendered
    spellbook/creator
    proof, Atlas/gate checkpoint updates, and adjacent gaps before merge.
-3. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-4. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
+5. Repair the Stitch MCP/OAuth/tool path before claiming any Stitch-generated
    dashboard redesign work.
