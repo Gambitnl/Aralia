@@ -1,6 +1,7 @@
 # Package 4 Jules Task: Combat Simulator Deterministic Spell Pilot
 
-Status: active handoff packet launched through the visible dashboard via Linear issue `ARA-10`.
+Status: historical launch packet; proof is recorded, PR #979 merged, and the
+remaining visible follow-ups are the bless/status gap and the Atlas source gap.
 
 This is the durable scope and acceptance record for the launched Package 4 handoff. The live orchestration state stays in the dashboard and Jules system instead of being treated as repo state.
 
@@ -165,3 +166,16 @@ command and report the exact command in the completion note.
 - Atlas/gate receipt records validation output and generated report status.
 - Any level 2-3 fixture or broader mechanics bucket need is recorded as a
   follow-up gap instead of folded into this pilot.
+
+## Completion Note
+
+The Package 4 proof is now recorded in
+`PACKAGE_4_COMBAT_PROOF_RECEIPT.md`, PR #979 merged on 2026-05-22, and the
+spell-gate refresh was rerun locally with timestamp-only churn in
+`public/data/spell_gate_report.json`. The combat simulator pilot still
+preserves two explicit follow-ups instead of broadening:
+
+- `bless` has no combat-simulator spell/status bridge yet, so it remains a
+  follow-up gap instead of a scope expansion.
+- Atlas/source discovery is still blocked by G48 and remains a separate repair
+  path.
