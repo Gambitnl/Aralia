@@ -41,6 +41,8 @@ Statuses:
   `docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`
 - Package 4 packet:
   `docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`
+- Package 5 packet:
+  `docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md`
 - Setup PR: `https://github.com/Gambitnl/Aralia/pull/933` (merged
   2026-05-21)
 - Package 2 clean-base draft: `draft-1779400428597-mind7o`
@@ -116,7 +118,7 @@ Statuses:
 | P2R | done | Codex foreman local-careful | Workflow-config repair lane for PR #935 failed `review / review` automation | local draft `draft-1779410025252-nnowpt` (`Setup repair for ARA-7`); Decisions 38, 40, 41; PR #937 | PR #937 merged, PR #935 branch was updated against current `master`, rerun CI passed, and PR #935 then merged |
 | P3 | done | Codex foreman closeout | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Local proof and the merged GitHub work now cover wizard spell selection, selected-spell assembly, and spellbook visibility for cantrips plus levels 1-3; keep the packet durable and separate from transient Symphony state |
 | P4 | done | Jules implementation, Codex foreman closeout | Combat simulator deterministic spell pilot | `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` | Package 4 was linked to Linear issue `ARA-10`, the Jules handoff produced PR #979, and that PR merged cleanly on 2026-05-22. Local proof now covers `fire-bolt`, `healing-word`, `magic-missile`, `scorching-ray`, and `fireball` in `src/hooks/__tests__/useAbilitySystem.package4.test.tsx`, plus direct HP/log command proof in `DamageCommand.test.ts` and `HealingCommand.test.ts`. Keep transient Symphony state external; the bless/status gap (`G49`) and Atlas source gap (`G48`) remain separate follow-ups. |
-| P5 | not_started | Jules preferred after P4 | AI arbitration pilot for open-ended spells | create `PACKAGE_5_*` docs after deterministic pilot | Ready to scope after Package 4 closeout; keep G48/G49 separate |
+| P5 | active | Jules preferred after P4 | AI arbitration pilot for open-ended spells | `PACKAGE_5_AI_ARBITRATION_PILOT.md`, `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Scoped for Jules handoff. Visible dashboard launch is blocked by the main checkout Git sync gate, so do not use hidden endpoints or mutate the user's dirty main checkout; launch when the visible sync/disposition path is resolved or the dashboard is pointed at a clean base. |
 | P6 | not_started | Jules preferred after pilots | First mechanics bucket closure for levels 0-3 | create bucket-specific docs from current mechanics-discovery evidence | Waiting on pilot evidence |
 
 ## Current Setup And PR Tasks
@@ -216,6 +218,8 @@ package queue or a linked detailed task file.
 | `PACKAGE_4_DISPATCH_READINESS_CHECKLIST.md` | Handoff guard for Package 4 | done; historical launch checklist |
 | `PACKAGE_4_COMBAT_PROOF_RECEIPT.md` | Package 4 combat simulator proof target | done; proof recorded, bless remains a follow-up gap |
 | `PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md` | Package 4 Atlas/gate proof target | partial; spell validation and gate refresh recorded, Atlas source gap tracked as G48 |
+| `PACKAGE_5_AI_ARBITRATION_PILOT.md` | Package 5 AI arbitration scope and acceptance criteria | active; scoped for Jules handoff but dashboard launch blocked by visible Git sync gate |
+| `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Exact Jules prompt for Package 5 | prompt-ready; not dispatched |
 
 ## Update Rules
 
