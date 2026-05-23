@@ -19,9 +19,24 @@ acceptance record, not as a runtime receipt.
 
 Local proof already in place:
 - `src/hooks/__tests__/useAbilitySystem.package4.test.tsx` now covers a level 0
-  cantrip (`fire-bolt`), a level 1 multi-target spell (`magic-missile`), a
-  level 2 multi-target spell (`scorching-ray`), and a level 3 area spell
-  (`fireball`) against the combat simulator bridge.
+  cantrip (`fire-bolt`), a level 1 healing spell (`healing-word`), a level 1
+  multi-target spell (`magic-missile`), a level 2 multi-target spell
+  (`scorching-ray`), and a level 3 area spell (`fireball`) against the combat
+  simulator bridge.
+- `src/commands/__tests__/DamageCommand.test.ts` proves a deterministic spell
+  hit changes HP and leaves a readable combat log entry.
+- `src/commands/__tests__/HealingCommand.test.ts` proves healing changes HP,
+  caps at max HP, and leaves a readable healing log entry.
+- `src/utils/combat/__tests__/actionEconomyUtils.test.ts` proves cantrip costs
+  do not spend spell slots while level 1 spell costs spend the matching slot.
+
+Recorded follow-up gaps:
+- `bless` is present in the premade spell lists, but the simulator does not yet
+  expose a combat-spell/status bridge for it. Keep that as G49 rather than
+  broadening this deterministic pilot.
+- Atlas verification is still blocked by G48; spell validation and gate
+  generation pass, but the Atlas surface cannot be honestly marked repaired from
+  this worktree.
 
 Dashboard boundary note:
 - The visible dashboard is also reporting a separate local-sync blocker on the

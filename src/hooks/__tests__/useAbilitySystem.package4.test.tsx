@@ -14,10 +14,16 @@ import detectMagic from '../../../public/data/spells/level-1/detect-magic.json';
 import findFamiliar from '../../../public/data/spells/level-1/find-familiar.json';
 import mageArmor from '../../../public/data/spells/level-1/mage-armor.json';
 import magicMissile from '../../../public/data/spells/level-1/magic-missile.json';
+import healingWord from '../../../public/data/spells/level-1/healing-word.json';
 import shield from '../../../public/data/spells/level-1/shield.json';
 import sleep from '../../../public/data/spells/level-1/sleep.json';
 import scorchingRay from '../../../public/data/spells/level-2/scorching-ray.json';
 import fireball from '../../../public/data/spells/level-3/fireball.json';
+import viciousMockery from '../../../public/data/spells/level-0/vicious-mockery.json';
+import faerieFire from '../../../public/data/spells/level-1/faerie-fire.json';
+import charmPerson from '../../../public/data/spells/level-1/charm-person.json';
+import dissonantWhispers from '../../../public/data/spells/level-1/dissonant-whispers.json';
+import lyrisSongweaver from '../../../public/premade-characters/lyris_songweaver.json';
 
 vi.mock('../combat/useTargeting', async () => {
   const React = await vi.importActual<typeof import('react')>('react');
@@ -76,10 +82,15 @@ const allSpellData = {
   'find-familiar': findFamiliar,
   'mage-armor': mageArmor,
   'magic-missile': magicMissile,
+  'healing-word': healingWord,
   'scorching-ray': scorchingRay,
   'fireball': fireball,
   shield,
-  sleep
+  sleep,
+  'vicious-mockery': viciousMockery,
+  'faerie-fire': faerieFire,
+  'charm-person': charmPerson,
+  'dissonant-whispers': dissonantWhispers
 };
 
 // The premade JSON is runtime-correct but imported as a loose object, so we
@@ -164,6 +175,98 @@ describe('useAbilitySystem - Package 4 multi-target spells', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('routes a real cantrip through the simulator without a spell slot cost', async () => {
+    const caster = createPlayerCombatCharacter(maelisQuillCharacter as never, allSpellData as never);
+    const ability = caster.abilities.find(a => a.id === 'fire-bolt');
+
+    expect(ability).toBeDefined();
+    if (!ability) {
+      throw new Error('Expected Fire Bolt to be present on the real premade caster');
+    }
+
+    const target = createMockCombatCharacter({
+      id: 'cantrip-target',
+      name: 'Cantrip Target',
+      team: 'enemy',
+      position: { x: 1, y: 0 },
+      currentHP: 7,
+      maxHP: 7
+    });
+
+    const { result } = renderHook(() => useAbilitySystem({
+      characters: [caster, target],
+      mapData: openFloorMap(),
+      onExecuteAction,
+      onCharacterUpdate,
+      onLogEntry,
+      onAbilityEffect
+    }));
+
+    act(() => {
+      result.current.startTargeting(ability, caster);
+    });
+
+    let didSelect = false;
+    act(() => {
+      didSelect = result.current.selectTarget(target.position, caster);
+    });
+
+    expect(didSelect).toBe(true);
+    expect(onExecuteAction).toHaveBeenCalledTimes(1);
+
+    const action = onExecuteAction.mock.calls[0][0];
+    expect(action.abilityId).toBe('fire-bolt');
+    expect(action.targetCharacterIds).toEqual(['cantrip-target']);
+    expect(action.cost.type).toBe('action');
+    expect(action.cost.spellSlotLevel).toBe(0);
+  });
+
+  it('routes a real healing spell through the simulator to a legal ally target', async () => {
+    const caster = createPlayerCombatCharacter(lyrisSongweaver as never, allSpellData as never);
+    const ability = caster.abilities.find(a => a.id === 'healing-word');
+
+    expect(ability).toBeDefined();
+    if (!ability) {
+      throw new Error('Expected Healing Word to be present on the real premade caster');
+    }
+
+    const ally = createMockCombatCharacter({
+      id: 'ally-target',
+      name: 'Ally Target',
+      team: 'player',
+      position: { x: 1, y: 0 },
+      currentHP: 4,
+      maxHP: 10
+    });
+
+    const { result } = renderHook(() => useAbilitySystem({
+      characters: [caster, ally],
+      mapData: openFloorMap(),
+      onExecuteAction,
+      onCharacterUpdate,
+      onLogEntry,
+      onAbilityEffect
+    }));
+
+    act(() => {
+      result.current.startTargeting(ability, caster);
+    });
+
+    let didSelect = false;
+    act(() => {
+      didSelect = result.current.selectTarget(ally.position, caster);
+    });
+
+    expect(didSelect).toBe(true);
+    expect(onExecuteAction).toHaveBeenCalledTimes(1);
+
+    const action = onExecuteAction.mock.calls[0][0];
+    expect(action.abilityId).toBe('healing-word');
+    expect(action.targetCharacterIds).toEqual(['ally-target']);
+    expect(action.cost.type).toBe('bonus');
+    expect(action.cost.spellSlotLevel).toBe(1);
   });
 
   it('routes a real multi-target spell through all legal targets instead of collapsing to one', async () => {

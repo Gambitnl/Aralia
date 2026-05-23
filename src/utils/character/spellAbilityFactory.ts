@@ -64,8 +64,14 @@ const inferTargeting = (spell: Spell): TargetingType => {
         return 'self';
     }
 
+    // Spell JSON tag casing is not fully normalized yet, so normalize the
+    // comparison here rather than forcing every existing data file to change.
+    const normalizedTags = Array.isArray(spell.tags)
+        ? spell.tags.map(tag => String(tag).toLowerCase())
+        : [];
+
     // Heals usually target allies
-    if (spell.tags && Array.isArray(spell.tags) && (spell.tags.includes('HEALING') || spell.tags.includes('BUFF'))) {
+    if (normalizedTags.includes('healing') || normalizedTags.includes('buff')) {
         return 'single_ally';
     }
 

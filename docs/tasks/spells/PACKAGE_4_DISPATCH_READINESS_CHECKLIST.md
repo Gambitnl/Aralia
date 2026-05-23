@@ -1,8 +1,8 @@
 # Package 4 Dispatch Readiness Checklist
 
-Status: dashboard draft created, Linear issue `ARA-10` linked, Jules handoff
-launched, and the package is waiting on a refreshed Jules state or PR
-boundary.
+Status: historical launch checklist; Linear issue `ARA-10` was linked, Jules
+opened PR #979, PR #979 merged, and local proof is recorded while the Atlas
+source gap remains separate.
 
 This checklist guards the handoff from Codex foreman planning to a Jules-owned
 implementation task for the deterministic combat spell pilot.
@@ -42,9 +42,15 @@ implementation task for the deterministic combat spell pilot.
 - Symphony handoff prepared: `yes`.
 - Jules manifest staged: `yes`.
 - Jules handoff launched: `yes`.
-- Jules session: `IN_PROGRESS`; no PR URL captured yet.
-- Jules implementation PR: `none`.
-- Visible next boundary: refreshed Jules state, plan approval, PR, or blocker.
+- Jules session: completed; PR #979 was the implementation review boundary.
+- Jules implementation PR: `yes`,
+  `https://github.com/Gambitnl/Aralia/pull/979`, merged on 2026-05-22.
+- Visible next boundary: Package 5 scoping can begin, with `bless` kept as a
+  recorded follow-up gap instead of a scope expansion.
+- Spell gate refresh run for Package 4: `yes`; `npm run generate:spell-gates`
+  completed and only timestamp fields changed in the regenerated JSON.
+- `public/data/spell_gate_report.json` changed: `yes locally`, but the diff is
+  timestamp-only and should stay out of the commit.
 - Flow blocker still visible: local-master sync is blocked because the user's
   main `master` checkout has 2 local-only commits; the monitor worktree is
   current on `origin/master`, but the dashboard base-branch sync model still
@@ -71,10 +77,8 @@ Optional local review worktree:
 
 ## Current Watch Steps
 
-1. Refresh Jules state through the dashboard until it asks for plan approval,
-   opens a PR, reports a blocker, or produces another visible action.
-2. After Jules returns, fill the combat proof and Atlas/gate receipts before
-   deciding whether Package 5 can begin.
+1. Keep the `bless` gap and Atlas source gap (`G48`) visible as separate
+   follow-ups rather than broadening Package 4.
 
 ## Abort Or Repair Path
 
