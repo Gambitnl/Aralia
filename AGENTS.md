@@ -8,6 +8,12 @@ This repo should be approached as **expansion-first**, not cleanup-first.
 Preserve unfinished intent, future optionality, and embryonic systems unless removal is clearly justified.
 Do not mistake a cleaner diff, lower lint count, or less code for automatic progress.
 
+Aralia task docs are the durable GitHub-synced home for Jules-readable handoff
+material. Symphony dashboards, generated manifests, draft ids, click receipts,
+local run state, and other orchestration artifacts should stay external or
+ignored unless a small excerpt is intentionally copied into an Aralia-facing
+task packet or temporary migration note.
+
 Under uncertainty, the safer failure is usually temporary duplication, not premature pruning.
 
 ## User Calibration

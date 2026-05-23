@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/05/2026, 17:10:25
+ * Last Sync: 23/05/2026, 00:19:43
  * Dependents: hooks/combat/useActionEconomy.ts, hooks/combat/useTurnManager.ts, hooks/useAbilitySystem.ts, utils/combat/index.ts
- * Imports: 2 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -147,8 +147,13 @@ export function canAffordActionCost(character: CombatCharacter | undefined, cost
             return true;
         }
 
+        const spellId = castSource?.spellId;
+        if (!spellId) {
+            return false;
+        }
+
         const allowSlotFallback = castSource?.allowSlotFallback ?? true;
-        const limitedUseId = resolveRacialSpellLimitedUseId(racialGrant.sourceRaceId, castSource.spellId);
+        const limitedUseId = resolveRacialSpellLimitedUseId(racialGrant.sourceRaceId, spellId);
         const limitedUse = character.limitedUses?.[limitedUseId];
 
         if (limitedUse && limitedUse.current > 0) {
@@ -239,8 +244,13 @@ export function consumeActionCost(character: CombatCharacter, cost: AbilityCost)
             return newCharacter;
         }
 
+        const spellId = castSource?.spellId;
+        if (!spellId) {
+            return newCharacter;
+        }
+
         const allowSlotFallback = castSource?.allowSlotFallback ?? true;
-        const limitedUseId = resolveRacialSpellLimitedUseId(racialGrant.sourceRaceId, castSource!.spellId);
+        const limitedUseId = resolveRacialSpellLimitedUseId(racialGrant.sourceRaceId, spellId);
         const limitedUse = character.limitedUses?.[limitedUseId];
 
         if (limitedUse && limitedUse.current > 0) {

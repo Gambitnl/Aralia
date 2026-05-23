@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 23/05/2026, 00:13:21
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/components/CharacterCreator/hooks/useCharacterAssembly.ts
@@ -386,7 +401,10 @@ function assembleCastingProperties(state: CharacterCreationState): {
   const spellbook: SpellbookData = {
     cantrips: Array.from(cantripIds),
     preparedSpells: Array.from(spellIds),
-    knownSpells: [...(selectedClass.spellcasting?.spellList || []), ...Array.from(spellIds)],
+    // Keep the assembled spellbook honest: the character should carry only the
+    // spells the player actually picked, while the full class spell list stays
+    // available to the selector and "show all class spells" UI surfaces.
+    knownSpells: Array.from(spellIds),
   };
 
   const selectedRaceSpellAbility = selectedRace

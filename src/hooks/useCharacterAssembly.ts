@@ -177,8 +177,10 @@ function assembleCastingProperties(state: CharacterCreationState): {
       }
   }
 
-  const selectedRaceSpellAbility = getRacialSpellAbilityFromSelection(selectedRace.id, racialSelections)
-    ?.toLowerCase() as 'intelligence' | 'wisdom' | 'charisma' | undefined;
+  const selectedRaceSpellAbility = selectedRace
+    ? getRacialSpellAbilityFromSelection(selectedRace.id, racialSelections)
+        ?.toLowerCase() as 'intelligence' | 'wisdom' | 'charisma' | undefined
+    : undefined;
 
   return {
     spellbook,

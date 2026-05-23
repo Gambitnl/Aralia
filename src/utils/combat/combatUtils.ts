@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:31:27
- * Dependents: DiceService.ts, PreviewCombatSandbox.tsx, combat/index.ts, combatUtils.ts, mechanicsUtils.ts, quickCharacterGenerator.ts, savingThrowUtils.ts
- * Imports: 12 files
+ * Last Sync: 23/05/2026, 00:13:21
+ * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -827,7 +827,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // CombatCharacter, we allow the damage calculators and action 
     // handlers to apply bonus damage or special effects during a battle.
     feats: player.feats || [], // feat IDs (e.g. ['slasher', 'great_weapon_master'])
-    resistances: (player.race as any).resistance as import('../../types').DamageType[] | undefined, // TODO(lint-intent): Align Race.resistances shape with DamageType[]
+    resistances: player.resistances ?? (player.race as any).resistance, // TODO(lint-intent): Align Race.resistances shape with DamageType[]
+    immunities: player.immunities,
+    vulnerabilities: player.vulnerabilities,
   };
 
   // Basic Darkvision inference

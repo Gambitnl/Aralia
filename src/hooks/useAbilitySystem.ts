@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 07/05/2026, 00:03:38
+ * Last Sync: 23/05/2026, 00:13:21
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, hooks/useBattleMap.ts
  * Imports: 13 files
  *
@@ -27,13 +27,11 @@
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability } from '../types/combat';
 import { GameState } from '../types';
-import { Spell } from '../types/spells';
+import type { Spell } from '../types/spells';
+import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-// TODO(lint-intent): 'getDistance' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { getDistance as _getDistance, generateId } from '../utils/combatUtils';
+import { getDistance, generateId } from '../utils/combatUtils';
 // TODO(lint-intent): 'hasLineOfSight' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -109,6 +107,46 @@ const replaceCasterForCommandState = (
   return characters.map(character => character.id === casterWithPaidCost.id ? casterWithPaidCost : character);
 };
 
+// Multi-target spells already encode how many creatures they can affect.
+// The combat selector keeps that structure intact by turning the clicked
+// target into a full, ordered target list instead of collapsing back to one.
+const resolveMultiTargetIds = (
+  ability: Ability,
+  caster: CombatCharacter,
+  clickedTarget: CombatCharacter,
+  characters: CombatCharacter[],
+  getValidTargets: (ability: Ability, caster: CombatCharacter) => Position[]
+): string[] => {
+  const spellTargeting = (ability.spell as Spell | undefined)?.targeting;
+
+  if (spellTargeting?.type !== 'multi') {
+    return [clickedTarget.id];
+  }
+
+  const maxTargets = Math.max(1, resolveScalableNumber(spellTargeting.maxTargets, caster.level));
+  const validTargetKeys = new Set(
+    getValidTargets(ability, caster).map(position => `${position.x}-${position.y}`)
+  );
+
+  const orderedTargets = characters
+    .filter(character => validTargetKeys.has(`${character.position.x}-${character.position.y}`))
+    .sort((left, right) => {
+      const leftDistance = getDistance(caster.position, left.position);
+      const rightDistance = getDistance(caster.position, right.position);
+      if (leftDistance !== rightDistance) {
+        return leftDistance - rightDistance;
+      }
+      return left.id.localeCompare(right.id);
+    });
+
+  const clickedFirst = [
+    clickedTarget,
+    ...orderedTargets.filter(character => character.id !== clickedTarget.id)
+  ];
+
+  return clickedFirst.slice(0, maxTargets).map(character => character.id);
+};
+
 export const useAbilitySystem = ({
   characters,
   mapData,
@@ -139,10 +177,7 @@ export const useAbilitySystem = ({
     isValidTarget,
     getTargetValidation,
     getValidTargets,
-    // TODO(lint-intent): 'getCharacterAtPosition' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    getCharacterAtPosition: _getCharacterAtPosition
+    getCharacterAtPosition
   } = useTargetValidator({ characters, mapData });
   // TODO(lint-intent): 'setPendingReaction' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
@@ -527,19 +562,24 @@ export const useAbilitySystem = ({
           .map(char => char.id);
       }
     } else {
-      // Single Target
-      // Use ref-based search for action phase
-      const targetCharacter = charactersRef.current.find(char =>
-        char.position.x === targetPosition.x && char.position.y === targetPosition.y
-      );
+      // Creature target.
+      // Single-target spells still use this path; multi-target spells expand the
+      // clicked creature into the full legal list before the action is queued.
+      const targetCharacter = getCharacterAtPosition(targetPosition);
       if (targetCharacter) {
-        targetCharacterIds = [targetCharacter.id];
+        targetCharacterIds = resolveMultiTargetIds(
+          selectedAbility,
+          caster,
+          targetCharacter,
+          charactersRef.current,
+          getValidTargets
+        );
       }
     }
 
     executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds);
     return true;
-  }, [selectedAbility, executeAbility, getTargetValidation, onLogEntry]);
+  }, [selectedAbility, executeAbility, getTargetValidation, getCharacterAtPosition, getValidTargets, onLogEntry]);
 
 
   /**

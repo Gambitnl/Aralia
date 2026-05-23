@@ -1,4 +1,20 @@
-import type { SpellSchool } from './spells.js';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 23/05/2026, 00:13:21
+ * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Town/TownCanvas.tsx, components/puzzles/LockpickingModal.tsx, hooks/combat/useSummons.ts, hooks/useCharacterAssembly.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { DamageType, SpellSchool } from './spells.js';
 import type { ActiveEffect, StatusEffect } from './effects.js';
 import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core.js';
 import type { EquipmentSlotType, Item } from './items.js';
@@ -501,6 +517,9 @@ export interface PlayerCharacter {
   spellcastingAbility?: 'intelligence' | 'wisdom' | 'charisma';
   spellSlots?: SpellSlots;
   spellbook?: SpellbookData;
+  resistances?: DamageType[];
+  immunities?: DamageType[];
+  vulnerabilities?: DamageType[];
   limitedUses?: LimitedUses;
   activeEffects?: ActiveEffect[]; // For temporary spell effects (e.g. Shield, Mage Armor)
   statusEffects: StatusEffect[]; // Required for status effects

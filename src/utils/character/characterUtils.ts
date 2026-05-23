@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 08/05/2026, 21:40:47
- * Dependents: components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/characterUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
- * Imports: 8 files
+ * Last Sync: 23/05/2026, 00:19:44
+ * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, utils/character/characterValidation.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/character/spellUtils.ts, utils/characterUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -615,7 +615,8 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     equippedItems: {},
     proficiencyBonus: Math.floor((tempMember.level - 1) / 4) + 2,
   };
-  const charWithRacialSpells = applyRacialSpellGrantsByLevel(newChar, newChar.level);
+  const charLevel = newChar.level ?? tempMember.level ?? 1;
+  const charWithRacialSpells = applyRacialSpellGrantsByLevel(newChar, charLevel);
   charWithRacialSpells.hitPointDice = buildHitPointDicePools(charWithRacialSpells, { classLevels });
   charWithRacialSpells.armorClass = calculateArmorClass(charWithRacialSpells, charWithRacialSpells.activeEffects);
   return charWithRacialSpells;
@@ -733,26 +734,106 @@ const getSpeedBonusFromFeats = (featIds: string[]): number => featIds.reduce((bo
   return bonus + speedIncrease;
 }, 0);
 
+const getRacialSelectionIdsForCharacter = (character: PlayerCharacter): string[] => {
+  const { race, racialSelections } = character;
+  const baseIds = [race.id];
+  const choiceId = racialSelections?.[race.id]?.choiceId;
+  if (!choiceId) return baseIds;
+  return [...baseIds, choiceId, `${choiceId}_${race.id}`];
+};
+
+const getActiveRacialFeatureTraitsForCharacter = (
+  character: PlayerCharacter,
+  targetLevel: number,
+): RacialFeatureTrait[] => {
+  const seen = new Set<string>();
+  const traits = getRacialSelectionIdsForCharacter(character).flatMap(
+    id => RACE_TRAIT_LIBRARY.byRaceId[id] ?? []
+  );
+
+  const active = traits.filter((trait): trait is RacialFeatureTrait =>
+    trait.type !== 'spell' &&
+    targetLevel >= trait.minLevel &&
+    (trait.maxLevel === undefined || targetLevel <= trait.maxLevel)
+  );
+
+  const deduped: RacialFeatureTrait[] = [];
+  active.forEach((trait) => {
+    const traitKey = `${trait.sourceRaceId}::${trait.traitName}::${trait.minLevel}::${trait.maxLevel ?? ''}::${trait.traitDescription}`;
+    if (seen.has(traitKey)) return;
+    seen.add(traitKey);
+    deduped.push(trait);
+  });
+
+  return deduped;
+};
+
+const getCanonicalRacialDamageType = (rawType: string): string | undefined => {
+  const normalized = rawType.trim().toLowerCase();
+  if (!normalized) return undefined;
+
+  const normalizedDamageTypeLookup: Record<string, string> = {
+    acid: 'Acid',
+    bludgeoning: 'Bludgeoning',
+    cold: 'Cold',
+    fire: 'Fire',
+    force: 'Force',
+    lightning: 'Lightning',
+    necrotic: 'Necrotic',
+    piercing: 'Piercing',
+    poison: 'Poison',
+    psychic: 'Psychic',
+    radiant: 'Radiant',
+    slashing: 'Slashing',
+    thunder: 'Thunder',
+    physical: 'Physical',
+  };
+
+  return normalizedDamageTypeLookup[normalized] ?? normalized
+    .split(' ')
+    .filter(Boolean)
+    .map(token => token[0].toUpperCase() + token.slice(1))
+    .join(' ');
+};
+
+const appendDamageTypes = (current: string[], next: string[]): void => {
+  const nextSet = new Set(current.map(type => type.toLowerCase()));
+  next.forEach((value) => {
+    const canonical = getCanonicalRacialDamageType(value);
+    if (!canonical) return;
+    const normalized = canonical.toLowerCase();
+    if (nextSet.has(normalized)) return;
+    nextSet.add(normalized);
+    current.push(canonical);
+  });
+};
+
 export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, targetLevel: number): PlayerCharacter => {
   const { race } = character;
   const racialGrants = getRacialSpellGrantsForCharacter(character, targetLevel);
-  const racialFeatureTraits = (RACE_TRAIT_LIBRARY.byRaceId[race.id] ?? [])
-    .filter((trait): trait is RacialFeatureTrait =>
-      trait.type !== 'spell' &&
-      targetLevel >= trait.minLevel &&
-      (trait.maxLevel === undefined || targetLevel <= trait.maxLevel)
+  const racialFeatureTraits = getActiveRacialFeatureTraitsForCharacter(character, targetLevel);
+  const racialResourceTraits = racialFeatureTraits.filter((trait): trait is RacialFeatureTrait & { resources: RacialResourceMechanic[] } =>
+    !!trait.resources && trait.resources.length > 0
+  );
+  const racialDefenseTraits = racialFeatureTraits.filter((trait): trait is RacialFeatureTrait & { defensiveTraits: { resistances: string[]; immunities: string[]; vulnerabilities: string[] } } =>
+    !!trait.defensiveTraits &&
+    (
+      trait.defensiveTraits.resistances.length > 0 ||
+      trait.defensiveTraits.immunities.length > 0 ||
+      trait.defensiveTraits.vulnerabilities.length > 0
     )
-    .filter((trait): trait is RacialFeatureTrait & { resources: RacialResourceMechanic[] } =>
-      !!trait.resources && trait.resources.length > 0
-    );
+  );
 
-  if (racialGrants.length === 0 && racialFeatureTraits.length === 0) {
+  if (racialGrants.length === 0 && racialResourceTraits.length === 0 && racialDefenseTraits.length === 0) {
     return character;
   }
 
   const next: PlayerCharacter = {
     ...character,
     limitedUses: character.limitedUses ? { ...character.limitedUses } : {},
+    resistances: [...(character.resistances || [])],
+    immunities: [...(character.immunities || [])],
+    vulnerabilities: [...(character.vulnerabilities || [])],
     spellbook: character.spellbook ? {
       cantrips: [...(character.spellbook?.cantrips || [])],
       knownSpells: [...(character.spellbook?.knownSpells || [])],
@@ -774,8 +855,9 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     const knownSpellsSet = new Set(next.spellbook.knownSpells);
     const preparedSpellsSet = new Set(next.spellbook.preparedSpells);
     const grantsBySpell = new Map<string, RacialSpellGrant>();
+    const racialSpellGrants = next.spellbook.racialSpellGrants ?? [];
 
-    next.spellbook.racialSpellGrants.forEach((grant) => {
+    racialSpellGrants.forEach((grant) => {
       grantsBySpell.set(grant.spellId, grant);
     });
 
@@ -789,10 +871,11 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       if (grant.castingMethod === 'once_per_long_rest' || grant.castingMethod === 'once_per_short_rest') {
         const limitedUseKey = resolveRacialSpellLimitedUseId(grant.sourceRaceId, grant.spellId);
         if (!next.limitedUses![limitedUseKey]) {
+          const nextMax: number = grant.maxCastLevel ?? next.proficiencyBonus ?? 2;
           next.limitedUses![limitedUseKey] = {
             name: `${grant.sourceRaceName || race.name}: ${grant.spellId.replace(/-/g, ' ')}`,
             current: 1,
-            max: 1,
+            max: nextMax,
             resetOn: grant.castingMethod === 'once_per_short_rest' ? 'short_rest' : 'long_rest',
           };
         }
@@ -805,11 +888,18 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     next.spellbook.racialSpellGrants = Array.from(grantsBySpell.values());
   }
 
-  racialFeatureTraits.forEach((trait) => {
+  racialDefenseTraits.forEach((trait) => {
+    if (!trait.defensiveTraits) return;
+    appendDamageTypes(next.resistances || [], trait.defensiveTraits.resistances);
+    appendDamageTypes(next.immunities || [], trait.defensiveTraits.immunities);
+    appendDamageTypes(next.vulnerabilities || [], trait.defensiveTraits.vulnerabilities);
+  });
+
+  racialResourceTraits.forEach((trait) => {
     const sourceLabel = `${trait.sourceRaceName}: ${trait.traitName}`;
     trait.resources?.forEach((resource) => {
       const resourceKey = `racial_feature_${resource.id}`;
-      const nextMax = typeof resource.maxUses === 'number'
+      const nextMax: number = typeof resource.maxUses === 'number'
         ? resource.maxUses
         : next.proficiencyBonus || 2;
       const existing = next.limitedUses![resourceKey];
@@ -824,6 +914,10 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       };
     });
   });
+
+  next.resistances = next.resistances && next.resistances.length > 0 ? next.resistances : undefined;
+  next.immunities = next.immunities && next.immunities.length > 0 ? next.immunities : undefined;
+  next.vulnerabilities = next.vulnerabilities && next.vulnerabilities.length > 0 ? next.vulnerabilities : undefined;
 
   if (next.limitedUses && Object.keys(next.limitedUses).length === 0) {
     next.limitedUses = undefined;
