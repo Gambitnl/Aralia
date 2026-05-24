@@ -35,6 +35,7 @@ import type {
 } from '../../types';
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
+import type { CastSpellPayload } from '../../types/actions';
 import { ITEMS, WEAPONS_DATA } from '../../constants';
 import { formatDuration } from '../../utils/core';
 import type {
@@ -215,7 +216,7 @@ export function buildActionHandlers({
 
     // Spellcasting and resource management (handleResourceActions.ts).
     CAST_SPELL: (action) => {
-      handleCastSpell(dispatch, action.payload);
+      handleCastSpell(dispatch, action.payload as CastSpellPayload);
     },
     USE_LIMITED_ABILITY: (action) => {
       handleUseLimitedAbility(dispatch, action.payload as { characterId: string; abilityId: string });

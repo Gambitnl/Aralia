@@ -74,11 +74,13 @@ describe('WizardFeatureSelection', () => {
     expect(screen.getByRole('heading', { name: 'Wizard Spell Selection' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirm Spells' })).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('checkbox', { name: /Select Fire Bolt/i }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /Select Mage Hand/i }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /Select Magic Missile/i }));
+    // Spell cards use the visible card content as the checkbox name, so the
+    // test selects by spell title instead of an older hidden "Select ..." label.
+    fireEvent.click(screen.getByRole('checkbox', { name: /Fire Bolt/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Mage Hand/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /Magic Missile/i }));
 
-    expect(screen.getByRole('checkbox', { name: /Select Minor Illusion/i })).toBeDisabled();
+    expect(screen.getByRole('checkbox', { name: /Minor Illusion/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Confirm Spells' })).toBeEnabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Confirm Spells' }));

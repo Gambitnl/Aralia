@@ -871,11 +871,12 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       if (grant.castingMethod === 'once_per_long_rest' || grant.castingMethod === 'once_per_short_rest') {
         const limitedUseKey = resolveRacialSpellLimitedUseId(grant.sourceRaceId, grant.spellId);
         if (!next.limitedUses![limitedUseKey]) {
-          const nextMax: number = grant.maxCastLevel ?? next.proficiencyBonus ?? 2;
           next.limitedUses![limitedUseKey] = {
             name: `${grant.sourceRaceName || race.name}: ${grant.spellId.replace(/-/g, ' ')}`,
             current: 1,
-            max: nextMax,
+            // Once-per-rest racial spell grants have one charge. maxCastLevel is
+            // the highest spell level allowed for the cast, not the charge count.
+            max: 1,
             resetOn: grant.castingMethod === 'once_per_short_rest' ? 'short_rest' : 'long_rest',
           };
         }
