@@ -146,6 +146,7 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                                 />
                             ) : (
                                 <GlossaryContentRenderer
+                                    key={entry.id}
                                     markdownContent={entry.entryLore || markdownContent || ''}
                                     onNavigate={onNavigate}
                                 />
@@ -176,7 +177,7 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                     {/* Additional Markdown Content (Bottom Fallback) - Only show if entryLore was used above */}
                     {entry.entryLore && markdownContent && (
                         <div className="prose prose-sm prose-invert max-w-none text-gray-300 leading-relaxed border-t border-gray-700/30 pt-4 mt-6">
-                            <GlossaryContentRenderer markdownContent={markdownContent} onNavigate={onNavigate} />
+                            <GlossaryContentRenderer key={entry.id} markdownContent={markdownContent} onNavigate={onNavigate} />
                         </div>
                     )}
                 </div>

@@ -8,25 +8,93 @@ Use this file as the stable scope reference. The active thread goal should point
 here instead of carrying every scenario inline. The audit file records evidence
 and live task status; this spec defines what the system must handle.
 
+## Table Of Contents
+
+- 1. [Core Intent](#core-intent)
+  - 1.1 [What Symphony Is](#what-symphony-is)
+  - 1.2 [End-To-End Operator Path](#end-to-end-operator-path)
+  - 1.3 [Codex And Jules Roles](#codex-and-jules-roles)
+  - 1.4 [Waits, Nudges, And Routing](#waits-nudges-and-routing)
+  - 1.5 [Live Browser Inspection](#live-browser-inspection)
+  - 1.6 [Task-Centered Dashboard](#task-centered-dashboard)
+  - 1.7 [Current Task-Page Baseline](#current-task-page-baseline)
+  - 1.8 [Human Direction And Quiet Hours](#human-direction-and-quiet-hours)
+  - 1.9 [Active Goal Scope](#active-goal-scope)
+  - 1.10 [Approval Scope](#approval-scope)
+  - 1.11 [Approval Boundaries](#approval-boundaries)
+  - 1.12 [Workflow Phases](#workflow-phases)
+- 2. [System Boundaries](#system-boundaries)
+- 3. [Task Scenarios To Cover](#task-scenarios-to-cover)
+  - 3.1 [Dashboard Intake](#dashboard-intake)
+  - 3.2 [Linear Issue Creation](#linear-issue-creation)
+  - 3.3 [Jules Handoff Staging](#jules-handoff-staging)
+  - 3.4 [Jules Launch And Session Tracking](#jules-launch-and-session-tracking)
+  - 3.5 [GitHub PR Monitoring](#github-pr-monitoring)
+  - 3.6 [GitHub Pages Deployment Verification](#github-pages-deployment-verification)
+  - 3.7 [GitHub Actions And Check Quality](#github-actions-and-check-quality)
+  - 3.8 [Scout/Core Review And Merge Readiness](#scoutcore-review-and-merge-readiness)
+  - 3.9 [Local Sync](#local-sync)
+  - 3.10 [Worker Assignment](#worker-assignment)
+  - 3.11 [Task Routing And Nudging](#task-routing-and-nudging)
+  - 3.12 [Dashboard Foreman Console](#dashboard-foreman-console)
+  - 3.13 [Human Blockers And Quiet Hours](#human-blockers-and-quiet-hours)
+  - 3.14 [Handoff Timeline](#handoff-timeline)
+  - 3.15 [Approvals](#approvals)
+  - 3.16 [Usage And Spending](#usage-and-spending)
+  - 3.17 [Delegation ROI Ledger](#delegation-roi-ledger)
+  - 3.18 [Documentation Creation](#documentation-creation)
+- 4. [Blockage Scenarios To Cover](#blockage-scenarios-to-cover)
+  - 4.1 [Git And GitHub Blockers](#git-and-github-blockers)
+  - 4.2 [Draft And Issue Blockers](#draft-and-issue-blockers)
+  - 4.3 [Jules Blockers](#jules-blockers)
+  - 4.4 [GitHub PR Blockers](#github-pr-blockers)
+  - 4.5 [Scout/Core Blockers](#scoutcore-blockers)
+  - 4.6 [Local Sync Blockers](#local-sync-blockers)
+  - 4.7 [Worker And Runtime Blockers](#worker-and-runtime-blockers)
+  - 4.8 [Test And Documentation Blockers](#test-and-documentation-blockers)
+- 5. [Required Evidence](#required-evidence)
+  - 5.1 [Scenario Coverage Matrix](#scenario-coverage-matrix)
+- 6. [Verification Commands](#verification-commands)
+- 7. [Completion Criteria](#completion-criteria)
+
 ## Core Intent
+
+### What Symphony Is
 
 Symphony is not a second cloud coding system. Symphony is the local dashboard,
 gatekeeper, and foreman coordinator around the existing Aralia Jules workflow.
 
-The operator should be able to draft bounded work in Symphony, prove GitHub is
-ready for cloud work, let a Codex foreman clarify the task into a plain-language
-plan, create or connect the tracking issue, stage a Jules manifest through the
-existing `.jules/orchestrator`, launch or refresh Jules, watch the GitHub PR,
-route Scout/Core review, verify the GitHub Pages deployment after merge when the
-application publishes there, and only then sync local master. GitHub Actions
-checks are part of that foreman surface: Symphony may improve CI when the change
-gives operators and agents faster, clearer, more actionable failure signals
-instead of merely rearranging check names.
+### End-To-End Operator Path
+
+The intended path is:
+
+1. Draft bounded work in Symphony.
+2. Prove GitHub is ready for cloud work.
+3. Let a Codex foreman clarify the task into a plain-language plan.
+4. Create or connect the Linear tracking issue.
+5. Stage a Jules manifest through the existing `.jules/orchestrator`.
+6. Launch or refresh Jules.
+7. Watch the GitHub PR.
+8. Route Scout/Core review.
+9. Verify GitHub Pages deployment after merge when the application publishes
+   there.
+10. Sync local master only after merge and deployment proof.
+
+See [Workflow Phases](#workflow-phases) for the owner, evidence, mutation
+boundary, worker mode, and completion receipt for each phase.
+
+GitHub Actions checks are part of that foreman surface. Symphony may improve CI
+when the change gives operators and agents faster, clearer, more actionable
+failure signals instead of merely rearranging check names.
+
+### Codex And Jules Roles
 
 Codex workers launched by Symphony are foremen. Their default job is to prepare
 bounded Jules handoffs, monitor Jules and GitHub, explain blockers, and update
 the dashboard/Linear trail. They should not become broad local implementers
 unless the operator explicitly asks for local-only work.
+
+### Waits, Nudges, And Routing
 
 Symphony also acts as task tracker and task nudger. It should pause long enough
 for external systems to make progress, then refresh or nudge the next boundary
@@ -41,6 +109,8 @@ operator-facing documentation can be assigned to a local Codex agent when that
 is lower overhead; bounded implementation work that benefits from isolated cloud
 execution can go to Jules.
 
+### Live Browser Inspection
+
 Live dashboard inspection must use the built-in Codex app browser so the user
 can follow along. External Chrome/Chromium windows are not the live inspection
 surface for this workflow. The current reliable route is the Codex Browser
@@ -49,6 +119,8 @@ plugin's in-app browser bridge. A direct Playwright MCP call can fail with
 unobservable: the Browser plugin bridge can still list the already-open Jules
 tab, read visible page text, and capture screenshots inside the in-app browser.
 
+### Task-Centered Dashboard
+
 The intended operator experience is task-centered. The dashboard should let the
 operator see all tasks, open tasks, tasks waiting for human input, completed
 tasks, archived tasks, and abandoned tasks. Each task should have its own detail
@@ -56,7 +128,16 @@ view with a status timeline, timestamps, current boundary, Jules prompt,
 Jules/Codex dialogue records when available, Linear and GitHub links, and a chat
 surface for the Codex foreman assigned to that task. Any question for the
 operator should be written in human language and posted through the task view,
-not hidden in a terminal transcript. If the visible task message or operator-answer forms cannot receive text input because the virtual clipboard in the Codex/Playwright in-app browser is not installed or accessible, the operator or agent may interact directly with the backend endpoints (e.g., `POST /api/v1/tasks/:id/messages` or `/clarifications`) via command-line HTTP calls. Recording the receipt locally through the backend API preserves the dashboard-first evidence path.
+not hidden in a terminal transcript.
+
+If the visible task message or operator-answer forms cannot receive text input
+because the virtual clipboard in the Codex/Playwright in-app browser is not
+installed or accessible, the operator or agent may interact directly with the
+backend endpoints, such as `POST /api/v1/tasks/:id/messages` or
+`/clarifications`, via command-line HTTP calls. Recording the receipt locally
+through the backend API preserves the dashboard-first evidence path.
+
+### Current Task-Page Baseline
 
 The current baseline for that task-centered view is a read-only `Task navigator`
 on the dashboard. It is derived from the same draft and handoff snapshot as the
@@ -127,6 +208,8 @@ page now also renders a view-only
 clarifications. Richer external task actions beyond these local receipts remain
 open implementation work.
 
+### Human Direction And Quiet Hours
+
 When a task needs human direction, the Codex foreman should stop at the
 dashboard question rather than busy-looping. The foreman may schedule a later
 wake-up or leave the task waiting, especially during operator-configured quiet
@@ -135,6 +218,8 @@ Europe/Amsterdam, but the dashboard should let the operator adjust or disable
 that local waiting policy. The wake-up should refresh the boundary state and
 check for an operator reply; it should not keep running a tight background
 script while blocked on the human.
+
+### Active Goal Scope
 
 The current active goal is the full **Symphony delegation workflow** outcome:
 Symphony should be the local dashboard where Codex acts as a foreman, clarifies
@@ -148,6 +233,8 @@ intent, audit, architecture overview, and ordered task documents must stay
 current as each proof stage advances. Dashboard foreman-console focus,
 default-off dispatch, task routing, and worker-mode recommendation are
 supporting slices of that larger end-to-end proof, not the whole goal.
+
+### Approval Scope
 
 Approval wording in that goal is intentionally scoped to operator-owned
 workflow boundaries. An operator-approved mutation is an external or
