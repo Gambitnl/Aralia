@@ -16,8 +16,9 @@
  * @file src/components/CharacterCreator/Class/ClericFeatureSelection.tsx
  */
 import React, { useState } from 'react';
-import { DivineOrderOption, Spell, Class as CharClass, SpellEffect, DamageEffect } from '../../../types'; 
+import { DivineOrderOption, Spell, Class as CharClass } from '../../../types';
 import { CreationStepLayout } from '../ui/CreationStepLayout';
+import { SpellCard } from './SpellCard';
 
 interface ClericFeatureSelectionProps {
   divineOrders: DivineOrderOption[];
@@ -56,15 +57,6 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
   const availableSpellsL1 = spellcastingInfo.spellList
     .map(id => allSpells[String(id)])
     .filter(spell => spell && spell.level === 1);
-
-  const getSpellDamageInfo = (spell: Spell): string | null => {
-    if (!spell.effects) return null;
-    const damageEffect = spell.effects.find((e: SpellEffect) => e.type === 'DAMAGE') as DamageEffect | undefined;
-    if (damageEffect && damageEffect.damage) {
-      return `${damageEffect.damage.dice} ${damageEffect.damage.type}`;
-    }
-    return null;
-  };
 
   const toggleSelection = (id: string, currentSelection: Set<string>, setSelection: React.Dispatch<React.SetStateAction<Set<string>>>, limit: number) => {
     const newSelection = new Set(currentSelection);
@@ -124,34 +116,22 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
                   {selectedCantripIds.size} / {numCantripsToSelect}
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {availableCantrips.map(spell => (
-                  <label 
-                    key={spell.id} 
-                    className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                      (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
-                        ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
-                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
-                    }`}
-                  >
-                    <span className="sr-only">Select {spell.name}</span>
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
-                        className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
-                        checked={selectedCantripIds.has(spell.id)} 
-                        onChange={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, numCantripsToSelect)} 
-                        disabled={!selectedCantripIds.has(spell.id) && selectedCantripIds.size >= numCantripsToSelect}
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{spell.name}</span>
-                        {getSpellDamageInfo(spell) && (
-                          <span className="text-[10px] text-red-400/80 font-bold">{getSpellDamageInfo(spell)}</span>
-                        )}
-                      </div>
-                    </div>
-                  </label>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {availableCantrips.map(spell => {
+                  const isSelected = selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id);
+                  const isDisabled = !selectedCantripIds.has(spell.id) && selectedCantripIds.size >= numCantripsToSelect;
+
+                  return (
+                    <SpellCard
+                      key={spell.id}
+                      spell={spell}
+                      selected={isSelected}
+                      disabled={isDisabled}
+                      onToggle={() => toggleSelection(spell.id, selectedCantripIds, setSelectedCantripIds, numCantripsToSelect)}
+                      idPrefix="cantrip"
+                    />
+                  );
+                })}
               </div>
             </section>
 
@@ -162,34 +142,22 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
                   {selectedSpellL1Ids.size} / {numSpellsL1ToSelect}
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {availableSpellsL1.map(spell => (
-                  <label 
-                    key={spell.id} 
-                    className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                      (selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id))
-                        ? 'bg-sky-900/40 border-sky-500 text-sky-200' 
-                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
-                    }`}
-                  >
-                    <span className="sr-only">Select {spell.name}</span>
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
-                        className="form-checkbox h-4 w-4 text-sky-500 bg-gray-950 border-gray-700 rounded focus:ring-sky-500" 
-                        checked={selectedSpellL1Ids.has(spell.id)} 
-                        onChange={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, numSpellsL1ToSelect)} 
-                        disabled={!selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= numSpellsL1ToSelect}
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{spell.name}</span>
-                        {getSpellDamageInfo(spell) && (
-                          <span className="text-[10px] text-red-400/80 font-bold">{getSpellDamageInfo(spell)}</span>
-                        )}
-                      </div>
-                    </div>
-                  </label>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {availableSpellsL1.map(spell => {
+                  const isSelected = selectedCantripIds.has(spell.id) || selectedSpellL1Ids.has(spell.id);
+                  const isDisabled = !selectedSpellL1Ids.has(spell.id) && selectedSpellL1Ids.size >= numSpellsL1ToSelect;
+
+                  return (
+                    <SpellCard
+                      key={spell.id}
+                      spell={spell}
+                      selected={isSelected}
+                      disabled={isDisabled}
+                      onToggle={() => toggleSelection(spell.id, selectedSpellL1Ids, setSelectedSpellL1Ids, numSpellsL1ToSelect)}
+                      idPrefix="spell1"
+                    />
+                  );
+                })}
               </div>
             </section>
           </>

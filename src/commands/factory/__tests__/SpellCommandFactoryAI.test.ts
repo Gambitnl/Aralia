@@ -139,4 +139,42 @@ describe('SpellCommandFactory - AI Integration', () => {
     expect(commands[0]).toBeInstanceOf(DamageCommand);
     expect(commands[1].constructor.name).toBe('HealingCommand');
   });
+
+  it('should fail cleanly when player input is required but missing', async () => {
+    mockArbitrate.mockResolvedValue({
+      allowed: false,
+      reason: 'Player input required for this spell'
+    });
+
+    const commands = await SpellCommandFactory.createCommands(
+      aiSpell,
+      mockCaster,
+      [mockTarget],
+      9,
+      mockGameState,
+      undefined // No player input
+    );
+
+    expect(mockArbitrate).toHaveBeenCalled();
+    expect(commands.length).toBe(0);
+  });
+
+  it('should fail cleanly when AI service is unavailable or rejects input', async () => {
+    mockArbitrate.mockResolvedValue({
+      allowed: false,
+      reason: 'AI DM service unavailable'
+    });
+
+    const commands = await SpellCommandFactory.createCommands(
+      aiSpell,
+      mockCaster,
+      [mockTarget],
+      9,
+      mockGameState,
+      'I want to do a thing'
+    );
+
+    expect(mockArbitrate).toHaveBeenCalled();
+    expect(commands.length).toBe(0);
+  });
 });

@@ -431,6 +431,107 @@ assert.equal(
   'GitHub checks are not conclusively passing yet.',
 );
 
+const postedFeedbackWaitSnapshot = withTaskCapabilities({
+  drafts: [],
+  preflight,
+  handoffs: [
+    {
+      ...baseHandoff,
+      id: 'handoff-old-local-sync',
+      title: 'Old merged handoff',
+      githubPullRequestUrl: 'https://github.com/example/repo/pull/14',
+      githubPullRequestState: 'MERGED',
+      lastPullRequestRefreshAt: '2026-05-17T00:07:00.000Z',
+      localSyncStatus: {
+        safeToPull: true,
+        upToDate: false,
+        checkedAt: '2026-05-17T00:07:00.000Z',
+        repoRoot: 'F:\\Repos\\Aralia',
+        baseBranch: 'master',
+        remoteBranch: 'origin/master',
+        currentBranch: 'master',
+        localCommit: 'abc1234',
+        remoteCommit: 'def5678',
+        ahead: 0,
+        behind: 1,
+        dirtyFiles: 0,
+        untrackedFiles: 0,
+        blockers: [],
+        remediation: [],
+        summary: 'Local master can fast-forward to the merged Jules PR.',
+        details: [],
+        pullCommand: 'git pull --ff-only origin master',
+        nextAction: {
+          code: 'check_local_sync',
+          tone: 'ready',
+          label: 'Check Local Sync',
+          command: null,
+          summary: 'Local master can fast-forward to the merged Jules PR.',
+          steps: ['Run the guarded local sync.'],
+        },
+      },
+    },
+    {
+      ...baseHandoff,
+      id: 'handoff-posted-feedback-wait',
+      title: 'Jules PR waiting after Scout feedback',
+      githubPullRequestUrl: 'https://github.com/example/repo/pull/15',
+      githubPullRequestState: 'OPEN',
+      githubPullRequestIsDraft: false,
+      githubPullRequestMergeable: 'MERGEABLE',
+      lastPullRequestRefreshAt: '2026-05-17T00:08:00.000Z',
+      githubPullRequestFiles: {
+        total: 1,
+        additions: 6,
+        deletions: 1,
+        risk: 'medium',
+        riskReasons: ['Shared spell gate report changed.'],
+        scopeFiles: ['public/data/spell_gate_report.json'],
+        outOfScopeFiles: [],
+        files: [
+          {
+            path: 'public/data/spell_gate_report.json',
+            additions: 6,
+            deletions: 1,
+            risk: 'medium',
+            reason: 'Shared spell gate report changed.',
+          },
+        ],
+      },
+      githubPullRequestNextAction: {
+        code: 'wait_for_checks',
+        tone: 'waiting',
+        label: 'Wait for Jules Repair',
+        command: null,
+        url: null,
+        summary: 'Scout feedback is already posted on the PR; wait for Jules to push a repair or for the PR to change.',
+        steps: [
+          'Wait for a new Jules commit or status update.',
+          'Refresh PR checks and Scout/Core readiness after Jules pushes a repair.',
+          'Do not send duplicate Scout feedback unless the next refresh shows new PR activity.',
+        ],
+      },
+    },
+  ],
+});
+
+// Risk files should stay visible in conflict_watch, but they must not override
+// a PR-specific wait state after Scout feedback has already been posted. The
+// queue-level instruction is what automated foremen read first; it has to match
+// the dashboard's visible "wait for Jules repair" boundary instead of reopening
+// a merge-adjacent Scout/Core action too early. The old merged handoff protects
+// the real Package 3 shape, where historical local-sync work can score higher
+// than the active waiting PR if the affected PR is not chosen explicitly.
+assert.equal(postedFeedbackWaitSnapshot.conflict_watch.status, 'attention');
+assert.equal(postedFeedbackWaitSnapshot.conflict_watch.risk_files[0].path, 'public/data/spell_gate_report.json');
+assert.equal(postedFeedbackWaitSnapshot.next_action.code, 'wait_for_checks');
+assert.equal(postedFeedbackWaitSnapshot.next_action.source_type, 'handoff');
+assert.equal(postedFeedbackWaitSnapshot.next_action.source_id, 'handoff-posted-feedback-wait');
+assert.equal(
+  postedFeedbackWaitSnapshot.next_action.summary,
+  'Scout feedback is already posted on the PR; wait for Jules to push a repair or for the PR to change.',
+);
+
 const localSyncBlockedSnapshot = withTaskCapabilities({
   drafts: [],
   preflight,
@@ -578,3 +679,46 @@ assert.deepEqual(awaitingFeedbackSnapshot.next_action.request_body_schema, {
 assert.deepEqual(awaitingFeedbackSnapshot.next_action.request_body_example, {
   body: 'Short bounded feedback for Jules after inspecting the session request.',
 });
+
+const awaitingFeedbackAfterMessageSnapshot = withTaskCapabilities({
+  drafts: [],
+  preflight,
+  handoffs: [
+    {
+      ...baseHandoff,
+      id: 'handoff-feedback-sent',
+      title: 'Jules feedback already sent handoff',
+      githubPullRequestState: null,
+      julesSessionId: 'jules-feedback-sent-session',
+      julesSessionUrl: 'https://jules.google.com/session/jules-feedback-sent-session',
+      julesState: 'AWAITING_USER_FEEDBACK',
+      operatorMessages: [{
+        id: 'message-feedback-sent',
+        body: 'Bounded answer already sent to Jules.',
+        createdAt: '2026-05-17T00:02:00.000Z',
+        status: 'sent',
+        command: 'npx tsx .jules/orchestrator/cli.ts message jules-feedback-sent-session ...',
+        output: 'Sent message to Jules session jules-feedback-sent-session.',
+        error: null,
+      }],
+    },
+  ],
+});
+
+// Once feedback has been sent successfully, the dashboard must not keep asking
+// the operator to send the same note again. The next visible step is to refresh
+// Jules and see whether the external worker has moved on, produced a PR, or
+// exposed a separate bridge/status problem.
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.code, 'refresh_jules_status');
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.source_type, 'handoff');
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.source_id, 'handoff-feedback-sent');
+assert.equal(
+  awaitingFeedbackAfterMessageSnapshot.next_action.url,
+  'http://127.0.0.1:8081/api/v1/jules-handoffs/handoff-feedback-sent/refresh-status',
+);
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.method, 'POST');
+assert.equal(
+  awaitingFeedbackAfterMessageSnapshot.next_action.jules_session_url,
+  'https://jules.google.com/session/jules-feedback-sent-session',
+);
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.latest_operator_message.status, 'sent');

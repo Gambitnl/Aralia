@@ -1,0 +1,24 @@
+{
+  "status": "draft_ready_for_dashboard_creation",
+  "submittedDraftId": null,
+  "submittedAt": null,
+  "endpoint": "POST /api/v1/task-drafts",
+  "title": "Spell Phase 1 Package 3: spellbook and character creator visibility",
+  "body": "Use the exact Jules prompt packet in docs/tasks/spells/PACKAGE_3_SPELLBOOK_CREATOR_VISIBILITY_JULES_PROMPT.md. Scope: improve cantrip and level 1 spell selection in the character creator and make the character sheet spellbook clearly show cantrips, prepared spells, known/unprepared spells, always-prepared spells, and slots. Worker: Jules. Branch: jules/spells-package3-spellbook-creator-visibility. Do not broaden into combat simulator casting behavior, broad spell schema/runtime architecture, AI arbitration policy, premade roster semantics, or Symphony orchestration files. Record any level 2-3 fixture, combat, or arbitration discoveries as follow-up gaps.",
+  "expectedFiles": [
+    "src/components/CharacterCreator/Class/*FeatureSelection.tsx",
+    "src/components/CharacterCreator/CharacterCreator.tsx",
+    "src/components/CharacterCreator/hooks/useCharacterAssembly.ts",
+    "src/components/CharacterCreator/state/characterCreatorState.ts",
+    "src/components/CharacterCreator/__tests__/*.test.tsx",
+    "src/components/CharacterCreator/Class/__tests__/*.test.tsx",
+    "src/components/CharacterSheet/CharacterSheetModal.tsx",
+    "src/components/CharacterSheet/Spellbook/*.tsx",
+    "src/components/CharacterSheet/__tests__/*.test.tsx"
+  ],
+  "verificationCommands": [
+    "npm run validate:spells",
+    "npm run generate:spell-gates",
+    "npx vitest run src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx src/components/CharacterSheet/__tests__/CharacterSheetModal.test.tsx --reporter=verbose"
+  ]
+}

@@ -137,7 +137,12 @@ try {
   assert(repairDraft);
   assert.match(repairDraft.body, /package-lock\.json is out of sync/);
   assert.match(repairDraft.body, /GitHub PR: https:\/\/github\.com\/Gambitnl\/Aralia\/pull\/931/);
-  assert.deepEqual(repairDraft.expectedFiles, ['package-lock.json', 'package.json', '.github/workflows/ci.yml']);
+  assert.deepEqual(repairDraft.expectedFiles, [
+    'package-lock.json',
+    'package.json',
+    '.github/workflows/ci.yml',
+    '.github/workflows/gemini-review.yml',
+  ]);
   assert(repairDraft.verificationCommands.includes('npm ci --no-audit --no-fund'));
   assert.equal(repairDraft.linearIssueId, null);
 

@@ -177,12 +177,35 @@
       "max": 1
     }
   ],
-  "armorClass": 15,
+  "armorClass": 13,
   "speed": 30,
   "darkvisionRange": 0,
   "selectedWeaponMasteries": [],
   "transportMode": "foot",
-  "equippedItems": {},
+  "equippedItems": {
+    "MainHand": {
+      "id": "light_crossbow",
+      "name": "Light Crossbow",
+      "type": "weapon",
+      "category": "Simple Ranged Weapon",
+      "damageDice": "1d8",
+      "damageType": "piercing",
+      "properties": [
+        "ammunition",
+        "loading",
+        "range:80/320",
+        "two-handed"
+      ]
+    },
+    "Torso": {
+      "id": "leather_armor",
+      "name": "Leather Armor",
+      "type": "armor",
+      "armorCategory": "Light",
+      "baseArmorClass": 11,
+      "addsDexterityModifier": true
+    }
+  },
   "activeEffects": [],
   "statusEffects": [],
   "limitedUses": {},
@@ -206,8 +229,7 @@
     "preparedSpells": [
       "cure-wounds",
       "faerie-fire",
-      "identify",
-      "grease"
+      "identify"
     ]
   },
   "spellSlots": {

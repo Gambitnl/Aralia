@@ -27,11 +27,11 @@ The safe default is:
 |---|---|---|
 | Canonical plan | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, live package order, completion definition | Keep and update in place. |
 | Decision report | `SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` | Keep. Append decisions; do not rewrite history except for explicit correction notes. |
-| Package task packet | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, prompt packet, dispatch checklist | Keep while active. After completion, mark completed/superseded and link final PR/receipts. Archive later only if the summary remains reachable from the plan. |
-| Receipts | environment snapshot, git sync, PR/deployment/local-sync, ROI, foreman review, task communication | Keep as durable evidence. Mark final state; do not delete after merge. |
+| Package task packet | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`, `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`, prompt packet, dispatch checklist | Keep while active. After completion, mark completed/superseded and link final PR/receipts. Archive later only if the summary remains reachable from the plan and still helps future Aralia contributors. |
+| Receipts | environment snapshot, git sync, PR/deployment/local-sync, ROI, foreman review, task communication | Keep when they explain a durable decision or boundary. Treat transient Symphony handoff payloads, click receipts, draft ids, and run-state dumps as external or ignored unless they are intentionally summarized into a packet or migration note. |
 | Proof screenshots | `docs/tasks/spells/evidence/*.png` | Keep while referenced by a receipt. If superseded, archive or mark superseded; delete only when no durable doc references it. |
 | Generated reports | spell gate report, spell audits, mechanics reports | Keep canonical generated outputs that the app or reports consume. For review-only generated reports, regenerate at checkpoints and archive/delete stale copies only when the source command and replacement output are documented. |
-| Runtime state | `.symphony/`, `.jules/runs/`, `.jules/verification/`, `.playwright-*`, local dashboard state | Ignore or delete as local runtime artifacts. Do not commit unless a specific receipt intentionally captures a small durable excerpt. |
+| Runtime state | `.symphony/`, `conductor/symphony/.symphony/`, `.jules/runs/`, `.jules/verification/`, `.jules/dashboard/`, `.jules/orchestrator/`, `.playwright-*`, generated manifests, local dashboard state, draft ids, click receipts, retry state, local sync receipts | Ignore or delete as local runtime artifacts. Do not commit unless a specific packet or migration note intentionally captures a small durable excerpt. |
 | Local app/operator settings | `.codex/config.toml`, local credentials, tokens, machine preferences | Ignore. Never commit. |
 | Setup branch artifacts | setup PR docs, setup verifier changes, branch receipts | Keep until the setup PR is merged and Package 2 dispatch has been proven from `master`. Then mark final state; do not delete if later slices need to understand the handoff boundary. |
 
@@ -84,3 +84,19 @@ For Package 2, the setup docs and receipts remain active until:
 Only after those proofs exist should the Package 2 prompt/task/checklist files
 be marked completed or archived. They should not be deleted unless a later
 canonical summary preserves their important context.
+
+## Package 4 Application
+
+For Package 4, keep the deterministic combat simulator pilot packet in
+`docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` or its
+replacement. Treat transient Symphony draft ids, handoff receipts, click
+receipts, and local sync state as external or ignored unless the packet needs a
+short durable summary for future Aralia contributors.
+
+## Package 3 Application
+
+For Package 3, keep the spell-selection and spellbook-visibility packet in
+`docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` or
+its replacement. Treat creator-session scratch state, sheet inspection
+receipts, and other orchestration internals as external or ignored unless the
+packet needs a short durable summary for future Aralia contributors.

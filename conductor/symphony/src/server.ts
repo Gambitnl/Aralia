@@ -1543,6 +1543,7 @@ export class HttpServer {
           <div><dt>Mutates external systems</dt><dd>${detail.mutatesExternalSystems === true ? 'Yes' : 'No'}</dd></div>
           <div><dt>Mutates local files</dt><dd>${detail.mutatesLocalFiles === true ? 'Yes' : 'No'}</dd></div>
         </dl>
+        ${this.renderTaskPageCurrentBoundaryAction(detail, currentBoundary)}
         ${externalLinks ? `<nav class="task-page-links" aria-label="Task links">${externalLinks}</nav>` : ''}
       </article>
 
@@ -1787,11 +1788,14 @@ export class HttpServer {
         if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
       }
     });
-    // Safe endpoint buttons let the task page refresh Symphony-owned evidence
-    // without asking the operator to copy a raw POST URL into another tool.
+    // Guarded endpoint buttons let the task page advance Symphony-owned
+    // boundaries without asking the operator to copy a raw POST URL into
+    // another tool. The visible button is still the decision point: the handler
+    // only runs after a human or browser-following agent clicks the page.
     const safeEndpointButtons = Array.from(document.querySelectorAll('[data-guarded-safe-endpoint]'));
     safeEndpointButtons.forEach(button => {
-      button.addEventListener('click', async () => {
+      button.addEventListener('click', async event => {
+        event.preventDefault();
         const endpoint = button.dataset.guardedSafeEndpoint;
         const method = button.dataset.guardedSafeMethod || 'POST';
         const statusNode = button.closest('li')?.querySelector('[data-guarded-safe-status]');
@@ -1810,7 +1814,7 @@ export class HttpServer {
           window.location.reload();
         } catch (error) {
           button.disabled = false;
-          if (statusNode) statusNode.textContent = 'Guarded refresh failed: ' + (error?.message || error);
+          if (statusNode) statusNode.textContent = 'Guarded action failed: ' + (error?.message || error);
         }
       });
     });
@@ -1844,9 +1848,148 @@ export class HttpServer {
         if (statusNode) statusNode.textContent = 'Repair push result failed: ' + (error?.message || error);
       }
     });
+    const julesMessageForm = document.querySelector('[data-task-jules-message-form]');
+    julesMessageForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const statusNode = julesMessageForm.querySelector('[data-task-jules-message-status]');
+      const body = String(julesMessageForm.querySelector('textarea[name="julesFeedback"]')?.value || '').trim();
+      if (!body) {
+        if (statusNode) statusNode.textContent = 'Write Jules feedback before sending it.';
+        return;
+      }
+      if (statusNode) statusNode.textContent = 'Sending feedback to Jules...';
+      try {
+        const response = await fetch(julesMessageForm.dataset.taskJulesMessageUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (statusNode) statusNode.textContent = 'Jules feedback failed: ' + (error?.message || error);
+      }
+    });
+    const preparedJulesMessageButton = julesMessageForm?.querySelector('[data-task-jules-prepared-feedback]');
+    preparedJulesMessageButton?.addEventListener('click', async () => {
+      const statusNode = julesMessageForm.querySelector('[data-task-jules-message-status]');
+      const body = String(julesMessageForm.querySelector('[data-task-jules-prepared-feedback-text]')?.textContent || '').trim();
+      const textarea = julesMessageForm.querySelector('textarea[name="julesFeedback"]');
+      if (!body) {
+        if (statusNode) statusNode.textContent = 'No prepared Jules feedback is attached to this task.';
+        return;
+      }
+      if (textarea) textarea.value = body;
+      if (statusNode) statusNode.textContent = 'Sending prepared feedback to Jules...';
+      try {
+        const response = await fetch(julesMessageForm.dataset.taskJulesMessageUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (statusNode) statusNode.textContent = 'Prepared Jules feedback failed: ' + (error?.message || error);
+      }
+    });
   </script>
 </body>
 </html>`;
+  }
+
+  private renderTaskPageCurrentBoundaryAction(
+    detail: Record<string, unknown>,
+    currentBoundary: Record<string, unknown>,
+  ): string {
+    const endpoint = this.stringFromUnknown(currentBoundary.endpoint);
+    const method = (this.stringFromUnknown(currentBoundary.method) ?? 'POST').toUpperCase();
+    if (!endpoint || method !== 'POST' || detail.needsHumanInput === true) {
+      return '';
+    }
+
+    const label = this.stringFromUnknown(currentBoundary.label) ?? 'Run Current Boundary';
+    const isJulesMessageEndpoint = /\/api\/v1\/jules-handoffs\/[^/]+\/message$/.test(endpoint);
+
+    if (isJulesMessageEndpoint) {
+      const julesSessionUrl = this.stringFromUnknown(this.recordFromUnknown(detail.links).julesSession);
+      const julesSessionId = julesSessionUrl?.split('/').filter(Boolean).pop();
+      const preparedFeedback = this.getPreparedJulesFeedback(detail);
+      const preparedFeedbackAction = preparedFeedback
+        ? `<details class="task-page-prepared-feedback" open>
+            <summary>Prepared Package 6 feedback text</summary>
+            <pre data-task-jules-prepared-feedback-text>${this.escapeHtml(preparedFeedback)}</pre>
+          </details>
+          <button type="button" class="primary-action compact-action" data-task-jules-prepared-feedback>Send Prepared Package 6 Feedback</button>`
+        : '';
+
+      // Jules feedback is different from a safe refresh button because the
+      // operator must control the exact words that leave Symphony. The generic
+      // guarded endpoint button was visible, but it had no message box, so it
+      // could only fail or encourage hidden endpoint use. This form keeps the
+      // mutation on the visible task page and makes the text being sent
+      // reviewable before the operator clicks the button.
+      return `<div class="task-page-current-action">
+        <form data-task-jules-message-form data-task-jules-message-url="${this.escapeHtml(endpoint)}">
+          <label>Jules feedback
+            <textarea name="julesFeedback" rows="6" placeholder="Write the exact feedback to send to Jules."></textarea>
+          </label>
+          ${preparedFeedbackAction}
+          <button type="submit" class="primary-action compact-action">${this.escapeHtml(label)}</button>
+          <p class="usage-summary" data-task-jules-message-status>Write Jules feedback before sending it.</p>
+        </form>
+        <p class="usage-summary">This sends feedback to Jules${julesSessionId ? ` session ${this.escapeHtml(julesSessionId)}` : ''}. Review the text above before clicking.</p>
+      </div>`;
+    }
+
+    // The standalone task page must expose the same next action that the detail
+    // packet reports. Without this button, the operator can see the boundary but
+    // cannot advance it through the dashboard-first workflow, which pushes
+    // agents toward hidden endpoints instead of visible review. The form keeps
+    // the action usable even if the dashboard script fails to attach its nicer
+    // reload handler, so the visible page remains the source of the click.
+    return `<div class="task-page-current-action">
+      <ul class="task-page-actions">
+        <li>
+          <form method="post" action="${this.escapeHtml(endpoint)}">
+            <button type="submit" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(endpoint)}" data-guarded-safe-method="${this.escapeHtml(method)}">${this.escapeHtml(label)}</button>
+          </form>
+          <p class="usage-summary" data-guarded-safe-status></p>
+        </li>
+      </ul>
+      <p class="usage-summary">Runs the current Symphony boundary from this visible task page. Review the mutation flags above before clicking.</p>
+    </div>`;
+  }
+
+  private getPreparedJulesFeedback(detail: Record<string, unknown>): string | null {
+    const id = this.stringFromUnknown(detail.id);
+    const title = this.stringFromUnknown(detail.title) ?? '';
+
+    if (id !== 'handoff-1779592447710-27ufm6' && !/Package 6 choice\/mode/i.test(title)) {
+      return null;
+    }
+
+    // This temporary prepared response exists because the dashboard can now
+    // show a real feedback form, but the current Codex browser bridge still
+    // cannot type or paste long text into it. Keeping the exact text visible on
+    // the task page preserves the human-review step while avoiding a hidden
+    // endpoint call or a local repair of Jules-owned spell implementation.
+    return [
+      'Proceed with the smallest coherent slice. Do not add a broad new schema field yet.',
+      '',
+      '1. Use existing modeChoice for blindness-deafness only. It is a choose-one spell operation menu: Blinded vs Deafened. Point the options at the two existing status-condition effects if the current modeChoice option shape supports effectIndices.',
+      "2. Do not model dragon's-breath or protection-from-energy as modeChoice. Those are chosen damage-type cases, not operation modes.",
+      '3. protection-from-energy is already on the right path with effects[].damageType plus damageTypeSource: chosen_damage_type. Keep/reuse that shape and add focused proof if needed.',
+      "4. dragon's-breath currently has simple damage.type as Acid/Cold/Fire/Lightning/Poison. If there is already a simple-damage chosen-type field, use it. If not, either defer dragon's-breath or add one tiny shared extension for simple DAMAGE effects only, with templates/schema/tests updated. Do not reuse attackAugment damageTypeChoice directly unless you deliberately generalize it in a small, validated way.",
+      '5. Leave enhance-ability as already modeled with targeting.perTargetChoice unless you find a specific validation/runtime gap.',
+      '6. Remove Blindness/Deafness from AI arbitration if the choice is now deterministic player selection, and add focused tests proving the chosen data path is parsed/exposed. Run validate:spells, generate:spell-gates, and the focused test. Do not commit timestamp-only gate-report churn, and do not claim Atlas proof while G48 remains.',
+    ].join('\n');
   }
 
   private renderTaskPageGuardedActions(detail: Record<string, unknown>): string {
@@ -1867,7 +2010,7 @@ export class HttpServer {
         const isSafeRefreshEndpoint = Boolean(endpoint)
           && (method ?? 'POST').toUpperCase() === 'POST'
           && record.safety === 'guarded_symphony_endpoint'
-          && (/\/refresh-(?:pr|status)$/.test(endpoint ?? ''))
+        && (/\/refresh-(?:pr|status|local-sync)$/.test(endpoint ?? ''))
           && record.mutatesExternalSystemsIfRun !== true
           && record.mutatesLocalFilesIfRun !== true
           && record.mutatesGitIfRun !== true;
@@ -1929,12 +2072,14 @@ export class HttpServer {
     const readiness = this.recordFromUnknown(detail.repairPushReadiness);
     const result = this.recordFromUnknown(detail.repairPushResult);
     const scoutCore = this.recordFromUnknown(detail.scoutCoreReadiness);
+    const feedback = this.recordFromUnknown(detail.githubPullRequestFeedback);
     if (
       !Object.keys(checks).length
       && !Object.keys(nextAction).length
       && !Object.keys(readiness).length
       && !Object.keys(result).length
       && !Object.keys(scoutCore).length
+      && !Object.keys(feedback).length
     ) return '';
 
     const changedFiles = this.arrayFromUnknown(readiness.changedFiles);
@@ -1951,11 +2096,20 @@ export class HttpServer {
       ?? this.stringFromUnknown(postPush.refreshEndpoint)
       ?? this.stringFromUnknown(scoutCore.refreshEndpoint);
     const failedChecks = this.extractTaskPageFailedChecks(checks);
+    const julesFeedback = this.arrayFromUnknown(feedback.julesFeedback)
+      .map(item => this.recordFromUnknown(item))
+      .filter(item => Object.keys(item).length > 0);
+    const latestJulesFeedback = julesFeedback.at(-1) ?? {};
+    const latestJulesFeedbackUrl = this.stringFromUnknown(latestJulesFeedback.url);
+    const feedbackSummary = this.stringFromUnknown(feedback.summary);
 
     // The PR check and repair card is the operator-facing bridge between a
     // failing GitHub PR and the later Scout/Core gate. It does not rerun checks
     // or push code; it only makes the current failure count, prepared repair,
-    // and required after-push proof visible in one place.
+    // posted feedback, and required after-push proof visible in one place.
+    // Package 3 showed that a GitHub comment alone is not always enough proof
+    // that Jules visibly received the latest repair text, so the card keeps
+    // that delivery caveat close to the current PR boundary.
     return `<article class="card task-page-pr-repair">
       <h2>PR Checks And Repair</h2>
       <p class="usage-summary">Read-only summary of the GitHub check and prepared-repair boundary. This section does not push, rerun checks, comment on GitHub, merge, or edit local files.</p>
@@ -1970,6 +2124,8 @@ export class HttpServer {
       </dl>
       ${this.stringFromUnknown(nextAction.label) ? `<p><strong>${this.escapeHtml(this.stringFromUnknown(nextAction.label) ?? '')}</strong>: ${this.escapeHtml(this.stringFromUnknown(nextAction.summary) ?? '')}</p>` : ''}
       ${failedChecks.length ? `<ul>${failedChecks.map(check => `<li>${check.detailsUrl ? `<a href="${this.escapeHtml(check.detailsUrl)}">${this.escapeHtml(check.name)}</a>` : this.escapeHtml(check.name)}</li>`).join('')}</ul>` : ''}
+      ${feedbackSummary ? `<p class="usage-summary">PR feedback captured: ${this.escapeHtml(feedbackSummary)}</p>` : ''}
+      ${julesFeedback.length ? `<p class="usage-summary">Marked feedback proves a GitHub PR comment exists${latestJulesFeedbackUrl ? ` (<a href="${this.escapeHtml(latestJulesFeedbackUrl)}">latest comment</a>)` : ''}. If the active Jules session does not visibly show the latest feedback, open the Jules session and send or confirm the same bounded repair request there before assuming a repair is underway.</p>` : ''}
       ${changedFiles.length ? `<p class="usage-summary">Prepared repair files: ${this.escapeHtml(changedFiles.map(file => String(file)).join(', '))}</p>` : ''}
       ${verificationCommands.length ? `<p class="usage-summary">Local repair verification: ${this.escapeHtml(verificationCommands.map(command => String(command)).join('; '))}</p>` : ''}
       ${repairCommand && !Object.keys(result).length ? `<p><strong>Operator-owned repair push:</strong> <code>${this.escapeHtml(repairCommand)}</code></p>` : ''}
@@ -2222,6 +2378,12 @@ export class HttpServer {
     const deploymentCommands = this.recordFromUnknown(deployment.commands);
     const syncNextAction = this.recordFromUnknown(localSync.nextAction);
     const syncCommand = this.stringFromUnknown(syncNextAction.command);
+    // Local sync is a two-step return path: first prove the checkout is safe,
+    // then expose the actual pull only if that proof says it can run. These
+    // URLs let the task page show that first visible check instead of leaving
+    // the operator with raw endpoint text.
+    const refreshLocalSyncUrl = this.stringFromUnknown(localSync.refreshUrl);
+    const syncLocalUrl = this.stringFromUnknown(localSync.syncUrl);
 
     // Deployment and local sync are the final live boundaries in the Jules
     // handoff path. This card translates the existing readiness packets into a
@@ -2243,6 +2405,10 @@ export class HttpServer {
       ${localSyncBlockers.length ? `<p class="usage-summary">Local sync blockers: ${this.escapeHtml(localSyncBlockers.join('; '))}</p>` : '<p class="usage-summary">No local sync blockers are recorded.</p>'}
       ${this.renderTaskPageDeploymentCommands(deploymentCommands)}
       ${syncCommand ? `<p><strong>Operator-run sync command:</strong> <code>${this.escapeHtml(syncCommand)}</code></p>` : ''}
+      ${refreshLocalSyncUrl || syncLocalUrl ? `<ul class="task-page-actions">
+        ${refreshLocalSyncUrl ? `<li><button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(refreshLocalSyncUrl)}" data-guarded-safe-method="POST">Check Local Sync</button><p class="usage-summary" data-guarded-safe-status></p></li>` : ''}
+        ${syncLocalUrl && localSync.canSyncNow === true ? `<li><button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(syncLocalUrl)}" data-guarded-safe-method="POST">Sync Local Master</button><p class="usage-summary" data-guarded-safe-status></p></li>` : ''}
+      </ul>` : ''}
       <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(localSync.expectedNextProof) ?? 'Local sync remains unavailable until merge, deployment evidence or waiver, and Git safety checks are all proven.')}</p>
     </article>`;
   }
@@ -2536,6 +2702,7 @@ export class HttpServer {
       julesDialogue,
       julesStateReconciliation: handoff.julesStateReconciliation ?? null,
       githubPullRequestChecks: handoff.githubPullRequestChecks ?? null,
+      githubPullRequestFeedback: handoff.githubPullRequestFeedback ?? null,
       githubPullRequestNextAction: handoff.githubPullRequestNextAction ?? null,
       pullRequestChecksCommand: handoff.pullRequestChecksCommand ?? null,
       pullRequestViewCommand: handoff.pullRequestViewCommand ?? null,
@@ -3048,7 +3215,12 @@ export class HttpServer {
     const latestDraft = drafts[0] ?? null;
     const latestHandoff = handoffs[0] ?? null;
     const dashboardHandoff = handoffs.find(handoff => handoff.status !== 'observed_pr') ?? null;
-    const prHandoff = handoffs.find(handoff => Boolean(handoff.githubPullRequestUrl)) ?? latestHandoff;
+    // Keep the PR lane attached to the active dashboard handoff first.
+    // Without this, an older merged Package 2 PR can leak into a Package 3
+    // no-PR completion boundary and make the dashboard look like the wrong
+    // implementation slice is ready for review.
+    const observedPrHandoff = handoffs.find(handoff => handoff.status === 'observed_pr' && Boolean(handoff.githubPullRequestUrl)) ?? null;
+    const prHandoff = dashboardHandoff ?? observedPrHandoff ?? latestHandoff;
     const gitBlocked = !snapshot.preflight.ok;
     const hasLinearReceipt = Boolean(
       latestHandoff?.linearIssueIdentifier
@@ -3060,13 +3232,24 @@ export class HttpServer {
     const hasManifest = Boolean(manifestHandoff?.manifestPath);
     const hasSession = Boolean(manifestHandoff?.julesSessionId || manifestHandoff?.julesSessionUrl || manifestHandoff?.julesState);
     const hasDashboardPr = Boolean(dashboardHandoff?.githubPullRequestUrl);
-    const hasObservedPr = Boolean(prHandoff?.status === 'observed_pr' && prHandoff.githubPullRequestUrl);
+    // Observed PRs are useful only when there is no dashboard-started handoff
+    // currently owning the workflow. Once a Package 3 handoff exists, older
+    // observed Package 2 PRs must stay historical rather than becoming the
+    // active PR boundary.
+    const hasObservedPr = Boolean(!dashboardHandoff && observedPrHandoff?.githubPullRequestUrl);
     const hasPr = hasDashboardPr || hasObservedPr;
     const completedWithoutPr = Boolean(manifestHandoff?.julesState === 'COMPLETED' && !hasDashboardPr);
     const prState = prHandoff?.githubPullRequestState ?? null;
     const prChecks = prHandoff?.githubPullRequestChecks ?? null;
     const hasPrBlocker = prChecks?.failed ? prChecks.failed > 0 : false;
-    const scoutAttention = conflictWatch.status === 'blocked' || conflictWatch.status === 'attention';
+    const prNextActionCode = prHandoff?.githubPullRequestNextAction?.code ?? null;
+    // If marked Jules feedback has already been posted, the PR next-action
+    // model owns the current wait state. File risk still matters after Jules
+    // pushes a new repair, but until then the main dashboard should match the
+    // task page and wait for the PR to change instead of repeatedly surfacing
+    // Scout/Core as the active boundary.
+    const scoutAttention = prNextActionCode !== 'wait_for_checks'
+      && (conflictWatch.status === 'blocked' || conflictWatch.status === 'attention');
     const localSyncHandoff = hasDashboardPr ? prHandoff : null;
     const localSync = localSyncHandoff?.localSyncStatus ?? null;
     const localSyncSafe = Boolean(localSync?.safeToPull);
@@ -3183,7 +3366,10 @@ export class HttpServer {
         mutatesExternalSystemsIfRun: false,
         mutatesLocalFilesIfRun: Boolean(hasSession && manifestHandoff && !completedWithoutPr),
         blockedBy: completedWithoutPr
-          ? ['Jules completed without a captured PR URL; inspect the visible Jules session or API result before filing Package 2.']
+          // This boundary is shared by every Jules package. Keep the wording
+          // package-neutral so a copied Package 2 instruction does not send
+          // later Spell Phase 1 work toward the wrong follow-up task.
+          ? ['Jules completed without a captured PR URL; inspect the visible Jules session or API result before filing the next handoff.']
           : hasSession ? [] : ['Jules session receipt is missing.'],
         expectedProof: completedWithoutPr
           ? 'Visible Jules completion result proving PR URL, no-PR completion, failure, or required operator follow-up.'
@@ -3193,11 +3379,15 @@ export class HttpServer {
       {
         id: 'github_pr',
         label: 'GitHub PR',
-        status: hasDashboardPr ? (hasPrBlocker ? 'blocked' : 'active') : hasObservedPr ? 'observed' : 'waiting',
+        // A merged PR is no longer the active GitHub-review boundary. Mark it
+        // complete so the ladder advances to local-sync proof instead of asking
+        // the operator to keep refreshing a PR that already landed.
+        status: hasDashboardPr ? (prState === 'MERGED' ? 'complete' : hasPrBlocker ? 'blocked' : 'active') : hasObservedPr ? 'observed' : 'waiting',
         sourceId: prHandoff?.id ?? null,
         sourceTitle: prHandoff?.title ?? null,
         detail: hasPr
-          ? `PR state is ${prState ?? 'unknown'}${hasObservedPr ? '; observed records stay watch-only.' : '.'}`
+          ? prHandoff?.githubPullRequestNextAction?.summary
+            ?? `PR state is ${prState ?? 'unknown'}${hasObservedPr ? '; observed records stay watch-only.' : '.'}`
           : 'Waiting for Jules to create a PR.',
         endpoint: prHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(prHandoff.id)}/refresh-pr` : null,
         method: prHandoff ? 'POST' : 'NONE',
@@ -3222,7 +3412,11 @@ export class HttpServer {
             : 'Waiting for a Jules PR before Scout/Core can review.',
         endpoint: (prHandoff?.next_action?.url as string | null) ?? null,
         method: (prHandoff?.next_action?.method as 'GET' | 'POST' | 'NONE' | undefined) ?? 'NONE',
-        canRunNow: false,
+        // Scout/Core blockers still need a safe dashboard action. The operator
+        // is not allowed to merge or send feedback from this stage, but they
+        // must be able to refresh the PR evidence that feeds Scout/Core without
+        // digging for a hidden lower-page button or opening a raw POST URL.
+        canRunNow: Boolean(scoutAttention && prHandoff?.githubPullRequestUrl),
         mutatesGitIfRun: false,
         mutatesExternalSystemsIfRun: false,
         mutatesLocalFilesIfRun: false,
@@ -3365,6 +3559,77 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedReason,
         instruction: 'Open the visible Jules session result, then record whether the completed run produced a PR URL, failed, or completed without code changes.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'scout_core' && stage.status === 'blocked' && stage.endpoint) {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Refresh Scout/Core Evidence',
+        status: stage.status,
+        method: stage.method,
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: true,
+        requiresOperator: false,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: 'Refresh the GitHub PR evidence that Scout/Core depends on, then decide whether Scout should send Jules feedback, accept the risk, or keep the PR blocked.',
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'github_pr' && stage.status === 'active' && stage.endpoint) {
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Refresh GitHub PR',
+        status: stage.status,
+        method: stage.method,
+        endpoint: stage.endpoint,
+        evidenceEndpoint,
+        recordEndpoint: null,
+        canRunNow: true,
+        requiresOperator: false,
+        safety: 'external_read',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: `Refresh the GitHub PR evidence, then capture proof: ${stage.expectedProof}`,
+        expectedProof: stage.expectedProof,
+      };
+    }
+
+    if (stage.id === 'local_sync' && stage.status === 'blocked' && stage.endpoint) {
+      // "Blocked" local sync usually means the safe-readiness check has not run
+      // yet, not that the operator should give up. Promote the non-mutating
+      // check as the current dashboard action while keeping the actual Git pull
+      // hidden until the readiness packet says it is safe.
+      const localSyncCheckEndpoint = evidenceEndpoint ?? stage.endpoint.replace(/\/sync-local$/, '/refresh-local-sync');
+      return {
+        boundary: stage.id,
+        boundaryLabel: stage.label,
+        label: 'Check Local Sync',
+        status: 'ready',
+        method: 'POST',
+        endpoint: localSyncCheckEndpoint,
+        evidenceEndpoint: localSyncCheckEndpoint,
+        recordEndpoint: null,
+        canRunNow: true,
+        requiresOperator: false,
+        safety: 'read_only',
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: false,
+        blockedReason,
+        instruction: 'Run the guarded local sync readiness check. Only use the mutating sync step after that check proves the checkout can fast-forward safely.',
         expectedProof: stage.expectedProof,
       };
     }
@@ -3622,7 +3887,7 @@ export class HttpServer {
       title: 'How to start a Jules task',
       summary: 'Draft locally, create the tracking issue when Linear is available, then let Symphony stage and launch the bounded Jules handoff after GitHub sync passes.',
       steps: [
-        { label: 'Check GitHub Sync', detail: 'Local master must match GitHub and the working tree must be intentionally clean before Jules starts.' },
+        { label: 'Check GitHub Sync', detail: 'The checked-out worktree must match the GitHub base commit and be intentionally clean before Jules starts.' },
         { label: 'Save Draft', detail: 'Capture the task in plain language with expected files and verification commands.' },
         {
           label: 'Create Linear Issue',
@@ -3677,11 +3942,28 @@ export class HttpServer {
       );
     }
 
+    const firstHandoff = this.pickQueueHandoff(handoffs);
+    const waitForPostedFeedbackHandoff = conflictWatch.status === 'attention'
+      ? handoffs.find(handoff => {
+          const actionCode = this.readStringField(handoff.next_action, 'code');
+          const actionTone = this.readStringField(handoff.next_action, 'tone');
+          const ownsRiskFile = conflictWatch.risk_files.some(file => file.handoff_id === handoff.id);
+          return ownsRiskFile && actionCode === 'wait_for_checks' && actionTone === 'waiting';
+        })
+      : null;
+
+    // Cross-PR overlaps are still the strongest Scout/Core stop because two
+    // workers can collide on the same file. Single-PR risk is softer: if the
+    // affected PR-specific state has already posted Scout feedback and is
+    // waiting for Jules, the queue must not reopen a merge-adjacent risk bridge.
+    if (waitForPostedFeedbackHandoff?.next_action) {
+      return attachSource(waitForPostedFeedbackHandoff.next_action, 'handoff', waitForPostedFeedbackHandoff.id);
+    }
+
     if (conflictWatch.next_action) {
       return attachSource(conflictWatch.next_action, 'conflict_watch', null);
     }
 
-    const firstHandoff = this.pickQueueHandoff(handoffs);
     if (firstHandoff?.next_action) {
       return attachSource(firstHandoff.next_action, 'handoff', firstHandoff.id);
     }
@@ -3933,7 +4215,7 @@ export class HttpServer {
         'GitHub sync must pass before this draft can become a Jules handoff.',
         `${baseUrl}/api/v1/git-preflight`,
         'POST',
-        ['Clean, commit, or push the intended local work.', 'Recheck the GitHub sync gate.', 'Only prepare a handoff once local master and GitHub agree.']);
+        ['Clean, commit, or publish the intended local work.', 'Recheck the GitHub sync gate.', 'Only prepare a handoff once the checked-out worktree and GitHub base agree.']);
     }
 
     if (options.requiresLinearIssueForHandoff && !draft.linearIssueId) {
@@ -4094,6 +4376,26 @@ export class HttpServer {
         ['Launch Jules.', 'Wait for the session id or Jules state.', 'Refresh status if the session does not update automatically.']);
     }
 
+    const latestPlanApproval = Array.isArray(handoff.planApprovals) ? handoff.planApprovals[0] : null;
+    const planAlreadyApproved = latestPlanApproval?.status === 'approved';
+
+    if (handoff.julesState === 'AWAITING_PLAN_APPROVAL' && planAlreadyApproved) {
+      return action('refresh_jules_status', 'ready', 'Refresh Jules Status',
+        'The operator approval was sent to Jules. Refresh the session state before deciding whether Jules is running, waiting for feedback, completed, or ready for PR review.',
+        links.refreshStatus,
+        'POST',
+        ['Refresh Jules status.', 'Confirm the dashboard moved past the approved plan gate.', 'Use the next visible boundary after the refreshed state is captured.'],
+        {
+          // A successful approval receipt means the next safe dashboard action
+          // is state reconciliation, not another approval attempt. This keeps
+          // operators from repeatedly sending the same mutating Jules approval
+          // just because Symphony still has an old cached Jules state.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
+          latest_plan_approval: latestPlanApproval,
+        });
+    }
+
     if (handoff.julesState === 'AWAITING_PLAN_APPROVAL') {
       return action('approve_jules_plan', 'ready', 'Approve Jules Plan',
         'Jules is waiting for the operator to approve its proposed plan before it continues.',
@@ -4106,6 +4408,27 @@ export class HttpServer {
           // headless foremen and the dashboard do not approve blind.
           jules_session_id: handoff.julesSessionId,
           jules_session_url: handoff.julesSessionUrl,
+        });
+    }
+
+    const latestSentOperatorMessage = Array.isArray(handoff.operatorMessages)
+      ? handoff.operatorMessages.find(message => message?.status === 'sent')
+      : null;
+
+    if (handoff.julesState === 'AWAITING_USER_FEEDBACK' && latestSentOperatorMessage) {
+      return action('refresh_jules_status', 'ready', 'Refresh Jules Status',
+        'Operator feedback was sent to Jules. Refresh the session state before deciding whether Jules is running, still waiting, completed, or ready for PR review.',
+        links.refreshStatus,
+        'POST',
+        ['Refresh Jules status.', 'Confirm whether Jules moved past the feedback gate.', 'If Jules still waits for feedback, inspect the visible session before sending anything else.'],
+        {
+          // A sent message receipt means the next dashboard action is state
+          // reconciliation, not another identical message. This protects
+          // operators from repeatedly sending the same feedback while the
+          // external Jules state is still catching up or exposing a bridge gap.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
+          latest_operator_message: latestSentOperatorMessage,
         });
     }
 
@@ -4172,7 +4495,10 @@ export class HttpServer {
         // after the human or foreman acts. Preserve both so workers do not
         // collapse pending checks, failed checks, or Core readiness into a
         // generic Scout/Core label.
-        prAction.url || links.refreshPullRequest,
+        // Once GitHub reports a merge, the PR action label changes to local
+        // sync. Route that label to the local-readiness endpoint so the visible
+        // task queue does not send operators back to stale PR-refresh work.
+        prAction.code === 'check_local_sync' ? links.refreshLocalSync : prAction.url || links.refreshPullRequest,
         'POST',
         prAction.steps,
         {
@@ -4905,6 +5231,7 @@ export class HttpServer {
     if (handoff.githubPullRequestState === 'MERGED' || actionCode === 'check_local_sync') return 'merged';
     if (handoff.repairPushResult?.status === 'pushed') return 'waiting_for_checks_rerun';
     if (actionCode === 'core_validate_and_merge') return 'ready_for_core';
+    if (actionCode === 'wait_for_checks') return 'waiting';
     if (
       actionCode === 'scout_bridge_risk'
       || handoff.githubPullRequestFiles?.risk === 'medium'

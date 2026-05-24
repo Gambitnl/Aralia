@@ -19,6 +19,8 @@ assert.match(dashboardSource, /task-navigator/);
 assert.match(dashboardSource, /data-task-filter/);
 assert.match(dashboardSource, /normalizeTaskNavigatorFilter/);
 assert.match(dashboardSource, /function renderTaskDetailPreview/);
+assert.match(dashboardSource, /refresh-local-sync/);
+assert.match(dashboardSource, /Check Local Sync/);
 assert.match(dashboardCss, /\.task-navigator/);
 assert.match(dashboardCss, /\.task-navigator-filters/);
 assert.match(dashboardCss, /\.task-detail-preview/);
@@ -59,10 +61,11 @@ const html = taskIntakeRoot.innerHTML;
 const navigatorHtml = extractNavigatorHtml(html);
 
 assert.match(navigatorHtml, /Task navigator/);
-assert.match(navigatorHtml, /All tasks: 3/);
+assert.match(navigatorHtml, /All tasks: 4/);
 assert.match(navigatorHtml, /Needs input: 1/);
 assert.match(navigatorHtml, /Open: 2/);
 assert.match(navigatorHtml, /Completed: 1/);
+assert.match(navigatorHtml, /Archived: 1/);
 assert.match(navigatorHtml, /data-task-filter="all"/);
 assert.match(navigatorHtml, /data-task-filter="needs_input"/);
 assert.match(navigatorHtml, /data-task-filter="open"/);
@@ -90,6 +93,8 @@ assert.match(navigatorHtml, /Jules session/);
 assert.match(navigatorHtml, /GitHub PR/);
 assert.match(navigatorHtml, /Timeline events: 2/);
 assert.match(navigatorHtml, /Needs human input/);
+assert.match(navigatorHtml, /Promoted draft record/);
+assert.match(navigatorHtml, /Promoted to handoff handoff-merged/);
 
 const needsInputRoot = {
   html: '',
@@ -112,6 +117,7 @@ assert.match(needsInputNavigatorHtml, /Filter: Needs input/);
 assert.match(needsInputNavigatorHtml, /ARA-6 weapon proficiency regression/);
 assert.doesNotMatch(needsInputNavigatorHtml, /Setup repair draft/);
 assert.doesNotMatch(needsInputNavigatorHtml, /Merged dashboard-started proof/);
+assert.doesNotMatch(needsInputNavigatorHtml, /Promoted draft record/);
 
 const completedRoot = {
   html: '',
@@ -136,6 +142,30 @@ assert.match(completedNavigatorHtml, /Wait for deployment proof/);
 assert.match(completedNavigatorHtml, /GitHub PR/);
 assert.doesNotMatch(completedNavigatorHtml, /ARA-6 weapon proficiency regression/);
 assert.doesNotMatch(completedNavigatorHtml, /Setup repair draft/);
+assert.doesNotMatch(completedNavigatorHtml, /Promoted draft record/);
+
+const archivedRoot = {
+  html: '',
+  addEventListener() {},
+  set innerHTML(value) {
+    this.html = value;
+  },
+  get innerHTML() {
+    return this.html;
+  },
+  firstChild: { nodeValue: '' },
+};
+const archivedSandbox = buildSandbox('archived', archivedRoot);
+vm.runInNewContext(executableSource, archivedSandbox, { filename: 'dashboard.js' });
+archivedSandbox.renderTaskIntake(buildSnapshot());
+
+const archivedNavigatorHtml = extractNavigatorHtml(archivedRoot.innerHTML);
+assert.match(archivedNavigatorHtml, /Filter: Archived/);
+assert.match(archivedNavigatorHtml, /Promoted draft record/);
+assert.match(archivedNavigatorHtml, /promoted/);
+assert.match(archivedNavigatorHtml, /Promoted to handoff handoff-merged/);
+assert.doesNotMatch(archivedNavigatorHtml, /Setup repair draft/);
+assert.doesNotMatch(archivedNavigatorHtml, /ARA-6 weapon proficiency regression/);
 
 const answeredRoot = {
   html: '',
@@ -156,6 +186,28 @@ const answeredNavigatorHtml = extractNavigatorHtml(answeredRoot.innerHTML);
 assert.match(answeredNavigatorHtml, /Needs input: 0/);
 assert.match(answeredNavigatorHtml, /Resolve Workflow Config Blocker/);
 assert.doesNotMatch(answeredNavigatorHtml, /needs operator input/i);
+
+const scoutRoot = {
+  html: '',
+  addEventListener() {},
+  set innerHTML(value) {
+    this.html = value;
+  },
+  get innerHTML() {
+    return this.html;
+  },
+  firstChild: { nodeValue: '' },
+};
+const scoutSandbox = buildSandbox(null, scoutRoot);
+vm.runInNewContext(executableSource, scoutSandbox, { filename: 'dashboard.js' });
+scoutSandbox.renderTaskIntake(buildScoutCoreSnapshot());
+
+const scoutNavigatorHtml = extractNavigatorHtml(scoutRoot.innerHTML);
+assert.match(scoutNavigatorHtml, /Scout\/Core review/);
+assert.match(scoutNavigatorHtml, /Scout review must clear risky files/);
+assert.doesNotMatch(scoutNavigatorHtml, /Wait for PR Checks/);
+assert.match(scoutRoot.innerHTML, /Marked feedback proves a GitHub PR comment exists/);
+assert.match(scoutRoot.innerHTML, /active Jules session does not visibly show the latest feedback/);
 
 function extractNavigatorHtml(html) {
   const match = html.match(/<section class="task-navigator"[\s\S]*?<\/section>/);
@@ -243,6 +295,25 @@ function buildSnapshot() {
       links: {
         taskDetail: '/api/v1/tasks/draft-setup-repair',
       },
+    }, {
+      id: 'draft-promoted',
+      title: 'Promoted draft record',
+      body: 'This draft already became a Jules handoff.',
+      status: 'ready_for_handoff',
+      expectedFiles: ['src/components/Widget.tsx'],
+      verificationCommands: ['npm test'],
+      createdAt: generatedAt,
+      updatedAt: generatedAt,
+      next_action: {
+        code: 'stage_jules_manifest',
+        tone: 'ready',
+        label: 'Stage Jules Manifest',
+        summary: 'This old draft should not be counted as open once a handoff exists.',
+        steps: ['Stage manifest.'],
+      },
+      links: {
+        taskDetail: '/api/v1/tasks/draft-promoted',
+      },
     }],
     handoffs: [{
       id: 'handoff-ara6',
@@ -284,6 +355,7 @@ function buildSnapshot() {
       },
     }, {
       id: 'handoff-merged',
+      draftId: 'draft-promoted',
       title: 'Merged dashboard-started proof',
       status: 'sent_to_jules',
       createdAt: generatedAt,
@@ -362,6 +434,82 @@ function buildAnsweredQuestionSnapshot() {
     label: 'Resolve Workflow Config Blocker',
     summary: 'The decision has been recorded; repair the workflow setup before sending Jules feedback.',
     steps: ['Create setup repair task.'],
+  };
+  return snapshot;
+}
+
+function buildScoutCoreSnapshot() {
+  const snapshot = buildSnapshot();
+  snapshot.drafts = [];
+  snapshot.handoffs = [{
+    id: 'handoff-scout-core',
+    title: 'Package 3 Scout/Core proof',
+    status: 'sent_to_jules',
+    createdAt: snapshot.preflight.checkedAt,
+    updatedAt: snapshot.preflight.checkedAt,
+    julesState: 'FAILED',
+    githubPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/954',
+    githubPullRequestState: 'OPEN',
+    githubPullRequestChecks: { conclusion: 'pending', pending: 4, failed: 0 },
+    githubPullRequestFiles: { risk: 'high', riskReasons: ['Outside declared Jules write scope.'], outOfScopeFiles: ['src/components/CharacterCreator/Class/SpellCard.tsx'] },
+    githubPullRequestFeedback: {
+      totalComments: 1,
+      summary: '1 Jules feedback comment(s), 0 Scout conflict comment(s), 0 external review comment(s).',
+      julesFeedback: [{
+        author: 'Gambitnl',
+        body: '[Jules feedback]\nPlease repair the Scout acceptance blockers before Core merge.',
+        url: 'https://github.com/Gambitnl/Aralia/pull/954#issuecomment-4519567250',
+        createdAt: snapshot.preflight.checkedAt,
+        source: 'comment',
+      }],
+      scoutConflictComments: [],
+      externalReviewComments: [],
+    },
+    handoffTimeline: { events: [] },
+    next_action: {
+      code: 'wait_for_checks',
+      tone: 'waiting',
+      label: 'Wait for PR Checks',
+      summary: 'GitHub checks are not conclusively passing yet.',
+      steps: ['Refresh PR checks after GitHub updates.'],
+    },
+    scout_core_readiness: {
+      status: 'blocked_by_scout',
+      nextBoundary: 'scout_core',
+      canRefreshNow: true,
+      canScoutReviewNow: true,
+      canCoreValidateNow: false,
+      canCoreMergeNow: false,
+      refreshUrl: '/api/v1/jules-handoffs/handoff-scout-core/refresh-pr',
+      blockers: ['Scout review must clear risky files before Core validates.'],
+      expectedNextProof: 'Scout/Core readiness, conflict bridge result, or explicit review blocker.',
+      nextAction: {
+        code: 'wait_for_checks',
+        tone: 'waiting',
+        label: 'Wait for PR Checks',
+        summary: 'GitHub checks are not conclusively passing yet.',
+        steps: ['Refresh PR checks after GitHub updates.'],
+      },
+    },
+  }];
+  snapshot.middleman_path = {
+    status: 'blocked',
+    currentBoundary: 'scout_core',
+    currentBoundaryLabel: 'Scout/Core review',
+    summary: 'Scout/Core review: risky files need attention.',
+    nextExpectedProof: 'Scout/Core readiness, conflict bridge result, or explicit review blocker.',
+    foremanAction: {
+      boundary: 'scout_core',
+      boundaryLabel: 'Scout/Core review',
+      label: 'Refresh Scout/Core Evidence',
+      status: 'blocked',
+      safety: 'external_read',
+      canRunNow: true,
+      method: 'POST',
+      endpoint: '/api/v1/jules-handoffs/handoff-scout-core/refresh-pr',
+      instruction: 'Refresh the GitHub PR evidence that Scout/Core depends on.',
+    },
+    stages: [],
   };
   return snapshot;
 }

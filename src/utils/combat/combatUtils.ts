@@ -699,8 +699,18 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       type: 'attack',
       cost: { type: isOffHand ? 'bonus' : 'action' },
       targeting: 'single_enemy',
-      range: (weapon.properties?.some((p) => p === 'reach')) ? 2 : 1, // Simple reach check
-      // For ranged weapons, we'd check properties too
+      range: (() => {
+        let baseRange = 1;
+        if (weapon.properties?.some(p => p === 'reach')) baseRange = 2;
+        const rangeProp = weapon.properties?.find(p => p.startsWith('range:'));
+        if (rangeProp) {
+          const match = rangeProp.match(/range:(\d+)/);
+          if (match && match[1]) {
+            baseRange = Math.max(baseRange, Math.floor(parseInt(match[1]) / 5));
+          }
+        }
+        return baseRange;
+      })(),
       effects: [{
         type: 'damage',
         value: 0, // Value 0 signals "roll weapon damage" to the system
@@ -807,6 +817,8 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     team: 'player',
     currentHP: player.hp,
     maxHP: player.maxHp,
+    armorClass: player.armorClass || 10,
+    baseAC: player.armorClass || 10,
     // Carry Hit Dice pools into combat so pool-based targeting can use them.
     hitPointDice: buildHitPointDicePools(player),
     initiative: 0,

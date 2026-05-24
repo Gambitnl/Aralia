@@ -3,6 +3,12 @@
 Status: local Symphony draft created; setup branch pushed; fresh Symphony
 readiness preflight required before Jules dispatch.
 
+Historical closeout note: Package 2 has since been dispatched to Jules,
+reviewed, repaired through the dashboard-first workflow where needed, and merged
+through PR #935. This file is retained as the original implementation contract;
+the current active package state lives in
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
+
 This is the first implementation slice for Spell Phase 1 after the Symphony
 post-ARA-6 cleanup and Package 1 baseline. It intentionally focuses on premade
 level-1 characters and combat-ready gear before broader spell mechanics, because

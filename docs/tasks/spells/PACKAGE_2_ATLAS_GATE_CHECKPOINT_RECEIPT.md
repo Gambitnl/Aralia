@@ -1,6 +1,6 @@
 # Package 2 Atlas And Gate Checkpoint Receipt
 
-Status: active Package 2 gate checkpoint.
+Status: Package 2 gate checkpoint recorded after merge.
 
 This receipt is the landing place for Atlas and spell-gate evidence after the
 premade party and gear slice has real changes to verify. It exists before
@@ -12,12 +12,14 @@ throwaway terminal command with no durable task evidence.
 - Package 2 Jules task dispatched: `yes`
 - Package 2 implementation PR exists: `yes`
 - Spell gate refresh run for Package 2: `yes`
-- Atlas review/update run for Package 2: `not_yet`
-- Can this receipt prove Package 2 gate completion yet: `no`
+- Atlas review/update run for Package 2: `recorded_no_content_change`
+- Can this receipt prove Package 2 gate completion yet: `yes_for_package_2`
 
-Reason: spell validation and spell-gate generation have been run against PR
-#935, but Package 2 is not complete until the PR check failures and Scout/Core
-disposition are resolved and the Atlas/update decision is recorded.
+Reason: spell validation and spell-gate generation were rerun on the
+post-merge closeout branch. The gate report only produced timestamp churn, so
+Codex did not commit the generated file. No Atlas content file required an
+update for this data/combat-readiness slice; the durable Atlas/gate proof is
+this receipt plus the Package 2 tracker state.
 
 ## Commands To Record After Package 2 Returns
 
@@ -49,20 +51,21 @@ If the exact combat test path changes, record the actual path used.
 - Combat utility/premade legality test result: passed with concrete
   Windows-safe combat utility command; `3` files passed, `16` tests passed
 - `public/data/spell_gate_report.json` changed: `no in PR #935`; local
-  generation changed it in the detached review worktree and Codex discarded
-  that local generated proof artifact after recording the result
-- Atlas surface checked or updated: `not_yet`
+  generation changed only timestamps in the closeout worktree and Codex
+  discarded that local generated proof artifact after recording the result
+- Atlas surface checked or updated: recorded here; no content update required
+  because Package 2 did not change spell JSON or gate classifications
 - Evidence path or command output summary:
   `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` and
   `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md`
-- Follow-up bucket or UI work discovered: broad GitHub test failure in
-  unrelated movement test; Gemini review infrastructure model failure; large
-  JSON formatting churn reviewability question
+- Follow-up bucket or UI work discovered: Package 3 must cover character
+  creator spell selection and character sheet spellbook visibility; Package 4
+  must cover combat simulator spell usability beyond premade loadout readiness
 - Dashboard evidence checkpoint: Package 2 task-page safe refresh was repaired
   and used through the visible UI; Scout/Core now reports
-  `outOfScopeFiles: []`, file risk `medium`, failed checks `2`, and pending
-  checks `0`
-- Can Package 3 begin after this checkpoint: `no`
+  `outOfScopeFiles: []`; after PR #937 and the PR #935 branch update, GitHub CI
+  passed and PR #935 merged
+- Can Package 3 begin after this checkpoint: `yes`
 
 ## Rules
 

@@ -176,6 +176,7 @@ export interface GitDispositionRecord {
   decisionLabel: string;
   note: string;
   updatedAt: string | null;
+  scopeKey?: string | null;
 }
 
 export interface GitDispositionSummary {
@@ -888,6 +889,7 @@ export interface GitSyncNextAction {
     | 'ready_for_jules'
     | 'inspect_git_state'
     | 'switch_base_branch'
+    | 'publish_or_merge_current_branch'
     | 'review_local_changes'
     | 'resolve_divergence'
     | 'pull_fast_forward'
@@ -983,6 +985,21 @@ export function buildGitSyncNextAction(input: {
   }
 
   if (input.currentBranch !== input.baseBranch) {
+    if ((input.ahead ?? 0) > 0 || (input.behind ?? 0) > 0) {
+      return {
+        code: 'publish_or_merge_current_branch',
+        tone: 'blocked',
+        label: 'Publish or merge current branch',
+        command: null,
+        summary: `Symphony is on ${input.currentBranch || 'a detached branch'}, and that checkout does not yet match ${input.remoteBranch}. Jules must start from the GitHub base commit.`,
+        steps: [
+          'Publish the current branch and merge the intended handoff base to GitHub, or switch to a checkout that already matches GitHub.',
+          'Do not push unrelated local master commits just to clear this gate.',
+          'Re-run Check GitHub Sync after GitHub has the intended base commit.',
+        ],
+      };
+    }
+
     return {
       code: 'switch_base_branch',
       tone: 'blocked',
@@ -1076,6 +1093,7 @@ export function buildLocalSyncNextAction(input: {
   safeToPull: boolean;
   upToDate: boolean;
   currentBranch: string | null;
+  currentBranchCanStandInForBase?: boolean;
   baseBranch: string;
   dirtyFiles: number;
   untrackedFiles: number;
@@ -1101,7 +1119,7 @@ export function buildLocalSyncNextAction(input: {
     };
   }
 
-  if (input.currentBranch !== input.baseBranch) {
+  if (input.currentBranch !== input.baseBranch && !input.currentBranchCanStandInForBase) {
     return {
       code: 'switch_base_branch',
       tone: 'blocked',
@@ -1193,8 +1211,10 @@ export function buildPullRequestNextAction(input: {
   state: string | null;
   isDraft: boolean | null;
   mergeable: string | null;
+  updatedAt?: string | null;
   checks: PullRequestCheckSummary | null;
   files: Pick<PullRequestFileSummary, 'risk' | 'riskReasons' | 'outOfScopeFiles'> | null;
+  feedback?: Pick<PullRequestFeedbackSummary, 'julesFeedback'> | null;
   scoutReviewCommand: string | null;
   julesFeedbackCommand?: string | null;
   coreValidationCommand: string | null;
@@ -1245,8 +1265,28 @@ export function buildPullRequestNextAction(input: {
       ['Have Scout bridge the conflict and identify overlapping files.', 'Leave a GitHub PR comment for Jules with the conflict course correction.', 'Send follow-up work to Jules or repair the branch.', 'Refresh PR checks after conflicts are resolved.']);
   }
 
+  // Marked Jules feedback is the visible proof that the operator already chose
+  // the external repair lane. A PR update after that comment means Jules may
+  // have responded; without that update, the safe next action is to wait and
+  // refresh rather than presenting another duplicate feedback command.
+  const latestJulesFeedbackAt = latestTimestamp(input.feedback?.julesFeedback.map(comment => comment.createdAt) ?? []);
+  const pullRequestUpdatedAt = parseTimestamp(input.updatedAt);
+  const postFeedbackRepairWindowMs = 60_000;
+  const hasJulesFeedbackWaitingForRepair = latestJulesFeedbackAt !== null
+    && (pullRequestUpdatedAt === null || pullRequestUpdatedAt <= latestJulesFeedbackAt + postFeedbackRepairWindowMs);
+
   if (input.checks?.conclusion === 'failing') {
     const primaryBlocker = input.checks.blockers?.[0] ?? null;
+
+    // Once a marked Jules feedback comment exists, the human has already chosen
+    // the external repair lane. Keep the dashboard on a wait-and-refresh path so
+    // it does not ask for the same operator decision again before Jules has had
+    // a chance to push a repair commit.
+    if (hasJulesFeedbackWaitingForRepair) {
+      return action('wait_for_checks', 'waiting', 'Wait for Jules Repair', null, null, input.refreshPullRequestUrl,
+        'Jules feedback is already posted on the PR; wait for Jules to push a repair or for GitHub checks to change.',
+        ['Wait for a new Jules commit or status update.', 'Refresh PR checks after Jules pushes a repair.', 'Do not send duplicate Jules feedback unless the next refresh shows no progress.']);
+    }
 
     if (primaryBlocker?.category === 'workflow_setup') {
       return action('repair_failed_checks', 'blocked', 'Resolve CI Setup Blocker', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
@@ -1272,6 +1312,12 @@ export function buildPullRequestNextAction(input: {
   }
 
   if (input.files?.risk === 'medium' || input.files?.risk === 'high') {
+    if (hasJulesFeedbackWaitingForRepair) {
+      return action('wait_for_checks', 'waiting', 'Wait for Jules Repair', null, null, input.refreshPullRequestUrl,
+        'Scout feedback is already posted on the PR; wait for Jules to push a repair or for the PR to change.',
+        ['Wait for a new Jules commit or status update.', 'Refresh PR checks and Scout/Core readiness after Jules pushes a repair.', 'Do not send duplicate Scout feedback unless the next refresh shows new PR activity.']);
+    }
+
     return action('scout_bridge_risk', 'blocked', 'Scout Bridge Risk', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
       'Changed files need Scout review before Core merges.',
       ['Have Scout review risky, out-of-scope, or conflict-prone files.', 'Record accept, repair, or reject disposition.', 'Leave a GitHub PR comment for Jules if the risky files need course correction.', 'Refresh PR checks after Scout/Core updates.']);
@@ -1283,6 +1329,25 @@ export function buildPullRequestNextAction(input: {
     input.refreshPullRequestUrl,
     'The PR looks ready for Core validation and merge after Scout clears it.',
     ['Run Core validation.', 'Merge only after Core accepts the PR.', 'Refresh PR state after merge, then check local sync.']);
+}
+
+function latestTimestamp(values: Array<string | null | undefined>): number | null {
+  // PR comments and GitHub PR metadata arrive as optional ISO timestamps. The
+  // dashboard only needs the newest valid moment so it can tell "waiting for a
+  // Jules repair" apart from "a repair arrived and still failed."
+  const parsed = values
+    .map(value => parseTimestamp(value))
+    .filter((value): value is number => value !== null);
+  return parsed.length > 0 ? Math.max(...parsed) : null;
+}
+
+function parseTimestamp(value: string | null | undefined): number | null {
+  // Invalid or missing timestamps should never unlock a risky next action. When
+  // GitHub does not provide usable timing, Symphony keeps the older wait state
+  // instead of inventing progress.
+  if (!value) return null;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function buildPullRequestRepairDecision(input: {
@@ -2264,7 +2329,12 @@ function buildSetupRepairDraftFromHandoff(
       '',
       'Keep this repair separate from Jules implementation feedback unless later evidence shows Jules changed the failing setup files.',
     ].filter(line => line !== '').join('\n'),
-    expectedFiles: ['package-lock.json', 'package.json', '.github/workflows/ci.yml'],
+    expectedFiles: [
+      'package-lock.json',
+      'package.json',
+      '.github/workflows/ci.yml',
+      '.github/workflows/gemini-review.yml',
+    ],
     verificationCommands: [
       'npm ci --no-audit --no-fund',
       'npm run build',
@@ -3111,6 +3181,7 @@ interface GitHubPullRequestView {
   headRefName?: string;
   baseRefName?: string;
   url?: string;
+  updatedAt?: string;
   additions?: number;
   deletions?: number;
   changedFiles?: number;
@@ -3250,6 +3321,7 @@ export class TaskIntakeStore {
     const decision = normalizeGitDispositionDecision(input.decision);
     const note = typeof input.note === 'string' ? input.note.trim().slice(0, 600) : '';
     const stored = await this.readStoredDrafts();
+    const preflight = await this.runGitSyncPreflight();
     const now = new Date().toISOString();
     const existing = new Map(stored.gitDisposition.map(record => [record.category, record]));
     const definition = GIT_DISPOSITION_CATEGORIES.find(item => item.category === category);
@@ -3269,6 +3341,7 @@ export class TaskIntakeStore {
       decisionLabel: GIT_DISPOSITION_DECISION_LABELS[decision],
       note,
       updatedAt: now,
+      scopeKey: gitDispositionScopeKey(preflight, category),
     });
 
     stored.gitDisposition = buildGitDispositionSummary(Array.from(existing.values())).categories;
@@ -3469,7 +3542,7 @@ export class TaskIntakeStore {
     preflight: GitSyncPreflight,
     codexUsage?: DelegationRoiCodexUsageInput | null
   ): TaskDraftSnapshot {
-    const gitDisposition = buildGitDispositionSummary(stored.gitDisposition);
+    const gitDisposition = buildGitDispositionSummary(stored.gitDisposition, preflight);
     const operatorPreferences = normalizeOperatorPreferences(stored.operatorPreferences);
     const taskRouting = buildTaskRoutingPlan(stored.drafts, stored.handoffs, preflight);
 
@@ -4171,7 +4244,7 @@ export class TaskIntakeStore {
           'view',
           prUrl,
           '--json',
-          'number,state,isDraft,mergeable,reviewDecision,headRefName,baseRefName,url,additions,deletions,changedFiles,files,comments,reviews,latestReviews,statusCheckRollup',
+          'number,state,isDraft,mergeable,reviewDecision,headRefName,baseRefName,url,updatedAt,additions,deletions,changedFiles,files,comments,reviews,latestReviews,statusCheckRollup',
         ],
         {
           cwd: this.repoRoot,
@@ -4187,8 +4260,10 @@ export class TaskIntakeStore {
         state: pr.state ?? null,
         isDraft: typeof pr.isDraft === 'boolean' ? pr.isDraft : null,
         mergeable: pr.mergeable ?? null,
+        updatedAt: pr.updatedAt ?? null,
         checks: pullRequestChecks,
         files: pullRequestFiles,
+        feedback: pullRequestFeedback,
         scoutReviewCommand: commands.scoutReviewCommand,
         julesFeedbackCommand,
         coreValidationCommand: commands.coreValidationCommand,
@@ -4980,18 +5055,21 @@ export class TaskIntakeStore {
     if (!currentBranchResult.ok) {
       blockers.push('Could not determine the current branch.');
       details.push(currentBranchResult.message);
-    } else if (currentBranch !== this.baseBranch) {
-      blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
     }
 
     // Capture the exact commits on both sides of the sync gate. The ahead /
-    // behind counts are useful, but the human-facing proof is "these two hashes
-    // match", because Jules will clone the GitHub commit rather than the local
-    // working tree.
-    const localCommitResult = await this.git(['rev-parse', this.baseBranch]);
+    // behind counts are useful, but the human-facing proof is "this checked-out
+    // worktree commit matches GitHub's base commit." That lets a clean planning
+    // worktree based on origin/master pass without dragging unrelated local
+    // master commits into the Jules handoff.
+    const localRef = currentBranch === this.baseBranch ? this.baseBranch : 'HEAD';
+    const localRefLabel = currentBranch === this.baseBranch
+      ? this.baseBranch
+      : (currentBranch || 'detached HEAD');
+    const localCommitResult = await this.git(['rev-parse', localRef]);
     const localCommit = localCommitResult.ok ? localCommitResult.stdout.trim() || null : null;
     if (!localCommitResult.ok) {
-      blockers.push(`Could not read the local ${this.baseBranch} commit.`);
+      blockers.push(`Could not read the local ${localRefLabel} commit.`);
       details.push(localCommitResult.message);
     }
 
@@ -5028,7 +5106,7 @@ export class TaskIntakeStore {
       'rev-list',
       '--left-right',
       '--count',
-      `${this.baseBranch}...${remoteBranch}`,
+      `${localRef}...${remoteBranch}`,
     ]);
     const [aheadRaw, behindRaw] = divergenceResult.ok
       ? divergenceResult.stdout.trim().split(/\s+/)
@@ -5037,26 +5115,34 @@ export class TaskIntakeStore {
     const behind = Number.isFinite(Number(behindRaw)) ? Number(behindRaw) : null;
 
     if (!divergenceResult.ok) {
-      blockers.push(`Could not compare ${this.baseBranch} with ${remoteBranch}.`);
+      blockers.push(`Could not compare ${localRefLabel} with ${remoteBranch}.`);
       details.push(divergenceResult.message);
     } else {
-      if ((ahead ?? 0) > 0) blockers.push(`${this.baseBranch} has ${ahead} unpushed commit(s).`);
-      if ((behind ?? 0) > 0) blockers.push(`${this.baseBranch} is behind ${remoteBranch} by ${behind} commit(s).`);
+      if (currentBranch !== this.baseBranch && ((ahead ?? 0) > 0 || (behind ?? 0) > 0)) {
+        if ((ahead ?? 0) > 0) blockers.push(`Current branch ${localRefLabel} has ${ahead} commit(s) that are not on ${remoteBranch}.`);
+        if ((behind ?? 0) > 0) blockers.push(`Current branch ${localRefLabel} is behind ${remoteBranch} by ${behind} commit(s).`);
+      } else {
+        if ((ahead ?? 0) > 0) blockers.push(`${this.baseBranch} has ${ahead} unpushed commit(s).`);
+        if ((behind ?? 0) > 0) blockers.push(`${this.baseBranch} is behind ${remoteBranch} by ${behind} commit(s).`);
+      }
     }
 
     const ok = blockers.length === 0;
     const commands = {
       status: `git -C ${this.repoRoot} status --short`,
       fetch: `git -C ${this.repoRoot} fetch ${this.remoteName}`,
-      showLocalCommit: `git -C ${this.repoRoot} rev-parse ${this.baseBranch}`,
+      showLocalCommit: `git -C ${this.repoRoot} rev-parse ${localRef}`,
       showRemoteCommit: `git -C ${this.repoRoot} rev-parse ${remoteBranch}`,
-      inspectDivergence: `git -C ${this.repoRoot} log --oneline --left-right ${this.baseBranch}...${remoteBranch}`,
+      inspectDivergence: `git -C ${this.repoRoot} log --oneline --left-right ${localRef}...${remoteBranch}`,
       pullFastForward: `git -C ${this.repoRoot} pull --ff-only ${this.remoteName} ${this.baseBranch}`,
-      pushBase: `git -C ${this.repoRoot} push ${this.remoteName} ${this.baseBranch}`,
+      pushBase: currentBranch === this.baseBranch
+        ? `git -C ${this.repoRoot} push ${this.remoteName} ${this.baseBranch}`
+        : `git -C ${this.repoRoot} push ${this.remoteName} HEAD:${currentBranch || this.baseBranch}`,
     };
     const resolutionPacket = await this.buildGitResolutionPacket({
       checkedAt,
       remoteBranch,
+      localRef,
       commands,
       statusLines,
     });
@@ -5087,7 +5173,7 @@ export class TaskIntakeStore {
       untrackedFiles,
       blockers,
       summary: ok
-        ? `Ready: ${this.baseBranch} matches ${remoteBranch} and the working tree is clean.`
+        ? `Ready: ${localRefLabel} matches ${remoteBranch} and the working tree is clean.`
         : `Blocked: ${blockers[0]}`,
       details,
       dirtyFileSamples,
@@ -5133,7 +5219,12 @@ export class TaskIntakeStore {
     // Jules starts from GitHub, so anything local-only must either be pushed,
     // intentionally set aside, or left blocked before a cloud task begins.
     if (input.currentBranch !== input.baseBranch) {
-      steps.push(`Switch to ${input.baseBranch} before starting Jules, or intentionally change the Symphony base branch.`);
+      if ((input.ahead ?? 0) > 0 || (input.behind ?? 0) > 0) {
+        steps.push(`Publish or merge ${input.currentBranch || 'the current branch'} so the intended handoff base is visible on ${input.remoteBranch}.`);
+        steps.push('Do not push unrelated local master commits just to clear this branch gate.');
+      } else {
+        steps.push(`Switch to ${input.baseBranch} before starting Jules, or intentionally change the Symphony base branch.`);
+      }
     }
 
     if (input.dirtyFiles > 0 || input.untrackedFiles > 0) {
@@ -5168,6 +5259,7 @@ export class TaskIntakeStore {
   private async buildGitResolutionPacket(input: {
     checkedAt: string;
     remoteBranch: string;
+    localRef: string;
     commands: GitSyncPreflight['commands'];
     statusLines: string[];
   }): Promise<GitResolutionPacket> {
@@ -5191,7 +5283,7 @@ export class TaskIntakeStore {
       'log',
       '--oneline',
       '--left-right',
-      `${this.baseBranch}...${input.remoteBranch}`,
+      `${input.localRef}...${input.remoteBranch}`,
     ]);
     const divergenceLines = divergenceResult.ok
       ? divergenceResult.stdout.split(/\r?\n/).filter(Boolean)
@@ -5468,8 +5560,6 @@ export class TaskIntakeStore {
     if (!currentBranchResult.ok) {
       blockers.push('Could not determine the current branch.');
       details.push(currentBranchResult.message);
-    } else if (currentBranch !== this.baseBranch) {
-      blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
     }
 
     const statusResult = await this.git(['status', '--porcelain']);
@@ -5519,11 +5609,43 @@ export class TaskIntakeStore {
       details.push(remoteCommitResult.message);
     }
 
+    const headCommitResult = await this.git(['rev-parse', 'HEAD']);
+    const headCommit = headCommitResult.ok ? headCommitResult.stdout.trim() || null : null;
+    if (!headCommitResult.ok) {
+      blockers.push('Could not read the current checkout commit.');
+      details.push(headCommitResult.message);
+    }
+
+    // Isolated Symphony worktrees often cannot check out `master` because the
+    // user's main repo already owns that branch. A clean monitor branch at the
+    // exact GitHub base commit is still a valid "nothing to pull" proof, while
+    // any real fast-forward need or local difference remains blocked below.
+    const currentBranchCanStandInForBase = currentBranch !== null
+      && currentBranch !== this.baseBranch
+      && dirtyFiles === 0
+      && untrackedFiles === 0
+      && (ahead ?? 0) === 0
+      && (behind ?? 0) === 0
+      && headCommit !== null
+      && remoteCommit !== null
+      && headCommit === remoteCommit;
+
+    if (currentBranchResult.ok && currentBranch !== this.baseBranch && !currentBranchCanStandInForBase) {
+      blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
+    }
+
+    if (currentBranchCanStandInForBase) {
+      details.push(
+        `Current branch ${currentBranch} is a clean worktree branch at ${remoteBranch}; no local sync command is needed in this worktree.`,
+      );
+    }
+
     const safeToPull = blockers.length === 0 && (behind ?? 0) > 0;
     const upToDate = blockers.length === 0 && (behind ?? 0) === 0;
     const remediation = this.buildLocalSyncRemediation({
       prMerged,
       currentBranch,
+      currentBranchCanStandInForBase,
       dirtyFiles,
       untrackedFiles,
       ahead,
@@ -5559,6 +5681,7 @@ export class TaskIntakeStore {
         safeToPull,
         upToDate,
         currentBranch,
+        currentBranchCanStandInForBase,
         baseBranch: this.baseBranch,
         dirtyFiles,
         untrackedFiles,
@@ -5572,6 +5695,7 @@ export class TaskIntakeStore {
   private buildLocalSyncRemediation(input: {
     prMerged: boolean;
     currentBranch: string | null;
+    currentBranchCanStandInForBase: boolean;
     dirtyFiles: number;
     untrackedFiles: number;
     ahead: number | null;
@@ -5587,7 +5711,7 @@ export class TaskIntakeStore {
       steps.push('Wait for GitHub to report the Jules PR as merged before syncing local master.');
     }
 
-    if (input.currentBranch !== this.baseBranch) {
+    if (input.currentBranch !== this.baseBranch && !input.currentBranchCanStandInForBase) {
       steps.push(`Switch to ${this.baseBranch} before syncing local work.`);
     }
 
@@ -5830,7 +5954,7 @@ function normalizeTaskDisposition(
   };
 }
 
-function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
+function buildGitDispositionSummary(value: unknown, preflight?: GitSyncPreflight): GitDispositionSummary {
   const rawRecords = Array.isArray(value) ? value : [];
   const byCategory = new Map<GitDispositionCategory, GitDispositionRecord>();
 
@@ -5845,6 +5969,13 @@ function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
 
       if (!definition) continue;
 
+      // Git disposition decisions are only safe to reuse while the underlying
+      // Git evidence is the same. This prevents a "keep local" decision made
+      // for old local master commits from silently applying to a newer package
+      // branch commit that should probably be merged before Jules starts.
+      const expectedScope = preflight ? gitDispositionScopeKey(preflight, category) : null;
+      if (expectedScope && candidate.scopeKey && candidate.scopeKey !== expectedScope) continue;
+
       byCategory.set(category, {
         category,
         label: definition.label,
@@ -5852,6 +5983,7 @@ function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
         decisionLabel: decision ? GIT_DISPOSITION_DECISION_LABELS[decision] : 'Not decided',
         note: typeof candidate.note === 'string' ? candidate.note : '',
         updatedAt: typeof candidate.updatedAt === 'string' ? candidate.updatedAt : null,
+        scopeKey: typeof candidate.scopeKey === 'string' ? candidate.scopeKey : null,
       });
     } catch {
       // Hand-edited queue files should not crash the dashboard. Invalid
@@ -5868,6 +6000,7 @@ function buildGitDispositionSummary(value: unknown): GitDispositionSummary {
       decisionLabel: 'Not decided',
       note: '',
       updatedAt: null,
+      scopeKey: preflight ? gitDispositionScopeKey(preflight, definition.category) : null,
     };
   });
   const decidedCount = categories.filter(category => Boolean(category.decision)).length;
@@ -6046,7 +6179,15 @@ function buildGitSyncPlan(preflight: GitSyncPreflight, disposition: GitDispositi
     });
   }
 
-  if ((preflight.ahead ?? 0) > 0) {
+  if ((preflight.ahead ?? 0) > 0 && preflight.nextAction?.code === 'publish_or_merge_current_branch') {
+    steps.push({
+      kind: 'push',
+      label: 'Publish or merge current branch',
+      detail: `${decisionDetail(dispositionByCategory.get('local_commits'))} Push the branch if GitHub cannot see it yet, then open or merge a PR so ${preflight.remoteBranch} contains the intended base commit. Pushing the side branch alone does not clear this gate.`,
+      command: commands.pushBase || null,
+      destructive: true,
+    });
+  } else if ((preflight.ahead ?? 0) > 0) {
     steps.push({
       kind: 'push',
       label: 'Push intended local commits',
@@ -6227,7 +6368,7 @@ function buildTaskRoutingPlan(
   preflight: GitSyncPreflight
 ): TaskRoutingPlan {
   const generatedAt = preflight.checkedAt || new Date().toISOString();
-  const latestHandoff = newestByUpdatedAt(handoffs);
+  const latestHandoff = selectHandoffForRouting(handoffs);
   const latestDraft = newestByUpdatedAt(drafts);
   const candidates = [
     ...drafts.slice(0, 6).map(draft => buildRoutingCandidateForDraft(draft, preflight)),
@@ -6983,6 +7124,43 @@ function newestByUpdatedAt<T extends { updatedAt?: string; createdAt?: string }>
   })[0] ?? null;
 }
 
+function selectHandoffForRouting(handoffs: JulesHandoff[]): JulesHandoff | null {
+  // Task routing is a "what should the foreman look at next?" surface, not an
+  // audit log. A closed or post-merge handoff can receive fresh bookkeeping
+  // timestamps after the next package has already started. Rank the live
+  // workflow boundary first so a Package 2 local-sync receipt cannot steal the
+  // visible route from a Package 3 Jules session that still needs a PR.
+  return [...handoffs].sort((a, b) => {
+    const priorityDifference = handoffRoutingPriority(b) - handoffRoutingPriority(a);
+    if (priorityDifference !== 0) return priorityDifference;
+
+    return timestampForRouting(b) - timestampForRouting(a);
+  })[0] ?? null;
+}
+
+function handoffRoutingPriority(handoff: JulesHandoff): number {
+  if (handoff.status === 'observed_pr') return 1;
+
+  if (!handoff.githubPullRequestUrl) return 5;
+
+  if (
+    handoff.julesState === 'AWAITING_PLAN_APPROVAL'
+    || handoff.julesState === 'AWAITING_USER_FEEDBACK'
+  ) {
+    return 5;
+  }
+
+  if (handoff.githubPullRequestState !== 'MERGED' && handoff.githubPullRequestState !== 'CLOSED') {
+    return 4;
+  }
+
+  if (handoff.githubPullRequestState === 'MERGED' && !handoff.localSyncStatus?.upToDate) {
+    return 2;
+  }
+
+  return 0;
+}
+
 function timestampForRouting(item: { updatedAt?: string; createdAt?: string }): number {
   const timestamp = new Date(item.updatedAt || item.createdAt || 0).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -7000,6 +7178,27 @@ function activeGitDispositionCategories(preflight: GitSyncPreflight): GitDisposi
   if ((preflight.untrackedFiles ?? 0) > 0) categories.push('untracked_artifacts');
   if ((preflight.behind ?? 0) > 0) categories.push('remote_commits');
   return categories;
+}
+
+function gitDispositionScopeKey(preflight: GitSyncPreflight, category: GitDispositionCategory): string {
+  // The same category name can describe very different ownership questions over
+  // time. Including the current branch, commits, counts, and visible samples
+  // makes the saved decision expire when the evidence changes.
+  const parts = [
+    category,
+    `branch=${preflight.currentBranch ?? 'unknown'}`,
+    `base=${preflight.baseBranch}`,
+    `remote=${preflight.remoteBranch}`,
+    `local=${preflight.localCommit ?? 'unknown'}`,
+    `github=${preflight.remoteCommit ?? 'unknown'}`,
+  ];
+
+  if (category === 'local_commits') parts.push(`ahead=${preflight.ahead ?? 'unknown'}`);
+  if (category === 'remote_commits') parts.push(`behind=${preflight.behind ?? 'unknown'}`);
+  if (category === 'tracked_changes') parts.push(`dirty=${preflight.dirtyFiles}`, ...preflight.dirtyFileSamples);
+  if (category === 'untracked_artifacts') parts.push(`untracked=${preflight.untrackedFiles}`, ...preflight.untrackedFileSamples);
+
+  return parts.join('|');
 }
 
 function gitDispositionLabel(category: GitDispositionCategory): string {

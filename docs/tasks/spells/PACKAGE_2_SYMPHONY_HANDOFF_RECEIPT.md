@@ -1,6 +1,6 @@
 # Package 2 Symphony Handoff Receipt
 
-Status: PR #935 returned; Codex foreman review and Scout/Core bridge active.
+Status: PR #935 merged; Package 2 closeout recorded.
 
 Date/time: 2026-05-21 23:54 Europe/Amsterdam.
 
@@ -401,16 +401,73 @@ Repair path:
   browser, and the task navigator refreshed Package 2 into
   `Resolve Workflow Config Blocker` with updated PR evidence.
 
+## Setup Repair Root Cause
+
+Date/time: 2026-05-22 Europe/Amsterdam.
+
+After PR #936 merged and local `master` fast-forwarded to
+`origin/master@3ee80a11`, the dashboard `Check GitHub Sync` gate passed:
+branch `master`, ahead `0`, behind `0`, tracked `0`, untracked `0`. Codex then
+used the visible `Create Linear Issue` button for `Setup repair for ARA-7`.
+The dashboard routed the repair as `local_careful`.
+
+Failure evidence:
+
+- `review / review` failed before useful review because
+  `.github/workflows/gemini-review.yml` hardcoded `gemini-1.5-flash`.
+- The Gemini CLI reported `ModelNotFoundError: models/gemini-1.5-flash is not
+  found for API version v1beta`.
+- Other Gemini workflows already use `${{ vars.GEMINI_MODEL }}`.
+- `Tests` failed one full-suite assertion in
+  `src/hooks/actions/__tests__/handleMovement.test.ts`, expecting `2700` and
+  receiving `8100`.
+- Focused local verification on synced `master` passed:
+  `npm test -- --run src/hooks/actions/__tests__/handleMovement.test.ts`.
+
+Repair direction:
+
+- Update `.github/workflows/gemini-review.yml` to use
+  `${{ vars.GEMINI_MODEL }}`.
+- Update Symphony's setup-repair draft scope so future repair drafts include
+  `.github/workflows/gemini-review.yml` when workflow automation itself is the
+  failing setup surface.
+- Do not edit PR #935 spell implementation, premade JSON, movement runtime, or
+  movement tests unless a rerun proves a non-ambient Package 2 blocker.
+
+Repair filing:
+
+- Codex committed the setup-review repair as `4d29f43b` on branch
+  `codex/spell-phase1-package2-setup-repair`.
+- Draft PR #937 now carries this repair:
+  `https://github.com/Gambitnl/Aralia/pull/937`.
+- The branch also carries the local dashboard first-viewport repair that made
+  the active PR-refresh boundary more visible while Stitch MCP authentication
+  remains pending.
+
+Merge follow-through:
+
+- PR #937 merged on 2026-05-22 as
+  `aa58546aba965ed6c070922b37e6eb0bd8c4fdc6`.
+- A simple rerun of PR #935's failed jobs still used the stale PR merge ref and
+  therefore still showed `gemini-1.5-flash`.
+- Codex updated PR #935's branch with current `master` through GitHub's PR
+  branch update path. This changed PR #935 head to
+  `e4c4d47b1f99a4a8f6267faa756694857e4c30c6`.
+- The updated PR #935 check set passed CodeQL, poison check, build, lint,
+  quality scan, and tests. The earlier broad movement failure cleared on rerun.
+- Codex accepted the remaining JSON formatting churn as reviewable for this
+  package because the final file list stayed inside the Package 2 scope and the
+  helper files seen in the Jules workspace did not land in the PR.
+- PR #935 merged on 2026-05-22 as
+  `88c11e434c461823bc4226409059882a0ab9ceb6`.
+
 ## Next Expected Proof
 
-1. Keep PR #935 at `Bridge Through Scout/Core` until the failed broad GitHub
-   test job and Gemini review infrastructure failure have explicit disposition.
-2. Decide whether the large JSON formatting churn is acceptable after semantic
-   review or should be returned to Jules for a narrower rewrite.
-3. Update Atlas/gate, foreman review, task communication, PR/deployment/local
-   sync, and ROI receipts before Package 2 is treated as complete.
-4. Do not merge PR #935 until the dashboard/Scout/Core path records the
-   decision about the ambient CI blocker.
+1. Use the Package 2 closeout branch to publish tracker and receipt updates.
+2. Start Package 3 packaging for Jules: character creator spell selection and
+   character sheet spellbook visibility.
+3. Keep Stitch MCP authentication as an adjacent tooling gap until an API key or
+   OAuth path is installed and Codex is restarted.
 
 ## Dashboard-First Blocker Found
 

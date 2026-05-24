@@ -19,5 +19,8 @@ assert.match(dashboardSource, /function shouldHoldTaskIntakeAutoRefresh/);
 assert.match(dashboardSource, /options\.skipIfEditing && shouldHoldTaskIntakeAutoRefresh\(\)/);
 assert.match(dashboardSource, /data-current-foreman-action="true"/);
 assert.match(dashboardSource, /\[data-current-foreman-action="true"\]/);
-assert.match(dashboardSource, /<a data-current-foreman-action="true"/);
+// The fallback current-boundary link is still marked as the protected current
+// action, but it now also carries the primary-action class so operators can see
+// it as an action instead of raw endpoint text.
+assert.match(dashboardSource, /class="primary-dashboard-action" data-current-foreman-action="true"/);
 assert.match(dashboardSource, /if \(taskIntakeRoot\.innerHTML === nextHtml\) return/);

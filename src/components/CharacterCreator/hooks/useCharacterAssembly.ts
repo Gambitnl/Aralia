@@ -1,4 +1,20 @@
 
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 22/05/2026, 22:26:21
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/CharacterCreator/hooks/useCharacterAssembly.ts
  * Custom hook for character assembly logic during creation.
@@ -383,10 +399,42 @@ function assembleCastingProperties(state: CharacterCreationState): {
     }
   }
 
+
+
+  let knownSpells: string[] = [];
+  let preparedSpells: string[] = [];
+
+  const knownCasterIds = ['bard', 'sorcerer', 'warlock', 'ranger'];
+  if (knownCasterIds.includes(selectedClass.id)) {
+    // Known casters only know the spells they selected, and all are ready to cast.
+    knownSpells = Array.from(spellIds);
+    preparedSpells = Array.from(spellIds);
+  } else if (selectedClass.id === 'wizard') {
+    // Wizards "know" the spells in their spellbook (the ones they selected).
+    // The wizard prepares a subset of them (INT mod + level). Since we don't ask
+    // them to pick which ones to prepare in the creator yet, we just auto-prepare
+    // up to their limit.
+    knownSpells = Array.from(spellIds);
+    const { finalAbilityScores } = state;
+    let prepLimit = spellIds.size; // Default to all
+    if (finalAbilityScores) {
+      const intMod = Math.floor((finalAbilityScores.Intelligence - 10) / 2);
+      prepLimit = Math.max(1, intMod + 1); // Wizard level is 1
+    }
+    preparedSpells = Array.from(spellIds).slice(0, prepLimit);
+  } else {
+    // Prepared casters (Cleric, Druid, Paladin, Artificer) have access to their whole
+    // spell list, and prepare a specific subset. The assembled character only
+    // carries the selected spells so the creator does not overstate what the
+    // player actually picked.
+    knownSpells = Array.from(spellIds);
+    preparedSpells = Array.from(spellIds);
+  }
+
   const spellbook: SpellbookData = {
     cantrips: Array.from(cantripIds),
-    preparedSpells: Array.from(spellIds),
-    knownSpells: [...(selectedClass.spellcasting?.spellList || []), ...Array.from(spellIds)],
+    preparedSpells: preparedSpells,
+    knownSpells: knownSpells,
   };
 
   const selectedRaceSpellAbility = selectedRace

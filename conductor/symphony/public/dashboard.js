@@ -28,6 +28,36 @@ const THEME_STORAGE_KEY = 'symphony-dashboard-theme';
 const TASK_NAVIGATOR_FILTER_STORAGE_KEY = 'symphony-task-navigator-filter';
 const TASK_NAVIGATOR_FILTERS = ['all', 'needs_input', 'open', 'completed', 'archived'];
 const TASK_INTAKE_INTERACTION_HOLD_MS = 4000;
+const PACKAGE_6_CHOICE_MODE_DRAFT = {
+  title: 'Spell Phase 1 Package 6 choice/mode mechanics bucket',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md and docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: reduce the choice_or_mode mechanics bucket for cantrips and spell levels 1-3 with a bounded, coherent implementation slice. Prefer a small group of spells sharing one choice-data shape over a broad rewrite.',
+    '',
+    'Recommended starting candidates: blindness-deafness, dragons-breath, protection-from-energy, enhance-ability. Use existing template/runtime fields where they fit. Add only a small shared extension if the selected spells genuinely require it.',
+    '',
+    'Do not edit Symphony files, GitHub workflows, broad premade roster semantics, levels 4-9, or broad AI arbitration policy. Do not commit generated gate-report timestamp churn. Do not claim Atlas proof while G48 remains active unless that separate gap is explicitly repaired.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'docs/tasks/spells/templates/spell-structured-template.json',
+    'docs/tasks/spells/templates/spell-json-template.json',
+    'src/utils/character/spellAbilityFactory.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'npm run generate:spell-gates',
+    'npx vitest run <focused test file> --reporter=verbose',
+  ].join('\n'),
+};
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 let taskIntakeInteractionHoldUntil = 0;
 
@@ -108,6 +138,10 @@ taskIntakeRoot?.addEventListener('click', async event => {
     await recordTaskMessage(button);
   }
 
+  if (action === 'create-package6-choice-mode-draft') {
+    await createPackage6ChoiceModeDraft(button);
+  }
+
   if (action === 'record-operator-preferences') {
     await recordOperatorPreferences(button);
   }
@@ -155,6 +189,13 @@ taskIntakeRoot?.addEventListener('click', async event => {
     const handoffId = button.getAttribute('data-handoff-id');
     if (handoffId) {
       await sendJulesOperatorMessage(handoffId, button);
+    }
+  }
+
+  if (action === 'send-jules-prepared-finalize') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await sendPreparedJulesFinalizeMessage(handoffId, button);
     }
   }
 
@@ -577,6 +618,26 @@ async function createTaskDraft(form) {
   }
 }
 
+async function createPackage6ChoiceModeDraft(button) {
+  // This visible button exists because Browser Use cannot currently enter long
+  // text into the dashboard form when its virtual clipboard is missing. Keeping
+  // the packet creation behind an explicit dashboard button preserves the
+  // human workflow surface instead of forcing operators to call the raw API.
+  button.disabled = true;
+  setStatus('Creating Package 6 Jules task draft from the committed packet.');
+
+  try {
+    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_6_CHOICE_MODE_DRAFT);
+    renderTaskIntake(snapshot);
+    setStatus('Created Package 6 task draft from the visible packet button.');
+  } catch (err) {
+    setStatus(`Package 6 packet draft failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
 async function watchObservedPullRequest(form) {
   const submit = form.querySelector('button[type="submit"]');
   submit.disabled = true;
@@ -821,6 +882,20 @@ async function sendJulesOperatorMessage(handoffId, button) {
   } finally {
     button.disabled = false;
   }
+}
+
+async function sendPreparedJulesFinalizeMessage(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const preparedText = String(card?.querySelector('[data-jules-prepared-finalize-text]')?.textContent || '').trim();
+  const textarea = card?.querySelector('textarea[data-jules-message]');
+
+  if (!preparedText) {
+    setStatus('No prepared Jules finalization note is attached to this task.');
+    return;
+  }
+
+  if (textarea) textarea.value = preparedText;
+  await sendJulesOperatorMessage(handoffId, button);
 }
 
 async function recordDelegationRoiEstimate(handoffId, button) {
@@ -1227,6 +1302,7 @@ function renderWorkerRoster(roster) {
   const workers = Array.isArray(roster) ? roster : [];
   if (!workers.length) return '';
 
+  const needsApproval = workers.some(worker => Boolean(worker.waiting_on_approval));
   const rows = workers.slice(0, 6).map(worker => {
     const designation = worker.designation || 'unassigned worker';
     const issue = worker.issue_identifier || 'unknown issue';
@@ -1265,14 +1341,14 @@ function renderWorkerRoster(roster) {
     ? `<small>${escapeHtml(workers.length - 6)} more worker(s) hidden.</small>`
     : '';
 
-  return `<div class="worker-roster">
-    <div>
+  return `<details class="worker-roster" ${needsApproval ? 'open' : ''}>
+    <summary>
       <strong>Worker roster</strong>
-      <span>Symphony-assigned identities for active or retrying agents.</span>
-    </div>
+      <span>${escapeHtml(`${workers.length} assigned worker${workers.length === 1 ? '' : 's'}${needsApproval ? '; approval needed' : ''}`)}</span>
+    </summary>
     <ol>${rows}</ol>
     ${more}
-  </div>`;
+  </details>`;
 }
 
 function renderTaskIntake(snapshot) {
@@ -1312,6 +1388,12 @@ function renderTaskIntake(snapshot) {
   const taskNavigator = renderTaskNavigator(drafts, handoffs);
   const taskForms = `
     <div class="task-intake-grid">
+      <section class="task-form packet-draft-card" aria-label="Package packet shortcuts">
+        <h3>Package Packet Drafts</h3>
+        <p class="usage-summary">Create known Jules drafts from committed task packets when text entry is blocked by browser tooling.</p>
+        <button type="button" data-task-action="create-package6-choice-mode-draft">Create Package 6 Draft</button>
+      </section>
+
       <form id="task-draft-form" class="task-form">
         <label>
           <span>Title</span>
@@ -1354,6 +1436,16 @@ function renderTaskIntake(snapshot) {
         <button type="submit">Watch PR</button>
       </form>
     </div>`;
+  const focusStrip = renderDashboardFocusStrip({
+    drafts,
+    handoffs,
+    operatorPlan,
+    path: snapshot.middleman_path,
+    pendingHumanInputCount,
+    preflight,
+    queueNextAction: snapshot.next_action,
+    taskRouting: snapshot.taskRouting,
+  });
   const syncGate = `
     <div class="sync-gate ${escapeAttribute(gateClass)}">
       <div class="sync-gate-header">
@@ -1391,8 +1483,8 @@ function renderTaskIntake(snapshot) {
   const nextHtml = `
     <div class="section-heading">
       <div>
-        <h2>New Jules Task</h2>
-        <p class="usage-summary">Draft work here first. Symphony will only allow Jules handoff after the GitHub sync gate passes.</p>
+        <h2>Symphony Workflow</h2>
+        <p class="usage-summary">Use this page as the human operating surface for Jules handoffs, PR review, and local-return evidence.</p>
         ${pendingHumanInputCount ? `<span class="badge pending-human-input">Needs your input: ${escapeHtml(String(pendingHumanInputCount))}</span>` : ''}
       </div>
       <div class="heading-actions">
@@ -1400,6 +1492,8 @@ function renderTaskIntake(snapshot) {
         <button type="button" ${handoffs.length ? '' : 'disabled'} data-task-action="bulk-refresh-jules" title="${escapeAttribute(handoffs.length ? 'Refresh status and PR data for all tracked Jules handoffs.' : 'No Jules handoffs exist yet.')}">Refresh All Jules</button>
       </div>
     </div>
+
+    ${focusStrip}
 
     ${taskNavigator}
 
@@ -1428,6 +1522,45 @@ function renderTaskIntake(snapshot) {
   if (taskIntakeRoot.innerHTML === nextHtml) return;
 
   taskIntakeRoot.innerHTML = nextHtml;
+}
+
+function renderDashboardFocusStrip({ drafts, handoffs, operatorPlan, path, pendingHumanInputCount, preflight, queueNextAction, taskRouting }) {
+  const action = path?.foremanAction ?? {};
+  const status = path?.status || action.status || queueNextAction?.tone || operatorPlan?.tone || 'waiting';
+  const boundary = path?.currentBoundaryLabel || action.boundaryLabel || queueNextAction?.label || 'Task queue';
+  const actionLabel = action.label || queueNextAction?.label || taskRouting?.nextAction?.label || operatorPlan?.title || 'Review dashboard state';
+  const proof = path?.nextExpectedProof || action.expectedProof || 'Record the next durable receipt.';
+  const runControl = renderForemanRunControl(action);
+  const preflightLabel = preflight?.ok ? 'GitHub synced' : 'Git sync blocked';
+  const prCount = handoffs.filter(handoff => Boolean(handoff.githubPullRequestUrl)).length;
+  const runningHandoffs = handoffs.filter(handoff => !['MERGED', 'CLOSED', 'ARCHIVED'].includes(String(handoff.githubPullRequestState || handoff.status || '').toUpperCase())).length;
+  const badgeClass = status === 'ready' || status === 'complete' ? 'running' : status === 'blocked' ? 'approval' : 'retrying';
+
+  // This strip is the dashboard's at-a-glance operator brief. It does not
+  // replace the receipt panels below; it compresses the same middleman, Git,
+  // draft, and PR facts into the first viewport so the user sees the live
+  // decision before opening any detailed drawer.
+  return `<section class="dashboard-focus-strip ${escapeAttribute(status)}" aria-label="Current dashboard focus">
+    <div class="focus-main">
+      <span class="badge ${badgeClass}">${escapeHtml(status)}</span>
+      <div>
+        <strong>${escapeHtml(boundary)}</strong>
+        <span>${escapeHtml(actionLabel)}</span>
+      </div>
+    </div>
+    <div class="focus-proof">
+      <span>Next proof</span>
+      <strong>${escapeHtml(proof)}</strong>
+      ${runControl ? `<div class="focus-action">${runControl}</div>` : ''}
+    </div>
+    <dl class="focus-metrics">
+      <div><dt>Git</dt><dd>${escapeHtml(preflightLabel)}</dd></div>
+      <div><dt>Drafts</dt><dd>${escapeHtml(String(drafts.length))}</dd></div>
+      <div><dt>PRs</dt><dd>${escapeHtml(`${prCount}/${handoffs.length}`)}</dd></div>
+      <div><dt>Input</dt><dd>${escapeHtml(String(pendingHumanInputCount))}</dd></div>
+      <div><dt>Active</dt><dd>${escapeHtml(String(runningHandoffs))}</dd></div>
+    </dl>
+  </section>`;
 }
 
 function renderForemanConsole(parts) {
@@ -1506,7 +1639,7 @@ function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
   const actionLabel = action.label || queueNextAction?.label || taskRouting?.label || 'Review dashboard state';
   const expectedProof = path?.nextExpectedProof || action.expectedProof || 'Capture the next boundary receipt.';
   const safety = action.safety || 'read_only';
-  const canRun = action.canRunNow ? 'yes' : 'no';
+  const canRun = action.canRunNow ? 'Ready' : 'Blocked';
   const method = action.method || queueNextAction?.method || 'NONE';
   const instruction = action.instruction || queueNextAction?.summary || 'Review the grouped evidence below before advancing.';
   const endpoints = [
@@ -1521,15 +1654,20 @@ function renderForemanCurrentBoundary(path, queueNextAction, taskRouting) {
   return `<section class="foreman-current-boundary ${escapeAttribute(status)}" aria-label="Current Foreman Boundary">
     <div>
       <span class="badge ${escapeAttribute(status)}">${escapeHtml(status)}</span>
-      <span class="foreman-eyebrow">Current Foreman Boundary</span>
+      <span class="foreman-eyebrow">What needs attention now</span>
     </div>
     <h3>${escapeHtml(boundary)}</h3>
-    <p><strong>${escapeHtml(actionLabel)}</strong></p>
-    <p>${escapeHtml(instruction)}</p>
+    <div class="foreman-action-summary">
+      <div>
+        <span>Action</span>
+        <strong>${escapeHtml(actionLabel)}</strong>
+      </div>
+      <p>${escapeHtml(instruction)}</p>
+    </div>
     <dl>
-      <div><dt>Safety</dt><dd>${escapeHtml(`Safety: ${safety}`)}</dd></div>
+      <div><dt>Safety</dt><dd>${escapeHtml(safety)}</dd></div>
       <div><dt>Method</dt><dd>${escapeHtml(method)}</dd></div>
-      <div><dt>Can run now</dt><dd>${canRun}</dd></div>
+      <div><dt>Run state</dt><dd>${canRun}</dd></div>
       <div><dt>Next proof</dt><dd>${escapeHtml(expectedProof)}</dd></div>
     </dl>
     ${action.blockedReason ? `<p class="usage-summary">${escapeHtml(action.blockedReason)}</p>` : ''}
@@ -1545,7 +1683,7 @@ function renderForemanRunControl(action) {
     // The current-boundary panel should be operable by a human foreman, not just
     // a list of API URLs. For active Jules monitoring, reuse the existing
     // guarded dashboard button path so the visible UI owns the refresh action.
-    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(refreshMatch[1]))}">Refresh Jules Status</button>`;
   }
 
   const prRefreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-pr$/);
@@ -1553,10 +1691,51 @@ function renderForemanRunControl(action) {
     // PR review is also a safe external-read boundary. Exposing it as a button
     // keeps the operator on the dashboard path instead of making them open a
     // raw POST endpoint that a browser cannot execute as the intended action.
-    return `<button type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-pr" data-handoff-id="${escapeAttribute(decodeURIComponent(prRefreshMatch[1]))}">Refresh GitHub PR</button>`;
   }
 
-  return `<a data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
+  const localSyncRefreshMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/refresh-local-sync$/);
+  if (action.method === 'POST' && action.canRunNow && localSyncRefreshMatch) {
+    // After a PR merges, the next safe human action is a readiness check, not
+    // the final Git pull. This keeps the current-boundary button aligned with
+    // the two-step local return path.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-local-sync" data-handoff-id="${escapeAttribute(decodeURIComponent(localSyncRefreshMatch[1]))}">Check Local Sync</button>`;
+  }
+
+  const createLinearMatch = String(action.endpoint).match(/\/api\/v1\/task-drafts\/([^/]+)\/create-linear$/);
+  if (action.method === 'POST' && action.canRunNow && createLinearMatch) {
+    // The current boundary is the dashboard's main "what now" control. Linear
+    // creation mutates an external system, so it must stay visibly button-gated
+    // instead of being represented as a raw endpoint link hidden behind a
+    // collapsed task record.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="create-linear" data-draft-id="${escapeAttribute(decodeURIComponent(createLinearMatch[1]))}">Create Linear Issue</button>`;
+  }
+
+  const promoteDraftMatch = String(action.endpoint).match(/\/api\/v1\/task-drafts\/([^/]+)\/promote$/);
+  if (action.method === 'POST' && action.canRunNow && promoteDraftMatch) {
+    // Handoff preparation is local dashboard state. Exposing it as the primary
+    // boundary button avoids forcing the operator to hunt through a long task
+    // card after the dashboard has already named this as the next step.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="promote-draft" data-draft-id="${escapeAttribute(decodeURIComponent(promoteDraftMatch[1]))}">Prepare Handoff</button>`;
+  }
+
+  const stageManifestMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/stage-manifest$/);
+  if (action.method === 'POST' && action.canRunNow && stageManifestMatch) {
+    // Manifest staging writes local orchestration state, so the dashboard keeps
+    // it as an explicit visible action with the same handler used by the
+    // handoff card.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="stage-manifest" data-handoff-id="${escapeAttribute(decodeURIComponent(stageManifestMatch[1]))}">Stage Jules Manifest</button>`;
+  }
+
+  const launchJulesMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/launch$/);
+  if (action.method === 'POST' && action.canRunNow && launchJulesMatch) {
+    // Launching Jules is the highest-friction external mutation in this path.
+    // Keeping the runnable action in the current-boundary panel makes the
+    // decision visible before the operator commits to the cloud handoff.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="launch-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(launchJulesMatch[1]))}">Launch Jules</button>`;
+  }
+
+  return `<a class="primary-dashboard-action" data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
 }
 
 function renderForemanDetailGroup(title, summary, body, open = false) {
@@ -3218,8 +3397,13 @@ function handoffCard(handoff) {
 }
 
 function renderTaskNavigator(drafts = [], handoffs = []) {
+  const handoffByDraftId = new Map(
+    handoffs
+      .filter(handoff => handoff?.draftId)
+      .map(handoff => [handoff.draftId, handoff]),
+  );
   const records = [
-    ...drafts.map(draft => buildTaskNavigatorRecord('draft', draft)),
+    ...drafts.map(draft => buildTaskNavigatorRecord('draft', draft, { handoffByDraftId })),
     ...handoffs.map(handoff => buildTaskNavigatorRecord('handoff', handoff)),
   ].sort((a, b) => {
     const priority = { needs_input: 0, open: 1, completed: 2, archived: 3 };
@@ -3313,11 +3497,14 @@ function renderTaskDetailPreview(record) {
   // This is the first single-task detail slice. It is intentionally read-only
   // and compact: the full receipt card still owns the deep controls below, while
   // this preview lets the operator understand the selected task before jumping.
-  return `<article class="task-detail-preview" aria-label="Task detail" data-task-detail-preview="${escapeAttribute(record.id)}">
-    <div>
-      <span class="badge ${escapeAttribute(record.badgeClass)}">${escapeHtml(record.statusLabel)}</span>
-      <strong>Task detail</strong>
-    </div>
+  return `<details class="task-detail-preview" ${record.needsInput ? 'open' : ''} aria-label="Task detail" data-task-detail-preview="${escapeAttribute(record.id)}">
+    <summary>
+      <span>
+        <span class="badge ${escapeAttribute(record.badgeClass)}">${escapeHtml(record.statusLabel)}</span>
+        <strong>Task detail</strong>
+      </span>
+      <small>${escapeHtml(record.needsInput ? 'Open because this task needs input.' : 'Closed to keep the dashboard scan-first.')}</small>
+    </summary>
     <h4>${escapeHtml(record.title)}</h4>
     <p>${escapeHtml(record.summary)}</p>
     <dl>
@@ -3348,7 +3535,7 @@ function renderTaskDetailPreview(record) {
       Record Task Message
     </button>
     <p><a href="#${escapeAttribute(record.anchor)}">Open full receipt</a></p>
-  </article>`;
+  </details>`;
 }
 
 function taskNavigatorRecordMatchesFilter(record, filter) {
@@ -3406,16 +3593,20 @@ function renderOperatorPreferences(preferences = {}) {
   </details>`;
 }
 
-function buildTaskNavigatorRecord(kind, item) {
+function buildTaskNavigatorRecord(kind, item, context = {}) {
   const title = item.title || item.id || 'Untitled Symphony task';
   const id = item.id || title;
   const updatedAt = item.updatedAt || item.createdAt || null;
 
   if (kind === 'draft') {
     const waitingOnLinear = !item.linearIssueIdentifier && item.next_action?.code === 'create_linear_issue';
+    const promotedHandoff = context.handoffByDraftId?.get?.(id) || null;
     const summary = item.next_action?.summary || item.body || 'Draft is waiting for the next Symphony gate.';
     const disposition = item.taskDisposition?.state || 'active';
-    const disposed = disposition !== 'active';
+    const disposed = disposition !== 'active' || Boolean(promotedHandoff);
+    const promotedSummary = promotedHandoff
+      ? `Promoted to handoff ${promotedHandoff.id}; the live handoff now owns the next action.`
+      : null;
 
     return {
       kind,
@@ -3425,8 +3616,8 @@ function buildTaskNavigatorRecord(kind, item) {
       anchor: `task-draft-${id}`,
       bucket: disposition === 'completed' ? 'completed' : disposed ? 'archived' : 'open',
       badgeClass: disposed ? 'approval' : waitingOnLinear ? 'approval' : 'running',
-      statusLabel: disposed ? disposition : waitingOnLinear ? 'open draft' : 'open',
-      summary: disposed && item.taskDisposition?.reason ? item.taskDisposition.reason : summary,
+      statusLabel: promotedHandoff ? 'promoted' : disposed ? disposition : waitingOnLinear ? 'open draft' : 'open',
+      summary: promotedSummary || (disposed && item.taskDisposition?.reason ? item.taskDisposition.reason : summary),
       currentBoundary: item.next_action?.label || item.status || 'Draft',
       expectedFileCount: Array.isArray(item.expectedFiles) ? item.expectedFiles.length : 0,
       verificationCommandCount: Array.isArray(item.verificationCommands) ? item.verificationCommands.length : 0,
@@ -3443,6 +3634,7 @@ function buildTaskNavigatorRecord(kind, item) {
   const disposition = item.taskDisposition?.state || 'active';
   const operatorQuestion = item.operatorQuestion || null;
   const latestAnswer = Array.isArray(item.operatorAnswers) ? item.operatorAnswers[0] : null;
+  const scoutBoundary = taskNavigatorScoutBoundary(item.scout_core_readiness);
   const operatorQuestionAnswered = Boolean(latestAnswer)
     && (!operatorQuestion?.plainLanguageQuestion || latestAnswer.sourceQuestion === operatorQuestion.plainLanguageQuestion)
     && (!operatorQuestion?.sourceStage || latestAnswer.sourceStage === operatorQuestion.sourceStage);
@@ -3468,6 +3660,8 @@ function buildTaskNavigatorRecord(kind, item) {
     ? disposition
     : needsInput
     ? 'needs operator input'
+    : scoutBoundary
+      ? scoutBoundary.statusLabel
     : merged
       ? 'completed'
       : closed
@@ -3477,6 +3671,8 @@ function buildTaskNavigatorRecord(kind, item) {
     ? item.taskDisposition.reason
     : needsInput
     ? item.operatorQuestion?.plainLanguageSummary || item.operatorQuestion?.plainLanguageQuestion || 'This handoff needs an operator answer.'
+    : scoutBoundary
+      ? scoutBoundary.summary
     : item.next_action?.summary || item.julesStateReconciliation?.summary || 'Handoff is waiting for the next proof boundary.';
 
   return {
@@ -3489,7 +3685,7 @@ function buildTaskNavigatorRecord(kind, item) {
     badgeClass: disposition !== 'active' ? 'approval' : needsInput ? 'pending-human-input' : merged ? 'running' : closed ? 'approval' : 'running',
     statusLabel,
     summary,
-    currentBoundary: item.next_action?.label || item.julesState || item.githubPullRequestState || item.status || 'Handoff',
+    currentBoundary: scoutBoundary?.currentBoundary || item.next_action?.label || item.julesState || item.githubPullRequestState || item.status || 'Handoff',
     expectedFileCount: Array.isArray(item.expectedFiles) ? item.expectedFiles.length : 0,
     verificationCommandCount: Array.isArray(item.verificationCommands) ? item.verificationCommands.length : 0,
     timelineEventCount: Array.isArray(item.handoffTimeline?.events) ? item.handoffTimeline.events.length : 0,
@@ -3501,6 +3697,49 @@ function buildTaskNavigatorRecord(kind, item) {
     linearIssueUrl: item.linearIssueUrl || null,
     julesSessionUrl: item.julesSessionUrl || null,
     githubPullRequestUrl: item.githubPullRequestUrl || null,
+  };
+}
+
+function taskNavigatorScoutBoundary(readiness) {
+  if (!readiness || !['blocked_by_scout', 'ready_for_core', 'waiting_for_checks_rerun', 'merged'].includes(readiness.status)) {
+    return null;
+  }
+
+  const firstBlocker = Array.isArray(readiness.blockers) ? readiness.blockers.find(Boolean) : null;
+  const summary = firstBlocker || readiness.expectedNextProof || readiness.nextAction?.summary || 'Scout/Core review owns the next proof boundary.';
+
+  // The navigator is the first scan surface a human sees. When the richer
+  // Scout/Core packet already proves this handoff is in review, prefer that
+  // packet over an older PR next-action label so stale check data cannot send
+  // the operator back to the wrong phase.
+  if (readiness.status === 'blocked_by_scout') {
+    return {
+      statusLabel: 'Scout/Core review',
+      currentBoundary: 'Scout/Core review',
+      summary,
+    };
+  }
+
+  if (readiness.status === 'ready_for_core') {
+    return {
+      statusLabel: 'Core validation ready',
+      currentBoundary: 'Core merge',
+      summary,
+    };
+  }
+
+  if (readiness.status === 'waiting_for_checks_rerun') {
+    return {
+      statusLabel: 'Wait for check rerun',
+      currentBoundary: 'GitHub PR',
+      summary,
+    };
+  }
+
+  return {
+    statusLabel: 'Check local sync',
+    currentBoundary: 'Local sync',
+    summary,
   };
 }
 
@@ -4101,6 +4340,16 @@ function renderJulesOperatorMessages(handoff) {
     : 'Launch or refresh Jules before sending feedback.';
   const messages = Array.isArray(handoff.operatorMessages) ? handoff.operatorMessages : [];
   const recentMessages = messages.slice(0, 5);
+  const preparedFinalize = getPreparedJulesFinalizeMessage(handoff);
+  const preparedFinalizeControl = preparedFinalize
+    ? `<details class="task-page-prepared-feedback" open>
+        <summary>Prepared Package 6 finalization approval</summary>
+        <pre data-jules-prepared-finalize-text>${escapeHtml(preparedFinalize)}</pre>
+      </details>
+      <button type="button" ${disabled} data-task-action="send-jules-prepared-finalize" data-handoff-id="${escapeAttribute(handoff.id)}">
+        Send Prepared Finalization Approval
+      </button>`
+    : '';
   const messageList = recentMessages.length
     ? `<ul>${recentMessages.map(message => {
         const failed = message.status === 'failed';
@@ -4122,8 +4371,27 @@ function renderJulesOperatorMessages(handoff) {
     <strong>Operator notes to Jules</strong>
     <textarea ${disabled} data-jules-message rows="3" placeholder="${escapeAttribute(title)}"></textarea>
     <p class="usage-summary">${escapeHtml(title)}</p>
+    ${preparedFinalizeControl}
     ${messageList}
   </div>`;
+}
+
+function getPreparedJulesFinalizeMessage(handoff) {
+  const title = String(handoff.title || '');
+  const isPackage6 = handoff.id === 'handoff-1779592447710-27ufm6' || /Package 6 choice\/mode/i.test(title);
+  const messages = Array.isArray(handoff.operatorMessages) ? handoff.operatorMessages : [];
+  const alreadySent = messages.some(message => String(message.body || '').includes('Proceed to final review and open the PR'));
+
+  if (!isPackage6 || alreadySent || !handoff.julesSessionId) return '';
+
+  // Jules is asking for approval to proceed after reporting completed local
+  // Package 6 work. This visible prepared note keeps the exact decision text
+  // reviewable on the dashboard while avoiding a hidden endpoint call or a
+  // local spell repair that would undercut the Jules-first flow.
+  return [
+    'Yes. Proceed to final review and open the PR for Symphony/Scout/Core review.',
+    'Keep the scope bounded to Package 6, do not add adjacent cleanup, do not commit generated timestamp-only gate churn, and include the verification results in the final report.',
+  ].join(' ');
 }
 
 function renderJulesPlanApprovals(handoff) {
@@ -4393,6 +4661,7 @@ function renderPullRequestFeedbackSummary(feedback) {
   const renderComment = comment => `<li>
     <strong>${escapeHtml(comment.author || 'unknown')}</strong>
     ${comment.url ? `<a href="${escapeAttribute(comment.url)}" target="_blank" rel="noreferrer">${escapeHtml(comment.source || 'comment')}</a>` : `<span>${escapeHtml(comment.source || 'comment')}</span>`}
+    ${comment.createdAt ? `<small>${escapeHtml(formatTimestamp(comment.createdAt))}</small>` : ''}
     <em>${escapeHtml((comment.body || '').split(/\r?\n/)[0].slice(0, 160))}</em>
   </li>`;
   const renderScoutConflict = comment => `<li>
@@ -4403,12 +4672,16 @@ function renderPullRequestFeedbackSummary(feedback) {
 
   // PR comments from review agents are useful context, but they are not Jules
   // instructions unless the operator marks them with the explicit feedback tag.
+  // The extra delivery note preserves a lesson from Package 3: a GitHub
+  // comment can exist even when the active Jules session does not visibly show
+  // the latest repair request, so the dashboard should not overstate proof.
   // Scout conflict comments stay visible in their own lane because they are
   // handoff blockers that the foreman needs to route before Core can merge.
   return `<details class="pr-feedback-summary" open>
     <summary>PR comment routing</summary>
     <p>${escapeHtml(feedback.summary || 'PR comments are available for review.')}</p>
     <p>Only explicitly marked feedback is treated as Jules course correction.</p>
+    ${julesFeedback.length ? '<p class="muted">Marked feedback proves a GitHub PR comment exists. If the active Jules session does not visibly show the latest feedback, open the Jules session and send or confirm the same bounded repair request there before assuming a repair is underway.</p>' : ''}
     <div>
       <strong>Jules feedback comments</strong>
       ${julesFeedback.length ? `<ul>${julesFeedback.map(renderComment).join('')}</ul>` : '<p>No marked Jules feedback comments yet.</p>'}
@@ -5519,7 +5792,7 @@ function summarizeCommandForOperator(title) {
     case 'Checked Jules task queue':
       return 'The worker is reading the Jules task queue so it can see drafts, handoffs, and available actions.';
     case 'Checked GitHub sync gate':
-      return 'The worker is checking whether local master and GitHub master are aligned before Jules starts cloud work.';
+      return 'The worker is checking whether the current worktree and GitHub master are aligned before Jules starts cloud work.';
     case 'Refreshed tracked Jules handoffs':
       return 'The worker is refreshing every tracked Jules handoff so PR, check, conflict, and local-sync status stay current.';
     case 'Checked local sync readiness':

@@ -77,19 +77,77 @@ try {
   assert(missingRemotePreflight.blockers.some(item => item.includes('Could not read the GitHub origin/master commit.')));
   assert.equal(missingRemotePreflight.nextAction.code, 'inspect_git_state');
 
-  const wrongBranchRoot = join(root, 'wrong-branch');
-  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", wrongBranchRoot]);
-  const wrongBranch = await prepareSyncedRepo(wrongBranchRoot);
-  await git(wrongBranch.repo, ['checkout', '-b', 'feature/local-work']);
+  const cleanWorktreeBranchRoot = join(root, 'clean-worktree-branch');
+  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", cleanWorktreeBranchRoot]);
+  const cleanWorktreeBranch = await prepareSyncedRepo(cleanWorktreeBranchRoot);
+  await git(cleanWorktreeBranch.repo, ['checkout', '-b', 'codex/spell-phase1-dashboard-stitch-flow']);
 
-  const wrongBranchPreflight = await new TaskIntakeStore({
-    repoRoot: wrongBranch.repo,
-    storePath: join(root, 'stores', 'wrong-branch.json'),
+  const cleanWorktreeBranchPreflight = await new TaskIntakeStore({
+    repoRoot: cleanWorktreeBranch.repo,
+    storePath: join(root, 'stores', 'clean-worktree-branch.json'),
   }).runGitSyncPreflight();
 
-  assert.equal(wrongBranchPreflight.ok, false);
-  assert(wrongBranchPreflight.blockers.some(item => item.includes('Current branch is feature/local-work, not master.')));
-  assert.equal(wrongBranchPreflight.nextAction.code, 'switch_base_branch');
+  // A named worktree branch is safe when its checked-out commit exactly matches
+  // GitHub's base commit. This protects the dashboard-first flow from pulling
+  // unrelated local master work into a Jules handoff just to satisfy branch name.
+  assert.equal(cleanWorktreeBranchPreflight.ok, true);
+  assert.equal(cleanWorktreeBranchPreflight.currentBranch, 'codex/spell-phase1-dashboard-stitch-flow');
+  assert.equal(cleanWorktreeBranchPreflight.localCommit, cleanWorktreeBranchPreflight.remoteCommit);
+  assert.equal(cleanWorktreeBranchPreflight.nextAction.code, 'ready_for_jules');
+
+  const unpublishedBranchRoot = join(root, 'unpublished-branch');
+  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", unpublishedBranchRoot]);
+  const unpublishedBranch = await prepareSyncedRepo(unpublishedBranchRoot);
+  await git(unpublishedBranch.repo, ['checkout', '-b', 'feature/local-work']);
+  await writeAndCommit(unpublishedBranch.repo, 'LOCAL_BRANCH.md', 'branch-local work\n', 'Move current branch only');
+
+  const unpublishedBranchPreflight = await new TaskIntakeStore({
+    repoRoot: unpublishedBranch.repo,
+    storePath: join(root, 'stores', 'unpublished-branch.json'),
+  }).runGitSyncPreflight();
+
+  assert.equal(unpublishedBranchPreflight.ok, false);
+  assert(unpublishedBranchPreflight.blockers.some(item => item.includes('Current branch feature/local-work has 1 commit(s) that are not on origin/master.')));
+  assert.equal(unpublishedBranchPreflight.nextAction.code, 'publish_or_merge_current_branch');
+
+  const staleDispositionRoot = join(root, 'stale-disposition');
+  await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", staleDispositionRoot]);
+  const staleDisposition = await prepareSyncedRepo(staleDispositionRoot);
+  const staleDispositionStore = new TaskIntakeStore({
+    repoRoot: staleDisposition.repo,
+    storePath: join(root, 'stores', 'stale-disposition.json'),
+  });
+
+  await writeAndCommit(staleDisposition.repo, 'MASTER_ONLY.md', 'master-only work\n', 'Keep local master work');
+  await staleDispositionStore.recordGitDisposition({
+    category: 'local_commits',
+    decision: 'keep_local',
+    note: 'This decision belongs to the old master-only commit.',
+  });
+  await git(staleDisposition.repo, ['checkout', '-B', 'feature/package-docs', 'origin/master']);
+  await writeAndCommit(staleDisposition.repo, 'PACKAGE_DOCS.md', 'handoff docs\n', 'Publish Package docs');
+
+  const staleDispositionSnapshot = await staleDispositionStore.snapshot();
+
+  // A disposition made for one set of commits must not silently apply to a
+  // different branch tip. The dashboard should ask for a fresh decision so the
+  // operator can say whether the new branch commit should be merged to GitHub.
+  const localCommitDisposition = staleDispositionSnapshot.gitDisposition.categories.find(item => item.category === 'local_commits');
+  assert.equal(localCommitDisposition?.decision, null);
+  assert.equal(staleDispositionSnapshot.gitSyncPlan.status, 'blocked_by_disposition');
+  assert(staleDispositionSnapshot.gitSyncPlan.blockers.some(item => item.includes('Local-only commits is not decided.')));
+
+  await staleDispositionStore.recordGitDisposition({
+    category: 'local_commits',
+    decision: 'commit_for_jules_base',
+    note: 'This package documentation should be merged before Jules starts.',
+  });
+
+  const currentBranchDispositionSnapshot = await staleDispositionStore.snapshot();
+
+  assert.equal(currentBranchDispositionSnapshot.gitSyncPlan.status, 'ready_for_human_execution');
+  assert(currentBranchDispositionSnapshot.gitSyncPlan.steps.some(step => step.label === 'Publish or merge current branch'));
+  assert(!currentBranchDispositionSnapshot.gitSyncPlan.steps.some(step => step.label === 'Push intended local commits'));
 
   const divergedRoot = join(root, 'diverged');
   await execFileAsync('node', ['-e', "require('fs').mkdirSync(process.argv[1])", divergedRoot]);

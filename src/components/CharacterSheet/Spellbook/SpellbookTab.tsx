@@ -126,6 +126,8 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                             {spellsToDisplay.map(spell => {
                                 const isAlwaysPrepared = character.class.id === 'druid' && spell.id === 'speak-with-animals';
                                 const isRacialAlwaysPrepared = isRacialSpellLockedForPreparation(character, spell.id);
+                                // Known-spell casters choose spells permanently elsewhere, so this sheet should not offer preparation toggles for them.
+                                const isKnownCaster = ['bard', 'sorcerer', 'warlock', 'ranger'].includes(character.class.id.toLowerCase());
                                 const isKnown = knownSpellIds.has(spell.id);
                                 const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared || isRacialAlwaysPrepared;
                                 const isSelected = selectedSpellId === spell.id;
@@ -163,8 +165,8 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                             )}
                                         </div>
                                         {/* Prepare/Unprepare button - only for leveled spells */}
-                                            {spell.level > 0 && isKnown && (
-                                                <button
+                                        {spell.level > 0 && isKnown && maxPrepared !== null && !isKnownCaster && (
+                                            <button
                                                 className={`opacity-0 group-hover:opacity-100 px-2 py-0.5 text-[10px] font-bold uppercase rounded transition-all ${isPrepared && !isLocked
                                                     ? 'bg-slate-600 text-slate-200 hover:bg-slate-500'
                                                     : isAtPrepLimit && !isPrepared
@@ -199,7 +201,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                 <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700 bg-slate-800/20">
                     <div className="flex items-center gap-4">
                         <SpellSlotDisplay spellSlots={character.spellSlots} />
-                        {maxPrepared !== null && (
+                        {maxPrepared !== null && !['bard', 'sorcerer', 'warlock', 'ranger'].includes(character.class.id.toLowerCase()) && (
                             <div className="flex items-center gap-1.5">
                                 <span className="text-xs text-slate-400">Prepared</span>
                                 <span className={`text-sm font-bold ${isAtPrepLimit ? 'text-amber-400' : 'text-purple-400'}`}>

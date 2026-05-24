@@ -175,5 +175,47 @@ describe('actionEconomyUtils', () => {
       expect(afterMove.actionEconomy.action.used).toBe(false);
       expect(canAffordActionCost(afterMove, { type: 'movement-only', movementCost: 25 })).toBe(false);
     });
+
+    it('does not spend a spell slot for a cantrip cost', () => {
+      const character = createMockCombatCharacter({
+        spellSlots: {
+          level_1: { current: 2, max: 2 },
+          level_2: { current: 0, max: 0 },
+          level_3: { current: 0, max: 0 },
+          level_4: { current: 0, max: 0 },
+          level_5: { current: 0, max: 0 },
+          level_6: { current: 0, max: 0 },
+          level_7: { current: 0, max: 0 },
+          level_8: { current: 0, max: 0 },
+          level_9: { current: 0, max: 0 }
+        }
+      });
+
+      const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });
+
+      expect(afterCantrip.actionEconomy.action.used).toBe(true);
+      expect(afterCantrip.spellSlots?.level_1.current).toBe(2);
+    });
+
+    it('spends the matching spell slot for a level 1 spell cost', () => {
+      const character = createMockCombatCharacter({
+        spellSlots: {
+          level_1: { current: 2, max: 2 },
+          level_2: { current: 0, max: 0 },
+          level_3: { current: 0, max: 0 },
+          level_4: { current: 0, max: 0 },
+          level_5: { current: 0, max: 0 },
+          level_6: { current: 0, max: 0 },
+          level_7: { current: 0, max: 0 },
+          level_8: { current: 0, max: 0 },
+          level_9: { current: 0, max: 0 }
+        }
+      });
+
+      const afterSpell = consumeActionCost(character, { type: 'action', spellSlotLevel: 1 });
+
+      expect(afterSpell.actionEconomy.action.used).toBe(true);
+      expect(afterSpell.spellSlots?.level_1.current).toBe(1);
+    });
   });
 });

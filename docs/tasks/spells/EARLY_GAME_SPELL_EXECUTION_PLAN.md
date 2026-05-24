@@ -1,6 +1,6 @@
 # Early-Game Spell Execution Plan
 
-Last Updated: 2026-05-21
+Last Updated: 2026-05-24
 
 ## Purpose
 
@@ -14,19 +14,31 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: setup PR #933 has landed on `master` at
-`40678de8bdc3ce58db0c97e062f5a170526e4fa7`. Package 2 now has clean-base
-Symphony draft `draft-1779400428597-mind7o`, created from
-`docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`, Linear issue
-`ARA-7`, handoff `handoff-1779400495781-jauy49`, and Jules session
-`15527431301408060204`. The first refreshed Jules state was `QUEUED`; the next
-boundary is to refresh Jules until it produces a plan approval request, PR, or
-blocker.
+Current live boundary: Package 5 is scoped for the AI arbitration pilot in
+`docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md` and
+`docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md`. The
+original visible dashboard at `http://127.0.0.1:8139/` is blocked because the
+main checkout is on `codex/spell-phase1-closeout-docs` rather than `master`.
+A clean dashboard run from
+`F:\Repos\Aralia\.worktrees\spell-phase1-master-sync` on port `8140` proved the
+clean-worktree stand-in route: branch `codex/spell-phase1-dashboard-clean-base`
+matches `origin/master`, has 0 ahead/behind, and has no tracked or untracked
+changes. The next blocker is not Git; it is visible form input. The in-app
+browser cannot type into the dashboard draft form because Browser Use reports
+that its virtual clipboard is not installed. Do not bypass this by posting to
+hidden task-draft endpoints; use a visible form-input repair or manual
+operator-filled draft before creating Linear/Jules artifacts.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
 project file for package status, discovered tasks, detailed subtask links, and
 adjacent out-of-scope gaps.
+
+Decision points for the assumed-approval Symphony/Jules test flow are recorded
+in
+`conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
+Use that report with the tracker when reconstructing why an agent approved,
+waited, repaired locally, sent Jules feedback, or merged a PR.
 
 Dashboard-first workflow constraint: use the Symphony dashboard in the Codex
 in-app browser as the primary path for this test flow. Visible dashboard task
@@ -35,6 +47,10 @@ surface. Direct API calls or terminal shortcuts may inspect state, start local
 servers, verify claims, or implement a dashboard/workflow repair, but they must
 not bypass a dashboard blocker. If the dashboard blocks the flow, record the
 blocker and improve the dashboard/workflow or docs before proceeding.
+
+Current Package 0 evidence for Symphony workflow changes should continue to run
+through `npm run verify:jules-contract` or the smallest relevant verifier slice
+when a full contract pass would be disproportionate.
 
 ## Project Goal
 
@@ -124,11 +140,15 @@ shared schema/runtime change must stay compatible with them.
   - `public/data/spell_gate_report.json`
   - generated reports under `docs/tasks/spells/`
 - Symphony workflow finalization
-  - `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`
-  - `conductor/symphony/docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`
-  - `conductor/symphony/docs/SYMPHONY_MIDDLEMAN_ARCHITECTURE.md`
-  - `conductor/symphony/docs/decision-reports/`
-  - `conductor/symphony/scripts/verify-*.mjs`
+  - use the visible dashboard and Jules/GitHub links as the workflow surface
+  - keep Symphony source, dashboard runtime state, generated manifests, draft
+    ids, click receipts, retry state, local sync receipts, and verifier output
+    external or ignored
+  - commit only Aralia-facing task packets, prompts, short blocker summaries,
+    and package tracker updates that help Jules or future Aralia contributors
+  - classify each workflow artifact as Aralia GitHub, external Symphony, local
+    ignored state, Linear, dashboard state, or a temporary migration note before
+    deciding where it belongs
 - Artifact lifecycle and cleanup policy
   - `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md`
 
@@ -498,7 +518,7 @@ The foreman should run the project as a single-filed queue:
 
 The intended sequencing is:
 
-1. Symphony post-ARA-6 verification and worktree hygiene.
+1. Dashboard/Git workflow baseline and worktree hygiene.
 2. Jules environment setup decision and snapshot proof.
 3. Baseline inventory for levels 0-3.
 4. Premade party and gear legality.
@@ -542,8 +562,9 @@ Recommended pattern:
 - keep docs-only planning updates in the current branch unless they become a
   separate reviewable implementation PR
 - never share one implementation branch across unrelated spell slices
-- after a slice merges or is abandoned, remove the worktree and record the final
-  branch/PR/disposition in the decision report
+- after a slice merges or is abandoned, remove or preserve the worktree
+  intentionally and record the final branch/PR/disposition in the tracker or
+  active package packet
 
 Branch is the Git identity of the slice. Worktree is the local isolation
 mechanism. For this project, use both for implementation slices unless the task
@@ -563,9 +584,12 @@ proof exists and the Package 2 task is promoted or dispatched.
 
 ## Jules Environment Setup
 
-The Jules environment has not been set up by this plan yet.
+The original Package 2 Jules environment setup has been run and is now
+historical evidence, not a current blocker for Package 5. Before each new Jules
+slice, the foreman should still check whether the active task needs a refreshed
+environment note or a narrower verification command set.
 
-Before dispatching the first Jules implementation slice:
+Before dispatching a Jules implementation slice:
 
 1. inspect the current Jules environment setup packet in Symphony
 2. confirm the setup script is appropriate for the current repo
@@ -585,10 +609,10 @@ Do not let Jules environment setup become an implicit side effect of the first
 spell implementation task. It is a separate boundary and should be recorded as
 such.
 
-Current setup decision, 2026-05-21:
+Historical setup decision, 2026-05-21:
 
-- The Symphony packet moved past `ready_for_operator_snapshot`; it is not
-  blocked by ARA-6.
+- The Symphony packet moved past `ready_for_operator_snapshot`; the old setup
+  contract is historical rather than a current Package 5 requirement.
 - The original broad snapshot script was:
   1. `npm ci --no-audit --no-fund`
   2. `npm run typecheck`
@@ -609,23 +633,12 @@ Current setup decision, 2026-05-21:
   `docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_SNAPSHOT_RECEIPT.md`.
 - The operator/browser-capable foreman runbook for that external action is
   `docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_OPERATOR_RUNBOOK.md`.
-- The Package 2 task text has been drafted at
-  `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`. It now has
-  local Symphony draft id `draft-1779344522441-vdy0hi`, but remains
-  undispatched until a refreshed Symphony task queue or Git preflight confirms
-  the prior Git sync blockers are cleared.
-- The Package 2 Jules prompt packet has been drafted at
-  `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, but it is
-  also undispatched until `draft-1779344522441-vdy0hi` clears the refreshed
-  readiness check.
-- The matching Symphony task-draft payload was submitted to `/api/v1/task-drafts`
-  and is recorded at
-  `docs/tasks/spells/PACKAGE_2_SYMPHONY_DRAFT_SUBMISSION_RECEIPT.md`.
-- Local branch `codex/spell-phase1-symphony-package2-setup` tracks
-  `origin/codex/spell-phase1-symphony-package2-setup`; PR #933 carries the
-  setup/context docs toward `master`. Use
-  `docs/tasks/spells/PACKAGE_2_GIT_SYNC_ATTEMPT_RECEIPT.md` for the
-  push-boundary history.
+- Package 2, Package 3, and Package 4 have since completed and merged. Treat
+  their task packets and receipts as historical Aralia-facing evidence.
+- Package 5 is the current Jules-preferred slice, but visible dispatch remains
+  blocked by the dashboard GitHub sync gate on the main checkout. Do not treat
+  old Package 2 draft ids, handoff ids, or local Symphony receipts as current
+  dispatch state.
 
 ## Approval And Autonomy Rules For This Test Flow
 
@@ -653,10 +666,12 @@ Agent must record, and normally treat as approval-bound outside this test flow:
 - modifying workflow or CI behavior
 - changing public player-facing UX semantics
 
-Decision reporting for this Phase 1 flow lives in
-`conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
-Use that file for the agent's assumed-approval choices, including decisions that
-turn out to be tool/environment boundaries rather than project approval gates.
+Decision reporting for this Phase 1 flow must be summarized in the
+Aralia-facing tracker or package packet whenever the decision affects Jules,
+GitHub, task scope, or future Aralia contributors. Detailed Symphony-local
+decision logs may exist outside the repo, but they are not the durable Aralia
+source of truth unless a short excerpt is intentionally copied into the tracker,
+package packet, or temporary migration note.
 
 Operator approval update, 2026-05-21:
 
@@ -686,36 +701,28 @@ first implementation slice.
 
 Outputs:
 
-- rerun the post-ARA-6 Symphony verifier set that remained as expected proof
-- clean up stale Symphony task text where later override notes already supersede
-  older table rows
-- decide and record whether Jules environment setup should run before the first
-  spell slice
-- run or explicitly defer the Jules Environment `Run and Snapshot` step with a
-  decision record
+- keep stale Symphony task text from misleading the active package queue
+- decide and record when a Jules environment setup refresh is needed for a
+  specific slice
 - confirm the branch/worktree naming pattern for spell slices
-- create the decision-report template for spell Phase 1 assumed approvals
-- confirm how Symphony will record branch push, PR open, PR merge, deployment,
-  local sync, Atlas/gate refresh, and ROI evidence for the spell flow
+- record Phase 1 assumed-approval decisions in Aralia-facing tracker or package
+  summaries when they affect Jules, GitHub, task scope, or future contributors
+- confirm how the visible dashboard records branch push, PR open, PR merge,
+  deployment, local sync, Atlas/gate refresh, and ROI evidence for the spell
+  flow without committing Symphony runtime/source artifacts to Aralia
 - define the artifact lifecycle policy for prompt packets, receipts, proof
   screenshots, generated reports, setup artifacts, runtime files, and local app
   settings
 
 Current Package 0 evidence:
 
-- `cmd.exe /c npm run build` in `conductor/symphony` passed on 2026-05-21.
-- `cmd.exe /c npm run verify:jules-contract` reached the first verifier and
-  failed at `verify-gitignore-contract-boundary.mjs` because that verifier runs
-  plain `git check-ignore`; Git refused the repository due to the local
-  safe-directory/SID mismatch. This is an environment/tool boundary, not a
-  Symphony contract failure.
-- After the exact repo path was marked safe with
-  `git config --global --add safe.directory F:/Repos/Aralia`,
-  `cmd.exe /c npm run verify:jules-contract` passed.
-- The live contract no longer pins the decision-report verifier to ARA-6/PR
-  #931. ARA-6 remains historical evidence, while
-  `verify-spell-phase1-assumed-approval-decision-report.mjs` protects the
-  reusable Phase 1 decision-report shape.
+- Historical Symphony verifier and setup evidence remains useful background,
+  but Symphony runtime/source verification is no longer an Aralia package
+  deliverable by itself. If a future dashboard blocker requires a Symphony code
+  repair, track that repair outside the Aralia source tree unless the Aralia
+  repo intentionally carries a temporary migration note.
+- Aralia-facing Package 0 evidence now lives in this plan, the lifecycle policy,
+  and `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
 
 ### Package 1: Scoped Baseline
 

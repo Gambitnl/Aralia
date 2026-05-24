@@ -8,6 +8,27 @@ This file is the architectural index. It is not the behavioral spec and not the 
 - Use [`../JULES_MIDDLEMAN_AUDIT.md`](../JULES_MIDDLEMAN_AUDIT.md) for current implementation status, live proof, and remaining gaps.
 - Use [`../README.md`](../README.md) for quick start and operator-facing entry points.
 
+## Table Of Contents
+
+- 1. [System Role](#system-role)
+- 2. [Architecture At A Glance](#architecture-at-a-glance)
+- 3. [Runtime Layers](#runtime-layers)
+  - 3.1 [Startup And Configuration](#startup-and-configuration)
+  - 3.2 [Orchestration And Worker Dispatch](#orchestration-and-worker-dispatch)
+  - 3.3 [Local API And Dashboard Shell](#local-api-and-dashboard-shell)
+  - 3.4 [Task Intake And Middleman State](#task-intake-and-middleman-state)
+  - 3.5 [Git, GitHub, Scout/Core, And Local Sync Readiness](#git-github-scoutcore-and-local-sync-readiness)
+  - 3.6 [Jules Bridge](#jules-bridge)
+  - 3.7 [Verification And Proof](#verification-and-proof)
+- 4. [File Ownership Map](#file-ownership-map)
+- 5. [Main API Surfaces](#main-api-surfaces)
+- 6. [Common Change Patterns](#common-change-patterns)
+  - 6.1 [Adding A New Dashboard Control](#adding-a-new-dashboard-control)
+  - 6.2 [Adding A New Readiness Packet](#adding-a-new-readiness-packet)
+  - 6.3 [Adding Worker Behavior](#adding-worker-behavior)
+- 7. [Verification Entry Points](#verification-entry-points)
+- 8. [Current Gaps In This Map](#current-gaps-in-this-map)
+
 ## System Role
 
 Symphony is the local dashboard-first middleman around the existing Aralia Jules workflow. It is responsible for safe task intake, Codex foreman clarification, Git/GitHub readiness, Linear tracking, Jules handoff staging and launch, Jules browser/session reconciliation, GitHub PR observation, GitHub Pages deployment observation, Scout/Core readiness, local sync readiness, Codex worker observability, and proof capture.

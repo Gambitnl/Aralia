@@ -2,6 +2,11 @@
 
 Status: prompt-ready, not dispatched.
 
+Historical closeout note: Package 2 has since been dispatched to Jules and
+merged through PR #935. This prompt is retained as evidence of what Jules was
+asked to do; the current active package state lives in
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
+
 Do not paste this into Jules until
 `docs/tasks/spells/SPELL_PHASE_1_JULES_ENVIRONMENT_SNAPSHOT_RECEIPT.md` has a
 real `passed` or approved `waived` result and the matching decision-report entry

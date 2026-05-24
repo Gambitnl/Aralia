@@ -9,6 +9,26 @@ import { HttpServer } from '../dist/server.js';
 const BASE_URL = 'http://127.0.0.1:8199';
 const generatedAt = '2026-05-20T02:00:00.000Z';
 
+// This draft mirrors the Package 5 blocker shape: Linear already exists, so
+// the current boundary is the local handoff preparation step. The task page
+// must show that button directly, otherwise a foreman can only advance by
+// calling the hidden promote endpoint.
+const draftReadyForVisibleBoundary = {
+  id: 'draft-visible-boundary',
+  title: 'Draft visible current boundary proof',
+  body: 'Show that a ready draft can be advanced from the task page without using a hidden endpoint.',
+  expectedFiles: ['docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md'],
+  verificationCommands: ['npm.cmd run test -- --run src/spells'],
+  executor: 'jules',
+  status: 'ready_for_handoff',
+  linearIssueId: 'lin-visible-boundary',
+  linearIssueIdentifier: 'ARA-11',
+  linearIssueUrl: 'https://linear.app/aralia/issue/ARA-11/visible-boundary',
+  linearIssueCreatedAt: generatedAt,
+  createdAt: generatedAt,
+  updatedAt: generatedAt,
+};
+
 const logger = {
   child() {
     return logger;
@@ -43,8 +63,108 @@ const server = new HttpServer(8199, orchestrator, logger);
 server.taskIntake = {
   async snapshot() {
     return {
-      drafts: [],
+      drafts: [draftReadyForVisibleBoundary],
       handoffs: [{
+        // This handoff mirrors the real Package 5 dashboard defect found while
+        // using Symphony as a human would: the Jules approval succeeded, but
+        // Symphony's cached status still said "waiting for plan approval." The
+        // task page must guide the operator to refresh state, not approve again.
+        id: 'handoff-approved-stale-state',
+        draftId: 'draft-approved-stale-state',
+        title: 'Approved Jules plan with stale cached state',
+        executor: 'jules',
+        status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-approved-stale-state\\manifest.json',
+        prompt: 'Prove the dashboard reconciles state after approving a Jules plan.',
+        expectedFiles: ['docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md'],
+        verificationCommands: ['npm run build'],
+        createdAt: generatedAt,
+        updatedAt: generatedAt,
+        operatorMessages: [],
+        planApprovals: [{
+          id: 'approval-stale-state',
+          createdAt: generatedAt,
+          status: 'approved',
+          command: 'npx tsx .jules/orchestrator/cli.ts approve 16180069342192211468',
+          output: 'Plan approved.',
+          error: null,
+        }],
+        taskMessages: [],
+        taskClarifications: [],
+        handoffTimeline: {
+          generatedAt,
+          summary: 'Timeline events: 2',
+          events: [
+            { stage: 'jules_status', label: 'Jules status refreshed', occurredAt: generatedAt, source: 'jules', status: 'recorded', detail: 'Jules reported AWAITING_PLAN_APPROVAL.' },
+            { stage: 'jules_plan_approval', label: 'Jules plan approval recorded', occurredAt: generatedAt, source: 'operator', status: 'complete', detail: 'The operator approval was sent to Jules.' },
+          ],
+        },
+        operatorQuestion: null,
+        operatorAnswers: [],
+        repairLaneExecutions: [],
+        repairPushReadiness: null,
+        repairPushResult: null,
+        deploymentEvidence: null,
+        julesStateReconciliation: null,
+        delegationRoiLedger: null,
+        linearIssueIdentifier: 'ARA-11',
+        linearIssueUrl: 'https://linear.app/aralia/issue/ARA-11/example',
+        julesSessionId: '16180069342192211468',
+        julesSessionUrl: 'https://jules.google.com/session/16180069342192211468',
+        julesState: 'AWAITING_PLAN_APPROVAL',
+        githubPullRequestUrl: null,
+        githubPullRequestState: null,
+        githubPullRequestChecks: null,
+        githubPullRequestFeedback: null,
+        githubPullRequestNextAction: null,
+        pullRequestChecksCommand: null,
+        pullRequestViewCommand: null,
+        next_action: null,
+      }, {
+        id: 'handoff-awaiting-user-feedback',
+        draftId: 'draft-awaiting-user-feedback',
+        title: 'Package 6 choice/mode Jules feedback proof',
+        executor: 'jules',
+        status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-awaiting-user-feedback\\manifest.json',
+        prompt: 'Show that the task page can send a precise operator answer to Jules.',
+        expectedFiles: ['docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md'],
+        verificationCommands: ['npm run validate:spells'],
+        createdAt: generatedAt,
+        updatedAt: generatedAt,
+        operatorMessages: [],
+        planApprovals: [],
+        taskMessages: [],
+        taskClarifications: [],
+        handoffTimeline: {
+          generatedAt,
+          summary: 'Timeline events: 1',
+          events: [
+            { stage: 'jules_status', label: 'Jules status refreshed', occurredAt: generatedAt, source: 'jules', status: 'recorded', detail: 'Jules reported AWAITING_USER_FEEDBACK.' },
+          ],
+        },
+        operatorQuestion: null,
+        operatorAnswers: [],
+        repairLaneExecutions: [],
+        repairPushReadiness: null,
+        repairPushResult: null,
+        deploymentEvidence: null,
+        julesStateReconciliation: null,
+        delegationRoiLedger: null,
+        linearIssueIdentifier: 'ARA-12',
+        linearIssueUrl: 'https://linear.app/aralia/issue/ARA-12/example',
+        julesSessionId: '3811311513433217520',
+        julesSessionUrl: 'https://jules.google.com/session/3811311513433217520',
+        julesState: 'AWAITING_USER_FEEDBACK',
+        githubPullRequestUrl: null,
+        githubPullRequestState: null,
+        githubPullRequestChecks: null,
+        githubPullRequestFeedback: null,
+        githubPullRequestNextAction: null,
+        pullRequestChecksCommand: null,
+        pullRequestViewCommand: null,
+        next_action: null,
+      }, {
         id: 'handoff-detail-page',
         draftId: 'draft-detail-page',
         title: 'ARA-6 task page proof',
@@ -249,7 +369,19 @@ server.taskIntake = {
           ],
           artifacts: [],
         },
-        githubPullRequestFeedback: { totalComments: 0, julesFeedback: [], scoutConflictComments: [], externalReviewComments: [], summary: 'No PR feedback recorded.' },
+        githubPullRequestFeedback: {
+          totalComments: 1,
+          summary: '1 Jules feedback comment(s), 0 Scout conflict comment(s), 0 external review comment(s).',
+          julesFeedback: [{
+            author: 'Gambitnl',
+            body: '[Jules feedback]\nPlease repair the visible creator blocker before Core merge.',
+            url: 'https://github.com/Gambitnl/Aralia/pull/931#issuecomment-1',
+            createdAt: generatedAt,
+            source: 'comment',
+          }],
+          scoutConflictComments: [],
+          externalReviewComments: [],
+        },
         githubPullRequestNextAction: {
           label: 'Resolve CI Setup Blocker',
           summary: 'Prepare a marked Jules feedback comment if the operator rejects the setup repair.',
@@ -351,6 +483,9 @@ try {
   assert.match(page.body, /Local repair verification: npm ci --dry-run/);
   assert.match(page.body, /After-push check command:<\/strong> <code>gh pr checks 931 --repo Gambitnl\/Aralia<\/code>/);
   assert.match(page.body, /After-push PR refresh:<\/strong> <code>\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-pr<\/code>/);
+  assert.match(page.body, /PR feedback captured: 1 Jules feedback comment\(s\), 0 Scout conflict comment\(s\), 0 external review comment\(s\)\./);
+  assert.match(page.body, /Marked feedback proves a GitHub PR comment exists/);
+  assert.match(page.body, /active Jules session does not visibly show the latest feedback/);
   assert.match(page.body, /Operator Answer/);
   assert.match(page.body, /Record Operator Answer/);
   assert.match(page.body, /Record Selected Decision/);
@@ -399,6 +534,8 @@ try {
   assert.match(page.body, /Local sync status<\/dt><dd>[^<]+/);
   assert.match(page.body, /Can sync local repo<\/dt><dd>No/);
   assert.match(page.body, /Sync mutates Git<\/dt><dd>(Yes|No)/);
+  assert.match(page.body, />Check Local Sync<\/button>/);
+  assert.match(page.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-detail-page\/refresh-local-sync"/);
   assert.match(page.body, /Deployment blockers: PR is not merged, so deployment state is not the next boundary yet/);
   assert.match(page.body, /Local sync blockers:/);
   assert.match(page.body, /Deployment proof or operator waiver|PR is not merged|No local sync blockers are recorded/);
@@ -407,6 +544,40 @@ try {
   assert.match(page.body, /Deployment Readiness/);
   assert.match(page.body, /Local Sync Readiness/);
   assert.match(page.body, /Mutates external systems<\/dt><dd>No/);
+
+  const draftPage = await getText(`${BASE_URL}/tasks/draft-visible-boundary`);
+  assert.match(draftPage.body, /Draft visible current boundary proof/);
+  assert.match(draftPage.body, /Current Boundary/);
+  assert.match(draftPage.body, /Prepare Handoff/);
+  assert.match(draftPage.body, /<form method="post" action="http:\/\/127\.0\.0\.1:8199\/api\/v1\/task-drafts\/draft-visible-boundary\/promote">/);
+  assert.match(draftPage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/task-drafts\/draft-visible-boundary\/promote"/);
+  assert.match(draftPage.body, /type="submit"[^>]+>Prepare Handoff<\/button>/);
+  assert.match(draftPage.body, /Runs the current Symphony boundary from this visible task page/);
+
+  const approvedStalePage = await getText(`${BASE_URL}/tasks/handoff-approved-stale-state`);
+  assert.match(approvedStalePage.body, /Approved Jules plan with stale cached state/);
+  assert.match(approvedStalePage.body, /Current Boundary/);
+  assert.match(approvedStalePage.body, /Refresh Jules Status/);
+  assert.match(approvedStalePage.body, /The operator approval was sent to Jules\. Refresh the session state/);
+  assert.match(approvedStalePage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-approved-stale-state\/refresh-status"/);
+  assert.match(approvedStalePage.body, /Jules plan approval recorded/);
+  assert.doesNotMatch(approvedStalePage.body, /type="submit"[^>]+>Approve Jules Plan<\/button>/);
+
+  const awaitingFeedbackPage = await getText(`${BASE_URL}/tasks/handoff-awaiting-user-feedback`);
+  assert.match(awaitingFeedbackPage.body, /Package 6 choice\/mode Jules feedback proof/);
+  assert.match(awaitingFeedbackPage.body, /Current Boundary/);
+  assert.match(awaitingFeedbackPage.body, /Send Jules Feedback/);
+  assert.match(awaitingFeedbackPage.body, /data-task-jules-message-form/);
+  assert.match(awaitingFeedbackPage.body, /name="julesFeedback"/);
+  assert.match(awaitingFeedbackPage.body, /data-task-jules-message-url="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-awaiting-user-feedback\/message"/);
+  assert.match(awaitingFeedbackPage.body, /This sends feedback to Jules session 3811311513433217520/);
+  assert.match(awaitingFeedbackPage.body, /Write Jules feedback before sending it/);
+  assert.match(awaitingFeedbackPage.body, /Prepared Package 6 feedback text/);
+  assert.match(awaitingFeedbackPage.body, /Send Prepared Package 6 Feedback/);
+  assert.match(awaitingFeedbackPage.body, /data-task-jules-prepared-feedback/);
+  assert.match(awaitingFeedbackPage.body, /Do not add a broad new schema field yet/);
+  assert.match(awaitingFeedbackPage.body, /Use existing modeChoice for blindness-deafness only/);
+  assert.match(awaitingFeedbackPage.body, /Do not model dragon&#39;s-breath or protection-from-energy as modeChoice/);
 
   const missing = await getText(`${BASE_URL}/tasks/does-not-exist`, 404);
   assert.match(missing.body, /Task not found/);
