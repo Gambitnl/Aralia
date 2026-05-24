@@ -46,13 +46,12 @@ describe('SpellCommandFactory - Choice and Mode Integration', () => {
       description: 'Test spell with damage choice.'
     }
 
-    // Pass the spell through the factory to verify it doesn't crash and maps the effect
     const commands = await SpellCommandFactory.createCommands(spellWithChoice, caster, [target], 1, gameState)
     expect(commands).toBeDefined()
     expect(commands.length).toBeGreaterThan(0)
-    // The command logic isn't fully updated yet, but we verify it processes the effect cleanly.
     expect((commands[0] as any).effect.type).toBe('DAMAGE')
   })
+
   it('should filter effects based on modeChoice and playerInput', async () => {
     const spellWithMode: Spell = {
       id: 'blindness-deafness-test',
@@ -102,5 +101,45 @@ describe('SpellCommandFactory - Choice and Mode Integration', () => {
     const commandsDeaf = await SpellCommandFactory.createCommands(spellWithMode, caster, [target], 2, gameState, 'Deafness')
     expect(commandsDeaf.length).toBe(1)
     expect((commandsDeaf[0] as any).effect.statusCondition.name).toBe('Deafened')
+  })
+
+  it('should ignore out-of-bounds effect indices in modeChoice without crashing', async () => {
+    const spellWithOutOfBounds: Spell = {
+      id: 'oob-test',
+      name: 'OOB Test',
+      level: 1,
+      school: 'Evocation',
+      classes: [],
+      subClasses: [],
+      tags: [],
+      castingTime: { value: 1, unit: 'action' },
+      range: { type: 'ranged', distance: 30, distanceUnit: 'feet' },
+      components: { verbal: true, somatic: true, material: false, materialDescription: '', isConsumed: false, materialCost: 0 },
+      duration: { type: 'instantaneous', value: 0, unit: 'round', concentration: false },
+      targeting: { type: 'single', range: 30, validTargets: ['creatures'] },
+      effects: [
+        {
+          type: 'DAMAGE',
+          trigger: { type: 'immediate', frequency: 'every_time', consumption: 'unlimited', movementType: 'any' },
+          condition: { type: 'hit' },
+          damage: { dice: '1d4', type: 'Force' }
+        } as DamageEffect
+      ],
+      modeChoice: {
+        type: 'choose_one',
+        timing: 'on_cast',
+        optionCount: 1,
+        optionsSource: 'effects',
+        options: [
+          { label: 'Out of Bounds', summary: 'Points nowhere', effectIndices: [99] }
+        ]
+      },
+      arbitrationType: 'mechanical',
+      description: 'Test spell with OOB index.'
+    }
+
+    const commands = await SpellCommandFactory.createCommands(spellWithOutOfBounds, caster, [target], 1, gameState, 'Out of Bounds')
+    expect(commands).toBeDefined()
+    expect(commands.length).toBe(0)
   })
 })

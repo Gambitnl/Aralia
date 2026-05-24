@@ -129,6 +129,16 @@ Statuses:
   `https://github.com/Gambitnl/Aralia/pull/991`
 - Package 5 dashboard stale-boundary repair PR:
   `https://github.com/Gambitnl/Aralia/pull/992`
+- Package 6 scope packet PR:
+  `https://github.com/Gambitnl/Aralia/pull/993`
+- Package 6 dashboard intake repair PRs:
+  `https://github.com/Gambitnl/Aralia/pull/994`,
+  `https://github.com/Gambitnl/Aralia/pull/995`
+- Package 6 Linear issue:
+  `https://linear.app/aralia/issue/ARA-12/spell-phase-1-package-6-choicemode-mechanics-bucket`
+- Package 6 Symphony handoff: `handoff-1779592447710-27ufm6`
+- Package 6 Jules session:
+  `https://jules.google.com/session/3811311513433217520`
 
 ## Active Package Queue
 
@@ -142,7 +152,7 @@ Statuses:
 | P3 | done | Codex foreman closeout | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Local proof and the merged GitHub work now cover wizard spell selection, selected-spell assembly, and spellbook visibility for cantrips plus levels 1-3; keep the packet durable and separate from transient Symphony state |
 | P4 | done | Jules implementation, Codex foreman closeout | Combat simulator deterministic spell pilot | `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` | Package 4 was linked to Linear issue `ARA-10`, the Jules handoff produced PR #979, and that PR merged cleanly on 2026-05-22. Local proof now covers `fire-bolt`, `healing-word`, `magic-missile`, `scorching-ray`, and `fireball` in `src/hooks/__tests__/useAbilitySystem.package4.test.tsx`, plus direct HP/log command proof in `DamageCommand.test.ts` and `HealingCommand.test.ts`. Keep transient Symphony state external; the bless/status gap (`G49`) and Atlas source gap (`G48`) remain separate follow-ups. |
 | P5 | done | Jules implementation, Codex foreman review | AI arbitration pilot for open-ended spells | `PACKAGE_5_AI_ARBITRATION_PILOT.md`, `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Package 5 dispatched through clean dashboard handoff `handoff-1779586889329-3ehcfd` and Jules session `16180069342192211468`. PR #991 merged on 2026-05-24 after Jules implemented `prestidigitation` and `suggestion` AI prompts/player input, Codex removed generated gate-report churn and an out-of-scope workflow edit, the PR body was corrected, and GitHub Build/Lint/Tests/Quality/CodeQL/Poison/Analyze checks passed. Local sync and dashboard workflow closeout remain tracked under P0/Symphony, not as unfinished spell implementation. |
-| P6 | done | Codex foreman packet, Jules preferred implementation | First mechanics bucket closure for levels 0-3: `choice_or_mode` bounded implementation slice | `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md`, `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md` | Jules resolved `blindness-deafness`, `dragons-breath`, `chromatic-orb`, `alter-self`, `enlarge-reduce`, `alarm`, and `plant-growth` into deterministic choice fields (`modeChoice` and `damageTypeSource`). `enhance-ability` and `protection-from-energy` were already cleanly typed. No broad AI fallback needed for these explicit mechanics. Atlas proof remains blocked by `G48`. |
+| P6 | done | Jules implementation, Codex foreman monitor/review | First mechanics bucket closure for levels 0-3: `choice_or_mode` bounded implementation slice | `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md`, `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md` | Package 6 was created through the visible dashboard as draft `draft-1779591924625-7hop6v`, linked to Linear issue `ARA-12`, promoted to handoff `handoff-1779592447710-27ufm6`, staged, and launched as Jules session `3811311513433217520` on 2026-05-24. Jules resolved `blindness-deafness`, `dragons-breath`, `chromatic-orb`, `alter-self`, `enlarge-reduce`, `alarm`, and `plant-growth` into deterministic choice fields (`modeChoice` and `damageTypeSource`). `enhance-ability` and `protection-from-energy` were already cleanly typed. No broad AI fallback needed for these explicit mechanics. Atlas proof remains blocked by `G48`. |
 
 ## Current Setup And PR Tasks
 
