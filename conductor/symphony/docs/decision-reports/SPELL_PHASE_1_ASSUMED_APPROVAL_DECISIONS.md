@@ -671,6 +671,112 @@ Copy this block for each decision.
   checks, merge, deployment proof or waiver, local-sync, and post-sync verifier
   evidence.
 
+### Decision 84: Reclassify Package 5 Prepare Handoff As A State-Focus Defect
+
+- Date/time: 2026-05-24 03:40 +02:00
+- Phase: `package_5_dashboard_dispatch`
+- Active slice: Package 5 AI arbitration pilot plus dashboard-first Symphony
+  workflow refinement
+- Decision point: The Package 5 task page showed a visible form-backed
+  `Prepare Handoff` button. Earlier browser attempts seemed to leave the draft
+  unchanged, but a later visible browser click sent `POST /promote` and returned
+  201 while the page stayed on the historical draft. Multiple Package 5 handoffs
+  then existed in the queue.
+- Options considered:
+  - Treat the activation as still blocked and stop Package 5.
+  - Call raw endpoints to choose a handoff behind the dashboard.
+  - Use the newest clean handoff created by the visible click, while recording
+    duplicate handoff creation as a dashboard state/focus defect.
+- Decision made by agent: Use `handoff-1779586889329-3ehcfd` as the clean
+  Package 5 handoff and treat older Package 5 handoffs as stale duplicates.
+- Model routing: Local Codex handled dashboard diagnosis; Jules remained the
+  implementation worker once the clean handoff launched.
+- Rationale/evidence: The action did submit through the visible control, so the
+  earlier blocker was not a true activation failure. The real workflow defect is
+  that the dashboard did not focus the created handoff and allowed repeated
+  promotion attempts.
+- Mutation performed or skipped: Skipped raw promotion as the primary workflow
+  path, skipped launching stale duplicate handoffs, and continued with the
+  newest visible-click-created handoff.
+- Scope guardrails: This changes only dashboard tracking/decision state. It
+  does not change spell data, spell runtime, AI arbitration policy, combat
+  simulator behavior, or premade roster semantics.
+- Result: Package 5 advanced to manifest staging and Jules launch through the
+  visible dashboard flow.
+
+### Decision 85: Repair Stale Post-Approval Boundary Instead Of Re-Approving Jules
+
+- Date/time: 2026-05-24 03:58 +02:00
+- Phase: `package_5_dashboard_dispatch`
+- Active slice: Package 5 AI arbitration pilot plus dashboard-first Symphony
+  workflow refinement
+- Decision point: The visible `Approve Jules Plan` action succeeded for Jules
+  session `16180069342192211468`, and the Jules page showed `Plan approved`.
+  Symphony still rendered `Approve Jules Plan` because the cached Jules state
+  remained `AWAITING_PLAN_APPROVAL`, leaving no visible status-refresh path.
+- Options considered:
+  - Click approve again and risk sending a duplicate mutating approval.
+  - Bypass the dashboard with hidden refresh calls.
+  - Repair the dashboard next-action logic so a successful approval receipt
+    routes to `Refresh Jules Status`.
+- Decision made by agent: Patch Symphony so an approved plan receipt plus stale
+  `AWAITING_PLAN_APPROVAL` state exposes `Refresh Jules Status`, not another
+  approval action.
+- Model routing: Local Codex handled this dashboard workflow repair because the
+  bug was in orchestration state routing, not in the spell implementation.
+- Rationale/evidence: Once an approval receipt exists, the next safe operator
+  action is reconciliation, not repeating the external approval mutation. The
+  dashboard-first goal requires fixing this blocker rather than depending on
+  terminal-only diagnosis.
+- Mutation performed or skipped: Edited `conductor/symphony/src/server.ts` and
+  `conductor/symphony/scripts/verify-task-detail-page.mjs`. Skipped duplicate
+  approval, skipped hidden refresh as the primary workflow path, and preserved
+  Jules as implementation owner.
+- Verification: `npm run build` and
+  `node scripts/verify-task-detail-page.mjs` passed in
+  `conductor/symphony`.
+- Result: The task page changed to `Refresh Jules Status`; clicking the visible
+  refresh recorded `Jules reported IN_PROGRESS`, and later captured PR #991.
+
+### Decision 86: Send Bounded Jules Feedback, Then Take Over Narrow PR Cleanup
+
+- Date/time: 2026-05-24 04:08 +02:00
+- Phase: `package_5_pr_review`
+- Active slice: Package 5 PR #991 review and scope containment
+- Decision point: Jules produced PR #991 with the intended spell/test changes,
+  but the PR also contained generated `spell_gate_report.json` timestamp churn
+  and an inaccurate PR body claim about `scripts/*.ts` path-resolution fixes.
+  The Gemini review failure was quota noise, while deterministic GitHub checks
+  were passing or pending.
+- Options considered:
+  - Merge PR #991 as-is because the implementation was mostly correct.
+  - Repair the PR locally immediately.
+  - Send bounded `[Jules feedback]` first, preserving Jules as the preferred
+    implementation worker, then intervene only if Jules did not produce the
+    needed narrow cleanup.
+- Decision made by agent: Post bounded `[Jules feedback]` on PR #991 asking
+  Jules to remove generated report churn and correct the PR body. After Jules
+  did not produce the requested cleanup and later pushed an out-of-scope
+  workflow-config change, Codex took over only the narrow PR hygiene cleanup.
+- Model routing: Jules handled the spell implementation. Local Codex handled
+  PR-scope cleanup after feedback failed to produce a clean repair.
+- Rationale/evidence: The user explicitly wanted Jules to do as much as
+  possible. Posting feedback first honored that. The remaining cleanup was
+  mechanical and merge-blocking for scope quality, so a local Codex follow-up
+  was justified once Jules drifted into workflow configuration.
+- Mutation performed or skipped: Posted PR comment
+  `https://github.com/Gambitnl/Aralia/pull/991#issuecomment-4527107109`,
+  restored generated report/workflow files to the master versions on the PR
+  branch, corrected the PR body, and preserved only the two spell JSON files
+  plus the focused AI factory test in the cumulative diff.
+- Verification: `npm run validate:spells` and
+  `npx vitest run src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts --reporter=verbose`
+  passed locally in the PR cleanup worktree. GitHub Build, Lint, Tests, Quality
+  Scan, CodeQL, Poison File Check, and Analyze checks all passed after the final
+  push.
+- Result: PR #991 merged on 2026-05-24 at
+  `61702965500ea799be273305f1dbf3ee690eeb60`.
+
 ## Open Decisions For The Next Slice
 
 ### Decision 17: Run Jules Environment Snapshot And Replace Broad Typecheck Gate With Package 2 Scoped Gate
@@ -3575,16 +3681,19 @@ Copy this block for each decision.
 
 ## Open Decisions For The Next Slice
 
-1. Publish the Package 3 receipt reconciliation, then run targeted MemPalace
-   mining for the durable task and decision docs.
-2. Create or link the Package 4 Linear issue, then route the dashboard draft
-   through Symphony/Jules.
-3. Decide whether the semantically enabled Druid class-feature checkbox should
+1. Publish the Package 5 dashboard-boundary repair and decision-doc update, then
+   run targeted MemPalace mining for the durable task and decision docs.
+2. Refresh local sync after PR #991 and the dashboard repair land, without
+   mutating the user's dirty/divergent main checkout.
+3. Decide the next Spell Phase 1 package after the AI arbitration pilot:
+   either a mechanics bucket, Atlas/gate repair, or the next caster/fixture
+   coverage slice.
+4. Decide whether the semantically enabled Druid class-feature checkbox should
    be repaired immediately or batched into a creator accessibility pass.
-4. Decide whether Symphony should add first-class receipts and dashboard
+5. Decide whether Symphony should add first-class receipts and dashboard
    controls for `feedback visible in Jules`, beyond the Decision 77 wording
    that prevents GitHub comments from being overstated as delivery proof.
-5. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+6. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-6. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
+7. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
    dashboard redesign work.

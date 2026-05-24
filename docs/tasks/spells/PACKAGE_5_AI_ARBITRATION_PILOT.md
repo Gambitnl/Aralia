@@ -185,16 +185,38 @@ action to the standalone task page. PR #989 made that action form-backed so the
 visible page still owns the POST action if the enhanced dashboard script does
 not attach.
 
-The current blocker is now activation rather than surfacing. On 2026-05-24, the
-clean dashboard at `http://127.0.0.1:8140/tasks/draft-1779582701882-mln8to`
-rendered a visible `Prepare Handoff` submit button whose form action points to
-`POST /api/v1/task-drafts/draft-1779582701882-mln8to/promote`. Browser attempts
-to activate that visible control through locator click, DOM click, coordinate
-click, and Enter left the draft at `ready_for_handoff` with no status text or
-console error. Decision for this packet: do not call the raw promote endpoint as
-a substitute for the dashboard-first flow. Package 5 dispatch should resume
-after the visible button can be activated by the operator/browser path, or after
-the activation blocker is repaired.
+The activation blocker was later reclassified. A visible browser click on the
+task-page `Prepare Handoff` button did send `POST /promote` and returned 201,
+but the page stayed on the historical draft while new handoffs appeared in the
+queue. That made the action look blocked and also allowed duplicate Package 5
+handoffs. The clean handoff used for the actual Package 5 run is
+`handoff-1779586889329-3ehcfd`; older Package 5 handoffs from repeated clicks
+should be treated as stale dashboard state unless explicitly revived.
+
+Package 5 then launched Jules session `16180069342192211468`. The dashboard
+successfully staged the manifest, launched Jules, surfaced the plan-approval
+gate, and recorded the approval. A follow-up dashboard defect appeared after
+approval: Symphony still showed `Approve Jules Plan` from cached
+`AWAITING_PLAN_APPROVAL` state even though the approval receipt had succeeded.
+The local repair changes that stale post-approval boundary to `Refresh Jules
+Status`, and `npm run build` plus `node scripts/verify-task-detail-page.mjs`
+passed for the repair.
+
+Jules produced PR #991:
+
+- `https://github.com/Gambitnl/Aralia/pull/991`
+
+PR #991 merged on 2026-05-24 after:
+
+- Jules implemented AI/player-input prompts for `prestidigitation` and
+  `suggestion`
+- Codex posted bounded `[Jules feedback]` when the PR included generated
+  `spell_gate_report.json` timestamp churn and an inaccurate PR body claim
+- Codex removed generated gate-report churn, reverted an out-of-scope
+  `.github/workflows/gemini-review.yml` edit Jules pushed after feedback, and
+  fixed JSON file endings
+- GitHub Build, Lint, Tests, Quality Scan, CodeQL, Poison File Check, and
+  Analyze checks all passed
 
 ## Decision Points
 
@@ -210,5 +232,8 @@ the activation blocker is repaired.
 | P5-8 Prepare handoff visibility | The task page says `Prepare Handoff` is the current boundary, but renders no visible action button. The full dashboard has `Prepare Handoff` buttons in the DOM, but the relevant Package 5 button is not reachable by ordinary viewport scrolling. | Do not call the raw promote endpoint and do not programmatically click an unreachable DOM node. Record the blocker as a dashboard UX/workflow defect. | Dashboard workflow blocker; Aralia GitHub summary because it blocks Jules dispatch. |
 | P5-9 Task-page boundary action repair | The visible task page needs to expose the current boundary action directly. This required editing Symphony source even though Symphony source should eventually leave the Aralia repo. | Repair the current in-repo Symphony dashboard source through PR #987 because it is the active workflow infrastructure, and explicitly classify it as a Symphony workflow-defect repair rather than spell implementation content. | Temporary Symphony source repair in Aralia GitHub; should migrate with Symphony when separated. |
 | P5-10 Form-backed activation repair | The new visible button still needed a non-script fallback so the page action remained usable if dashboard JavaScript did not attach. | Land PR #989 to make the `Prepare Handoff` control a normal visible POST form while keeping the enhanced guarded handler as the preferred path. | Temporary Symphony source repair in Aralia GitHub; should migrate with Symphony when separated. |
-| P5-11 Visible activation still blocked | After PR #987 and PR #989, the visible button exists, but Codex Browser activation attempts leave the draft unchanged. | Stop before the raw promote endpoint. Record the blocker and require either a manual operator click or another dashboard/browser activation repair. | Dashboard/browser activation blocker; Aralia GitHub summary because it blocks Jules dispatch. |
+| P5-11 Visible activation reclassified | The task-page button looked blocked because the draft page stayed historical, but a visible browser click did submit and create handoffs. | Use the newest clean handoff `handoff-1779586889329-3ehcfd`; treat older duplicate handoffs as stale dashboard state. | Dashboard state/focus defect; summarized here because it affects Jules dispatch traceability. |
+| P5-12 Jules plan approval | Jules session `16180069342192211468` presented a bounded plan for `prestidigitation`, `suggestion`, optional `blindness-deafness`, validation, and PR submission. | Approve the plan through the visible dashboard/Jules flow because it stayed inside Package 5 scope. | Jules/dashboard external state; approval receipt stored by Symphony. |
+| P5-13 Post-approval stale boundary | After approval succeeded, the dashboard still offered `Approve Jules Plan` because cached Jules state remained `AWAITING_PLAN_APPROVAL`. | Repair Symphony so an approved receipt routes to `Refresh Jules Status`, avoiding duplicate mutating approval attempts. | Temporary Symphony source repair in Aralia GitHub; should migrate with Symphony when separated. |
+| P5-14 PR #991 scope cleanup | Jules produced the implementation PR but included generated report churn and briefly pushed a workflow-config change after feedback. | Keep the implementation, remove generated/workflow churn, correct the PR body, and merge once checks are green. | Aralia GitHub implementation PR plus Codex foreman cleanup; Symphony runtime state remains external/local. |
 

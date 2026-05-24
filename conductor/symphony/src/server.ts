@@ -4268,6 +4268,26 @@ export class HttpServer {
         ['Launch Jules.', 'Wait for the session id or Jules state.', 'Refresh status if the session does not update automatically.']);
     }
 
+    const latestPlanApproval = Array.isArray(handoff.planApprovals) ? handoff.planApprovals[0] : null;
+    const planAlreadyApproved = latestPlanApproval?.status === 'approved';
+
+    if (handoff.julesState === 'AWAITING_PLAN_APPROVAL' && planAlreadyApproved) {
+      return action('refresh_jules_status', 'ready', 'Refresh Jules Status',
+        'The operator approval was sent to Jules. Refresh the session state before deciding whether Jules is running, waiting for feedback, completed, or ready for PR review.',
+        links.refreshStatus,
+        'POST',
+        ['Refresh Jules status.', 'Confirm the dashboard moved past the approved plan gate.', 'Use the next visible boundary after the refreshed state is captured.'],
+        {
+          // A successful approval receipt means the next safe dashboard action
+          // is state reconciliation, not another approval attempt. This keeps
+          // operators from repeatedly sending the same mutating Jules approval
+          // just because Symphony still has an old cached Jules state.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
+          latest_plan_approval: latestPlanApproval,
+        });
+    }
+
     if (handoff.julesState === 'AWAITING_PLAN_APPROVAL') {
       return action('approve_jules_plan', 'ready', 'Approve Jules Plan',
         'Jules is waiting for the operator to approve its proposed plan before it continues.',
