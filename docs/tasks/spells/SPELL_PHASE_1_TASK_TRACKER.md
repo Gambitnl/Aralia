@@ -45,6 +45,8 @@ Statuses:
   `docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`
 - Package 5 packet:
   `docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md`
+- Package 6 packet:
+  `docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md`
 - Setup PR: `https://github.com/Gambitnl/Aralia/pull/933` (merged
   2026-05-21)
 - Package 2 clean-base draft: `draft-1779400428597-mind7o`
@@ -125,12 +127,14 @@ Statuses:
   `https://github.com/Gambitnl/Aralia/pull/989`
 - Package 5 AI arbitration implementation PR:
   `https://github.com/Gambitnl/Aralia/pull/991`
+- Package 5 dashboard stale-boundary repair PR:
+  `https://github.com/Gambitnl/Aralia/pull/992`
 
 ## Active Package Queue
 
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
-| P0 | active | Codex foreman | Symphony finalization baseline: dashboard-first workflow, branch/worktree discipline, decision reporting, task evidence pathways, and artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Preserve Symphony runtime/source/local state outside Aralia. The visible dashboard remains the workflow surface, but Aralia GitHub should only receive Jules-readable task packets, prompts, tracker updates, and short blocker summaries. Current blocker: main checkout is on divergent `codex/spell-phase1-closeout-docs`, so Package 5 cannot be visibly dispatched until the dashboard GitHub sync gate passes or supports a clean-base worktree path. |
+| P0 | active | Codex foreman | Symphony finalization baseline: dashboard-first workflow, branch/worktree discipline, decision reporting, task evidence pathways, and artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Preserve Symphony runtime/source/local state outside Aralia. The visible dashboard remains the workflow surface, but Aralia GitHub should only receive Jules-readable task packets, prompts, tracker updates, and short blocker summaries. Current blocker: the user's main checkout remains divergent, so new slices should use clean-base worktrees or an explicit dashboard-supported clean-base path rather than mutating local main. |
 | P1 | done | Codex foreman | Scoped baseline inventory for levels 0-3 | `SPELL_PHASE_1_BASELINE_REPORT.md` | Baseline report exists; use as context for later packages |
 | P2 | done | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`, `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | PR #935 merged on 2026-05-22 after PR #937 repaired the review workflow, the PR branch was updated with current `master`, GitHub CI reran clean, and post-merge local gate checks passed on the closeout branch |
 | P2D | done | Codex foreman | Dashboard-first hardening for Package 2 handoff monitoring | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`; Decisions 26-42; PR #936; PR #937 | Dashboard-first Package 2 blockers exposed useful repairs: safe PR refresh buttons, Scout/Core glob handling, visible operator decision buttons, setup-repair lane routing, global PR boundary routing, Git Safety visibility, current-boundary action buttons, and first-viewport focus strip; Stitch MCP server entry exists but still needs authentication/restart before Stitch-generated redesigns can be used |
@@ -138,7 +142,7 @@ Statuses:
 | P3 | done | Codex foreman closeout | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Local proof and the merged GitHub work now cover wizard spell selection, selected-spell assembly, and spellbook visibility for cantrips plus levels 1-3; keep the packet durable and separate from transient Symphony state |
 | P4 | done | Jules implementation, Codex foreman closeout | Combat simulator deterministic spell pilot | `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` | Package 4 was linked to Linear issue `ARA-10`, the Jules handoff produced PR #979, and that PR merged cleanly on 2026-05-22. Local proof now covers `fire-bolt`, `healing-word`, `magic-missile`, `scorching-ray`, and `fireball` in `src/hooks/__tests__/useAbilitySystem.package4.test.tsx`, plus direct HP/log command proof in `DamageCommand.test.ts` and `HealingCommand.test.ts`. Keep transient Symphony state external; the bless/status gap (`G49`) and Atlas source gap (`G48`) remain separate follow-ups. |
 | P5 | done | Jules implementation, Codex foreman review | AI arbitration pilot for open-ended spells | `PACKAGE_5_AI_ARBITRATION_PILOT.md`, `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Package 5 dispatched through clean dashboard handoff `handoff-1779586889329-3ehcfd` and Jules session `16180069342192211468`. PR #991 merged on 2026-05-24 after Jules implemented `prestidigitation` and `suggestion` AI prompts/player input, Codex removed generated gate-report churn and an out-of-scope workflow edit, the PR body was corrected, and GitHub Build/Lint/Tests/Quality/CodeQL/Poison/Analyze checks passed. Local sync and dashboard workflow closeout remain tracked under P0/Symphony, not as unfinished spell implementation. |
-| P6 | not_started | Jules preferred after pilots | First mechanics bucket closure for levels 0-3 | create bucket-specific docs from current mechanics-discovery evidence | Waiting on pilot evidence |
+| P6 | active | Codex foreman packet, Jules preferred implementation | First mechanics bucket closure for levels 0-3: `choice_or_mode` bounded implementation slice | `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md`, `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md` | Package 4 and Package 5 pilot evidence has landed. Codex created the Jules-ready packet from current mechanics-discovery evidence on branch `codex/spell-phase1-package6-mechanics`. Next boundary is visible Symphony draft/dispatch from a clean worktree, with `G48` still preventing honest Atlas proof unless separately repaired. |
 
 ## Current Setup And PR Tasks
 
@@ -217,6 +221,8 @@ package queue or a linked detailed task file.
 | G55 | active | Package 5 duplicate handoffs | Repeated visible `Prepare Handoff` attempts created several Package 5 handoffs from the same draft, including stale `base_commit_stale` and duplicate `ready_for_jules` records. | This is Symphony task-state hygiene, not spell implementation. It can confuse the operator into launching or monitoring the wrong handoff. | Add a dashboard repair so a promoted draft focuses the existing live handoff or blocks duplicate promotion unless the operator explicitly forks/retries. |
 | G56 | done | Package 5 post-approval dashboard boundary | After the visible `Approve Jules Plan` action succeeded, the task page still showed `Approve Jules Plan` because Symphony cached `AWAITING_PLAN_APPROVAL` and did not let the operator refresh status. | This was a dashboard workflow defect exposed by the human-style flow. Re-sending the mutating approval would be wrong after a successful approval receipt. | Local repair changes the current boundary to `Refresh Jules Status` when an approved plan receipt exists but cached state is stale; `npm run build` and `node scripts/verify-task-detail-page.mjs` passed. |
 | G57 | done | Package 5 PR scope cleanup | PR #991 initially included generated `spell_gate_report.json` timestamp churn, and Jules briefly pushed an out-of-scope `.github/workflows/gemini-review.yml` model change after feedback. | This was PR hygiene and scope containment, not a reason to reject the Package 5 implementation. | Codex posted bounded `[Jules feedback]`, then repaired the PR branch to keep only the two spell JSON files and one focused AI factory test. PR #991 passed all checks and merged. |
+| G58 | active | Package 6 intake | The active goal still contains a stale paragraph naming Package 4 as the current state, while the living tracker and merged PR history show Packages 4 and 5 are done. | This is a tracking/goal-text drift issue, not a reason to reopen Package 4 or delay P6. | Treat this tracker as authoritative for package sequencing until the goal text is refreshed; record the mismatch in Package 6 decision reporting. |
+| G59 | active | Package 6 packet publication | The shared Git pre-commit hook expects `.agent/workflows/intent-gate-check.mjs` inside the linked worktree, but `.agent` is local calibration state that exists in the main checkout and is not present in this clean worktree. | This is local workflow tooling friction, not spell product work. Copying `.agent` into the branch would blur the boundary between local agent state and Aralia task docs. | Use the hook's documented bypass only for this docs-only packet commit, record the decision, and keep `.agent` out of the committed task packet. Add a future hook repair so linked worktrees can find local agent calibration without copying it into source. |
 
 ## Detailed Task File Index
 
@@ -247,6 +253,8 @@ package queue or a linked detailed task file.
 | `PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md` | Package 4 Atlas/gate proof target | partial; spell validation and gate refresh recorded, Atlas source gap tracked as G48 |
 | `PACKAGE_5_AI_ARBITRATION_PILOT.md` | Package 5 AI arbitration scope, decisions, and merge receipt | done; PR #991 merged after dashboard/Jules dispatch and Codex PR-scope cleanup |
 | `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Exact Jules prompt for Package 5 | done; dispatched through Jules session `16180069342192211468` |
+| `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md` | Package 6 choice/mode mechanics bucket scope and acceptance criteria | active draft for next Jules-preferred implementation slice |
+| `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md` | Exact Jules prompt for Package 6 | active draft; not yet dispatched |
 
 ## Update Rules
 

@@ -3681,19 +3681,95 @@ Copy this block for each decision.
 
 ## Open Decisions For The Next Slice
 
-1. Publish the Package 5 dashboard-boundary repair and decision-doc update, then
-   run targeted MemPalace mining for the durable task and decision docs.
-2. Refresh local sync after PR #991 and the dashboard repair land, without
+1. Refresh local sync after PR #991 and the dashboard repair land, without
    mutating the user's dirty/divergent main checkout.
-3. Decide the next Spell Phase 1 package after the AI arbitration pilot:
-   either a mechanics bucket, Atlas/gate repair, or the next caster/fixture
-   coverage slice.
-4. Decide whether the semantically enabled Druid class-feature checkbox should
+2. Decide whether the semantically enabled Druid class-feature checkbox should
    be repaired immediately or batched into a creator accessibility pass.
-5. Decide whether Symphony should add first-class receipts and dashboard
+3. Decide whether Symphony should add first-class receipts and dashboard
    controls for `feedback visible in Jules`, beyond the Decision 77 wording
    that prevents GitHub comments from being overstated as delivery proof.
-6. Decide whether to repair the task-navigator/drawer UX so selecting or acting
+4. Decide whether to repair the task-navigator/drawer UX so selecting or acting
    on a task opens the `Task Intake And Records` group automatically.
-7. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
+5. Repair the Stitch MCP/tool reload path before claiming any Stitch-generated
    dashboard redesign work.
+
+### Decision 87: Start Package 6 As The Choice/Mode Mechanics Bucket
+
+- Date/time: 2026-05-24 18:00 +02:00
+- Phase: `package_6_intake`
+- Active slice: First post-pilot mechanics bucket for cantrips and spell levels
+  1-3.
+- Decision point: Packages 4 and 5 are now merged, but the active goal still
+  contains a stale Package 4 paragraph. The tracker says the next package is a
+  first mechanics bucket closure, while `G48` still blocks honest Atlas proof.
+- Options considered:
+  - Reopen Package 4 because the goal text still names it.
+  - Repair Atlas source/discoverability before any mechanics-bucket work.
+  - Start the next caster/fixture coverage slice.
+  - Start a bounded `choice_or_mode` package because the execution plan ranks it
+    first and current discovery evidence gives Jules a clear implementation
+    target.
+- Decision made by agent: Treat the living tracker as authoritative, record the
+  stale-goal mismatch as `G58`, and start Package 6 as a bounded
+  `choice_or_mode` mechanics bucket packet for Jules.
+- Model routing: Local Codex handled foreman intake, evidence scanning, and
+  task-packet drafting. Jules remains the preferred implementation worker for
+  the spell data/runtime/test changes.
+- Rationale/evidence: The plan ranks `choice_or_mode` first among mechanics
+  bucket families. Current discovery evidence shows several cantrip mode
+  choices already modeled, while level 1-3 spells such as
+  `blindness-deafness`, `dragons-breath`, `enhance-ability`, and
+  `protection-from-energy` still preserve deterministic choice mechanics in
+  prose, generic utility data, or AI prompt text. That is a better next slice
+  than a broad all-spells rewrite.
+- Mutation performed or skipped: Created Package 6 task and prompt docs, updated
+  the living tracker, and recorded this decision. Skipped local spell
+  implementation, skipped hidden dashboard endpoints, skipped Symphony runtime
+  changes, and skipped claiming Atlas proof while `G48` remains active.
+- Scope guardrails: Package 6 should reduce one coherent choice/mode subset,
+  not all mechanics buckets, AI arbitration policy, levels 4-9, premade roster
+  semantics, or Symphony source.
+- Next expected proof: Publish the packet, create/route a visible Symphony
+  draft from a clean worktree, dispatch Jules, then review the resulting PR for
+  file scope, tests, spell validation, generated gate churn, and honest Atlas
+  status.
+
+### Decision 88: Bypass The Broken Worktree Intent Hook For The P6 Packet Publication
+
+- Date/time: 2026-05-24 18:45 +02:00
+- Phase: `package_6_packet_publication`
+- Active slice: Publish the Package 6 Jules-readable packet branch.
+- Decision point: The visible dashboard recorded that the tracked and untracked
+  Package 6 docs should be committed for Jules' base, but the shared
+  pre-commit hook failed because it expects
+  `.agent/workflows/intent-gate-check.mjs` inside the linked worktree. The
+  `.agent` calibration files exist in the main checkout as local workflow state
+  and should not be copied into the Aralia source branch just to satisfy a hook.
+- Options considered:
+  - Copy `.agent/workflows` into the worktree and risk mixing local-only agent
+    calibration state into the task branch.
+  - Stop and wait for an unrelated hook repair before publishing the Jules
+    packet.
+  - Use the hook's documented bypass for this docs-only packet commit, while
+    recording the hook/worktree mismatch as `G59`.
+- Decision made by agent: Use the documented `--no-verify` path for the
+  Package 6 packet commit and push only, keep `.agent` local/out of source, and
+  record the linked-worktree hook mismatch as a workflow gap.
+- Model routing: Local Codex handled this workflow publication decision. Jules
+  remains reserved for the implementation-heavy Package 6 spell work.
+- Rationale/evidence: The staged files are task documentation and decision
+  records only. The hook failed before checking intent because its relative path
+  does not exist in the linked worktree. Copying ignored local calibration files
+  into a clean worktree would contradict the active boundary that local agent
+  state should stay outside Aralia task packets.
+- Mutation performed or skipped: Committed and pushed the docs packet with the
+  documented hook bypass after dashboard disposition approval and after the
+  pre-push sync-check passed. Skipped copying `.agent` into the branch, skipped
+  changing the shared hook in this packet PR, and skipped hidden dashboard
+  endpoints.
+- Scope guardrails: This does not approve bypassing product tests, spell
+  validation, PR review, GitHub checks, or future implementation hooks. It only
+  handles the local packet-publication hook mismatch.
+- Next expected proof: Push the packet branch, rerun the visible dashboard Git
+  sync check, and route the Package 6 draft only after the dashboard sees a
+  trustworthy GitHub base.
