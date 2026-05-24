@@ -1,0 +1,17 @@
+{
+  "id": "three_quarters_cover",
+  "title": "Three-Quarters Cover",
+  "category": "Rules Glossary",
+  "tags": ["combat", "targeting", "terrain", "defense"],
+  "excerpt": "Three-quarters cover provides substantial protection when an obstacle screens at least three-quarters of a target's body.",
+  "aliases": [],
+  "seeAlso": [
+    "cover",
+    "half_cover",
+    "total_cover",
+    "attack_roll",
+    "dexterity"
+  ],
+  "filePath": "/data/glossary/entries/rules/three_quarters_cover.json",
+  "markdown": "# Three-Quarters Cover\n\nThree-quarters cover represents significant physical screening by an intervening obstacle. It offers substantial protection against direct attacks and spatial hazards, leaving only a small portion of the target exposed.\n\n## Environmental Context\n\nA target has three-quarters cover if an obstacle blocks at least three-quarters of its physical form from the source of an attack or effect. Examples include a portcullis, an arrow slit, a substantial boulder, or a thick castle wall screen.\n\n## Tactical Protection\n\n- provides a +5 bonus to [[armor_class|Armor Class (AC)]]\n- provides a +5 bonus to [[dexterity|Dexterity]] saving throws\n\n## Targeting Dynamics\n\nWhile the target remains visible and directly targetable, the narrow window of exposure makes landing a successful hit or affecting the target extremely challenging. It represents the final tier of partial exposure before transitioning into [[total_cover|Total Cover]].\n"
+}

@@ -21,9 +21,9 @@
     "spell_range_rules"
   ],
   "filePath": "/data/glossary/entries/rules/spells/spell_referenced_rules_enrichment.json",
-  "markdown": "# Spell Referenced Rules Enrichment\n\nThis glossary enrichment entry aggregates the `Referenced Rules` links copied from spell canonical snapshot blocks.\nIt is not runtime spell truth. It is a cross-link surface that shows which glossary/rules concepts are being cited by the canonical spell pages captured so far.\n\nTotal referenced rules captured: 33\nSuppressed raw references: 8\n\n## Attack Action\n\n- Description: Attack Action The most common [[action]] taken in combat is the Attack action.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Attack Rolls\n\n- Description: Attack Rolls An attack roll determines whether an attack hits a target.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Attunement\n\n- Description: Attunement Some magic items require a creature to form a bond called Attunement with them before the creature can use an item's magical properties.\n- Referenced By 2 Spell(s): Greater Restoration, Identify\n\n## Bonus Action\n\n- Description: Bonus Action Various class features, spells, and other abilities let you take an additional action on your turn called a bonus action.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Bright Light\n\n- Description: Bright Light Bright Light lets most creatures see normally.\n- Referenced By 13 Spell(s): Conjure Celestial, Continual Flame, Darkness, Daylight, Fire Shield, Flame Blade, Flaming Sphere, Hallow, Light, Prismatic Wall, Produce Flame, Shining Smite, Sunbeam\n\n## Concentration\n\n- Description: Concentration Some spells require you to maintain concentration in order to keep their magic active.\n- Referenced By 10 Spell(s): Dominate Beast, Dominate Monster, Dominate Person, Earthquake, Flesh to Stone, Glyph of Warding, Hex, Major Image, Sleet Storm, Wall of Stone\n\n## Cone\n\n- Description: No glossary description matched yet.\n- Referenced By 7 Spell(s): Burning Hands, Color Spray, Cone of Cold, Conjure Barrage, Dragon's Breath, Fear, Prismatic Spray\n\n## Cube\n\n- Description: No glossary description matched yet.\n- Referenced By 22 Spell(s): Cloud of Daggers, Control Water, Create or Destroy Water, Creation, Disintegrate, Fabricate, Faerie Fire, Fire Storm, Forcecage, Hallucinatory Terrain, Heroes' Feast, Hypnotic Pattern, Major Image, Minor Illusion, Mordenkainen's Magnificent Mansion, Mordenkainen's Private Sanctum, Phantasmal Force, Programmed Illusion, Silent Image, Slow, Thunderwave, Web\n\n## curse\n\n- Description: No glossary description matched yet.\n- Referenced By 3 Spell(s): Hex, Remove Curse, True Resurrection\n\n## Cylinder\n\n- Description: No glossary description matched yet.\n- Referenced By 8 Spell(s): Call Lightning, Conjure Celestial, Flame Strike, Ice Storm, Magic Circle, Moonbeam, Reverse Gravity, Sleet Storm\n\n## D20 Tests\n\n- Description: D20 Tests When the outcome of an action is uncertain, the game uses a d20 roll to determine success or failure.\n- Referenced By 3 Spell(s): Foresight, Ray of Enfeeblement, Resurrection\n\n## Darkness\n\n- Description: Darkness Darkness creates a Heavily Obscured area .\n- Referenced By 6 Spell(s): Darkness, Daylight, Hallow, Hunger of Hadar, Leomund's Tiny Hut, Sunburst\n\n## Difficult Terrain\n\n- Description: No glossary description matched yet.\n- Referenced By 17 Spell(s): Blade Barrier, Conjure Minor Elementals, Earthquake, Entangle, Evard's Black Tentacles, Freedom of Movement, Grease, Guardian Of Nature, Hunger of Hadar, Ice Storm, Insect Plague, Mirage Arcane, Sleet Storm, Speak with Plants, Spike Growth, Storm of Vengeance, Web\n\n## Dim Light\n\n- Description: Dim Light Dim Light, also called shadows, creates a Lightly Obscured area .\n- Referenced By 15 Spell(s): Continual Flame, Darkness, Daylight, Faerie Fire, Fire Shield, Flame Blade, Flaming Sphere, Leomund's Tiny Hut, Light, Moonbeam, Prismatic Wall, Produce Flame, Starry Wisp, Sunbeam, Symbol\n\n## Emanation\n\n- Description: No glossary description matched yet.\n- Referenced By 18 Spell(s): Antilife Shell, Antimagic Field, Arms of Hadar, Aura of Vitality, Conjure Minor Elementals, Conjure Woodland Beings, Crusader's Mantle, Darkness, Daylight, Destructive Wave, Globe of Invulnerability, Holy Aura, Leomund's Tiny Hut, Pass without Trace, Speak with Plants, Spirit Guardians, Thunderclap, Word of Radiance\n\n## Friendly\n\n- Description: No glossary description matched yet.\n- Referenced By 4 Spell(s): Charm Monster, Charm Person, Simulacrum, True Polymorph\n\n## Half Cover\n\n- Description: No glossary description matched yet.\n- Referenced By 1 Spell(s): Sacred Flame\n\n## Heavily Obscured\n\n- Description: No glossary description matched yet.\n- Referenced By 9 Spell(s): Cloudkill, Druid Grove, Fog Cloud, Guards and Wards, Incendiary Cloud, Shadow Of Moil, Sleet Storm, Stinking Cloud, Storm of Vengeance\n\n## Hostile\n\n- Description: No glossary description matched yet.\n- Referenced By 2 Spell(s): Calm Emotions, Glyph of Warding\n\n## Indifferent\n\n- Description: No glossary description matched yet.\n- Referenced By 1 Spell(s): Calm Emotions\n\n## Lightly Obscured\n\n- Description: No glossary description matched yet.\n- Referenced By 2 Spell(s): Insect Plague, Web\n\n## Line\n\n- Description: No glossary description matched yet.\n- Referenced By 3 Spell(s): Gust of Wind, Lightning Bolt, Sunbeam\n\n## Passive Perception\n\n- Description: No glossary description matched yet.\n- Referenced By 1 Spell(s): Enthrall\n\n## possessed\n\n- Description: No glossary description matched yet.\n- Referenced By 4 Spell(s): Hallow, Magic Circle, Magic Jar, Protection from Evil and Good\n\n## Shape-Shifting\n\n- Description: No glossary description matched yet.\n- Referenced By 6 Spell(s): Animal Shapes, Gaseous Form, Moonbeam, Polymorph, Shapechange, True Polymorph\n\n## Spell Duration Rules\n\n- Description: Spell Duration Rules A spell's duration is the length of time the spell persists after it is cast.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Spell Effects (Targets, Saves, Attacks)\n\n- Description: Spell Effects (Targets, Saves, Attacks) The effects of a spell are detailed after its duration entry.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Spell Range Rules\n\n- Description: Spell Range Rules A spell's range indicates how far from the spellcaster the spell's effect can originate, and the spell's description specifies which part of the effect is limited by the range.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Sphere\n\n- Description: A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere. A Sphere's point of origin is included in the Sphere's area of effect.\n- Referenced By 28 Spell(s): Acid Splash, Calm Emotions, Circle of Death, Cloudkill, Confusion, Darkness, Daylight, Delayed Blast Fireball, Fireball, Fog Cloud, Glyph of Warding, Hunger of Hadar, Incendiary Cloud, Insect Plague, Meteor Swarm, Otiluke's Freezing Sphere, Plant Growth, Purify Food and Drink, Shatter, Silence, Sleep, Spike Growth, Stinking Cloud, Sunburst, Symbol, Vitriolic Sphere, Weird, Zone of Truth\n\n## Stable\n\n- Description: No glossary description matched yet.\n- Referenced By 1 Spell(s): Spare the Dying\n\n## Temporary Hit Points\n\n- Description: Temporary Hit Points Some spells and special abilities confer temporary hit points to a creature.\n- Referenced By 8 Spell(s): Animal Shapes, Armor of Agathys, False Life, Guardian Of Nature, Heroism, Polymorph, Shapechange, True Polymorph\n\n## Three-Quarters Cover\n\n- Description: No glossary description matched yet.\n- Referenced By 2 Spell(s): Blade Barrier, Sacred Flame\n\n## Total Cover\n\n- Description: No glossary description matched yet.\n- Referenced By 3 Spell(s): Draconic Transformation, Enervation, Witch Bolt\n\n## Suppressed Raw References\n\nThese labels were captured from canonical spell pages but are currently treated as too incidental or too low-value to expose as standalone glossary rule entries.\n\n### burning\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 7 Spell(s): Burning Hands, Delayed Blast Fireball, Fire Bolt, Fire Storm, Fireball, Flaming Sphere, Meteor Swarm\n\n### damage\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n\n### dead\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Spare the Dying\n\n### dehydration\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Create Food and Water\n\n### force\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n\n### malnutrition\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Create Food and Water\n\n### move\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n\n### turns\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n",
+  "markdown": "# Spell Referenced Rules Enrichment\n\nThis glossary enrichment entry aggregates the `Referenced Rules` links copied from spell canonical snapshot blocks.\nIt is not runtime spell truth. It is a cross-link surface that shows which glossary/rules concepts are being cited by the canonical spell pages captured so far.\n\nTotal referenced rules captured: 33\nSuppressed raw references: 8\n\n## Attack Action\n\n- Description: Attack Action The most common [[action]] taken in combat is the Attack action.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Attack Rolls\n\n- Description: Attack Rolls An attack roll determines whether an attack hits a target.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Attunement\n\n- Description: Attunement Attunement is a bond between a creature and a magic item.\n- Referenced By 2 Spell(s): Greater Restoration, Identify\n\n## Bonus Action\n\n- Description: Bonus Action Various class features, spells, and other abilities let you take an additional action on your turn called a bonus action.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Bright Light\n\n- Description: Bright Light Bright Light lets most creatures see normally.\n- Referenced By 13 Spell(s): Conjure Celestial, Continual Flame, Darkness, Daylight, Fire Shield, Flame Blade, Flaming Sphere, Hallow, Light, Prismatic Wall, Produce Flame, Shining Smite, Sunbeam\n\n## Concentration\n\n- Description: Concentration Some spells require you to maintain concentration in order to keep their magic active.\n- Referenced By 10 Spell(s): Dominate Beast, Dominate Monster, Dominate Person, Earthquake, Flesh to Stone, Glyph of Warding, Hex, Major Image, Sleet Storm, Wall of Stone\n\n## Cone\n\n- Description: Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.\n- Referenced By 7 Spell(s): Burning Hands, Color Spray, Cone of Cold, Conjure Barrage, Dragon's Breath, Fear, Prismatic Spray\n\n## Cube\n\n- Description: Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.\n- Referenced By 22 Spell(s): Cloud of Daggers, Control Water, Create or Destroy Water, Creation, Disintegrate, Fabricate, Faerie Fire, Fire Storm, Forcecage, Hallucinatory Terrain, Heroes' Feast, Hypnotic Pattern, Major Image, Minor Illusion, Mordenkainen's Magnificent Mansion, Mordenkainen's Private Sanctum, Phantasmal Force, Programmed Illusion, Silent Image, Slow, Thunderwave, Web\n\n## Curse\n\n- Description: Curse A curse is a harmful effect attached to a creature, object, place, or ongoing state.\n- Referenced By 3 Spell(s): Hex, Remove Curse, True Resurrection\n\n## Cylinder\n\n- Description: Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.\n- Referenced By 8 Spell(s): Call Lightning, Conjure Celestial, Flame Strike, Ice Storm, Magic Circle, Moonbeam, Reverse Gravity, Sleet Storm\n\n## D20 Tests\n\n- Description: D20 Tests When the outcome of an action is uncertain, the game uses a d20 roll to determine success or failure.\n- Referenced By 3 Spell(s): Foresight, Ray of Enfeeblement, Resurrection\n\n## Darkness\n\n- Description: Darkness Darkness creates a Heavily Obscured area .\n- Referenced By 6 Spell(s): Darkness, Daylight, Hallow, Hunger of Hadar, Leomund's Tiny Hut, Sunburst\n\n## Difficult Terrain\n\n- Description: Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.\n- Referenced By 17 Spell(s): Blade Barrier, Conjure Minor Elementals, Earthquake, Entangle, Evard's Black Tentacles, Freedom of Movement, Grease, Guardian of Nature, Hunger of Hadar, Ice Storm, Insect Plague, Mirage Arcane, Sleet Storm, Speak with Plants, Spike Growth, Storm of Vengeance, Web\n\n## Dim Light\n\n- Description: Dim Light Dim Light, also called shadows, creates a Lightly Obscured area .\n- Referenced By 15 Spell(s): Continual Flame, Darkness, Daylight, Faerie Fire, Fire Shield, Flame Blade, Flaming Sphere, Leomund's Tiny Hut, Light, Moonbeam, Prismatic Wall, Produce Flame, Starry Wisp, Sunbeam, Symbol\n\n## Emanation\n\n- Description: Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.\n- Referenced By 18 Spell(s): Antilife Shell, Antimagic Field, Arms of Hadar, Aura of Vitality, Conjure Minor Elementals, Conjure Woodland Beings, Crusader's Mantle, Darkness, Daylight, Destructive Wave, Globe of Invulnerability, Holy Aura, Leomund's Tiny Hut, Pass without Trace, Speak with Plants, Spirit Guardians, Thunderclap, Word of Radiance\n\n## Friendly\n\n- Description: Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.\n- Referenced By 4 Spell(s): Charm Monster, Charm Person, Simulacrum, True Polymorph\n\n## Half Cover\n\n- Description: Half Cover Half cover represents partial physical screening by an intervening object, creature, or obstacle.\n- Referenced By 1 Spell(s): Sacred Flame\n\n## Heavily Obscured\n\n- Description: Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.\n- Referenced By 9 Spell(s): Cloudkill, Druid Grove, Fog Cloud, Guards and Wards, Incendiary Cloud, Shadow of Moil, Sleet Storm, Stinking Cloud, Storm of Vengeance\n\n## Hostile\n\n- Description: Hostile A hostile attitude describes a creature that currently opposes another creature and is disposed against that creature's interests.\n- Referenced By 2 Spell(s): Calm Emotions, Glyph of Warding\n\n## Indifferent\n\n- Description: Indifferent An indifferent attitude describes a creature that currently has no strong favorable or hostile investment in another creature's outcome.\n- Referenced By 1 Spell(s): Calm Emotions\n\n## Lightly Obscured\n\n- Description: Lightly Obscured A lightly obscured area interferes with sight enough to reduce clarity without fully shutting vision down.\n- Referenced By 2 Spell(s): Insect Plague, Web\n\n## Line\n\n- Description: Line A line is a three dimensional area of effect that extends in a straight path from a point of origin.\n- Referenced By 3 Spell(s): Gust of Wind, Lightning Bolt, Sunbeam\n\n## Passive Perception\n\n- Description: Passive Perception Passive Perception is a creature's ongoing background awareness when it is not spending time or an action on deliberate searching.\n- Referenced By 1 Spell(s): Enthrall\n\n## Possessed\n\n- Description: Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.\n- Referenced By 4 Spell(s): Hallow, Magic Circle, Magic Jar, Protection from Evil and Good\n\n## Shape-Shifting\n\n- Description: Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.\n- Referenced By 6 Spell(s): Animal Shapes, Gaseous Form, Moonbeam, Polymorph, Shapechange, True Polymorph\n\n## Spell Duration Rules\n\n- Description: Spell Duration Rules A spell's duration is the length of time the spell persists after it is cast.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Spell Effects (Targets, Saves, Attacks)\n\n- Description: Spell Effects (Targets, Saves, Attacks) The effects of a spell are detailed after its duration entry.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Spell Range Rules\n\n- Description: Spell Range Rules A spell's range indicates how far from the spellcaster the spell's effect can originate, and the spell's description specifies which part of the effect is limited by the range.\n- Referenced By 1 Spell(s): Arcane Sword\n\n## Sphere\n\n- Description: A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere. A Sphere's point of origin is included in the Sphere's area of effect.\n- Referenced By 28 Spell(s): Acid Splash, Calm Emotions, Circle of Death, Cloudkill, Confusion, Darkness, Daylight, Delayed Blast Fireball, Fireball, Fog Cloud, Glyph of Warding, Hunger of Hadar, Incendiary Cloud, Insect Plague, Meteor Swarm, Otiluke's Freezing Sphere, Plant Growth, Purify Food and Drink, Shatter, Silence, Sleep, Spike Growth, Stinking Cloud, Sunburst, Symbol, Vitriolic Sphere, Weird, Zone of Truth\n\n## Stable\n\n- Description: Stable A stable creature at 0 hit points is no longer in the immediate death save crisis caused by that collapse.\n- Referenced By 1 Spell(s): Spare the Dying\n\n## Temporary Hit Points\n\n- Description: Temporary Hit Points Some spells and special abilities confer temporary hit points to a creature.\n- Referenced By 8 Spell(s): Animal Shapes, Armor of Agathys, False Life, Guardian of Nature, Heroism, Polymorph, Shapechange, True Polymorph\n\n## Three-Quarters Cover\n\n- Description: Three Quarters Cover Three quarters cover represents significant physical screening by an intervening obstacle.\n- Referenced By 2 Spell(s): Blade Barrier, Sacred Flame\n\n## Total Cover\n\n- Description: Total Cover Total cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target.\n- Referenced By 3 Spell(s): Draconic Transformation, Enervation, Witch Bolt\n\n## Suppressed Raw References\n\nThese labels were captured from canonical spell pages but are currently treated as too incidental or too low-value to expose as standalone glossary rule entries.\n\n### burning\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 7 Spell(s): Burning Hands, Delayed Blast Fireball, Fire Bolt, Fire Storm, Fireball, Flaming Sphere, Meteor Swarm\n\n### damage\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n\n### dead\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Spare the Dying\n\n### dehydration\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Create Food and Water\n\n### force\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n\n### malnutrition\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Create Food and Water\n\n### move\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n\n### turns\n\n- Reason: Captured canonical tooltip is too low-value or too incidental to promote into the glossary rule surface as a standalone entry.\n- Captured From 1 Spell(s): Arcane Sword\n",
   "enrichmentDataset": {
-    "generatedAt": "2026-03-30T14:40:44.814Z",
+    "generatedAt": "2026-05-24T16:15:38.158Z",
     "totalRules": 33,
     "totalSpellsWithReferencedRules": 141,
     "totalSuppressedRawReferences": 8,
@@ -63,9 +63,9 @@
       {
         "id": "attunement",
         "label": "Attunement",
-        "description": "Attunement Some magic items require a creature to form a bond called Attunement with them before the creature can use an item's magical properties.",
+        "description": "Attunement Attunement is a bond between a creature and a magic item.",
         "glossaryTermId": "attunement",
-        "glossaryFilePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json",
+        "glossaryFilePath": "/data/glossary/entries/rules/attunement.json",
         "glossarySource": "existing",
         "spells": [
           {
@@ -259,10 +259,10 @@
       {
         "id": "cone",
         "label": "Cone",
-        "description": "",
+        "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
         "glossaryTermId": "cone_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/cone_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/cone_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "burning-hands",
@@ -311,10 +311,10 @@
       {
         "id": "cube",
         "label": "Cube",
-        "description": "",
+        "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
         "glossaryTermId": "cube_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/cube_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/cube_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "cloud-of-daggers",
@@ -452,11 +452,11 @@
       },
       {
         "id": "curse",
-        "label": "curse",
-        "description": "",
+        "label": "Curse",
+        "description": "Curse A curse is a harmful effect attached to a creature, object, place, or ongoing state.",
         "glossaryTermId": "curse",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/curse.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/curse.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "hex",
@@ -481,10 +481,10 @@
       {
         "id": "cylinder",
         "label": "Cylinder",
-        "description": "",
+        "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
         "glossaryTermId": "cylinder_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/cylinder_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/cylinder_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "call-lightning",
@@ -613,10 +613,10 @@
       {
         "id": "difficult_terrain",
         "label": "Difficult Terrain",
-        "description": "",
+        "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
         "glossaryTermId": "difficult_terrain",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/difficult_terrain.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/difficult_terrain.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "blade-barrier",
@@ -662,7 +662,7 @@
           },
           {
             "spellId": "guardian-of-nature",
-            "spellName": "Guardian Of Nature",
+            "spellName": "Guardian of Nature",
             "level": 4,
             "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\guardian-of-nature.md"
           },
@@ -825,10 +825,10 @@
       {
         "id": "emanation",
         "label": "Emanation",
-        "description": "",
+        "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
         "glossaryTermId": "emanation_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/emanation_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/emanation_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "antilife-shell",
@@ -943,10 +943,10 @@
       {
         "id": "friendly",
         "label": "Friendly",
-        "description": "",
+        "description": "Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.",
         "glossaryTermId": "friendly_attitude",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/friendly_attitude.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/friendly_attitude.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "charm-monster",
@@ -977,10 +977,10 @@
       {
         "id": "half_cover",
         "label": "Half Cover",
-        "description": "",
+        "description": "Half Cover Half cover represents partial physical screening by an intervening object, creature, or obstacle.",
         "glossaryTermId": "half_cover",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/half_cover.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/half_cover.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "sacred-flame",
@@ -993,10 +993,10 @@
       {
         "id": "heavily_obscured",
         "label": "Heavily Obscured",
-        "description": "",
+        "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
         "glossaryTermId": "heavily_obscured",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/heavily_obscured.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/heavily_obscured.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "cloudkill",
@@ -1030,7 +1030,7 @@
           },
           {
             "spellId": "shadow-of-moil",
-            "spellName": "Shadow Of Moil",
+            "spellName": "Shadow of Moil",
             "level": 4,
             "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\shadow-of-moil.md"
           },
@@ -1057,10 +1057,10 @@
       {
         "id": "hostile",
         "label": "Hostile",
-        "description": "",
+        "description": "Hostile A hostile attitude describes a creature that currently opposes another creature and is disposed against that creature's interests.",
         "glossaryTermId": "hostile_attitude",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/hostile_attitude.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/hostile_attitude.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "calm-emotions",
@@ -1079,10 +1079,10 @@
       {
         "id": "indifferent",
         "label": "Indifferent",
-        "description": "",
+        "description": "Indifferent An indifferent attitude describes a creature that currently has no strong favorable or hostile investment in another creature's outcome.",
         "glossaryTermId": "indifferent_attitude",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/indifferent_attitude.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/indifferent_attitude.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "calm-emotions",
@@ -1095,10 +1095,10 @@
       {
         "id": "lightly_obscured",
         "label": "Lightly Obscured",
-        "description": "",
+        "description": "Lightly Obscured A lightly obscured area interferes with sight enough to reduce clarity without fully shutting vision down.",
         "glossaryTermId": "lightly_obscured",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/lightly_obscured.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/lightly_obscured.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "insect-plague",
@@ -1117,10 +1117,10 @@
       {
         "id": "line",
         "label": "Line",
-        "description": "",
+        "description": "Line A line is a three dimensional area of effect that extends in a straight path from a point of origin.",
         "glossaryTermId": "line_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/line_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/line_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "gust-of-wind",
@@ -1145,10 +1145,10 @@
       {
         "id": "passive_perception",
         "label": "Passive Perception",
-        "description": "",
+        "description": "Passive Perception Passive Perception is a creature's ongoing background awareness when it is not spending time or an action on deliberate searching.",
         "glossaryTermId": "passive_perception",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/passive_perception.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/passive_perception.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "enthrall",
@@ -1160,11 +1160,11 @@
       },
       {
         "id": "possessed",
-        "label": "possessed",
-        "description": "",
+        "label": "Possessed",
+        "description": "Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.",
         "glossaryTermId": "possessed",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/possessed.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/possessed.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "hallow",
@@ -1195,10 +1195,10 @@
       {
         "id": "shape_shifting",
         "label": "Shape-Shifting",
-        "description": "",
+        "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
         "glossaryTermId": "shape_shift",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/shape_shift.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/shape_shift.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "animal-shapes",
@@ -1467,10 +1467,10 @@
       {
         "id": "stable",
         "label": "Stable",
-        "description": "",
+        "description": "Stable A stable creature at 0 hit points is no longer in the immediate death save crisis caused by that collapse.",
         "glossaryTermId": "stable",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/stable.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/stable.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "spare-the-dying",
@@ -1508,7 +1508,7 @@
           },
           {
             "spellId": "guardian-of-nature",
-            "spellName": "Guardian Of Nature",
+            "spellName": "Guardian of Nature",
             "level": 4,
             "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\guardian-of-nature.md"
           },
@@ -1541,10 +1541,10 @@
       {
         "id": "three_quarters_cover",
         "label": "Three-Quarters Cover",
-        "description": "",
+        "description": "Three Quarters Cover Three quarters cover represents significant physical screening by an intervening obstacle.",
         "glossaryTermId": "three_quarters_cover",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/three_quarters_cover.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/three_quarters_cover.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "blade-barrier",
@@ -1563,10 +1563,10 @@
       {
         "id": "total_cover",
         "label": "Total Cover",
-        "description": "",
+        "description": "Total Cover Total cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target.",
         "glossaryTermId": "total_cover",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/total_cover.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/total_cover.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "draconic-transformation",
@@ -1767,9 +1767,9 @@
       "attunement": {
         "id": "attunement",
         "label": "Attunement",
-        "description": "Attunement Some magic items require a creature to form a bond called Attunement with them before the creature can use an item's magical properties.",
+        "description": "Attunement Attunement is a bond between a creature and a magic item.",
         "glossaryTermId": "attunement",
-        "glossaryFilePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json",
+        "glossaryFilePath": "/data/glossary/entries/rules/attunement.json",
         "glossarySource": "existing",
         "spells": [
           {
@@ -1963,10 +1963,10 @@
       "cone_area": {
         "id": "cone",
         "label": "Cone",
-        "description": "",
+        "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
         "glossaryTermId": "cone_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/cone_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/cone_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "burning-hands",
@@ -2015,10 +2015,10 @@
       "cube_area": {
         "id": "cube",
         "label": "Cube",
-        "description": "",
+        "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
         "glossaryTermId": "cube_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/cube_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/cube_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "cloud-of-daggers",
@@ -2156,11 +2156,11 @@
       },
       "curse": {
         "id": "curse",
-        "label": "curse",
-        "description": "",
+        "label": "Curse",
+        "description": "Curse A curse is a harmful effect attached to a creature, object, place, or ongoing state.",
         "glossaryTermId": "curse",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/curse.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/curse.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "hex",
@@ -2185,10 +2185,10 @@
       "cylinder_area": {
         "id": "cylinder",
         "label": "Cylinder",
-        "description": "",
+        "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
         "glossaryTermId": "cylinder_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/cylinder_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/cylinder_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "call-lightning",
@@ -2317,10 +2317,10 @@
       "difficult_terrain": {
         "id": "difficult_terrain",
         "label": "Difficult Terrain",
-        "description": "",
+        "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
         "glossaryTermId": "difficult_terrain",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/difficult_terrain.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/difficult_terrain.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "blade-barrier",
@@ -2366,7 +2366,7 @@
           },
           {
             "spellId": "guardian-of-nature",
-            "spellName": "Guardian Of Nature",
+            "spellName": "Guardian of Nature",
             "level": 4,
             "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\guardian-of-nature.md"
           },
@@ -2529,10 +2529,10 @@
       "emanation_area": {
         "id": "emanation",
         "label": "Emanation",
-        "description": "",
+        "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
         "glossaryTermId": "emanation_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/emanation_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/emanation_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "antilife-shell",
@@ -2647,10 +2647,10 @@
       "friendly_attitude": {
         "id": "friendly",
         "label": "Friendly",
-        "description": "",
+        "description": "Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.",
         "glossaryTermId": "friendly_attitude",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/friendly_attitude.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/friendly_attitude.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "charm-monster",
@@ -2681,10 +2681,10 @@
       "half_cover": {
         "id": "half_cover",
         "label": "Half Cover",
-        "description": "",
+        "description": "Half Cover Half cover represents partial physical screening by an intervening object, creature, or obstacle.",
         "glossaryTermId": "half_cover",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/half_cover.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/half_cover.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "sacred-flame",
@@ -2697,10 +2697,10 @@
       "heavily_obscured": {
         "id": "heavily_obscured",
         "label": "Heavily Obscured",
-        "description": "",
+        "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
         "glossaryTermId": "heavily_obscured",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/heavily_obscured.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/heavily_obscured.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "cloudkill",
@@ -2734,7 +2734,7 @@
           },
           {
             "spellId": "shadow-of-moil",
-            "spellName": "Shadow Of Moil",
+            "spellName": "Shadow of Moil",
             "level": 4,
             "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\shadow-of-moil.md"
           },
@@ -2761,10 +2761,10 @@
       "hostile_attitude": {
         "id": "hostile",
         "label": "Hostile",
-        "description": "",
+        "description": "Hostile A hostile attitude describes a creature that currently opposes another creature and is disposed against that creature's interests.",
         "glossaryTermId": "hostile_attitude",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/hostile_attitude.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/hostile_attitude.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "calm-emotions",
@@ -2783,10 +2783,10 @@
       "indifferent_attitude": {
         "id": "indifferent",
         "label": "Indifferent",
-        "description": "",
+        "description": "Indifferent An indifferent attitude describes a creature that currently has no strong favorable or hostile investment in another creature's outcome.",
         "glossaryTermId": "indifferent_attitude",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/indifferent_attitude.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/indifferent_attitude.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "calm-emotions",
@@ -2799,10 +2799,10 @@
       "lightly_obscured": {
         "id": "lightly_obscured",
         "label": "Lightly Obscured",
-        "description": "",
+        "description": "Lightly Obscured A lightly obscured area interferes with sight enough to reduce clarity without fully shutting vision down.",
         "glossaryTermId": "lightly_obscured",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/lightly_obscured.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/lightly_obscured.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "insect-plague",
@@ -2821,10 +2821,10 @@
       "line_area": {
         "id": "line",
         "label": "Line",
-        "description": "",
+        "description": "Line A line is a three dimensional area of effect that extends in a straight path from a point of origin.",
         "glossaryTermId": "line_area",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/line_area.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/line_area.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "gust-of-wind",
@@ -2849,10 +2849,10 @@
       "passive_perception": {
         "id": "passive_perception",
         "label": "Passive Perception",
-        "description": "",
+        "description": "Passive Perception Passive Perception is a creature's ongoing background awareness when it is not spending time or an action on deliberate searching.",
         "glossaryTermId": "passive_perception",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/passive_perception.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/passive_perception.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "enthrall",
@@ -2864,11 +2864,11 @@
       },
       "possessed": {
         "id": "possessed",
-        "label": "possessed",
-        "description": "",
+        "label": "Possessed",
+        "description": "Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.",
         "glossaryTermId": "possessed",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/possessed.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/possessed.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "hallow",
@@ -2899,10 +2899,10 @@
       "shape_shift": {
         "id": "shape_shifting",
         "label": "Shape-Shifting",
-        "description": "",
+        "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
         "glossaryTermId": "shape_shift",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/shape_shift.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/shape_shift.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "animal-shapes",
@@ -3171,10 +3171,10 @@
       "stable": {
         "id": "stable",
         "label": "Stable",
-        "description": "",
+        "description": "Stable A stable creature at 0 hit points is no longer in the immediate death save crisis caused by that collapse.",
         "glossaryTermId": "stable",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/stable.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/stable.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "spare-the-dying",
@@ -3212,7 +3212,7 @@
           },
           {
             "spellId": "guardian-of-nature",
-            "spellName": "Guardian Of Nature",
+            "spellName": "Guardian of Nature",
             "level": 4,
             "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\guardian-of-nature.md"
           },
@@ -3245,10 +3245,10 @@
       "three_quarters_cover": {
         "id": "three_quarters_cover",
         "label": "Three-Quarters Cover",
-        "description": "",
+        "description": "Three Quarters Cover Three quarters cover represents significant physical screening by an intervening obstacle.",
         "glossaryTermId": "three_quarters_cover",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/three_quarters_cover.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/three_quarters_cover.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "blade-barrier",
@@ -3267,10 +3267,10 @@
       "total_cover": {
         "id": "total_cover",
         "label": "Total Cover",
-        "description": "",
+        "description": "Total Cover Total cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target.",
         "glossaryTermId": "total_cover",
-        "glossaryFilePath": "/data/glossary/entries/rules/spells/referenced/total_cover.json",
-        "glossarySource": "generated",
+        "glossaryFilePath": "/data/glossary/entries/rules/total_cover.json",
+        "glossarySource": "existing",
         "spells": [
           {
             "spellId": "draconic-transformation",
@@ -3368,7 +3368,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -3419,12 +3419,12 @@
         "referencedRules": [
           {
             "label": "Half Cover",
-            "description": "",
+            "description": "Half Cover Half cover represents partial physical screening by an intervening object, creature, or obstacle.",
             "glossaryTermId": "half_cover"
           },
           {
             "label": "Three-Quarters Cover",
-            "description": "",
+            "description": "Three Quarters Cover Three quarters cover represents significant physical screening by an intervening obstacle.",
             "glossaryTermId": "three_quarters_cover"
           }
         ]
@@ -3447,7 +3447,7 @@
         "referencedRules": [
           {
             "label": "Stable",
-            "description": "",
+            "description": "Stable A stable creature at 0 hit points is no longer in the immediate death save crisis caused by that collapse.",
             "glossaryTermId": "stable"
           }
         ]
@@ -3485,7 +3485,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -3504,7 +3504,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -3542,7 +3542,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -3565,7 +3565,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -3584,7 +3584,7 @@
         "referencedRules": [
           {
             "label": "Friendly",
-            "description": "",
+            "description": "Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.",
             "glossaryTermId": "friendly_attitude"
           }
         ]
@@ -3603,7 +3603,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -3622,7 +3622,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -3641,7 +3641,7 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -3664,7 +3664,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           },
           {
@@ -3716,7 +3716,7 @@
           },
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -3735,7 +3735,7 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -3776,8 +3776,8 @@
         ],
         "referencedRules": [
           {
-            "label": "curse",
-            "description": "",
+            "label": "Curse",
+            "description": "Curse A curse is a harmful effect attached to a creature, object, place, or ongoing state.",
             "glossaryTermId": "curse"
           },
           {
@@ -3801,7 +3801,7 @@
         "referencedRules": [
           {
             "label": "Attunement",
-            "description": "Attunement Some magic items require a creature to form a bond called Attunement with them before the creature can use an item's magical properties.",
+            "description": "Attunement Attunement is a bond between a creature and a magic item.",
             "glossaryTermId": "attunement"
           }
         ]
@@ -3819,8 +3819,8 @@
         ],
         "referencedRules": [
           {
-            "label": "possessed",
-            "description": "",
+            "label": "Possessed",
+            "description": "Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.",
             "glossaryTermId": "possessed"
           }
         ]
@@ -3858,7 +3858,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -3896,7 +3896,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -3915,7 +3915,7 @@
         "referencedRules": [
           {
             "label": "Total Cover",
-            "description": "",
+            "description": "Total Cover Total cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target.",
             "glossaryTermId": "total_cover"
           }
         ]
@@ -3947,12 +3947,12 @@
           },
           {
             "label": "Indifferent",
-            "description": "",
+            "description": "Indifferent An indifferent attitude describes a creature that currently has no strong favorable or hostile investment in another creature's outcome.",
             "glossaryTermId": "indifferent_attitude"
           },
           {
             "label": "Hostile",
-            "description": "",
+            "description": "Hostile A hostile attitude describes a creature that currently opposes another creature and is disposed against that creature's interests.",
             "glossaryTermId": "hostile_attitude"
           }
         ]
@@ -3971,7 +3971,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -4044,7 +4044,7 @@
           },
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           },
           {
@@ -4073,7 +4073,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -4092,7 +4092,7 @@
         "referencedRules": [
           {
             "label": "Passive Perception",
-            "description": "",
+            "description": "Passive Perception Passive Perception is a creature's ongoing background awareness when it is not spending time or an action on deliberate searching.",
             "glossaryTermId": "passive_perception"
           }
         ]
@@ -4171,7 +4171,7 @@
         "referencedRules": [
           {
             "label": "Line",
-            "description": "",
+            "description": "Line A line is a three dimensional area of effect that extends in a straight path from a point of origin.",
             "glossaryTermId": "line_area"
           }
         ]
@@ -4198,7 +4198,7 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           },
           {
@@ -4208,7 +4208,7 @@
           },
           {
             "label": "Shape-Shifting",
-            "description": "",
+            "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
             "glossaryTermId": "shape_shift"
           }
         ]
@@ -4227,7 +4227,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -4246,7 +4246,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -4350,7 +4350,7 @@
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -4377,17 +4377,17 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           },
           {
             "label": "Lightly Obscured",
-            "description": "",
+            "description": "Lightly Obscured A lightly obscured area interferes with sight enough to reduce clarity without fully shutting vision down.",
             "glossaryTermId": "lightly_obscured"
           }
         ]
@@ -4425,7 +4425,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -4444,7 +4444,7 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           }
         ]
@@ -4463,7 +4463,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -4499,7 +4499,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -4549,7 +4549,7 @@
           },
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           },
           {
@@ -4573,7 +4573,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -4615,7 +4615,7 @@
         "referencedRules": [
           {
             "label": "Shape-Shifting",
-            "description": "",
+            "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
             "glossaryTermId": "shape_shift"
           }
         ]
@@ -4647,7 +4647,7 @@
           },
           {
             "label": "Hostile",
-            "description": "",
+            "description": "Hostile A hostile attitude describes a creature that currently opposes another creature and is disposed against that creature's interests.",
             "glossaryTermId": "hostile_attitude"
           },
           {
@@ -4689,7 +4689,7 @@
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -4708,7 +4708,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -4735,7 +4735,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           },
           {
@@ -4764,7 +4764,7 @@
         "referencedRules": [
           {
             "label": "Line",
-            "description": "",
+            "description": "Line A line is a three dimensional area of effect that extends in a straight path from a point of origin.",
             "glossaryTermId": "line_area"
           }
         ]
@@ -4787,12 +4787,12 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           },
           {
-            "label": "possessed",
-            "description": "",
+            "label": "Possessed",
+            "description": "Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.",
             "glossaryTermId": "possessed"
           }
         ]
@@ -4815,7 +4815,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           },
           {
@@ -4857,8 +4857,8 @@
         ],
         "referencedRules": [
           {
-            "label": "curse",
-            "description": "",
+            "label": "Curse",
+            "description": "Curse A curse is a harmful effect attached to a creature, object, place, or ongoing state.",
             "glossaryTermId": "curse"
           }
         ]
@@ -4889,17 +4889,17 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           },
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           },
           {
@@ -4923,7 +4923,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -4946,12 +4946,12 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -4970,7 +4970,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -4998,7 +4998,7 @@
           },
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -5017,7 +5017,7 @@
         "referencedRules": [
           {
             "label": "Friendly",
-            "description": "",
+            "description": "Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.",
             "glossaryTermId": "friendly_attitude"
           }
         ]
@@ -5059,12 +5059,12 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -5083,7 +5083,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -5102,7 +5102,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5140,7 +5140,7 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -5159,7 +5159,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5206,14 +5206,14 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
       },
       {
         "spellId": "guardian-of-nature",
-        "spellName": "Guardian Of Nature",
+        "spellName": "Guardian of Nature",
         "level": 4,
         "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\guardian-of-nature.md",
         "rawReferencedRules": [
@@ -5234,7 +5234,7 @@
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -5253,7 +5253,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5276,12 +5276,12 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -5300,7 +5300,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5323,7 +5323,7 @@
         "referencedRules": [
           {
             "label": "Shape-Shifting",
-            "description": "",
+            "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
             "glossaryTermId": "shape_shift"
           },
           {
@@ -5335,7 +5335,7 @@
       },
       {
         "spellId": "shadow-of-moil",
-        "spellName": "Shadow Of Moil",
+        "spellName": "Shadow of Moil",
         "level": 4,
         "markdownPath": "F:\\Repos\\Aralia\\docs\\spells\\reference\\level-4\\shadow-of-moil.md",
         "rawReferencedRules": [
@@ -5347,7 +5347,7 @@
         "referencedRules": [
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -5385,7 +5385,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -5413,7 +5413,7 @@
           },
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -5432,7 +5432,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -5451,7 +5451,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5470,7 +5470,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -5508,7 +5508,7 @@
         "referencedRules": [
           {
             "label": "Total Cover",
-            "description": "",
+            "description": "Total Cover Total cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target.",
             "glossaryTermId": "total_cover"
           }
         ]
@@ -5527,7 +5527,7 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           }
         ]
@@ -5546,7 +5546,7 @@
         "referencedRules": [
           {
             "label": "Attunement",
-            "description": "Attunement Some magic items require a creature to form a bond called Attunement with them before the creature can use an item's magical properties.",
+            "description": "Attunement Attunement is a bond between a creature and a magic item.",
             "glossaryTermId": "attunement"
           }
         ]
@@ -5572,8 +5572,8 @@
         ],
         "referencedRules": [
           {
-            "label": "possessed",
-            "description": "",
+            "label": "Possessed",
+            "description": "Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.",
             "glossaryTermId": "possessed"
           },
           {
@@ -5615,12 +5615,12 @@
           },
           {
             "label": "Lightly Obscured",
-            "description": "",
+            "description": "Lightly Obscured A lightly obscured area interferes with sight enough to reduce clarity without fully shutting vision down.",
             "glossaryTermId": "lightly_obscured"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -5662,12 +5662,12 @@
         "referencedRules": [
           {
             "label": "Three-Quarters Cover",
-            "description": "",
+            "description": "Three Quarters Cover Three quarters cover represents significant physical screening by an intervening obstacle.",
             "glossaryTermId": "three_quarters_cover"
           },
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -5705,7 +5705,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5724,7 +5724,7 @@
         "referencedRules": [
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -5762,7 +5762,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -5781,7 +5781,7 @@
         "referencedRules": [
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -5800,7 +5800,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5818,8 +5818,8 @@
         ],
         "referencedRules": [
           {
-            "label": "possessed",
-            "description": "",
+            "label": "Possessed",
+            "description": "Possessed A creature is possessed when another will, presence, or force is currently occupying or directing it.",
             "glossaryTermId": "possessed"
           }
         ]
@@ -5857,7 +5857,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -5884,7 +5884,7 @@
         "referencedRules": [
           {
             "label": "Line",
-            "description": "",
+            "description": "Line A line is a three dimensional area of effect that extends in a straight path from a point of origin.",
             "glossaryTermId": "line_area"
           },
           {
@@ -5997,7 +5997,7 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           },
           {
@@ -6044,7 +6044,7 @@
         "referencedRules": [
           {
             "label": "Total Cover",
-            "description": "",
+            "description": "Total Cover Total cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target.",
             "glossaryTermId": "total_cover"
           }
         ]
@@ -6067,7 +6067,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -6086,7 +6086,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -6105,7 +6105,7 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           }
         ]
@@ -6124,7 +6124,7 @@
         "referencedRules": [
           {
             "label": "Cube",
-            "description": "",
+            "description": "Cube A cube is a three dimensional spatial volume defined by equal measurements of length, width, and height.",
             "glossaryTermId": "cube_area"
           }
         ]
@@ -6143,7 +6143,7 @@
         "referencedRules": [
           {
             "label": "Cone",
-            "description": "",
+            "description": "Cone A cone is a three dimensional spatial volume that projects from a point of origin and expands proportionally as it travels.",
             "glossaryTermId": "cone_area"
           }
         ]
@@ -6181,7 +6181,7 @@
         "referencedRules": [
           {
             "label": "Cylinder",
-            "description": "",
+            "description": "Cylinder A cylinder is a three dimensional spatial volume defined by a circular base and a vertical column of height.",
             "glossaryTermId": "cylinder_area"
           }
         ]
@@ -6200,7 +6200,7 @@
         "referencedRules": [
           {
             "label": "Friendly",
-            "description": "",
+            "description": "Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.",
             "glossaryTermId": "friendly_attitude"
           }
         ]
@@ -6251,7 +6251,7 @@
         "referencedRules": [
           {
             "label": "Shape-Shifting",
-            "description": "",
+            "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
             "glossaryTermId": "shape_shift"
           },
           {
@@ -6275,7 +6275,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -6317,7 +6317,7 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           },
           {
@@ -6341,7 +6341,7 @@
         "referencedRules": [
           {
             "label": "Emanation",
-            "description": "",
+            "description": "Emanation An emanation is a three dimensional area of effect that projects outward in all directions from a creature or object.",
             "glossaryTermId": "emanation_area"
           }
         ]
@@ -6369,7 +6369,7 @@
           },
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -6490,7 +6490,7 @@
         "referencedRules": [
           {
             "label": "Shape-Shifting",
-            "description": "",
+            "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
             "glossaryTermId": "shape_shift"
           },
           {
@@ -6518,12 +6518,12 @@
         "referencedRules": [
           {
             "label": "Difficult Terrain",
-            "description": "",
+            "description": "Difficult Terrain Difficult terrain is ground, material, or space that slows movement because a creature cannot cross it as efficiently as open, stable ground.",
             "glossaryTermId": "difficult_terrain"
           },
           {
             "label": "Heavily Obscured",
-            "description": "",
+            "description": "Heavily Obscured A heavily obscured area blocks ordinary sight so completely that creatures cannot see clearly into it, through it, or within it using normal vision.",
             "glossaryTermId": "heavily_obscured"
           }
         ]
@@ -6550,7 +6550,7 @@
         "referencedRules": [
           {
             "label": "Shape-Shifting",
-            "description": "",
+            "description": "Shape Shifting Shape shifting is a transformation state that changes a creature's body into another form or materially rewrites that body's outward structure.",
             "glossaryTermId": "shape_shift"
           },
           {
@@ -6560,7 +6560,7 @@
           },
           {
             "label": "Friendly",
-            "description": "",
+            "description": "Friendly A friendly attitude describes a creature that presently regards another creature with goodwill.",
             "glossaryTermId": "friendly_attitude"
           }
         ]
@@ -6578,8 +6578,8 @@
         ],
         "referencedRules": [
           {
-            "label": "curse",
-            "description": "",
+            "label": "Curse",
+            "description": "Curse A curse is a harmful effect attached to a creature, object, place, or ongoing state.",
             "glossaryTermId": "curse"
           }
         ]

@@ -1,0 +1,18 @@
+{
+  "id": "cone_area",
+  "title": "Cone",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "targeting", "space", "geometry"],
+  "excerpt": "A cone is a three-dimensional area of effect that projects outward from a point of origin, with its width expanding proportionally to its distance.",
+  "aliases": ["Cone Area of Effect"],
+  "seeAlso": [
+    "area_of_effect",
+    "cube_area",
+    "cylinder_area",
+    "emanation_area",
+    "line_area",
+    "sphere_area"
+  ],
+  "filePath": "/data/glossary/entries/rules/cone_area.json",
+  "markdown": "# Cone\n\nA cone is a three-dimensional spatial volume that projects from a point of origin and expands proportionally as it travels. It is commonly used for directional projections, such as sprays, breath weapons, and forward bursts.\n\n## Geometry and Expansion\n\n- **Point of Origin**: The effect begins at a designated starting point, which serves as the apex of the cone.\n- **Directional Path**: The cone extends along a straight line in a direction chosen by its creator.\n- **Proportional Scaling**: The width of the cone at any point along its length is exactly equal to that point's distance from the point of origin. For example, at a distance of 15 feet from the origin, the cone is 15 feet wide; at 30 feet from the origin, it is 30 feet wide.\n- **Length Boundary**: The effect specifying the cone defines its maximum length, which caps the expansion of the shape.\n\n## Origin Interaction\n\nA cone's point of origin is situated at the very tip of the apex. This point is not included in the area of effect unless the creator decides otherwise, allowing a caster or device to unleash the projection without automatically exposing their own space to the effect.\n\n## Spatial Applications\n\nBecause the cone expands from a narrow point into a wide sweep, it is ideal for sweeping wide swathes of space directly ahead of the origin. It is highly directional, leaving the space behind and to the immediate sides of the point of origin completely unaffected.\n"
+}

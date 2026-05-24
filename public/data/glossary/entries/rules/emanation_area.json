@@ -1,0 +1,18 @@
+{
+  "id": "emanation_area",
+  "title": "Emanation",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "targeting", "space", "geometry"],
+  "excerpt": "An emanation is a three-dimensional area of effect that extends outward from a creature or object in all directions, moving dynamically with its origin.",
+  "aliases": ["Emanation Area of Effect"],
+  "seeAlso": [
+    "area_of_effect",
+    "cone_area",
+    "cube_area",
+    "cylinder_area",
+    "line_area",
+    "sphere_area"
+  ],
+  "filePath": "/data/glossary/entries/rules/emanation_area.json",
+  "markdown": "# Emanation\n\nAn emanation is a three-dimensional area of effect that projects outward in all directions from a creature or object. Unlike static zones, an emanation is dynamically anchored to its source, moving along with the origin as it navigates space.\n\n## Mechanics and Boundaries\n\n- **Radial Expansion**: The effect specifying an emanation defines a radius or distance, determining how far the volume extends in straight lines outward in all directions from the boundary of the origin creature or object.\n- **Dynamic Anchoring**: The emanation moves automatically with the creature or object that serves as its point of origin. If the source creature moves 10 feet, the entire volume of the emanation shifts 10 feet along with it.\n- **Stationary Exceptions**: If the effect is instantaneous (lasting only a fraction of a second) or explicitly stated to be stationary, it resolves immediately at the origin's initial position and does not continue to track movement.\n\n## Origin and Interaction\n\n- **Origin Exclusion**: The originating creature or object is not included within the emanation's area of effect unless its creator decides otherwise. This allows Casters or specialized items to project protective, offensive, or sensory fields immediately surrounding themselves without being subject to their own spatial effects.\n\n## Tactical Applications\n\nEmanations are highly effective for personal defense, local auras, and mobile hazards. CAS elements like holy shrouds, localized gravity distortion fields, and static clouds that drift with the user are typically modeled as emanations. They ensure a consistent defensive or offensive perimeter is maintained around an active combatant or payload.\n"
+}

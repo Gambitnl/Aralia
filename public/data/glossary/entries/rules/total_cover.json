@@ -1,0 +1,17 @@
+{
+  "id": "total_cover",
+  "title": "Total Cover",
+  "category": "Rules Glossary",
+  "tags": ["combat", "targeting", "terrain", "defense"],
+  "excerpt": "Total cover represents a complete physical barrier that blocks direct line of sight and target pathways between a source and a target.",
+  "aliases": [],
+  "seeAlso": [
+    "cover",
+    "half_cover",
+    "three_quarters_cover",
+    "attack_roll",
+    "target"
+  ],
+  "filePath": "/data/glossary/entries/rules/total_cover.json",
+  "markdown": "# Total Cover\n\nTotal cover represents a complete physical obstruction or opaque barrier standing between the source of an effect or attack and a target. It prevents direct targeting and blocks most physical and spatial trajectories.\n\n## Environmental Context\n\nA target has total cover if it is completely screened by an intervening obstacle. Examples include a solid stone wall, a closed heavy wooden door, a thick rock pillar, or being positioned completely behind a substantial structure.\n\n## Tactical Protection\n\n- **Direct Targeting Blocked**: A target with total cover cannot be targeted directly by attacks, spells, or other spatial effects that require a clear path or sightline.\n- **Path Blocked**: The barrier physically interrupts direct vectors. Physical attacks, projectiles, and most magical projections fail to reach the target, resolving instead against the obstructing obstacle.\n\n## Exceptions and Interactions\n\nWhile total cover blocks direct vectors, certain spatial effects can bypass it if they can wrap around corners or originate from an area of effect that extends past the barrier (such as certain [[area_of_effect|Area of Effect]] expansions like a [[sphere_area|Sphere]] or [[emanation_area|Emanation]], provided the point of origin is positioned to reach behind the cover).\n\n## Scaling Cover\n\nTotal cover is the absolute tier of physical obstruction, succeeding [[three_quarters_cover|Three-Quarters Cover]]. It transitions back into partial cover if the target moves or if the barrier is damaged, destroyed, or breached.\n"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "cube_area",
+  "title": "Cube",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "targeting", "space", "geometry"],
+  "excerpt": "A cube is a three-dimensional area of effect defined by a symmetric volume of equal length, width, and height, originating from a point along one of its faces.",
+  "aliases": ["Cube Area of Effect"],
+  "seeAlso": [
+    "area_of_effect",
+    "cone_area",
+    "cylinder_area",
+    "emanation_area",
+    "line_area",
+    "sphere_area"
+  ],
+  "filePath": "/data/glossary/entries/rules/cube_area.json",
+  "markdown": "# Cube\n\nA cube is a three-dimensional spatial volume defined by equal measurements of length, width, and height. It projects outward from a point of origin positioned on one of its boundary faces, making it a versatile tool for blocking passages or saturating structured rooms.\n\n## Geometry and Structure\n\n- **Equal Dimensions**: The effect that creates a cube defines its size, which represents the length of each of its six faces. A 20-foot cube, for example, is 20 feet long, 20 feet wide, and 20 feet high.\n- **Straight Lines**: The volume expands in straight paths from the point of origin, conforming perfectly to orthogonal spaces.\n\n## Origin and Placement\n\n- **Face Placement**: Unlike shapes that expand radially from a central point, a cube's point of origin can be located anywhere along one of its flat faces. This allows creators to offset the volume relative to the point of origin.\n- **Origin Inclusion**: The point of origin is not included in the cube's area of effect unless the creator decides otherwise. This allows Casters or triggering devices to align a face of the cube immediately adjacent to themselves without being engulfed by the volume.\n\n## Tactical Advantages\n\nBecause the point of origin lies on a face of the cube rather than its center, the shape can be projected entirely forward, upward, or downward from its source. It is highly effective for sealing corridors, filling rectangular chambers, or engulfing groups of targets without affecting the initiator.\n"
+}

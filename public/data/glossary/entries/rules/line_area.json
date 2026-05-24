@@ -1,0 +1,18 @@
+{
+  "id": "line_area",
+  "title": "Line",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "targeting", "space", "geometry"],
+  "excerpt": "A line is a three-dimensional area of effect that projects outward from a point of origin in a straight path of a specified length and width.",
+  "aliases": ["Line Area of Effect"],
+  "seeAlso": [
+    "area_of_effect",
+    "cone_area",
+    "cube_area",
+    "cylinder_area",
+    "emanation_area",
+    "sphere_area"
+  ],
+  "filePath": "/data/glossary/entries/rules/line_area.json",
+  "markdown": "# Line\n\nA line is a three-dimensional area of effect that extends in a straight path from a point of origin. It represents a concentrated vector or narrow beam, commonly used for lightning bolts, energy beams, gusts of wind, or projectile paths.\n\n## Geometry and Projections\n\n- **Straight Path**: The effect begins at a point of origin and extends in a single straight path along its length.\n- **Sizing Parameters**: The effect specifying the line defines both its length (how far it extends) and its width (how wide the path is). For example, a common line effect might extend 100 feet in length and be 5 feet wide.\n- **Uniform Volume**: Unlike a cone, which widens as it extends, a line maintains a uniform width throughout its entire length.\n\n## Origin and Spatial Interaction\n\n- **Origin Tip**: The point of origin sits at the beginning of the line's path.\n- **Origin Exclusion**: The point of origin is not included in the line's area of effect unless its creator decides otherwise. This ensures the caster or launching mechanism at the origin is not affected by the beam projected from their position.\n\n## Tactical Applications\n\nLines are highly precise, making them perfect for piercing columns of enemies, cutting through narrow corridors, or sniping distant single targets across a crowded battlefield. However, because their width is usually very narrow (often only 5 feet), slight changes in target positions or terrain blockages can easily reduce the number of targets affected compared to wider radial shapes.\n"
+}

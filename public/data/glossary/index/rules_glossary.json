@@ -728,6 +728,30 @@
     "filePath": "/data/glossary/entries/rules/conditions_dont_stack.json"
   },
   {
+    "id": "cone_area",
+    "title": "Cone",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "targeting",
+      "space",
+      "geometry"
+    ],
+    "excerpt": "A cone is a three-dimensional area of effect that projects outward from a point of origin, with its width expanding proportionally to its distance.",
+    "aliases": [
+      "Cone Area of Effect"
+    ],
+    "seeAlso": [
+      "area_of_effect",
+      "cube_area",
+      "cylinder_area",
+      "emanation_area",
+      "line_area",
+      "sphere_area"
+    ],
+    "filePath": "/data/glossary/entries/rules/cone_area.json"
+  },
+  {
     "id": "constitution",
     "title": "Constitution",
     "category": "Rules Glossary",
@@ -808,6 +832,74 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/vehicles/crew.json"
+  },
+  {
+    "id": "cube_area",
+    "title": "Cube",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "targeting",
+      "space",
+      "geometry"
+    ],
+    "excerpt": "A cube is a three-dimensional area of effect defined by a symmetric volume of equal length, width, and height, originating from a point along one of its faces.",
+    "aliases": [
+      "Cube Area of Effect"
+    ],
+    "seeAlso": [
+      "area_of_effect",
+      "cone_area",
+      "cylinder_area",
+      "emanation_area",
+      "line_area",
+      "sphere_area"
+    ],
+    "filePath": "/data/glossary/entries/rules/cube_area.json"
+  },
+  {
+    "id": "curse",
+    "title": "Curse",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "curse",
+      "harmful magic"
+    ],
+    "excerpt": "A Curse is a harmful magical effect bound to a creature, object, or place. It persists for the duration stated by its source or until magic or another rule ends it.",
+    "aliases": [
+      "curses"
+    ],
+    "seeAlso": [
+      "magical_effect",
+      "shape_shift",
+      "spell_referenced_rules_enrichment"
+    ],
+    "filePath": "/data/glossary/entries/rules/curse.json"
+  },
+  {
+    "id": "cylinder_area",
+    "title": "Cylinder",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "targeting",
+      "space",
+      "geometry"
+    ],
+    "excerpt": "A cylinder is a three-dimensional area of effect defined by a circular footprint of a specific radius and a vertical column of a designated height.",
+    "aliases": [
+      "Cylinder Area of Effect"
+    ],
+    "seeAlso": [
+      "area_of_effect",
+      "cone_area",
+      "cube_area",
+      "emanation_area",
+      "line_area",
+      "sphere_area"
+    ],
+    "filePath": "/data/glossary/entries/rules/cylinder_area.json"
   },
   {
     "id": "d20_test",
@@ -920,6 +1012,27 @@
     "filePath": "/data/glossary/entries/rules/dexterity.json"
   },
   {
+    "id": "difficult_terrain",
+    "title": "Difficult Terrain",
+    "category": "Rules Glossary",
+    "tags": [
+      "movement",
+      "terrain",
+      "travel",
+      "positioning"
+    ],
+    "excerpt": "Difficult terrain is ground, material, or space that costs extra movement to cross because it resists clear, efficient travel.",
+    "aliases": [],
+    "seeAlso": [
+      "speed",
+      "dash_action",
+      "travel_pace",
+      "climbing",
+      "swimming"
+    ],
+    "filePath": "/data/glossary/entries/rules/difficult_terrain.json"
+  },
+  {
     "id": "saving_throw_dc",
     "title": "Difficulty Class",
     "category": "Rules Glossary",
@@ -1003,6 +1116,30 @@
       "conditions"
     ],
     "filePath": "/data/glossary/entries/rules/duration_condition.json"
+  },
+  {
+    "id": "emanation_area",
+    "title": "Emanation",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "targeting",
+      "space",
+      "geometry"
+    ],
+    "excerpt": "An emanation is a three-dimensional area of effect that extends outward from a creature or object in all directions, moving dynamically with its origin.",
+    "aliases": [
+      "Emanation Area of Effect"
+    ],
+    "seeAlso": [
+      "area_of_effect",
+      "cone_area",
+      "cube_area",
+      "cylinder_area",
+      "line_area",
+      "sphere_area"
+    ],
+    "filePath": "/data/glossary/entries/rules/emanation_area.json"
   },
   {
     "id": "ending_attunement",
@@ -1155,6 +1292,27 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/forgery_kit.json"
   },
   {
+    "id": "friendly_attitude",
+    "title": "Friendly",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "relationships",
+      "social",
+      "attitude"
+    ],
+    "excerpt": "A friendly attitude means one creature currently regards another with goodwill and is inclined toward cooperation, help, or other favorable treatment.",
+    "aliases": [],
+    "seeAlso": [
+      "attitude",
+      "ally",
+      "indifferent_attitude",
+      "hostile_attitude",
+      "influence_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/friendly_attitude.json"
+  },
+  {
     "id": "frightened_condition",
     "title": "Frightened",
     "category": "Rules Glossary",
@@ -1239,6 +1397,27 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/graze.json"
   },
   {
+    "id": "half_cover",
+    "title": "Half Cover",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "targeting",
+      "terrain",
+      "defense"
+    ],
+    "excerpt": "Half cover provides partial protection when an obstacle screens at least half of a target's body.",
+    "aliases": [],
+    "seeAlso": [
+      "cover",
+      "three_quarters_cover",
+      "total_cover",
+      "attack_roll",
+      "dexterity"
+    ],
+    "filePath": "/data/glossary/entries/rules/half_cover.json"
+  },
+  {
     "id": "hazards",
     "title": "Hazards",
     "category": "Rules Glossary",
@@ -1247,6 +1426,27 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/hazards.json"
+  },
+  {
+    "id": "heavily_obscured",
+    "title": "Heavily Obscured",
+    "category": "Rules Glossary",
+    "tags": [
+      "vision",
+      "obscurement",
+      "visibility",
+      "detection"
+    ],
+    "excerpt": "A heavily obscured area blocks ordinary sight so strongly that creatures effectively cannot see clearly into, through, or within it.",
+    "aliases": [],
+    "seeAlso": [
+      "obscured_areas",
+      "vision",
+      "darkness",
+      "blinded_condition",
+      "hide_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/heavily_obscured.json"
   },
   {
     "id": "heavy_property",
@@ -1331,6 +1531,27 @@
     "filePath": "/data/glossary/entries/rules/hit_points.json"
   },
   {
+    "id": "hostile_attitude",
+    "title": "Hostile",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "relationships",
+      "social",
+      "attitude"
+    ],
+    "excerpt": "A hostile attitude means one creature currently opposes another and is disposed to resist, undermine, injure, or otherwise work against it.",
+    "aliases": [],
+    "seeAlso": [
+      "attitude",
+      "enemy",
+      "friendly_attitude",
+      "indifferent_attitude",
+      "influence_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/hostile_attitude.json"
+  },
+  {
     "id": "identifying_magic_item",
     "title": "Identifying a Magic Item",
     "category": "Rules Glossary",
@@ -1358,6 +1579,26 @@
       "concentration"
     ],
     "filePath": "/data/glossary/entries/rules/conditions/incapacitated_condition.json"
+  },
+  {
+    "id": "indifferent_attitude",
+    "title": "Indifferent",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "relationships",
+      "social",
+      "attitude"
+    ],
+    "excerpt": "An indifferent attitude means one creature currently has no strong goodwill or hostility toward another and is not especially motivated to help or hinder it.",
+    "aliases": [],
+    "seeAlso": [
+      "attitude",
+      "friendly_attitude",
+      "hostile_attitude",
+      "influence_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/indifferent_attitude.json"
   },
   {
     "id": "initiative",
@@ -1511,6 +1752,51 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/armor/light_medium_heavy.json"
+  },
+  {
+    "id": "lightly_obscured",
+    "title": "Lightly Obscured",
+    "category": "Rules Glossary",
+    "tags": [
+      "vision",
+      "obscurement",
+      "visibility",
+      "detection"
+    ],
+    "excerpt": "A lightly obscured area interferes with sight enough to reduce visual clarity without fully blocking what lies inside or beyond it.",
+    "aliases": [],
+    "seeAlso": [
+      "obscured_areas",
+      "vision",
+      "dim_light",
+      "search_action",
+      "heavily_obscured"
+    ],
+    "filePath": "/data/glossary/entries/rules/lightly_obscured.json"
+  },
+  {
+    "id": "line_area",
+    "title": "Line",
+    "category": "Rules Glossary",
+    "tags": [
+      "spellcasting",
+      "targeting",
+      "space",
+      "geometry"
+    ],
+    "excerpt": "A line is a three-dimensional area of effect that projects outward from a point of origin in a straight path of a specified length and width.",
+    "aliases": [
+      "Line Area of Effect"
+    ],
+    "seeAlso": [
+      "area_of_effect",
+      "cone_area",
+      "cube_area",
+      "cylinder_area",
+      "emanation_area",
+      "sphere_area"
+    ],
+    "filePath": "/data/glossary/entries/rules/line_area.json"
   },
   {
     "id": "loading_property",
@@ -1821,6 +2107,25 @@
     "filePath": "/data/glossary/entries/rules/equipment/vehicles/passengers.json"
   },
   {
+    "id": "passive_perception",
+    "title": "Passive Perception",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "perception",
+      "awareness",
+      "world-state"
+    ],
+    "excerpt": "Passive Perception is a creature's ongoing background awareness when it is not actively using an action to search for detail.",
+    "aliases": [],
+    "seeAlso": [
+      "search_action",
+      "hide_action",
+      "invisible_condition"
+    ],
+    "filePath": "/data/glossary/entries/rules/passive_perception.json"
+  },
+  {
     "id": "petrified_condition",
     "title": "Petrified",
     "category": "Rules Glossary",
@@ -1893,6 +2198,24 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/poor_lifestyle.json"
+  },
+  {
+    "id": "possessed",
+    "title": "Possessed",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "control",
+      "world-state",
+      "creatures"
+    ],
+    "excerpt": "Possessed describes a creature that is currently under a possession state.",
+    "aliases": [],
+    "seeAlso": [
+      "possession",
+      "magical_effect"
+    ],
+    "filePath": "/data/glossary/entries/rules/possessed.json"
   },
   {
     "id": "potters_tools",
@@ -2216,6 +2539,28 @@
     "filePath": "/data/glossary/entries/rules/equipment/services.json"
   },
   {
+    "id": "shape_shift",
+    "title": "Shape-Shifting",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "transformation",
+      "world-state",
+      "creatures"
+    ],
+    "excerpt": "Shape-shifting is a transformation state in which magic or another effect changes a creature's body while the world continues resolving that creature through the altered form for the effect's duration.",
+    "aliases": [
+      "Shape Shifting",
+      "Shapeshifting"
+    ],
+    "seeAlso": [
+      "concentration",
+      "creature_type",
+      "size"
+    ],
+    "filePath": "/data/glossary/entries/rules/shape_shift.json"
+  },
+  {
     "id": "shield_rules",
     "title": "Shield",
     "category": "Rules Glossary",
@@ -2463,6 +2808,26 @@
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/squalid_lifestyle.json"
   },
   {
+    "id": "stable",
+    "title": "Stable",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "death",
+      "hit_points",
+      "recovery"
+    ],
+    "excerpt": "A stable creature at 0 hit points is no longer at immediate risk of dying from that collapse and stops making death saving throws, though it remains unconscious until it recovers.",
+    "aliases": [],
+    "seeAlso": [
+      "death_saving_throw",
+      "hit_points",
+      "unconscious_condition",
+      "dead"
+    ],
+    "filePath": "/data/glossary/entries/rules/stable.json"
+  },
+  {
     "id": "strength",
     "title": "Strength",
     "category": "Rules Glossary",
@@ -2568,6 +2933,27 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.json"
   },
   {
+    "id": "three_quarters_cover",
+    "title": "Three-Quarters Cover",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "targeting",
+      "terrain",
+      "defense"
+    ],
+    "excerpt": "Three-quarters cover provides substantial protection when an obstacle screens at least three-quarters of a target's body.",
+    "aliases": [],
+    "seeAlso": [
+      "cover",
+      "half_cover",
+      "total_cover",
+      "attack_roll",
+      "dexterity"
+    ],
+    "filePath": "/data/glossary/entries/rules/three_quarters_cover.json"
+  },
+  {
     "id": "thrown_property",
     "title": "Thrown",
     "category": "Rules Glossary",
@@ -2636,6 +3022,27 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/topple.json"
+  },
+  {
+    "id": "total_cover",
+    "title": "Total Cover",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "targeting",
+      "terrain",
+      "defense"
+    ],
+    "excerpt": "Total cover represents a complete physical barrier that blocks direct line of sight and target pathways between a source and a target.",
+    "aliases": [],
+    "seeAlso": [
+      "cover",
+      "half_cover",
+      "three_quarters_cover",
+      "attack_roll",
+      "target"
+    ],
+    "filePath": "/data/glossary/entries/rules/total_cover.json"
   },
   {
     "id": "traps",

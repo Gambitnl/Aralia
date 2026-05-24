@@ -1,0 +1,18 @@
+{
+  "id": "cylinder_area",
+  "title": "Cylinder",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "targeting", "space", "geometry"],
+  "excerpt": "A cylinder is a three-dimensional area of effect defined by a circular footprint of a specific radius and a vertical column of a designated height.",
+  "aliases": ["Cylinder Area of Effect"],
+  "seeAlso": [
+    "area_of_effect",
+    "cone_area",
+    "cube_area",
+    "emanation_area",
+    "line_area",
+    "sphere_area"
+  ],
+  "filePath": "/data/glossary/entries/rules/cylinder_area.json",
+  "markdown": "# Cylinder\n\nA cylinder is a three-dimensional spatial volume defined by a circular base and a vertical column of height. It is commonly used for weather-like column effects, pillars of fire, celestial beams, and vertical spatial barriers.\n\n## Geometry and Profile\n\n- **Circular Base**: The effect specifying a cylinder defines a radius, which determines the size of its circular footprint.\n- **Vertical Column**: The effect also specifies a height, defining how far the vertical column extends upward or downward from its circular base.\n- **Radial Expansion**: The volume extends outward in straight lines from a central vertical axis to the boundary of the circular radius.\n\n## Origin and Inclusion\n\n- **Center Alignment**: The point of origin for a cylinder is located at the exact center of either the circular top or circular bottom of the column.\n- **Origin Included**: Unlike cones and cubes, a cylinder's point of origin is always included within the area of effect itself. This means any creature or object situated exactly at the origin coordinates is automatically subjected to the cylinder's effects.\n\n## Tactical Applications\n\nCylinders are excellent for targeting vertical zones, enabling effects to reach flying creatures high above the ground or strike targets on multiple vertical levels (such as scaffolding, balconies, or pits). Because the origin rests at the base or top of the pillar, it allows casters to call down massive vertical columns at a distance without engulfing themselves.\n"
+}
