@@ -1,8 +1,7 @@
 # Package 5: AI Arbitration Pilot
 
-Status: scoped for Jules handoff; clean-dashboard Git sync is ready, but
-visible draft creation is blocked by the in-app browser form-input/clipboard
-path.
+Status: scoped for Jules handoff; Linear issue `ARA-11` is linked, but the
+visible dashboard handoff preparation path is blocked.
 
 This is the durable Aralia-facing task packet for Spell Phase 1 Package 5. The
 goal is to prove that open-ended early-game spells can ask for player intent,
@@ -171,16 +170,24 @@ remote-only commits after local work is safe.
 
 On 2026-05-24, a second dashboard was started from the clean worktree
 `F:\Repos\Aralia\.worktrees\spell-phase1-master-sync` on port `8140`. Its Git
-gate passed from branch `codex/spell-phase1-dashboard-clean-base` because that
-branch is exactly at `origin/master` with a clean working tree. This proves the
+gate passed from branch `codex/spell-phase1-master-sync` because that branch is
+exactly at `origin/master` with a clean working tree. This proves the
 clean-worktree stand-in route without mutating the user's main checkout.
 
-The next blocker is visible draft entry. The dashboard shows a `Save Draft`
-form, but the Codex in-app browser cannot fill or type into it because Browser
-Use reports that its virtual clipboard is not installed. Decision for this
-packet: do not use hidden task-draft endpoints to bypass the UI. Package 5
-dispatch should resume after either the dashboard form-input path is repaired
-or the operator manually fills the visible draft form from this packet.
+The Package 5 dashboard draft now exists as `draft-1779582701882-mln8to`, and
+the visible `Create Linear Issue` control linked it to Linear issue `ARA-11`:
+
+- `https://linear.app/aralia/issue/ARA-11/spell-phase-1-package-5-ai-arbitration-pilot`
+
+The current blocker is the next visible dashboard action. The Package 5 task
+page says the current boundary is `Prepare Handoff`, but it does not render a
+visible action button for that boundary. The full dashboard receipt contains
+`Prepare Handoff` buttons, but the relevant button is not reachable by normal
+viewport scrolling in the Codex in-app browser. Decision for this packet: do
+not call the raw `POST /promote` endpoint or click an unreachable DOM node.
+Package 5 dispatch should resume when the dashboard exposes a human-visible
+`Prepare Handoff` action on the task page or makes the full receipt action
+reachable through ordinary navigation.
 
 ## Decision Points
 
@@ -192,4 +199,6 @@ or the operator manually fills the visible draft form from this packet.
 | P5-4 Deterministic-vs-AI boundary | AI arbitration could hide missing deterministic mechanics. | Use AI only for player intent/adjudication. Do not route damage, healing, clear saves, slots, action costs, or concentration cleanup to AI. | Aralia GitHub task packet; future mechanics buckets for deterministic gaps. |
 | P5-5 Clean-dashboard stand-in | The main dashboard was blocked by the user's divergent main checkout, but the clean worktree matches `origin/master`. | Start and use the dashboard from the clean worktree on port `8140`; treat it as a valid dashboard route because the visible Git gate reports ready without mutating main. | Dashboard state plus local ignored Symphony runtime; summarized here because it unblocks the Git side of Package 5 dispatch. |
 | P5-6 Visible draft form input | The dashboard has a visible Package 5 draft form, but the in-app browser cannot type into the form due to the missing Browser Use virtual clipboard. | Do not bypass with hidden POST endpoints. Record the blocker and resume when visible form input is repaired or manually filled by the operator. | Dashboard/browser tooling blocker; Aralia GitHub summary because it blocks Jules dispatch. |
+| P5-7 Linear issue creation | The clean dashboard exposed an enabled visible `Create Linear Issue` button for Package 5 after the draft existed. This mutates Linear and attaches a tracking issue to the draft. | Use the visible dashboard button under the previously authorized Jules/Symphony test flow. Result: Package 5 linked to `ARA-11`. | Linear/dashboard state; summarized here because it advances Jules dispatch. |
+| P5-8 Prepare handoff visibility | The task page says `Prepare Handoff` is the current boundary, but renders no visible action button. The full dashboard has `Prepare Handoff` buttons in the DOM, but the relevant Package 5 button is not reachable by ordinary viewport scrolling. | Do not call the raw promote endpoint and do not programmatically click an unreachable DOM node. Record the blocker as a dashboard UX/workflow defect. | Dashboard workflow blocker; Aralia GitHub summary because it blocks Jules dispatch. |
 
