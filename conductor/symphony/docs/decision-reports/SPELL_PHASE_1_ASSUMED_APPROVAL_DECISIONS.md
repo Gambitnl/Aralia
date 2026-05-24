@@ -3812,3 +3812,42 @@ Copy this block for each decision.
 - Next expected proof: Build the dashboard, publish the repair, verify the
   visible button creates the Package 6 draft, and then continue the dashboard
   handoff path toward Linear/Jules.
+
+### Decision 90: Promote Runnable Current-Boundary Links Into Visible Buttons
+
+- Date/time: 2026-05-24 19:55 +02:00
+- Phase: `package_6_dashboard_intake`
+- Active slice: Continue Package 6 from visible draft creation into Linear,
+  handoff preparation, manifest staging, and Jules launch.
+- Decision point: After the Package 6 draft was created through the visible
+  dashboard button, the dashboard correctly identified `Linear issue` as the
+  current boundary. The first-viewport action rendered as a raw `Endpoint` link,
+  while the actual `Create Linear Issue` button was buried inside the collapsed
+  task record and could not be clicked reliably by Codex Browser Use.
+- Options considered:
+  - Open the raw POST endpoint or call it directly from outside the dashboard.
+  - Keep reopening and scrolling the long task record until the browser tool can
+    click the nested button.
+  - Render the already-guarded task-card actions as first-class current-boundary
+    buttons for the same endpoint patterns.
+- Decision made by agent: Update the dashboard current-boundary renderer so
+  Linear issue creation, draft promotion, manifest staging, and Jules launch use
+  visible buttons backed by the existing dashboard click handlers.
+- Model routing: Local Codex handled the dashboard workflow repair because it
+  was discovered while operating Symphony. Jules remains reserved for the
+  Package 6 spell data/runtime/test implementation once launched.
+- Rationale/evidence: The user explicitly wants dashboard-first operation to
+  reveal real workflow blockers. A current-boundary panel that says "Run Linear
+  issue" but only exposes a raw endpoint is not a humane or reliable dashboard
+  action. The fix reuses existing guarded handlers instead of inventing new
+  mutation paths.
+- Mutation performed or skipped: Changed
+  `conductor/symphony/public/dashboard.js` and updated the tracker/decision
+  report. Skipped hidden endpoint use and skipped local Package 6 spell
+  implementation.
+- Scope guardrails: This is a dashboard affordance repair only. It does not
+  relax the approval reporting requirement; every external or local-state action
+  still needs a recorded decision/proof trail.
+- Next expected proof: Build the dashboard, publish the repair, verify the
+  current-boundary `Create Linear Issue` button appears, and continue the
+  Package 6 dashboard handoff.
