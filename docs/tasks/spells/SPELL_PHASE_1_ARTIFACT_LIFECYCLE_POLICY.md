@@ -2,10 +2,11 @@
 
 Status: active policy for Spell Phase 1 slices.
 
-This policy defines what happens to planning, prompt, receipt, proof, generated,
-and setup artifacts after each bounded Spell Phase 1 slice. It exists because
-cleanup should prevent stale task context from misleading future agents without
-destroying the durable evidence humans need to understand what happened.
+This policy defines what happens to planning, prompt, proof, generated, setup,
+and summarized receipt artifacts after each bounded Spell Phase 1 slice. It
+exists because cleanup should prevent stale task context from misleading future
+agents without destroying the durable evidence humans need to understand what
+happened.
 
 ## Default Bias
 
@@ -27,13 +28,13 @@ The safe default is:
 |---|---|---|
 | Canonical plan | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, live package order, completion definition | Keep and update in place. |
 | Decision report | `SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` | Keep. Append decisions; do not rewrite history except for explicit correction notes. |
-| Package task packet | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`, `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`, prompt packet, dispatch checklist | Keep while active. After completion, mark completed/superseded and link final PR/receipts. Archive later only if the summary remains reachable from the plan and still helps future Aralia contributors. |
-| Receipts | environment snapshot, git sync, PR/deployment/local-sync, ROI, foreman review, task communication | Keep when they explain a durable decision or boundary. Treat transient Symphony handoff payloads, click receipts, draft ids, and run-state dumps as external or ignored unless they are intentionally summarized into a packet or migration note. |
+| Package task packet | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`, `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`, prompt packet, dispatch checklist | Keep while active. After completion, mark completed/superseded and link the final product PR and any concise acceptance summary. Archive later only if the summary remains reachable from the plan and still helps future Aralia contributors. |
+| Receipt summaries | environment snapshot, git sync, PR/deployment/local-sync, ROI, foreman review, task communication | Keep only when the summary explains a durable Aralia decision, boundary, blocker, or acceptance result. Treat raw Symphony handoff payloads, click receipts, draft ids, local task-store churn, support-PR lists, and run-state dumps as external or ignored unless a short excerpt is intentionally summarized into a packet or migration note. |
 | Proof screenshots | `docs/tasks/spells/evidence/*.png` | Keep while referenced by a receipt. If superseded, archive or mark superseded; delete only when no durable doc references it. |
 | Generated reports | spell gate report, spell audits, mechanics reports | Keep canonical generated outputs that the app or reports consume. For review-only generated reports, regenerate at checkpoints and archive/delete stale copies only when the source command and replacement output are documented. |
-| Runtime state | `.symphony/`, `conductor/symphony/.symphony/`, `.jules/runs/`, `.jules/verification/`, `.jules/dashboard/`, `.jules/orchestrator/`, `.playwright-*`, generated manifests, local dashboard state, draft ids, click receipts, retry state, local sync receipts | Ignore or delete as local runtime artifacts. Do not commit unless a specific packet or migration note intentionally captures a small durable excerpt. |
+| Runtime state | `.symphony/`, `conductor/symphony/.symphony/`, `.jules/runs/`, `.jules/feedback/`, `.jules/verification/`, `.jules/dashboard/`, `.jules/orchestrator/`, `.playwright-*`, generated manifests, local dashboard state, draft ids, click receipts, retry state, local sync receipts | Ignore or delete as local runtime artifacts. Do not commit unless a specific packet or migration note intentionally captures a small durable excerpt. |
 | Local app/operator settings | `.codex/config.toml`, local credentials, tokens, machine preferences | Ignore. Never commit. |
-| Setup branch artifacts | setup PR docs, setup verifier changes, branch receipts | Keep until the setup PR is merged and Package 2 dispatch has been proven from `master`. Then mark final state; do not delete if later slices need to understand the handoff boundary. |
+| Setup branch artifacts | setup PR docs, setup verifier changes, concise setup summaries | Keep until the setup PR is merged and Package 2 dispatch has been proven from `master`. Then mark final state; do not preserve raw branch receipts unless later slices need the exact handoff boundary. |
 
 ## Slice Closeout Checklist
 
@@ -64,39 +65,45 @@ Do not delete:
 
 - canonical plans;
 - decision reports;
-- receipts that prove a live Symphony/Jules/GitHub boundary;
-- proof images still referenced by receipts;
+- concise receipt summaries that prove a live Aralia package boundary or
+  acceptance result;
+- proof images still referenced by durable summaries;
 - package prompts/tasks before the package's final PR, deployment/local-sync,
-  ROI, and review receipts are complete;
+  ROI, and review summaries are complete;
 - unfinished or future-facing scaffolds merely because they look stale.
 
-## Package 2 Application
+## Completed Package Application
 
-For Package 2, the setup docs and receipts remain active until:
+Packages 2 through 6 now have durable tracker entries and product evidence.
+Their packets, prompts, concise receipts, and acceptance summaries should remain
+reachable from `SPELL_PHASE_1_TASK_TRACKER.md`, but they are historical
+evidence rather than active dispatch instructions.
 
-1. PR #933 or its replacement lands the setup context on `master`;
-2. local `master` is synced and Symphony preflight is rerun from `master`;
-3. `draft-1779344522441-vdy0hi` is promoted/dispatched or explicitly superseded;
-4. Jules returns an implementation PR or recorded non-PR result;
-5. Codex fills the foreman review, Atlas/gate, task communication,
-   PR/deployment/local-sync, and ROI receipts.
+Keep:
 
-Only after those proofs exist should the Package 2 prompt/task/checklist files
-be marked completed or archived. They should not be deleted unless a later
-canonical summary preserves their important context.
+1. Package task packets and prompts that define accepted scope.
+2. Concise closeout summaries that explain PRs, local consolidation, or known
+   follow-up gaps.
+3. Final product PR links and local consolidation notes.
+4. Acceptance evidence that future Aralia contributors would need to understand
+   why the package is considered done.
 
-## Package 4 Application
+Do not keep expanding historical package files with raw Symphony state. Draft
+ids, handoff payloads, local feedback drafts, dashboard caches, support-PR
+lists, click receipts, and generated manifests should remain external or
+ignored unless a short excerpt explains a durable package decision.
 
-For Package 4, keep the deterministic combat simulator pilot packet in
-`docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` or its
-replacement. Treat transient Symphony draft ids, handoff receipts, click
-receipts, and local sync state as external or ignored unless the packet needs a
-short durable summary for future Aralia contributors.
+## Active Boundary Application
 
-## Package 3 Application
+The active post-Package 6 boundary is checkout hygiene and next-package
+selection, not cleanup of completed package history. Use the tracker's
+`Current Local Change Classification` section before starting another Jules
+handoff.
 
-For Package 3, keep the spell-selection and spellbook-visibility packet in
-`docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` or
-its replacement. Treat creator-session scratch state, sheet inspection
-receipts, and other orchestration internals as external or ignored unless the
-packet needs a short durable summary for future Aralia contributors.
+Current next-package candidates are:
+
+1. `G48` Atlas discoverability/source repair.
+2. `G49` a small buff/status combat bridge follow-up.
+
+Neither should start from a checkout that also contains unrelated PHB
+glossary/rules migration or BattleMap/glossary source edits.

@@ -3,9 +3,9 @@
 Status: active guiding tracker for early-game spell execution.
 
 This is the single task collection and status tracker for Spell Phase 1. It
-does not replace detailed package docs, receipts, Atlas trackers, or PR notes.
-It points to them, keeps the package queue coherent, and records adjacent gaps
-that should not quietly expand the active slice.
+does not replace detailed package docs, Atlas trackers, or PR notes. It points
+to them, keeps the package queue coherent, and records adjacent gaps that
+should not quietly expand the active slice.
 
 ## How To Use This File
 
@@ -19,6 +19,11 @@ that should not quietly expand the active slice.
    active slice.
 5. Do not delete completed task history unless the artifact lifecycle policy
    says the context has been preserved elsewhere.
+6. When Symphony/Jules workflow friction appears while working a spell package,
+   record only the Aralia-facing summary here or link to the Symphony audit/open
+   queue in the same pass. Do not turn this tracker into a list of every
+   Symphony support PR, raw receipt, dashboard state change, or decision report
+   entry.
 
 Statuses:
 
@@ -39,120 +44,55 @@ Statuses:
   record Aralia-relevant decisions in this tracker or the active package packet;
   keep detailed Symphony-local decision logs external unless a short excerpt is
   intentionally copied into Aralia docs.
-- Package 3 packet:
-  `docs/tasks/spells/PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`
-- Package 4 packet:
-  `docs/tasks/spells/PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`
-- Package 5 packet:
-  `docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md`
-- Package 6 packet:
-  `docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md`
-- Setup PR: `https://github.com/Gambitnl/Aralia/pull/933` (merged
-  2026-05-21)
-- Package 2 clean-base draft: `draft-1779400428597-mind7o`
-- Package 2 Linear issue:
-  `https://linear.app/aralia/issue/ARA-7/spell-phase-1-package-2-premade-party-and-gear`
-- Package 2 Jules session:
-  `https://jules.google.com/session/15527431301408060204`
-- Package 2 PR:
-  `https://github.com/Gambitnl/Aralia/pull/935`
-- Symphony dashboard-first repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/936`
-- Package 2 setup-review workflow repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/937`
-- Package 2 closeout PR:
-  `https://github.com/Gambitnl/Aralia/pull/938`
-- Package 3 handoff packet PR:
-  `https://github.com/Gambitnl/Aralia/pull/939`
-- Symphony worktree Git-gate repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/940`
-- Symphony scoped Git-disposition repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/941`
-- Package 3 launch tracking PR:
-  `https://github.com/Gambitnl/Aralia/pull/942`
-- Package 3 monitor-decision PR:
-  `https://github.com/Gambitnl/Aralia/pull/945`
-- Package 3 no-PR routing repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/947`
-- Package 3 publish-request documentation PR:
-  `https://github.com/Gambitnl/Aralia/pull/948`
-- Symphony worktree local-sync stand-in repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/949`
-- Package 3 task-routing focus repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/951`
-- Package 3 dashboard draft: `draft-1779442977969-w2vsy4`
-- Package 3 Linear issue:
-  `https://linear.app/aralia/issue/ARA-9/spell-phase-1-package-3-spellbook-and-character-creator-visibility`
-- Package 3 Symphony handoff: `handoff-1779443555192-bnpws7`
-- Package 3 Jules session:
-  `https://jules.google.com/session/2823658242418460192`
-- Package 3 wait-loop dashboard repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/955`
-- Package 3 Scout/Core evidence-refresh repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/960`
-- Package 3 posted-Scout-feedback wait-state repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/961`
-- Package 3 main-dashboard wait-state alignment PR:
-  `https://github.com/Gambitnl/Aralia/pull/963`
-- Package 3 queue-action wait-state repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/965`
-- Package 3 queue-action merge documentation PR:
-  `https://github.com/Gambitnl/Aralia/pull/966`
-- Symphony promoted-draft navigator cleanup PR:
-  `https://github.com/Gambitnl/Aralia/pull/967`
-- Visible-Jules repair request merge-docs PR:
-  `https://github.com/Gambitnl/Aralia/pull/970`
-- Symphony feedback-delivery guidance PR:
-  `https://github.com/Gambitnl/Aralia/pull/971`
-- Package 3 merge closeout documentation PR:
-  `https://github.com/Gambitnl/Aralia/pull/972`
-- Package 3 local-sync dashboard repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/973`
-- Package 3 receipt reconciliation PR:
-  `https://github.com/Gambitnl/Aralia/pull/974`
-- Package 4 closeout proof PR:
-  `https://github.com/Gambitnl/Aralia/pull/981`
-- Package 5 scope packet PR:
-  `https://github.com/Gambitnl/Aralia/pull/982`
-- Package 5 dashboard boundary clarification PR:
-  `https://github.com/Gambitnl/Aralia/pull/983`
-- Package 5 visible draft/blocker record PR:
-  `https://github.com/Gambitnl/Aralia/pull/984`
-- Package 4 stale-session pause PR:
-  `https://github.com/Gambitnl/Aralia/pull/985`
-- Package 5 prepare-blocker record PR:
-  `https://github.com/Gambitnl/Aralia/pull/986`
-- Package 5 task-page boundary-action repair PRs:
-  `https://github.com/Gambitnl/Aralia/pull/987`,
-  `https://github.com/Gambitnl/Aralia/pull/989`
-- Package 5 AI arbitration implementation PR:
-  `https://github.com/Gambitnl/Aralia/pull/991`
-- Package 5 dashboard stale-boundary repair PR:
-  `https://github.com/Gambitnl/Aralia/pull/992`
-- Package 6 scope packet PR:
-  `https://github.com/Gambitnl/Aralia/pull/993`
-- Package 6 dashboard intake repair PRs:
-  `https://github.com/Gambitnl/Aralia/pull/994`,
-  `https://github.com/Gambitnl/Aralia/pull/995`
-- Package 6 Linear issue:
-  `https://linear.app/aralia/issue/ARA-12/spell-phase-1-package-6-choicemode-mechanics-bucket`
-- Package 6 Symphony handoff: `handoff-1779592447710-27ufm6`
-- Package 6 Jules session:
-  `https://jules.google.com/session/3811311513433217520`
+- Symphony decision history:
+  `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+
+## Durable PR And Handoff Index
+
+This tracker lists only PRs and handoff identifiers that materially explain the
+Spell Phase 1 product state or the current package boundary. Symphony-only
+dashboard, workflow, setup, receipt, and routing PRs are intentionally collapsed
+into a support summary here; their detailed history belongs in the Symphony
+audit, open task queue, and decision report.
+
+| Package | Durable spell/project references | Notes |
+|---|---|---|
+| Setup | PR #933 | Landed the base task context Jules needed before Package 2. |
+| P2 | Linear `ARA-7`; Jules session `15527431301408060204`; PR #935 | Premade party gear, combat readiness, and caster spellbook legality. |
+| P3 | Linear `ARA-9`; Jules session `2823658242418460192`; PR #954 | Character creator spell selection and character sheet spellbook visibility. |
+| P4 | Linear `ARA-10`; PR #979 | Deterministic combat simulator pilot. |
+| P5 | Jules session `16180069342192211468`; PR #991 | AI arbitration pilot for `prestidigitation` and `suggestion`. |
+| P6 | Linear `ARA-12`; handoff `handoff-1779592447710-27ufm6`; Jules session `3811311513433217520`; PR #997; local consolidation commit | Choice/mode bucket work was ported locally because Jules PR #997 stayed conflicting and included out-of-scope Symphony decision-report edits. |
+| P7 | PR #998 | Draft handoff packet for Atlas discoverability/source repair; not an implementation PR and not dispatched to Jules yet. |
+| Symphony support | See `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`, `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`, and the decision report | Dashboard-first repairs, setup-routing fixes, PR feedback routing, local-sync affordances, and raw receipts are supporting workflow history, not the spell tracker PR index. |
 
 ## Active Package Queue
 
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
-| P0 | active | Codex foreman | Symphony finalization baseline: dashboard-first workflow, branch/worktree discipline, decision reporting, task evidence pathways, and artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Preserve Symphony runtime/source/local state outside Aralia. The visible dashboard remains the workflow surface, but Aralia GitHub should only receive Jules-readable task packets, prompts, tracker updates, and short blocker summaries. Current blocker: the user's main checkout remains divergent, so new slices should use clean-base worktrees or an explicit dashboard-supported clean-base path rather than mutating local main. |
+| P0 | active | Codex foreman | Symphony finalization baseline: dashboard-first workflow, branch/worktree discipline, decision reporting, task evidence pathways, and artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Preserve Symphony runtime/source/local state outside Aralia. The visible dashboard remains the workflow surface, but Aralia GitHub should only receive Jules-readable task packets, prompts, package tracker updates, final product PR links, and short blocker summaries. Raw Symphony receipts and support-PR lists belong in ignored/local Symphony state or Symphony-owned docs, not in this spell tracker. Current dashboard evidence on 2026-05-25 shows the top boundary focused on historical Package 6 GitHub PR refresh for `handoff-1779592447710-27ufm6`, while local Git evidence still requires `Review Local Changes` before starting another package; use the classification section below before any new Jules dispatch. |
 | P1 | done | Codex foreman | Scoped baseline inventory for levels 0-3 | `SPELL_PHASE_1_BASELINE_REPORT.md` | Baseline report exists; use as context for later packages |
-| P2 | done | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md`, `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`, `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | PR #935 merged on 2026-05-22 after PR #937 repaired the review workflow, the PR branch was updated with current `master`, GitHub CI reran clean, and post-merge local gate checks passed on the closeout branch |
-| P2D | done | Codex foreman | Dashboard-first hardening for Package 2 handoff monitoring | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`; Decisions 26-42; PR #936; PR #937 | Dashboard-first Package 2 blockers exposed useful repairs: safe PR refresh buttons, Scout/Core glob handling, visible operator decision buttons, setup-repair lane routing, global PR boundary routing, Git Safety visibility, current-boundary action buttons, and first-viewport focus strip; Stitch MCP server entry exists but still needs authentication/restart before Stitch-generated redesigns can be used |
-| P2R | done | Codex foreman local-careful | Workflow-config repair lane for PR #935 failed `review / review` automation | local draft `draft-1779410025252-nnowpt` (`Setup repair for ARA-7`); Decisions 38, 40, 41; PR #937 | PR #937 merged, PR #935 branch was updated against current `master`, rerun CI passed, and PR #935 then merged |
+| P2 | done | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md` | PR #935 merged on 2026-05-22 after the review workflow was repaired, the PR branch was updated with current `master`, GitHub CI reran clean, and post-merge local gate checks passed |
 | P3 | done | Codex foreman closeout | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Local proof and the merged GitHub work now cover wizard spell selection, selected-spell assembly, and spellbook visibility for cantrips plus levels 1-3; keep the packet durable and separate from transient Symphony state |
 | P4 | done | Jules implementation, Codex foreman closeout | Combat simulator deterministic spell pilot | `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md` | Package 4 was linked to Linear issue `ARA-10`, the Jules handoff produced PR #979, and that PR merged cleanly on 2026-05-22. Local proof now covers `fire-bolt`, `healing-word`, `magic-missile`, `scorching-ray`, and `fireball` in `src/hooks/__tests__/useAbilitySystem.package4.test.tsx`, plus direct HP/log command proof in `DamageCommand.test.ts` and `HealingCommand.test.ts`. Keep transient Symphony state external; the bless/status gap (`G49`) and Atlas source gap (`G48`) remain separate follow-ups. |
 | P5 | done | Jules implementation, Codex foreman review | AI arbitration pilot for open-ended spells | `PACKAGE_5_AI_ARBITRATION_PILOT.md`, `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Package 5 dispatched through clean dashboard handoff `handoff-1779586889329-3ehcfd` and Jules session `16180069342192211468`. PR #991 merged on 2026-05-24 after Jules implemented `prestidigitation` and `suggestion` AI prompts/player input, Codex removed generated gate-report churn and an out-of-scope workflow edit, the PR body was corrected, and GitHub Build/Lint/Tests/Quality/CodeQL/Poison/Analyze checks passed. Local sync and dashboard workflow closeout remain tracked under P0/Symphony, not as unfinished spell implementation. |
 | P6 | done | Jules implementation, Codex foreman local consolidation | First mechanics bucket closure for levels 0-3: `choice_or_mode` bounded implementation slice | `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md`, `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md`, PR #997, local consolidation commit | Package 6 was created through the visible dashboard as draft `draft-1779591924625-7hop6v`, linked to Linear issue `ARA-12`, promoted to handoff `handoff-1779592447710-27ufm6`, staged, and launched as Jules session `3811311513433217520` on 2026-05-24. Jules opened PR #997 and repair commit `b591839a49a6d764f660757dd8a1110c662f1e3c` fixed the out-of-range `modeChoice.effectIndices` data issue, but the PR remained conflicting and included an out-of-scope Symphony decision-report change. During branch/worktree consolidation, Codex locally ported only the useful spell/data/runtime/test changes and left the out-of-scope decision-report edit behind. The local result resolves `blindness-deafness`, `dragons-breath`, `chromatic-orb`, `alter-self`, `enlarge-reduce`, `alarm`, and `plant-growth` into deterministic choice fields (`modeChoice` and `damageTypeSource`); `enhance-ability` and `protection-from-energy` were already cleanly typed. No broad AI fallback needed for these explicit mechanics. Atlas proof remains blocked by `G48`. |
+| P7 | not_started | Jules implementation, Codex foreman review | Atlas discoverability/source repair for reliable Spell Phase checkpoints | `PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md`, `PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md`, draft PR #998 | Drafted only. Do not dispatch from the current dirty main checkout. Current evidence shows a local-vs-Git split: ignored local Atlas files exist in the dirty main checkout, but a clean tracked checkout is missing `misc/spell_pipeline_atlas.html`, `src/spell-pipeline-atlas.tsx`, and `PreviewSpellDataFlow.tsx`. Package 7 must make the Atlas source/proof path durable for Jules/GitHub and then clear the remaining orphaned `CASTING_TIME_EXECUTION` audit finding. |
+
+## Current Local Change Classification
+
+This section records why the local checkout still needs `Review Local Changes`
+before another Jules package starts, even when the visible dashboard focuses on
+the historical Package 6 PR refresh action. It is a routing note, not a request
+to discard or simplify any work.
+
+| Bucket | Current evidence | Spell Phase 1 handling |
+|---|---|---|
+| Spell/Symphony boundary docs | Tracked edits in `AGENTS.md`, `docs/tasks/spells/*`, and `conductor/symphony/*`; current diff is about 14 files with roughly 317 additions and 189 deletions. | In scope for the orchestration-boundary part of this goal. Keep only Aralia-facing policy, tracker, package, acceptance, and concise workflow-summary material in GitHub; keep raw Symphony runtime/source/state external or ignored. |
+| PHB glossary/rules migration | Tracked edits and deletions under `public/data/glossary/*`, plus untracked `docs/projects/phb2024_glossary_audit/*`, `docs/tasks/2024_phb_rules_migration.md`, `scripts/ingestPhbGlossary.ts`, `scripts/ingestRules.ts`, and hundreds of new glossary JSON files. | Adjacent but not part of the next Spell Phase Jules package. Do not bundle this into a spell handoff. Preserve it as separate local work unless the operator explicitly promotes it into its own branch/package. |
+| BattleMap and glossary UI/source edits | Tracked edits in `src/components/BattleMap/characters/CharacterActor.tsx`, `src/hooks/useBattleMapGeneration.ts`, `src/components/Glossary/glossaryRuleChapters.ts`, and `src/components/Glossary/glossaryUIUtils.tsx`. | Treat as separate local product work until reviewed. It may become relevant to combat visibility or glossary discoverability later, but it is not safe input for a fresh Jules spell package while mixed with unrelated migration changes. |
+| Ignored Symphony/Jules state | Historical Package 6 ignored state was imported into the main checkout as local evidence after worktree closure. `.jules/feedback/` is now covered by the shared `.gitignore` contract, not just local Git exclude. | Keep ignored and local. Copy only short Aralia-facing summaries into this tracker or package files when they explain a real package decision. |
+| Branch/worktree state | `git worktree list` currently shows only the main checkout, and `git branch --no-merged master` returns no local branches. | There is no remaining unmerged local worktree branch to close before the next package. The blocker is the dirty main checkout, so the next Jules package should start only after these local changes are committed/stashed elsewhere or from a deliberately clean base. |
 
 ## Current Setup And PR Tasks
 
@@ -164,13 +104,18 @@ Statuses:
 | S4 | done | Dispatch Package 2 to Jules | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Jules session `15527431301408060204` launched and queued |
 | S5 | done | Inspect completed Jules session result through dashboard-safe workflow | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Visible Jules session showed a plan-approval gate, not a usable completion result; plan was approved through the dashboard-linked Jules page |
 | S6 | done | Monitor approved Package 2 Jules run through dashboard-safe workflow | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md` | Dashboard captured PR #935 and current boundary moved to `Bridge Through Scout/Core` |
-| S7 | done | Review Package 2 PR #935 before Scout/Core merge path | `PACKAGE_2_SYMPHONY_HANDOFF_RECEIPT.md`, `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md`, `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | PR #937 repaired the stale Gemini model workflow; PR #935 was updated with current `master`; GitHub CI passed; PR #935 merged as `88c11e434c461823bc4226409059882a0ab9ceb6` |
+| S7 | done | Review Package 2 PR #935 before Scout/Core merge path | `PACKAGE_2_FOREMAN_REVIEW_RECEIPT.md`, `PACKAGE_2_PR_DEPLOYMENT_LOCAL_SYNC_RECEIPT.md` | The stale review workflow was repaired, PR #935 was updated with current `master`, GitHub CI passed, and PR #935 merged as `88c11e434c461823bc4226409059882a0ab9ceb6` |
 
 ## Adjacent Gap Log
 
 Use this section for discoveries that matter, but are adjacent to the active
 slice or outside its write scope. If a gap becomes active, promote it into the
 package queue or a linked detailed task file.
+
+Older rows may still name individual Symphony support PRs because they were
+written before this tracker was tightened. Do not extend that pattern. New
+entries should name the durable spell consequence, product PR, active blocker,
+or Symphony-owned doc that carries the detailed workflow provenance.
 
 | Gap ID | Status | Found during | Gap | Why adjacent/out of scope | Where to continue |
 |---|---|---|---|---|---|
@@ -221,7 +166,7 @@ package queue or a linked detailed task file.
 | G45 | done | Jules feedback delivery visibility | The dashboard could prove a `[Jules feedback]` GitHub PR comment existed, but it did not prove the active Jules session had actually received or displayed the latest Scout repair request. Visible Jules inspection showed earlier GitHub feedback but not the latest `Speak with Animals` / `SpellCard` repair text. | This was a Symphony/Jules handoff assurance gap, not a Package 3 implementation reason for local repair. The workflow should distinguish `feedback posted to GitHub` from `feedback visible in Jules session` when waiting for Jules. | Decisions 75, 76, 77, and 78; PR #969 merged the record that visible Jules contained the bounded repair request, PR #970 recorded that merge, PR #971 added dashboard/task-page wording that treats marked GitHub feedback as comment evidence only, and PR #954 later received the Jules repair commit and merged |
 | G46 | active | Package 3 Scout/Core re-review | The Druid `Speak with Animals` class-feature card is visually checked and behaviorally locked, but the underlying checkbox is not semantically disabled or marked read-only for assistive technology. | This is accessibility polish adjacent to the original acceptance blocker. The original blocker was that the spell was not visibly rendered as a locked/pre-selected card; the repaired UI now renders and does not toggle it, so this should not block the Package 3 merge. | Record as a follow-up for the next creator accessibility pass or a small Package 3 closeout repair if it becomes important before local-sync proof |
 | G47 | done | Package 3 closeout local sync | After PR #954 merged, the dashboard task navigator correctly said `Check local sync`, but the visible task page/current-boundary path did not expose the guarded local-sync readiness check as a first-class button and queue routing still pointed `check_local_sync` back at PR refresh. | This was a Symphony workflow defect exposed by dashboard-first Package 3 closeout, not spell implementation work. Calling the raw endpoint would have bypassed the human-operable dashboard path the test flow is supposed to improve. | Decision 79; PR #973 landed the visible `Check Local Sync` readiness action. Decision 80 records the post-merge result: monitor branch clean/current, mutating local `master` sync blocked by user-owned local-only commits |
-| G48 | active | Package 3 Atlas checkpoint | Package 3 closeout attempted to verify the Atlas path, but this worktree does not contain `misc/spell_pipeline_atlas.html`, and `scripts/auditAtlasBuckets.mjs` fails because `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx` is missing. | The gate report was regenerated and recorded, but Atlas cannot be honestly marked updated from this worktree. This is adjacent to Package 3 and should be repaired before relying on Atlas as the live bucket-progress surface for later spell packages. | Add an Atlas discoverability/source repair task before or during Package 4 planning; do not claim Atlas proof until the entrypoint and audit script work again |
+| G48 | active | Atlas checkpoint repair | Older Package 3 and Package 4 receipts recorded Atlas proof as blocked because their checking worktree appeared to be missing `misc/spell_pipeline_atlas.html` and `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx`. A dirty local checkout now contains ignored Atlas files and can run `node scripts/auditAtlasBuckets.mjs`, but a clean tracked checkout still misses `misc/spell_pipeline_atlas.html`, `src/spell-pipeline-atlas.tsx`, and `PreviewSpellDataFlow.tsx`; `git check-ignore` confirms the source paths are hidden by ignore rules. The ignored local copy also reports one low orphaned `CASTING_TIME_EXECUTION` finding. | Atlas still cannot be used as a clean Spell Phase proof surface until the GitHub-synced source path exists and the audit/source mismatch is repaired. This is adjacent to spell mechanics implementation but required before later packages rely on Atlas/gate checkpoints as completion evidence. | Package 7 task and prompt are drafted. Dispatch from a clean base after local dirty-checkout isolation, then require a clean checkout to contain the Atlas entrypoint/source and `node scripts\auditAtlasBuckets.mjs` to pass with no findings. |
 | G49 | out_of_scope | Package 4 proof closeout | `bless` is present in premade spell lists, but the current combat simulator does not yet expose a combat-spell/status bridge for it. | This is the recorded Package 4 buff/status follow-up, not a reason to broaden the deterministic cantrip/damage/healing pilot. | Add a small follow-up status-bridge package or mechanics-bucket task after Package 4 closes |
 | G50 | done | Package 5 dashboard resume | The visible dashboard Git disposition board can record intent for local-only and remote-only commits, but the resulting sync plan still requires human execution against the main checkout and offers no visible clean-worktree dispatch path for Package 5. | This is a Symphony/dashboard workflow boundary, not a Package 5 spell implementation issue. Hidden endpoints or direct main-checkout mutation would bypass the dashboard-first test and risk user-owned local commits. | Resolved for Git readiness by starting the dashboard from `F:\Repos\Aralia\.worktrees\spell-phase1-master-sync` on port `8140`; branch `codex/spell-phase1-dashboard-clean-base` matches `origin/master` and the visible Git gate reports ready. |
 | G51 | active | Package 5 visible draft attempt | The clean dashboard exposes a `Save Draft` form for Package 5, but Codex Browser Use cannot fill or type into the visible form because the virtual clipboard is not installed. | This is a dashboard/browser tooling blocker. Posting directly to `/api/v1/task-drafts` would bypass the UI path the test flow is meant to improve. | Repair visible form input for Codex Browser Use, add a non-clipboard form entry path, or have the operator manually fill the visible dashboard draft from `PACKAGE_5_AI_ARBITRATION_PILOT.md`. |
@@ -238,9 +183,15 @@ package queue or a linked detailed task file.
 | G62 | active | Package 6 Jules feedback gate | Jules waited for scoped operator feedback, but the standalone dashboard task page originally rendered only a `Send Jules Feedback` button for the `/message` endpoint and no message field. A local dashboard repair now renders a visible `Jules feedback` textarea and send button; because Codex Browser Use still cannot type or paste into visible textareas, the page also exposes a visible reviewed `Send Prepared Package 6 Feedback` control for this exact handoff. | This is a Symphony/dashboard plus Codex browser-control workflow defect, not Package 6 spell implementation. Calling `/api/v1/jules-handoffs/.../message` directly would bypass the dashboard-first test, and repairing the spell locally would undercut the Jules-first flow. | Feedback delivery is proven by the handoff dialogue status `sent` and visible Jules session text. A later visible dashboard refresh reports Jules `IN_PROGRESS`, so this gate is no longer the active Package 6 blocker; keep the item open only until the local Symphony repair is either externalized, published as temporary workflow repair, or intentionally discarded. |
 | G63 | active | Package 6 post-feedback routing | After Package 6 feedback was sent successfully, the dashboard still used `Send Jules Feedback` as the current boundary because its routing only checked the cached Jules state and ignored successful operator-message receipts. | This is a Symphony state-model defect exposed by dashboard-first monitoring, not Package 6 spell implementation. Re-sending the same feedback or editing the spell locally would be the wrong response. | Local dashboard repair now routes sent-feedback handoffs to `Refresh Jules Status`; `verify-queue-next-action` covers this case and the live dashboard shows `Refresh Jules Status`. Jules now reports `IN_PROGRESS` with no PR URL, so keep monitoring through dashboard refreshes. |
 | G64 | active | Package 6 finalization approval input | Jules reported completed Package 6 implementation work and asked whether to proceed to review/finalization, but Codex Browser Use could not type into the visible Jules textarea because the virtual clipboard bridge is unavailable. | This is another dashboard/browser-control workflow defect, not a reason to repair Package 6 locally or call hidden endpoints. The approval decision is already authorized for this test flow, but the exact text still needs to be visible and auditable before it leaves Symphony. | Added a visible `Send Prepared Finalization Approval` dashboard control for the Package 6 handoff. The task receipt and visible Jules page both show the approval text was sent. A later refresh still reports `AWAITING_USER_FEEDBACK` and no PR URL, so continue visible refresh/nudge monitoring without resending blindly. |
-| G65 | active | Package 6 PR conflict and modeChoice index repair | Jules opened PR #997, but GitHub reports merge conflicts and Codex foreman found `modeChoice.effectIndices` values that point outside `effects[]` for several spells. | This is Jules-owned Package 6 repair work because the PR already exists and the issues are inside its changed files. Codex should not repair the spell implementation locally unless the Jules repair loop fails or the operator redirects. | Posted bounded Jules feedback on PR #997 asking for tracker conflict repair plus a regression check for out-of-range `modeChoice.effectIndices`. Dashboard refresh now records the conflict boundary and increased external review-comment count. |
+| G65 | done | Package 6 PR conflict and modeChoice index repair | Jules opened PR #997, GitHub reported merge conflicts, and Codex foreman found `modeChoice.effectIndices` values that pointed outside `effects[]` for several spells. | The Jules repair loop fixed the data issue but the PR stayed conflicting and retained an out-of-scope Symphony decision-report edit. After repeated wait/repair checks, the useful spell/runtime/test slice was locally ported into `master` while raw Symphony state was imported only as ignored local historical evidence. | Package 6 is now tracked as done in the active package queue. PR #997 remains historical evidence rather than the active integration path; future work should start from the local `master` Package 6 result, not from the conflicted PR branch. |
+| G66 | active | Post-Package 6 consolidation | Local `master` is dirty with broad glossary/rules migration work, BattleMap/glossary source edits, and spell/Symphony documentation edits. The visible dashboard currently focuses on the historical Package 6 GitHub PR refresh action, so dashboard state and local Git state are not a single clean "ready for next package" signal. | This is a branch/worktree hygiene boundary, not a new spell mechanics package. Starting another Jules package from this checkout would mix unrelated local work into the spell flow and repeat the worktree-state confusion that Package 6 exposed. | Use `Current Local Change Classification` above as the routing record. Keep spell/Symphony boundary docs separate from the PHB glossary/rules migration and BattleMap/glossary source edits. Use a clean-base branch or worktree for the next Jules packet, with strongest next candidates still `G48` Atlas discoverability/source repair and `G49` buff/status combat bridge. |
+| G67 | active | Package 7 packet PR integration | Draft PR #998 contains only Package 7 handoff docs and tracker/lifecycle updates, but GitHub Build is red. Local `npx tsc --noEmit` on the clean packet worktree reproduces existing source/test type errors in `SpellCommandFactoryMode.test.ts`, `actionHandlers.ts`, and `characterReducer` files. | This is not caused by the docs-only packet, but it prevents clean merge/readiness claims. Merging the handoff packet through a red Build would weaken the GitHub proof boundary. | Keep PR #998 draft and GitHub-visible. Either repair the ambient Spell Phase type errors in a separate bounded package/repair lane, or explicitly decide whether docs-only handoff packets may merge while unrelated Build debt is red. |
 
 ## Detailed Task File Index
+
+Receipt-named files below are historical package summaries, not a precedent for
+tracking raw Symphony receipts. New raw dashboard receipts should stay local or
+ignored unless a concise package-facing summary is useful after the run.
 
 | File | Purpose | Status |
 |---|---|---|
@@ -269,17 +220,25 @@ package queue or a linked detailed task file.
 | `PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md` | Package 4 Atlas/gate proof target | partial; spell validation and gate refresh recorded, Atlas source gap tracked as G48 |
 | `PACKAGE_5_AI_ARBITRATION_PILOT.md` | Package 5 AI arbitration scope, decisions, and merge receipt | done; PR #991 merged after dashboard/Jules dispatch and Codex PR-scope cleanup |
 | `PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md` | Exact Jules prompt for Package 5 | done; dispatched through Jules session `16180069342192211468` |
-| `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md` | Package 6 choice/mode mechanics bucket scope and acceptance criteria | active draft for next Jules-preferred implementation slice |
-| `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md` | Exact Jules prompt for Package 6 | active draft; not yet dispatched |
+| `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md` | Package 6 choice/mode mechanics bucket scope and acceptance criteria | done; Jules PR #997 conflicted, and useful spell/runtime/test changes were locally consolidated without the out-of-scope Symphony decision-report edit |
+| `PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md` | Exact Jules prompt for Package 6 | done; dispatched through Jules session `3811311513433217520` |
+| `PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md` | Package 7 Atlas source/discoverability repair scope and acceptance criteria | drafted; not dispatched from dirty main checkout |
+| `PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md` | Exact Jules prompt for Package 7 | drafted; dispatch only from a clean base |
 
 ## Update Rules
 
 - Update this tracker before starting a new package.
 - Update it after every package-level PR, merge, local sync, Jules dispatch,
   Jules result, foreman review, Atlas/gate checkpoint, or artifact filing
-  decision.
+  decision that materially changes Spell Phase 1 state.
 - When a change only preserves Symphony runtime state, classify it as external
   or ignored unless the tracker needs a short durable summary.
+- When a change only repairs Symphony dashboard/workflow support machinery,
+  summarize the durable outcome without adding every support PR to this tracker.
+  Detailed support provenance belongs in Symphony-owned docs.
+- If a spell package exposes Symphony dashboard or documentation friction,
+  update this tracker or link the Symphony task queue/audit entry in the same
+  pass.
 - If a detailed package file contradicts this tracker, treat that as a tracking
   bug: reconcile the two instead of assuming either one is silently correct.
 - Adjacent gaps should stay visible here until they are either promoted,
