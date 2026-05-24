@@ -98,7 +98,8 @@ To avoid scanning thousands of unrelated data and codebase files, **do not defau
    - For normal task completion, identify changed files using:
      - `git diff --name-only HEAD~1..HEAD` (for the latest commit)
      - `git diff --name-only` (for uncommitted work)
-     - Any newly created durable documents, reports, or plans (e.g., in `docs/` or `conductor/symphony/docs/`).
+     - Any newly created durable Aralia-facing documents, reports, or plans
+       under `docs/`.
    - Do **NOT** mine runtime artifacts, temporary proof captures, generated outputs, `node_modules`, build outputs, or massive structured data unless they are the exact durable artifact being preserved.
    - Record skipped or partial mining honestly in the final session report.
 
@@ -119,14 +120,13 @@ To avoid scanning thousands of unrelated data and codebase files, **do not defau
 
 #### Concrete Examples
 
-- **For a Symphony documentation/report task (narrow subdirectory targets)**:
+- **For a Spell Phase task-documentation update (narrow subdirectory target)**:
   ```powershell
-  mempalace mine F:\Repos\Aralia\conductor\symphony\docs\decision-reports --wing aralia
-  mempalace mine F:\Repos\Aralia\conductor\symphony\docs\tasks --wing aralia
+  mempalace mine F:\Repos\Aralia\docs\tasks\spells --wing aralia
   ```
 - **For a single durable file in a subdirectory** (mine its narrowest parent directory with explicit wing to capture it):
   ```powershell
-  mempalace mine F:\Repos\Aralia\conductor\symphony\docs\decision-reports --wing aralia
+  mempalace mine F:\Repos\Aralia\docs\tasks\spells --wing aralia
   ```
 - **For a source change in `src/`**:
   ```powershell
