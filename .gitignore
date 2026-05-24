@@ -234,3 +234,8 @@ docs/archive/
 
 # External vendor code/data
 vendor/
+
+# Local external skill checkouts. These folders may exist on the developer
+# machine for agent tooling, but they are not Aralia source and should not be
+# tracked as broken Git submodule pointers.
+Claudeception/
