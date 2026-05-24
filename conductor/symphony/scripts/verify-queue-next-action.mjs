@@ -679,3 +679,46 @@ assert.deepEqual(awaitingFeedbackSnapshot.next_action.request_body_schema, {
 assert.deepEqual(awaitingFeedbackSnapshot.next_action.request_body_example, {
   body: 'Short bounded feedback for Jules after inspecting the session request.',
 });
+
+const awaitingFeedbackAfterMessageSnapshot = withTaskCapabilities({
+  drafts: [],
+  preflight,
+  handoffs: [
+    {
+      ...baseHandoff,
+      id: 'handoff-feedback-sent',
+      title: 'Jules feedback already sent handoff',
+      githubPullRequestState: null,
+      julesSessionId: 'jules-feedback-sent-session',
+      julesSessionUrl: 'https://jules.google.com/session/jules-feedback-sent-session',
+      julesState: 'AWAITING_USER_FEEDBACK',
+      operatorMessages: [{
+        id: 'message-feedback-sent',
+        body: 'Bounded answer already sent to Jules.',
+        createdAt: '2026-05-17T00:02:00.000Z',
+        status: 'sent',
+        command: 'npx tsx .jules/orchestrator/cli.ts message jules-feedback-sent-session ...',
+        output: 'Sent message to Jules session jules-feedback-sent-session.',
+        error: null,
+      }],
+    },
+  ],
+});
+
+// Once feedback has been sent successfully, the dashboard must not keep asking
+// the operator to send the same note again. The next visible step is to refresh
+// Jules and see whether the external worker has moved on, produced a PR, or
+// exposed a separate bridge/status problem.
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.code, 'refresh_jules_status');
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.source_type, 'handoff');
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.source_id, 'handoff-feedback-sent');
+assert.equal(
+  awaitingFeedbackAfterMessageSnapshot.next_action.url,
+  'http://127.0.0.1:8081/api/v1/jules-handoffs/handoff-feedback-sent/refresh-status',
+);
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.method, 'POST');
+assert.equal(
+  awaitingFeedbackAfterMessageSnapshot.next_action.jules_session_url,
+  'https://jules.google.com/session/jules-feedback-sent-session',
+);
+assert.equal(awaitingFeedbackAfterMessageSnapshot.next_action.latest_operator_message.status, 'sent');

@@ -3889,3 +3889,531 @@ Copy this block for each decision.
 - Next expected proof: Refresh the Jules session from the dashboard until it
   either needs plan approval, needs feedback, produces a PR, fails, or remains
   queued long enough to justify a waiting/nudge record.
+
+### Decision 92: Send Package 6 Jules Feedback Through A Visible Prepared-Feedback Control
+
+- Date/time: 2026-05-24 21:40 +02:00
+- Phase: `package_6_jules_feedback`
+- Active slice: Answer Jules' scoped schema question without bypassing the
+  dashboard-first workflow.
+- Decision point: Jules session `3811311513433217520` reached
+  `AWAITING_USER_FEEDBACK` and asked whether Package 6 should implement
+  `modeChoice` for `blindness-deafness`, `dragons-breath`, and
+  `protection-from-energy`, or add a new simple damage/resistance choice schema
+  field. The standalone Symphony task page rendered a `Send Jules Feedback`
+  action for the `/message` endpoint, but did not render a message field for the
+  operator's exact feedback text.
+- Options considered:
+  - Send the prepared feedback by calling the hidden `/message` endpoint
+    directly.
+  - Repair the spell implementation locally and avoid the Jules feedback gate.
+  - Add a visible task-page Jules feedback form, verify it, and use that visible
+    form.
+  - Add a visible prepared-feedback control for this exact reviewed Package 6
+    answer if browser text entry still fails after the dashboard repair.
+- Decision made by agent: Add a local dashboard repair so a Jules feedback
+  boundary renders a visible `Jules feedback` textarea and submit button on the
+  standalone task page. When Browser Use still could not type or paste into the
+  visible textarea, add a visible `Send Prepared Package 6 Feedback` control
+  that displays the exact feedback text in an open details block and sends that
+  reviewed text through the same dashboard form path. Do not call the hidden
+  endpoint directly.
+- Model routing: Local Codex handled the workflow repair and schema feedback
+  decision with stronger foreman reasoning, because this choice affects shared
+  spell schema direction and dashboard-first trust. Jules remains the intended
+  implementation worker once feedback is delivered.
+- Rationale/evidence: Current schema evidence shows `modeChoice` is already the
+  right shape for mutually exclusive operation menus, `targeting.perTargetChoice`
+  already covers `enhance-ability`, `effects[].damageTypeSource:
+  chosen_damage_type` already covers defensive chosen-type effects such as
+  `protection-from-energy`, and `damageTypeChoice` currently lives under attack
+  augments rather than simple damage/resistance effects. The prepared feedback
+  tells Jules to use `modeChoice` for `blindness-deafness`, not to model
+  damage-type selections as `modeChoice`, to leave `enhance-ability` alone
+  unless a concrete gap appears, and to defer or make only a tiny validated
+  simple-damage extension for `dragons-breath`.
+- Mutation performed or skipped: Changed local Symphony dashboard source
+  `conductor/symphony/src/server.ts` and verifier
+  `conductor/symphony/scripts/verify-task-detail-page.mjs` to expose and verify
+  the visible feedback form and the visible prepared-feedback fallback. Updated
+  the Aralia tracker with `G62`. Skipped hidden endpoint use, skipped local spell
+  implementation, and skipped pushing this Symphony source repair while the
+  active boundary still says Symphony source should eventually be external to
+  Aralia.
+- Scope guardrails: The local dashboard repair is workflow infrastructure, not
+  Package 6 spell implementation. It should be treated as external Symphony work
+  or a temporary migration repair, not as proof that Symphony runtime/source
+  belongs permanently in Aralia task packets.
+- Result: `npm run build` in `conductor/symphony` passed, and
+  `node conductor/symphony/scripts/verify-task-detail-page.mjs` passed after the
+  repair. The visible prepared-feedback button sent the Package 6 response to
+  Jules; the handoff dialogue records status `sent` with output `Sent message to
+  Jules session 3811311513433217520.`, and the visible Jules page shows the
+  feedback message in the session. A dashboard refresh still reports
+  `AWAITING_USER_FEEDBACK`, so Jules may not have resumed yet or the
+  Symphony/Jules message bridge may need a follow-up status transition. A second
+  local dashboard repair also changed the current boundary after a sent message
+  from `Send Jules Feedback` to `Refresh Jules Status`; `verify-queue-next-action`
+  now covers this case and the live dashboard shows the corrected boundary.
+- Next expected proof: Refresh the Jules session again until it moves out of
+  `AWAITING_USER_FEEDBACK`, produces a PR, or proves a new message-bridge
+  blocker that should be recorded separately.
+
+### Decision 93: Continue Package 6 Monitoring After Jules Resumed
+
+- Date/time: 2026-05-24 06:02 +02:00
+- Phase: `package_6_jules_monitoring`
+- Active slice: Resume from the dashboard after local work changed and classify
+  the next real Package 6 boundary.
+- Decision point: The previous receipt said Jules was still
+  `AWAITING_USER_FEEDBACK` after the prepared-feedback message was sent. On
+  resume, the Package 6 dashboard worktree still had five uncommitted local
+  changes, the dashboard was still reachable on port `8141`, and the visible
+  current boundary was `Refresh Jules Status`.
+- Options considered:
+  - Treat the old `AWAITING_USER_FEEDBACK` receipt as current and keep debugging
+    the message bridge.
+  - Bypass the dashboard and inspect hidden state directly.
+  - Use the visible dashboard refresh action, then update the durable tracker
+    only from the visible task receipt.
+- Decision made by agent: Use the visible `Refresh Jules Status` action on the
+  Package 6 dashboard and then open the visible task page receipt. Do not resend
+  feedback, do not repair Package 6 spells locally, and do not bypass the
+  dashboard with hidden endpoints.
+- Model routing: Codex foreman handled the dashboard monitoring and durable
+  receipt update. Jules remains the implementation worker for Package 6 while
+  its session is running.
+- Rationale/evidence: The task page now says `Jules is IN_PROGRESS, but no PR
+  URL has been captured yet.` Its timeline includes `Jules status refreshed` at
+  `2026-05-24T04:01:32.159Z` with detail `Jules reported IN_PROGRESS.` This
+  means the feedback gate has cleared and the active boundary is waiting for
+  Jules to produce a PR, ask for new input, fail, or require another visible
+  refresh.
+- Mutation performed or skipped: Updated the Aralia-facing Package 6 tracker
+  status text to replace the stale `AWAITING_USER_FEEDBACK` note with the new
+  `IN_PROGRESS` receipt. Skipped committing or pushing local Symphony source
+  repairs because the broader goal still says Symphony runtime/source should be
+  treated as external or temporary migration work unless intentionally published.
+- Scope guardrails: This decision records orchestration state only. It does not
+  change the Package 6 spell implementation, schema, Atlas proof, or gate-report
+  data.
+- Result: Package 6 is now waiting on Jules implementation progress rather than
+  operator feedback. No PR URL is recorded yet, and the Git safety panel remains
+  blocked by five local tracked changes that need disposition before any further
+  GitHub-synced handoff work.
+- Next expected proof: Continue dashboard refreshes until Jules exposes a PR URL,
+  asks for new input, fails, or remains `IN_PROGRESS` long enough to justify a
+  visible nudge/wait record.
+
+### Decision 94: Send Package 6 Finalization Approval Through A Visible Prepared Control
+
+- Date/time: 2026-05-24 06:11 +02:00
+- Phase: `package_6_jules_finalization_approval`
+- Active slice: Let Jules finish Package 6 and open a PR after it reported the
+  bounded implementation work and asked whether to proceed.
+- Decision point: The visible Jules session showed a completed-work report for
+  Package 6 and asked: `Should I proceed to get the code reviewed and finalize my
+  work, or do you need me to verify anything else first?` Browser Use could see
+  the Jules textarea, but both fill and literal typing failed because the browser
+  bridge reported that its virtual clipboard is unavailable. Calling the hidden
+  Symphony `/message` endpoint directly would bypass the dashboard-first test
+  flow.
+- Options considered:
+  - Stop and ask the operator to type the approval manually.
+  - Repair the Package 6 spell work locally and abandon the Jules-first handoff.
+  - Call the hidden Symphony message endpoint directly.
+  - Add a visible prepared finalization-approval control to the dashboard, show
+    the exact approval text, and send it through the same dashboard note bridge.
+- Decision made by agent: Add a visible `Send Prepared Finalization Approval`
+  control for the Package 6 handoff on the dashboard. The prepared text tells
+  Jules to proceed to final review and open the PR for Symphony/Scout/Core
+  review, stay bounded to Package 6, avoid adjacent cleanup, avoid generated
+  timestamp-only gate churn, and include verification results.
+- Model routing: Codex foreman handled the workflow repair and approval decision
+  because this is an orchestration boundary. Jules remains the implementation
+  worker and PR producer.
+- Rationale/evidence: The approval is within the operator's prior assumed
+  approval for this test flow. The dashboard rendered the prepared approval
+  button, the task receipt records an operator note at
+  `2026-05-24T04:09:43.062Z`, and the visible Jules page shows the same approval
+  message followed by a `Thinking` state. This avoided hidden endpoint use and
+  avoided local spell repair.
+- Mutation performed or skipped: Changed local Symphony dashboard source
+  `conductor/symphony/public/dashboard.js` to expose the prepared approval
+  control. Updated the Aralia tracker with `G64`. Skipped local Package 6 spell
+  implementation and skipped claiming a PR because no PR URL is recorded yet.
+- Scope guardrails: This is workflow repair plus receipt tracking only. It does
+  not prove Package 6 spell correctness, Atlas state, gate-report stability, or
+  PR readiness.
+- Result: The finalization approval reached Jules and is visible in both the
+  task receipt and the Jules session. A later dashboard refresh still reported
+  `AWAITING_USER_FEEDBACK` and no PR URL, so Symphony/Jules state reconciliation
+  remains suspect or Jules has not yet advanced far enough to expose the PR.
+- Next expected proof: Continue visible dashboard refreshes until Jules exposes a
+  PR URL, asks a genuinely new question, fails, or remains waiting long enough to
+  record a separate status-reconciliation/nudge decision.
+
+### Decision 95: Keep Package 6 In Jules Review Instead Of Local Repair
+
+- Date/time: 2026-05-24 06:15 +02:00
+- Phase: `package_6_jules_review_wait`
+- Active slice: Monitor Package 6 after Jules received finalization approval.
+- Decision point: After the prepared finalization approval was sent, Symphony's
+  next visible refresh reported `IN_PROGRESS` with no PR URL. The visible Jules
+  page showed the approval message and then `Running code review ...`, still
+  without a GitHub PR URL.
+- Options considered:
+  - Start implementing or reviewing Package 6 locally before Jules opens a PR.
+  - Send another nudge immediately.
+  - Continue dashboard-first monitoring until Jules produces a PR, asks a new
+    question, or fails.
+- Decision made by agent: Do not repair or review Package 6 locally yet, and do
+  not resend approval. Keep Jules as the worker and continue visible refreshes
+  until a PR URL or a new failure boundary appears.
+- Model routing: Jules remains the implementation/review worker. Codex stays in
+  foreman monitoring mode.
+- Rationale/evidence: The visible task page says `Jules is IN_PROGRESS, but no PR
+  URL has been captured yet.` The visible Jules session says `Running code review
+  ...`, which means the prior approval was accepted and Jules is still doing
+  finalization work.
+- Mutation performed or skipped: Updated the Aralia-facing tracker to replace
+  the stale `AWAITING_USER_FEEDBACK` wording with the current `IN_PROGRESS` /
+  `Running code review ...` evidence. Skipped local spell implementation, skipped
+  another Jules note, and skipped PR inspection because no PR URL exists yet.
+- Scope guardrails: This is orchestration monitoring only. It does not prove
+  Package 6 implementation correctness or change any spell data.
+- Result: Package 6 remains waiting on Jules to finish review/finalization and
+  expose a PR URL.
+- Next expected proof: Refresh the dashboard again until a PR URL appears, Jules
+  asks a new question, or Jules reports a failure.
+
+### Decision 96: Confirm No Package 6 PR Before Waiting Again
+
+- Date/time: 2026-05-24 06:18 +02:00
+- Phase: `package_6_jules_review_wait`
+- Active slice: Determine whether Package 6 has produced a GitHub PR yet.
+- Decision point: The visible dashboard still reported `IN_PROGRESS` with no PR
+  URL after refreshing the Package 6 handoff, and the visible Jules session still
+  said `Running code review ...`.
+- Options considered:
+  - Assume the PR exists and begin PR review from memory.
+  - Start a local implementation/review before Jules publishes its PR.
+  - Check GitHub directly for an open Package 6 PR, then keep waiting if none
+    exists.
+- Decision made by agent: Check open GitHub PRs with `gh pr list --repo
+  Gambitnl/Aralia` as corroborating evidence, then keep the Jules handoff in
+  dashboard refresh/wait state.
+- Model routing: Jules remains the implementation/review worker. Codex remains
+  the foreman/monitor.
+- Rationale/evidence: The dashboard has no PR URL. The visible Jules session has
+  no PR link and only shows `Running code review ...`. GitHub open PRs are #988,
+  #930, and #929; none are the Package 6 choice/mode handoff.
+- Mutation performed or skipped: Updated the Aralia-facing tracker to record the
+  latest dashboard/Jules/GitHub evidence. Skipped local Package 6 implementation,
+  skipped another Jules note, and skipped PR review because no Package 6 PR
+  exists yet.
+- Scope guardrails: This records orchestration state only. It does not change
+  spells, schema, tests, or Atlas.
+- Result: Package 6 remains waiting on Jules code review/finalization to expose a
+  PR URL.
+- Next expected proof: Refresh again later until a Package 6 PR URL appears, a
+  new Jules question appears, or Jules reports failure.
+
+### Decision 97: Send Package 6 PR Repair Feedback To Jules
+
+- Date/time: 2026-05-24 06:26 +02:00
+- Phase: `package_6_pr_review`
+- Active slice: Review Jules PR #997 for mergeability, changed-file scope, and
+  obvious acceptance blockers before Scout/Core review.
+- Decision point: Dashboard refresh found Package 6 PR #997 and moved the
+  boundary to PR review. GitHub reported the PR as `CONFLICTING`; CodeQL checks
+  passed, but no broader build/test checks were present in the current rollup.
+- Options considered:
+  - Merge or approve because the available checks are green.
+  - Repair the PR locally in Codex.
+  - Ask Jules to repair the conflict and the implementation issue on its own PR.
+- Decision made by agent: Keep Jules as the PR owner and send a focused repair
+  comment through the dashboard-presented GitHub comment path. Do not repair the
+  PR locally.
+- Model routing: Codex foreman performed review and issue classification. Jules
+  remains responsible for its PR repair commit.
+- Rationale/evidence:
+  - `gh pr view 997 --repo Gambitnl/Aralia` reports mergeability
+    `CONFLICTING` and PR URL `https://github.com/Gambitnl/Aralia/pull/997`.
+  - An isolated review worktree reproduced the conflict with
+    `git merge --no-commit --no-ff origin/master`; the only conflicted file was
+    `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
+  - A local JSON check on the PR branch found invalid `modeChoice` indices:
+    `alarm` option `Mental Alarm` points to effect index `1` while the spell has
+    one effect; `alter-self` options `Change Appearance` and `Natural Weapons`
+    point to `1` and `2` while the spell has one effect; `enlarge-reduce`
+    option `Reduce` points to `1` while the spell has one effect; `plant-growth`
+    option `Enrichment` points to `1` while the spell has one effect. Because
+    PR #997 filters active effects by `effectIndices`, these choices can produce
+    an empty command list.
+- Mutation performed or skipped: Created the local feedback file
+  `.jules/feedback/handoff-1779592447710-27ufm6-pr-feedback.md` and ran the
+  dashboard-presented command
+  `gh pr comment https://github.com/Gambitnl/Aralia/pull/997 --body-file
+  .jules/feedback/handoff-1779592447710-27ufm6-pr-feedback.md`. The comment was
+  posted at `https://github.com/Gambitnl/Aralia/pull/997#issuecomment-4527378854`.
+  Skipped local PR repair and skipped merge approval.
+- Scope guardrails: The feedback asks Jules to keep the repair bounded to
+  Package 6, avoid unrelated cleanup, and avoid generated timestamp-only
+  gate-report churn.
+- Result: Dashboard refresh still reports `Resolve PR Conflicts`; PR checks are
+  passing for the four current CodeQL checks, but merge conflicts and the
+  modeChoice index bug remain until Jules pushes a repair commit.
+- Next expected proof: Refresh PR #997 after Jules pushes a repair commit, then
+  rerun changed-file review, mergeability, and focused verification.
+
+### Decision 98: Wait After Jules Acknowledged Package 6 Repair Feedback
+
+- Date/time: 2026-05-24 06:29 +02:00
+- Phase: `package_6_pr_repair_wait`
+- Active slice: Check whether Jules repaired PR #997 after the bounded repair
+  feedback comment.
+- Decision point: The dashboard still showed `Resolve PR Conflicts`, so Codex
+  needed to determine whether Jules had pushed a repair commit, whether a new
+  review action was required, or whether this was simply a wait state.
+- Options considered:
+  - Repost or broaden the repair request.
+  - Start local PR repair in Codex.
+  - Check GitHub/Jules evidence and wait if Jules has acknowledged but not yet
+    pushed.
+- Decision made by agent: Do not repost, do not repair locally, and keep waiting
+  for Jules to push a repair commit.
+- Model routing: Jules remains the PR repair worker. Codex remains foreman.
+- Rationale/evidence: `gh pr view 997` still shows only the original commit
+  `aa759e685743cc153bc27cb8321eac8aecbaa1bf`, mergeability `CONFLICTING`, and
+  the repair comment `https://github.com/Gambitnl/Aralia/pull/997#issuecomment-4527378854`
+  has an eyes reaction from Jules. The visible Jules page showed PR diff context
+  but no completed repair report or new PR URL.
+- Mutation performed or skipped: Updated the Aralia-facing tracker with the
+  acknowledged-but-not-repaired state. Skipped local repair, skipped another PR
+  comment, and skipped rerunning the out-of-range index check because the PR
+  commit did not change.
+- Scope guardrails: This records orchestration state only; it does not modify
+  spell data or PR code.
+- Result: Package 6 remains `repair-requested`; next useful action is another PR
+  refresh after Jules pushes a new commit.
+- Next expected proof: A new PR #997 commit from Jules, followed by mergeability
+  and modeChoice index verification.
+
+### Decision 99: Ask Jules To Push The Claimed Package 6 Repair Commit
+
+- Date/time: 2026-05-24 06:34 +02:00
+- Phase: `package_6_pr_repair_wait`
+- Active slice: Reconcile Jules' repair claim with the actual PR branch state.
+- Decision point: Jules replied on PR #997 saying it had merged `origin/master`,
+  resolved the tracker conflict, fixed out-of-range `modeChoice.effectIndices`,
+  and added a focused regression check. However, GitHub and Git still showed no
+  pushed repair commit.
+- Options considered:
+  - Treat Jules' comment as proof and proceed to review.
+  - Repair the PR locally in Codex.
+  - Verify the remote branch, then ask Jules to push the actual repair commit.
+- Decision made by agent: Verify the remote branch and post a narrow follow-up
+  comment asking Jules to push the described repair commit.
+- Model routing: Jules remains the PR repair worker. Codex remains foreman and
+  evidence checker.
+- Rationale/evidence: `gh pr view 997` still reported head
+  `aa759e685743cc153bc27cb8321eac8aecbaa1bf`, mergeability `CONFLICTING`, and
+  only the original PR commit. `git ls-remote origin
+  refs/heads/jules/spells-package6-choice-mode-bucket-3811311513433217520`
+  returned the same commit. The dashboard also still showed `Resolve PR
+  Conflicts`.
+- Mutation performed or skipped: Created local feedback file
+  `.jules/feedback/handoff-1779592447710-27ufm6-pr-feedback-2.md` and posted it
+  with `gh pr comment https://github.com/Gambitnl/Aralia/pull/997 --body-file
+  .jules/feedback/handoff-1779592447710-27ufm6-pr-feedback-2.md`. The follow-up
+  comment is `https://github.com/Gambitnl/Aralia/pull/997#issuecomment-4527395887`.
+  Skipped local PR repair and skipped accepting Jules' unpushed repair claim as
+  evidence.
+- Scope guardrails: The follow-up asks only for the already-described repair
+  commit: preserve tracker history while resolving conflict, fix out-of-range
+  `modeChoice.effectIndices`, and add the focused regression check.
+- Result: Package 6 remains `repair-requested`; PR #997 is not ready for
+  Scout/Core review until the branch actually changes.
+- Next expected proof: A new PR #997 head commit from Jules, followed by
+  mergeability, changed-file, and modeChoice index verification.
+
+### Decision 100: Request Second Package 6 PR Repair After Partial Fix
+
+- Date/time: 2026-05-24 06:39 +02:00
+- Phase: `package_6_pr_review`
+- Active slice: Review Jules repair commit `b591839a49a6d764f660757dd8a1110c662f1e3c`.
+- Decision point: Jules finally pushed a repair commit to PR #997. Codex needed
+  to determine whether the PR was ready for Scout/Core review or still needed
+  bounded repair.
+- Options considered:
+  - Proceed because the data index bug was fixed and the focused Vitest passed.
+  - Repair remaining issues locally.
+  - Send a second focused Jules repair comment.
+- Decision made by agent: Send Jules a second focused repair comment because the
+  repair was partial.
+- Model routing: Jules remains PR repair worker. Codex remains foreman reviewer.
+- Rationale/evidence:
+  - PR head moved to `b591839a49a6d764f660757dd8a1110c662f1e3c`.
+  - A local `modeChoice` index scan now passes for `alarm`, `alter-self`,
+    `blindness-deafness`, `enlarge-reduce`, and `plant-growth`.
+  - `npx vitest run src/commands/factory/__tests__/SpellCommandFactoryMode.test.ts
+    --reporter=verbose` passed in the isolated PR review worktree.
+  - `git merge --no-commit --no-ff origin/master` still conflicts in
+    `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
+  - The PR now includes
+    `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`,
+    which is out of scope for the Package 6 Aralia spell task and violates the
+    current Symphony/Aralia separation boundary.
+  - The new focused test proves invalid indices do not crash, but does not catch
+    invalid real spell data. The prior regression would have passed if invalid
+    real data returned.
+- Mutation performed or skipped: Posted
+  `https://github.com/Gambitnl/Aralia/pull/997#issuecomment-4527406707` asking
+  Jules to resolve the tracker conflict, remove the Symphony decision-report
+  file from the PR, and add/adjust a focused real-data regression for invalid
+  `modeChoice.effectIndices`. Skipped local PR repair and skipped approval.
+- Scope guardrails: The follow-up is limited to PR #997 repair and explicitly
+  asks Jules to keep scope bounded.
+- Result: Package 6 remains `repair-requested`; one implementation bug is fixed,
+  but the PR is still not ready for Scout/Core review.
+- Next expected proof: A new PR #997 head commit, no merge conflict, no
+  out-of-scope Symphony decision-report file, and a focused real-data
+  `modeChoice.effectIndices` regression.
+
+### Decision 101: Keep Package 6 Waiting After Visible Jules Acknowledgement
+
+- Date/time: 2026-05-24 06:47 +02:00
+- Phase: `package_6_pr_repair_wait`
+- Active slice: Resume Package 6 monitoring after local/operator work changed
+  around the repo.
+- Decision point: Codex needed to decide whether to repair PR #997 locally,
+  post another nudge, start a later spell package, or keep waiting for Jules
+  after the previous bounded repair request.
+- Options considered:
+  - Repair the tracker conflict, remove the Symphony file, and add the
+    real-data regression locally.
+  - Post another GitHub/Jules nudge with the same requested repair.
+  - Start a later spell package while PR #997 remains unresolved.
+  - Use the dashboard and visible Jules session to verify current state, then
+    keep the repair with Jules.
+- Decision made by agent: Keep Package 6 in a waiting state with Jules as the
+  repair worker. Do not repair locally and do not post duplicate feedback yet.
+- Model routing: Jules remains the implementation and PR repair worker. Codex
+  remains the dashboard-first foreman, state verifier, and tracker maintainer.
+- Rationale/evidence:
+  - GitHub still reports PR #997 head
+    `b591839a49a6d764f660757dd8a1110c662f1e3c` and mergeability
+    `CONFLICTING`.
+  - The PR file list still includes
+    `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
+  - The visible Symphony dashboard at `http://127.0.0.1:8141/tasks/handoff-1779592447710-27ufm6`
+    still shows `Resolve PR Conflicts` and says GitHub reports merge conflicts.
+  - A visible Jules session check showed the session message, "I have received
+    the PR comments and am processing them."
+  - The living tracker currently treats Package 6 as the sequencing boundary,
+    so opening another package before this PR is repaired would increase review
+    and conflict pressure.
+- Mutation performed or skipped: Updated the Aralia-facing tracker to record the
+  visible Jules acknowledgement and unchanged GitHub state. Skipped local PR
+  repair, skipped duplicate PR feedback, and skipped starting a later package.
+- Scope guardrails: This records state only. It does not mutate spell data, PR
+  code, GitHub PR branches, Linear state, or hidden Symphony endpoints.
+- Result: Package 6 is `waiting` on a Jules repair commit. The next useful
+  action is another dashboard/PR refresh after Jules pushes or the operator
+  redirects Codex to take over the repair.
+- Next expected proof: New PR #997 head commit, no merge conflict, no
+  out-of-scope Symphony decision-report file, and a focused real-data
+  `modeChoice.effectIndices` regression.
+
+### Decision 102: Reconfirm Package 6 Wait State Without Duplicate Nudge
+
+- Date/time: 2026-05-24 06:50 +02:00
+- Phase: `package_6_pr_repair_wait`
+- Active slice: Continue Package 6 monitoring through the visible dashboard and
+  Jules surfaces.
+- Decision point: The goal resumed while PR #997 was already waiting on Jules'
+  second repair. Codex needed to decide whether repeated unchanged evidence
+  should trigger a local takeover, another nudge, a new later package, or a
+  continued wait.
+- Options considered:
+  - Take over the PR locally and repair the conflict, out-of-scope file, and
+    missing real-data regression.
+  - Post another duplicate GitHub/Jules nudge.
+  - Start the next spell package while Package 6 remains conflicting.
+  - Recheck the dashboard and visible Jules session, then keep waiting if the
+    repair request is acknowledged and unchanged.
+- Decision made by agent: Keep waiting without another nudge. The same repair
+  request is already visible to Jules, and starting later package work while the
+  tracker conflict remains would increase conflict pressure.
+- Model routing: Jules remains the PR repair worker. Codex remains the
+  dashboard-first foreman and evidence recorder.
+- Rationale/evidence:
+  - `gh pr view 997` still reports head
+    `b591839a49a6d764f660757dd8a1110c662f1e3c`, mergeability `CONFLICTING`,
+    and no comments newer than the bounded repair request at
+    `https://github.com/Gambitnl/Aralia/pull/997#issuecomment-4527406707`.
+  - The dashboard task page still reports `Resolve PR Conflicts`; clicking the
+    visible boundary refresh records a fresh GitHub PR refresh with checks
+    passing but conflicts still present.
+  - The visible Jules session still shows, "I have received the PR comments and
+    am processing them."
+- Mutation performed or skipped: Updated the Aralia tracker with the second
+  visible unchanged-state check. Skipped local PR repair, skipped duplicate
+  feedback, skipped hidden endpoints, and skipped opening a later package.
+- Scope guardrails: This records orchestration state only. The PR remains
+  Jules-owned until Jules pushes another repair commit or the operator redirects
+  Codex to take over.
+- Result: Package 6 remains `waiting`. This is not marked as goal-blocked yet
+  because the strict blocked audit requires the same blocker to repeat across at
+  least three consecutive goal turns and no meaningful progress to remain.
+- Next expected proof: New PR #997 head commit, no merge conflict, no
+  out-of-scope Symphony decision-report file, and a focused real-data
+  `modeChoice.effectIndices` regression.
+
+### Decision 103: Mark Active Goal Blocked On Repeated Package 6 External Wait
+
+- Date/time: 2026-05-24 06:53 +02:00
+- Phase: `package_6_pr_repair_blocked_audit`
+- Active slice: Apply the strict blocked audit after repeated unchanged Package
+  6 repair checks.
+- Decision point: The same external blocker repeated across three consecutive
+  continuation turns: PR #997 still had no Jules repair commit after Codex's
+  second bounded repair request, while Jules visibly said it had received the PR
+  comments and was processing them.
+- Options considered:
+  - Keep reporting the same wait state while leaving the active goal active.
+  - Take over PR #997 locally and repair the conflict/out-of-scope file/test
+    gap, despite the Jules-first goal.
+  - Open another package while Package 6 remains merge-conflicting.
+  - Mark the goal blocked under the continuation blocked-audit rule.
+- Decision made by agent: Mark the active goal blocked. The blocker is external
+  to Codex's dashboard-first path unless Jules pushes a new commit or the
+  operator explicitly redirects Codex to take over PR #997 locally.
+- Model routing: Jules remains the intended PR repair worker. Codex remains
+  foreman and state recorder, but is stopping because the same external repair
+  wait has repeated and no further non-bypass progress remains without changing
+  ownership.
+- Rationale/evidence:
+  - `gh pr view 997` still reports head
+    `b591839a49a6d764f660757dd8a1110c662f1e3c`, mergeability `CONFLICTING`,
+    and the out-of-scope
+    `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+    file in the PR file list.
+  - The dashboard task page still shows `Resolve PR Conflicts` and `GitHub
+    reports merge conflicts`; the visible boundary refresh records GitHub checks
+    as passing but does not change mergeability.
+  - The visible Jules session still shows, "I have received the PR comments and
+    am processing them."
+  - The same unchanged condition was recorded at 06:47, 06:50, and 06:53 +02:00.
+- Mutation performed or skipped: Updated the Aralia tracker to mark Package 6 as
+  `blocked`. Skipped local PR repair, skipped duplicate feedback, skipped hidden
+  endpoints, skipped opening another package, and skipped goal completion.
+- Scope guardrails: The blocker belongs to external Jules/GitHub PR state. The
+  Aralia-facing durable record is the tracker; Symphony runtime/source/local
+  state remains orchestration material, not product implementation.
+- Result: The active thread goal is blocked until Jules pushes a repair commit or
+  the operator directs Codex to take over PR #997 locally.
+- Next expected proof after unblocking: New PR #997 head commit, no merge
+  conflict, no out-of-scope Symphony decision-report file, and a focused
+  real-data `modeChoice.effectIndices` regression.

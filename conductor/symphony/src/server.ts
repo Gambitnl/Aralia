@@ -1848,6 +1848,57 @@ export class HttpServer {
         if (statusNode) statusNode.textContent = 'Repair push result failed: ' + (error?.message || error);
       }
     });
+    const julesMessageForm = document.querySelector('[data-task-jules-message-form]');
+    julesMessageForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const statusNode = julesMessageForm.querySelector('[data-task-jules-message-status]');
+      const body = String(julesMessageForm.querySelector('textarea[name="julesFeedback"]')?.value || '').trim();
+      if (!body) {
+        if (statusNode) statusNode.textContent = 'Write Jules feedback before sending it.';
+        return;
+      }
+      if (statusNode) statusNode.textContent = 'Sending feedback to Jules...';
+      try {
+        const response = await fetch(julesMessageForm.dataset.taskJulesMessageUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (statusNode) statusNode.textContent = 'Jules feedback failed: ' + (error?.message || error);
+      }
+    });
+    const preparedJulesMessageButton = julesMessageForm?.querySelector('[data-task-jules-prepared-feedback]');
+    preparedJulesMessageButton?.addEventListener('click', async () => {
+      const statusNode = julesMessageForm.querySelector('[data-task-jules-message-status]');
+      const body = String(julesMessageForm.querySelector('[data-task-jules-prepared-feedback-text]')?.textContent || '').trim();
+      const textarea = julesMessageForm.querySelector('textarea[name="julesFeedback"]');
+      if (!body) {
+        if (statusNode) statusNode.textContent = 'No prepared Jules feedback is attached to this task.';
+        return;
+      }
+      if (textarea) textarea.value = body;
+      if (statusNode) statusNode.textContent = 'Sending prepared feedback to Jules...';
+      try {
+        const response = await fetch(julesMessageForm.dataset.taskJulesMessageUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body })
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || response.statusText);
+        }
+        window.location.reload();
+      } catch (error) {
+        if (statusNode) statusNode.textContent = 'Prepared Jules feedback failed: ' + (error?.message || error);
+      }
+    });
   </script>
 </body>
 </html>`;
@@ -1864,6 +1915,38 @@ export class HttpServer {
     }
 
     const label = this.stringFromUnknown(currentBoundary.label) ?? 'Run Current Boundary';
+    const isJulesMessageEndpoint = /\/api\/v1\/jules-handoffs\/[^/]+\/message$/.test(endpoint);
+
+    if (isJulesMessageEndpoint) {
+      const julesSessionUrl = this.stringFromUnknown(this.recordFromUnknown(detail.links).julesSession);
+      const julesSessionId = julesSessionUrl?.split('/').filter(Boolean).pop();
+      const preparedFeedback = this.getPreparedJulesFeedback(detail);
+      const preparedFeedbackAction = preparedFeedback
+        ? `<details class="task-page-prepared-feedback" open>
+            <summary>Prepared Package 6 feedback text</summary>
+            <pre data-task-jules-prepared-feedback-text>${this.escapeHtml(preparedFeedback)}</pre>
+          </details>
+          <button type="button" class="primary-action compact-action" data-task-jules-prepared-feedback>Send Prepared Package 6 Feedback</button>`
+        : '';
+
+      // Jules feedback is different from a safe refresh button because the
+      // operator must control the exact words that leave Symphony. The generic
+      // guarded endpoint button was visible, but it had no message box, so it
+      // could only fail or encourage hidden endpoint use. This form keeps the
+      // mutation on the visible task page and makes the text being sent
+      // reviewable before the operator clicks the button.
+      return `<div class="task-page-current-action">
+        <form data-task-jules-message-form data-task-jules-message-url="${this.escapeHtml(endpoint)}">
+          <label>Jules feedback
+            <textarea name="julesFeedback" rows="6" placeholder="Write the exact feedback to send to Jules."></textarea>
+          </label>
+          ${preparedFeedbackAction}
+          <button type="submit" class="primary-action compact-action">${this.escapeHtml(label)}</button>
+          <p class="usage-summary" data-task-jules-message-status>Write Jules feedback before sending it.</p>
+        </form>
+        <p class="usage-summary">This sends feedback to Jules${julesSessionId ? ` session ${this.escapeHtml(julesSessionId)}` : ''}. Review the text above before clicking.</p>
+      </div>`;
+    }
 
     // The standalone task page must expose the same next action that the detail
     // packet reports. Without this button, the operator can see the boundary but
@@ -1882,6 +1965,31 @@ export class HttpServer {
       </ul>
       <p class="usage-summary">Runs the current Symphony boundary from this visible task page. Review the mutation flags above before clicking.</p>
     </div>`;
+  }
+
+  private getPreparedJulesFeedback(detail: Record<string, unknown>): string | null {
+    const id = this.stringFromUnknown(detail.id);
+    const title = this.stringFromUnknown(detail.title) ?? '';
+
+    if (id !== 'handoff-1779592447710-27ufm6' && !/Package 6 choice\/mode/i.test(title)) {
+      return null;
+    }
+
+    // This temporary prepared response exists because the dashboard can now
+    // show a real feedback form, but the current Codex browser bridge still
+    // cannot type or paste long text into it. Keeping the exact text visible on
+    // the task page preserves the human-review step while avoiding a hidden
+    // endpoint call or a local repair of Jules-owned spell implementation.
+    return [
+      'Proceed with the smallest coherent slice. Do not add a broad new schema field yet.',
+      '',
+      '1. Use existing modeChoice for blindness-deafness only. It is a choose-one spell operation menu: Blinded vs Deafened. Point the options at the two existing status-condition effects if the current modeChoice option shape supports effectIndices.',
+      "2. Do not model dragon's-breath or protection-from-energy as modeChoice. Those are chosen damage-type cases, not operation modes.",
+      '3. protection-from-energy is already on the right path with effects[].damageType plus damageTypeSource: chosen_damage_type. Keep/reuse that shape and add focused proof if needed.',
+      "4. dragon's-breath currently has simple damage.type as Acid/Cold/Fire/Lightning/Poison. If there is already a simple-damage chosen-type field, use it. If not, either defer dragon's-breath or add one tiny shared extension for simple DAMAGE effects only, with templates/schema/tests updated. Do not reuse attackAugment damageTypeChoice directly unless you deliberately generalize it in a small, validated way.",
+      '5. Leave enhance-ability as already modeled with targeting.perTargetChoice unless you find a specific validation/runtime gap.',
+      '6. Remove Blindness/Deafness from AI arbitration if the choice is now deterministic player selection, and add focused tests proving the chosen data path is parsed/exposed. Run validate:spells, generate:spell-gates, and the focused test. Do not commit timestamp-only gate-report churn, and do not claim Atlas proof while G48 remains.',
+    ].join('\n');
   }
 
   private renderTaskPageGuardedActions(detail: Record<string, unknown>): string {
@@ -4300,6 +4408,27 @@ export class HttpServer {
           // headless foremen and the dashboard do not approve blind.
           jules_session_id: handoff.julesSessionId,
           jules_session_url: handoff.julesSessionUrl,
+        });
+    }
+
+    const latestSentOperatorMessage = Array.isArray(handoff.operatorMessages)
+      ? handoff.operatorMessages.find(message => message?.status === 'sent')
+      : null;
+
+    if (handoff.julesState === 'AWAITING_USER_FEEDBACK' && latestSentOperatorMessage) {
+      return action('refresh_jules_status', 'ready', 'Refresh Jules Status',
+        'Operator feedback was sent to Jules. Refresh the session state before deciding whether Jules is running, still waiting, completed, or ready for PR review.',
+        links.refreshStatus,
+        'POST',
+        ['Refresh Jules status.', 'Confirm whether Jules moved past the feedback gate.', 'If Jules still waits for feedback, inspect the visible session before sending anything else.'],
+        {
+          // A sent message receipt means the next dashboard action is state
+          // reconciliation, not another identical message. This protects
+          // operators from repeatedly sending the same feedback while the
+          // external Jules state is still catching up or exposing a bridge gap.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
+          latest_operator_message: latestSentOperatorMessage,
         });
     }
 

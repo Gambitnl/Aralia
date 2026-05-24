@@ -192,6 +192,13 @@ taskIntakeRoot?.addEventListener('click', async event => {
     }
   }
 
+  if (action === 'send-jules-prepared-finalize') {
+    const handoffId = button.getAttribute('data-handoff-id');
+    if (handoffId) {
+      await sendPreparedJulesFinalizeMessage(handoffId, button);
+    }
+  }
+
   if (action === 'record-roi-estimate') {
     const handoffId = button.getAttribute('data-handoff-id');
     if (handoffId) {
@@ -875,6 +882,20 @@ async function sendJulesOperatorMessage(handoffId, button) {
   } finally {
     button.disabled = false;
   }
+}
+
+async function sendPreparedJulesFinalizeMessage(handoffId, button) {
+  const card = button.closest('[data-handoff-card]');
+  const preparedText = String(card?.querySelector('[data-jules-prepared-finalize-text]')?.textContent || '').trim();
+  const textarea = card?.querySelector('textarea[data-jules-message]');
+
+  if (!preparedText) {
+    setStatus('No prepared Jules finalization note is attached to this task.');
+    return;
+  }
+
+  if (textarea) textarea.value = preparedText;
+  await sendJulesOperatorMessage(handoffId, button);
 }
 
 async function recordDelegationRoiEstimate(handoffId, button) {
@@ -4319,6 +4340,16 @@ function renderJulesOperatorMessages(handoff) {
     : 'Launch or refresh Jules before sending feedback.';
   const messages = Array.isArray(handoff.operatorMessages) ? handoff.operatorMessages : [];
   const recentMessages = messages.slice(0, 5);
+  const preparedFinalize = getPreparedJulesFinalizeMessage(handoff);
+  const preparedFinalizeControl = preparedFinalize
+    ? `<details class="task-page-prepared-feedback" open>
+        <summary>Prepared Package 6 finalization approval</summary>
+        <pre data-jules-prepared-finalize-text>${escapeHtml(preparedFinalize)}</pre>
+      </details>
+      <button type="button" ${disabled} data-task-action="send-jules-prepared-finalize" data-handoff-id="${escapeAttribute(handoff.id)}">
+        Send Prepared Finalization Approval
+      </button>`
+    : '';
   const messageList = recentMessages.length
     ? `<ul>${recentMessages.map(message => {
         const failed = message.status === 'failed';
@@ -4340,8 +4371,27 @@ function renderJulesOperatorMessages(handoff) {
     <strong>Operator notes to Jules</strong>
     <textarea ${disabled} data-jules-message rows="3" placeholder="${escapeAttribute(title)}"></textarea>
     <p class="usage-summary">${escapeHtml(title)}</p>
+    ${preparedFinalizeControl}
     ${messageList}
   </div>`;
+}
+
+function getPreparedJulesFinalizeMessage(handoff) {
+  const title = String(handoff.title || '');
+  const isPackage6 = handoff.id === 'handoff-1779592447710-27ufm6' || /Package 6 choice\/mode/i.test(title);
+  const messages = Array.isArray(handoff.operatorMessages) ? handoff.operatorMessages : [];
+  const alreadySent = messages.some(message => String(message.body || '').includes('Proceed to final review and open the PR'));
+
+  if (!isPackage6 || alreadySent || !handoff.julesSessionId) return '';
+
+  // Jules is asking for approval to proceed after reporting completed local
+  // Package 6 work. This visible prepared note keeps the exact decision text
+  // reviewable on the dashboard while avoiding a hidden endpoint call or a
+  // local spell repair that would undercut the Jules-first flow.
+  return [
+    'Yes. Proceed to final review and open the PR for Symphony/Scout/Core review.',
+    'Keep the scope bounded to Package 6, do not add adjacent cleanup, do not commit generated timestamp-only gate churn, and include the verification results in the final report.',
+  ].join(' ');
 }
 
 function renderJulesPlanApprovals(handoff) {

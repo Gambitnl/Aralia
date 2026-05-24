@@ -121,6 +121,50 @@ server.taskIntake = {
         pullRequestViewCommand: null,
         next_action: null,
       }, {
+        id: 'handoff-awaiting-user-feedback',
+        draftId: 'draft-awaiting-user-feedback',
+        title: 'Package 6 choice/mode Jules feedback proof',
+        executor: 'jules',
+        status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-awaiting-user-feedback\\manifest.json',
+        prompt: 'Show that the task page can send a precise operator answer to Jules.',
+        expectedFiles: ['docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md'],
+        verificationCommands: ['npm run validate:spells'],
+        createdAt: generatedAt,
+        updatedAt: generatedAt,
+        operatorMessages: [],
+        planApprovals: [],
+        taskMessages: [],
+        taskClarifications: [],
+        handoffTimeline: {
+          generatedAt,
+          summary: 'Timeline events: 1',
+          events: [
+            { stage: 'jules_status', label: 'Jules status refreshed', occurredAt: generatedAt, source: 'jules', status: 'recorded', detail: 'Jules reported AWAITING_USER_FEEDBACK.' },
+          ],
+        },
+        operatorQuestion: null,
+        operatorAnswers: [],
+        repairLaneExecutions: [],
+        repairPushReadiness: null,
+        repairPushResult: null,
+        deploymentEvidence: null,
+        julesStateReconciliation: null,
+        delegationRoiLedger: null,
+        linearIssueIdentifier: 'ARA-12',
+        linearIssueUrl: 'https://linear.app/aralia/issue/ARA-12/example',
+        julesSessionId: '3811311513433217520',
+        julesSessionUrl: 'https://jules.google.com/session/3811311513433217520',
+        julesState: 'AWAITING_USER_FEEDBACK',
+        githubPullRequestUrl: null,
+        githubPullRequestState: null,
+        githubPullRequestChecks: null,
+        githubPullRequestFeedback: null,
+        githubPullRequestNextAction: null,
+        pullRequestChecksCommand: null,
+        pullRequestViewCommand: null,
+        next_action: null,
+      }, {
         id: 'handoff-detail-page',
         draftId: 'draft-detail-page',
         title: 'ARA-6 task page proof',
@@ -518,6 +562,22 @@ try {
   assert.match(approvedStalePage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-approved-stale-state\/refresh-status"/);
   assert.match(approvedStalePage.body, /Jules plan approval recorded/);
   assert.doesNotMatch(approvedStalePage.body, /type="submit"[^>]+>Approve Jules Plan<\/button>/);
+
+  const awaitingFeedbackPage = await getText(`${BASE_URL}/tasks/handoff-awaiting-user-feedback`);
+  assert.match(awaitingFeedbackPage.body, /Package 6 choice\/mode Jules feedback proof/);
+  assert.match(awaitingFeedbackPage.body, /Current Boundary/);
+  assert.match(awaitingFeedbackPage.body, /Send Jules Feedback/);
+  assert.match(awaitingFeedbackPage.body, /data-task-jules-message-form/);
+  assert.match(awaitingFeedbackPage.body, /name="julesFeedback"/);
+  assert.match(awaitingFeedbackPage.body, /data-task-jules-message-url="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-awaiting-user-feedback\/message"/);
+  assert.match(awaitingFeedbackPage.body, /This sends feedback to Jules session 3811311513433217520/);
+  assert.match(awaitingFeedbackPage.body, /Write Jules feedback before sending it/);
+  assert.match(awaitingFeedbackPage.body, /Prepared Package 6 feedback text/);
+  assert.match(awaitingFeedbackPage.body, /Send Prepared Package 6 Feedback/);
+  assert.match(awaitingFeedbackPage.body, /data-task-jules-prepared-feedback/);
+  assert.match(awaitingFeedbackPage.body, /Do not add a broad new schema field yet/);
+  assert.match(awaitingFeedbackPage.body, /Use existing modeChoice for blindness-deafness only/);
+  assert.match(awaitingFeedbackPage.body, /Do not model dragon&#39;s-breath or protection-from-energy as modeChoice/);
 
   const missing = await getText(`${BASE_URL}/tasks/does-not-exist`, 404);
   assert.match(missing.body, /Task not found/);
