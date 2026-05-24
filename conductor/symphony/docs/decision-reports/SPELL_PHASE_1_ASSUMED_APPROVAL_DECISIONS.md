@@ -3851,3 +3851,41 @@ Copy this block for each decision.
 - Next expected proof: Build the dashboard, publish the repair, verify the
   current-boundary `Create Linear Issue` button appears, and continue the
   Package 6 dashboard handoff.
+
+### Decision 91: Dispatch Package 6 To Jules Through The Visible Dashboard Flow
+
+- Date/time: 2026-05-24 20:15 +02:00
+- Phase: `package_6_dashboard_dispatch`
+- Active slice: Move the Package 6 `choice_or_mode` packet from visible draft
+  creation into a live Jules implementation session.
+- Decision point: After PRs #994 and #995 repaired the dashboard intake
+  affordances, the dashboard showed a clean GitHub sync gate and exposed
+  visible controls for Linear issue creation, draft promotion, manifest staging,
+  Jules launch, and session refresh.
+- Options considered:
+  - Pause after proving the dashboard buttons work.
+  - Dispatch Package 6 through the visible Symphony flow using the user's
+    pre-approved external-write and local-state decisions.
+  - Skip Symphony and start Jules separately.
+- Decision made by agent: Continue through the dashboard-visible path: create
+  Linear issue `ARA-12`, promote draft `draft-1779591924625-7hop6v` to handoff
+  `handoff-1779592447710-27ufm6`, stage the Jules manifest, launch Jules
+  session `3811311513433217520`, and refresh once.
+- Model routing: Local Codex stayed in foreman/orchestration mode. Jules was
+  assigned the implementation-heavy Package 6 spell data/runtime/test work.
+- Rationale/evidence: The active goal asks Codex to offload as much suitable
+  implementation work as possible to Jules while using the dashboard like a
+  human. The dashboard showed GitHub synced at `0f5ffb71b3a3`, then recorded the
+  handoff lifecycle and session URL. The first post-launch refresh reported
+  Jules `QUEUED`, with no PR URL and no plan-approval prompt yet.
+- Mutation performed or skipped: Created external Linear/Jules artifacts and
+  local ignored Symphony/Jules runtime receipts through visible dashboard
+  buttons. Updated the Aralia tracker with only the durable identifiers. Skipped
+  hidden endpoints, skipped local spell implementation, and kept ignored
+  `.jules`/`.symphony` runtime state out of Git.
+- Scope guardrails: This dispatch does not approve accepting any future Jules
+  PR blindly. Codex must still review file scope, generated gate churn, checks,
+  Atlas honesty, and Package 6 acceptance criteria before merge.
+- Next expected proof: Refresh the Jules session from the dashboard until it
+  either needs plan approval, needs feedback, produces a PR, fails, or remains
+  queued long enough to justify a waiting/nudge record.
