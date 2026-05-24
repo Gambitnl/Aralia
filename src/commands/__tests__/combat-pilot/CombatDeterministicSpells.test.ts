@@ -8,7 +8,8 @@ import { DamageCommand } from '../../effects/DamageCommand';
 import { HealingCommand } from '../../effects/HealingCommand';
 import { StatusConditionCommand } from '../../effects/StatusConditionCommand';
 import { CommandExecutor } from '../../base/CommandExecutor';
-import { createMockGameState, createMockCombatCharacter } from '../../../utils/factories';
+import { createMockGameState } from '../../../utils/factories';
+import { createMockCombatCharacter } from '../../../utils/core/factories';
 
 // Mock Spells
 const mockFireBolt = {
@@ -102,7 +103,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
 
   beforeEach(() => {
     mockCaster = {
-      ...createMockCombatCharacter('c1', 'Caster'),
+      ...createMockCombatCharacter({ id: 'c1', name: 'Caster' }),
       spellSlots: {
         level_1: { current: 2, max: 2 },
         level_2: { current: 0, max: 0 },
@@ -125,13 +126,13 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
     };
 
     mockTarget = {
-      ...createMockCombatCharacter('t1', 'Target'),
+      ...createMockCombatCharacter({ id: 't1', name: 'Target' }),
       currentHP: 10,
       maxHP: 10
     };
 
     mockAlly = {
-      ...createMockCombatCharacter('a1', 'Ally'),
+      ...createMockCombatCharacter({ id: 'a1', name: 'Ally' }),
       currentHP: 5,
       maxHP: 15
     };
