@@ -14,14 +14,7 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: setup PR #933 has landed on `master` at
-`40678de8bdc3ce58db0c97e062f5a170526e4fa7`. Package 2 now has clean-base
-Symphony draft `draft-1779400428597-mind7o`, created from
-`docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`, Linear issue
-`ARA-7`, handoff `handoff-1779400495781-jauy49`, and Jules session
-`15527431301408060204`. The first refreshed Jules state was `QUEUED`; the next
-boundary is to refresh Jules until it produces a plan approval request, PR, or
-blocker.
+Current live boundary: Packages 1, 2, 3, and 4 have successfully landed on `master` (including PR #935 equipment modifications and PR #936 Symphony dashboard UI hardening). The active frontier has shifted to Package 5 (AI arbitration pilot) and Package 6 (first mechanics bucket closure).
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -527,6 +520,10 @@ The foreman can still do non-mutating analysis while waiting for a Jules result,
 but should not start a second write-producing spell task until the active slice
 is reviewed and filed.
 
+### Note on Sequential Model Exceptions
+
+In practice, Packages 3 and 4 were advanced out-of-order because Package 2's primary blocker was an environment-level npm lockfile mismatch, which prevented immediate validation. Rather than stalling execution, the local UI and combat pilots were advanced independently, bypassing the sequential model strictly for those packages while the environment setup repair was coordinated in Package 2.
+
 ## Branch And Worktree Strategy
 
 Use one branch per active slice. Prefer an isolated worktree when the slice may
@@ -752,6 +749,8 @@ Outputs:
 - add tests or audit script for premade loadout legality
 - use the drafted Jules task at
   `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`
+- use the matching Symphony task-draft payload at
+  `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`
 - use the dispatch-readiness checklist at
   `docs/tasks/spells/PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md` before creating
   a Symphony task draft, Jules handoff, branch, worktree, or PR

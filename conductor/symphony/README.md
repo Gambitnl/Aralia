@@ -8,6 +8,10 @@ pass the GitHub sync preflight, create the Linear tracking issue, stage and
 launch the Jules manifest, then monitor Jules sessions, GitHub PRs, GitHub Pages
 deployment health, Scout/Core review, usage, approvals, and local sync.
 
+Start with `docs/SYMPHONY_NORTH_STAR.md` if you want the top-level objective,
+what has been built so far, what still remains, and where the proving-ground and
+workflow progress docs live.
+
 The canonical operating spec is
 `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`. Use it for the full task and blocker
 matrix; use `JULES_MIDDLEMAN_AUDIT.md` for current proof and remaining gaps.

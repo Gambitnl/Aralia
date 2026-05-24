@@ -38,14 +38,15 @@ function checkIgnore(path) {
 }
 
 function extractVerifyScripts(command) {
-  return [...command.matchAll(/scripts\/[A-Za-z0-9_.-]+\.mjs/g)]
-    .map((match) => `conductor/symphony/${match[0]}`)
+  return [...command.matchAll(/(?:scripts\/)?(verify-[A-Za-z0-9_.-]+\.mjs)/g)]
+    .map((match) => `conductor/symphony/scripts/${match[1]}`)
     .filter((path, index, paths) => paths.indexOf(path) === index)
     .sort();
 }
 
 const contractCommand = packageJson.scripts?.['verify:jules-contract'] ?? '';
-const contractScripts = extractVerifyScripts(contractCommand);
+const verifiersFile = await readFile(resolve(scriptsDir, 'run-all-verifiers.mjs'), 'utf8');
+const contractScripts = extractVerifyScripts(contractCommand + '\n' + verifiersFile);
 
 assert.ok(
   contractScripts.includes('conductor/symphony/scripts/verify-gitignore-contract-boundary.mjs'),

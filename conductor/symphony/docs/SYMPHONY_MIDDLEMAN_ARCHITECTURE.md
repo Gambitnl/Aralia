@@ -4,6 +4,7 @@
 
 This file is the architectural index. It is not the behavioral spec and not the proof ledger:
 
+- Use [`SYMPHONY_NORTH_STAR.md`](./SYMPHONY_NORTH_STAR.md) for the top-level objective, the proving-ground split, and the folder map.
 - Use [`JULES_MIDDLEMAN_OPERATING_SPEC.md`](./JULES_MIDDLEMAN_OPERATING_SPEC.md) for required behavior, scenarios, blockers, and completion criteria.
 - Use [`../JULES_MIDDLEMAN_AUDIT.md`](../JULES_MIDDLEMAN_AUDIT.md) for current implementation status, live proof, and remaining gaps.
 - Use [`../README.md`](../README.md) for quick start and operator-facing entry points.

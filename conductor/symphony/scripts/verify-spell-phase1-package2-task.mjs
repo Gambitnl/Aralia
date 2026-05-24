@@ -305,7 +305,7 @@ assert.match(handoffReceipt, /# Package 2 Symphony Handoff Receipt/);
 // The receipt is intentionally allowed to advance as the visible Jules handoff
 // advances. This assertion protects the current post-approval state so future
 // agents do not accidentally describe the handoff as still merely queued.
-assert.match(handoffReceipt, /Status: Jules plan approved; waiting on Jules run\/PR state/);
+assert.match(handoffReceipt, /Status: PR #935 returned; Codex foreman review and Scout\/Core bridge active\./);
 assert.match(handoffReceipt, /40678de8bdc3ce58db0c97e062f5a170526e4fa7/);
 assert.match(handoffReceipt, /draft-1779400428597-mind7o/);
 assert.match(handoffReceipt, /ARA-7/);
@@ -351,9 +351,9 @@ assert.match(roiBaselineReceipt, /ROI is unknown/);
 assert.match(roiBaselineReceipt, /not measured savings/);
 
 assert.match(atlasGateCheckpointReceipt, /# Package 2 Atlas And Gate Checkpoint Receipt/);
-assert.match(atlasGateCheckpointReceipt, /Status: pending Package 2 implementation/);
-assert.match(atlasGateCheckpointReceipt, /Spell gate refresh run for Package 2: `no`/);
-assert.match(atlasGateCheckpointReceipt, /Atlas review\/update run for Package 2: `no`/);
+assert.match(atlasGateCheckpointReceipt, /Status: active Package 2 gate checkpoint\./);
+assert.match(atlasGateCheckpointReceipt, /Spell gate refresh run for Package 2: `yes`/);
+assert.match(atlasGateCheckpointReceipt, /Atlas review\/update run for Package 2: `not_yet`/);
 assert.match(atlasGateCheckpointReceipt, /npm run validate:spells/);
 assert.match(atlasGateCheckpointReceipt, /npm run generate:spell-gates/);
 assert.match(atlasGateCheckpointReceipt, /npx vitest run src\/utils\/combat\/__tests__\/combatUtils_\*\.test\.ts --reporter=verbose/);
@@ -363,9 +363,9 @@ assert.match(atlasGateCheckpointReceipt, /Do not mark this receipt complete befo
 assert.match(atlasGateCheckpointReceipt, /Do not use this receipt to claim visual spellbook or character creator proof/);
 
 assert.match(foremanReviewReceipt, /# Package 2 Foreman Review And Failure Classification Receipt/);
-assert.match(foremanReviewReceipt, /Status: pending Package 2 implementation/);
-assert.match(foremanReviewReceipt, /Package 2 Jules handoff exists: `no`/);
-assert.match(foremanReviewReceipt, /Failure classification complete: `no`/);
+assert.match(foremanReviewReceipt, /Status: active PR #935 foreman review\./);
+assert.match(foremanReviewReceipt, /Package 2 Jules handoff exists: `yes`/);
+assert.match(foremanReviewReceipt, /Failure classification complete: `partial`/);
 assert.match(foremanReviewReceipt, /Scope Review Fields/);
 assert.match(foremanReviewReceipt, /Files within allowed write scope/);
 assert.match(foremanReviewReceipt, /Character creator UI touched/);
@@ -385,11 +385,11 @@ assert.match(foremanReviewReceipt, /Do not mark Package 2 complete from Jules st
 assert.match(foremanReviewReceipt, /If Codex performs any review repair, record why Jules feedback was not the\s+better first repair path/);
 
 assert.match(taskCommunicationReceipt, /# Package 2 Task Communication Receipt/);
-assert.match(taskCommunicationReceipt, /Status: pending Package 2 Symphony task/);
-assert.match(taskCommunicationReceipt, /Symphony task draft exists: `no`/);
-assert.match(taskCommunicationReceipt, /Jules handoff\/session exists: `no`/);
-assert.match(taskCommunicationReceipt, /Task-scoped operator messages recorded: `no`/);
-assert.match(taskCommunicationReceipt, /Task-scoped Codex foreman messages recorded: `no`/);
+assert.match(taskCommunicationReceipt, /Status: active Package 2 task communication receipt\./);
+assert.match(taskCommunicationReceipt, /Symphony task draft exists: `yes`/);
+assert.match(taskCommunicationReceipt, /Jules handoff\/session exists: `yes`/);
+assert.match(taskCommunicationReceipt, /Task-scoped operator messages recorded: `yes`/);
+assert.match(taskCommunicationReceipt, /Task-scoped Codex foreman messages recorded: `partial via receipts`/);
 assert.match(taskCommunicationReceipt, /Communication Channels To Record/);
 assert.match(taskCommunicationReceipt, /local task messages on the Package 2 task page/);
 assert.match(taskCommunicationReceipt, /structured task clarifications/);

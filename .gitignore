@@ -66,6 +66,7 @@ conductor/symphony/docs/tasks/*
 !conductor/symphony/docs/decision-reports/
 conductor/symphony/docs/decision-reports/*
 !conductor/symphony/docs/decision-reports/*.md
+!conductor/symphony/docs/SYMPHONY_NORTH_STAR.md
 
 # Experimental 3D POCs
 src/components/ThreeDModal/Experimental/

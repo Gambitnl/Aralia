@@ -51,40 +51,28 @@ Dynamic Codex reasoning by complexity is now locally implemented as a worker-mod
 
 Symphony dispatch is now backend-gated and default-off on process startup. The dashboard can stay open for state inspection, task intake, Git preflight, and proof capture without polling trackers, claiming issues, cleaning workspaces, or starting Codex workers until the operator enables `/api/v1/dispatch-control`.
 
-The current ambitious stage has advanced past clean-Git Linear boundary proof into **real ARA-6 Jules handoff observation**. A May 19 Symphony run created Linear issue `ARA-6` (`https://linear.app/aralia/issue/ARA-6/add-regression-coverage-for-non-proficient-weapon-attack-penalties`), staged handoff `handoff-1779226708033-v4ohk7` through `.jules/orchestrator`, launched Jules session `4101281510355198885` (`https://jules.google.com/session/4101281510355198885`), and kept dispatch paused with zero Codex workers. Proof artifacts include `linear-creation-proof-2026-05-19.json`, `handoff-readiness-after-linear-create-2026-05-19.json`, `jules-manifest-staging-proof-2026-05-19.json`, `launch-readiness-after-manifest-stage-2026-05-19.json`, `jules-launch-proof-2026-05-19.json`, and `launch-readiness-after-jules-launch-2026-05-19.json`.
+The current active proving-ground boundary is **Spell Phase 1**: Packages 2, 3, and 4
+have been successfully completed and squashed/merged to `master` (PR #935 for premade gear and PR #936 for Symphony dashboard-first hardening have merged cleanly).
 
-The ARA-6 live run exposed the next workflow gap: local Jules/Symphony status reported `COMPLETED` with `pullRequestUrl: null`, while the Jules web UI, Jules API, and GitHub each exposed additional state that the local record had missed. The currently rechecked web UI shows `Plan approved`, `All plan steps completed`, `View PR`, and failed check summaries; the Jules API session output exposes PR #931; GitHub confirms the PR exists. This means the dashboard cannot treat stored Jules status as the whole truth. It needs API/session/browser/GitHub reconciliation for ambiguous states, especially `COMPLETED` without a PR URL, and it needs any operator action such as plan approval to be surfaced from the evidence source that actually proves it. The same run also showed a Jules UI/rendering hazard where `__tests__` inside file paths can be rendered as Markdown emphasis in visible plan text, even though the verification command preserved the correct path.
+The earlier **ARA-6 task** ("Add regression coverage for non-proficient weapon attack penalties")
+is now settled and stands as durable historical proof of the end-to-end middleman workflow,
+from Linear issue creation through Jules cloud session launch, plan approval, GitHub PR #931
+generation, multi-stage lockfile setup-repair, PR merge, deployment proof, and local sync
+represented by local merge commit `28ff49a6`. All historical decisions for ARA-6 are recorded
+in `docs/decision-reports/ARA-6_ASSUMED_APPROVAL_DECISIONS.md`.
 
-The ARA-6 `github_pr` boundary has now exercised the assumed-approval rule twice, and the decisions are durable in `docs/decision-reports/ARA-6_ASSUMED_APPROVAL_DECISIONS.md`. Codex first pushed local repair commit `19eb1cd4` to PR #931 after confirming the repair worktree matched PR head `0c0d9480` and the focused npm/Vitest checks passed. GitHub then proved that the repair fixed the setup install path for Build, Tests, Quality Scan, and CodeQL-family checks, but Lint and Poison File Check still failed. The poison log named `package-lock.json` as the policy violation, matching `.github/workflows/ci.yml` and `.jules/_ROSTER.md`, so Codex made a second bounded repair commit, `f755df2b`, that removes the lockfile from the final PR diff, switches PR CI install steps to `npm install --no-audit --no-fund`, fixes the PR test lint errors, and pushes the PR branch again. Local verification for that second repair passed focused lint, focused Vitest, full lint with zero errors, `npx tsc --noEmit`, `npm run build`, `git diff --check`, and a final diff-name check proving `package-lock.json` is not in the PR diff. The fresh GitHub rerun now passes Poison File Check but still fails Build, Lint, Tests, and Quality Scan at `Run npm ci`, with the same missing React 18 peer lockfile entries. Jules then pushed bot commit `bb44a2f7`, superseding the PR-local workflow edit and leaving the live PR diff to the task note plus the two test files. PR #931 is open, not draft, mergeable, and at head `bb44a2f7`, but this is now a coordinator-owned base lockfile blocker rather than another ordinary PR-local repair; Scout/Core cannot advance until that lockfile boundary is resolved or explicitly routed.
+For the active Spell Phase 1 track:
+- Packages 2, 3, and 4 are merged and closed out.
+- Package 2's Jules session `15527431301408060204` successfully completed and produced PR #935.
+- Symphony PR checks refresh classified the failed checks as `workflow_setup`, routed the blocker
+  to a setup-repair lane, created a new local draft, and generated repair branch/PR #936.
+- The next live boundary is to advance to Package 5 (AI arbitration pilot) and Package 6 (mechanics bucket closure).
 
-The coordinator-owned lockfile boundary has now been routed through PR #932
-under the same ARA-6 assumed-approval rule. Codex opened
-`https://github.com/Gambitnl/Aralia/pull/932` from
-`codex/dependabot-aralia-lockfile-sync` at commit `f19cc779`; the PR changes
-only `package-lock.json`, uses the documented `codex/dependabot-*` dependency
-lane that bypasses the poison-file check, and was locally verified with npm
-10.8.2 `npm ci --dry-run --no-audit --no-fund`, `git diff --check`, and
-pre-push `npm run sync-check`. The remaining live proof is PR #932's GitHub
-checks and an explicit merge/application decision before PR #931 can be
-refreshed past its base `npm ci` blocker.
+The follow-along browser tooling and state reconciliation gaps have been successfully narrow-resolved:
+Symphony now reconciles missing-PR states from Jules API session output, derives `julesStateReconciliation`
+so states like `COMPLETED` without a PR are clearly labeled as needing browser/API proof, and surfaces
+`browser-tooling-health` to guide agents toward the working Browser plugin bridge.
 
-That follow-through is now complete. PR #932 merged as `ca10728f` after core
-checks passed; the only failed review job was Gemini infrastructure reporting
-`models/gemini-1.5-flash is not found`. PR #931 was then updated from `master`
-to head `91ceee43`; Poison File Check, Build, Lint, Quality Scan, Tests, and
-CodeQL all passed against the repaired base. Scout/Core review found no blocking
-comments and the diff stayed inside the ARA-6 task scope, so PR #931 merged as
-`1c4316c`. Post-merge Scout conflict detection, CodeQL, and GitHub Pages
-deployment all passed for `1c4316c`, and Symphony recorded a local deployment
-evidence receipt pointing at
-`https://github.com/Gambitnl/Aralia/actions/runs/26175016417`. The remaining
-completion proof was local sync to the merged `origin/master` state while
-preserving this local Symphony audit/report work. That sync is now represented
-by local merge commit `28ff49a6`, which incorporated `ca10728f` and `1c4316c`
-into `feature/ollama-model-router` after the report updates were committed as
-`4a6e8e18`. Local `master` was also fast-forwarded to match `origin/master` at
-`1c4316c`. The remaining completion proof is post-sync verification on the local
-checkout.
 
 The browser follow-along tooling gap has been narrowed. Direct Playwright MCP
 navigation can fail with `Transport closed`, but the Codex Browser plugin's
