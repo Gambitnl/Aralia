@@ -28,6 +28,36 @@ const THEME_STORAGE_KEY = 'symphony-dashboard-theme';
 const TASK_NAVIGATOR_FILTER_STORAGE_KEY = 'symphony-task-navigator-filter';
 const TASK_NAVIGATOR_FILTERS = ['all', 'needs_input', 'open', 'completed', 'archived'];
 const TASK_INTAKE_INTERACTION_HOLD_MS = 4000;
+const PACKAGE_6_CHOICE_MODE_DRAFT = {
+  title: 'Spell Phase 1 Package 6 choice/mode mechanics bucket',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md and docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: reduce the choice_or_mode mechanics bucket for cantrips and spell levels 1-3 with a bounded, coherent implementation slice. Prefer a small group of spells sharing one choice-data shape over a broad rewrite.',
+    '',
+    'Recommended starting candidates: blindness-deafness, dragons-breath, protection-from-energy, enhance-ability. Use existing template/runtime fields where they fit. Add only a small shared extension if the selected spells genuinely require it.',
+    '',
+    'Do not edit Symphony files, GitHub workflows, broad premade roster semantics, levels 4-9, or broad AI arbitration policy. Do not commit generated gate-report timestamp churn. Do not claim Atlas proof while G48 remains active unless that separate gap is explicitly repaired.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_6_CHOICE_OR_MODE_BUCKET_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'docs/tasks/spells/templates/spell-structured-template.json',
+    'docs/tasks/spells/templates/spell-json-template.json',
+    'src/utils/character/spellAbilityFactory.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'npm run generate:spell-gates',
+    'npx vitest run <focused test file> --reporter=verbose',
+  ].join('\n'),
+};
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 let taskIntakeInteractionHoldUntil = 0;
 
@@ -106,6 +136,10 @@ taskIntakeRoot?.addEventListener('click', async event => {
 
   if (action === 'record-task-message') {
     await recordTaskMessage(button);
+  }
+
+  if (action === 'create-package6-choice-mode-draft') {
+    await createPackage6ChoiceModeDraft(button);
   }
 
   if (action === 'record-operator-preferences') {
@@ -574,6 +608,26 @@ async function createTaskDraft(form) {
     setStatus(`Task draft failed: ${err.message}`);
   } finally {
     submit.disabled = false;
+  }
+}
+
+async function createPackage6ChoiceModeDraft(button) {
+  // This visible button exists because Browser Use cannot currently enter long
+  // text into the dashboard form when its virtual clipboard is missing. Keeping
+  // the packet creation behind an explicit dashboard button preserves the
+  // human workflow surface instead of forcing operators to call the raw API.
+  button.disabled = true;
+  setStatus('Creating Package 6 Jules task draft from the committed packet.');
+
+  try {
+    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_6_CHOICE_MODE_DRAFT);
+    renderTaskIntake(snapshot);
+    setStatus('Created Package 6 task draft from the visible packet button.');
+  } catch (err) {
+    setStatus(`Package 6 packet draft failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -1313,6 +1367,12 @@ function renderTaskIntake(snapshot) {
   const taskNavigator = renderTaskNavigator(drafts, handoffs);
   const taskForms = `
     <div class="task-intake-grid">
+      <section class="task-form packet-draft-card" aria-label="Package packet shortcuts">
+        <h3>Package Packet Drafts</h3>
+        <p class="usage-summary">Create known Jules drafts from committed task packets when text entry is blocked by browser tooling.</p>
+        <button type="button" data-task-action="create-package6-choice-mode-draft">Create Package 6 Draft</button>
+      </section>
+
       <form id="task-draft-form" class="task-form">
         <label>
           <span>Title</span>
