@@ -191,5 +191,40 @@
     "buff",
     "debuff",
     "concentration"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Enlarge",
+        "summary": "The target's size increases by one category. Advantage on Str checks/saves. Attacks deal extra 1d4 damage.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE",
+          "STATUS_CONDITION"
+        ],
+        "duration": "1 minute"
+      },
+      {
+        "label": "Reduce",
+        "summary": "The target's size decreases by one category. Disadvantage on Str checks/saves. Attacks deal 1d4 less damage.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY",
+          "DEFENSIVE",
+          "STATUS_CONDITION"
+        ],
+        "duration": "1 minute"
+      }
+    ]
+  }
 }

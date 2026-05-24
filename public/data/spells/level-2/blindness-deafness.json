@@ -249,10 +249,10 @@
       "conditionalEndings": []
     }
   ],
-  "arbitrationType": "ai_assisted",
+  "arbitrationType": "mechanical",
   "aiContext": {
-    "prompt": "Ask the player if they want to inflict Blindness or Deafness.",
-    "playerInputRequired": true
+    "prompt": "",
+    "playerInputRequired": false
   },
   "description": "One creature that you can see within range must succeed on a Constitution saving throw, or it has the Blinded or Deafened condition (your choice) for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
   "higherLevels": "Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 2.",
@@ -260,5 +260,35 @@
     "debuff",
     "control",
     "necromancy"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast",
+    "optionCount": 2,
+    "optionsSource": "effects",
+    "options": [
+      {
+        "label": "Blindness",
+        "summary": "The target is Blinded for the duration.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "STATUS_CONDITION"
+        ],
+        "duration": "1 minute"
+      },
+      {
+        "label": "Deafness",
+        "summary": "The target is Deafened for the duration.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "STATUS_CONDITION"
+        ],
+        "duration": "1 minute"
+      }
+    ]
+  }
 }

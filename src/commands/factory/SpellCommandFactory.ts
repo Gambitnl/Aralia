@@ -137,7 +137,19 @@ export class SpellCommandFactory {
       }
     }
 
-    for (const effect of spell.effects) {
+
+    // Filter effects if a mode choice was provided via playerInput
+    let activeEffects = spell.effects;
+    if (spell.modeChoice && playerInput) {
+      const chosenOption = spell.modeChoice.options.find(opt =>
+        opt.label.toLowerCase() === playerInput.toLowerCase()
+      );
+      if (chosenOption && chosenOption.effectIndices) {
+        activeEffects = chosenOption.effectIndices.map(index => spell.effects[index]).filter(Boolean);
+      }
+    }
+
+    for (const effect of activeEffects) {
       const scaledEffect = this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
       const command = this.createCommand(scaledEffect, context)
       if (command) {

@@ -1930,6 +1930,18 @@
       "comment": "Mapped from structured Damage Type for simple damage spells. It maps to `effects[].damage.type`. It is populated from the structured markdown label `Damage Type`. Purpose: effects[].damage.type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the structured markdown field `Damage Type`, after that field has been checked against canonical prose. It maps to runtime JSON path `effects[].damage.type`. The value type is `string-or-chooser`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
     },
     {
+      "path": "effects[].damage.damageTypeSource",
+      "required": false,
+      "valueType": "enum",
+      "structuredLabel": "Damage Type Source",
+      "acceptedValues": [
+        "listed",
+        "triggering_damage_type",
+        "chosen_damage_type"
+      ],
+      "comment": "Stores how the active damage type is selected. Use `chosen_damage_type` when the caster chooses one type from the eligible list. It maps from the structured markdown label `Damage Type Source`. Purpose: effects[].damage.damageTypeSource keeps eligible choices from being mistaken for simultaneous damage of every listed type. Omit only when the spell has no damage type choice."
+    },
+    {
       "path": "effects[].damage.mitigationBypass[]",
       "required": false,
       "valueType": "string-array",

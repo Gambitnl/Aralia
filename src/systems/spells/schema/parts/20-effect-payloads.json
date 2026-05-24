@@ -29,6 +29,14 @@
                   "damage_prevention"
                 ]
               }
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "listed",
+                "triggering_damage_type",
+                "chosen_damage_type"
+              ]
             }
           },
           "required": [
