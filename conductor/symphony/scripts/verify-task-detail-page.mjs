@@ -449,8 +449,9 @@ try {
   assert.match(draftPage.body, /Draft visible current boundary proof/);
   assert.match(draftPage.body, /Current Boundary/);
   assert.match(draftPage.body, /Prepare Handoff/);
+  assert.match(draftPage.body, /<form method="post" action="http:\/\/127\.0\.0\.1:8199\/api\/v1\/task-drafts\/draft-visible-boundary\/promote">/);
   assert.match(draftPage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/task-drafts\/draft-visible-boundary\/promote"/);
-  assert.match(draftPage.body, />Prepare Handoff<\/button>/);
+  assert.match(draftPage.body, /type="submit"[^>]+>Prepare Handoff<\/button>/);
   assert.match(draftPage.body, /Runs the current Symphony boundary from this visible task page/);
 
   const missing = await getText(`${BASE_URL}/tasks/does-not-exist`, 404);
