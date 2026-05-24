@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 27/02/2026, 09:33:56
- * Dependents: App.tsx, MapPane.tsx, appState.ts, handleMovement.ts, useGameInitialization.ts, useHistorySync.ts, utils/index.ts
- * Imports: 7 files
+ * Last Sync: 24/05/2026, 18:04:55
+ * Dependents: App.tsx, components/MapPane.tsx, hooks/actions/handleMovement.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, state/appState.ts, utils/index.ts
+ * Imports: 8 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,7 @@
 export * from './geometry';
 export * from './lineOfSight';
 export * from './locationUtils';
+export * from './worldMapOverlayMath';
 export * from './targetingUtils';
 export {
   isTileTypeWalkable,

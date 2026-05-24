@@ -7,7 +7,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapData, MapMarker, MapTile as MapTileType } from '../types';
 import { BIOMES } from '../constants';
 import { POIS } from '../data/world/pois';
-import { buildPoiMarkers } from '@/utils/spatial';
+import type { AzgaarAtlasTransform } from '@/utils/spatial';
+import {
+  buildPoiMarkers,
+  getCellOverlayPercentRect,
+} from '@/utils/spatial';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
@@ -86,6 +90,8 @@ const MapPane: React.FC<MapPaneProps> = ({
   const [isFrameReady, setIsFrameReady] = useState(false);
   const [frameError, setFrameError] = useState<string | null>(null);
   const [hoveredCell, setHoveredCell] = useState<{ x: number; y: number } | null>(null);
+  const [atlasTransform, setAtlasTransform] = useState<AzgaarAtlasTransform | null>(null);
+  const [showPrecisionOverlay, setShowPrecisionOverlay] = useState(true);
   const [seedInput, setSeedInput] = useState('');
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -249,6 +255,24 @@ const MapPane: React.FC<MapPaneProps> = ({
     setSeedInput(String(azgaarSeed));
   }, [azgaarSeed]);
 
+  const readAtlasTransform = useCallback((): AzgaarAtlasTransform | null => {
+    // Read the live pan/zoom transform from the Azgaar iframe bridge when it is
+    // available. The bridge is installed dynamically inside the embedded atlas.
+    // DEBT: Cast to any to probe dynamic Azgaar bridge object on the iframe content window.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bridge = (iframeRef.current?.contentWindow as any)?.__araliaAzgaar;
+    const transform = bridge?.getTransform?.() as AzgaarAtlasTransform | null | undefined;
+    if (
+      !transform
+      || transform.graphWidth <= 0
+      || transform.graphHeight <= 0
+      || transform.scale <= 0
+    ) {
+      return null;
+    }
+    return transform;
+  }, []);
+
   const resolveCellFromPointer = useCallback((clientX: number, clientY: number) => {
     const overlay = embedOverlayRef.current;
     if (!overlay) return null;
@@ -259,14 +283,7 @@ const MapPane: React.FC<MapPaneProps> = ({
     const fallbackNormalizedX = (clientX - bounds.left) / bounds.width;
     const fallbackNormalizedY = (clientY - bounds.top) / bounds.height;
 
-    // Prefer transform-aware mapping once the iframe bridge is installed.
-    // DEBT: Cast to any to probe dynamic Azgaar bridge object on the iframe content window.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bridge = (iframeRef.current?.contentWindow as any)?.__araliaAzgaar;
-    const transform = bridge?.getTransform?.() as
-      | { graphWidth: number; graphHeight: number; viewX: number; viewY: number; scale: number }
-      | null
-      | undefined;
+    const transform = readAtlasTransform();
 
     let normalizedX = fallbackNormalizedX;
     let normalizedY = fallbackNormalizedY;
@@ -286,7 +303,7 @@ const MapPane: React.FC<MapPaneProps> = ({
     const tile = tiles[y]?.[x];
     if (!tile) return null;
     return { x, y, tile };
-  }, [gridSize.cols, gridSize.rows, tiles]);
+  }, [gridSize.cols, gridSize.rows, readAtlasTransform, tiles]);
 
   const handleOverlayClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (!allowTravel || interactionMode !== 'travel') return;
@@ -297,13 +314,14 @@ const MapPane: React.FC<MapPaneProps> = ({
 
   const handleOverlayMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (!allowTravel || interactionMode !== 'travel') return;
+    setAtlasTransform(readAtlasTransform());
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) {
       setHoveredCell(null);
       return;
     }
     setHoveredCell({ x: resolved.x, y: resolved.y });
-  }, [allowTravel, interactionMode, resolveCellFromPointer]);
+  }, [allowTravel, interactionMode, readAtlasTransform, resolveCellFromPointer]);
 
   const hoveredTile = useMemo(() => {
     if (!hoveredCell) return null;
@@ -311,6 +329,53 @@ const MapPane: React.FC<MapPaneProps> = ({
   }, [hoveredCell, tiles]);
 
   const hoveredBiome = hoveredTile ? BIOMES[hoveredTile.biomeId] : undefined;
+
+  const playerCell = useMemo(() => {
+    // Find the current player position so precision mode can anchor the starting
+    // cell even before the player hovers over a destination.
+    for (let y = 0; y < tiles.length; y++) {
+      const row = tiles[y];
+      for (let x = 0; x < row.length; x++) {
+        if (row[x]?.isPlayerCurrent) {
+          return { x, y };
+        }
+      }
+    }
+    return null;
+  }, [tiles]);
+
+  const hoveredCellRect = useMemo(() => {
+    // Convert the hovered destination cell into a CSS rectangle over the Azgaar
+    // iframe, using the latest pan/zoom transform when available.
+    if (!hoveredCell) return null;
+    return getCellOverlayPercentRect(
+      hoveredCell.x,
+      hoveredCell.y,
+      gridSize.cols,
+      gridSize.rows,
+      atlasTransform,
+    );
+  }, [atlasTransform, gridSize.cols, gridSize.rows, hoveredCell]);
+
+  const playerCellRect = useMemo(() => {
+    // Convert the player's current cell into the same overlay coordinate space as
+    // the destination highlight so travel origin and target are visually paired.
+    if (!playerCell) return null;
+    return getCellOverlayPercentRect(
+      playerCell.x,
+      playerCell.y,
+      gridSize.cols,
+      gridSize.rows,
+      atlasTransform,
+    );
+  }, [atlasTransform, gridSize.cols, gridSize.rows, playerCell]);
+
+  useEffect(() => {
+    // Refresh the transform once the iframe is ready so the player-cell outline
+    // appears correctly even before the first mouse move in Travel mode.
+    if (viewMode !== 'azgaar' || !isFrameReady) return;
+    setAtlasTransform(readAtlasTransform());
+  }, [isFrameReady, readAtlasTransform, viewMode]);
 
   const handleIframeError = useCallback(() => {
     setFrameError('Azgaar world map could not be loaded. Switched to legacy grid view.');
@@ -402,6 +467,16 @@ const MapPane: React.FC<MapPaneProps> = ({
                     Travel
                   </button>
                 )}
+                {allowTravel && interactionMode === 'travel' && (
+                  <button
+                    onClick={() => setShowPrecisionOverlay(current => !current)}
+                    className={`px-2 py-1 rounded ${showPrecisionOverlay ? 'bg-cyan-800 text-white' : 'bg-gray-600 text-gray-100'}`}
+                    type="button"
+                    title="Show cell targeting overlays for precise travel"
+                  >
+                    Precision
+                  </button>
+                )}
               </>
             )}
             <span className="ml-2 text-gray-800">Seed: {azgaarSeed}</span>
@@ -459,11 +534,40 @@ const MapPane: React.FC<MapPaneProps> = ({
               className={`absolute inset-0 ${allowTravel && interactionMode === 'travel' ? 'cursor-crosshair' : 'pointer-events-none'}`}
               onClick={handleOverlayClick}
               onMouseMove={handleOverlayMouseMove}
-              onMouseLeave={() => setHoveredCell(null)}
+              onMouseLeave={() => {
+                setHoveredCell(null);
+              }}
               aria-label="World map click overlay"
               role="button"
               tabIndex={0}
             />
+
+            {allowTravel && interactionMode === 'travel' && showPrecisionOverlay && (
+              <div className="absolute inset-0 pointer-events-none z-[1]" aria-hidden="true">
+                {playerCellRect && (
+                  <div
+                    className="absolute border-2 border-sky-300/90 shadow-[0_0_10px_rgba(56,189,248,0.55)]"
+                    style={{
+                      left: `${playerCellRect.left}%`,
+                      top: `${playerCellRect.top}%`,
+                      width: `${playerCellRect.width}%`,
+                      height: `${playerCellRect.height}%`,
+                    }}
+                  />
+                )}
+                {hoveredCellRect && (
+                  <div
+                    className="absolute border-2 border-amber-300/95 bg-amber-200/20"
+                    style={{
+                      left: `${hoveredCellRect.left}%`,
+                      top: `${hoveredCellRect.top}%`,
+                      width: `${hoveredCellRect.width}%`,
+                      height: `${hoveredCellRect.height}%`,
+                    }}
+                  />
+                )}
+              </div>
+            )}
 
             {!isFrameReady && (
               <div className="absolute inset-0 bg-slate-950/70 flex items-center justify-center text-slate-100 text-sm pointer-events-none">
@@ -472,8 +576,9 @@ const MapPane: React.FC<MapPaneProps> = ({
             )}
 
             {allowTravel && interactionMode === 'travel' && hoveredCell && hoveredTile && (
-              <div className="absolute bottom-3 left-3 rounded bg-black/70 text-white text-xs px-2 py-1 pointer-events-none">
+              <div className="absolute bottom-3 left-3 rounded bg-black/70 text-white text-xs px-2 py-1 pointer-events-none z-[2]">
                 Cell {hoveredCell.x},{hoveredCell.y} - {hoveredBiome?.name || hoveredTile.biomeId}
+                {showPrecisionOverlay ? ' (precision on)' : ''}
               </div>
             )}
           </div>
@@ -483,7 +588,7 @@ const MapPane: React.FC<MapPaneProps> = ({
 
         <p className="text-xs text-center mt-2 text-gray-700">
           {allowTravel
-            ? 'In Azgaar Atlas: use Pan/Zoom to explore layers and zoom. Switch to Travel to click a destination.'
+            ? 'In Azgaar Atlas: use Pan/Zoom to explore layers and zoom. Switch to Travel to click a destination; enable Precision for cell targeting overlays.'
             : 'In Azgaar Atlas: use Pan/Zoom and layer controls to inspect world generation before starting a game.'}
         </p>
       </div>
