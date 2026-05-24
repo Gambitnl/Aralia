@@ -1543,6 +1543,7 @@ export class HttpServer {
           <div><dt>Mutates external systems</dt><dd>${detail.mutatesExternalSystems === true ? 'Yes' : 'No'}</dd></div>
           <div><dt>Mutates local files</dt><dd>${detail.mutatesLocalFiles === true ? 'Yes' : 'No'}</dd></div>
         </dl>
+        ${this.renderTaskPageCurrentBoundaryAction(detail, currentBoundary)}
         ${externalLinks ? `<nav class="task-page-links" aria-label="Task links">${externalLinks}</nav>` : ''}
       </article>
 
@@ -1787,8 +1788,10 @@ export class HttpServer {
         if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
       }
     });
-    // Safe endpoint buttons let the task page refresh Symphony-owned evidence
-    // without asking the operator to copy a raw POST URL into another tool.
+    // Guarded endpoint buttons let the task page advance Symphony-owned
+    // boundaries without asking the operator to copy a raw POST URL into
+    // another tool. The visible button is still the decision point: the handler
+    // only runs after a human or browser-following agent clicks the page.
     const safeEndpointButtons = Array.from(document.querySelectorAll('[data-guarded-safe-endpoint]'));
     safeEndpointButtons.forEach(button => {
       button.addEventListener('click', async () => {
@@ -1810,7 +1813,7 @@ export class HttpServer {
           window.location.reload();
         } catch (error) {
           button.disabled = false;
-          if (statusNode) statusNode.textContent = 'Guarded refresh failed: ' + (error?.message || error);
+          if (statusNode) statusNode.textContent = 'Guarded action failed: ' + (error?.message || error);
         }
       });
     });
@@ -1847,6 +1850,33 @@ export class HttpServer {
   </script>
 </body>
 </html>`;
+  }
+
+  private renderTaskPageCurrentBoundaryAction(
+    detail: Record<string, unknown>,
+    currentBoundary: Record<string, unknown>,
+  ): string {
+    const endpoint = this.stringFromUnknown(currentBoundary.endpoint);
+    const method = (this.stringFromUnknown(currentBoundary.method) ?? 'POST').toUpperCase();
+    if (!endpoint || method !== 'POST' || detail.needsHumanInput === true) {
+      return '';
+    }
+
+    const label = this.stringFromUnknown(currentBoundary.label) ?? 'Run Current Boundary';
+
+    // The standalone task page must expose the same next action that the detail
+    // packet reports. Without this button, the operator can see the boundary but
+    // cannot advance it through the dashboard-first workflow, which pushes
+    // agents toward hidden endpoints instead of visible review.
+    return `<div class="task-page-current-action">
+      <ul class="task-page-actions">
+        <li>
+          <button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(endpoint)}" data-guarded-safe-method="${this.escapeHtml(method)}">${this.escapeHtml(label)}</button>
+          <p class="usage-summary" data-guarded-safe-status></p>
+        </li>
+      </ul>
+      <p class="usage-summary">Runs the current Symphony boundary from this visible task page. Review the mutation flags above before clicking.</p>
+    </div>`;
   }
 
   private renderTaskPageGuardedActions(detail: Record<string, unknown>): string {

@@ -9,6 +9,26 @@ import { HttpServer } from '../dist/server.js';
 const BASE_URL = 'http://127.0.0.1:8199';
 const generatedAt = '2026-05-20T02:00:00.000Z';
 
+// This draft mirrors the Package 5 blocker shape: Linear already exists, so
+// the current boundary is the local handoff preparation step. The task page
+// must show that button directly, otherwise a foreman can only advance by
+// calling the hidden promote endpoint.
+const draftReadyForVisibleBoundary = {
+  id: 'draft-visible-boundary',
+  title: 'Draft visible current boundary proof',
+  body: 'Show that a ready draft can be advanced from the task page without using a hidden endpoint.',
+  expectedFiles: ['docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md'],
+  verificationCommands: ['npm.cmd run test -- --run src/spells'],
+  executor: 'jules',
+  status: 'ready_for_handoff',
+  linearIssueId: 'lin-visible-boundary',
+  linearIssueIdentifier: 'ARA-11',
+  linearIssueUrl: 'https://linear.app/aralia/issue/ARA-11/visible-boundary',
+  linearIssueCreatedAt: generatedAt,
+  createdAt: generatedAt,
+  updatedAt: generatedAt,
+};
+
 const logger = {
   child() {
     return logger;
@@ -43,7 +63,7 @@ const server = new HttpServer(8199, orchestrator, logger);
 server.taskIntake = {
   async snapshot() {
     return {
-      drafts: [],
+      drafts: [draftReadyForVisibleBoundary],
       handoffs: [{
         id: 'handoff-detail-page',
         draftId: 'draft-detail-page',
@@ -424,6 +444,14 @@ try {
   assert.match(page.body, /Deployment Readiness/);
   assert.match(page.body, /Local Sync Readiness/);
   assert.match(page.body, /Mutates external systems<\/dt><dd>No/);
+
+  const draftPage = await getText(`${BASE_URL}/tasks/draft-visible-boundary`);
+  assert.match(draftPage.body, /Draft visible current boundary proof/);
+  assert.match(draftPage.body, /Current Boundary/);
+  assert.match(draftPage.body, /Prepare Handoff/);
+  assert.match(draftPage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/task-drafts\/draft-visible-boundary\/promote"/);
+  assert.match(draftPage.body, />Prepare Handoff<\/button>/);
+  assert.match(draftPage.body, /Runs the current Symphony boundary from this visible task page/);
 
   const missing = await getText(`${BASE_URL}/tasks/does-not-exist`, 404);
   assert.match(missing.body, /Task not found/);
