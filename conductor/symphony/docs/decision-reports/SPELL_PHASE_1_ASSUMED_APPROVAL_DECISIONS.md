@@ -3773,3 +3773,42 @@ Copy this block for each decision.
 - Next expected proof: Push the packet branch, rerun the visible dashboard Git
   sync check, and route the Package 6 draft only after the dashboard sees a
   trustworthy GitHub base.
+
+### Decision 89: Add A Visible Package 6 Packet-Draft Button Instead Of Posting A Hidden Draft
+
+- Date/time: 2026-05-24 19:25 +02:00
+- Phase: `package_6_dashboard_intake`
+- Active slice: Create the Package 6 Jules draft through the dashboard-first
+  flow after the Package 6 packet PR merged.
+- Decision point: The dashboard reached the draft intake step from a clean
+  Package 6 base, but Codex Browser Use could not reliably fill the visible
+  long-form draft fields because its virtual clipboard path is unavailable.
+- Options considered:
+  - Post directly to `/api/v1/task-drafts` from outside the dashboard and move
+    on.
+  - Ask the operator to manually type the Package 6 packet into the form.
+  - Add a visible dashboard action that creates the known Package 6 draft from
+    the committed Jules packet, then publish that dashboard repair before using
+    it.
+- Decision made by agent: Add and publish a visible `Create Package 6 Draft`
+  dashboard button, then use that button for the handoff instead of calling the
+  hidden endpoint directly.
+- Model routing: Local Codex handled this small dashboard/workflow repair
+  because it was discovered while operating the Symphony surface. Jules remains
+  the preferred worker for Package 6 spell implementation after the handoff is
+  created.
+- Rationale/evidence: The active goal explicitly says dashboard blockers should
+  be flagged and repaired rather than bypassed through hidden methods. A
+  dashboard-owned button keeps the action inspectable and repeatable for the
+  operator while avoiding manual retyping of an already committed task packet.
+- Mutation performed or skipped: Changed
+  `conductor/symphony/public/dashboard.js` and updated this tracker/decision
+  record. Skipped raw endpoint use, skipped pretending the browser fill path was
+  reliable, and skipped changing Package 6 spell data locally.
+- Scope guardrails: This is a narrow Package 6 intake affordance. It does not
+  make Symphony runtime/source part of the long-term Aralia task-packet model;
+  it is a temporary in-repo workflow repair until Symphony is separated or the
+  dashboard has a generic packet-selection mechanism.
+- Next expected proof: Build the dashboard, publish the repair, verify the
+  visible button creates the Package 6 draft, and then continue the dashboard
+  handoff path toward Linear/Jules.
