@@ -183,6 +183,95 @@
         "canBeSmotheredOrQuenched": "not_applicable"
       },
       "conditionalEndings": []
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "utilityType": "other",
+      "description": "This spell channels vitality into plants. The casting time you use determines whether the spell has the Overgrowth or the Enrichment effect below. Overgrowth. Choose a point within range. All normal plants in a 100-foot-radius Sphere centered on that point become thick and overgrown. A creature moving through that area must spend 4 feet of movement for every 1 foot it moves. You can exclude one or more areas of any size within the spell's area from being affected. Enrichment. All plants in a half-mile radius centered on a point within range become enriched for 365 days. The plants yield twice the normal amount of food when harvested. They can benefit from only one Plant Growth per year.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": "",
+        "colorChoice": "not_applicable",
+        "opaqueCoverBlocks": "not_applicable",
+        "emitsHeat": "not_applicable",
+        "ignitesObjects": "not_applicable",
+        "consumesFuel": "not_applicable",
+        "canBeCoveredOrHidden": "not_applicable",
+        "canBeSmotheredOrQuenched": "not_applicable"
+      },
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

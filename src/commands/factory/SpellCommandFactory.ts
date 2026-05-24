@@ -138,13 +138,19 @@ export class SpellCommandFactory {
     }
 
 
-    // Filter effects if a mode choice was provided via playerInput
+    // Mode-choice spells keep every possible option in spell JSON so the
+    // spellbook and creator can show the full menu. Combat should only turn the
+    // selected option into commands, so the optional playerInput narrows the
+    // effect list before command creation.
     let activeEffects = spell.effects;
     if (spell.modeChoice && playerInput) {
       const chosenOption = spell.modeChoice.options.find(opt =>
         opt.label.toLowerCase() === playerInput.toLowerCase()
       );
       if (chosenOption && chosenOption.effectIndices) {
+        // Drop invalid indices instead of crashing the simulator. A real-data
+        // regression test guards the spell files so this fallback stays a last
+        // resort rather than hiding bad package data.
         activeEffects = chosenOption.effectIndices.map(index => spell.effects[index]).filter(Boolean);
       }
     }
