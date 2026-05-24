@@ -21,7 +21,7 @@ jobs:
     name: 🚫 Poison File Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Need full history for diff
 
@@ -77,12 +77,12 @@ jobs:
     name: 🔨 Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
@@ -99,12 +99,12 @@ jobs:
     name: 🎨 Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
@@ -120,12 +120,12 @@ jobs:
     name: Quality Scan (advisory)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
@@ -142,7 +142,7 @@ jobs:
           node -e "const fs = require('fs'); const data = JSON.parse(fs.readFileSync('quality-scan.json', 'utf8')); console.log('### Quality scan advisory'); console.log(''); console.log('Total findings: ' + data.total); console.log(''); console.log('| Pattern | Count |'); console.log('|---|---:|'); for (const [pattern, group] of Object.entries(data.groups)) console.log('| ' + pattern + ' | ' + group.count + ' |'); console.log(''); console.log('Quality scan JSON artifact: quality-scan-json');" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload quality scan JSON
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quality-scan-json
           path: quality-scan.json
@@ -152,12 +152,12 @@ jobs:
     name: 🧪 Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
