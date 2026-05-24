@@ -17,14 +17,17 @@ work, but only when the spell flow exposes a concrete workflow need.
 Current live boundary: Package 5 is scoped for the AI arbitration pilot in
 `docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md` and
 `docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md`. The
-visible Symphony dashboard is currently blocked before Jules dispatch because
-the main checkout is on `codex/spell-phase1-closeout-docs` rather than
-`master`, with local-only commits plus remote-only Package 4/5 work on
-`origin/master`. The dashboard Git disposition board has recorded non-mutating
-intent to keep the local-only commits local and integrate remote-only commits
-after local work is safe. The next valid dashboard proof is a passing visible
-GitHub sync gate or a dashboard-supported way to point the flow at a clean base;
-do not bypass this with hidden endpoints.
+original visible dashboard at `http://127.0.0.1:8139/` is blocked because the
+main checkout is on `codex/spell-phase1-closeout-docs` rather than `master`.
+A clean dashboard run from
+`F:\Repos\Aralia\.worktrees\spell-phase1-master-sync` on port `8140` proved the
+clean-worktree stand-in route: branch `codex/spell-phase1-dashboard-clean-base`
+matches `origin/master`, has 0 ahead/behind, and has no tracked or untracked
+changes. The next blocker is not Git; it is visible form input. The in-app
+browser cannot type into the dashboard draft form because Browser Use reports
+that its virtual clipboard is not installed. Do not bypass this by posting to
+hidden task-draft endpoints; use a visible form-input repair or manual
+operator-filled draft before creating Linear/Jules artifacts.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
