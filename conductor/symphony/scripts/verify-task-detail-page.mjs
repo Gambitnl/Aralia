@@ -65,6 +65,62 @@ server.taskIntake = {
     return {
       drafts: [draftReadyForVisibleBoundary],
       handoffs: [{
+        // This handoff mirrors the real Package 5 dashboard defect found while
+        // using Symphony as a human would: the Jules approval succeeded, but
+        // Symphony's cached status still said "waiting for plan approval." The
+        // task page must guide the operator to refresh state, not approve again.
+        id: 'handoff-approved-stale-state',
+        draftId: 'draft-approved-stale-state',
+        title: 'Approved Jules plan with stale cached state',
+        executor: 'jules',
+        status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-approved-stale-state\\manifest.json',
+        prompt: 'Prove the dashboard reconciles state after approving a Jules plan.',
+        expectedFiles: ['docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md'],
+        verificationCommands: ['npm run build'],
+        createdAt: generatedAt,
+        updatedAt: generatedAt,
+        operatorMessages: [],
+        planApprovals: [{
+          id: 'approval-stale-state',
+          createdAt: generatedAt,
+          status: 'approved',
+          command: 'npx tsx .jules/orchestrator/cli.ts approve 16180069342192211468',
+          output: 'Plan approved.',
+          error: null,
+        }],
+        taskMessages: [],
+        taskClarifications: [],
+        handoffTimeline: {
+          generatedAt,
+          summary: 'Timeline events: 2',
+          events: [
+            { stage: 'jules_status', label: 'Jules status refreshed', occurredAt: generatedAt, source: 'jules', status: 'recorded', detail: 'Jules reported AWAITING_PLAN_APPROVAL.' },
+            { stage: 'jules_plan_approval', label: 'Jules plan approval recorded', occurredAt: generatedAt, source: 'operator', status: 'complete', detail: 'The operator approval was sent to Jules.' },
+          ],
+        },
+        operatorQuestion: null,
+        operatorAnswers: [],
+        repairLaneExecutions: [],
+        repairPushReadiness: null,
+        repairPushResult: null,
+        deploymentEvidence: null,
+        julesStateReconciliation: null,
+        delegationRoiLedger: null,
+        linearIssueIdentifier: 'ARA-11',
+        linearIssueUrl: 'https://linear.app/aralia/issue/ARA-11/example',
+        julesSessionId: '16180069342192211468',
+        julesSessionUrl: 'https://jules.google.com/session/16180069342192211468',
+        julesState: 'AWAITING_PLAN_APPROVAL',
+        githubPullRequestUrl: null,
+        githubPullRequestState: null,
+        githubPullRequestChecks: null,
+        githubPullRequestFeedback: null,
+        githubPullRequestNextAction: null,
+        pullRequestChecksCommand: null,
+        pullRequestViewCommand: null,
+        next_action: null,
+      }, {
         id: 'handoff-detail-page',
         draftId: 'draft-detail-page',
         title: 'ARA-6 task page proof',
@@ -453,6 +509,15 @@ try {
   assert.match(draftPage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/task-drafts\/draft-visible-boundary\/promote"/);
   assert.match(draftPage.body, /type="submit"[^>]+>Prepare Handoff<\/button>/);
   assert.match(draftPage.body, /Runs the current Symphony boundary from this visible task page/);
+
+  const approvedStalePage = await getText(`${BASE_URL}/tasks/handoff-approved-stale-state`);
+  assert.match(approvedStalePage.body, /Approved Jules plan with stale cached state/);
+  assert.match(approvedStalePage.body, /Current Boundary/);
+  assert.match(approvedStalePage.body, /Refresh Jules Status/);
+  assert.match(approvedStalePage.body, /The operator approval was sent to Jules\. Refresh the session state/);
+  assert.match(approvedStalePage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-approved-stale-state\/refresh-status"/);
+  assert.match(approvedStalePage.body, /Jules plan approval recorded/);
+  assert.doesNotMatch(approvedStalePage.body, /type="submit"[^>]+>Approve Jules Plan<\/button>/);
 
   const missing = await getText(`${BASE_URL}/tasks/does-not-exist`, 404);
   assert.match(missing.body, /Task not found/);

@@ -34,6 +34,12 @@ The live task collection and status tracker is
 project file for package status, discovered tasks, detailed subtask links, and
 adjacent out-of-scope gaps.
 
+Decision points for the assumed-approval Symphony/Jules test flow are recorded
+in
+`conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
+Use that report with the tracker when reconstructing why an agent approved,
+waited, repaired locally, sent Jules feedback, or merged a PR.
+
 Dashboard-first workflow constraint: use the Symphony dashboard in the Codex
 in-app browser as the primary path for this test flow. Visible dashboard task
 cards, proof boards, controls, and blockers are the authoritative workflow
@@ -41,6 +47,10 @@ surface. Direct API calls or terminal shortcuts may inspect state, start local
 servers, verify claims, or implement a dashboard/workflow repair, but they must
 not bypass a dashboard blocker. If the dashboard blocks the flow, record the
 blocker and improve the dashboard/workflow or docs before proceeding.
+
+Current Package 0 evidence for Symphony workflow changes should continue to run
+through `npm run verify:jules-contract` or the smallest relevant verifier slice
+when a full contract pass would be disproportionate.
 
 ## Project Goal
 
