@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpellCommandFactory } from '../../factory/SpellCommandFactory';
 import { createAbilityFromSpell } from '../../../utils/character/spellAbilityFactory';
 import { consumeActionCost } from '../../../utils/combat/actionEconomyUtils';
-import { CombatState, CombatCharacter, GameState } from '../../../types/combat';
+import { CombatState, CombatCharacter } from '../../../types/combat';
+import { GameState } from '../../../types';
 import { DamageCommand } from '../../effects/DamageCommand';
 import { HealingCommand } from '../../effects/HealingCommand';
 import { StatusConditionCommand } from '../../effects/StatusConditionCommand';
@@ -103,7 +104,15 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
     mockCaster = {
       ...createMockCombatCharacter('c1', 'Caster'),
       spellSlots: {
-        level_1: { current: 2, max: 2 }
+        level_1: { current: 2, max: 2 },
+        level_2: { current: 0, max: 0 },
+        level_3: { current: 0, max: 0 },
+        level_4: { current: 0, max: 0 },
+        level_5: { current: 0, max: 0 },
+        level_6: { current: 0, max: 0 },
+        level_7: { current: 0, max: 0 },
+        level_8: { current: 0, max: 0 },
+        level_9: { current: 0, max: 0 }
       },
       actionEconomy: {
         action: { used: false, remaining: 1 },
@@ -159,6 +168,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         characters: [casterAfterCost, mockTarget],
         turnState: { currentTurn: 1, turnOrder: [], currentCharacterId: casterAfterCost.id, phase: 'planning', actionsThisTurn: [] },
         combatLog: [],
+        selectedCharacterId: null, selectedAbilityId: null, actionMode: 'select',
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
@@ -197,6 +207,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         characters: [casterAfterCost, mockTarget],
         turnState: { currentTurn: 1, turnOrder: [], currentCharacterId: casterAfterCost.id, phase: 'planning', actionsThisTurn: [] },
         combatLog: [],
+        selectedCharacterId: null, selectedAbilityId: null, actionMode: 'select',
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
@@ -231,6 +242,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         characters: [casterAfterCost, mockAlly],
         turnState: { currentTurn: 1, turnOrder: [], currentCharacterId: casterAfterCost.id, phase: 'planning', actionsThisTurn: [] },
         combatLog: [],
+        selectedCharacterId: null, selectedAbilityId: null, actionMode: 'select',
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
@@ -268,6 +280,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         characters: [casterAfterCost, mockAlly],
         turnState: { currentTurn: 1, turnOrder: [], currentCharacterId: casterAfterCost.id, phase: 'planning', actionsThisTurn: [] },
         combatLog: [],
+        selectedCharacterId: null, selectedAbilityId: null, actionMode: 'select',
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
