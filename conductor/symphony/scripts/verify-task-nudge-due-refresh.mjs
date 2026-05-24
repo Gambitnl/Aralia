@@ -137,7 +137,12 @@ try {
   assert.match(server, /task-nudges\/refresh-due/);
   assert.match(dashboard, /runDueTaskNudges/);
   assert.match(dashboard, /Due nudge refresh/);
-  assert.match(packageJson, /verify-task-nudge-due-refresh\.mjs/);
+  const runVerifiers = await readFile(join(process.cwd(), 'scripts', 'run-all-verifiers.mjs'), 'utf8');
+  assert.ok(
+    packageJson.includes('verify-task-nudge-due-refresh.mjs') ||
+    (packageJson.includes('run-all-verifiers.mjs') && runVerifiers.includes('verify-task-nudge-due-refresh.mjs')),
+    'verify-task-nudge-due-refresh.mjs must be registered in either package.json or run-all-verifiers.mjs'
+  );
 } finally {
   await Promise.all(roots.map(root => rm(root, { recursive: true, force: true })));
 }

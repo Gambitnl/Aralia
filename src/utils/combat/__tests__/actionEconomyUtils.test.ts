@@ -1,6 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { canAffordActionCost, consumeActionCost, createDefaultActionEconomy, resetEconomy } from '../actionEconomyUtils';
 import { createMockCombatCharacter } from '../../factories';
+import { resolveRacialSpellLimitedUseId } from '../../character/characterUtils';
+
+type LimitedUseEntry = {
+  name: string;
+  current: number;
+  max: number;
+  resetOn: 'long_rest' | 'short_rest';
+};
+
+type LimitedUseCharacter = ReturnType<typeof createMockCombatCharacter> & {
+  limitedUses?: Record<string, LimitedUseEntry>;
+};
 
 describe('actionEconomyUtils', () => {
   describe('createDefaultActionEconomy', () => {
@@ -66,9 +78,11 @@ describe('actionEconomyUtils', () => {
 
   describe('canAffordActionCost and consumeActionCost', () => {
     it('supports racial once-per-rest spells by consuming limited uses before spell slots and allowing fallback when enabled', () => {
+      const limitedUseId = resolveRacialSpellLimitedUseId('deep_gnome', 'disguise-self');
+
       const character = createMockCombatCharacter({
         limitedUses: {
-          racial_deep_gnome_disguise_self: {
+          [limitedUseId]: {
             name: 'Deep Gnome: disguise self',
             current: 1,
             max: 1,
@@ -95,13 +109,24 @@ describe('actionEconomyUtils', () => {
             },
           ],
         },
-      });
+      } as never) as LimitedUseCharacter;
+
+      // The combat helper reads this runtime field directly, so the fixture
+      // assigns it after creation instead of relying on the factory's static type.
+      character.limitedUses = {
+        [limitedUseId]: {
+          name: 'Deep Gnome: disguise self',
+          current: 1,
+          max: 1,
+          resetOn: 'long_rest',
+        },
+      };
 
       const racialCost = { type: 'action' as const, spellSlotLevel: 3, castSource: { type: 'racial' as const, spellId: 'disguise-self', allowSlotFallback: true } };
 
       expect(canAffordActionCost(character, racialCost)).toBe(true);
-      const afterLimitedUse = consumeActionCost(character, racialCost);
-      expect(afterLimitedUse.limitedUses?.racial_deep_gnome_disguise_self.current).toBe(0);
+      const afterLimitedUse = consumeActionCost(character, racialCost) as LimitedUseCharacter;
+      expect(afterLimitedUse.limitedUses?.[limitedUseId].current).toBe(0);
       expect(afterLimitedUse.spellSlots?.level_3.current).toBe(2);
       expect(afterLimitedUse.actionEconomy.action.used).toBe(true);
 
@@ -109,18 +134,18 @@ describe('actionEconomyUtils', () => {
         ...character,
         actionEconomy: { ...character.actionEconomy, action: { used: false, remaining: 1 } },
         limitedUses: {
-          racial_deep_gnome_disguise_self: {
+          [limitedUseId]: {
             name: 'Deep Gnome: disguise self',
             current: 0,
             max: 1,
             resetOn: 'long_rest',
           },
         },
-      });
+      } as never) as LimitedUseCharacter;
 
       expect(canAffordActionCost(limitedFallbackCharacter, racialCost)).toBe(true);
-      const limitedFallback = consumeActionCost(limitedFallbackCharacter, racialCost);
-      expect(limitedFallback.limitedUses?.racial_deep_gnome_disguise_self.current).toBe(0);
+      const limitedFallback = consumeActionCost(limitedFallbackCharacter, racialCost) as LimitedUseCharacter;
+      expect(limitedFallback.limitedUses?.[limitedUseId].current).toBe(0);
       expect(limitedFallback.spellSlots?.level_3.current).toBe(1);
       expect(limitedFallback.actionEconomy.action.used).toBe(true);
     });
@@ -146,7 +171,7 @@ describe('actionEconomyUtils', () => {
             },
           ],
         },
-      });
+      } as never);
 
       const racialCost = { type: 'action' as const, spellSlotLevel: 6, castSource: { type: 'racial' as const, spellId: 'nondetection', allowSlotFallback: true } };
       expect(canAffordActionCost(character, racialCost)).toBe(false);

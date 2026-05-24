@@ -120,6 +120,22 @@ const buildAcTooltip = (character: PlayerCharacter, dexMod: number): React.React
 
 const SAVING_THROW_ABILITIES: AbilityScoreName[] = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
 
+const uniqueSorted = (values?: string[]): string[] => {
+    const valuesSet = new Set<string>();
+    (values || []).forEach((value) => {
+        const normalized = value.trim();
+        if (normalized.length > 0) {
+            valuesSet.add(normalized);
+        }
+    });
+    return Array.from(valuesSet)
+        .filter(value => value.length > 0)
+        .sort((a, b) => a.localeCompare(b));
+};
+
+const formatDefenseList = (values: string[]): string =>
+    values.length > 0 ? values.join(', ') : 'None';
+
 const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const proficiencies = useCharacterProficiencies(character);
     const profBonus = character.proficiencyBonus || 2;
@@ -155,6 +171,10 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
 
     // Present Hit Dice by die size so multiclass pools are clear (e.g., d10 2/2 • d6 1/1).
     const hitPointDicePools = buildHitPointDicePools(character);
+    const resistances = uniqueSorted(character.resistances);
+    const immunities = uniqueSorted(character.immunities);
+    const vulnerabilities = uniqueSorted(character.vulnerabilities);
+    const hasMechanicalDamageDefenses = resistances.length > 0 || immunities.length > 0 || vulnerabilities.length > 0;
     const hitPointDiceDisplay = hitPointDicePools
         .map(pool => `d${pool.die} ${pool.current}/${pool.max}`)
         .join(' • ');
@@ -304,6 +324,16 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                     </div>
                 </CollapsibleSection>
 
+                {hasMechanicalDamageDefenses && (
+                    <CollapsibleSection title="Damage Defenses" icon="Def" defaultCollapsed={true}>
+                        <div className="grid grid-cols-1 gap-1 text-sm text-gray-300">
+                            <p>Resistance: <span className="font-semibold text-amber-300">{formatDefenseList(resistances)}</span></p>
+                            <p>Immunity: <span className="font-semibold text-emerald-300">{formatDefenseList(immunities)}</span></p>
+                            <p>Vulnerability: <span className="font-semibold text-rose-300">{formatDefenseList(vulnerabilities)}</span></p>
+                        </div>
+                    </CollapsibleSection>
+                )}
+
                 {/* 8. Features & Traits (COLLAPSIBLE, collapsed by default) */}
                 <CollapsibleSection title="Features & Traits" icon="📜" defaultCollapsed={true}>
                     <ul className="space-y-2 text-sm text-gray-300">
@@ -393,7 +423,6 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                         </div>
                     </div>
                 </CollapsibleSection>
-
 
             </div>
         </div>

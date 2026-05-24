@@ -66,6 +66,7 @@ conductor/symphony/docs/tasks/*
 !conductor/symphony/docs/decision-reports/
 conductor/symphony/docs/decision-reports/*
 !conductor/symphony/docs/decision-reports/*.md
+!conductor/symphony/docs/SYMPHONY_NORTH_STAR.md
 
 # Experimental 3D POCs
 src/components/ThreeDModal/Experimental/
@@ -205,6 +206,15 @@ conductor/symphony/.symphony/
 .jules/orchestrator/
 jules-dashboard-*.png
 test-dc.js
+
+# Local Symphony/Jules workflow captures that are only useful as scratch or
+# visible-run evidence. Keep the durable summary in the task packet instead.
+character-creator-state-*.json
+jules-*-visible-session.md
+pr*-*.png
+symphony-*.png
+dashboard-*.png
+take_screenshot.js
 
 # Generated spell review reports. These are useful local review surfaces, but
 # the active sync sources are the spell files, schema/template parts, validators,

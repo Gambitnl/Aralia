@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 23/05/2026, 00:13:21
+ * Dependents: utils/character/characterUtils.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import {
   AbilityScoreName,
   RacialSpellGrant,
@@ -10,7 +26,7 @@ type RacialTraitResetCondition = 'short_rest' | 'long_rest';
 
 type RacialResourceMax = number | 'proficiency_bonus';
 
-interface RacialResourceMechanic {
+export interface RacialResourceMechanic {
   id: string;
   maxUses: RacialResourceMax;
   resetOn: RacialTraitResetCondition;
@@ -59,7 +75,7 @@ export interface RacialTraitBase {
   maxLevel?: number;
 }
 
-export interface RacialSpellTrait extends RacialTraitBase, Omit<RacialSpellGrant, 'sourceRaceName'> {
+export interface RacialSpellTrait extends RacialTraitBase, Omit<RacialSpellGrant, 'sourceRaceName' | 'traitName'> {
   type: 'spell';
 }
 
@@ -70,6 +86,7 @@ export interface RacialFeatureTrait extends RacialTraitBase {
   sourceChoiceId?: string;
   minLevel: number;
   maxLevel?: number;
+  defensiveTraits?: RacialDefenseBuckets;
   metadata?: {
     source?: string;
     note?: string;
@@ -136,6 +153,98 @@ const INVALID_RACIAL_SPELL_TOKENS = new Set([
   'either',
   'spell/ability',
 ]);
+
+type ParsedDefenseType = 'resistances' | 'immunities' | 'vulnerabilities';
+
+export interface RacialDefenseBuckets {
+  resistances: string[];
+  immunities: string[];
+  vulnerabilities: string[];
+}
+
+const DAMAGE_TYPE_SYNONYMS: Record<string, string> = {
+  acid: 'Acid',
+  bludgeoning: 'Bludgeoning',
+  cold: 'Cold',
+  fire: 'Fire',
+  force: 'Force',
+  lightning: 'Lightning',
+  necrotic: 'Necrotic',
+  piercing: 'Piercing',
+  poison: 'Poison',
+  psychic: 'Psychic',
+  radiant: 'Radiant',
+  slashing: 'Slashing',
+  thunder: 'Thunder',
+};
+
+const normalizeDefenseTokens = (value: string): string[] => {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z\\s]/g, ' ')
+    .replace(/\\b(non[-\\s]?magical|magical|spell|damage|type|types|effect|effects)\\b/g, ' ')
+    .split(/\\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  const seen = new Set<string>();
+  const resolved: string[] = [];
+  normalized.forEach((token) => {
+    const damageType = DAMAGE_TYPE_SYNONYMS[token];
+    if (!damageType) return;
+    if (seen.has(damageType.toLowerCase())) return;
+    seen.add(damageType.toLowerCase());
+    resolved.push(damageType);
+  });
+
+  return resolved;
+};
+
+const extractDefenseBuckets = (text: string): RacialDefenseBuckets => {
+  const matchRegex = /(resistance|resistant|immunity|immune|vulnerability|vulnerable)\s+(?:to|against)\s+([^.;,]+)/gi;
+  const defensiveBuckets: RacialDefenseBuckets = {
+    resistances: [],
+    immunities: [],
+    vulnerabilities: [],
+  };
+
+  const addToBucket = (bucket: ParsedDefenseType, clause: string): void => {
+    const nextTypes = normalizeDefenseTokens(clause);
+    nextTypes.forEach((type) => {
+      if (!defensiveBuckets[bucket].includes(type)) {
+        defensiveBuckets[bucket].push(type);
+      }
+    });
+  };
+
+  const trimClause = (clause: string): string => {
+    const nextMarker = clause.search(
+      /\\b(resistance|resistant|immunity|immune|vulnerability|vulnerable)\\s+(?:to|against)\\b/i
+    );
+    if (nextMarker > 0) return clause.slice(0, nextMarker).trim();
+    return clause.trim();
+  };
+
+  let match: RegExpExecArray | null;
+  while ((match = matchRegex.exec(text)) !== null) {
+    const mode = match[1].toLowerCase();
+    const clause = trimClause(match[2] || '');
+    if (mode === 'immunity' || mode === 'immune') {
+      addToBucket('immunities', clause);
+      continue;
+    }
+    if (mode === 'vulnerability' || mode === 'vulnerable') {
+      addToBucket('vulnerabilities', clause);
+      continue;
+    }
+    addToBucket('resistances', clause);
+  }
+
+  return defensiveBuckets;
+};
+
+export const getRacialDefenseBucketsFromTraitText = (traitText: string): RacialDefenseBuckets =>
+  extractDefenseBuckets(traitText);
 
 const isSpellTokenAcceptable = (rawSpellId: string): boolean => {
   const token = normalizeSpellToken(rawSpellId);
@@ -491,6 +600,7 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
   const hasMechanicHint = /(starting at|you can|you have|once per|advantage|disadvantage|resistance|immunity|speed|darkvision)/i.test(trait);
   const resources = parseTraitResourceMechanics(race.id, traitName, trait);
   const featureType = resources.length > 0 ? 'resource' : inferRacialFeatureType(trait);
+  const defensiveTraits = getRacialDefenseBucketsFromTraitText(trait);
 
   return {
     type: hasMechanicHint && featureType === 'feature' ? 'combat' : featureType,
@@ -500,6 +610,11 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
     traitName,
     traitDescription,
     sourceText: trait,
+    defensiveTraits: {
+      resistances: [...defensiveTraits.resistances],
+      immunities: [...defensiveTraits.immunities],
+      vulnerabilities: [...defensiveTraits.vulnerabilities],
+    },
     featureGroup: hasMechanicHint ? 'mechanical' : 'informational',
     resources,
     metadata: {

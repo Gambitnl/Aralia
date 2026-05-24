@@ -235,7 +235,8 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
     return () => {
       cancelled = true;
     };
-  }, [filePath, entry]); // Added entry as dependency to ensure we merge the right data
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filePath, entry?.id]); // Only re-fetch if filePath or entry ID changes to prevent redundant fetches on object reference changes.
 
   if (loading) return <p className="text-gray-400 italic">Loading full entry...</p>;
   if (error) return <p className="text-red-400">Error loading content: {error}</p>;

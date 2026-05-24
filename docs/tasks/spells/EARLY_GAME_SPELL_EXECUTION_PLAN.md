@@ -14,20 +14,12 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Package 5 is scoped for the AI arbitration pilot in
-`docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT.md` and
-`docs/tasks/spells/PACKAGE_5_AI_ARBITRATION_PILOT_JULES_PROMPT.md`. The
-original visible dashboard at `http://127.0.0.1:8139/` is blocked because the
-main checkout is on `codex/spell-phase1-closeout-docs` rather than `master`.
-A clean dashboard run from
-`F:\Repos\Aralia\.worktrees\spell-phase1-master-sync` on port `8140` proved the
-clean-worktree stand-in route: branch `codex/spell-phase1-dashboard-clean-base`
-matches `origin/master`, has 0 ahead/behind, and has no tracked or untracked
-changes. The next blocker is not Git; it is visible form input. The in-app
-browser cannot type into the dashboard draft form because Browser Use reports
-that its virtual clipboard is not installed. Do not bypass this by posting to
-hidden task-draft endpoints; use a visible form-input repair or manual
-operator-filled draft before creating Linear/Jules artifacts.
+Current live boundary: Packages 1 through 6 have local `master` history and
+receipts, including the Package 6 choice/mode mechanics handoff. The active
+local maintenance boundary is consolidating the remaining worktrees and
+unmerged branches back into a master-centered checkout without losing tracked
+work or local-only Symphony/Jules receipts. Treat the task tracker below as the
+spell-project source of truth while this consolidation is in progress.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding

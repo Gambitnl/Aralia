@@ -108,6 +108,9 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
   const contentRef = useRef<HTMLDivElement>(null);
   const glossaryIndex = useContext(GlossaryContext);
 
+  // Keep track of which collapsible cards are open so we can preserve their state across parent re-renders/HMR
+  const openCardsRef = useRef<Set<string>>(new Set());
+
   // Build the set of valid term IDs once when the index changes
   const validTermIds = useMemo(() => buildValidTermIds(glossaryIndex), [glossaryIndex]);
 
@@ -130,6 +133,7 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     let currentDetails: HTMLDetailsElement | null = null;
     let currentContentDiv: HTMLDivElement | null = null;
     let inFeatureSection = false;
+    let featureCardIndex = 0;
 
     const hasFeaturesHeader = Array.from(tempDiv.querySelectorAll('h2')).some(h2 => h2.textContent?.includes('Features'));
 
@@ -147,10 +151,17 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
       }
 
       if (inFeatureSection && nodeName === 'H3') {
+        featureCardIndex++;
+        const cardId = `feature-card-${featureCardIndex}`;
+        
         currentDetails = document.createElement('details');
         currentDetails.className = 'feature-card';
-        // Note: We don't set currentDetails.open = true here to prevent force-unfolding on re-renders.
-        // If it starts closed, it stays closed. If it's a new entry, it starts closed.
+        
+        // Preserve collapsible card open state across re-renders for the same entry
+        if (openCardsRef.current.has(cardId)) {
+          currentDetails.open = true;
+          currentDetails.setAttribute('open', '');
+        }
 
         const summary = document.createElement('summary');
         const summaryH3 = document.createElement('h3');
@@ -176,6 +187,8 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
 
   useEffect(() => {
     if (structuredHtml && contentRef.current && onNavigate) {
+      const cleanupFunctions: Array<() => void> = [];
+
       const links = contentRef.current.querySelectorAll('span.glossary-term-link-from-markdown[data-term-id]');
       links.forEach(link => {
         const termId = link.getAttribute('data-term-id');
@@ -186,17 +199,44 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
             e.stopPropagation();
             onNavigate(termId);
           };
-          if (!glossaryLink._glossaryClickHandler) {
-            glossaryLink.addEventListener('click', handler);
-            glossaryLink.addEventListener('keydown', (e: KeyboardEvent) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handler(e);
-              }
-            });
-            glossaryLink._glossaryClickHandler = true;
-          }
+          const keydownHandler = (e: KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handler(e);
+            }
+          };
+          
+          glossaryLink.addEventListener('click', handler);
+          glossaryLink.addEventListener('keydown', keydownHandler);
+          
+          cleanupFunctions.push(() => {
+            glossaryLink.removeEventListener('click', handler);
+            glossaryLink.removeEventListener('keydown', keydownHandler);
+          });
         }
       });
+
+      // Track toggling of details cards to preserve open/collapse state
+      const detailsElements = contentRef.current.querySelectorAll('details.feature-card');
+      detailsElements.forEach((detailsEl, index) => {
+        const htmlDetails = detailsEl as HTMLDetailsElement;
+        const cardId = `feature-card-${index + 1}`;
+        
+        const toggleHandler = () => {
+          if (!htmlDetails.isConnected) return;
+          if (htmlDetails.open) {
+            openCardsRef.current.add(cardId);
+          } else {
+            openCardsRef.current.delete(cardId);
+          }
+        };
+        htmlDetails.addEventListener('toggle', toggleHandler);
+        
+        cleanupFunctions.push(() => htmlDetails.removeEventListener('toggle', toggleHandler));
+      });
+
+      return () => {
+        cleanupFunctions.forEach(cleanup => cleanup());
+      };
     }
   }, [structuredHtml, onNavigate]);
 

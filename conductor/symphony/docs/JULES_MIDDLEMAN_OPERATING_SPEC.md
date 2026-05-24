@@ -130,6 +130,13 @@ surface for the Codex foreman assigned to that task. Any question for the
 operator should be written in human language and posted through the task view,
 not hidden in a terminal transcript.
 
+If the visible task message or operator-answer forms cannot receive text input
+because the virtual clipboard in the Codex/Playwright in-app browser is not
+installed or accessible, the operator or agent may interact directly with the
+backend endpoints, such as `POST /api/v1/tasks/:id/messages` or
+`/clarifications`, via command-line HTTP calls. Recording the receipt locally
+through the backend API preserves the dashboard-first evidence path.
+
 ### Current Task-Page Baseline
 
 The current baseline for that task-centered view is a read-only `Task navigator`
