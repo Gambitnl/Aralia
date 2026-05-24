@@ -1681,6 +1681,39 @@ function renderForemanRunControl(action) {
     return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="refresh-local-sync" data-handoff-id="${escapeAttribute(decodeURIComponent(localSyncRefreshMatch[1]))}">Check Local Sync</button>`;
   }
 
+  const createLinearMatch = String(action.endpoint).match(/\/api\/v1\/task-drafts\/([^/]+)\/create-linear$/);
+  if (action.method === 'POST' && action.canRunNow && createLinearMatch) {
+    // The current boundary is the dashboard's main "what now" control. Linear
+    // creation mutates an external system, so it must stay visibly button-gated
+    // instead of being represented as a raw endpoint link hidden behind a
+    // collapsed task record.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="create-linear" data-draft-id="${escapeAttribute(decodeURIComponent(createLinearMatch[1]))}">Create Linear Issue</button>`;
+  }
+
+  const promoteDraftMatch = String(action.endpoint).match(/\/api\/v1\/task-drafts\/([^/]+)\/promote$/);
+  if (action.method === 'POST' && action.canRunNow && promoteDraftMatch) {
+    // Handoff preparation is local dashboard state. Exposing it as the primary
+    // boundary button avoids forcing the operator to hunt through a long task
+    // card after the dashboard has already named this as the next step.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="promote-draft" data-draft-id="${escapeAttribute(decodeURIComponent(promoteDraftMatch[1]))}">Prepare Handoff</button>`;
+  }
+
+  const stageManifestMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/stage-manifest$/);
+  if (action.method === 'POST' && action.canRunNow && stageManifestMatch) {
+    // Manifest staging writes local orchestration state, so the dashboard keeps
+    // it as an explicit visible action with the same handler used by the
+    // handoff card.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="stage-manifest" data-handoff-id="${escapeAttribute(decodeURIComponent(stageManifestMatch[1]))}">Stage Jules Manifest</button>`;
+  }
+
+  const launchJulesMatch = String(action.endpoint).match(/\/api\/v1\/jules-handoffs\/([^/]+)\/launch$/);
+  if (action.method === 'POST' && action.canRunNow && launchJulesMatch) {
+    // Launching Jules is the highest-friction external mutation in this path.
+    // Keeping the runnable action in the current-boundary panel makes the
+    // decision visible before the operator commits to the cloud handoff.
+    return `<button class="primary-dashboard-action" type="button" data-current-foreman-action="true" data-task-action="launch-jules" data-handoff-id="${escapeAttribute(decodeURIComponent(launchJulesMatch[1]))}">Launch Jules</button>`;
+  }
+
   return `<a class="primary-dashboard-action" data-current-foreman-action="true" href="${escapeAttribute(action.endpoint)}">${action.method === 'POST' ? 'Endpoint' : 'Open'}</a>`;
 }
 
