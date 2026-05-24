@@ -1794,7 +1794,8 @@ export class HttpServer {
     // only runs after a human or browser-following agent clicks the page.
     const safeEndpointButtons = Array.from(document.querySelectorAll('[data-guarded-safe-endpoint]'));
     safeEndpointButtons.forEach(button => {
-      button.addEventListener('click', async () => {
+      button.addEventListener('click', async event => {
+        event.preventDefault();
         const endpoint = button.dataset.guardedSafeEndpoint;
         const method = button.dataset.guardedSafeMethod || 'POST';
         const statusNode = button.closest('li')?.querySelector('[data-guarded-safe-status]');
@@ -1867,11 +1868,15 @@ export class HttpServer {
     // The standalone task page must expose the same next action that the detail
     // packet reports. Without this button, the operator can see the boundary but
     // cannot advance it through the dashboard-first workflow, which pushes
-    // agents toward hidden endpoints instead of visible review.
+    // agents toward hidden endpoints instead of visible review. The form keeps
+    // the action usable even if the dashboard script fails to attach its nicer
+    // reload handler, so the visible page remains the source of the click.
     return `<div class="task-page-current-action">
       <ul class="task-page-actions">
         <li>
-          <button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(endpoint)}" data-guarded-safe-method="${this.escapeHtml(method)}">${this.escapeHtml(label)}</button>
+          <form method="post" action="${this.escapeHtml(endpoint)}">
+            <button type="submit" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(endpoint)}" data-guarded-safe-method="${this.escapeHtml(method)}">${this.escapeHtml(label)}</button>
+          </form>
           <p class="usage-summary" data-guarded-safe-status></p>
         </li>
       </ul>
