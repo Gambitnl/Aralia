@@ -1,7 +1,8 @@
 # Package 5: AI Arbitration Pilot
 
-Status: scoped for Jules handoff; Linear issue `ARA-11` is linked, but the
-visible dashboard handoff preparation path is blocked.
+Status: scoped for Jules handoff; Linear issue `ARA-11` is linked, and the task
+page now renders a visible form-backed `Prepare Handoff` button, but browser
+activation of that visible button is still blocked.
 
 This is the durable Aralia-facing task packet for Spell Phase 1 Package 5. The
 goal is to prove that open-ended early-game spells can ask for player intent,
@@ -179,15 +180,21 @@ the visible `Create Linear Issue` control linked it to Linear issue `ARA-11`:
 
 - `https://linear.app/aralia/issue/ARA-11/spell-phase-1-package-5-ai-arbitration-pilot`
 
-The current blocker is the next visible dashboard action. The Package 5 task
-page says the current boundary is `Prepare Handoff`, but it does not render a
-visible action button for that boundary. The full dashboard receipt contains
-`Prepare Handoff` buttons, but the relevant button is not reachable by normal
-viewport scrolling in the Codex in-app browser. Decision for this packet: do
-not call the raw `POST /promote` endpoint or click an unreachable DOM node.
-Package 5 dispatch should resume when the dashboard exposes a human-visible
-`Prepare Handoff` action on the task page or makes the full receipt action
-reachable through ordinary navigation.
+PR #987 repaired the first visible-action blocker by adding a current-boundary
+action to the standalone task page. PR #989 made that action form-backed so the
+visible page still owns the POST action if the enhanced dashboard script does
+not attach.
+
+The current blocker is now activation rather than surfacing. On 2026-05-24, the
+clean dashboard at `http://127.0.0.1:8140/tasks/draft-1779582701882-mln8to`
+rendered a visible `Prepare Handoff` submit button whose form action points to
+`POST /api/v1/task-drafts/draft-1779582701882-mln8to/promote`. Browser attempts
+to activate that visible control through locator click, DOM click, coordinate
+click, and Enter left the draft at `ready_for_handoff` with no status text or
+console error. Decision for this packet: do not call the raw promote endpoint as
+a substitute for the dashboard-first flow. Package 5 dispatch should resume
+after the visible button can be activated by the operator/browser path, or after
+the activation blocker is repaired.
 
 ## Decision Points
 
@@ -201,4 +208,7 @@ reachable through ordinary navigation.
 | P5-6 Visible draft form input | The dashboard has a visible Package 5 draft form, but the in-app browser cannot type into the form due to the missing Browser Use virtual clipboard. | Do not bypass with hidden POST endpoints. Record the blocker and resume when visible form input is repaired or manually filled by the operator. | Dashboard/browser tooling blocker; Aralia GitHub summary because it blocks Jules dispatch. |
 | P5-7 Linear issue creation | The clean dashboard exposed an enabled visible `Create Linear Issue` button for Package 5 after the draft existed. This mutates Linear and attaches a tracking issue to the draft. | Use the visible dashboard button under the previously authorized Jules/Symphony test flow. Result: Package 5 linked to `ARA-11`. | Linear/dashboard state; summarized here because it advances Jules dispatch. |
 | P5-8 Prepare handoff visibility | The task page says `Prepare Handoff` is the current boundary, but renders no visible action button. The full dashboard has `Prepare Handoff` buttons in the DOM, but the relevant Package 5 button is not reachable by ordinary viewport scrolling. | Do not call the raw promote endpoint and do not programmatically click an unreachable DOM node. Record the blocker as a dashboard UX/workflow defect. | Dashboard workflow blocker; Aralia GitHub summary because it blocks Jules dispatch. |
+| P5-9 Task-page boundary action repair | The visible task page needs to expose the current boundary action directly. This required editing Symphony source even though Symphony source should eventually leave the Aralia repo. | Repair the current in-repo Symphony dashboard source through PR #987 because it is the active workflow infrastructure, and explicitly classify it as a Symphony workflow-defect repair rather than spell implementation content. | Temporary Symphony source repair in Aralia GitHub; should migrate with Symphony when separated. |
+| P5-10 Form-backed activation repair | The new visible button still needed a non-script fallback so the page action remained usable if dashboard JavaScript did not attach. | Land PR #989 to make the `Prepare Handoff` control a normal visible POST form while keeping the enhanced guarded handler as the preferred path. | Temporary Symphony source repair in Aralia GitHub; should migrate with Symphony when separated. |
+| P5-11 Visible activation still blocked | After PR #987 and PR #989, the visible button exists, but Codex Browser activation attempts leave the draft unchanged. | Stop before the raw promote endpoint. Record the blocker and require either a manual operator click or another dashboard/browser activation repair. | Dashboard/browser activation blocker; Aralia GitHub summary because it blocks Jules dispatch. |
 
