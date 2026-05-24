@@ -467,7 +467,7 @@ export interface LightSource {
 
 // Battle Map Types
 export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
-export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | null;
+export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | 'fallen_log' | 'stump' | 'bush' | null;
 
 export interface EnvironmentalEffect {
   id: string;

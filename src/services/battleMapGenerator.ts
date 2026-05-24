@@ -52,7 +52,9 @@ export class BattleMapGenerator {
 
   private createBaseTile(x: number, y: number, biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp', noiseValue: number): BattleMapTile {
     let terrain: BattleMapTerrain = 'grass';
-    const elevation = Math.max(0, Math.floor(this.elevationNoise.get(x / 15, y / 15) * 3));
+    // Elevation: smaller scale (x/8) for visible terrain undulation, higher multiplier
+    const rawElev = this.elevationNoise.get(x / 8, y / 8);
+    const elevation = Math.max(0, Math.round(rawElev * 2.5 + 1.0)); // Range 0-3, centered around 1
 
     switch(biome) {
         case 'cave':
@@ -92,11 +94,11 @@ export class BattleMapGenerator {
 
   private placeObstacles(biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp') {
     const obstacleConfig = {
-      forest: { types: ['tree', 'boulder'], density: 0.12 },
-      cave: { types: ['stalagmite', 'boulder'], density: 0.1 },
-      dungeon: { types: ['pillar'], density: 0.07 },
-      desert: { types: ['cactus', 'boulder'], density: 0.08 },
-      swamp: { types: ['mangrove', 'boulder'], density: 0.15 },
+      forest: { types: ['tree', 'tree', 'boulder', 'bush', 'stump', 'fallen_log'], density: 0.15 },
+      cave: { types: ['stalagmite', 'boulder', 'boulder'], density: 0.1 },
+      dungeon: { types: ['pillar', 'pillar', 'boulder'], density: 0.07 },
+      desert: { types: ['cactus', 'boulder', 'boulder'], density: 0.08 },
+      swamp: { types: ['mangrove', 'boulder', 'bush', 'stump'], density: 0.15 },
     };
     
     const config = obstacleConfig[biome];
@@ -127,10 +129,21 @@ export class BattleMapGenerator {
     if (type === 'tree' || type === 'pillar' || type === 'mangrove' || type === 'cactus') {
         tile.blocksLoS = true;
         tile.elevation += 2; // Make obstacles taller for LoS purposes
+        tile.blocksMovement = true;
     } else if (type === 'boulder') {
         tile.elevation += 1;
+        tile.blocksMovement = true;
+    } else if (type === 'bush') {
+        // Bushes provide half-cover but don't fully block
+        tile.providesCover = true;
+        tile.blocksMovement = false;
+    } else if (type === 'stump' || type === 'fallen_log') {
+        // Low obstacles — difficult terrain but passable
+        tile.providesCover = true;
+        tile.blocksMovement = false;
+    } else {
+        tile.blocksMovement = true;
     }
-    tile.blocksMovement = true;
   }
   
   private ensureConnectivity() {

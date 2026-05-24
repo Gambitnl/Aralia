@@ -8,6 +8,7 @@
 // TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } from 'react';
 import BattleMap from './BattleMap';
+import BattleMap3D from './BattleMap3D';
 import { PlayerCharacter } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
@@ -35,11 +36,89 @@ interface BattleMapDemoProps {
 
 type BiomeType = 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
 
+// ---------------------------------------------------------------------------
+// 3D Controls Help Panel
+// ---------------------------------------------------------------------------
+
+const ControlsHelp: React.FC<{ visible: boolean }> = ({ visible }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!visible) return null;
+
+  return (
+    <div className="absolute bottom-4 left-4 z-20 select-none flex flex-col-reverse items-start gap-1.5" style={{ pointerEvents: 'auto' }}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/90 hover:bg-gray-700/90 border border-gray-600/50 rounded-lg text-xs text-gray-300 backdrop-blur-sm shadow-lg transition-colors"
+        title="Toggle controls help"
+      >
+        <span className="text-amber-400">?</span>
+        <span>Controls</span>
+        <span className="text-gray-500 ml-0.5">{expanded ? '▾' : '▸'}</span>
+      </button>
+
+      {expanded && (
+        <div className="bg-gray-900/95 border border-gray-700/60 rounded-lg p-3 backdrop-blur-sm shadow-xl text-xs leading-relaxed max-w-[280px]">
+          {/* Camera */}
+          <div className="text-amber-400 font-semibold mb-1.5 text-[11px] uppercase tracking-wide">Camera</div>
+          <div className="space-y-1 text-gray-300 mb-3">
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Right-drag</span>
+              <span>Rotate view</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Middle-drag</span>
+              <span>Pan across map</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Scroll wheel</span>
+              <span>Zoom in / out</span>
+            </div>
+          </div>
+
+          {/* Selection */}
+          <div className="text-amber-400 font-semibold mb-1.5 text-[11px] uppercase tracking-wide">Selection</div>
+          <div className="space-y-1 text-gray-300 mb-3">
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Left-click</span>
+              <span>Select character (your turn only)</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Hover</span>
+              <span>Show name &amp; HP bar</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="text-amber-400 font-semibold mb-1.5 text-[11px] uppercase tracking-wide">Actions</div>
+          <div className="space-y-1 text-gray-300">
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Click tile</span>
+              <span>Move selected character</span>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-gray-500 w-[90px] shrink-0">Use ability</span>
+              <span>Pick from right panel, then click target</span>
+            </div>
+          </div>
+
+          <div className="mt-2.5 pt-2 border-t border-gray-700/40 text-gray-500 text-[10px]">
+            Active turn character is highlighted with a golden ring.
+            Enemies have red selection rings when targetable.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters, party }) => {
   const initialBiome: BiomeType = 'forest';
   const [biome, setBiome] = useState<BiomeType>(initialBiome);
   const [seed, setSeed] = useState(() => Date.now());
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+  // [2026-05-21] 3D render mode toggle
+  const [renderMode, setRenderMode] = useState<'2d' | '3d'>('2d');
 
   const allSpells = useContext(SpellContext);
   const spellsRecord = useMemo(
@@ -162,7 +241,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4">
+    <div className="bg-gray-900 text-white h-screen flex flex-col p-4 overflow-hidden">
       {sheetCharacter && (
         <CharacterSheetModal
           isOpen={!!sheetCharacter}
@@ -231,9 +310,17 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         >
           End Turn
         </button>
+        {/* [2026-05-21] 2D/3D render mode toggle */}
+        <button
+          onClick={() => setRenderMode(renderMode === '2d' ? '3d' : '2d')}
+          className="self-end px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow font-bold text-sm"
+          title={`Switch to ${renderMode === '2d' ? '3D' : '2D'} view`}
+        >
+          {renderMode === '2d' ? '🎮 3D View' : '🗺️ 2D View'}
+        </button>
       </div>
 
-      <div className="flex-grow grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
+      <div className="flex-grow min-h-0 grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
         {/* Left Pane */}
         <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
           <PartyDisplay
@@ -247,19 +334,35 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         </div>
 
         {/* Center Pane */}
-        <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
+        <div className="xl:col-span-3 flex flex-col overflow-hidden p-2 relative">
+          <ControlsHelp visible={renderMode === '3d'} />
           <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
-            <BattleMap
-              mapData={mapData}
-              characters={characters}
-              combatState={{
-                turnManager: turnManager,
-                turnState: turnManager.turnState,
-                abilitySystem: abilitySystem,
-                isCharacterTurn: turnManager.isCharacterTurn,
-                onCharacterUpdate: handleCharacterUpdate
-              }}
-            />
+            {renderMode === '3d' ? (
+              /* 3D canvas fills entire center pane vertically */
+              <BattleMap3D
+                mapData={mapData}
+                characters={characters}
+                combatState={{
+                  turnManager: turnManager,
+                  turnState: turnManager.turnState,
+                  abilitySystem: abilitySystem,
+                  isCharacterTurn: turnManager.isCharacterTurn,
+                  onCharacterUpdate: handleCharacterUpdate
+                }}
+              />
+            ) : (
+              <BattleMap
+                mapData={mapData}
+                characters={characters}
+                combatState={{
+                  turnManager: turnManager,
+                  turnState: turnManager.turnState,
+                  abilitySystem: abilitySystem,
+                  isCharacterTurn: turnManager.isCharacterTurn,
+                  onCharacterUpdate: handleCharacterUpdate
+                }}
+              />
+            )}
           </ErrorBoundary>
         </div>
 
