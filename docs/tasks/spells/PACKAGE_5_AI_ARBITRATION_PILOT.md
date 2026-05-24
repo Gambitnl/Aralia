@@ -1,7 +1,8 @@
 # Package 5: AI Arbitration Pilot
 
-Status: scoped for Jules handoff; dashboard launch is blocked by the visible
-main-checkout Git sync gate.
+Status: scoped for Jules handoff; clean-dashboard Git sync is ready, but
+visible draft creation is blocked by the in-app browser form-input/clipboard
+path.
 
 This is the durable Aralia-facing task packet for Spell Phase 1 Package 5. The
 goal is to prove that open-ended early-game spells can ask for player intent,
@@ -162,17 +163,24 @@ record the timestamp-only result.
 
 ## Current Dashboard Boundary
 
-The visible dashboard at `http://127.0.0.1:8139/` is currently blocked by the
-main checkout Git sync gate. It reports that `F:\Repos\Aralia` is on
-`codex/spell-phase1-closeout-docs`, is behind `origin/master`, has tracked and
-untracked local changes, and needs Git disposition decisions before it can
-launch a Jules handoff.
+The original visible dashboard at `http://127.0.0.1:8139/` is blocked by the
+main checkout Git sync gate because `F:\Repos\Aralia` is on
+`codex/spell-phase1-closeout-docs`, not `master`. The non-mutating dashboard
+disposition decision is to keep local-only commits local and integrate
+remote-only commits after local work is safe.
 
-Decision for this packet: do not mutate the user's dirty main checkout and do
-not use hidden dashboard endpoints. Package 5 scoping may continue in the clean
-`codex/spell-phase1-package5-scope` worktree because this packet is durable
-Aralia task context. Actual Jules dispatch remains blocked until the dashboard
-is pointed at a clean base or the visible Git disposition/sync path is resolved.
+On 2026-05-24, a second dashboard was started from the clean worktree
+`F:\Repos\Aralia\.worktrees\spell-phase1-master-sync` on port `8140`. Its Git
+gate passed from branch `codex/spell-phase1-dashboard-clean-base` because that
+branch is exactly at `origin/master` with a clean working tree. This proves the
+clean-worktree stand-in route without mutating the user's main checkout.
+
+The next blocker is visible draft entry. The dashboard shows a `Save Draft`
+form, but the Codex in-app browser cannot fill or type into it because Browser
+Use reports that its virtual clipboard is not installed. Decision for this
+packet: do not use hidden task-draft endpoints to bypass the UI. Package 5
+dispatch should resume after either the dashboard form-input path is repaired
+or the operator manually fills the visible draft form from this packet.
 
 ## Decision Points
 
@@ -182,4 +190,6 @@ is pointed at a clean base or the visible Git disposition/sync path is resolved.
 | P5-2 Pilot breadth | Package 5 could route many illusion/social/utility spells, but that would create broad AI policy churn. | Scope the pilot to `prestidigitation` and `suggestion`, with `blindness-deafness` only as an optional assisted-control case. | Aralia GitHub task packet. |
 | P5-3 Symphony artifact boundary | The task needs Jules-readable context but not Symphony runtime state. | Commit only this task packet and prompt; keep Symphony manifests, draft ids, receipts, and click state external or ignored. | Aralia GitHub for packet/prompt; external Symphony for runtime state. |
 | P5-4 Deterministic-vs-AI boundary | AI arbitration could hide missing deterministic mechanics. | Use AI only for player intent/adjudication. Do not route damage, healing, clear saves, slots, action costs, or concentration cleanup to AI. | Aralia GitHub task packet; future mechanics buckets for deterministic gaps. |
+| P5-5 Clean-dashboard stand-in | The main dashboard was blocked by the user's divergent main checkout, but the clean worktree matches `origin/master`. | Start and use the dashboard from the clean worktree on port `8140`; treat it as a valid dashboard route because the visible Git gate reports ready without mutating main. | Dashboard state plus local ignored Symphony runtime; summarized here because it unblocks the Git side of Package 5 dispatch. |
+| P5-6 Visible draft form input | The dashboard has a visible Package 5 draft form, but the in-app browser cannot type into the form due to the missing Browser Use virtual clipboard. | Do not bypass with hidden POST endpoints. Record the blocker and resume when visible form input is repaired or manually filled by the operator. | Dashboard/browser tooling blocker; Aralia GitHub summary because it blocks Jules dispatch. |
 
