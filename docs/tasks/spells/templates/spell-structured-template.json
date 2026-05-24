@@ -2077,6 +2077,24 @@
       "comment": "Damage type is simple for most spells but chooser spells require a richer follow-up model. It maps to `effects[].damage.type`. Purpose: Damage Type exists so canonical prose, structured markdown, and runtime JSON do not silently disagree about this mechanic. Populate it from the canonical markdown prose, including mechanics hidden in descriptive sentences. It maps to runtime JSON path `effects[].damage.type`. The value type is `string-or-chooser`. This is optional or conditional in the runtime shape. Omit or leave empty only when this runtime/template layer intentionally treats the field as optional."
     },
     {
+      "label": "Damage Type Source",
+      "required": false,
+      "valueType": "enum",
+      "jsonPath": "effects[].damage.damageTypeSource",
+      "acceptedValues": [
+        "listed",
+        "triggering_damage_type",
+        "chosen_damage_type"
+      ],
+      "comment": "Explains how the active damage type is selected. Use `chosen_damage_type` when the caster chooses one type from the eligible list. It maps to `effects[].damage.damageTypeSource`. Purpose: Damage Type Source keeps eligible choices from being mistaken for simultaneous damage of every listed type. Use `not_applicable` when the spell has no damage-type source mechanic.",
+      "acceptedValueNotes": {
+        "listed": "Every listed Damage Type applies directly.",
+        "triggering_damage_type": "The active type is the damage type from the event that triggered the spell.",
+        "chosen_damage_type": "The active type is selected by the caster/player from the eligible list.",
+        "not_applicable": "The spell has no damage-type source mechanic."
+      }
+    },
+    {
       "label": "Damage Mitigation Bypass",
       "required": false,
       "valueType": "csv-string",

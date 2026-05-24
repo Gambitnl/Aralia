@@ -598,6 +598,8 @@ export interface DamageEffect extends BaseEffect {
 export interface DamageData {
   dice: string; // e.g., "8d6"
   type: DamageType;
+  /** Specifies if the damage type is chosen or copied from a trigger. */
+  damageTypeSource?: "listed" | "triggering_damage_type" | "chosen_damage_type";
   /** Mitigation rules the damage explicitly ignores, for self-cost damage that cannot be reduced or prevented. */
   mitigationBypass?: ("resistance" | "immunity" | "damage_reduction" | "damage_prevention")[];
 }

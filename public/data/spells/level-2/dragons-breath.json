@@ -246,7 +246,8 @@
       },
       "damage": {
         "dice": "3d6",
-        "type": "Acid/Cold/Fire/Lightning/Poison"
+        "type": "Acid/Cold/Fire/Lightning/Poison",
+        "damageTypeSource": "chosen_damage_type"
       },
       "scaling": {
         "type": "slot_level",

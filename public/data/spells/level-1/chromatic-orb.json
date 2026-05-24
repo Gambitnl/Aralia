@@ -135,7 +135,8 @@
       },
       "damage": {
         "dice": "3d8",
-        "type": "Acid/Cold/Fire/Lightning/Poison/Thunder"
+        "type": "Acid/Cold/Fire/Lightning/Poison/Thunder",
+        "damageTypeSource": "chosen_damage_type"
       },
       "secondaryTargeting": {
         "trigger": "duplicate_damage_die",

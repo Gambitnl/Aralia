@@ -195,3 +195,10 @@ For this package:
 - The package does not expand into broad AI policy, all mechanics buckets, or
   Symphony runtime changes.
 
+
+## Jules Completion Note
+- Spells closed: blindness-deafness, dragons-breath, chromatic-orb, alter-self, enlarge-reduce, alarm, plant-growth.
+- Spells verified already clean: enhance-ability, protection-from-energy.
+- Fields reused/added: Used `modeChoice` for multi-effect toggles, reused `damageTypeSource: "chosen_damage_type"` for damage choice, adding it to `DamageData` in schemas and templates.
+- Tests run: `npm run validate:spells` passed, added `src/commands/factory/__tests__/SpellCommandFactoryMode.test.ts` to prove damage source parsing.
+- Residual gaps: Atlas proof was blocked by `G48` missing source files.

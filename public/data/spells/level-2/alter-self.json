@@ -184,5 +184,48 @@
     "transmutation",
     "self-buff",
     "concentration"
-  ]
+  ],
+  "modeChoice": {
+    "type": "choose_one",
+    "timing": "on_cast_or_later_action",
+    "optionCount": 3,
+    "optionsSource": "effects",
+    "canDismissActive": false,
+    "options": [
+      {
+        "label": "Aquatic Adaptation",
+        "summary": "You sprout gills and grow webs between your fingers. You can breathe underwater and gain a Swim Speed equal to your Speed.",
+        "effectIndices": [
+          0
+        ],
+        "effectTypes": [
+          "DEFENSIVE",
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      },
+      {
+        "label": "Change Appearance",
+        "summary": "You alter your appearance. You decide what you look like. You can make yourself appear as a member of another species, though none of your statistics change.",
+        "effectIndices": [
+          1
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      },
+      {
+        "label": "Natural Weapons",
+        "summary": "You grow natural weapons dealing 1d6 damage, using your spellcasting ability modifier for attack/damage rolls.",
+        "effectIndices": [
+          2
+        ],
+        "effectTypes": [
+          "UTILITY"
+        ],
+        "duration": "1 hour"
+      }
+    ]
+  }
 }
