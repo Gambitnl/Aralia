@@ -79,6 +79,13 @@ Optional local review worktree:
 
 1. Keep the `bless` gap and Atlas source gap (`G48`) visible as separate
    follow-ups rather than broadening Package 4.
+2. Treat Jules session `9133898485760935702` as a stale/duplicate Package 4
+   workflow artifact unless it is explicitly recovered. On 2026-05-24, the
+   dashboard promoted that old session even though Package 4 was already closed
+   by PR #979. Visible Jules inspection showed it was waiting for plan approval;
+   after approval it began changing spell audit scripts outside the declared
+   Package 4 write scope, so the foreman paused the session before it could
+   submit an out-of-scope PR.
 
 ## Abort Or Repair Path
 
@@ -86,3 +93,14 @@ If Package 4 exposes a dashboard blocker, record it as a Symphony workflow gap
 and repair the dashboard path before continuing. If it exposes a broad spell
 mechanics decision, record the decision and either keep it tiny inside this
 pilot or split it into the first mechanics-bucket package.
+
+For stale or duplicate Jules sessions, prefer one of these visible resolutions
+before continuing the package queue:
+
+1. Send visible Jules feedback that reverts out-of-scope edits and confirms no
+   duplicate PR should be opened.
+2. Archive or dismiss the stale handoff in the dashboard so a completed Package
+   4 does not block Package 5.
+3. If browser text entry remains blocked by the missing virtual clipboard,
+   leave the session paused and record the blocker rather than using hidden
+   endpoints or accepting a polluted PR.
