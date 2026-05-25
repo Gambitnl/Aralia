@@ -2,9 +2,9 @@
 
 You are working on Aralia Spell Phase 1, Package 9.
 
-Do not start this package unless the Codex foreman has explicitly dispatched it
-after the Package 8 Bless/Bane handoff reaches a PR, completion, blocker, or
-other clear sequential boundary.
+This package is ready to start when the Codex foreman dispatches it through the
+visible Symphony/Jules handoff path. Package 8 has merged, so do not wait on
+the Bless/Bane handoff.
 
 Read first:
 
