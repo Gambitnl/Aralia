@@ -29,7 +29,7 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1 through 6 have been used to exercise the Symphony/Jules path; use
+- Packages 1 through 11 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
 
@@ -114,6 +114,30 @@ the audit, or in the proving-ground tracker with the next proof target.
   replacement handoff.
 - **Verifier**: `node scripts\verify-jules-post-launch-base-drift.mjs` after
   `npm run build` from `conductor/symphony`.
+
+### 6. Active Workflow Gap: Task-Page Promotion Feedback And Duplicate Handoffs
+- **Status**: observed during Package 11 launch; repair still needed.
+- **Observed failure mode**: the standalone task page for Package 11 created
+  Linear `ARA-20`, then the visible `Prepare Handoff` button did not visibly
+  advance, navigate, or show a useful status message. Later dashboard
+  inspection showed the clicks had actually promoted duplicate handoffs:
+  `handoff-1779735447555-z4a0fu` and `handoff-1779735529994-aq60x6`.
+- **Operating rule**: if a task-page boundary button appears not to advance,
+  inspect the dashboard/task JSON before clicking it again. If a duplicate is
+  created, choose exactly one active handoff, record the duplicate as stale, and
+  do not launch both.
+- **Mutation-label issue**: the Package 11 task page displayed `Mutates
+  external systems: No` for Linear issue creation and `Mutates local files: No`
+  for Jules manifest staging. Those labels are too broad for the actual
+  boundary and should be corrected so operators can trust the visible safety
+  summary.
+- **Latest Package 11 proof**: the active path is
+  `handoff-1779735529994-aq60x6`, launched to Jules session
+  `13361122470730968094`. The duplicate `handoff-1779735447555-z4a0fu` should
+  remain unlaunched/stale unless the active path is explicitly abandoned.
+- **Next repair target**: make task-page guarded actions show success/failure
+  receipts and refresh to the live handoff after promotion; prevent repeated
+  draft promotion when a draft already has a promoted handoff.
 
 ---
 
