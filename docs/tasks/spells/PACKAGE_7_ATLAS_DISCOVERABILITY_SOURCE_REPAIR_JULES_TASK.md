@@ -36,6 +36,13 @@ The repair should make the Atlas source of truth available from GitHub, close
 the source/audit mismatch, and leave a repeatable proof path for the next spell
 package.
 
+After the first Jules launch, Jules could not see the ignored local Atlas files
+and proposed recreating the Atlas with empty `BUCKET_META`,
+empty `EXECUTION_BY_BUCKET`, and a dummy archive variable. That plan is not an
+acceptable Package 7 repair. Use
+`PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md` as the durable summary of the ignored
+local Atlas shape that Jules must preserve or honestly reconstruct.
+
 ## Allowed Write Scope
 
 Jules may edit only these files unless the PR explains a narrowly necessary
@@ -49,6 +56,7 @@ addition:
 - `.gitignore`
 - `docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md`
 - `docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md`
+- `docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md`
 - `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
 - `docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
 - `docs/tasks/spells/PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
@@ -74,13 +82,19 @@ into the live canonical-first map. If it is genuinely obsolete, remove it with a
 short comment or tracker note explaining why the canonical-first map is the
 source of truth.
 
+Do not create a quiet-but-empty Atlas. Empty `BUCKET_META`, empty
+`EXECUTION_BY_BUCKET`, dummy archive variables, or audit changes that pass only
+because there are no registered buckets are package failures.
+
 ## Required Implementation
 
 1. Make the Atlas entrypoint and source available in a clean GitHub checkout.
    This may require unignoring and committing a minimal Atlas surface, moving
    the Atlas to an already tracked source location, or replacing the ignored
    local-only dependency with a tracked implementation. Preserve the existing
-   Atlas intent rather than replacing it with a placeholder.
+   Atlas intent rather than replacing it with a placeholder. If the ignored
+   local files are unavailable in Jules, reconstruct the non-vacuous bucket
+   shape described in `PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md`.
 2. Make `node scripts/auditAtlasBuckets.mjs` report no findings, or make the
    audit intentionally ignore explicitly archival Atlas constants with a clear
    rule that cannot hide live bucket drift.
@@ -101,6 +115,8 @@ source of truth.
 - A clean GitHub checkout contains the Atlas entrypoint and the source needed by
   the audit script; the proof must not depend on ignored local files from the
   operator's main checkout.
+- The clean checkout has meaningful Atlas bucket registration; `BUCKET_META`
+  and `EXECUTION_BY_BUCKET` must not be empty.
 - `misc/spell_pipeline_atlas.html` still points at a real source entrypoint.
 - Any Atlas source path named in comments or docs exists, or the text clearly
   says it is historical.
@@ -114,7 +130,7 @@ Run from the repository root:
 
 ```powershell
 node scripts\auditAtlasBuckets.mjs
-git diff --check -- .gitignore src\spell-pipeline-atlas.tsx src\components\DesignPreview\steps\PreviewSpellDataFlow.tsx scripts\auditAtlasBuckets.mjs misc\spell_pipeline_atlas.html misc\dev_hub.html docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md docs\tasks\spells\SPELL_PHASE_1_TASK_TRACKER.md docs\tasks\spells\PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md docs\tasks\spells\PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md
+git diff --check -- .gitignore src\spell-pipeline-atlas.tsx src\components\DesignPreview\steps\PreviewSpellDataFlow.tsx scripts\auditAtlasBuckets.mjs misc\spell_pipeline_atlas.html misc\dev_hub.html docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md docs\tasks\spells\PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md docs\tasks\spells\SPELL_PHASE_1_TASK_TRACKER.md docs\tasks\spells\PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md docs\tasks\spells\PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md
 ```
 
 If the package changes exported TypeScript symbols or shared source boundaries,

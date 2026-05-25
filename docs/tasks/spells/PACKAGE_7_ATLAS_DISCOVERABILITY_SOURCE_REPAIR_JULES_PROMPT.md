@@ -7,6 +7,7 @@ Read first:
 - `AGENTS.md`
 - `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
 - `docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md`
+- `docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md`
 - `docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
 - `docs/tasks/spells/PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
 
@@ -36,6 +37,18 @@ The ignored local copy also reports one low finding:
 [LOW] (orphan): dead EXECUTION constant: CASTING_TIME_EXECUTION (declared but not in EXECUTION_BY_BUCKET)
 ```
 
+Important Package 7 plan gate:
+
+- Do not recreate the Atlas with empty `BUCKET_META`.
+- Do not recreate the Atlas with empty `EXECUTION_BY_BUCKET`.
+- Do not add dummy archive variables just to quiet the audit.
+- Do not make `node scripts\auditAtlasBuckets.mjs` pass by making the Atlas
+  vacuous.
+
+If the original ignored local source is not available in your checkout, use
+`PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md` to reconstruct a minimal but honest
+tracked Atlas with meaningful bucket registration.
+
 Keep the work narrow:
 
 - Make the Atlas entrypoint and source available from tracked GitHub history,
@@ -59,6 +72,7 @@ Allowed write scope:
 - `.gitignore`
 - `docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md`
 - `docs/tasks/spells/PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md`
+- `docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md`
 - `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
 - `docs/tasks/spells/PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
 - `docs/tasks/spells/PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md`
@@ -78,7 +92,7 @@ Verification:
 
 ```powershell
 node scripts\auditAtlasBuckets.mjs
-git diff --check -- .gitignore src\spell-pipeline-atlas.tsx src\components\DesignPreview\steps\PreviewSpellDataFlow.tsx scripts\auditAtlasBuckets.mjs misc\spell_pipeline_atlas.html misc\dev_hub.html docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md docs\tasks\spells\SPELL_PHASE_1_TASK_TRACKER.md docs\tasks\spells\PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md docs\tasks\spells\PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md
+git diff --check -- .gitignore src\spell-pipeline-atlas.tsx src\components\DesignPreview\steps\PreviewSpellDataFlow.tsx scripts\auditAtlasBuckets.mjs misc\spell_pipeline_atlas.html misc\dev_hub.html docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_TASK.md docs\tasks\spells\PACKAGE_7_ATLAS_DISCOVERABILITY_SOURCE_REPAIR_JULES_PROMPT.md docs\tasks\spells\PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md docs\tasks\spells\SPELL_PHASE_1_TASK_TRACKER.md docs\tasks\spells\PACKAGE_3_ATLAS_GATE_CHECKPOINT_RECEIPT.md docs\tasks\spells\PACKAGE_4_ATLAS_GATE_CHECKPOINT_RECEIPT.md
 ```
 
 Return a PR that contains only the bounded Atlas repair and documentation notes.
