@@ -106,6 +106,9 @@ orchestration loop.
   explains why the file is necessary and bounded.
 - Do not keep full decision entries for every repeated wait if a compact
   wait-state table or tracker row can preserve the same operator truth.
+- The next Jules task packet/prompt should make that compact logging rule
+  explicit before launch so the old Package 12 pattern does not repeat inside a
+  fresh isolated Jules clone.
 - Preserve Aralia-facing context in GitHub; keep raw Symphony/Jules runtime
   state, generated manifests, draft ids, click receipts, and local run logs
   external or ignored unless a concise excerpt explains a real package decision.
@@ -116,7 +119,7 @@ orchestration loop.
 |---|---|---|
 | Decision report is too large to navigate | The assumed-approval report is over 4,000 lines and mixes audit entries with trend discovery. | Keep this trends index current when a repeated pattern appears or closes. |
 | Packet shortcuts are hardcoded | Package 11 and Package 12 both needed dashboard source edits before visible draft creation. | Replace hardcoded packet buttons with a small registry or metadata-derived list. |
-| Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. | Add a compact wait-state ledger for repeated refreshes, reserving full decisions for real forks. |
+| Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. | Use compact wait-state rows for repeated refreshes, reserving full decisions for real forks; include that rule in the next Jules packet/prompt before launch. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |

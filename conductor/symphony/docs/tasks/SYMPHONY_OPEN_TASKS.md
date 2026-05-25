@@ -53,6 +53,13 @@ the audit, or in the proving-ground tracker with the next proof target.
   [`SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`](../decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md)
   listing the decision point, options, decision made by the agent, rationale,
   and mutation performed or skipped.
+- Decision logging should stay proportional. Use a full assumed-approval
+  decision only when the foreman chooses between materially different paths,
+  such as approving or rejecting a plan, sending bounded repair feedback,
+  replacing a stale handoff, performing branch-hygiene repair, merging, or
+  expanding scope. Repeated observations that preserve the same state should use
+  a compact wait-state row in the tracker, task receipt, or this queue instead
+  of another full decision entry.
 - If an assumed approval or boundary decision exposes workflow/doc friction,
   the same decision entry should point to the repair proof or the owning gap
   entry so the decision report is not the only durable record.
@@ -92,9 +99,12 @@ the audit, or in the proving-ground tracker with the next proof target.
   current `origin/master`.
 - **Decision logging rule**: if the desired action is to wait because Jules is
   believed to be preparing a repair commit, record that as an explicit
-  `wait_for_jules_repair_commit` decision with the observed PR head, the visible
-  Jules state, and the next recheck condition. Do not let an unstated "wait"
-  become the hidden default.
+  `wait_for_jules_repair_commit` state with the observed PR head, the visible
+  Jules state, and the next recheck condition. The first wait after a new fork
+  may justify a full decision entry; repeated unchanged waits should be compact
+  wait-state rows unless new evidence changes the available choices. Do not let
+  an unstated "wait" become the hidden default, but do not turn every refresh
+  into another full decision.
 - **Repair-head rule**: a new Jules PR head only resolves the wait after the
   foreman compares it with the requested repair. Green checks or a changed
   commit hash are not enough if the head adds unrelated workflow files or leaves
