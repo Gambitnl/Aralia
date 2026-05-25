@@ -3243,6 +3243,14 @@ export class HttpServer {
     const prChecks = prHandoff?.githubPullRequestChecks ?? null;
     const hasPrBlocker = prChecks?.failed ? prChecks.failed > 0 : false;
     const prNextActionCode = prHandoff?.githubPullRequestNextAction?.code ?? null;
+    // Keep the first dashboard viewport in human terms when the PR action model
+    // has a more specific decision than the generic GitHub lane name. The lane
+    // still refreshes the PR; the label tells the operator what that refresh is
+    // trying to prove, such as whether Jules pushed the requested repair commit.
+    const prNextActionLabel = typeof prHandoff?.githubPullRequestNextAction?.label === 'string'
+      ? prHandoff.githubPullRequestNextAction.label
+      : null;
+    const githubPrStageLabel = hasPr && prNextActionLabel ? prNextActionLabel : 'GitHub PR';
     // If marked Jules feedback has already been posted, the PR next-action
     // model owns the current wait state. File risk still matters after Jules
     // pushes a new repair, but until then the main dashboard should match the
@@ -3378,7 +3386,7 @@ export class HttpServer {
       },
       {
         id: 'github_pr',
-        label: 'GitHub PR',
+        label: githubPrStageLabel,
         // A merged PR is no longer the active GitHub-review boundary. Mark it
         // complete so the ladder advances to local-sync proof instead of asking
         // the operator to keep refreshing a PR that already landed.
