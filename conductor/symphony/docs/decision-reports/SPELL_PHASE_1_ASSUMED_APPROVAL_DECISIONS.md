@@ -4942,3 +4942,49 @@ Copy this block for each decision.
 - Next expected proof: Visible Jules page showing a revised plan with chosen
   spell rows, file scope, test plan, and deferred rows; or a visible failure/no
   revision state that justifies a replacement handoff or blocker record.
+
+### Decision 116: Approve Revised Package 12 Higher-Value Plan
+
+- Date/time: 2026-05-26 00:08 +02:00
+- Phase: `package_12_plan_gate`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules revised the Package 12 plan after Codex withheld
+  approval. The revised visible plan selected `hex`, `hunters-mark`, `knock`,
+  `detect-thoughts`, and `flame-arrows`; deferred `animal-messenger`; removed
+  the direct `src/commands/effects/UtilityCommand.ts` edit; and kept the bridge
+  discussion inside allowed `SpellCommandFactory`, `spellAbilityFactory`, spell
+  JSON, focused tests, and tracker/mechanics docs.
+- Options considered:
+  - Reject the revised plan because it still contains uncertainty around the
+    exact bridge shape.
+  - Ask for another revision before any implementation starts.
+  - Approve the revised plan because it fixes the two material blockers:
+    implementation value and direct out-of-scope file editing.
+- Decision made by agent: Approve the revised visible Jules plan.
+- Model routing: Jules owns the implementation. Codex remains foreman for
+  visible monitoring, PR review, branch hygiene, and tracker/doc updates.
+- Rationale/evidence:
+  - The revised plan expands the useful product slice from three spells to a
+    five-spell early-game subset while still excluding broad terrain,
+    light/vision, summon/control, social AI, trap/glyph, combat HUD, levels
+    4-9, Symphony runtime, and GitHub workflow edits.
+  - The revised plan removes the direct `UtilityCommand.ts` edit and keeps
+    runtime proof inside files already listed by the Package 12 expected write
+    scope.
+  - The verification plan names `npm run validate:spells`,
+    `node scripts\auditAtlasBuckets.mjs`, and focused Vitest for the new
+    conditional-ending proof.
+- Mutation performed or skipped: Clicked the visible Jules `Approve plan?`
+  button. Skipped local implementation, hidden endpoint use, and replacement
+  handoff. Updated the tracker and open-task queue to record that Jules is now
+  working.
+- Scope guardrails: Approval does not pre-approve future PR merge. The PR must
+  still be reviewed for file scope, branch hygiene, correct conditional-ending
+  semantics, tests, Atlas/gate proof, and absence of raw `.jules` or Symphony
+  runtime artifacts.
+- Result: Jules session `3991627368289943007` shows `Plan approved` and
+  `Working`.
+- Next expected proof: Visible dashboard/Jules refresh showing a PR URL, a new
+  Jules question, or a failure state. If a PR appears, review it against the
+  revised plan and Package 12 acceptance criteria before merge.

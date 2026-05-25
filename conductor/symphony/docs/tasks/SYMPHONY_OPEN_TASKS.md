@@ -246,7 +246,12 @@ the audit, or in the proving-ground tracker with the next proof target.
   classify all cantrip/level 1-3 `conditional_ending` candidates that fit
   existing schema/test patterns, implement the largest coherent safe subset,
   justify any unavoidable file outside the original write scope, and list
-  deferred rows with reasons.
+  deferred rows with reasons. Jules revised the plan to cover `hex`,
+  `hunters-mark`, `knock`, `detect-thoughts`, and `flame-arrows`, removed the
+  direct `UtilityCommand.ts` edit, kept the runtime bridge inside allowed
+  `SpellCommandFactory` / `spellAbilityFactory` / focused-test territory, and
+  deferred `animal-messenger`. Codex approved the revised plan visibly, and
+  Jules is now working.
 - **Future repair target**: update package templates so they include a minimum
   package-value check, an explicit candidate-classification step, and a rule
   that plans naming files outside expected scope must justify why the file is
