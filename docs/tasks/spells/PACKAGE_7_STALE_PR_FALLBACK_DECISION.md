@@ -1,7 +1,7 @@
 # Package 7 - Stale PR Fallback Decision
 
-Status: decision packet for the Package 7 foreman after PR #1009 stopped
-moving after repair feedback.
+Status: Option C selected; PR #1009 was filed and closed as stale/unaccepted
+after repair feedback and an explicit `@jules` nudge did not produce a repair.
 
 ## Why This Exists
 
@@ -9,9 +9,10 @@ Package 7 is still the active Spell Phase 1 implementation boundary. It repairs
 the Spell Pipeline Atlas source/discoverability gap tracked as `G48`.
 
 Jules opened PR #1009 from replacement session `15919037371248424671`, but the
-PR is not ready to merge. Codex posted bounded repair feedback, then an explicit
-`@jules` nudge. As of the latest dashboard/GitHub check, the PR still has the
-same head commit:
+PR was not ready to merge. Codex posted bounded repair feedback, then an
+explicit `@jules` nudge. Later visible Jules inspection reported that Jules was
+unable to complete the task, GitHub reported the PR as conflicting, and the PR
+still had the same head commit:
 
 ```text
 9849a49c19c01a30b415e0ec49b78bb5f5ed15f3
@@ -22,14 +23,15 @@ underlying PR did not change after the repair request. That dashboard label is
 not merge readiness.
 
 This file records the fallback boundary so a future agent does not silently
-choose between waiting, closing the PR, starting a replacement Jules attempt, or
-repairing locally without a clear decision.
+reopen the stale PR, treat dashboard routing as merge readiness, or start the
+next replacement path without understanding why PR #1009 was closed.
 
 ## Current Evidence
 
 - Live replacement handoff: `handoff-1779674517015-2ix4kq`.
 - Live replacement Jules session: `15919037371248424671`.
-- Live GitHub PR: <https://github.com/Gambitnl/Aralia/pull/1009>.
+- GitHub PR: <https://github.com/Gambitnl/Aralia/pull/1009> was filed and
+  closed as stale/unaccepted.
 - PR #1009 still contains Package 7 blockers recorded in `G72`:
   - process/helper artifacts: `README.jules-report.md`, `update_gitignore.cjs`;
   - `G48` marked resolved too early;
@@ -38,9 +40,23 @@ repairing locally without a clear decision.
   - entrypoint shape not restored exactly from
     `PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md`;
   - `PreviewSpellDataFlow` is not yet a useful discoverability surface.
-- Core GitHub checks were green; Gemini review failed from daily quota
+- Core GitHub checks were green; GitHub reported the PR as `CONFLICTING`, and
+  Gemini review failed from daily quota
   exhaustion. That quota failure is workflow noise, not a Package 7 code
   finding.
+
+## Decision Taken
+
+Codex selected Option C on 2026-05-25:
+
+- commented on PR #1009 with the stale/unaccepted filing note;
+- closed PR #1009 without deleting the review history;
+- updated `SPELL_PHASE_1_TASK_TRACKER.md` so Package 7 and `G48` remain active
+  instead of pretending that the placeholder Atlas resolved the gap.
+
+The next valid movement is Option D: start a replacement Package 7 repair path
+from current `master`, either as a tighter Jules handoff or as a bounded local
+fallback if Jules is judged to have had enough repair opportunity.
 
 ## Valid Next Decisions
 
