@@ -5626,8 +5626,6 @@ export class TaskIntakeStore {
     if (!divergenceResult.ok) {
       blockers.push(`Could not compare ${this.baseBranch} with ${remoteBranch}.`);
       details.push(divergenceResult.message);
-    } else if ((ahead ?? 0) > 0) {
-      blockers.push(`${this.baseBranch} has ${ahead} local commit(s) that are not on ${remoteBranch}.`);
     }
 
     const localCommitResult = await this.git(['rev-parse', this.baseBranch]);
@@ -5659,11 +5657,13 @@ export class TaskIntakeStore {
     const currentBranchCanStandInForBase = currentBranch !== this.baseBranch
       && dirtyFiles === 0
       && untrackedFiles === 0
-      && (ahead ?? 0) === 0
-      && (behind ?? 0) === 0
       && headCommit !== null
       && remoteCommit !== null
       && headCommit === remoteCommit;
+
+    if (!currentBranchCanStandInForBase && (ahead ?? 0) > 0) {
+      blockers.push(`${this.baseBranch} has ${ahead} local commit(s) that are not on ${remoteBranch}.`);
+    }
 
     if (currentBranchResult.ok && currentBranch !== this.baseBranch && !currentBranchCanStandInForBase) {
       blockers.push(`Current branch is ${currentBranch || 'detached'}, not ${this.baseBranch}.`);
@@ -5675,8 +5675,9 @@ export class TaskIntakeStore {
       );
     }
 
-    const safeToPull = blockers.length === 0 && (behind ?? 0) > 0;
-    const upToDate = blockers.length === 0 && (behind ?? 0) === 0;
+    const effectiveBehind = currentBranchCanStandInForBase ? 0 : behind;
+    const safeToPull = blockers.length === 0 && (effectiveBehind ?? 0) > 0;
+    const upToDate = blockers.length === 0 && (effectiveBehind ?? 0) === 0;
     const remediation = this.buildLocalSyncRemediation({
       prMerged,
       currentBranch,
@@ -5684,7 +5685,7 @@ export class TaskIntakeStore {
       dirtyFiles,
       untrackedFiles,
       ahead,
-      behind,
+      behind: effectiveBehind,
       pullCommand,
     });
 

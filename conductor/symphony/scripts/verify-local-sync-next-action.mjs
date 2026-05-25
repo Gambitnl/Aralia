@@ -90,6 +90,7 @@ const detachedMonitorAction = buildLocalSyncNextAction({
   currentBranch: null,
   currentBranchCanStandInForBase: true,
   upToDate: true,
+  behind: 7,
 });
 
 assert.equal(detachedMonitorAction.code, 'local_master_current');
