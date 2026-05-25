@@ -4660,3 +4660,42 @@ Copy this block for each decision.
 - Result: Package 11 remains waiting on a Jules repair commit.
 - Next expected proof: a new PR #1072 head or a later visible Jules state that
   justifies another explicit decision gate.
+
+### Decision 110: Request Package 11 Branch-Hygiene Repair After Tests Pass
+
+- Date/time: 2026-05-25 22:14 +02:00
+- Phase: `package_11_pr_repair_review`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules pushed PR #1072 head
+  `19738e8cf512c6058dffa196de318d8b65bdd15d` after the repair request. The
+  test/type issues were fixed, but the branch still carried stale current-master
+  documentation rewinds and a Package 11 worklog addition.
+- Options considered:
+  - Accept the PR because the local verification gates now pass.
+  - Take over the branch locally immediately.
+  - Send a second bounded repair request limited to current-master branch
+    hygiene and worklog removal.
+- Decision made by agent: Keep Jules as repair owner and post a second bounded
+  repair request at
+  `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536944637`.
+- Model routing: Jules remains responsible for branch cleanup on its PR. Codex
+  remains foreman reviewer and evidence recorder.
+- Rationale/evidence:
+  - Local foreman verification passed `npm run validate:spells`,
+    `node scripts\auditAtlasBuckets.mjs`, focused Vitest for the two new test
+    files, and `npx tsc --noEmit --pretty false`.
+  - Against current `origin/master`, PR #1072 still adds a Package 11 note to
+    `.jules/worklogs/worklog_scribe.md`.
+  - Against current `origin/master`, PR #1072 rewinds Package 11 Symphony and
+    tracker records from PR #1074, including Decisions 104-109 and the explicit
+    wait-state guidance.
+- Mutation performed or skipped: Posted a second PR repair comment. Skipped
+  merge and skipped local branch-hygiene takeover for this repair loop.
+- Scope guardrails: The requested change is only branch hygiene: preserve
+  current `master`, remove the worklog addition, and keep the useful
+  now-verifying Package 11 product/test slice.
+- Result: Package 11 remains waiting on a clean PR #1072 branch.
+- Next expected proof: a new PR #1072 head with no `.jules` worklog addition, no
+  current-master doc rewinds, and the same passing Package 11 verification
+  gates.
