@@ -78,7 +78,12 @@
         "operator": "not_applicable",
         "value": "not_applicable"
       },
-      "selfRelation": "not_applicable"
+      "selfRelation": "not_applicable",
+      "placementEligibility": {
+        "unoccupied": "required",
+        "surface": "not_applicable",
+        "destination": "not_applicable"
+      }
     }
   },
   "effects": [
@@ -126,7 +131,12 @@
             "operator": "not_applicable",
             "value": "not_applicable"
           },
-          "selfRelation": "not_applicable"
+          "selfRelation": "not_applicable",
+          "placementEligibility": {
+            "unoccupied": "required",
+            "surface": "not_applicable",
+            "destination": "not_applicable"
+          }
         },
         "requiresStatus": [],
         "saveModifiers": [],

@@ -55,6 +55,20 @@ export class TargetValidationUtils {
       if (!hasReqCondition) return false
     }
 
+    // Special Identity Filters
+    if (filter.specialIdentity) {
+      if (filter.specialIdentity.corpseOrRemains === 'required') {
+        // Assume living characters are not corpses (until we have an explicit Dead condition)
+        if (target.currentHP > 0) {
+          return false
+        }
+      }
+
+      // Notes: reactionTriggeringCreature requires context from the CombatLog/EventBus which
+      // the base CombatCharacter parameter doesn't currently provide. For now, it delegates
+      // validation to the caller or assumes valid if reached here.
+    }
+
     return true
   }
 }

@@ -119,12 +119,12 @@
           "isNativeToPlane": false,
           "willing": "not_applicable",
           "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
+            "wornOrCarried": "excluded",
+            "magicalStatus": "any",
             "fixedToSurface": "not_applicable",
             "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
+            "maxWeightPounds": 5,
+            "maxWeightScaling": "+5 pounds per slot above 1"
           },
           "communicationPrerequisites": {
             "canHearCaster": "not_applicable",
@@ -181,12 +181,12 @@
           "isNativeToPlane": false,
           "willing": "not_applicable",
           "objectEligibility": {
-            "wornOrCarried": "not_applicable",
-            "magicalStatus": "not_applicable",
+            "wornOrCarried": "excluded",
+            "magicalStatus": "any",
             "fixedToSurface": "not_applicable",
             "maxSize": "not_applicable",
-            "maxWeightPounds": "not_applicable",
-            "maxWeightScaling": "not_applicable"
+            "maxWeightPounds": 5,
+            "maxWeightScaling": "+5 pounds per slot above 1"
           },
           "communicationPrerequisites": {
             "canHearCaster": "not_applicable",
