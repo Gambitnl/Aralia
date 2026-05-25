@@ -4789,3 +4789,45 @@ Copy this block for each decision.
 - Next expected proof: tracker/open-task docs showing Package 11 closed and
   pointing future foremen to the branch-hygiene pattern instead of treating this
   as a blocked Jules state.
+
+### Decision 113: Select Package 12 Conditional-Ending Slice
+
+- Date/time: 2026-05-25 23:00 +02:00
+- Phase: `package_12_selection`
+- Active slice: next Spell Phase 1 mechanics bucket after Package 11.
+- Decision point: Package 11 merged and its closeout docs landed through PR
+  #1077. The execution plan still pointed to Package 11, so the next package
+  boundary needed to be selected from current tracker and mechanics evidence.
+- Options considered:
+  - Start broad terrain, vision/light, summon/control, or combat HUD work based
+    on visible adjacent gaps.
+  - Keep the goal in a stale Package 11 waiting state.
+  - Follow the mechanics-bucket priority and prepare Package 12 for
+    `conditional_ending`.
+- Decision made by agent: Prepare Package 12 as a Jules-first
+  `conditional_ending` slice.
+- Model routing: Codex foreman prepares the task packet, prompt, tracker, and
+  execution-plan update. Jules should own the implementation-heavy data/runtime
+  work after visible dashboard dispatch.
+- Rationale/evidence:
+  - The execution plan priority lists `conditional_ending` after the completed
+    representative `choice_or_mode`, `attack_or_save_modifier`,
+    `target_filter_or_eligibility`, and `status_or_state_change` slices.
+  - `docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.json`
+    reports 54 open `conditional_ending` findings across 53 spells.
+  - Early-game candidate rows include `hex`, `hunters-mark`,
+    `animal-messenger`, `detect-thoughts`, and `knock`.
+- Mutation performed or skipped: Created
+  `PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md` and
+  `PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md`; refreshed the execution plan
+  and tracker to make Package 12 the active next boundary. Skipped visible
+  dashboard dispatch until the packet lands on `master`.
+- Scope guardrails: Package 12 must stay inside representative cantrip/level
+  1-3 conditional-ending mechanics. Broad terrain, vision/light,
+  summon/control, social AI arbitration, trap/glyph authoring, combat HUD
+  rider-icon UI, levels 4-9, and Symphony runtime/source churn are out of scope.
+- Result: Package 12 handoff material is prepared for GitHub sync and later
+  visible Symphony/Jules dispatch.
+- Next expected proof: PR merge for the Package 12 task/prompt/tracker refresh,
+  then visible dashboard draft/Linear/handoff/Jules launch from clean
+  `origin/master`.
