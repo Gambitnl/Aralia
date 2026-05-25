@@ -5652,11 +5652,11 @@ export class TaskIntakeStore {
     }
 
     // Isolated Symphony worktrees often cannot check out `master` because the
-    // user's main repo already owns that branch. A clean monitor branch at the
-    // exact GitHub base commit is still a valid "nothing to pull" proof, while
-    // any real fast-forward need or local difference remains blocked below.
-    const currentBranchCanStandInForBase = currentBranch !== null
-      && currentBranch !== this.baseBranch
+    // user's main repo already owns that branch. A clean monitor branch or
+    // detached HEAD at the exact GitHub base commit is still a valid "nothing to
+    // pull" proof, while any real fast-forward need or local difference remains
+    // blocked below.
+    const currentBranchCanStandInForBase = currentBranch !== this.baseBranch
       && dirtyFiles === 0
       && untrackedFiles === 0
       && (ahead ?? 0) === 0
@@ -5671,7 +5671,7 @@ export class TaskIntakeStore {
 
     if (currentBranchCanStandInForBase) {
       details.push(
-        `Current branch ${currentBranch} is a clean worktree branch at ${remoteBranch}; no local sync command is needed in this worktree.`,
+        `Current checkout ${currentBranch || 'detached HEAD'} is clean and at ${remoteBranch}; no local sync command is needed in this worktree.`,
       );
     }
 
