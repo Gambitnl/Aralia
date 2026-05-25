@@ -165,7 +165,15 @@
         {
           "name": "Grovel",
           "effect": "grovel",
-          "details": "Target has the Prone condition and then ends its turn."
+          "details": "Target has the Prone condition and then ends its turn.",
+          "statusCondition": {
+            "name": "Prone",
+            "duration": {
+              "type": "rounds",
+              "value": 1
+            },
+            "level": 0
+          }
         },
         {
           "name": "Halt",

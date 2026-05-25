@@ -945,6 +945,10 @@ export interface ControlOption {
   name: string;
   effect: "approach" | "drop" | "flee" | "grovel" | "halt" | string;
   details?: string;
+  /**
+   * Optional status condition applied by this specific option (e.g., Grovel applying Prone).
+   */
+  statusCondition?: StatusCondition;
 }
 
 /** Captures taunt/leash mechanics such as Compelled Duel. */

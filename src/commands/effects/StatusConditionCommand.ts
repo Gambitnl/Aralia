@@ -8,11 +8,46 @@ import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 
 export class StatusConditionCommand extends BaseEffectCommand {
   execute(state: CombatState): CombatState {
-    if (!isStatusConditionEffect(this.effect)) {
-      return state;
+    let currentState = state;
+
+    // Handle condition removal if the effect defines it.
+    if (this.effect.conditionRemoval && this.effect.conditionRemoval.length > 0) {
+      for (const target of this.getTargets(currentState)) {
+        let removedConditions: string[] = [];
+        const newConditions = (target.conditions || []).filter(c => {
+          if (this.effect.conditionRemoval!.includes(c.name as ConditionName)) {
+            removedConditions.push(c.name);
+            return false;
+          }
+          return true;
+        });
+
+        const newStatusEffects = (target.statusEffects || []).filter(e => {
+          return !this.effect.conditionRemoval!.includes(e.name as ConditionName);
+        });
+
+        if (removedConditions.length > 0) {
+          currentState = this.updateCharacter(currentState, target.id, {
+            conditions: newConditions,
+            statusEffects: newStatusEffects
+          });
+
+          for (const conditionName of removedConditions) {
+            currentState = this.addLogEntry(currentState, {
+              type: 'status',
+              message: `${target.name} is no longer ${conditionName}`,
+              characterId: target.id,
+              targetIds: [target.id]
+            });
+          }
+        }
+      }
     }
 
-    let currentState = state;
+    if (!isStatusConditionEffect(this.effect) || this.effect.statusCondition.duration.value === 0) {
+      return currentState;
+    }
+
 
     for (const target of this.getTargets(currentState)) {
       // 1. Check Condition Immunity
