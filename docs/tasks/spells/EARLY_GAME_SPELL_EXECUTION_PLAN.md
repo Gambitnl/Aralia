@@ -14,13 +14,14 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Packages 1 through 11 have merged history and receipts,
+Current live boundary: Packages 1 through 12 have merged history and receipts,
 including the Package 9 higher-level caster fixture coverage, the `G93` Jules
-post-launch update-boundary repair, Package 10 target-filter/eligibility, and
-Package 11 status/state-change slice. The active product boundary is Package 12
-`conditional_ending`, prepared from the tracker-defined mechanics priority after
-Package 11. Treat the task tracker below as the spell-project source of truth
-while the next Jules handoff is prepared.
+post-launch update-boundary repair, Package 10 target-filter/eligibility,
+Package 11 status/state-change, and Package 12 conditional-ending slices. The
+active product boundary is Package 13 `terrain_or_surface`, prepared from the
+tracker-defined mechanics priority after Package 12. Treat the task tracker
+below as the spell-project source of truth while the next Jules handoff is
+prepared.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -848,19 +849,21 @@ Outputs:
 
 ## Next Action
 
-Packages 9, 10, and 11 plus the `G93` post-launch Jules update-boundary repair
-are complete on `master`. The older post-Package 6 consolidation boundary,
-`G48`, `G49`, and Package 10/11 candidate notes are historical.
+Packages 9, 10, 11, and 12 plus the `G93` post-launch Jules update-boundary
+repair are complete on `master`. The older post-Package 6 consolidation
+boundary, `G48`, `G49`, and Package 10/11/12 candidate notes are historical.
 
-Next slice: Package 12, `conditional_ending`, because the plan priority places
+Next slice: Package 13, `terrain_or_surface`, because the plan priority places
 it after completed representative `choice_or_mode`, `attack_or_save_modifier`,
-`target_filter_or_eligibility`, and `status_or_state_change` mechanics slices.
+`target_filter_or_eligibility`, `status_or_state_change`, and
+`conditional_ending` mechanics slices.
 
 Immediate action:
 
-1. Land the Package 12 task, prompt, and tracker refresh.
+1. Land the Package 13 task, prompt, and tracker refresh.
 2. Start visible Symphony dashboard dispatch from clean `origin/master`.
-3. Require Jules to keep implementation scoped to representative cantrip/level
-   1-3 conditional-ending mechanics and focused tests.
+3. Require Jules to classify all named early-game terrain/surface open rows,
+   then implement the largest coherent safe subset covered by existing
+   terrain, movement, targeting, status, and focused test patterns.
 4. After Jules returns, update Atlas/gate evidence and tracker residuals before
    selecting the next bucket.
