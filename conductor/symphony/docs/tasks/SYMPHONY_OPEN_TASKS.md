@@ -95,6 +95,10 @@ the audit, or in the proving-ground tracker with the next proof target.
   `wait_for_jules_repair_commit` decision with the observed PR head, the visible
   Jules state, and the next recheck condition. Do not let an unstated "wait"
   become the hidden default.
+- **Repair-head rule**: a new Jules PR head only resolves the wait after the
+  foreman compares it with the requested repair. Green checks or a changed
+  commit hash are not enough if the head adds unrelated workflow files or leaves
+  the requested package acceptance issue unresolved.
 - **Implemented behavior**: Symphony now keeps a post-launch base-drift packet on
   launched Jules handoffs when current `origin/master` moves after the recorded
   launch base. The dashboard warning says that the running Jules clone will not

@@ -178,6 +178,12 @@ name the valid choice, such as `Wait for Jules repair commit`,
 has updated the running Jules clone unless the receipt proves one of those
 channels happened.
 
+A new Jules PR head resolves a wait only after the foreman compares the new
+diff with the requested repair. Passing checks or a changed commit hash is not
+enough. If the new head addresses unrelated files, adds out-of-scope workflow
+changes, or leaves the requested acceptance repair undone, the task remains in
+`Wait for Jules repair commit` with a fresh bounded feedback receipt.
+
 ### Task-Centered Dashboard
 
 The intended operator experience is task-centered. The dashboard should let the
@@ -520,6 +526,10 @@ PRs into a pointer to the Symphony audit/open-task docs.
    Symphony should surface an operator-run `gh pr comment ... --body-file ...`
    feedback command instead of auto-commenting or silently switching to local
    implementation.
+6a. After a bounded `[Jules feedback]` request, Symphony should not treat any
+   new commit as a repaired state by itself. It should show the requested repair
+   summary, the observed PR head, and the changed-file risk, then require
+   foreman review before moving from wait/review to merge readiness.
 7. Other review agents can also leave PR comments. Symphony must classify only
    explicitly marked `[Jules feedback]` comments as Jules course correction;
    other PR comments and review comments remain external review context.
