@@ -250,8 +250,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   `hunters-mark`, `knock`, `detect-thoughts`, and `flame-arrows`, removed the
   direct `UtilityCommand.ts` edit, kept the runtime bridge inside allowed
   `SpellCommandFactory` / `spellAbilityFactory` / focused-test territory, and
-  deferred `animal-messenger`. Codex approved the revised plan visibly, and
-  Jules is now working.
+  deferred `animal-messenger`. Codex approved the revised plan visibly. Jules
+  then asked whether the revised plan met expectations, so Codex used an
+  explicit visible Jules message as the post-launch update channel and told
+  Jules to proceed exactly within the approved five-spell scope, with no
+  `UtilityCommand.ts` edit. The visible Jules page now says `Jules is working`.
 - **Future repair target**: update package templates so they include a minimum
   package-value check, an explicit candidate-classification step, and a rule
   that plans naming files outside expected scope must justify why the file is
