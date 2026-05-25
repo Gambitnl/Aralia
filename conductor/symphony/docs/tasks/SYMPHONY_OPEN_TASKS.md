@@ -263,7 +263,12 @@ the audit, or in the proving-ground tracker with the next proof target.
   decision is monitored wait rather than stale-session replacement or local
   takeover. The next valid proof is a PR/branch, exact Jules failure report,
   new Jules question, or stale-session decision after enough unchanged
-  post-nudge evidence.
+  post-nudge evidence. Jules then opened PR #1084, proving the monitored wait
+  was useful, but the PR is `DIRTY` against current `master`, rewinds tracker
+  truth, marks P12 closed before acceptance, and widens
+  `SpellCommandFactory.createCommand` from private to public without a clear
+  production need. Codex posted bounded repair feedback at
+  `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537781802`.
 - **Future repair target**: update package templates so they include a minimum
   package-value check, an explicit candidate-classification step, and a rule
   that plans naming files outside expected scope must justify why the file is
