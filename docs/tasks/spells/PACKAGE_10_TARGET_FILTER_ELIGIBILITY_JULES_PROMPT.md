@@ -14,6 +14,8 @@ Read first:
 - `src/types/spells.ts`
 - `src/commands/factory/SpellCommandFactory.ts`
 - `src/utils/character/spellAbilityFactory.ts`
+- `src/systems/spells/validation/targetingSchemas.ts`
+- `src/systems/spells/targeting/TargetValidationUtils.ts`
 
 Goal: make a bounded representative subset of early-game
 `target_filter_or_eligibility` rows mechanically visible and testable instead of
@@ -25,6 +27,9 @@ Expected behavior:
   one special target-identity row from cantrips/levels 1-3, unless current code
   evidence proves one of those families is already represented.
 - Add the smallest reusable data/runtime bridge needed for those rows.
+- You may use `src/systems/spells/validation/targetingSchemas.ts` and
+  `src/systems/spells/targeting/TargetValidationUtils.ts` when they are the
+  existing narrow bridge needed to expose the selected eligibility facts.
 - Preserve existing broad target categories where they are still useful.
 - Add focused tests proving the selected spells expose the intended eligibility
   facts through the runtime/data path.
@@ -47,6 +52,10 @@ Keep the package bounded. Do not edit Symphony files, `.jules` or `.symphony`
 runtime state, GitHub workflows, premade roster semantics, character creator UI,
 spellbook UI, levels 4-9, broad AI arbitration policy, broad terrain/object
 state systems, or generated report timestamps.
+
+Replacement note: Jules session `3916044383011290995` completed without a PR
+after the first plan gate. Start from current `origin/master`; do not continue
+from that stale session's unfinished plan.
 
 Expected output:
 

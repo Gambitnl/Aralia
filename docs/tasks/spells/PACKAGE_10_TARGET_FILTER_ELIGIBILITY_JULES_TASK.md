@@ -82,6 +82,8 @@ Read these before editing:
 - `src/types/spells.ts`
 - `src/commands/factory/SpellCommandFactory.ts`
 - `src/utils/character/spellAbilityFactory.ts`
+- `src/systems/spells/validation/targetingSchemas.ts`
+- `src/systems/spells/targeting/TargetValidationUtils.ts`
 - nearest existing targeting, ability, combat, and spell-validation tests
 
 Current evidence to preserve:
@@ -116,6 +118,10 @@ Jules may edit:
   represent reusable target/placement eligibility
 - spell factory, ability factory, target resolution, or combat helpers only
   where they are the narrow runtime bridge for the selected rows
+- `src/systems/spells/validation/targetingSchemas.ts` and
+  `src/systems/spells/targeting/TargetValidationUtils.ts` only if the selected
+  rows need those existing targeting surfaces to consume or expose the new
+  eligibility facts
 - focused tests under the nearest existing `__tests__` directories
 - package-specific completion notes in this file or the living tracker
 
@@ -136,6 +142,9 @@ Jules should not edit:
 
 ## Required Work
 
+0. Treat the first Package 10 Jules session `3916044383011290995` as
+   stale/no-PR output. Do not continue from that session's unfinished plan; use
+   current `origin/master` and this clarified packet instead.
 1. Reconfirm the current target-filter bucket rows and selected spell JSON files
    before editing.
 2. Choose a bounded representative subset from the level 1-3 candidate rows.
@@ -146,6 +155,10 @@ Jules should not edit:
    Preserve existing broad target categories where they remain useful.
 4. Make the runtime bridge consume or expose that data enough for focused tests
    and future UI/combat targeting to use it honestly.
+   - If the nearest bridge is `targetingSchemas.ts` or
+     `TargetValidationUtils.ts`, keep the edit limited to eligibility facts for
+     the selected rows and explain why that file was necessary in the final
+     report.
 5. Update the selected spell JSON files with explicit eligibility data.
 6. Add focused tests proving that the selected rows carry the intended
    eligibility facts through the data/runtime path.
