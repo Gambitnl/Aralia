@@ -91,6 +91,43 @@ const PACKAGE_10_TARGET_FILTER_DRAFT = {
     'npx vitest run <focused test file> --reporter=verbose',
   ].join('\n'),
 };
+const PACKAGE_11_STATUS_STATE_DRAFT = {
+  title: 'Spell Phase 1 Package 11 status and state changes',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_TASK.md and docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make a representative cantrip/level 1-3 subset of status and state-change rules mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: choose at least one direct status-application row and one option-specific status payload row. Include one condition-removal or staged-status row if current code evidence shows it can be represented without broadening the package. Reuse existing statusCondition, repeatSave, breakTriggers, conditionRemoval, and controlOptions structures where possible before adding new types.',
+    '',
+    'Candidate rows include command Grovel applying Prone, ray-of-sickness Poisoned, sleep staged Incapacitated/Unconscious, tashas-hideous-laughter Prone/Incapacitated, blindness-deafness Blinded/Deafened, lesser-restoration or protection-from-poison condition removal, pyrotechnics Blinded, and web Restrained.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, levels 4-9, broad AI arbitration policy, broad summon/control, terrain, light/vision, conditional-ending systems, combat rider-icon UI, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/status_or_state_change.md',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/types/spellStatusMetadata.ts',
+    'src/commands/effects/StatusConditionCommand.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/utils/character/spellAbilityFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+  ].join('\n'),
+};
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 let taskIntakeInteractionHoldUntil = 0;
 
@@ -177,6 +214,10 @@ taskIntakeRoot?.addEventListener('click', async event => {
 
   if (action === 'create-package10-target-filter-draft') {
     await createPackage10TargetFilterDraft(button);
+  }
+
+  if (action === 'create-package11-status-state-draft') {
+    await createPackage11StatusStateDraft(button);
   }
 
   if (action === 'record-operator-preferences') {
@@ -689,6 +730,25 @@ async function createPackage10TargetFilterDraft(button) {
     setStatus('Created Package 10 task draft from the visible packet button.');
   } catch (err) {
     setStatus(`Package 10 packet draft failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function createPackage11StatusStateDraft(button) {
+  // Package shortcuts are intentionally visible controls, not hidden backend
+  // calls. They let the operator create a long Jules draft from a committed
+  // packet when the browser cannot reliably type into the large form fields.
+  button.disabled = true;
+  setStatus('Creating Package 11 Jules task draft from the committed packet.');
+
+  try {
+    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_11_STATUS_STATE_DRAFT);
+    renderTaskIntake(snapshot);
+    setStatus('Created Package 11 task draft from the visible packet button.');
+  } catch (err) {
+    setStatus(`Package 11 packet draft failed: ${err.message}`);
     await refreshTaskIntake();
   } finally {
     button.disabled = false;
@@ -1450,6 +1510,7 @@ function renderTaskIntake(snapshot) {
         <p class="usage-summary">Create known Jules drafts from committed task packets when text entry is blocked by browser tooling.</p>
         <button type="button" data-task-action="create-package6-choice-mode-draft">Create Package 6 Draft</button>
         <button type="button" data-task-action="create-package10-target-filter-draft">Create Package 10 Draft</button>
+        <button type="button" data-task-action="create-package11-status-state-draft">Create Package 11 Draft</button>
       </section>
 
       <form id="task-draft-form" class="task-form">
