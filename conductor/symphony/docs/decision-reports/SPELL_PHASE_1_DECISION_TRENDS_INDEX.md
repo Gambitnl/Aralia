@@ -41,7 +41,7 @@ plan approval, PR review, repair, merge, and tracker closeout.
 | Dashboard affordance | 26-37, 84-85, 89-90, 114 | A visible operator action is missing, stale, or misleading. | Repair the visible path or record the blocker; avoid hidden endpoint shortcuts during the proving-ground. |
 | Scope classification | 31-32, 38, 54, 86, 108, 115 | A plan or PR names files or behavior outside the declared slice. | Withhold approval or request bounded repair unless the extra file is justified and still package-local. |
 | Jules wait state | 52, 58-60, 93-96, 98-103, 109-111 | Jules is queued, working, processing feedback, or has not pushed a claimed repair. | State what is being waited for: new PR, new head commit, plan revision, visible failure, or explicit blocker. |
-| Branch hygiene | 77-78, 97-112 | Jules produces useful work on a stale or noisy branch. | Prefer bounded Jules repair first; use foreman branch-hygiene repair only when product work is verified and the repair only preserves current base and removes noise. |
+| Branch hygiene | 77-78, 97-112, 120-122 | Jules produces useful work on a stale or noisy branch. | Prefer bounded Jules repair first; use foreman branch-hygiene repair only when product work is verified and the repair only preserves current base and removes noise. |
 | Package selection | 2-4, 44, 81, 87, 113 | The next slice is chosen from tracker and mechanics evidence. | Select from the living tracker and execution plan; do not encode temporary package state into the goal. |
 | Package value | 113-115 | A package may be safe but too small for the orchestration cost. | Prefer larger coherent batches when rows are repetitive, testable, and covered by existing schema/test patterns. |
 
@@ -62,7 +62,7 @@ Use this package-sizing bias:
 | Tiny docs repairs after a package state change | Codex | Do locally; do not pay a Jules handoff cycle. |
 | Broad mechanics with unclear engine shape | Codex scoping first, Jules later | Write a better packet before implementation. |
 
-Package 12 is the current example. Jules' first plan proposed a small
+Package 12 is the latest completed example. Jules' first plan proposed a small
 `hex`/`hunters-mark`/`knock` slice and named `UtilityCommand.ts` outside the
 expected write scope. Codex withheld approval and asked for a higher-value safe
 conditional-ending batch with explicit file-scope justification. Jules revised
@@ -84,7 +84,16 @@ rewound tracker truth, marked P12 closed before acceptance, and widened a
 private factory helper to public without a clear production need. When the
 first repair comment showed shell-escaped text damage, Codex posted a clean
 explicit `@jules` restatement instead of assuming Jules would infer the damaged
-parts or taking over locally.
+parts or taking over locally. Jules then pushed a partial repair, but the PR
+still carried stale docs/process noise and `fix_conflict.sh`. Codex performed a
+bounded foreman branch-hygiene repair from current `origin/master`, preserving
+only the accepted product/test files, keeping `createCommand` private, typing
+`CommandContext.conditionalEndings` as `ConditionalEnding[]`, and force-pushing
+the clean head with lease to PR #1084. The PR merged after local verification
+and green GitHub checks. The pattern is: wait and repair through Jules first;
+when a useful implementation remains trapped in branch-noise churn, a tightly
+scoped foreman branch-hygiene repair is higher-value than another tiny
+orchestration loop.
 
 ## 4. Active Operating Rules
 
@@ -113,4 +122,5 @@ parts or taking over locally.
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |
 | PR appears after wait but is stale/noisy | Package 12 PR #1084 appeared after the monitored wait, but was `DIRTY` and rewound tracker closeout state. | Use bounded Jules PR feedback first when product work is useful but branch hygiene/tracker truth/API scope need repair. |
 | Repair feedback can be damaged by shell quoting | The first Package 12 PR #1084 repair comment contained malformed escaped text in a few command/file references. | If feedback text is damaged, post one clean explicit `@jules` restatement rather than relying on inference. |
+| Useful Jules work can outlive repeated branch noise | Package 11 and Package 12 both reached useful product/test slices while still carrying stale docs, helper artifacts, or current-master drift. | After at least one clear Jules repair request, bounded foreman branch-hygiene repair is valid when it starts from current `origin/master`, preserves only accepted product/test files, and reruns focused proof before merge. |
 | Mutation labels understate boundaries | Task pages have shown Linear creation and manifest staging as non-mutating. | Correct task-page safety labels so operators can trust the visible boundary summary. |

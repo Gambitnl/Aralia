@@ -5203,3 +5203,73 @@ Copy this block for each decision.
 - Next expected proof: Jules repair commit, explicit Jules failure report, or a
   later stale-repair decision if the acknowledged request remains unchanged
   after further monitoring.
+
+### Decision 122: Perform Bounded Package 12 Branch-Hygiene Repair And Merge
+
+- Date/time: 2026-05-26 01:24 +02:00
+- Phase: `package_12_pr_acceptance`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules pushed a repair for PR #1084 after the clean `@jules`
+  restatement, but the PR still included stale docs/process changes,
+  `fix_conflict.sh`, and current-master drift. The product slice was useful and
+  locally verifiable, while another broad wait risked repeating the stale-docs
+  repair loop.
+- Options considered:
+  - Ask Jules for another repair and keep Package 12 in external wait.
+  - Abandon PR #1084 and create a replacement handoff from current
+    `origin/master`.
+  - Perform a bounded foreman branch-hygiene repair from current `origin/master`
+    that preserves only the accepted product/test files.
+- Decision made by agent: Perform the bounded foreman branch-hygiene repair,
+  force-push the clean head with lease to PR #1084, and merge after local and
+  GitHub verification passed.
+- Rationale/evidence:
+  - Jules had already produced the approved five-spell implementation value:
+    `hex`, `hunters-mark`, `detect-thoughts`, `knock`, and `flame-arrows`.
+  - The remaining blockers were branch hygiene, stale tracker/Symphony docs,
+    process-helper noise, and an unnecessary public `SpellCommandFactory`
+    helper surface.
+  - A clean acceptance branch from current `origin/master` could preserve the
+    useful Jules work without rewriting the mechanic locally or accepting stale
+    process artifacts.
+- Mutation performed:
+  - Created clean branch `codex/spell-phase1-p12-clean-acceptance` from current
+    `origin/master`.
+  - Preserved only
+    `docs/tasks/spells/mechanics-discovery/buckets/conditional_ending.md`,
+    `public/data/spells/level-1/hex.json`,
+    `public/data/spells/level-1/hunters-mark.json`,
+    `public/data/spells/level-2/detect-thoughts.json`,
+    `public/data/spells/level-2/knock.json`,
+    `public/data/spells/level-3/flame-arrows.json`,
+    `src/commands/base/SpellCommand.ts`,
+    `src/commands/factory/SpellCommandFactory.ts`, and
+    `src/commands/factory/__tests__/ConditionalEnding.test.ts`.
+  - Dropped stale tracker/Symphony docs, premature closeout text, and
+    `fix_conflict.sh`.
+  - Kept `SpellCommandFactory.createCommand` private and typed
+    `CommandContext.conditionalEndings` as `ConditionalEnding[]`.
+  - Force-pushed the clean head with lease to
+    `jules/spells-package12-conditional-ending-3991627368289943007` and posted
+    the PR acceptance/verification comment.
+- Scope guardrails:
+  - No hidden endpoint use, no broad spell-runtime redesign, no terrain/light,
+    summon/control, trap/glyph, combat HUD rider-icon UI, levels 4-9, broad AI
+    arbitration, Symphony runtime/source churn, or GitHub workflow edits.
+  - The repair was branch hygiene and small type tightening only; it did not
+    expand the selected spell set beyond the approved five rows.
+- Verification:
+  - Local: `npm run validate:spells`; `node scripts\auditAtlasBuckets.mjs`;
+    focused `ConditionalEnding.test.ts` Vitest; `npx tsc --noEmit --pretty
+    false`; `npm run build`; `git diff --cached --check`.
+  - GitHub: Build, Lint, Tests, Quality, Poison, Analyze, and CodeQL checks all
+    passed on PR #1084.
+  - The documented dependency-visualizer sync command could not run because
+    `misc/dev_hub/codebase-visualizer/server/index.ts` is missing in this
+    checkout.
+- Result: PR #1084 merged on 2026-05-25 as
+  `2a9dc25e19daae04db06053b61cdca9e1dc82a4e`. Package 12 is done.
+- Next expected proof: tracker, open-task, and decision-trends closeout should
+  record Package 12 as merged and point the next foreman to the tracker-defined
+  next package boundary rather than continuing the Package 12 repair loop.

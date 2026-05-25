@@ -261,19 +261,24 @@ the audit, or in the proving-ground tracker with the next proof target.
   and smallest proposed repair if blocked. A later visible check showed Jules
   still working and making post-nudge test/documentation updates, so the active
   decision is monitored wait rather than stale-session replacement or local
-  takeover. The next valid proof is a PR/branch, exact Jules failure report,
-  new Jules question, or stale-session decision after enough unchanged
-  post-nudge evidence. Jules then opened PR #1084, proving the monitored wait
-  was useful, but the PR is `DIRTY` against current `master`, rewinds tracker
-  truth, marks P12 closed before acceptance, and widens
+  takeover. Jules then opened PR #1084, proving the monitored wait was useful,
+  but the PR was `DIRTY` against current `master`, rewound tracker truth, marked
+  P12 closed before acceptance, and widened
   `SpellCommandFactory.createCommand` from private to public without a clear
   production need. Codex posted bounded repair feedback at
   `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537781802`.
   Because that first repair comment had shell-escaped text damage, Codex posted
   a clean explicit `@jules` restatement at
   `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537832896`.
-  Jules acknowledged the clean restatement with an eyes reaction, but no repair
-  commit is visible yet.
+  Jules pushed a partial repair, but the PR still carried stale docs/process
+  noise and `fix_conflict.sh`. Codex performed a bounded foreman
+  branch-hygiene repair from current `origin/master`, preserved only the
+  accepted Package 12 product/test files, kept `createCommand` private, typed
+  `CommandContext.conditionalEndings` as `ConditionalEnding[]`, and
+  force-pushed that clean head with lease to PR #1084. Local verification and
+  GitHub Build/Lint/Tests/Quality/Poison/Analyze/CodeQL checks passed. PR #1084
+  merged on 2026-05-25 as
+  `2a9dc25e19daae04db06053b61cdca9e1dc82a4e`.
 - **Future repair target**: update package templates so they include a minimum
   package-value check, an explicit candidate-classification step, and a rule
   that plans naming files outside expected scope must justify why the file is
