@@ -78,6 +78,23 @@ the audit, or in the proving-ground tracker with the next proof target.
 - ARA-6 is historical proof for the workflow rather than the current live contract target.
 - Historical closeouts are fully archived. All active spell tasks align with `EARLY_GAME_SPELL_EXECUTION_PLAN.md`.
 
+### 5. Active Workflow Gap: Jules Session Base Drift
+- **Status**: active gap, discovered during Spell Phase 1 Package 9.
+- **Observed failure mode**: Codex merged an updated task tracker to GitHub
+  after Jules had already started from an earlier base commit. Jules then opened
+  its PR from the older isolated checkout, so the new tracker wording did not
+  reach Jules and the PR conflicted in the tracker.
+- **Operating rule**: after Jules starts, no new local commits, merged tracker
+  PRs, or GitHub-synced task-doc adjustments should be assumed to appear inside
+  that running Jules session. Adjustments need an explicit communication or
+  branch-update method: visible Jules message, `[Jules feedback]` PR comment,
+  foreman PR-branch repair/rebase after PR creation, or replacement handoff from
+  current `origin/master`.
+- **Implementation target**: Symphony should surface session base commit versus
+  current `origin/master`, warn when base drift appears, and guide the foreman to
+  the explicit update channels instead of treating the tracker merge as Jules
+  input.
+
 ---
 
 ## Superseded Per-Task Status
