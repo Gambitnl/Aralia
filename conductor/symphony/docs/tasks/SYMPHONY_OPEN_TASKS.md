@@ -134,7 +134,10 @@ the audit, or in the proving-ground tracker with the next proof target.
 - **Latest Package 11 proof**: the active path is
   `handoff-1779735529994-aq60x6`, launched to Jules session
   `13361122470730968094`. The duplicate `handoff-1779735447555-z4a0fu` should
-  remain unlaunched/stale unless the active path is explicitly abandoned.
+  remain unlaunched/stale unless the active path is explicitly abandoned. On
+  2026-05-25 at 21:25 +02:00, Codex approved Jules' revised visible plan after
+  Jules removed the out-of-scope command-base files from the first plan; Jules
+  now shows `Plan approved` and `Working`.
 - **Next repair target**: make task-page guarded actions show success/failure
   receipts and refresh to the live handoff after promotion; prevent repeated
   draft promotion when a draft already has a promoted handoff.
