@@ -65,7 +65,10 @@ Use this package-sizing bias:
 Package 12 is the current example. Jules' first plan proposed a small
 `hex`/`hunters-mark`/`knock` slice and named `UtilityCommand.ts` outside the
 expected write scope. Codex withheld approval and asked for a higher-value safe
-conditional-ending batch with explicit file-scope justification.
+conditional-ending batch with explicit file-scope justification. Jules revised
+the plan to cover `hex`, `hunters-mark`, `knock`, `detect-thoughts`, and
+`flame-arrows`, removed the direct `UtilityCommand.ts` edit, and Codex approved
+the revised plan.
 
 ## 4. Active Operating Rules
 
