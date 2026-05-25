@@ -1,7 +1,8 @@
 # Package 3 Atlas And Gate Checkpoint Receipt
 
 Status: Package 3 implementation merged; spell validation and gate checkpoint
-recorded.
+recorded. The later Package 7 Atlas source repair supersedes the historical
+missing-source blocker recorded here.
 
 This receipt records spell validation, spell-gate, and Atlas evidence for the
 character creator and spellbook visibility slice.
@@ -13,8 +14,8 @@ character creator and spellbook visibility slice.
   `handoff-1779443555192-bnpws7`
 - Package 3 implementation PR exists: `yes`, PR #954, merged on 2026-05-22
 - Spell gate refresh run for Package 3: `yes`
-- Atlas review/update run for Package 3: `blocked by missing local Atlas
-  source/entrypoint; see G48`
+- Atlas review/update run for Package 3: `historically blocked by missing local
+  Atlas source/entrypoint; superseded by the Package 7 G48 repair`
 - Can this receipt prove Package 3 gate completion yet: `yes for Package 3
   spell-data validity and public gate report state; no for Package 4 combat
   simulator behavior`
@@ -50,12 +51,14 @@ npx vitest run src/components/CharacterCreator/Class/__tests__/FeatureSelectionC
   updates the gate timestamp and advances canonical review state from
   `not_reviewed` to `clean` for the reviewed spells while preserving the 3
   structured-vs-canonical mismatch count.
-- Atlas surface checked or updated: attempted, but blocked. The docs and
-  validation page still reference `misc/spell_pipeline_atlas.html`, while this
-  worktree does not contain that file. `node scripts/auditAtlasBuckets.mjs`
-  also fails because it expects
-  `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx`, which is not
-  present in this worktree.
+- Atlas surface checked or updated: attempted during Package 3, but blocked at
+  that time. The docs and validation page referenced
+  `misc/spell_pipeline_atlas.html`, while that worktree did not contain the
+  file. `node scripts/auditAtlasBuckets.mjs` also failed because it expected
+  `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx`, which was not
+  present in that worktree. Package 7 later restored the tracked Atlas source
+  and entrypoint, so future agents should use the Package 7 repair rather than
+  treating this older checkout diagnosis as current state.
 - Visual proof receipt linked: `docs/tasks/spells/PACKAGE_3_VISUAL_PROOF_RECEIPT.md`
 - Follow-up bucket, combat, fixture, or AI arbitration work discovered:
   G46 remains as creator accessibility semantics; Package 4 still owns combat
