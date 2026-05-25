@@ -1,7 +1,8 @@
 # Package 9 Jules Task: Higher-Level Caster Fixture Coverage
 
-Status: active package packet; Package 8 has merged and this is now the next
-Spell Phase 1 Jules implementation boundary.
+Status: active replacement package packet; Package 8 has merged, the first
+Package 9 Jules PR was filed stale/unaccepted, and this is still the next Spell
+Phase 1 Jules implementation boundary.
 
 This packet promotes tracker gap `G3` into the next non-overlapping Spell Phase
 1 candidate. Package 8 has now merged, so fixture coverage for level 2 and
@@ -10,7 +11,8 @@ separate from the already-merged Package 8 Bless/Bane runtime files.
 
 ## Worker
 
-Default worker: Jules, through the visible Symphony/Jules handoff path.
+Default worker: Jules, through a replacement visible Symphony/Jules handoff
+path from current `origin/master`.
 
 Codex role: foreman. Codex owns sequencing, dashboard handoff, PR review,
 verification, decision reporting, and tracker updates. Jules should own the
@@ -51,6 +53,28 @@ Current evidence:
 The package should add a conservative fixture path for higher-level spell
 testing while preserving the normal starting roster.
 
+## Replacement Context
+
+The first Package 9 Jules path is stale and must not be used as the new base:
+
+- stale Jules session: `236577711126494484`
+- stale PR: #1030
+- last stale PR head: `dc8b412fb72d8dcdcd4caf92250c03b7ab4ca3d8`
+- decision packet: `PACKAGE_9_STALE_PR_REPLACEMENT_DECISION.md`
+
+The replacement attempt should start from current `origin/master`, not from the
+stale PR branch. Carry forward only the useful lessons:
+
+- keep tracker rows aligned with the current master tracker and never mark the
+  package complete before foreman review and merge;
+- prove manifest discoverability against the real
+  `public/premade-characters/manifest.json`, not only a mocked two-character
+  manifest;
+- prove combat reachability through `createPlayerCombatCharacter` or the
+  current combat conversion layer for representative level 2 and level 3 spells;
+- do not include UI files, Symphony runtime/source files, GitHub workflow edits,
+  generated reports, or temporary conflict helper scripts in the final PR.
+
 ## Source Context
 
 Read these before editing:
@@ -75,16 +99,19 @@ Jules may edit:
 - new or updated fixture files under `public/premade-characters/`
 - `src/services/premadeCharacterService.ts` only for manifest metadata or loader
   support needed to distinguish normal premades from dev/test fixtures
-- the party editor, combat simulator fixture picker, or simulator-only fixture
-  loader only if a minimal UI/load path is needed to reach the new test fixtures
 - focused tests or audit scripts that prove fixture legality and loader behavior
 - this packet or the living tracker with concise completion notes
 
 Jules should not edit:
 
+- `src/components/Party/PartyEditorModal.tsx` or other UI files unless Jules
+  pauses first and explains why manifest/fixture/service/test changes cannot
+  satisfy the package
 - Symphony dashboard/runtime/source files
 - `.symphony`, `.jules`, generated manifests, draft IDs, click receipts, or
   other orchestration state
+- GitHub workflow files
+- temporary conflict helper scripts such as `resolve.js` or `resolve.cjs`
 - Package 8 Bless/Bane files or roll-runtime files; PR #1020 has already
   landed and should remain closed unless fixture work reveals a separate,
   tracker-worthy follow-up
@@ -154,13 +181,19 @@ command required by `AGENTS.md` for each changed exported/shared file.
 - Focused tests or audits prove the loader/fixture behavior.
 - No Package 8 Bless/Bane runtime files or Symphony runtime/source artifacts are
   committed as part of this package.
+- No stale PR #1030 branch state, stale tracker rows, or temporary conflict
+  helper scripts are carried into the replacement PR.
 
 ## Decision Report
 
-Decision point: choose the next non-overlapping package after Package 8 merged.
+Decision point: choose the next non-overlapping package after Package 8 merged,
+then choose the replacement path after stale PR #1030 failed to publish a
+reviewable repair.
 
 Decision made by Codex foreman: promote `G3` from queued fixture work into
-active Package 9 and launch it through the visible Symphony/Jules path.
+active Package 9 and launch it through the visible Symphony/Jules path. After
+PR #1030 became stale/unaccepted, keep Package 9 active and use a replacement
+Jules dispatch from current `origin/master` before considering a local port.
 
 Why: all current premades are level 1, so level 2 and level 3 spell testing
 still lacks legal caster fixtures. This package is product-relevant, does not
