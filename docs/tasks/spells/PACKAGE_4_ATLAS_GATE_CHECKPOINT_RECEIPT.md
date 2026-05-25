@@ -1,7 +1,8 @@
 # Package 4 Atlas And Gate Checkpoint Receipt
 
-Status: local validation and spell-gate refresh recorded; Atlas proof is still
-blocked by G48.
+Status: local validation and spell-gate refresh recorded. The Atlas proof was
+historically blocked here, and the later Package 7 repair supersedes that G48
+blocker.
 
 This receipt records spell validation, spell-gate, and Atlas evidence for the
 combat simulator deterministic spell pilot.
@@ -18,13 +19,16 @@ combat simulator deterministic spell pilot.
 - Spell gate refresh run for Package 4: `yes`, `npm run generate:spell-gates`
 - `public/data/spell_gate_report.json` changed: `yes locally; the diff was
   timestamp-only generatedAt churn and should not be committed`
-- Atlas review/update run for Package 4: `blocked until G48 is repaired or
-  explicitly waived`
-- Can this receipt prove Package 4 gate completion yet: `no`
+- Atlas review/update run for Package 4: `historically blocked until G48 repair;
+  superseded by Package 7`
+- Can this receipt prove Package 4 gate completion yet: `yes for the historical
+  Package 4 validation and spell-gate refresh; Atlas source proof now belongs
+  to Package 7`
 
-Reason: Package 4 implementation and local validation are now recorded, but this
-receipt cannot honestly claim Atlas completion because the Atlas source gap
-tracked as G48 still exists.
+Reason: Package 4 implementation and local validation were recorded before the
+Atlas source gap was fixed. This receipt still preserves that historical
+blocker, but future agents should treat the later Package 7 repair as the live
+Atlas proof path instead of reopening Package 4.
 
 ## Commands To Record After Package 4 Returns
 
@@ -53,7 +57,8 @@ If a more focused combat pilot test is added, record the exact command that ran.
 - Dependency-header sync result:
   `blocked; misc/dev_hub/codebase-visualizer/server/index.ts is not present in
   this worktree`
-- Atlas surface checked or updated: `blocked by G48`
+- Atlas surface checked or updated: `blocked by G48 at Package 4 closeout;
+  later superseded by the Package 7 tracked Atlas source repair`
 - Follow-up mechanics, fixture, or AI arbitration work discovered:
   `bless/status bridge remains a follow-up gap`
 - Can Package 5 begin after this checkpoint: `yes, if G48 remains visible as a

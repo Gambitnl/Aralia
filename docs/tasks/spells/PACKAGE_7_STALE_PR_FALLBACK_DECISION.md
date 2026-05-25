@@ -54,9 +54,10 @@ Codex selected Option C on 2026-05-25:
 - updated `SPELL_PHASE_1_TASK_TRACKER.md` so Package 7 and `G48` remain active
   instead of pretending that the placeholder Atlas resolved the gap.
 
-The next valid movement is Option D: start a replacement Package 7 repair path
-from current `master`, either as a tighter Jules handoff or as a bounded local
-fallback if Jules is judged to have had enough repair opportunity.
+Codex then selected Option D as a bounded local fallback because Jules had
+already had the original plan attempt plus the replacement PR repair
+opportunity. The fallback restored the tracked Atlas source/entrypoint from
+current `master` without committing raw Symphony/Jules runtime state.
 
 ## Valid Next Decisions
 

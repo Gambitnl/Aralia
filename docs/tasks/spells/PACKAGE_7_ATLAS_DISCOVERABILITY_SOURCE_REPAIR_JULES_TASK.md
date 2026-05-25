@@ -1,7 +1,7 @@
 # Package 7 - Atlas Discoverability And Source Repair
 
-Status: ready for clean-base Symphony/Jules handoff. The earlier dirty-checkout
-blocker was resolved before dispatch; start this package from current `master`.
+Status: completed by bounded local fallback after two Symphony/Jules attempts
+failed to produce an acceptable tracked Atlas repair.
 
 ## Goal
 
@@ -32,8 +32,8 @@ The local ignored Atlas copy still reports one low finding:
 [LOW] (orphan): dead EXECUTION constant: CASTING_TIME_EXECUTION (declared but not in EXECUTION_BY_BUCKET)
 ```
 
-The repair should make the Atlas source of truth available from GitHub, close
-the source/audit mismatch, and leave a repeatable proof path for the next spell
+The repair makes the Atlas source of truth available from GitHub, closes the
+source/audit mismatch, and leaves a repeatable proof path for the next spell
 package.
 
 After the first Jules launch, Jules could not see the ignored local Atlas files
@@ -137,10 +137,36 @@ If the package changes exported TypeScript symbols or shared source boundaries,
 run the Aralia-required dependency sync for the changed path as directed by
 `AGENTS.md`.
 
+## Completion Notes
+
+Codex used a local fallback only after the Jules-first path had a fair attempt:
+
+- the first Jules session proposed an empty-map Atlas plan and was paused;
+- the replacement Jules PR #1009 restored the rough entrypoint direction but
+  kept process/helper artifacts, placeholder-heavy bucket metadata, premature
+  `G48` resolution, and a conflicting branch;
+- after explicit `@jules` repair feedback, visible Jules state reported that
+  Jules was unable to complete the task.
+
+The accepted repair stayed inside this package boundary: it restored
+`misc/spell_pipeline_atlas.html`, `src/spell-pipeline-atlas.tsx`, and
+`src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx`; unignored only
+those Atlas paths; preserved the 15-bucket map; and did not commit raw
+Symphony/Jules runtime state.
+
+Verification recorded for the repair:
+
+```powershell
+node scripts\auditAtlasBuckets.mjs
+npx tsc --noEmit --pretty false
+```
+
+`node scripts\auditAtlasBuckets.mjs` reports 15 buckets in `BUCKET_META`, 15
+buckets registered in `EXECUTION_BY_BUCKET`, and no findings.
+
 ## Foreman Notes
 
 This packet is safe to keep as durable Aralia-facing task context. The previous
-local-change boundary has been resolved, so Package 7 should be dispatched from
-current clean `master` through the visible Symphony dashboard. Keep Symphony
-runtime/source/local-state artifacts out of the PR; only preserve the bounded
+local-change boundary was resolved before dispatch. Keep Symphony
+runtime/source/local-state artifacts out of Aralia; only preserve the bounded
 Atlas repair and the concise package-facing documentation updates listed above.
