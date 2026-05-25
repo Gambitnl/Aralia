@@ -144,7 +144,18 @@
         "customFormula": ""
       },
       "description": "A target hit by a ranged weapon attack using ammunition drawn from the touched quiver takes an extra 1d6 Fire damage.",
-      "conditionalEndings": []
+      "conditionalEndings": [
+        {
+          "trigger": "all_target_instances_expended",
+          "scope": "spell",
+          "description": "The spell ends when twelve pieces of ammunition have been drawn from the quiver."
+        },
+        {
+          "trigger": "on_attack_hit_or_miss",
+          "scope": "item",
+          "description": "The spell's magic ends on the piece of ammunition when it hits or misses."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

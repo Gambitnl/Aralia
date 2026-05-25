@@ -297,7 +297,13 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [
+        {
+          "trigger": "repeat_save_success",
+          "scope": "spell",
+          "description": "On a successful save, the spell ends."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

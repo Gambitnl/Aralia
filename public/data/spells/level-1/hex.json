@@ -262,7 +262,13 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [
+        {
+          "trigger": "target_drops_to_0_hp",
+          "scope": "effect",
+          "description": "If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

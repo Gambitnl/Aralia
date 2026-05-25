@@ -178,7 +178,15 @@
         "trigger": "on_cast",
         "description": "A loud knock audible up to 300 feet away emanates from the target object."
       },
-      "conditionalEndings": []
+      "conditionalEndings": [
+        {
+          "trigger": "triggered_duration_expires",
+          "scope": "effect",
+          "durationValue": 10,
+          "durationUnit": "minute",
+          "description": "If the target is held shut by Arcane Lock, that spell is suppressed for 10 minutes, during which time the target can be opened and closed."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

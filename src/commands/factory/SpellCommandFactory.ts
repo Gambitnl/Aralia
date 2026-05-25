@@ -265,6 +265,12 @@ export class SpellCommandFactory {
     // TODO(Refactor): Area triggers (on_enter_area, on_end_turn_in_area) should NOT fall through
     // to immediate commands like DamageCommand. They must be registered as persistent hazards.
     // Potential fix: Handle registered hazard logic here or via TerrainCommand.
+
+    // Pass conditional endings to the command context to provide a runtime bridge
+    if (effect.conditionalEndings && effect.conditionalEndings.length > 0) {
+      context = { ...context, conditionalEndings: effect.conditionalEndings }
+    }
+
     switch (effect.type) {
       case 'DAMAGE':
         return new DamageCommand(effect, context)

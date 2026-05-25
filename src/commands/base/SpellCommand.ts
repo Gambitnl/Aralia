@@ -15,7 +15,7 @@
 
 import { CombatState, CombatCharacter } from '@/types/combat'
 import { GameState } from '@/types'
-import { EffectDuration, SpellAttackType, MagicSchool } from '@/types/spells'
+import { EffectDuration, SpellAttackType, MagicSchool, ConditionalEnding } from '@/types/spells'
 import { Plane } from '@/types/planes'
 
 /**
@@ -101,6 +101,8 @@ export interface CommandContext {
   effectDuration?: EffectDuration
   /** Type of attack roll (melee/ranged) if applicable */
   attackType?: SpellAttackType
+  /** Any conditional endings applied from the spell's effect metadata */
+  conditionalEndings?: ConditionalEnding[]
   /** Tracks if this execution is a critical hit (5e: doubles damage dice) */
   isCritical?: boolean
   /** The plane where the spell is being cast. */
