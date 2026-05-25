@@ -1,0 +1,283 @@
+{
+  "id": "premade_dev_maelis_quill_lvl5",
+  "name": "[DEV] Maelis Quill (Lvl 5)",
+  "age": 45,
+  "background": "sage",
+  "level": 5,
+  "xp": 0,
+  "proficiencyBonus": 3,
+  "race": {
+    "id": "human",
+    "name": "Human",
+    "description": "Found throughout the multiverse, humans are as varied as they are numerous, and they endeavor to achieve as much as they can in the years they are given. Their ambition and resourcefulness are commended, respected, and feared on many worlds.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+      "Speed: 30 feet",
+      "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+      "Skillful: You gain proficiency in one skill of your choice (chosen during character creation).",
+      "Versatile: You gain an Origin feat of your choice."
+    ],
+    "visual": {
+      "id": "human",
+      "color": "#D2B48C",
+      "maleIllustrationPath": "assets/images/races/Human_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Human_Female.png"
+    }
+  },
+  "class": {
+    "id": "wizard",
+    "name": "Wizard",
+    "description": "Scholarly magic-users capable of manipulating the fabric of reality.",
+    "hitDie": 6,
+    "primaryAbility": [
+      "Intelligence"
+    ],
+    "savingThrowProficiencies": [
+      "Intelligence",
+      "Wisdom"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "history",
+      "insight",
+      "investigation",
+      "medicine",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [],
+    "weaponProficiencies": [
+      "Daggers",
+      "Darts",
+      "Slings",
+      "Quarterstaffs",
+      "Light crossbows"
+    ],
+    "features": [
+      {
+        "id": "arcane_recovery",
+        "name": "Arcane Recovery",
+        "description": "Recover some spell slots during a short rest.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Intelligence",
+      "knownCantrips": 3,
+      "knownSpellsL1": 6,
+      "spellList": [
+        "acid-splash",
+        "chill-touch",
+        "dancing-lights",
+        "elementalism",
+        "fire-bolt",
+        "friends",
+        "frostbite",
+        "light",
+        "mage-hand",
+        "mending",
+        "message",
+        "minor-illusion",
+        "poison-spray",
+        "prestidigitation",
+        "ray-of-frost",
+        "shape-water",
+        "shocking-grasp",
+        "sword-burst",
+        "thunderclap",
+        "true-strike",
+        "toll-the-dead",
+        "alarm",
+        "burning-hands",
+        "charm-person",
+        "color-spray",
+        "comprehend-languages",
+        "detect-magic",
+        "disguise-self",
+        "expeditious-retreat",
+        "false-life",
+        "feather-fall",
+        "find-familiar",
+        "fog-cloud",
+        "grease",
+        "identify",
+        "illusory-script",
+        "jump",
+        "longstrider",
+        "mage-armor",
+        "magic-missile",
+        "protection-from-evil-and-good",
+        "shield",
+        "silent-image",
+        "sleep",
+        "thunderwave",
+        "unseen-servant",
+        "levitate",
+        "nondetection",
+        "misty-step",
+        "fireball"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Intelligence",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Intelligence is paramount for your spellcasting effectiveness. Constitution helps with concentration and hit points. Dexterity can improve your Armor Class, as wizards typically wear no armor.",
+    "recommendedPointBuyPriorities": [
+      "Intelligence",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Charisma",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "wizard": 5
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 14,
+    "Constitution": 13,
+    "Intelligence": 16,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 14,
+    "Constitution": 13,
+    "Intelligence": 16,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "Intelligence",
+      "description": "Recalls lore about spells, magical traditions, and planes."
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "ability": "Intelligence",
+      "description": "Recalls lore about historical events, peoples, and kingdoms."
+    }
+  ],
+  "savingThrowProficiencies": [
+    "Intelligence",
+    "Wisdom"
+  ],
+  "feats": [],
+  "hp": 27,
+  "maxHp": 27,
+  "hitPointDice": [
+    {
+      "die": 6,
+      "current": 5,
+      "max": 5
+    }
+  ],
+  "armorClass": 12,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "selectedWeaponMasteries": [],
+  "transportMode": "foot",
+  "equippedItems": {
+    "MainHand": {
+      "id": "quarterstaff",
+      "name": "Quarterstaff",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d6",
+      "damageType": "bludgeoning",
+      "properties": [
+        "versatile"
+      ]
+    }
+  },
+  "activeEffects": [],
+  "statusEffects": [],
+  "limitedUses": {
+    "arcane_recovery": {
+      "name": "Arcane Recovery",
+      "current": 1,
+      "max": 1,
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1
+  },
+  "spellcastingAbility": "intelligence",
+  "spellbook": {
+    "cantrips": [
+      "fire-bolt",
+      "mage-hand",
+      "minor-illusion"
+    ],
+    "knownSpells": [
+      "mage-armor",
+      "magic-missile",
+      "shield",
+      "sleep",
+      "detect-magic",
+      "find-familiar",
+      "misty-step",
+      "fireball"
+    ],
+    "preparedSpells": [
+      "mage-armor",
+      "magic-missile",
+      "shield",
+      "sleep",
+      "misty-step",
+      "fireball"
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 4,
+      "max": 4
+    },
+    "level_2": {
+      "current": 3,
+      "max": 3
+    },
+    "level_3": {
+      "current": 2,
+      "max": 2
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "visualDescription": "An older human wizard with ink-stained fingers, layered scholar robes, and a spellbook covered in careful annotations."
+}

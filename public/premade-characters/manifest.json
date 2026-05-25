@@ -103,6 +103,24 @@
             "className": "Artificer",
             "level": 1,
             "description": "A practical human inventor for testing tool-flavored magic and support casting."
+        },
+        {
+            "filename": "dev_maelis_quill_lvl5.json",
+            "name": "[DEV] Maelis Quill (Lvl 5)",
+            "race": "Human",
+            "className": "Wizard",
+            "level": 5,
+            "description": "A level 5 dev fixture for testing level 2 and 3 wizard spells like Misty Step and Fireball.",
+            "isTestFixture": true
+        },
+        {
+            "filename": "dev_sera_dawnmantle_lvl5.json",
+            "name": "[DEV] Sera Dawnmantle (Lvl 5)",
+            "race": "Human",
+            "className": "Cleric",
+            "level": 5,
+            "description": "A level 5 dev fixture for testing level 2 and 3 cleric spells like Hold Person and Spirit Guardians.",
+            "isTestFixture": true
         }
     ]
 }
