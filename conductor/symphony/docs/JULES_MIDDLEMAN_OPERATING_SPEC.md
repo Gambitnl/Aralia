@@ -142,6 +142,18 @@ showing a PR/result that the local record has not captured yet. Record that
 visual check in the owning tracker or task receipt so later agents do not repeat
 an already-resolved launch step or mislabel an external wait as a goal blocker.
 
+Once Jules has started, its working checkout must be treated as an isolated
+clone of the base commit recorded at launch. Later local commits, tracker
+updates, or merged GitHub PRs do not automatically reach that running Jules
+session. If the task changes after launch, the foreman must use an explicit
+update channel instead of assuming the GitHub-synced tracker will appear inside
+Jules: visible Jules message, bounded GitHub PR comment marked as Jules
+feedback, a foreman repair/rebase on the PR branch after Jules opens it, or a
+replacement handoff from current `origin/master`. Before accepting or merging a
+Jules PR, compare the Jules session base with current `origin/master`; if master
+advanced, classify any tracker/docs conflict as a session-base drift issue and
+preserve foreman-reviewed tracker wording over stale Jules-authored status.
+
 ### Task-Centered Dashboard
 
 The intended operator experience is task-centered. The dashboard should let the
@@ -317,9 +329,9 @@ receipt events inside these phases.
 | **git_sync** | Local repository / Symphony | Prove the local branch can safely feed cloud work | Git preflight, disposition review, resolution packet, sync plan | Human-owned local Git sync, commit, push, or disposition decision | `operator_only` while blocked; `observe_wait` for read-only checks | Clean preflight or Git sync execution receipt |
 | **linear_issue** | Linear / Symphony | Create or connect human-readable tracking | Linear issue preview, existing issue lookup, handoff readiness packet | Create/update Linear issue or status comment | `operator_only` at mutation; `observe_wait` for preview | Linear issue receipt or linked issue id |
 | **jules_manifest** | Symphony / `.jules/orchestrator` | Stage the bounded Jules handoff | Manifest preview with write scope and verification commands | Write/update `.jules/orchestrator` handoff material | `operator_only` at mutation; `local_careful` for local setup repair drafts | Manifest/staging receipt |
-| **jules_launch** | Jules / Symphony | Start cloud implementation from the staged handoff | Launch readiness packet, safety checklist, Linear/Git receipt | Launch Jules session | `operator_only` at mutation | Jules launch/session receipt |
-| **jules_session** | Jules / Symphony | Track plan, execution, messages, PR output, and reconciliation | Jules API/browser state, visible Jules-page check, `julesStateReconciliation`, prompt/dialogue packets | Approve plan, send Jules message, or otherwise direct Jules | `observe_wait` for reads; `operator_only` for plan/message actions | Plan approval, message, session refresh, visible Jules-page check, or PR-discovery receipt |
-| **github_pr** | GitHub / Symphony | Monitor PR state, checks, files, feedback, and repair choices | PR refresh, checks, failed check names, file risk, comments, repair decision/readiness | PR comment, branch push/apply, check rerun, workflow repair | `observe_wait` for refresh; `local_careful` for local setup repair; `operator_only` for GitHub mutations | PR refresh, feedback, repair push, or check-rerun receipt |
+| **jules_launch** | Jules / Symphony | Start cloud implementation from the staged handoff | Launch readiness packet, safety checklist, Linear/Git receipt, base commit | Launch Jules session | `operator_only` at mutation | Jules launch/session receipt with immutable session base |
+| **jules_session** | Jules / Symphony | Track plan, execution, messages, PR output, base drift, and reconciliation | Jules API/browser state, visible Jules-page check, `julesStateReconciliation`, prompt/dialogue packets, current `origin/master` comparison | Approve plan, send Jules message, or otherwise direct Jules | `observe_wait` for reads; `operator_only` for plan/message actions | Plan approval, message, session refresh, visible Jules-page check, base-drift note, or PR-discovery receipt |
+| **github_pr** | GitHub / Symphony | Monitor PR state, checks, files, feedback, base drift, and repair choices | PR refresh, checks, failed check names, file risk, comments, mergeability/conflicts, repair decision/readiness | PR comment, branch push/apply, check rerun, workflow repair | `observe_wait` for refresh; `local_careful` for local setup repair; `operator_only` for GitHub mutations | PR refresh, feedback, repair push, conflict/base-drift repair, or check-rerun receipt |
 | **scout_core** | Scout/Core / Symphony | Decide review, risk, validation, and merge readiness | Scout/Core readiness packet, conflict comments, risk/file scope | Core validation, Core approval, or merge | `observe_wait` for reads; `operator_only` for validation/merge | Scout/Core validation or merge receipt |
 | **deployment** | GitHub Pages/deployment system / Symphony | Prove published-app health before local sync when relevant | `deployment_readiness`, Pages build/deployment/status inspection commands | Deployment repair, rerun, or deployment-proof waiver | `observe_wait` for inspection; `operator_only` for waiver/repair | `deploymentEvidence` receipt |
 | **local_sync** | Local repository / Symphony | Bring local master/worktree up to the merged, deployed state | `local_sync_readiness`, dirty/ahead/behind/fast-forward checks | `git pull --ff-only`, merge, rebase, or other local sync | `operator_only` at mutation | Local sync execution receipt |
@@ -473,6 +485,12 @@ PRs into a pointer to the Symphony audit/open-task docs.
 5a. A missing stored PR URL is not the same as a missing GitHub PR. Symphony
    should check GitHub for matching Jules branches or session ids before telling
    the operator that Jules has not created a PR.
+5b. A Jules PR based on an older session checkout is not proof that current
+   tracker or task adjustments landed in Jules. When current `origin/master`
+   advanced after the Jules launch receipt, Symphony should show a base-drift
+   warning, keep Jules-authored tracker edits provisional, and route the
+   foreman to either explicit Jules feedback, PR-branch repair/rebase, or a
+   replacement handoff.
 6. PR comments and review comments are a valid course-correction channel back
    to Jules. When checks fail, conflicts appear, or changed files need repair,
    Symphony should surface an operator-run `gh pr comment ... --body-file ...`

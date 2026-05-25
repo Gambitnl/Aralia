@@ -191,7 +191,10 @@ src/
    orchestrator instead of inventing a second cloud-task system.
 5. **Tracks Jules sessions and GitHub PRs** including checks, mergeability,
    changed-file risk, conflict-prone files, plan approvals, and operator
-   feedback.
+   feedback. A started Jules session is an isolated checkout of its launch base;
+   later local or GitHub tracker updates do not reach it automatically, so task
+   adjustments after launch must move through visible Jules messaging, bounded
+   PR feedback, PR-branch repair/rebase, or a replacement handoff.
 6. **Reconciles ambiguous Jules state** with Jules API/GitHub fallback evidence
    and Codex app browser inspection when stored status and the visible Jules
    session disagree.
