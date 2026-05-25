@@ -31,8 +31,9 @@
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { DamageCommand } from './DamageCommand';
+import { StatusConditionCommand } from './StatusConditionCommand';
 import { CombatState, ActiveEffect } from '../../types/combat';
-import { DamageEffect, isAttackRollModifierEffect } from '../../types/spells';
+import { DamageEffect, StatusConditionEffect, isAttackRollModifierEffect } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 
@@ -122,6 +123,27 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
         });
 
         currentState = damageCommand.execute(currentState);
+      }
+
+
+      // Bundle any status condition payload into the same save outcome
+      if (this.effect.statusCondition) {
+        const statusEffect: StatusConditionEffect = {
+          type: 'STATUS_CONDITION',
+          trigger: this.effect.trigger,
+          condition: { type: 'always' },
+          scaling: this.effect.scaling,
+          description: this.effect.description,
+          statusCondition: this.effect.statusCondition,
+        };
+
+        const statusCommand = new StatusConditionCommand(statusEffect, {
+          ...this.context,
+          targets: [target],
+          isCritical: false,
+        });
+
+        currentState = statusCommand.execute(currentState);
       }
 
       // Store the rider as an active effect so the attack factory can read it

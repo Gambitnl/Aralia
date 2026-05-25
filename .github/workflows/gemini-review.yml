@@ -64,7 +64,7 @@ jobs:
           # triage and invoke workflows. The previous hardcoded review model
           # aged out of the Gemini API and blocked PR review before task code
           # could receive useful feedback.
-          gemini_model: 'gemini-1.5-flash'
+          gemini_model: '${{ vars.GEMINI_MODEL }}'
           google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
           use_gemini_code_assist: '${{ vars.GOOGLE_GENAI_USE_GCA }}'
           use_vertex_ai: '${{ vars.GOOGLE_GENAI_USE_VERTEXAI }}'

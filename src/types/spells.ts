@@ -679,6 +679,10 @@ export interface AttackRollModifierEffect extends BaseEffect {
    * controls both damage and the later attack-roll rider.
    */
   damage?: DamageData;
+  /**
+   * Optional bundled status condition to apply if the save fails.
+   */
+  statusCondition?: StatusCondition;
 }
 
 /** Defines the applied status condition and its duration. */
