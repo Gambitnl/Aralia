@@ -158,7 +158,7 @@ function processSourceFiles() {
         }
         
         // Safely extract a text excerpt from the generated markdown body, stripped of markdown chars
-        let plainText = mdBody.replace(/[#*\[\]`>]/g, '').replace(/\n+/g, ' ').trim();
+        const plainText = mdBody.replace(/[#*[\]`>]/g, '').replace(/\n+/g, ' ').trim();
         const excerpt = plainText ? plainText.substring(0, 150) + '...' : 'No description available.';
 
         const glossaryEntry = {

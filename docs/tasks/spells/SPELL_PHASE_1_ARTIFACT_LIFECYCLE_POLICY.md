@@ -95,15 +95,18 @@ ignored unless a short excerpt explains a durable package decision.
 
 ## Active Boundary Application
 
-The active post-Package 6 boundary is checkout hygiene and next-package
-selection, not cleanup of completed package history. Use the tracker's
-`Current Local Change Classification` section before starting another Jules
-handoff.
+The post-Package 6 checkout hygiene blocker is resolved as of PR #999. The
+main checkout is clean and aligned with `origin/master`, so the active boundary
+is now next-package dispatch through the visible Symphony dashboard rather than
+local dirty-worktree isolation.
 
 Current next-package candidates are:
 
-1. `G48` Atlas discoverability/source repair.
+1. `G48` / Package 7 Atlas discoverability/source repair.
 2. `G49` a small buff/status combat bridge follow-up.
 
-Neither should start from a checkout that also contains unrelated PHB
-glossary/rules migration or BattleMap/glossary source edits.
+Package 7 is the current preferred next step because Atlas proof is needed
+before later packages rely on Atlas/gate checkpoints as durable completion
+evidence. Start it from clean `master` through the dashboard-first workflow, and
+keep raw Symphony/Jules runtime state ignored or external while preserving the
+Jules-readable task packet and prompt in GitHub.
