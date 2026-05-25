@@ -14,12 +14,13 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Packages 1 through 9 have merged history and receipts,
-including the Package 9 higher-level caster fixture coverage and the `G93`
-Jules post-launch update-boundary repair. The active product boundary is Package
-10 target filters and eligibility, prepared from a clean `origin/master` base.
-Treat the task tracker below as the spell-project source of truth while the next
-Jules handoff is prepared.
+Current live boundary: Packages 1 through 10 have merged history and receipts,
+including the Package 9 higher-level caster fixture coverage, the `G93` Jules
+post-launch update-boundary repair, and the Package 10 target-filter/eligibility
+slice. The active product boundary is Package 11 `status_or_state_change`,
+prepared from the tracker-defined mechanics priority after Package 10. Treat the
+task tracker below as the spell-project source of truth while the next Jules
+handoff is prepared.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -847,19 +848,19 @@ Outputs:
 
 ## Next Action
 
-Package 9 and the `G93` post-launch Jules update-boundary repair are complete on
-`master` as of PR #1049. The older post-Package 6 consolidation boundary and
-`G48` / `G49` candidate note are historical.
+Packages 9 and 10 plus the `G93` post-launch Jules update-boundary repair are
+complete on `master`. The older post-Package 6 consolidation boundary, `G48`,
+`G49`, and Package 10 candidate notes are historical.
 
-Next slice: Package 10, `target_filter_or_eligibility`, because the plan
-priority places it after completed `choice_or_mode` and
-`attack_or_save_modifier` mechanics slices.
+Next slice: Package 11, `status_or_state_change`, because the plan priority
+places it after completed `choice_or_mode`, `attack_or_save_modifier`, and
+`target_filter_or_eligibility` mechanics slices.
 
 Immediate action:
 
-1. Land the Package 10 task, prompt, and tracker refresh.
+1. Land the Package 11 task, prompt, and tracker refresh.
 2. Start visible Symphony dashboard dispatch from clean `origin/master`.
 3. Require Jules to keep implementation scoped to representative cantrip/level
-   1-3 target eligibility mechanics and focused tests.
+   1-3 status/state-change mechanics and focused tests.
 4. After Jules returns, update Atlas/gate evidence and tracker residuals before
    selecting the next bucket.
