@@ -501,6 +501,20 @@ export interface TargetConditionFilter {
     maxWeightPounds?: number | string;
     maxWeightScaling?: string;
   };
+  /** Rules for placing created effects or teleporting targets. */
+  placementEligibility?: {
+    unoccupied?: "required" | "not_applicable";
+    surface?: "ground" | "liquid" | "any_solid" | "not_applicable";
+    destination?: "safest_nearby" | "nearest_unoccupied" | "caster_choice" | "not_applicable";
+    notes?: string;
+  };
+  /** Narrow identity filters beyond broad creature types (e.g. humanoid-only, corpse-only, or specific reaction triggers). */
+  specialIdentity?: {
+    corpseOrRemains?: "required" | "not_applicable";
+    reactionTriggeringCreature?: "required" | "not_applicable";
+    summonedByCaster?: "required" | "not_applicable";
+    notes?: string;
+  };
   /** Communication and perception gates that make social/control targeting explicit. */
   communicationPrerequisites?: {
     canHearCaster?: "required" | "not_applicable";

@@ -208,12 +208,28 @@ const TargetSelfRelation = z.enum([
   "not_applicable",
 ]);
 
+const TargetPlacementEligibility = z.object({
+  unoccupied: z.enum(["required", "not_applicable"]).optional(),
+  surface: z.enum(["ground", "liquid", "any_solid", "not_applicable"]).optional(),
+  destination: z.enum(["safest_nearby", "nearest_unoccupied", "caster_choice", "not_applicable"]).optional(),
+  notes: z.string().optional(),
+});
+
+const TargetSpecialIdentity = z.object({
+  corpseOrRemains: z.enum(["required", "not_applicable"]).optional(),
+  reactionTriggeringCreature: z.enum(["required", "not_applicable"]).optional(),
+  summonedByCaster: z.enum(["required", "not_applicable"]).optional(),
+  notes: z.string().optional(),
+});
+
 export const TargetConditionFilter = z.object({
   // Target willingness is a targeting gate, not a target category. Keeping it
   // here lets willing-creature spells stay `creatures` while still preserving
   // the consent requirement for runtime targeting and later UI prompts.
   willing: TargetWillingness,
   objectEligibility: TargetObjectEligibility,
+  placementEligibility: TargetPlacementEligibility.optional(),
+  specialIdentity: TargetSpecialIdentity.optional(),
   communicationPrerequisites: TargetCommunicationPrerequisites,
   abilityThreshold: TargetAbilityThreshold,
   selfRelation: TargetSelfRelation,

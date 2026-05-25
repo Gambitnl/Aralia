@@ -78,7 +78,10 @@
         "operator": "not_applicable",
         "value": "not_applicable"
       },
-      "selfRelation": "not_applicable"
+      "selfRelation": "not_applicable",
+      "specialIdentity": {
+        "corpseOrRemains": "required"
+      }
     }
   },
   "effects": [
@@ -126,7 +129,10 @@
             "operator": "not_applicable",
             "value": "not_applicable"
           },
-          "selfRelation": "not_applicable"
+          "selfRelation": "not_applicable",
+          "specialIdentity": {
+            "corpseOrRemains": "required"
+          }
         },
         "requiresStatus": [],
         "saveModifiers": [],

@@ -79,7 +79,10 @@
         "operator": "not_applicable",
         "value": "not_applicable"
       },
-      "selfRelation": "not_applicable"
+      "selfRelation": "not_applicable",
+      "specialIdentity": {
+        "reactionTriggeringCreature": "required"
+      }
     }
   },
   "effects": [
@@ -129,7 +132,10 @@
             "operator": "not_applicable",
             "value": "not_applicable"
           },
-          "selfRelation": "not_applicable"
+          "selfRelation": "not_applicable",
+          "specialIdentity": {
+            "reactionTriggeringCreature": "required"
+          }
         },
         "requiresStatus": [],
         "saveModifiers": [],
