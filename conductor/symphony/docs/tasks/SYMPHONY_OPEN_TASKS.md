@@ -200,8 +200,8 @@ the audit, or in the proving-ground tracker with the next proof target.
   and keeping the scoped Jules implementation files.
 
 ### 8. Active Workflow Gap: Package Packet Shortcut Drift
-- **Status**: observed during Package 12 dispatch prep; immediate repair in
-  progress.
+- **Status**: immediate Package 12 repair landed through PR #1079; broader
+  registry-derived shortcut repair remains open.
 - **Observed failure mode**: after the Package 12 task packet landed on
   `master`, the visible dashboard still offered only Package 6, Package 10, and
   Package 11 packet buttons. The manual draft form existed, but the known
@@ -212,16 +212,45 @@ the audit, or in the proving-ground tracker with the next proof target.
   local draft before Codex launches Jules. If the visible control is missing,
   repair the dashboard control or record the blocker; do not silently create the
   draft through a hidden endpoint.
-- **Immediate Package 12 repair**: add a visible `Create Package 12 Draft`
-  button wired to the committed Package 12 task and prompt, and extend
+- **Immediate Package 12 repair**: PR #1079 added a visible
+  `Create Package 12 Draft` button wired to the committed Package 12 task and
+  prompt, and extended
   `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs` so the
   packet shortcut cannot silently fall behind the tracker again for this
-  package.
+  package. Codex then used the visible path to create draft
+  `draft-1779743756459-8uvr0z`, Linear `ARA-21`, handoff
+  `handoff-1779744252464-e065rv`, and Jules session `3991627368289943007`.
 - **Future repair target**: replace the hardcoded packet-button list with a
   small package registry or metadata-derived list, so each new package packet
   becomes visible without another dashboard source edit. Preserve the current
   explicit-button behavior until that registry exists; it is still safer than
   hidden endpoint use during the active proving-ground.
+
+### 9. Active Workflow Gap: Low-Value Jules Package Sizing
+- **Status**: observed during Package 12 plan approval; operating rule added,
+  durable repair still needed in future packet/scoping templates.
+- **Observed failure mode**: the Package 12 visible Jules plan proposed a small
+  three-spell implementation and named `src/commands/effects/UtilityCommand.ts`
+  outside the declared expected write scope. Approving that plan would pay the
+  full Symphony/Linear/Jules/GitHub overhead for a low-yield slice while also
+  allowing a scope expansion without an explicit file-scope reason.
+- **Operating rule**: before approving a Jules plan, compare the proposed
+  implementation value with the orchestration cost. If the work is repetitive,
+  testable, and covered by existing schema/test patterns, ask Jules for a
+  larger coherent safe batch instead of approving a tiny representative slice.
+  Keep exclusions explicit: broad terrain, light/vision, summon/control, social
+  AI, trap/glyph, combat HUD, levels 4-9, Symphony runtime, and GitHub workflow
+  edits remain out of scope unless a later package says otherwise.
+- **Latest Package 12 proof**: Codex withheld approval for Jules session
+  `3991627368289943007` and sent a visible revision request asking Jules to
+  classify all cantrip/level 1-3 `conditional_ending` candidates that fit
+  existing schema/test patterns, implement the largest coherent safe subset,
+  justify any unavoidable file outside the original write scope, and list
+  deferred rows with reasons.
+- **Future repair target**: update package templates so they include a minimum
+  package-value check, an explicit candidate-classification step, and a rule
+  that plans naming files outside expected scope must justify why the file is
+  necessary before approval.
 
 ---
 
