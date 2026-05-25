@@ -638,7 +638,7 @@ export interface StatusConditionEffect extends BaseEffect {
  */
 export interface AttackRollModifierEffect extends BaseEffect {
   type: "ATTACK_ROLL_MODIFIER";
-  attackRollModifier: {
+    attackRollModifier?: {
     /** Advantage/disadvantage or a numeric/dice shift to the attack roll. */
     modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
     /** Incoming modifies attacks against the affected creature; outgoing modifies attacks the affected creature makes. */
@@ -655,6 +655,22 @@ export interface AttackRollModifierEffect extends BaseEffect {
     value?: number;
     /** Optional attacker filter for rider families that only affect certain creature types. */
     attackerFilter?: TargetConditionFilter;
+    /** Human-readable caveats that the current combat filter model cannot express yet. */
+    notes?: string;
+  };
+  savingThrowModifier?: {
+    /** Advantage/disadvantage or a numeric/dice shift to the saving throw. */
+    modifier: "advantage" | "disadvantage" | "bonus" | "penalty";
+    /** Whether the rider is consumed by one save or remains for the whole active duration. */
+    consumption: "next_save" | "while_active";
+    /** How long the rider can be read by combat before it expires. */
+    duration: EffectDuration;
+    /** Optional dice amount for bonus/penalty riders such as Bane. */
+    dice?: string;
+    /** Optional flat amount for bonus/penalty riders. */
+    value?: number;
+    /** Optional requirement for a specific ability score (e.g. Dexterity). */
+    ability?: SavingThrowAbility;
     /** Human-readable caveats that the current combat filter model cannot express yet. */
     notes?: string;
   };

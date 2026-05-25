@@ -185,6 +185,57 @@ export class WeaponAttackCommand implements SpellCommand {
         }
       }
 
+
+      // --- Active Effect Riders (e.g. Bless, Bane) ---
+      let attackRiderDiceTotal = 0;
+      let attackRiderFlatTotal = 0;
+      const attackRiderSources: string[] = [];
+
+      const weaponType = (this.ability.range || 5) <= 5 ? 'melee_weapon' : 'ranged_weapon';
+      // But wait, Ability has 'attack' type, what about spells?
+      // Actually, `this.ability` in WeaponAttackCommand is an Ability.
+      // isMagical indicates spell attack maybe? For now just 'weapon' vs 'spell'.
+      // If it's AbilityCommandFactory it's generally weapons, but it could be spell.
+      const resolvedAttackKind = this.ability.isMagical ? 'spell' : weaponType;
+
+      const processAttackRider = (activeEffect: ActiveEffect, direction: 'incoming' | 'outgoing') => {
+        if (!activeEffect.mechanics || activeEffect.mechanics.attackRollDirection !== direction) return;
+
+        const kind = activeEffect.mechanics.attackRollKind;
+        if (kind && kind !== 'any' && kind !== 'weapon' && kind !== resolvedAttackKind) {
+           // 'weapon' matches 'melee_weapon' or 'ranged_weapon'
+           if (kind === 'weapon' && (resolvedAttackKind === 'melee_weapon' || resolvedAttackKind === 'ranged_weapon')) {
+              // matches
+           } else {
+              return;
+           }
+        }
+
+        const mod = activeEffect.mechanics.attackRollModifier;
+        if (mod === 'advantage') hasAdvantage = true;
+        if (mod === 'disadvantage') hasDisadvantage = true;
+
+        if (mod === 'bonus' || mod === 'penalty') {
+          const diceStr = activeEffect.mechanics.attackRollDice;
+          if (diceStr) {
+             const val = rollDice(diceStr);
+             const signedVal = mod === 'bonus' ? val : -val;
+             attackRiderDiceTotal += signedVal;
+             attackRiderSources.push(`${signedVal >= 0 ? '+' : ''}${signedVal} [${activeEffect.sourceName}]`);
+          }
+          const flat = activeEffect.mechanics.attackRollValue;
+          if (typeof flat === 'number') {
+             const signedFlat = mod === 'bonus' ? flat : -flat;
+             attackRiderFlatTotal += signedFlat;
+             attackRiderSources.push(`${signedFlat >= 0 ? '+' : ''}${signedFlat} [${activeEffect.sourceName}]`);
+          }
+        }
+      };
+
+      this.caster.activeEffects?.forEach(eff => processAttackRider(eff, 'outgoing'));
+      currentTarget.activeEffects?.forEach(eff => processAttackRider(eff, 'incoming'));
+
+
       let d20 = rollDice('1d20');
       let rollStr = `Rolled ${d20}`;
 
@@ -214,6 +265,11 @@ export class WeaponAttackCommand implements SpellCommand {
         const pb = Math.ceil((this.caster.level || 1) / 4) + 1;
         const proficiencyBonus = this.ability.isProficient ? pb : 0;
         modifiers = abilityMod + proficiencyBonus;
+      }
+
+      modifiers += attackRiderDiceTotal + attackRiderFlatTotal;
+      if (attackRiderSources.length > 0) {
+        rollStr += ` (Mods: ${attackRiderSources.join(', ')})`;
       }
 
       // Calculate Cover

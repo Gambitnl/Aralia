@@ -150,31 +150,45 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
       throw new Error('AttackRollModifierCommand received the wrong effect type');
     }
 
-    const modifier = this.effect.attackRollModifier;
+    const attackMod = this.effect.attackRollModifier;
+    const saveMod = this.effect.savingThrowModifier;
+
+    // Determine type by looking at either attackMod or saveMod
+    const modValue = attackMod?.modifier || saveMod?.modifier;
+    const effectType = modValue === 'advantage' || modValue === 'bonus' ? 'buff' : 'debuff';
+
+    // Determine duration by preferring attack duration or falling back to save duration
+    const duration = attackMod?.duration || saveMod?.duration || { type: 'rounds', value: 1 };
+
     return {
-      id: `attack_roll_${this.context.spellId}_${targetId}_${Date.now()}`,
+      id: `roll_mod_${this.context.spellId}_${targetId}_${Date.now()}`,
       spellId: this.context.spellId,
       casterId: this.context.caster.id,
       sourceName: this.context.spellName,
-      type: modifier.modifier === 'advantage' || modifier.modifier === 'bonus' ? 'buff' : 'debuff',
-      duration: modifier.duration,
+      type: effectType,
+      duration: duration,
       startTime: currentTurn,
       mechanics: {
-        attackRollDirection: modifier.direction,
-        attackRollModifier: modifier.modifier,
-        attackRollKind: modifier.attackKind,
-        attackRollConsumption: modifier.consumption,
-        attackRollValue: modifier.value,
-        attackRollDice: modifier.dice,
-        attackerFilter: modifier.attackerFilter,
+        ...(attackMod ? {
+          attackRollDirection: attackMod.direction,
+          attackRollModifier: attackMod.modifier,
+          attackRollKind: attackMod.attackKind,
+          attackRollConsumption: attackMod.consumption,
+          attackRollValue: attackMod.value,
+          attackRollDice: attackMod.dice,
+          attackerFilter: attackMod.attackerFilter,
+        } : {}),
+        ...(saveMod ? {
+          savingThrowModifier: saveMod.modifier,
+          savingThrowConsumption: saveMod.consumption,
+          savingThrowValue: saveMod.value,
+          savingThrowDice: saveMod.dice,
+          savingThrowAbility: saveMod.ability,
+        } : {})
       }
     };
   }
 
-  /**
-   * Replace any earlier copy of the same rider so re-casting the spell refreshes
-   * the effect instead of stacking duplicates.
-   */
   private applyAttackRollActiveEffect(state: CombatState, targetId: string, effect: ActiveEffect): CombatState {
     const target = state.characters.find(c => c.id === targetId);
     if (!target) return state;
@@ -183,10 +197,7 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
     const filtered = existing.filter(active =>
       !(
         active.spellId === effect.spellId &&
-        active.sourceName === effect.sourceName &&
-        active.mechanics?.attackRollDirection === effect.mechanics?.attackRollDirection &&
-        active.mechanics?.attackRollModifier === effect.mechanics?.attackRollModifier &&
-        active.mechanics?.attackRollConsumption === effect.mechanics?.attackRollConsumption
+        active.sourceName === effect.sourceName
       )
     );
 
@@ -200,36 +211,52 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
     };
   }
 
-  /**
-   * Turn the rider into a short plain-English sentence for the combat log.
-   * This keeps the log useful without forcing readers to decode the internal
-   * data structure.
-   */
   private describeRider(): string {
     if (!isAttackRollModifierEffect(this.effect)) {
-      return 'an attack-roll rider';
+      return 'a roll rider';
     }
 
-    const rider = this.effect.attackRollModifier;
-    const direction = rider.direction === 'incoming'
-      ? 'attacks against this creature'
-      : "this creature's attacks";
-    const kind = rider.attackKind === 'any'
-      ? 'attacks'
-      : rider.attackKind.replace('_', ' ') + ' attacks';
-    const timing = rider.consumption === 'while_active'
-      ? 'for the spell\'s duration'
-      : rider.consumption === 'first_attack'
-        ? 'on the first matching attack'
-        : 'on the next matching attack';
+    const attackMod = this.effect.attackRollModifier;
+    const saveMod = this.effect.savingThrowModifier;
 
-    if (rider.modifier === 'bonus' || rider.modifier === 'penalty') {
-      const amount = rider.dice || (typeof rider.value === 'number' ? `${rider.value}` : '');
-      const prefix = rider.modifier === 'bonus' ? 'bonus' : 'penalty';
-      return `${prefix} to ${direction} (${kind}, ${timing}${amount ? `, ${amount}` : ''})`;
+    const parts: string[] = [];
+
+    if (attackMod) {
+      const direction = attackMod.direction === 'incoming'
+        ? 'attacks against this creature'
+        : "this creature's attacks";
+      const kind = attackMod.attackKind === 'any'
+        ? 'attacks'
+        : attackMod.attackKind.replace('_', ' ') + ' attacks';
+      const timing = attackMod.consumption === 'while_active'
+        ? 'for the spell\'s duration'
+        : attackMod.consumption === 'first_attack'
+          ? 'on the first matching attack'
+          : 'on the next matching attack';
+
+      if (attackMod.modifier === 'bonus' || attackMod.modifier === 'penalty') {
+        const amount = attackMod.dice || (typeof attackMod.value === 'number' ? `${attackMod.value}` : '');
+        const prefix = attackMod.modifier === 'bonus' ? 'bonus' : 'penalty';
+        parts.push(`${prefix} to ${direction} (${kind}, ${timing}${amount ? `, ${amount}` : ''})`);
+      } else {
+        parts.push(`${attackMod.modifier} to ${direction} (${kind}, ${timing})`);
+      }
     }
 
-    return `${rider.modifier} to ${direction} (${kind}, ${timing})`;
+    if (saveMod) {
+      const timing = saveMod.consumption === 'while_active'
+        ? 'for the spell\'s duration'
+        : 'on the next saving throw';
+      if (saveMod.modifier === 'bonus' || saveMod.modifier === 'penalty') {
+         const amount = saveMod.dice || (typeof saveMod.value === 'number' ? `${saveMod.value}` : '');
+         const prefix = saveMod.modifier === 'bonus' ? 'bonus' : 'penalty';
+         parts.push(`${prefix} to saving throws (${timing}${amount ? `, ${amount}` : ''})`);
+      } else {
+         parts.push(`${saveMod.modifier} to saving throws (${timing})`);
+      }
+    }
+
+    return parts.join(' and ') || 'a roll rider';
   }
 
   get description(): string {
