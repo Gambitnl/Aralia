@@ -1216,6 +1216,7 @@ export function buildPullRequestNextAction(input: {
   isDraft: boolean | null;
   mergeable: string | null;
   updatedAt?: string | null;
+  latestCommitAt?: string | null;
   checks: PullRequestCheckSummary | null;
   files: Pick<PullRequestFileSummary, 'risk' | 'riskReasons' | 'outOfScopeFiles'> | null;
   feedback?: Pick<PullRequestFeedbackSummary, 'julesFeedback'> | null;
@@ -1270,14 +1271,17 @@ export function buildPullRequestNextAction(input: {
   }
 
   // Marked Jules feedback is the visible proof that the operator already chose
-  // the external repair lane. A PR update after that comment means Jules may
-  // have responded; without that update, the safe next action is to wait and
-  // refresh rather than presenting another duplicate feedback command.
+  // the external repair lane. GitHub's broad PR updatedAt timestamp changes for
+  // comments, checks, and review noise, so a later timestamp alone cannot prove
+  // Jules pushed code. Use the latest PR commit time when GitHub provides it;
+  // fall back to updatedAt only for older receipts that do not include commits.
   const latestJulesFeedbackAt = latestTimestamp(input.feedback?.julesFeedback.map(comment => comment.createdAt) ?? []);
   const pullRequestUpdatedAt = parseTimestamp(input.updatedAt);
+  const latestCommitAt = parseTimestamp(input.latestCommitAt);
+  const repairComparisonAt = latestCommitAt ?? pullRequestUpdatedAt;
   const postFeedbackRepairWindowMs = 60_000;
   const hasJulesFeedbackWaitingForRepair = latestJulesFeedbackAt !== null
-    && (pullRequestUpdatedAt === null || pullRequestUpdatedAt <= latestJulesFeedbackAt + postFeedbackRepairWindowMs);
+    && (repairComparisonAt === null || repairComparisonAt <= latestJulesFeedbackAt + postFeedbackRepairWindowMs);
 
   if (input.checks?.conclusion === 'failing') {
     const primaryBlocker = input.checks.blockers?.[0] ?? null;
@@ -3197,6 +3201,10 @@ interface GitHubPullRequestView {
   comments?: Array<GitHubPullRequestComment>;
   reviews?: Array<GitHubPullRequestReview>;
   latestReviews?: Array<GitHubPullRequestReview>;
+  commits?: Array<{
+    committedDate?: string;
+    authoredDate?: string;
+  }>;
   statusCheckRollup?: Array<{
     name?: string;
     status?: string;
@@ -4248,7 +4256,7 @@ export class TaskIntakeStore {
           'view',
           prUrl,
           '--json',
-          'number,state,isDraft,mergeable,reviewDecision,headRefName,baseRefName,url,updatedAt,additions,deletions,changedFiles,files,comments,reviews,latestReviews,statusCheckRollup',
+          'number,state,isDraft,mergeable,reviewDecision,headRefName,baseRefName,url,updatedAt,additions,deletions,changedFiles,files,comments,reviews,latestReviews,commits,statusCheckRollup',
         ],
         {
           cwd: this.repoRoot,
@@ -4260,11 +4268,15 @@ export class TaskIntakeStore {
       const pullRequestChecks = summarizePullRequestChecks(pr.statusCheckRollup);
       const pullRequestFiles = summarizePullRequestFiles(pr, handoff.expectedFiles ?? []);
       const pullRequestFeedback = summarizePullRequestFeedback(pr);
+      const latestPullRequestCommitAt = latestTimestamp(
+        pr.commits?.map(commit => commit.committedDate ?? commit.authoredDate ?? null) ?? [],
+      );
       const pullRequestNextAction = buildPullRequestNextAction({
         state: pr.state ?? null,
         isDraft: typeof pr.isDraft === 'boolean' ? pr.isDraft : null,
         mergeable: pr.mergeable ?? null,
         updatedAt: pr.updatedAt ?? null,
+        latestCommitAt: latestPullRequestCommitAt ? new Date(latestPullRequestCommitAt).toISOString() : null,
         checks: pullRequestChecks,
         files: pullRequestFiles,
         feedback: pullRequestFeedback,
