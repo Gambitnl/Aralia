@@ -90,6 +90,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   branch-update method: visible Jules message, `[Jules feedback]` PR comment,
   foreman PR-branch repair/rebase after PR creation, or replacement handoff from
   current `origin/master`.
+- **Decision logging rule**: if the desired action is to wait because Jules is
+  believed to be preparing a repair commit, record that as an explicit
+  `wait_for_jules_repair_commit` decision with the observed PR head, the visible
+  Jules state, and the next recheck condition. Do not let an unstated "wait"
+  become the hidden default.
 - **Implementation target**: Symphony should surface session base commit versus
   current `origin/master`, warn when base drift appears, and guide the foreman to
   the explicit update channels instead of treating the tracker merge as Jules
