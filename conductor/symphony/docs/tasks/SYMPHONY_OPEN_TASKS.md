@@ -156,11 +156,17 @@ the audit, or in the proving-ground tracker with the next proof target.
 - **Latest Package 11 proof**: Codex posted bounded repair feedback on PR #1072
   at `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536811401`.
   Local review found `validate:spells`, Atlas audit, and focused Vitest passed,
-  but `npx tsc --noEmit --pretty false` failed in the new test file.
+  but `npx tsc --noEmit --pretty false` failed in the new test file. A later
+  GitHub recheck still showed PR head `bc1d6bfa5b9282b4f9a6081e16cf00fe05a9935a`
+  and the same file-list issues, while the visible Jules page showed "I have
+  received the PR comments and am processing them." That keeps this in
+  `wait_for_jules_repair_commit`, not local takeover and not a blocked-goal
+  filing.
 - **Next repair target**: wait for Jules to push a scoped repair head that
   removes `.jules/worklogs/worklog_scribe.md`, preserves current `master`
   Symphony docs, fixes the TypeScript test errors, and keeps Package 11 tracker
-  wording in review-pending state until foreman acceptance.
+  wording in review-pending state until foreman acceptance. Recheck GitHub for a
+  new PR head, and visually recheck Jules if the head remains unchanged.
 
 ---
 
