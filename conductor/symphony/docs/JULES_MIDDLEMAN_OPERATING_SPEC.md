@@ -170,6 +170,14 @@ until one of these update paths is recorded:
 | PR review finding on Jules branch | Only if Jules reads the PR comment/session | Post bounded `[Jules feedback]`, confirm visible Jules acknowledgement when possible, and wait for a new PR head before accepting. |
 | Out-of-scope/stale-base PR file list | No | Request Jules rebase/scope repair first; if repeated repair fails, use a foreman PR-branch repair/rebase or replacement handoff and record the decision. |
 
+When GitHub still shows the same PR head after repair feedback, do a visible
+Jules-page check before calling the work blocked. If Jules visibly says it has
+received the comments or is processing the repair, the valid next action is a
+recorded `wait_for_jules_repair_commit` state with the current PR head, visible
+Jules state, and next recheck condition. If Jules shows failure, no activity
+after repeated waits, or a completed no-PR state, record the different decision
+gate explicitly before choosing another repair path.
+
 The dashboard should make this boundary visible whenever a handoff has both a
 Jules launch receipt and newer tracker/GitHub evidence. The next action should
 name the valid choice, such as `Wait for Jules repair commit`,

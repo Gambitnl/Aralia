@@ -4625,3 +4625,38 @@ Copy this block for each decision.
 - Next expected proof: new PR #1072 head with scoped file list, clean
   mergeability, passing `validate:spells`, Atlas audit, focused Vitest, and
   `npx tsc --noEmit --pretty false`.
+
+### Decision 109: Wait For Package 11 Jules Repair After Visible Processing Signal
+
+- Date/time: 2026-05-25 22:00 +02:00
+- Phase: `package_11_pr_repair_wait`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: After the bounded repair request, GitHub still showed PR
+  #1072 at the same head and with the same unacceptable file-list issues, but
+  the visible Jules page showed that Jules had received the comments and was
+  processing them.
+- Options considered:
+  - Treat the unchanged PR head as an immediate blocker.
+  - Take over the branch locally before Jules has had time to push a repair.
+  - Keep the task in an explicit `wait_for_jules_repair_commit` state and
+    recheck for a new head.
+- Decision made by agent: Wait for Jules repair and record the wait as an
+  explicit decision, not as an unstated default.
+- Model routing: Jules remains the implementation/repair worker. Codex remains
+  the foreman reviewer, visible-state monitor, and tracker/doc recorder.
+- Rationale/evidence:
+  - GitHub still reports PR #1072 head
+    `bc1d6bfa5b9282b4f9a6081e16cf00fe05a9935a`.
+  - The PR still includes `.jules/worklogs/worklog_scribe.md` and has not yet
+    shown the requested scoped repair.
+  - The visible Jules page for session `13361122470730968094` says "I have
+    received the PR comments and am processing them."
+- Mutation performed or skipped: Skipped local takeover, merge, and blocked-goal
+  filing. Recorded the wait state in the tracker and Symphony open-task queue.
+- Scope guardrails: Waiting does not approve the current PR head. Acceptance
+  still requires a new scoped head, current-master branch hygiene, TypeScript
+  repair, and the Package 11 verification gates.
+- Result: Package 11 remains waiting on a Jules repair commit.
+- Next expected proof: a new PR #1072 head or a later visible Jules state that
+  justifies another explicit decision gate.
