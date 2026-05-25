@@ -176,6 +176,13 @@ the audit, or in the proving-ground tracker with the next proof target.
   Package 11 decisions and wait-state docs from PR #1074. Codex posted a second
   bounded repair request at
   `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536944637`.
+- **Latest wait-state proof**: after PR #1075 merged, PR #1072 still showed
+  head `19738e8cf512c6058dffa196de318d8b65bdd15d`, remained dirty, and still
+  listed `.jules/worklogs/worklog_scribe.md`. Codex posted explicit `@jules`
+  branch-hygiene nudge
+  `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536996291`, which
+  GitHub shows Jules has seen. Next action is wait for a new PR head, then
+  re-review branch hygiene and rerun the Package 11 gates.
 
 ---
 

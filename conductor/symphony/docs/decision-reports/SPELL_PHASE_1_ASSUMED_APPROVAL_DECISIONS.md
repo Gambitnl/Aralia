@@ -4699,3 +4699,39 @@ Copy this block for each decision.
 - Next expected proof: a new PR #1072 head with no `.jules` worklog addition, no
   current-master doc rewinds, and the same passing Package 11 verification
   gates.
+
+### Decision 111: Send Explicit Package 11 Branch-Hygiene Nudge
+
+- Date/time: 2026-05-25 22:21 +02:00
+- Phase: `package_11_pr_repair_wait`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: After PR #1075 merged the second repair decision to `master`,
+  PR #1072 still had the same repaired-test head
+  `19738e8cf512c6058dffa196de318d8b65bdd15d`, still listed
+  `.jules/worklogs/worklog_scribe.md`, and still had stale branch hygiene
+  against current `master`.
+- Options considered:
+  - Take over the branch immediately because only branch hygiene remains.
+  - Wait silently for Jules after the second repair request.
+  - Send an explicit `@jules` nudge that names the branch-hygiene repair and
+    keeps Jules as the repair owner for this loop.
+- Decision made by agent: Send the explicit `@jules` nudge at
+  `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536996291`.
+- Model routing: Jules remains repair owner; Codex remains foreman monitor and
+  reviewer.
+- Rationale/evidence:
+  - The product/test slice now passes local verification, so the remaining
+    issue is current-master branch hygiene, not new mechanics.
+  - The earlier branch-hygiene request had not produced a new PR head.
+  - Addressing Jules explicitly keeps the repair in the intended Jules lane
+    before any foreman PR-branch repair is considered.
+- Mutation performed or skipped: Posted an explicit PR comment. Skipped merge
+  and skipped local branch takeover.
+- Scope guardrails: The nudge asks only for current `origin/master` preservation,
+  removal of the Package 11 worklog addition, and preservation of the
+  now-passing Package 11 product/test slice.
+- Result: GitHub shows Jules has seen the explicit nudge. Package 11 remains in
+  `wait_for_jules_repair_commit`.
+- Next expected proof: a new PR #1072 head, or a later visible Jules/GitHub state
+  that justifies stale-attempt filing or bounded foreman branch-hygiene repair.
