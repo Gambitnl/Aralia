@@ -4735,3 +4735,57 @@ Copy this block for each decision.
   `wait_for_jules_repair_commit`.
 - Next expected proof: a new PR #1072 head, or a later visible Jules/GitHub state
   that justifies stale-attempt filing or bounded foreman branch-hygiene repair.
+
+### Decision 112: Perform Bounded Package 11 Branch-Hygiene Repair And Merge
+
+- Date/time: 2026-05-25 22:45 +02:00
+- Phase: `package_11_pr_branch_hygiene_closeout`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules pushed PR #1072 head
+  `907b210816ca7c7fffaa6928561e69f6d041c6d5` after the explicit `@jules`
+  nudge, but the branch still rewound current Symphony/tracker docs. The useful
+  product/test slice was already locally verified.
+- Options considered:
+  - Keep waiting for another Jules repair after the explicit nudge.
+  - Ask Jules again with another branch-hygiene-only repair comment.
+  - Perform a bounded foreman branch-hygiene repair from current `origin/master`
+    while preserving only the scoped Package 11 product/test files.
+- Decision made by agent: Perform the bounded foreman branch-hygiene repair,
+  push it to PR #1072 with lease, and merge after local gates and GitHub checks
+  passed.
+- Model routing: Jules remained implementation author for the product slice.
+  Codex performed only foreman branch hygiene, verification, and merge closeout.
+- Rationale/evidence:
+  - Jules had already received two bounded repair requests and one explicit
+    addressed nudge.
+  - The latest Jules head still rewound current durable docs, so another silent
+    wait would preserve a stale branch state.
+  - The repair did not invent or widen product mechanics; it copied only seven
+    product/test files onto current `origin/master`.
+  - Local verification passed `npm run validate:spells`,
+    `node scripts\auditAtlasBuckets.mjs`, focused `StatusConditionCommand` /
+    `SpellCommandFactoryStatus` Vitest, `npx tsc --noEmit --pretty false`, and
+    `git diff --cached --check`.
+  - GitHub checks passed Build, Lint, Tests, Quality, Poison, Analyze, and
+    CodeQL on the clean head.
+- Mutation performed or skipped: Created clean branch state from current
+  `origin/master`, preserved only `public/data/spells/level-1/command.json`,
+  `public/data/spells/level-2/lesser-restoration.json`,
+  `src/commands/effects/StatusConditionCommand.ts`,
+  `src/commands/effects/__tests__/StatusConditionCommand.test.ts`,
+  `src/commands/factory/SpellCommandFactory.ts`,
+  `src/commands/factory/__tests__/SpellCommandFactoryStatus.test.ts`, and
+  `src/types/spells.ts`; committed
+  `e974ae3ada4df16ebb62ab4fd6054374ae666a2d`; force-pushed with lease to the
+  Jules PR branch; merged PR #1072 as
+  `d5dfd3f1fafca0e7ab74460ed8ebbb425de25b57`. Skipped committing raw `.jules`
+  worklog state and skipped stale Symphony/tracker doc rewinds.
+- Scope guardrails: No new mechanics beyond Package 11, no levels 4-9, no
+  combat HUD/rider-icon work, no broad AI arbitration policy changes, and no
+  Symphony runtime/source churn.
+- Result: Package 11 is merged. The remaining action is documentation closeout
+  and selection of the next tracker-defined package boundary.
+- Next expected proof: tracker/open-task docs showing Package 11 closed and
+  pointing future foremen to the branch-hygiene pattern instead of treating this
+  as a blocked Jules state.

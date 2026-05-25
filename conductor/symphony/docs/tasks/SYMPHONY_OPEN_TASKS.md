@@ -143,7 +143,8 @@ the audit, or in the proving-ground tracker with the next proof target.
   draft promotion when a draft already has a promoted handoff.
 
 ### 7. Active Workflow Gap: Jules PR Branch Hygiene After Base Drift
-- **Status**: observed during Package 11 PR #1072; waiting on Jules repair.
+- **Status**: observed and resolved for Package 11 by bounded foreman
+  branch-hygiene repair; keep as an operating pattern for future Jules PRs.
 - **Observed failure mode**: Jules opened PR #1072 with useful Package 11 product
   work, but the branch also included raw `.jules` worklog state and stale-base
   rewinds of current Symphony docs/tracker records that had already landed on
@@ -153,21 +154,16 @@ the audit, or in the proving-ground tracker with the next proof target.
   workflow doc rewinds. Foreman review must compare the PR against current
   `origin/master`, remove or request removal of raw `.jules`/runtime state, and
   preserve current durable tracker and decision records.
-- **Latest Package 11 proof**: Codex posted bounded repair feedback on PR #1072
+- **Package 11 proof**: Codex posted bounded repair feedback on PR #1072
   at `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536811401`.
   Local review found `validate:spells`, Atlas audit, and focused Vitest passed,
   but `npx tsc --noEmit --pretty false` failed in the new test file. A later
   GitHub recheck still showed PR head `bc1d6bfa5b9282b4f9a6081e16cf00fe05a9935a`
   and the same file-list issues, while the visible Jules page showed "I have
-  received the PR comments and am processing them." That keeps this in
-  `wait_for_jules_repair_commit`, not local takeover and not a blocked-goal
-  filing.
-- **Next repair target**: wait for Jules to push a scoped repair head that
-  removes `.jules/worklogs/worklog_scribe.md`, preserves current `master`
-  Symphony docs, fixes the TypeScript test errors, and keeps Package 11 tracker
-  wording in review-pending state until foreman acceptance. Recheck GitHub for a
-  new PR head, and visually recheck Jules if the head remains unchanged.
-- **Latest repair recheck**: Jules pushed PR head
+  received the PR comments and am processing them." That correctly kept the
+  task in `wait_for_jules_repair_commit`, not local takeover and not a
+  blocked-goal filing.
+- **Repair recheck**: Jules pushed PR head
   `19738e8cf512c6058dffa196de318d8b65bdd15d`. Local foreman verification now
   passes `validate:spells`, Atlas audit, focused Vitest, and
   `npx tsc --noEmit --pretty false`. The branch is still not acceptable because
@@ -181,8 +177,27 @@ the audit, or in the proving-ground tracker with the next proof target.
   listed `.jules/worklogs/worklog_scribe.md`. Codex posted explicit `@jules`
   branch-hygiene nudge
   `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536996291`, which
-  GitHub shows Jules has seen. Next action is wait for a new PR head, then
-  re-review branch hygiene and rerun the Package 11 gates.
+  GitHub shows Jules has seen.
+- **Closeout proof**: Jules later pushed head
+  `907b210816ca7c7fffaa6928561e69f6d041c6d5`, but it still rewound current
+  Symphony/tracker docs. Codex performed a bounded foreman branch-hygiene repair
+  from current `origin/master`, preserved only the seven Package 11 product/test
+  files, committed `e974ae3ada4df16ebb62ab4fd6054374ae666a2d`, and force-pushed
+  that clean head with lease to PR #1072. GitHub then showed the PR file list
+  scoped to `command.json`, `lesser-restoration.json`, `StatusConditionCommand`,
+  `SpellCommandFactory`, their focused tests, and `src/types/spells.ts`, with no
+  `.jules` worklog or stale Symphony doc rewinds. Local gates passed
+  `npm run validate:spells`, `node scripts\auditAtlasBuckets.mjs`, focused
+  `StatusConditionCommand` / `SpellCommandFactoryStatus` Vitest,
+  `npx tsc --noEmit --pretty false`, and `git diff --cached --check`; GitHub
+  Build, Lint, Tests, Quality, Poison, Analyze, and CodeQL passed. PR #1072
+  merged on 2026-05-25 as
+  `d5dfd3f1fafca0e7ab74460ed8ebbb425de25b57`.
+- **Future repair target**: if a Jules repair remains stale after explicit
+  feedback and visible/named nudge, bounded foreman branch-hygiene repair is a
+  valid option when the product/test slice is already verified and the repair is
+  limited to preserving current `origin/master`, removing raw runtime artifacts,
+  and keeping the scoped Jules implementation files.
 
 ---
 
