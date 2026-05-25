@@ -13,160 +13,148 @@ export type PhaseBlock = {
 };
 
 export const BUCKET_META: Array<{ bucket: string, tracker: string, kind: string, phase1Gate: string, phase2Gate: string, lastUpdated: string, note?: string }> = [
-  { bucket: 'Classes', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Sub-Classes', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Casting Time', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Range/Area', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Components', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Material Component', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Duration', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Description', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Higher Levels', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'School', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Damage Type', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Attack-Roll Riders', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Conditions', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Summoned Entities', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
-  { bucket: 'Structured Markdown', tracker: 'TBD', kind: 'TBD', phase1Gate: 'done', phase2Gate: 'done', lastUpdated: '2026-05-25' },
+  { bucket: 'Classes', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Sub-Classes', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Casting Time', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Range/Area', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Components', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Material Component', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Duration', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Description', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Higher Levels', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'School', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Damage Type', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Attack-Roll Riders', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Conditions', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Summoned Entities', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
+  { bucket: 'Structured Markdown', tracker: 'docs/tasks/spells/PACKAGE_7_ATLAS_LOCAL_SOURCE_CONTEXT.md', kind: 'historical', phase1Gate: 'unknown', phase2Gate: 'unknown', lastUpdated: '2026-05-25' },
 ];
 
 const CLASSES_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const SUB_CLASSES_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const CASTING_TIME_EXECUTION_CANONICAL_FIRST: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const RANGE_AREA_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const COMPONENTS_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const MATERIAL_COMPONENT_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const DURATION_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const DESCRIPTION_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const HIGHER_LEVELS_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const SCHOOL_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const DAMAGE_TYPE_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const ATTACK_ROLL_RIDERS_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const CONDITIONS_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const SUMMONED_ENTITIES_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
-
 const STRUCTURED_MARKDOWN_EXECUTION: PhaseBlock[] = [
   {
     phase: 'Phase 1',
     steps: [
-      { status: 'done', subbucket: 'init_stub', count: '0 spells', countValue: 0 }
+      { status: 'open', subbucket: 'historical_recovery', count: 'unknown' }
     ]
   }
 ];
 
 const STUB_EXECUTION: PhaseBlock[] = [];
 const EMPTY_BUCKET_EXECUTION: PhaseBlock[] = [];
+
+// Removed orphaned CASTING_TIME_EXECUTION as the canonical-first map is the source of truth
 
 const EXECUTION_BY_BUCKET = {
   'Classes': CLASSES_EXECUTION,
@@ -187,5 +175,5 @@ const EXECUTION_BY_BUCKET = {
 };
 
 export function PreviewSpellDataFlow() {
-  return <div>Spell Data Flow Preview</div>;
+  return <div>Spell Data Flow Preview (Historical)</div>;
 }
