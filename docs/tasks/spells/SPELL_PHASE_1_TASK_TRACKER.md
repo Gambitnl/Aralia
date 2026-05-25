@@ -266,3 +266,5 @@ ignored unless a concise package-facing summary is useful after the run.
   bug: reconcile the two instead of assuming either one is silently correct.
 - Adjacent gaps should stay visible here until they are either promoted,
   rejected, accepted as future work, or linked to a more specific tracker.
+
+| G80 | done | Package 9: Caster Fixture Coverage | Created two level 5 test fixtures (Wizard and Cleric) with `[DEV]` name prefixes and `isTestFixture: true` in the manifest to distinguish them from standard starting premades. Wrote tests ensuring correct stats, spell slots, and expected level 2 and 3 spells. | All validation passed (`validate:spells`, tests). The bounded write scope was strictly adhered to. |

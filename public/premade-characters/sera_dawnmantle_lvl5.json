@@ -1,0 +1,269 @@
+{
+  "id": "premade_sera_dawnmantle_lvl5",
+  "name": "Sera Dawnmantle",
+  "age": 28,
+  "background": "acolyte",
+  "level": 5,
+  "xp": 0,
+  "proficiencyBonus": 3,
+  "race": {
+    "id": "human",
+    "name": "Human",
+    "description": "Found throughout the multiverse, humans are as varied as they are numerous, and they endeavor to achieve as much as they can in the years they are given. Their ambition and resourcefulness are commended, respected, and feared on many worlds.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+      "Speed: 30 feet",
+      "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).",
+      "Skillful: You gain proficiency in one skill of your choice (chosen during character creation).",
+      "Versatile: You gain an Origin feat of your choice."
+    ],
+    "visual": {
+      "id": "human",
+      "color": "#D2B48C",
+      "maleIllustrationPath": "assets/images/races/Human_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Human_Female.png"
+    }
+  },
+  "class": {
+    "id": "cleric",
+    "name": "Cleric",
+    "description": "Warriors of the gods, wielding divine magic.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Wisdom"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "history",
+      "insight",
+      "medicine",
+      "persuasion",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "features": [],
+    "divineOrders": [
+      {
+        "id": "Protector",
+        "name": "Protector",
+        "description": "Trained for battle, you gain proficiency with Martial weapons and Heavy armor."
+      },
+      {
+        "id": "Thaumaturge",
+        "name": "Thaumaturge",
+        "description": "You know one extra cantrip and gain a bonus to Arcana or Religion checks."
+      }
+    ],
+    "spellcasting": {
+      "ability": "Wisdom",
+      "knownCantrips": 3,
+      "knownSpellsL1": 4,
+      "spellList": [
+        "guidance",
+        "light",
+        "mending",
+        "resistance",
+        "sacred-flame",
+        "spare-the-dying",
+        "thaumaturgy",
+        "toll-the-dead",
+        "word-of-radiance",
+        "bane",
+        "bless",
+        "command",
+        "create-or-destroy-water",
+        "cure-wounds",
+        "detect-evil-and-good",
+        "detect-magic",
+        "detect-poison-and-disease",
+        "guiding-bolt",
+        "healing-word",
+        "inflict-wounds",
+        "protection-from-evil-and-good",
+        "purify-food-and-drink",
+        "sanctuary",
+        "shield-of-faith",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Wisdom",
+      "Constitution",
+      "Strength"
+    ],
+    "statRecommendationDetails": "Wisdom is crucial for your spellcasting. Constitution increases your survivability. Strength can be useful if you plan to engage in melee, especially with heavier armor from certain domains.",
+    "recommendedPointBuyPriorities": [
+      "Wisdom",
+      "Constitution",
+      "Strength",
+      "Dexterity",
+      "Charisma",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "cleric": 5
+  },
+  "abilityScores": {
+    "Strength": 12,
+    "Dexterity": 10,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 16,
+    "Charisma": 13
+  },
+  "finalAbilityScores": {
+    "Strength": 12,
+    "Dexterity": 10,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 16,
+    "Charisma": 13
+  },
+  "skills": [
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom",
+      "description": "Reads intent, mood, and hidden motives."
+    },
+    {
+      "id": "medicine",
+      "name": "Medicine",
+      "ability": "Wisdom",
+      "description": "Stabilizes the dying and diagnoses illness."
+    }
+  ],
+  "savingThrowProficiencies": [
+    "Wisdom",
+    "Charisma"
+  ],
+  "feats": [],
+  "hp": 38,
+  "maxHp": 38,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "current": 5,
+      "max": 5
+    }
+  ],
+  "armorClass": 18,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "selectedWeaponMasteries": [],
+  "transportMode": "foot",
+  "equippedItems": {
+    "MainHand": {
+      "id": "mace",
+      "name": "Mace",
+      "type": "weapon",
+      "category": "Simple Melee Weapon",
+      "damageDice": "1d6",
+      "damageType": "bludgeoning",
+      "properties": []
+    },
+    "OffHand": {
+      "id": "shield",
+      "name": "Shield",
+      "type": "armor",
+      "armorCategory": "Shield",
+      "armorClassBonus": 2
+    },
+    "Torso": {
+      "id": "chain_mail",
+      "name": "Chain Mail",
+      "type": "armor",
+      "armorCategory": "Heavy",
+      "baseArmorClass": 16,
+      "stealthDisadvantage": true
+    }
+  },
+  "activeEffects": [],
+  "statusEffects": [],
+  "limitedUses": {},
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1
+  },
+  "selectedDivineOrder": "Protector",
+  "spellcastingAbility": "wisdom",
+  "spellbook": {
+    "cantrips": [
+      "sacred-flame",
+      "guidance",
+      "spare-the-dying"
+    ],
+    "knownSpells": [
+      "bless",
+      "healing-word",
+      "guiding-bolt",
+      "shield-of-faith"
+    ],
+    "preparedSpells": [
+      "bless",
+      "healing-word",
+      "guiding-bolt",
+      "shield-of-faith",
+      "spiritual-weapon",
+      "lesser-restoration",
+      "hold-person",
+      "spirit-guardians",
+      "revivify",
+      "mass-healing-word"
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 4,
+      "max": 4
+    },
+    "level_2": {
+      "current": 3,
+      "max": 3
+    },
+    "level_3": {
+      "current": 2,
+      "max": 2
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "visualDescription": "A calm human cleric in travel-worn mail, carrying a sun-marked shield and a satchel of field medicines."
+}

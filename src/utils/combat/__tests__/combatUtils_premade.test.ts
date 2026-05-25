@@ -58,3 +58,46 @@ describe('combatUtils: createPlayerCombatCharacter premade loadout', () => {
     expect(attackAbility?.range).toBe(30);
   });
 });
+
+import fs from 'fs';
+import path from 'path';
+
+describe('combatUtils: dev test fixtures', () => {
+  it('should have level 2 and level 3 spells prepared on the level 5 Wizard fixture', () => {
+    const fixturePath = path.resolve(process.cwd(), 'public/premade-characters/maelis_quill_lvl5.json');
+    const fixtureData = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+
+    expect(fixtureData.level).toBe(5);
+
+    // Check spell slots
+    expect(fixtureData.spellSlots.level_1.max).toBe(4);
+    expect(fixtureData.spellSlots.level_2.max).toBe(3);
+    expect(fixtureData.spellSlots.level_3.max).toBe(2);
+
+    // Check prepared spells include a level 2 and 3 spell
+    expect(fixtureData.spellbook.preparedSpells).toContain('misty-step'); // level 2
+    expect(fixtureData.spellbook.preparedSpells).toContain('fireball'); // level 3
+
+    // Ensure they don't have every spell prepared
+    expect(fixtureData.spellbook.preparedSpells.length).toBeLessThan(15);
+  });
+
+  it('should have level 2 and level 3 spells prepared on the level 5 Cleric fixture', () => {
+    const fixturePath = path.resolve(process.cwd(), 'public/premade-characters/sera_dawnmantle_lvl5.json');
+    const fixtureData = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+
+    expect(fixtureData.level).toBe(5);
+
+    // Check spell slots
+    expect(fixtureData.spellSlots.level_1.max).toBe(4);
+    expect(fixtureData.spellSlots.level_2.max).toBe(3);
+    expect(fixtureData.spellSlots.level_3.max).toBe(2);
+
+    // Check prepared spells include a level 2 and 3 spell
+    expect(fixtureData.spellbook.preparedSpells).toContain('spiritual-weapon'); // level 2
+    expect(fixtureData.spellbook.preparedSpells).toContain('spirit-guardians'); // level 3
+
+    // Ensure they don't have every spell prepared
+    expect(fixtureData.spellbook.preparedSpells.length).toBeLessThan(15);
+  });
+});

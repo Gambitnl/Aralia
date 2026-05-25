@@ -46,6 +46,8 @@ export interface PremadeCharacterSummary {
     level: number;
     /** Short flavor description for the picker card */
     description: string;
+    /** Optional flag to designate this character as a developer test fixture rather than a normal starter */
+    isTestFixture?: boolean;
 }
 
 export interface PremadeManifest {
