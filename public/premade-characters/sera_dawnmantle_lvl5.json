@@ -96,7 +96,13 @@
         "purify-food-and-drink",
         "sanctuary",
         "shield-of-faith",
-        "nondetection"
+        "nondetection",
+        "spiritual-weapon",
+        "lesser-restoration",
+        "hold-person",
+        "spirit-guardians",
+        "revivify",
+        "mass-healing-word"
       ]
     },
     "statRecommendationFocus": [
@@ -212,7 +218,13 @@
       "bless",
       "healing-word",
       "guiding-bolt",
-      "shield-of-faith"
+      "shield-of-faith",
+      "spiritual-weapon",
+      "lesser-restoration",
+      "hold-person",
+      "spirit-guardians",
+      "revivify",
+      "mass-healing-word"
     ],
     "preparedSpells": [
       "bless",

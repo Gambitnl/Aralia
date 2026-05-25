@@ -19,7 +19,7 @@ vi.mock('../../character/weaponUtils', () => ({
 
 // We also need to mock createAbilityFromSpell
 vi.mock('../../character/spellAbilityFactory', () => ({
-  createAbilityFromSpell: () => ({ id: 'mock_spell_ability', name: 'Mock Spell' })
+  createAbilityFromSpell: (spell: any) => ({ id: spell.id, name: spell.name })
 }));
 
 
@@ -80,6 +80,22 @@ describe('combatUtils: dev test fixtures', () => {
 
     // Ensure they don't have every spell prepared
     expect(fixtureData.spellbook.preparedSpells.length).toBeLessThan(15);
+
+    // Mock dictionary for createPlayerCombatCharacter
+    const mockSpellDict: Record<string, any> = {
+      'misty-step': { id: 'misty-step', name: 'Misty Step', level: 2 },
+      'fireball': { id: 'fireball', name: 'Fireball', level: 3 }
+    };
+
+    const combatChar = createPlayerCombatCharacter(fixtureData, mockSpellDict);
+
+    // Confirm that the combat character received these spell abilities
+    expect(combatChar.abilities.some(a => a.id === 'misty-step')).toBe(true);
+    expect(combatChar.abilities.some(a => a.id === 'fireball')).toBe(true);
+
+    // Confirm spell slots carried over
+    expect(combatChar.spellSlots?.level_2.max).toBe(3);
+    expect(combatChar.spellSlots?.level_3.max).toBe(2);
   });
 
   it('should have level 2 and level 3 spells prepared on the level 5 Cleric fixture', () => {
@@ -99,5 +115,21 @@ describe('combatUtils: dev test fixtures', () => {
 
     // Ensure they don't have every spell prepared
     expect(fixtureData.spellbook.preparedSpells.length).toBeLessThan(15);
+
+    // Mock dictionary for createPlayerCombatCharacter
+    const mockSpellDict: Record<string, any> = {
+      'spiritual-weapon': { id: 'spiritual-weapon', name: 'Spiritual Weapon', level: 2 },
+      'spirit-guardians': { id: 'spirit-guardians', name: 'Spirit Guardians', level: 3 }
+    };
+
+    const combatChar = createPlayerCombatCharacter(fixtureData, mockSpellDict);
+
+    // Confirm that the combat character received these spell abilities
+    expect(combatChar.abilities.some(a => a.id === 'spiritual-weapon')).toBe(true);
+    expect(combatChar.abilities.some(a => a.id === 'spirit-guardians')).toBe(true);
+
+    // Confirm spell slots carried over
+    expect(combatChar.spellSlots?.level_2.max).toBe(3);
+    expect(combatChar.spellSlots?.level_3.max).toBe(2);
   });
 });

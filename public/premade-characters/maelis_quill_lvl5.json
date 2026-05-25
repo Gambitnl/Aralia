@@ -115,7 +115,15 @@
         "thunderwave",
         "unseen-servant",
         "levitate",
-        "nondetection"
+        "nondetection",
+        "misty-step",
+        "scorching-ray",
+        "web",
+        "shatter",
+        "fireball",
+        "counterspell",
+        "haste",
+        "fly"
       ]
     },
     "statRecommendationFocus": [
