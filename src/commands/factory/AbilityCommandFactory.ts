@@ -198,7 +198,7 @@ export class WeaponAttackCommand implements SpellCommand {
       // If it's AbilityCommandFactory it's generally weapons, but it could be spell.
       const resolvedAttackKind = this.ability.isMagical ? 'spell' : weaponType;
 
-      const processAttackRider = (activeEffect: ActiveEffect, direction: 'incoming' | 'outgoing') => {
+      const processAttackRider = (activeEffect: any, direction: 'incoming' | 'outgoing') => {
         if (!activeEffect.mechanics || activeEffect.mechanics.attackRollDirection !== direction) return;
 
         const kind = activeEffect.mechanics.attackRollKind;

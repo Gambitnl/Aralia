@@ -37,7 +37,7 @@ describe('AbilityCommandFactory', () => {
 
     // Real attacks should still roll through WeaponAttackCommand so hit/miss,
     // cover, riders, and damage command behavior stay centralized.
-    const commands = AbilityCommandFactory.createCommands(attack, attacker, [target], {} as GameState);
+    const commands = AbilityCommandFactory.createCommands(attack, attacker, [target], {} as any);
 
     expect(commands).toHaveLength(1);
     expect(commands[0]).toBeInstanceOf(WeaponAttackCommand);
@@ -58,7 +58,7 @@ describe('AbilityCommandFactory', () => {
 
     // Dash is resolved by useActionExecutor because it changes movement economy
     // for the current turn. Returning no command prevents the old self-attack.
-    const commands = AbilityCommandFactory.createCommands(dash, actor, [actor], {} as GameState);
+    const commands = AbilityCommandFactory.createCommands(dash, actor, [actor], {} as any);
 
     expect(commands).toHaveLength(0);
   });
@@ -79,7 +79,7 @@ describe('AbilityCommandFactory', () => {
     // Non-attack utility effects still use commands when they have a concrete
     // command-side effect. This preserves future class-feature behavior while
     // removing the accidental weapon attack.
-    const commands = AbilityCommandFactory.createCommands(secondWind, actor, [actor], {} as GameState);
+    const commands = AbilityCommandFactory.createCommands(secondWind, actor, [actor], {} as any);
 
     expect(commands).toHaveLength(1);
     expect(commands[0].metadata.effectType).toBe('HEALING');
@@ -125,7 +125,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as unknown as GameState);
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toContain('+ 2 =');
@@ -188,7 +188,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as unknown as GameState);
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     // The base modifier is 4, but with bless it should be > 4
@@ -250,7 +250,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as unknown as GameState);
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toMatch(/Mods: -\d+ \[Bane\]/);
