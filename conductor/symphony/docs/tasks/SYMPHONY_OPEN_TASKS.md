@@ -199,6 +199,30 @@ the audit, or in the proving-ground tracker with the next proof target.
   limited to preserving current `origin/master`, removing raw runtime artifacts,
   and keeping the scoped Jules implementation files.
 
+### 8. Active Workflow Gap: Package Packet Shortcut Drift
+- **Status**: observed during Package 12 dispatch prep; immediate repair in
+  progress.
+- **Observed failure mode**: after the Package 12 task packet landed on
+  `master`, the visible dashboard still offered only Package 6, Package 10, and
+  Package 11 packet buttons. The manual draft form existed, but the known
+  in-app browser long-text-entry path is unreliable in this proving-ground, so a
+  hidden task-draft API call would skip the operator-facing blocker.
+- **Operating rule**: when a committed spell package packet is the next tracker
+  boundary, the dashboard must expose a visible way to create the corresponding
+  local draft before Codex launches Jules. If the visible control is missing,
+  repair the dashboard control or record the blocker; do not silently create the
+  draft through a hidden endpoint.
+- **Immediate Package 12 repair**: add a visible `Create Package 12 Draft`
+  button wired to the committed Package 12 task and prompt, and extend
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs` so the
+  packet shortcut cannot silently fall behind the tracker again for this
+  package.
+- **Future repair target**: replace the hardcoded packet-button list with a
+  small package registry or metadata-derived list, so each new package packet
+  becomes visible without another dashboard source edit. Preserve the current
+  explicit-button behavior until that registry exists; it is still safer than
+  hidden endpoint use during the active proving-ground.
+
 ---
 
 ## Superseded Per-Task Status

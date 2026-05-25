@@ -4831,3 +4831,52 @@ Copy this block for each decision.
 - Next expected proof: PR merge for the Package 12 task/prompt/tracker refresh,
   then visible dashboard draft/Linear/handoff/Jules launch from clean
   `origin/master`.
+
+### Decision 114: Repair Package 12 Visible Draft Shortcut Before Dispatch
+
+- Date/time: 2026-05-25 23:20 +02:00
+- Phase: `package_12_dashboard_dispatch_prep`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: After PR #1078 landed Package 12 task/prompt/tracker prep on
+  `master`, visible dashboard inspection showed the packet shortcut list still
+  stopped at Package 11. Codex needed to decide whether to use the manual form,
+  call the task-draft API directly, repair the visible dashboard button, or stop
+  at a recorded blocker.
+- Options considered:
+  - Use the manual form even though long-form browser text entry has repeatedly
+    been unreliable in this flow.
+  - Create the Package 12 draft through a hidden backend call.
+  - Repair the dashboard so Package 12 has an explicit visible packet button,
+    then continue the normal draft/Linear/handoff/Jules path.
+  - Stop and mark the package blocked on missing UI.
+- Decision made by agent: Repair the visible dashboard shortcut before
+  dispatch, using the same packet-button pattern that Package 11 used.
+- Model routing: Codex owns this Symphony workflow affordance repair and
+  verifier update. Jules remains the intended implementation worker after the
+  Package 12 draft is created, promoted, staged, and launched visibly.
+- Rationale/evidence:
+  - The active goal requires the dashboard/Jules/GitHub path as the operator
+    surface and says not to bypass UI blockers with hidden shortcuts.
+  - The visible dashboard showed Package 6, Package 10, and Package 11 packet
+    buttons, but no Package 12 button.
+  - Package 12 task and prompt are already durable on `master`, so exposing the
+    next package as a visible draft button is a workflow repair, not product
+    implementation.
+- Mutation performed or skipped: Edited
+  `conductor/symphony/public/dashboard.js` to add the Package 12 draft payload,
+  click handler, and button; edited
+  `conductor/symphony/scripts/verify-task-dashboard-navigator.mjs` to assert
+  the Package 12 shortcut exists. Skipped hidden task-draft API creation and
+  skipped Jules launch until the visible button is verified.
+- Scope guardrails: No spell mechanics, no `.jules` or `.symphony` runtime
+  state, no GitHub workflow edits, no levels 4-9, no broad AI arbitration, no
+  combat rider-icon UI, and no Symphony runtime receipt promotion.
+- Result: `node conductor/symphony/scripts/verify-task-dashboard-navigator.mjs`
+  passed, the dashboard visibly showed `Create Package 12 Draft`, and Codex
+  clicked it visibly to create local draft `draft-1779743756459-8uvr0z`.
+  Further dispatch is correctly blocked until this dashboard repair lands and
+  the Git sync gate is clean.
+- Next expected proof: PR/merge for the dashboard shortcut repair, then visible
+  Package 12 draft promotion, Linear issue creation, manifest staging, and
+  Jules launch from clean `origin/master`.
