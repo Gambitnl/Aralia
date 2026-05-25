@@ -13,10 +13,10 @@ Read first:
 Task:
 
 Repair the Spell Pipeline Atlas checkpoint so future Spell Phase 1 packages can
-honestly use it as proof. Current evidence shows a split between the operator's
-dirty main checkout and a clean GitHub checkout:
+honestly use it as proof. Historical evidence showed a split between the
+operator's local ignored Atlas files and a clean GitHub checkout:
 
-- the dirty main checkout has ignored local Atlas files, so
+- the operator's earlier local checkout had ignored Atlas files, so
   `node scripts/auditAtlasBuckets.mjs` can run there;
 - a clean-base worktree from tracked Git history is missing
   `misc/spell_pipeline_atlas.html`, `src/spell-pipeline-atlas.tsx`, and
@@ -24,6 +24,11 @@ dirty main checkout and a clean GitHub checkout:
 - the missing source is currently caused by `.gitignore` boundaries, so Jules
   cannot rely on those local-only files unless this package makes the right
   Atlas surface durable.
+
+The earlier local dirty-checkout blocker has been resolved. Work from current
+clean `master`; do not treat the old dirty-main note as permission to include
+unrelated local migration, BattleMap, glossary, Symphony runtime, or `.jules`
+state.
 
 The ignored local copy also reports one low finding:
 
