@@ -410,8 +410,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const newParty = state.party.map(char => {
                 if (char.id !== characterId) return char;
 
+                // Racial spell grants only exist for a known spell id. Plain slot
+                // casts without a spell id should skip this racial-resource path.
                 const grant = spellId ? getRacialSpellGrantForSpell(char, spellId) : undefined;
-                if (grant) {
+                if (spellId && grant) {
                     if (!isRacialSpellCastLevelAllowed(char, spellId, spellLevel)) {
                         return char;
                     }
@@ -420,7 +422,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                         return char;
                     }
 
-                    if (defaultRacialConsumption && grant.castingMethod !== 'at_will') {
+                    if (defaultRacialConsumption) {
                         const limitedUseId = resolveRacialSpellLimitedUseId(grant.sourceRaceId, spellId);
                         const limitedUse = char.limitedUses?.[limitedUseId];
 

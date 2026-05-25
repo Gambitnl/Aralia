@@ -8,7 +8,7 @@ import blindnessDeafness from '../../../../public/data/spells/level-2/blindness-
 import dragonsBreath from '../../../../public/data/spells/level-2/dragons-breath.json'
 import enlargeReduce from '../../../../public/data/spells/level-2/enlarge-reduce.json'
 import plantGrowth from '../../../../public/data/spells/level-3/plant-growth.json'
-import type { Spell, SpellEffect, DamageEffect, StatusConditionEffect } from '@/types/spells'
+import { SpellSchool, type Spell, type SpellEffect, type DamageEffect, type StatusConditionEffect } from '@/types/spells'
 
 /**
  * This file protects spells that ask the player to choose a mode, effect, or
@@ -68,7 +68,7 @@ describe('SpellCommandFactory - Choice and Mode Integration', () => {
       id: 'chromatic-orb-test',
       name: 'Chromatic Orb Test',
       level: 1,
-      school: 'Evocation',
+      school: SpellSchool.Evocation,
       classes: [],
       subClasses: [],
       tags: [],
@@ -102,7 +102,7 @@ describe('SpellCommandFactory - Choice and Mode Integration', () => {
       id: 'blindness-deafness-test',
       name: 'Blindness/Deafness Test',
       level: 2,
-      school: 'Necromancy',
+      school: SpellSchool.Necromancy,
       classes: [],
       subClasses: [],
       tags: [],
@@ -156,7 +156,7 @@ describe('SpellCommandFactory - Choice and Mode Integration', () => {
       id: 'oob-test',
       name: 'OOB Test',
       level: 1,
-      school: 'Evocation',
+      school: SpellSchool.Evocation,
       classes: [],
       subClasses: [],
       tags: [],

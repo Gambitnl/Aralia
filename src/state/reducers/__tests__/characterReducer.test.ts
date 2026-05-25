@@ -133,6 +133,10 @@ describe('characterReducer', () => {
                 level_3: { current: 1, max: 4 },
                 level_4: { current: 4, max: 4 },
                 level_5: { current: 4, max: 4 },
+                level_6: { current: 0, max: 0 },
+                level_7: { current: 0, max: 0 },
+                level_8: { current: 0, max: 0 },
+                level_9: { current: 0, max: 0 },
             },
         });
         const deepGnome = applyRacialSpellGrantsByLevel(baseCharacter, 5);
