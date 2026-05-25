@@ -4544,3 +4544,42 @@ Copy this block for each decision.
 - Next expected proof: revised bounded Jules plan, or a clear Jules explanation
   that the broader command-base edit is required for the selected status/state
   mechanics.
+
+### Decision 107: Approve Revised Package 11 Jules Plan After Scope Repair
+
+- Date/time: 2026-05-25 21:25 +02:00
+- Phase: `package_11_plan_gate`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules revised the visible plan after Codex withheld approval.
+  The revised plan removed `src/commands/effects/UtilityCommand.ts` and
+  `src/commands/effects/BaseEffectCommand.ts` and kept the work inside the
+  declared Package 11 surface.
+- Options considered:
+  - Keep waiting despite the revised bounded plan.
+  - Ask for another revision even though the specific scope drift was removed.
+  - Approve the revised visible plan and continue monitoring Jules.
+- Decision made by agent: Approve the revised Package 11 Jules plan through the
+  visible Jules page.
+- Model routing: Jules owns implementation-heavy Package 11 work. Codex owns
+  foreman monitoring, PR review, verification, merge readiness, and durable
+  tracker updates.
+- Rationale/evidence:
+  - The revised plan now lists `src/types/spells.ts`, representative level 1/2
+    spell JSON, `StatusConditionCommand`, `SpellCommandFactory`, focused tests,
+    documentation, and verification.
+  - The previously rejected command-base files are no longer listed.
+  - This matches the package packet's expected write scope closely enough to let
+    Jules attempt the implementation.
+- Mutation performed or skipped: Approved the visible Jules plan. Skipped local
+  Package 11 implementation takeover and skipped approving the earlier broader
+  plan.
+- Scope guardrails: Approval covers only this revised Package 11 plan. It does
+  not approve Symphony source edits, combat rider-icon UI, broad AI policy,
+  levels 4-9, premade roster semantics, GitHub workflow changes, or unrelated
+  runtime architecture changes.
+- Result: Jules showed `Plan approved`, `Working`, and began the first listed
+  task: updating `src/types/spells.ts` so option-specific status payloads can be
+  represented.
+- Next expected proof: visible Jules/GitHub monitoring until a PR URL, blocker,
+  or reviewable result appears.
