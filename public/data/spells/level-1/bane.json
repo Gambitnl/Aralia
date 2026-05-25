@@ -87,7 +87,7 @@
   },
   "effects": [
     {
-      "type": "STATUS_CONDITION",
+      "type": "ATTACK_ROLL_MODIFIER",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -138,6 +138,33 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
+      "attackRollModifier": {
+        "modifier": "penalty",
+        "direction": "outgoing",
+        "attackKind": "any",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "dice": "1d4"
+      },
+      "savingThrowModifier": {
+        "modifier": "penalty",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "dice": "1d4"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target",
+        "customFormula": ""
+      },
+      "description": "Subtracts 1d4 from attack rolls and saving throws",
+      "conditionalEndings": [],
       "statusCondition": {
         "name": "Bane",
         "duration": {
@@ -155,14 +182,7 @@
           "successEnds": true,
           "useOriginalDC": true
         }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "+1 target",
-        "customFormula": ""
-      },
-      "description": "",
-      "conditionalEndings": []
+      }
     }
   ],
   "arbitrationType": "mechanical",

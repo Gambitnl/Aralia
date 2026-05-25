@@ -115,7 +115,8 @@
       "recommendedJsonChange": "No choice/mode JSON change needed beyond existing targeting and scaling."
     },
     "bane::attack_or_save_modifier": {
-      "resolutionStatus": "actionable_open",
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by Package 8: added ATTACK_ROLL_MODIFIER effects with attackRollModifier and savingThrowModifier fields, decoupling from status names.",
       "issue": "Bane subtracts 1d4 from attack rolls and saving throws made by failed-save targets, but structured markdown and JSON only apply a generic Bane status; the save outcome was corrected to negates_condition.",
       "recommendedTemplateChange": "Add attack/save penalty fields for affected roll types, dice 1d4, failed-save gate, and duration while concentrated.",
       "recommendedJsonChange": "Add runtime rollModifier data for attack rolls and saving throws instead of relying on status-condition name semantics."
@@ -133,7 +134,8 @@
       "recommendedJsonChange": "No runtime conditional-ending field needed beyond duration/concentration."
     },
     "bless::attack_or_save_modifier": {
-      "resolutionStatus": "actionable_open",
+      "resolutionStatus": "closed",
+      "closedReason": "Closed by Package 8: added ATTACK_ROLL_MODIFIER effects with attackRollModifier and savingThrowModifier fields, decoupling from status names.",
       "issue": "Bless adds 1d4 to attack rolls and saving throws for affected targets, but structured markdown and JSON only apply a generic Blessed status.",
       "recommendedTemplateChange": "Add attack/save bonus fields for affected roll types, dice 1d4, target duration, and concentration scope.",
       "recommendedJsonChange": "Add runtime rollModifier data for attack rolls and saving throws instead of relying on status-condition name semantics."

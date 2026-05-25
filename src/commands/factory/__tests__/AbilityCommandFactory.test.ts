@@ -37,7 +37,7 @@ describe('AbilityCommandFactory', () => {
 
     // Real attacks should still roll through WeaponAttackCommand so hit/miss,
     // cover, riders, and damage command behavior stay centralized.
-    const commands = AbilityCommandFactory.createCommands(attack, attacker, [target], {} as GameState);
+    const commands = AbilityCommandFactory.createCommands(attack, attacker, [target], {} as any);
 
     expect(commands).toHaveLength(1);
     expect(commands[0]).toBeInstanceOf(WeaponAttackCommand);
@@ -58,7 +58,7 @@ describe('AbilityCommandFactory', () => {
 
     // Dash is resolved by useActionExecutor because it changes movement economy
     // for the current turn. Returning no command prevents the old self-attack.
-    const commands = AbilityCommandFactory.createCommands(dash, actor, [actor], {} as GameState);
+    const commands = AbilityCommandFactory.createCommands(dash, actor, [actor], {} as any);
 
     expect(commands).toHaveLength(0);
   });
@@ -79,7 +79,7 @@ describe('AbilityCommandFactory', () => {
     // Non-attack utility effects still use commands when they have a concrete
     // command-side effect. This preserves future class-feature behavior while
     // removing the accidental weapon attack.
-    const commands = AbilityCommandFactory.createCommands(secondWind, actor, [actor], {} as GameState);
+    const commands = AbilityCommandFactory.createCommands(secondWind, actor, [actor], {} as any);
 
     expect(commands).toHaveLength(1);
     expect(commands[0].metadata.effectType).toBe('HEALING');
@@ -129,5 +129,130 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toContain('+ 2 =');
+  });
+});
+
+
+describe('Active Effect Riders (Bless/Bane)', () => {
+  it('consumes a bonus die from an active effect on the attacker', () => {
+    const attacker = createMockCombatCharacter({
+      id: 'attacker',
+      name: 'Attacker',
+      level: 1, // pb = 2
+      stats: { baseInitiative: 0, speed: 30, cr: '0',
+        strength: 14, // +2 mod
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+      },
+      activeEffects: [{
+        id: 'bless_effect',
+        spellId: 'bless',
+        casterId: 'cleric',
+        sourceName: 'Bless',
+        type: 'buff',
+        duration: { type: 'minutes', value: 1 },
+        startTime: 1,
+        mechanics: {
+          attackRollDirection: 'outgoing',
+          attackRollModifier: 'bonus',
+          attackRollConsumption: 'while_active',
+          attackRollKind: 'any',
+          attackRollDice: '1d4' // Using dice, but we will mock rollDice if possible, or just verify 'Mods: ' is in log
+        }
+      }]
+    });
+
+    const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
+
+    const attack: Ability = {
+      id: 'basic_attack',
+      name: 'Basic Attack',
+      description: 'A melee strike.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      isProficient: true, // pb + str = 2 + 2 = +4
+      effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+    };
+
+    const command = new WeaponAttackCommand(attack, attacker, [target], {
+      spellId: attack.id,
+      spellName: attack.name,
+      castAtLevel: 0,
+      caster: attacker,
+      targets: [target],
+      gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
+
+    const logMessage = newState.combatLog[0].message;
+    // The base modifier is 4, but with bless it should be > 4
+    // We expect the log to contain '(Mods: '
+    expect(logMessage).toMatch(/Mods: \+\d+ \[Bless\]/);
+  });
+
+  it('consumes a penalty die from an active effect on the attacker', () => {
+    const attacker = createMockCombatCharacter({
+      id: 'attacker',
+      name: 'Attacker',
+      level: 1, // pb = 2
+      stats: { baseInitiative: 0, speed: 30, cr: '0',
+        strength: 14, // +2 mod
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+      },
+      activeEffects: [{
+        id: 'bane_effect',
+        spellId: 'bane',
+        casterId: 'cleric',
+        sourceName: 'Bane',
+        type: 'debuff',
+        duration: { type: 'minutes', value: 1 },
+        startTime: 1,
+        mechanics: {
+          attackRollDirection: 'outgoing',
+          attackRollModifier: 'penalty',
+          attackRollConsumption: 'while_active',
+          attackRollKind: 'any',
+          attackRollDice: '1d4'
+        }
+      }]
+    });
+
+    const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
+
+    const attack: Ability = {
+      id: 'basic_attack',
+      name: 'Basic Attack',
+      description: 'A melee strike.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      isProficient: true,
+      effects: [{ type: 'damage', value: 4, damageType: 'physical' }]
+    };
+
+    const command = new WeaponAttackCommand(attack, attacker, [target], {
+      spellId: attack.id,
+      spellName: attack.name,
+      castAtLevel: 0,
+      caster: attacker,
+      targets: [target],
+      gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
+    });
+
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
+
+    const logMessage = newState.combatLog[0].message;
+    expect(logMessage).toMatch(/Mods: -\d+ \[Bane\]/);
   });
 });

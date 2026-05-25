@@ -84,7 +84,7 @@
   },
   "effects": [
     {
-      "type": "STATUS_CONDITION",
+      "type": "ATTACK_ROLL_MODIFIER",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -133,6 +133,33 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
+      "attackRollModifier": {
+        "modifier": "bonus",
+        "direction": "outgoing",
+        "attackKind": "any",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "dice": "1d4"
+      },
+      "savingThrowModifier": {
+        "modifier": "bonus",
+        "consumption": "while_active",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "dice": "1d4"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": "Adds 1d4 to attack rolls and saving throws",
+      "conditionalEndings": [],
       "statusCondition": {
         "name": "Blessed",
         "duration": {
@@ -150,14 +177,7 @@
           "successEnds": true,
           "useOriginalDC": true
         }
-      },
-      "scaling": {
-        "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "description": "",
-      "conditionalEndings": []
+      }
     }
   ],
   "arbitrationType": "mechanical",

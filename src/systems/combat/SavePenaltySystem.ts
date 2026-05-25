@@ -85,25 +85,55 @@ export class SavePenaltySystem {
      * @returns Array of modifiers to apply
      */
     getActivePenalties(target: CombatCharacter): SavingThrowModifier[] {
-        if (!target.savePenaltyRiders || target.savePenaltyRiders.length === 0) {
-            return [];
+        const modifiers: SavingThrowModifier[] = [];
+
+        // 1. Process legacy SavePenaltyRiders (e.g. Mind Sliver)
+        if (target.savePenaltyRiders && target.savePenaltyRiders.length > 0) {
+            target.savePenaltyRiders.forEach(rider => {
+                let dice = rider.dice;
+                if (dice && !dice.startsWith('-')) {
+                    dice = `-${dice}`;
+                }
+                modifiers.push({
+                    dice: dice,
+                    flat: rider.flat,
+                    source: rider.sourceName
+                });
+            });
         }
 
-        return target.savePenaltyRiders.map(rider => {
-            let dice = rider.dice;
-            // Ensure dice string implies subtraction for penalties
-            if (dice && !dice.startsWith('-')) {
-                dice = `-${dice}`;
-            }
+        // 2. Process active effects with savingThrowModifiers (e.g. Bless, Bane)
+        if (target.activeEffects && target.activeEffects.length > 0) {
+            target.activeEffects.forEach(effect => {
+                if (effect.mechanics?.savingThrowModifier) {
+                    const mod = effect.mechanics.savingThrowModifier;
+                    if (mod === 'bonus' || mod === 'penalty') {
+                        let dice = effect.mechanics.savingThrowDice;
+                        let flat = effect.mechanics.savingThrowValue;
 
-            // Note: We leave flat modifiers as-is, assuming the caller provides signed values (e.g., -2)
-            // or that positive values might be valid in future contexts (though this is a 'Penalty' system).
-            return {
-                dice: dice,
-                flat: rider.flat,
-                source: rider.sourceName
-            };
-        });
+                        // For penalty, make sure it's negative
+                        if (mod === 'penalty') {
+                            if (dice && !dice.startsWith('-')) {
+                                dice = `-${dice}`;
+                            }
+                            if (flat && flat > 0) {
+                                flat = -flat;
+                            }
+                        }
+
+                        if (dice || flat !== undefined) {
+                            modifiers.push({
+                                dice: dice,
+                                flat: flat,
+                                source: effect.sourceName
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        return modifiers;
     }
 
     /**

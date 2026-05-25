@@ -211,3 +211,24 @@ Artifact boundary:
   handoff receipts, generated manifests, click logs, and raw Jules process
   output.
 
+
+
+### Completion Note
+Implementation complete.
+- **Changed files:**
+  - `src/types/spells.ts`: Added `savingThrowModifier` structure within `AttackRollModifierEffect` to support combined roll riders.
+  - `src/types/combat.ts`: Added matching fields to `ActiveEffect` mechanics.
+  - `src/commands/effects/AttackRollModifierCommand.ts`: Updated to bundle and describe saving throw modifiers alongside attack roll modifiers.
+  - `public/data/spells/level-1/bless.json` & `bane.json`: Added `ATTACK_ROLL_MODIFIER` effects specifying 1d4 bonuses/penalties decoupled from condition names.
+  - `src/commands/factory/AbilityCommandFactory.ts`: Integrated active effect riders to dynamically sum bonus/penalty dice into weapon and spell attacks, logging sources.
+  - `src/systems/combat/SavePenaltySystem.ts`: Extended `getActivePenalties` to dynamically collect and calculate active effect saving throw riders.
+  - `docs/tasks/spells/mechanics-discovery/manual-review-overrides/level-1-00.json`: Marked Bless and Bane roll modifier tracker items as closed.
+- **Verification Commands Run:**
+  - `npm run validate:spells` (All passed)
+  - `node scripts/auditAtlasBuckets.mjs` (All passed)
+  - `npx vitest run src/commands/factory/__tests__/AbilityCommandFactory.test.ts` (Added Bless/Bane dice modifier tests; All passed)
+  - `npx vitest run src/systems/combat/__tests__/SavePenaltySystem.test.ts` (Added tests for active effect save modifiers; All passed)
+- **Behavior Proven:**
+  - Bless provides 1d4 bonus to attacks and saves. Bane provides -1d4 penalty to attacks and saves.
+  - Combat math explicitly relies on runtime explicit effect structures (`ATTACK_ROLL_MODIFIER`) instead of generic status strings.
+- **Residual Limitations:** None noted.

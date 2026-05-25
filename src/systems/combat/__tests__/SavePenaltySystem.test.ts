@@ -138,4 +138,36 @@ describe('SavePenaltySystem', () => {
         expect(result.total).toBeGreaterThanOrEqual(-6);
         expect(result.details).toHaveLength(2);
     });
+    it('collects saving throw modifiers from active effects (e.g. Bless/Bane)', () => {
+        const target: any = {
+            id: 'target_1',
+            activeEffects: [
+                {
+                    id: 'bless_1',
+                    sourceName: 'Bless',
+                    mechanics: {
+                        savingThrowModifier: 'bonus',
+                        savingThrowDice: '1d4'
+                    }
+                },
+                {
+                    id: 'bane_1',
+                    sourceName: 'Bane',
+                    mechanics: {
+                        savingThrowModifier: 'penalty',
+                        savingThrowDice: '1d4'
+                    }
+                }
+            ]
+        };
+
+        const modifiers = system.getActivePenalties(target);
+        expect(modifiers).toHaveLength(2);
+
+        const blessMod = modifiers.find(m => m.source === 'Bless');
+        expect(blessMod?.dice).toBe('1d4');
+
+        const baneMod = modifiers.find(m => m.source === 'Bane');
+        expect(baneMod?.dice).toBe('-1d4');
+    });
 });

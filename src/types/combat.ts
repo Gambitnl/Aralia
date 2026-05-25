@@ -137,7 +137,16 @@ export interface ActiveEffect {
     attackRollKind?: "any" | "weapon" | "melee_weapon" | "ranged_weapon" | "spell";
     attackRollConsumption?: "next_attack" | "first_attack" | "while_active";
     attackRollValue?: number;
-    attackRollDice?: string;
+        attackRollDice?: string;
+
+    /**
+     * Saving throw riders.
+     */
+    savingThrowModifier?: "advantage" | "disadvantage" | "bonus" | "penalty";
+    savingThrowConsumption?: "next_save" | "while_active";
+    savingThrowValue?: number;
+    savingThrowDice?: string;
+    savingThrowAbility?: "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
   };
 }
 
