@@ -4432,3 +4432,76 @@ Copy this block for each decision.
 - Next expected proof after unblocking: New PR #997 head commit, no merge
   conflict, no out-of-scope Symphony decision-report file, and a focused
   real-data `modeChoice.effectIndices` regression.
+
+### Decision 104: Launch Package 11 Through Visible Symphony/Jules Flow
+
+- Date/time: 2026-05-25 21:00 +02:00
+- Phase: `package_11_dispatch`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: Whether to cross the normal Linear, handoff, manifest, and
+  Jules launch boundaries for the prepared Package 11 task.
+- Options considered:
+  - Stop before Linear/Jules and wait for explicit per-click approval.
+  - Use hidden backend endpoints to dispatch Package 11 quickly.
+  - Use the visible dashboard/task-page path under the user's assumed phase
+    approval envelope.
+- Decision made by agent: Use the visible dashboard/task-page path and record
+  each boundary result.
+- Model routing: Jules receives the implementation-heavy Package 11 work.
+  Codex remains the dashboard-first foreman, reviewer, and evidence recorder.
+- Rationale/evidence:
+  - The tracker and execution plan identify Package 11 as the current
+    `status_or_state_change` slice.
+  - The user authorized assumed approvals for normal phase transitions and
+    specifically wanted dashboard-first workflow proof.
+  - The task was bounded by
+    `PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_TASK.md` and
+    `PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_PROMPT.md`.
+- Mutation performed or skipped: Created Linear `ARA-20`, promoted a Package 11
+  handoff, staged ignored `.jules` manifest state, launched Jules session
+  `13361122470730968094`, and skipped hidden endpoint shortcuts.
+- Scope guardrails: Jules must stay within the Package 11 packet and may not
+  edit Symphony runtime/source, levels 4-9, broad AI policy, combat rider-icon
+  UI, terrain/light/vision, broad summon/control, or unrelated workflow files.
+- Result: Package 11 is launched and waiting on Jules. The dashboard reports
+  `QUEUED`; a visual Jules check showed repository snapshot setup/loading.
+- Next expected proof: visual Jules recheck and dashboard `Refresh Jules Status`
+  until Jules reaches plan approval, active work, PR URL, or blocker state.
+
+### Decision 105: Select One Active Handoff After Duplicate Package 11 Promotion
+
+- Date/time: 2026-05-25 21:01 +02:00
+- Phase: `package_11_dashboard_gap`
+- Active slice: Package 11 launch evidence and dashboard workflow repair
+  tracking.
+- Decision point: The Package 11 task-page `Prepare Handoff` button did not
+  visibly advance after clicking, but dashboard inspection showed duplicate
+  handoffs had been created.
+- Options considered:
+  - Launch both Package 11 handoffs.
+  - Delete or manually mutate runtime state to remove the duplicate.
+  - Stop using the stale task-page draft view, choose the latest dashboard
+    focused handoff as active, and record the duplicate as stale workflow
+    evidence.
+- Decision made by agent: Use only `handoff-1779735529994-aq60x6` as the active
+  Package 11 path and leave `handoff-1779735447555-z4a0fu` unlaunched/stale.
+- Model routing: Codex handles the workflow-gap recording; Jules continues only
+  on the selected active handoff.
+- Rationale/evidence:
+  - The dashboard current focus selected `handoff-1779735529994-aq60x6` for
+    manifest staging and launch.
+  - Launching both would duplicate external Jules work for the same package.
+  - Deleting local runtime state would hide the workflow defect the operator
+    wants surfaced.
+- Mutation performed or skipped: Staged and launched only
+  `handoff-1779735529994-aq60x6`; skipped launching the duplicate and skipped
+  destructive runtime cleanup.
+- Scope guardrails: The duplicate-handoff note is a Symphony workflow gap, not
+  Package 11 spell implementation scope.
+- Result: `SYMPHONY_OPEN_TASKS.md` now records the task-page promotion feedback
+  gap, and the spell tracker marks Package 11 as waiting on Jules session
+  `13361122470730968094`.
+- Next expected proof: repair the task-page guarded action feedback/reload path
+  later, and prevent repeated draft promotion once a draft already has a live
+  handoff.
