@@ -4041,17 +4041,29 @@ function renderBaseCommitDrift(handoff) {
   const drift = handoff.baseCommitDrift;
   if (!drift) return '';
 
-  // This warning is the stale-manifest guard. A handoff may have been prepared
-  // when origin/master pointed at one commit, then GitHub moved before the user
-  // launched Jules. Re-staging rewrites both the manifest and prompt so Jules
-  // starts from the commit the sync gate just verified.
+  const postLaunch = drift.phase === 'post_launch' || handoff.status === 'sent_to_jules' || Boolean(handoff.julesSessionId);
+  const title = postLaunch ? 'Jules launch base drift' : 'GitHub base moved';
+  const requiredAction = postLaunch
+    ? 'Send a visible Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff'
+    : 'Stage Jules Manifest again before launch';
+  const expectedProof = drift.nextExpectedProof
+    || (postLaunch
+      ? 'Record which explicit channel carried the new instruction to Jules.'
+      : 'Capture a refreshed manifest before launching Jules.');
+
+  // This warning covers both sides of the Jules source boundary. Before launch,
+  // it protects the manifest from starting on an old GitHub base. After launch,
+  // it reminds the operator that the running Jules clone will not see later
+  // tracker or workflow edits until those edits are sent through a visible
+  // update channel.
   return `<div class="handoff-readiness base-drift-readiness">
-    <strong>GitHub base moved</strong>
+    <strong>${escapeHtml(title)}</strong>
     <p>${escapeHtml(drift.summary || 'The prepared handoff is no longer based on the current GitHub commit.')}</p>
     <ul>
       ${readinessItem('Prepared base', `${drift.remoteBranch || 'origin/master'} @ ${shortCommit(drift.stagedRemoteCommit)}`, false, true)}
       ${readinessItem('Current GitHub base', `${drift.remoteBranch || 'origin/master'} @ ${shortCommit(drift.currentRemoteCommit)}`, true)}
-      ${readinessItem('Required action', 'Stage Jules Manifest again before launch', false, true)}
+      ${readinessItem('Required action', requiredAction, false, true)}
+      ${readinessItem('Expected proof', expectedProof, false, true)}
     </ul>
   </div>`;
 }

@@ -79,7 +79,7 @@ the audit, or in the proving-ground tracker with the next proof target.
 - Historical closeouts are fully archived. All active spell tasks align with `EARLY_GAME_SPELL_EXECUTION_PLAN.md`.
 
 ### 5. Active Workflow Gap: Jules Session Base Drift
-- **Status**: active gap, discovered during Spell Phase 1 Package 9.
+- **Status**: implemented; keep monitoring during future active Jules sessions.
 - **Observed failure mode**: Codex merged an updated task tracker to GitHub
   after Jules had already started from an earlier base commit. Jules then opened
   its PR from the older isolated checkout, so the new tracker wording did not
@@ -95,10 +95,14 @@ the audit, or in the proving-ground tracker with the next proof target.
   `wait_for_jules_repair_commit` decision with the observed PR head, the visible
   Jules state, and the next recheck condition. Do not let an unstated "wait"
   become the hidden default.
-- **Implementation target**: Symphony should surface session base commit versus
-  current `origin/master`, warn when base drift appears, and guide the foreman to
-  the explicit update channels instead of treating the tracker merge as Jules
-  input.
+- **Implemented behavior**: Symphony now keeps a post-launch base-drift packet on
+  launched Jules handoffs when current `origin/master` moves after the recorded
+  launch base. The dashboard warning says that the running Jules clone will not
+  receive later tracker or workflow edits automatically and points the foreman to
+  visible Jules message, bounded PR feedback, PR-branch repair/rebase, or
+  replacement handoff.
+- **Verifier**: `node scripts\verify-jules-post-launch-base-drift.mjs` after
+  `npm run build` from `conductor/symphony`.
 
 ---
 
