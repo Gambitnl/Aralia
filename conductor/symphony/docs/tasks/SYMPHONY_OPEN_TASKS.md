@@ -99,6 +99,13 @@ the audit, or in the proving-ground tracker with the next proof target.
   foreman compares it with the requested repair. Green checks or a changed
   commit hash are not enough if the head adds unrelated workflow files or leaves
   the requested package acceptance issue unresolved.
+- **Latest Package 10 proof**: PR #1059 demonstrated the rule in practice.
+  Jules' first repair head was newer and green but still carried an
+  out-of-scope workflow edit and did not add object/placement proof, so the
+  valid action was another bounded repair request and explicit `@jules` nudge.
+  After Jules pushed a scoped repair head, Codex still compared acceptance
+  coverage before merging and added only a bounded test-proof repair on the PR
+  branch.
 - **Implemented behavior**: Symphony now keeps a post-launch base-drift packet on
   launched Jules handoffs when current `origin/master` moves after the recorded
   launch base. The dashboard warning says that the running Jules clone will not
