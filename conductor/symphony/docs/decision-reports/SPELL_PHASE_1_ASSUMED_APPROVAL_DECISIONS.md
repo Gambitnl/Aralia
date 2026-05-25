@@ -5116,3 +5116,49 @@ Copy this block for each decision.
 - Next expected proof: Package 12 PR URL or remote branch, exact Jules
   verification failure report, new Jules question, or enough unchanged
   post-nudge evidence to justify a stale-session/replacement-handoff decision.
+
+### Decision 120: Request Bounded Repair On Package 12 PR #1084
+
+- Date/time: 2026-05-26 01:02 +02:00
+- Phase: `package_12_pr_review_repair`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules opened PR #1084 from
+  `jules/spells-package12-conditional-ending-3991627368289943007`. The PR
+  contains the approved five-spell conditional-ending data and a focused
+  runtime-bridge test, but GitHub reports the PR as `DIRTY` against current
+  `master` after PR #1083. Initial review also found that the PR rewinds the
+  living tracker, marks P12 closed before acceptance, and changes
+  `SpellCommandFactory.createCommand` from private to public even though the
+  new test uses `createCommands`.
+- Options considered:
+  - Merge the PR because the core product changes look useful.
+  - Perform a local foreman repair immediately.
+  - Ask Jules for a bounded repair against current `master`.
+- Decision made by agent: Ask Jules for a bounded repair on PR #1084.
+- Model routing: Jules remains implementation/repair worker. Codex remains
+  foreman for PR review, mergeability checks, local verification, and final
+  acceptance.
+- Rationale/evidence:
+  - `DIRTY` merge state means the PR cannot be accepted as-is.
+  - Tracker closeout before review/merge would make the living source of truth
+    overstate completion.
+  - Public API widening is unnecessary for the shown test path and should be
+    reverted unless Jules can justify a production need.
+  - The PR is close enough to repair through Jules; local takeover is not yet
+    justified.
+- Mutation performed or skipped: Posted bounded repair feedback at
+  `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537781802`.
+  Skipped local implementation, hidden endpoints, PR merge, and replacement
+  handoff.
+- Scope guardrails: Repair must stay inside the approved five spells,
+  `CommandContext`/`SpellCommandFactory` bridge, focused conditional-ending
+  test, package docs, and tracker truth. It must not broaden into UI, levels
+  4-9, broad AI arbitration, terrain/light/summon/trap systems, Symphony
+  runtime, or GitHub workflow edits.
+- Result: Package 12 is now in PR-review repair state, not blocked and not
+  complete.
+- Next expected proof: Jules repair commit, clean/mergeable PR state, updated
+  verification results for `npm run validate:spells`,
+  `node scripts\auditAtlasBuckets.mjs`, and focused
+  `ConditionalEnding.test.ts`, followed by Codex local review before merge.
