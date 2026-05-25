@@ -1,7 +1,7 @@
 # Package 7 - Atlas Discoverability And Source Repair
 
-Status: drafted for future clean-base Jules handoff; not dispatched from the
-current dirty main checkout.
+Status: ready for clean-base Symphony/Jules handoff. The earlier dirty-checkout
+blocker was resolved before dispatch; start this package from current `master`.
 
 ## Goal
 
@@ -15,9 +15,10 @@ that Atlas proof could not be claimed because the checking worktree appeared to
 be missing `misc/spell_pipeline_atlas.html` and
 `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx`.
 
-Current evidence shows a split between local-only state and GitHub-synced state:
+Historical evidence showed a split between local-only state and GitHub-synced
+state:
 
-- the dirty main checkout has local ignored Atlas files, so
+- the operator's earlier local checkout had ignored Atlas files, so
   `node scripts/auditAtlasBuckets.mjs` can run there;
 - a clean-base worktree from tracked Git history is missing
   `misc/spell_pipeline_atlas.html`, `src/spell-pipeline-atlas.tsx`, and
@@ -122,8 +123,8 @@ run the Aralia-required dependency sync for the changed path as directed by
 
 ## Foreman Notes
 
-This packet is safe to commit as durable Aralia-facing task context. It should
-not be launched from the current dirty main checkout while unrelated PHB
-glossary/rules migration and BattleMap/glossary source edits are mixed into the
-working tree. Dispatch from a clean base or after the local-change boundary is
-resolved.
+This packet is safe to keep as durable Aralia-facing task context. The previous
+local-change boundary has been resolved, so Package 7 should be dispatched from
+current clean `master` through the visible Symphony dashboard. Keep Symphony
+runtime/source/local-state artifacts out of the PR; only preserve the bounded
+Atlas repair and the concise package-facing documentation updates listed above.
