@@ -134,6 +134,14 @@ Use an operator-run command or browser API fallback when the browser is unobserv
 and record the resulting observation as task evidence rather than as a hidden
 terminal-only state.
 
+Any active Jules task needs a visual Jules-page check, not only a dashboard or
+stored-state refresh. The dashboard can say `QUEUED` or `IN_PROGRESS`, but the
+operator still needs to open the Jules session page and confirm whether Jules is
+queued, planning, waiting for approval, actively working, reporting failure, or
+showing a PR/result that the local record has not captured yet. Record that
+visual check in the owning tracker or task receipt so later agents do not repeat
+an already-resolved launch step or mislabel an external wait as a goal blocker.
+
 ### Task-Centered Dashboard
 
 The intended operator experience is task-centered. The dashboard should let the
@@ -310,7 +318,7 @@ receipt events inside these phases.
 | **linear_issue** | Linear / Symphony | Create or connect human-readable tracking | Linear issue preview, existing issue lookup, handoff readiness packet | Create/update Linear issue or status comment | `operator_only` at mutation; `observe_wait` for preview | Linear issue receipt or linked issue id |
 | **jules_manifest** | Symphony / `.jules/orchestrator` | Stage the bounded Jules handoff | Manifest preview with write scope and verification commands | Write/update `.jules/orchestrator` handoff material | `operator_only` at mutation; `local_careful` for local setup repair drafts | Manifest/staging receipt |
 | **jules_launch** | Jules / Symphony | Start cloud implementation from the staged handoff | Launch readiness packet, safety checklist, Linear/Git receipt | Launch Jules session | `operator_only` at mutation | Jules launch/session receipt |
-| **jules_session** | Jules / Symphony | Track plan, execution, messages, PR output, and reconciliation | Jules API/browser state, `julesStateReconciliation`, prompt/dialogue packets | Approve plan, send Jules message, or otherwise direct Jules | `observe_wait` for reads; `operator_only` for plan/message actions | Plan approval, message, session refresh, or PR-discovery receipt |
+| **jules_session** | Jules / Symphony | Track plan, execution, messages, PR output, and reconciliation | Jules API/browser state, visible Jules-page check, `julesStateReconciliation`, prompt/dialogue packets | Approve plan, send Jules message, or otherwise direct Jules | `observe_wait` for reads; `operator_only` for plan/message actions | Plan approval, message, session refresh, visible Jules-page check, or PR-discovery receipt |
 | **github_pr** | GitHub / Symphony | Monitor PR state, checks, files, feedback, and repair choices | PR refresh, checks, failed check names, file risk, comments, repair decision/readiness | PR comment, branch push/apply, check rerun, workflow repair | `observe_wait` for refresh; `local_careful` for local setup repair; `operator_only` for GitHub mutations | PR refresh, feedback, repair push, or check-rerun receipt |
 | **scout_core** | Scout/Core / Symphony | Decide review, risk, validation, and merge readiness | Scout/Core readiness packet, conflict comments, risk/file scope | Core validation, Core approval, or merge | `observe_wait` for reads; `operator_only` for validation/merge | Scout/Core validation or merge receipt |
 | **deployment** | GitHub Pages/deployment system / Symphony | Prove published-app health before local sync when relevant | `deployment_readiness`, Pages build/deployment/status inspection commands | Deployment repair, rerun, or deployment-proof waiver | `observe_wait` for inspection; `operator_only` for waiver/repair | `deploymentEvidence` receipt |
@@ -416,12 +424,16 @@ PRs into a pointer to the Symphony audit/open-task docs.
 3. Dashboard can refresh individual sessions and all sessions.
 4. Operator can send feedback/messages to Jules through the existing orchestrator
    route.
-5. Plan approval is visible and actionable whenever either stored state or
+5. Every active Jules task gets a visual Jules-page check through the Codex app
+   browser after launch and during monitoring. The check must record whether
+   Jules is queued, planning, waiting for approval, working, failed/cancelled, or
+   showing a PR/result that dashboard state has not captured.
+6. Plan approval is visible and actionable whenever either stored state or
    browser inspection shows Jules is waiting for approval. Stored state is not
    enough by itself: the ARA-6 live run showed local status can report
    `COMPLETED` with no PR URL while Jules API/browser/GitHub evidence exposes
    additional task state.
-6. When a Jules API key is available, Symphony should prefer the official Jules
+7. When a Jules API key is available, Symphony should prefer the official Jules
    REST API `GetSession` and activity responses before browser scraping. Jules'
    current public API docs describe the API as alpha, use `X-Goog-Api-Key` for
    authentication, describe sessions as the continuous unit of work, activities
@@ -431,18 +443,18 @@ PRs into a pointer to the Symphony audit/open-task docs.
    `state: COMPLETED` plus a PR output for
    `https://github.com/Gambitnl/Aralia/pull/931`, even though local Symphony
    status still lacked `pullRequestUrl`.
-7. If the API is unavailable or contradicts the visible web session, Symphony
+8. If the API is unavailable or contradicts the visible web session, Symphony
    should visually reconcile the session through the Codex app browser before
    treating the boundary as complete. The intended browser path is the Browser
    plugin's in-app bridge; terminal Playwright is acceptable for repeatable
    local dashboard verification but is not the operator-visible Jules
    follow-along surface.
-8. If stored Jules state still has no PR URL after API/browser reconciliation, Symphony
+9. If stored Jules state still has no PR URL after API/browser reconciliation, Symphony
    should also perform a read-only GitHub fallback lookup by Jules session id,
    generated branch name, handoff title, or Linear issue. The ARA-6 run created
    PR #931 even though the local Jules/Symphony record still did not expose
    `pullRequestUrl`.
-9. Handoff snapshots should expose a read-only `julesStateReconciliation` packet
+10. Handoff snapshots should expose a read-only `julesStateReconciliation` packet
    that explains which source settled the state mismatch. When Jules API or a
    GitHub fallback finds a PR after the local Jules record was incomplete, the
    packet should say `reconciled_from_external_evidence`; when stored Jules state
@@ -931,6 +943,7 @@ PRs into a pointer to the Symphony audit/open-task docs.
 - Manifest staging fails.
 - Jules launch fails.
 - Jules session URL is missing after launch.
+- Active Jules task has not been visually checked in the Jules session page.
 - Jules waits for plan approval.
 - Jules browser-visible state and API state disagree with local stored status.
 - Jules local status reports `COMPLETED` with `pullRequestUrl: null`.
