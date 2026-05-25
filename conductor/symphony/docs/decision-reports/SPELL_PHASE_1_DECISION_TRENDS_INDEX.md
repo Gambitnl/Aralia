@@ -81,7 +81,10 @@ treating the goal as blocked or taking over locally. Jules then opened PR
 #1084, which confirmed the wait was useful, but the first PR review still
 required bounded repair because the branch was dirty against current `master`,
 rewound tracker truth, marked P12 closed before acceptance, and widened a
-private factory helper to public without a clear production need.
+private factory helper to public without a clear production need. When the
+first repair comment showed shell-escaped text damage, Codex posted a clean
+explicit `@jules` restatement instead of assuming Jules would infer the damaged
+parts or taking over locally.
 
 ## 4. Active Operating Rules
 
@@ -109,4 +112,5 @@ private factory helper to public without a clear production need.
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |
 | PR appears after wait but is stale/noisy | Package 12 PR #1084 appeared after the monitored wait, but was `DIRTY` and rewound tracker closeout state. | Use bounded Jules PR feedback first when product work is useful but branch hygiene/tracker truth/API scope need repair. |
+| Repair feedback can be damaged by shell quoting | The first Package 12 PR #1084 repair comment contained malformed escaped text in a few command/file references. | If feedback text is damaged, post one clean explicit `@jules` restatement rather than relying on inference. |
 | Mutation labels understate boundaries | Task pages have shown Linear creation and manifest staging as non-mutating. | Correct task-page safety labels so operators can trust the visible boundary summary. |
