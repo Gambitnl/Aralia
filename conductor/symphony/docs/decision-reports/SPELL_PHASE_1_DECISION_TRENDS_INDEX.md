@@ -68,7 +68,9 @@ expected write scope. Codex withheld approval and asked for a higher-value safe
 conditional-ending batch with explicit file-scope justification. Jules revised
 the plan to cover `hex`, `hunters-mark`, `knock`, `detect-thoughts`, and
 `flame-arrows`, removed the direct `UtilityCommand.ts` edit, and Codex approved
-the revised plan.
+the revised plan. When Jules still asked whether the revised plan met
+expectations, Codex used an explicit visible Jules message as the post-launch
+update channel and Jules moved to working state.
 
 ## 4. Active Operating Rules
 

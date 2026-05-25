@@ -4988,3 +4988,45 @@ Copy this block for each decision.
 - Next expected proof: Visible dashboard/Jules refresh showing a PR URL, a new
   Jules question, or a failure state. If a PR appears, review it against the
   revised plan and Package 12 acceptance criteria before merge.
+
+### Decision 117: Send Package 12 Explicit Continuation After Revised-Plan Check
+
+- Date/time: 2026-05-26 00:19 +02:00
+- Phase: `package_12_post_launch_update_path`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: After the revised plan was approved, the visible Jules page
+  still showed "Jules is waiting for your input to continue working" and asked
+  whether the revised plan met expectations. Meanwhile Symphony's dashboard
+  packet correctly warned that `origin/master` had moved from the Jules launch
+  base `0d57838e6d59` to `b04c9048680d` after PR #1080/#1081, so the running
+  Jules clone would not receive later tracker or workflow edits automatically.
+- Options considered:
+  - Assume the `Plan approved` marker was enough and wait silently.
+  - Use a hidden Symphony/Jules endpoint to push state forward.
+  - Send an explicit visible Jules message confirming the revised plan and
+    restating the approved scope.
+- Decision made by agent: Send the explicit visible Jules message.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  post-launch update delivery, visible monitoring, and PR review.
+- Rationale/evidence:
+  - The current operating rule says post-launch task adjustments need an
+    explicit update channel because running Jules sessions are isolated clones.
+  - The visible Jules page asked for confirmation, so a visible Jules message was
+    the direct operator-surface answer.
+  - The message kept implementation value and scope aligned: five approved rows,
+    no `UtilityCommand.ts` edit, bridge limited to allowed
+    `SpellCommandFactory` / `spellAbilityFactory` / focused-test surfaces unless
+    Jules stops to justify another file.
+- Mutation performed or skipped: Sent a visible Jules message confirming that
+  the revised plan meets expectations and instructing Jules to proceed within
+  the approved scope. Skipped hidden endpoints, local implementation, PR merge,
+  and replacement handoff.
+- Scope guardrails: This message does not approve future PR merge. The PR must
+  still be reviewed for file scope, branch hygiene, correct conditional-ending
+  semantics, tests, Atlas/gate proof, and absence of raw `.jules` or Symphony
+  runtime artifacts.
+- Result: The visible Jules page now says `Jules is working`.
+- Next expected proof: Visible dashboard/Jules refresh showing a PR URL, a new
+  Jules question, or a failure state. If a PR appears, review it against the
+  revised plan and Package 12 acceptance criteria before merge.
