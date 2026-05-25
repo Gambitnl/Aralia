@@ -5030,3 +5030,89 @@ Copy this block for each decision.
 - Next expected proof: Visible dashboard/Jules refresh showing a PR URL, a new
   Jules question, or a failure state. If a PR appears, review it against the
   revised plan and Package 12 acceptance criteria before merge.
+
+### Decision 118: Send Package 12 Verification-Wait Status Nudge
+
+- Date/time: 2026-05-26 00:36 +02:00
+- Phase: `package_12_verification_wait`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: Repeated GitHub PR checks and remote branch checks found no
+  Package 12 PR or matching Jules branch while visible Jules stayed on its
+  `Verify` step. Jules showed intended verification commands and no failure
+  report, and it had not asked for more input.
+- Options considered:
+  - Keep waiting silently for another refresh cycle.
+  - Use a hidden endpoint, download path, or local takeover to extract or
+    reproduce the work.
+  - Send one bounded visible Jules status nudge asking for a PR if verification
+    passed or the exact failing command if verification is blocked.
+- Decision made by agent: Send one bounded visible Jules status nudge.
+- Model routing: Jules remains the implementation and verification worker.
+  Codex remains foreman for visible monitoring, scope control, PR review, and
+  tracker/doc updates.
+- Rationale/evidence:
+  - The same final-verification/no-handoff state repeated across multiple
+    monitoring passes.
+  - The visible Jules page had enough context to receive a precise operator
+    nudge; no hidden API path was needed.
+  - The message preserved the Jules-first flow while narrowing the next proof
+    to a PR, exact verification failure, new Jules question, or later
+    stale-session filing.
+  - The visible review pane still showed the `SpellCommand.ts` diff as a later
+    PR-review checkpoint, so local acceptance would be premature without the
+    final PR diff and verification proof.
+- Mutation performed or skipped: Sent a visible Jules message asking Jules to
+  open the PR if verification passed, or report the exact failing command,
+  error output, and smallest proposed repair if blocked. Skipped hidden
+  endpoints, local implementation, zip/download extraction, PR merge, and
+  replacement handoff.
+- Scope guardrails: The nudge does not approve any future PR merge and does not
+  widen Package 12 beyond `hex`, `hunters-mark`, `detect-thoughts`,
+  `flame-arrows`, and `knock`. The eventual PR must still be reviewed for file
+  scope, branch hygiene, verification proof, raw artifact leakage, and the
+  suspicious `SpellCommand.ts` diff size.
+- Result: The visible Jules page accepted the status nudge and continued in its
+  isolated clone; no Package 12 PR or remote branch was visible at the time of
+  this record.
+- Next expected proof: Package 12 PR URL or remote branch, exact Jules
+  verification failure report, new Jules question, or a documented
+  stale-session/replacement-handoff decision after enough unchanged evidence.
+
+### Decision 119: Continue Package 12 Monitored Wait After Post-Nudge Activity
+
+- Date/time: 2026-05-26 00:50 +02:00
+- Phase: `package_12_post_nudge_monitoring`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: After the bounded status nudge, a visible Jules check still
+  showed no Package 12 PR or matching remote branch. However, the visible Jules
+  session no longer looked unchanged: it showed `Jules is working`, post-nudge
+  updates to `src/commands/factory/__tests__/ConditionalEnding.test.ts`, and a
+  note that documentation and test type errors were fixed and the test now
+  passes.
+- Options considered:
+  - Declare the session stale immediately and prepare a replacement handoff.
+  - Take over implementation locally from the visible diff.
+  - Continue monitored wait because Jules is visibly active after the nudge.
+- Decision made by agent: Continue monitored wait.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  visible monitoring, PR detection, and eventual PR review.
+- Rationale/evidence:
+  - A stale-session decision would be premature while Jules shows fresh
+    post-nudge activity.
+  - Local takeover would bypass the Jules-first implementation boundary and
+    would rely on an incomplete visible diff rather than a PR-ready branch.
+  - The desired action is now explicit: wait only while Jules is visibly active,
+    and expect one of four proofs before the next decision.
+- Mutation performed or skipped: Updated the tracker to record the active-work
+  wait state. Skipped hidden endpoints, zip/download extraction, local
+  implementation, replacement handoff, and stale-session filing.
+- Scope guardrails: The next PR still needs focused review for the approved
+  five-spell scope, `SpellCommand.ts` diff size, task/tracker rewrites,
+  verification proof, and raw artifact leakage.
+- Result: Package 12 remains active in Jules, with monitored wait as the
+  current explicit action.
+- Next expected proof: Package 12 PR URL or remote branch, exact Jules
+  verification failure report, new Jules question, or enough unchanged
+  post-nudge evidence to justify a stale-session/replacement-handoff decision.

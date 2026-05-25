@@ -70,7 +70,14 @@ the plan to cover `hex`, `hunters-mark`, `knock`, `detect-thoughts`, and
 `flame-arrows`, removed the direct `UtilityCommand.ts` edit, and Codex approved
 the revised plan. When Jules still asked whether the revised plan met
 expectations, Codex used an explicit visible Jules message as the post-launch
-update channel and Jules moved to working state.
+update channel and Jules moved to working state. After Jules later stayed on
+`Verify` across repeated visible monitoring passes with no PR or remote branch,
+Codex sent one bounded visible status nudge asking Jules to open the PR if
+verification passed or report the exact failing command and smallest repair if
+blocked. That is the preferred wait-state escalation before any stale-session
+or replacement-handoff decision. The next visual check showed fresh post-nudge
+Jules activity, so Codex recorded an explicit monitored-wait state instead of
+treating the goal as blocked or taking over locally.
 
 ## 4. Active Operating Rules
 
@@ -95,4 +102,6 @@ update channel and Jules moved to working state.
 | Packet shortcuts are hardcoded | Package 11 and Package 12 both needed dashboard source edits before visible draft creation. | Replace hardcoded packet buttons with a small registry or metadata-derived list. |
 | Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. | Add a compact wait-state ledger for repeated refreshes, reserving full decisions for real forks. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
+| Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
+| Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |
 | Mutation labels understate boundaries | Task pages have shown Linear creation and manifest staging as non-mutating. | Correct task-page safety labels so operators can trust the visible boundary summary. |

@@ -254,7 +254,16 @@ the audit, or in the proving-ground tracker with the next proof target.
   then asked whether the revised plan met expectations, so Codex used an
   explicit visible Jules message as the post-launch update channel and told
   Jules to proceed exactly within the approved five-spell scope, with no
-  `UtilityCommand.ts` edit. The visible Jules page now says `Jules is working`.
+  `UtilityCommand.ts` edit. Jules later reached visible `Verify`, but repeated
+  GitHub PR checks and remote branch checks still showed no Package 12 handoff.
+  Codex sent one bounded visible Jules status nudge asking Jules to open the PR
+  if verification passed, or report the exact failing command, error output,
+  and smallest proposed repair if blocked. A later visible check showed Jules
+  still working and making post-nudge test/documentation updates, so the active
+  decision is monitored wait rather than stale-session replacement or local
+  takeover. The next valid proof is a PR/branch, exact Jules failure report,
+  new Jules question, or stale-session decision after enough unchanged
+  post-nudge evidence.
 - **Future repair target**: update package templates so they include a minimum
   package-value check, an explicit candidate-classification step, and a rule
   that plans naming files outside expected scope must justify why the file is
