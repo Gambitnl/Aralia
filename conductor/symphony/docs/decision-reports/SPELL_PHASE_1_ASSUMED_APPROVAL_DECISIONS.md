@@ -4505,3 +4505,42 @@ Copy this block for each decision.
 - Next expected proof: repair the task-page guarded action feedback/reload path
   later, and prevent repeated draft promotion once a draft already has a live
   handoff.
+
+### Decision 106: Withhold Package 11 Jules Plan Approval For Scope Drift
+
+- Date/time: 2026-05-25 21:14 +02:00
+- Phase: `package_11_plan_gate`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules session `13361122470730968094` reached an `Approve
+  plan?` gate, but the visible plan included a step to update
+  `src/commands/effects/UtilityCommand.ts` or
+  `src/commands/effects/BaseEffectCommand.ts`, outside the declared Package 11
+  expected write scope.
+- Options considered:
+  - Approve the plan as-is and allow broader command-base edits.
+  - Reject the whole Jules path and implement Package 11 locally.
+  - Send a visible Jules revision request asking Jules to stay inside scope or
+    justify why the broader command-base edit is necessary.
+- Decision made by agent: Withhold approval and send a visible Jules revision
+  request.
+- Model routing: Jules remains the implementation worker. Codex remains the
+  foreman enforcing the package boundary and waiting for a revised plan or a
+  clear necessity explanation.
+- Rationale/evidence:
+  - Package 11 expected write scope includes status/state spell JSON, selected
+    spell types/metadata, `StatusConditionCommand`, `SpellCommandFactory`,
+    `spellAbilityFactory` if needed, focused tests, and package docs.
+  - `UtilityCommand.ts` and `BaseEffectCommand.ts` were not in that expected
+    scope, and the plan did not explain why those broader command-base files
+    were needed.
+- Mutation performed or skipped: Sent a visible Jules message asking for a
+  revised bounded plan; skipped approving the plan and skipped local
+  implementation takeover.
+- Scope guardrails: If Jules says `UtilityCommand.ts` or `BaseEffectCommand.ts`
+  is truly required, it must explain the necessity before editing those files.
+- Result: Jules entered a visible `Thinking` state after receiving the revision
+  request.
+- Next expected proof: revised bounded Jules plan, or a clear Jules explanation
+  that the broader command-base edit is required for the selected status/state
+  mechanics.
