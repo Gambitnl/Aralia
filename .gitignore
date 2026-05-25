@@ -38,6 +38,7 @@ conductor/symphony/scripts/*
 !conductor/symphony/scripts/verify-browser-tooling-health.mjs
 !conductor/symphony/scripts/verify-handoff-timeline.mjs
 !conductor/symphony/scripts/verify-jules-state-reconciliation-packet.mjs
+!conductor/symphony/scripts/verify-jules-post-launch-base-drift.mjs
 !conductor/symphony/scripts/verify-jules-environment-setup-packet.mjs
 !conductor/symphony/scripts/verify-task-dashboard-navigator.mjs
 !conductor/symphony/scripts/verify-task-detail-api.mjs

@@ -4352,6 +4352,22 @@ export class HttpServer {
         ['Review the old and current GitHub base commits.', 'Stage the Jules manifest again.', 'Launch only after the manifest uses the current GitHub base.']);
     }
 
+    // If Jules has not produced a PR yet, base drift is the current boundary:
+    // the operator must decide how to send the new instruction to the isolated
+    // session. Once a PR exists, the normal PR review/feedback lanes remain the
+    // safer current action while the drift warning stays visible on the card.
+    if (handoff.baseCommitDrift?.requiredAction === 'send_post_launch_update' && !handoff.githubPullRequestUrl) {
+      return action('record_post_launch_update_path', 'blocked', 'Record Post-Launch Jules Update Path',
+        handoff.baseCommitDrift.summary || 'GitHub moved after this Jules session launched; later task edits need an explicit update channel.',
+        null,
+        null,
+        [
+          'Compare the launched base with current origin/master before assuming Jules has new tracker or workflow edits.',
+          'Send the delta through visible Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff.',
+          handoff.baseCommitDrift.nextExpectedProof,
+        ]);
+    }
+
     if (!hasManifest) {
       return action('stage_manifest', 'ready', 'Stage Jules Manifest',
         'The prompt exists locally; write the Jules manifest before launch.',

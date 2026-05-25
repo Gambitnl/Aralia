@@ -793,6 +793,10 @@ export interface HandoffBaseCommitDrift {
   remoteBranch: string;
   stagedRemoteCommit: string | null;
   currentRemoteCommit: string | null;
+  phase: 'pre_launch' | 'post_launch';
+  requiredAction: 'restage_before_launch' | 'send_post_launch_update';
+  updateChannels: string[];
+  nextExpectedProof: string;
   summary: string;
 }
 
@@ -5417,7 +5421,10 @@ export class TaskIntakeStore {
       }
 
       if (normalizedHandoff.status === 'sent_to_jules' || normalizedHandoff.julesSessionId) {
-        return withDerivedHandoffPackets({ ...normalizedHandoff, baseCommitDrift: null });
+        return withDerivedHandoffPackets({
+          ...normalizedHandoff,
+          baseCommitDrift: this.buildBaseCommitDrift(normalizedHandoff, preflight, 'post_launch'),
+        });
       }
 
       if (!preflight.ok) {
@@ -5455,16 +5462,40 @@ export class TaskIntakeStore {
 
   private buildBaseCommitDrift(
     handoff: JulesHandoff,
-    preflight: GitSyncPreflight
+    preflight: GitSyncPreflight,
+    phase: HandoffBaseCommitDrift['phase'] = 'pre_launch'
   ): HandoffBaseCommitDrift | null {
     const stagedRemoteCommit = handoff.gitPreflight?.remoteCommit ?? null;
     const currentRemoteCommit = preflight.remoteCommit ?? null;
 
-    // A prepared manifest is only launchable while it still points at the
-    // current GitHub base. If origin/master moved after staging, Symphony should
-    // tell the operator to re-stage instead of silently launching a stale prompt.
+    // Base drift means two different things depending on the handoff phase. A
+    // pre-launch handoff can still be repaired by re-staging the manifest. A
+    // launched Jules session is already an isolated clone, so later tracker or
+    // workflow edits must be sent through a visible update channel instead.
     if (!stagedRemoteCommit || !currentRemoteCommit || stagedRemoteCommit === currentRemoteCommit) {
       return null;
+    }
+
+    const shortStaged = stagedRemoteCommit.slice(0, 12);
+    const shortCurrent = currentRemoteCommit.slice(0, 12);
+
+    if (phase === 'post_launch') {
+      return {
+        detectedAt: preflight.checkedAt,
+        remoteBranch: preflight.remoteBranch,
+        stagedRemoteCommit,
+        currentRemoteCommit,
+        phase,
+        requiredAction: 'send_post_launch_update',
+        updateChannels: [
+          'visible Jules message',
+          'bounded [Jules feedback] PR comment',
+          'PR-branch repair or rebase',
+          'replacement handoff from current origin/master',
+        ],
+        nextExpectedProof: 'Record which explicit update channel carried the new instruction, or record why the running Jules session was filed stale or superseded.',
+        summary: `${preflight.remoteBranch} moved from ${shortStaged} to ${shortCurrent} after Jules launched; the running Jules clone will not receive later tracker or workflow edits automatically.`,
+      };
     }
 
     return {
@@ -5472,7 +5503,11 @@ export class TaskIntakeStore {
       remoteBranch: preflight.remoteBranch,
       stagedRemoteCommit,
       currentRemoteCommit,
-      summary: `${preflight.remoteBranch} moved from ${stagedRemoteCommit.slice(0, 12)} to ${currentRemoteCommit.slice(0, 12)} after this handoff was prepared.`,
+      phase,
+      requiredAction: 'restage_before_launch',
+      updateChannels: ['stage Jules manifest again before launch'],
+      nextExpectedProof: 'A refreshed manifest and prompt that record the current GitHub base before Jules is launched.',
+      summary: `${preflight.remoteBranch} moved from ${shortStaged} to ${shortCurrent} after this handoff was prepared.`,
     };
   }
 
