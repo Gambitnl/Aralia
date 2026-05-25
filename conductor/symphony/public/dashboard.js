@@ -128,6 +128,41 @@ const PACKAGE_11_STATUS_STATE_DRAFT = {
     'npx vitest run <focused test file> --reporter=verbose',
   ].join('\n'),
 };
+const PACKAGE_12_CONDITIONAL_ENDING_DRAFT = {
+  title: 'Spell Phase 1 Package 12 conditional endings',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md and docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make a representative cantrip/level 1-3 subset of conditional-ending rules mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: pick a bounded representative subset where a spell effect ends, transfers, is suppressed, or expires because a concrete condition occurs before normal duration. Prefer transfer-on-defeat or temporary-suppression rows such as hex, hunters-mark, or knock; include detect-thoughts only if it stays inside conditional-ending proof without broad social AI arbitration.',
+    '',
+    'Candidate rows include hex, hunters-mark, animal-messenger, detect-thoughts, and knock. Choose level 3 rows only if inspection shows they stay bounded to conditional-ending behavior.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, levels 4-9, broad AI arbitration policy, broad summon/control, terrain, light/vision, social manipulation, trap/glyph systems, combat rider-icon UI, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/conditional_ending.md',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/utils/character/spellAbilityFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+  ].join('\n'),
+};
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 let taskIntakeInteractionHoldUntil = 0;
 
@@ -218,6 +253,10 @@ taskIntakeRoot?.addEventListener('click', async event => {
 
   if (action === 'create-package11-status-state-draft') {
     await createPackage11StatusStateDraft(button);
+  }
+
+  if (action === 'create-package12-conditional-ending-draft') {
+    await createPackage12ConditionalEndingDraft(button);
   }
 
   if (action === 'record-operator-preferences') {
@@ -749,6 +788,26 @@ async function createPackage11StatusStateDraft(button) {
     setStatus('Created Package 11 task draft from the visible packet button.');
   } catch (err) {
     setStatus(`Package 11 packet draft failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function createPackage12ConditionalEndingDraft(button) {
+  // This keeps the Package 12 launch inside the visible dashboard path. It is
+  // intentionally a normal draft creation button, so the operator can see and
+  // audit the action even when the manual long-form draft fields are awkward to
+  // fill through browser automation.
+  button.disabled = true;
+  setStatus('Creating Package 12 Jules task draft from the committed packet.');
+
+  try {
+    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_12_CONDITIONAL_ENDING_DRAFT);
+    renderTaskIntake(snapshot);
+    setStatus('Created Package 12 task draft from the visible packet button.');
+  } catch (err) {
+    setStatus(`Package 12 packet draft failed: ${err.message}`);
     await refreshTaskIntake();
   } finally {
     button.disabled = false;
@@ -1511,6 +1570,7 @@ function renderTaskIntake(snapshot) {
         <button type="button" data-task-action="create-package6-choice-mode-draft">Create Package 6 Draft</button>
         <button type="button" data-task-action="create-package10-target-filter-draft">Create Package 10 Draft</button>
         <button type="button" data-task-action="create-package11-status-state-draft">Create Package 11 Draft</button>
+        <button type="button" data-task-action="create-package12-conditional-ending-draft">Create Package 12 Draft</button>
       </section>
 
       <form id="task-draft-form" class="task-form">
