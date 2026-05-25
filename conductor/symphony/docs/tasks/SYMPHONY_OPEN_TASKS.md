@@ -167,6 +167,15 @@ the audit, or in the proving-ground tracker with the next proof target.
   Symphony docs, fixes the TypeScript test errors, and keeps Package 11 tracker
   wording in review-pending state until foreman acceptance. Recheck GitHub for a
   new PR head, and visually recheck Jules if the head remains unchanged.
+- **Latest repair recheck**: Jules pushed PR head
+  `19738e8cf512c6058dffa196de318d8b65bdd15d`. Local foreman verification now
+  passes `validate:spells`, Atlas audit, focused Vitest, and
+  `npx tsc --noEmit --pretty false`. The branch is still not acceptable because
+  it adds a Package 11 worklog entry to `.jules/worklogs/worklog_scribe.md` and
+  rewinds current `master` Symphony/tracker documentation, including the
+  Package 11 decisions and wait-state docs from PR #1074. Codex posted a second
+  bounded repair request at
+  `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536944637`.
 
 ---
 
