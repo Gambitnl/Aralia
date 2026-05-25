@@ -5162,3 +5162,44 @@ Copy this block for each decision.
   verification results for `npm run validate:spells`,
   `node scripts\auditAtlasBuckets.mjs`, and focused
   `ConditionalEnding.test.ts`, followed by Codex local review before merge.
+
+### Decision 121: Send Clean `@jules` Restatement For Package 12 PR #1084 Repair
+
+- Date/time: 2026-05-26 01:02-01:07 +02:00
+- Phase: `package_12_pr_review_repair`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: After Codex posted the first bounded PR #1084 repair request,
+  GitHub still showed the same head commit and `DIRTY` merge state. The first
+  repair comment also contained shell-escaped text damage in the `vi`,
+  `flame-arrows`, and verification-command references, creating a risk that
+  Jules would misread the intended repair.
+- Options considered:
+  - Wait for Jules to infer the intended repair from the damaged comment.
+  - Start a local foreman repair immediately.
+  - Post a clean explicit `@jules` restatement with the same bounded scope.
+- Decision made by agent: Post a clean explicit `@jules` restatement.
+- Model routing: Jules remains repair worker. Codex remains foreman for PR
+  review, mergeability checks, tracker truth, and final verification.
+- Rationale/evidence:
+  - Jules' PR bot says direct `@jules` comments are the clearest repair channel.
+  - The prior comment's escaped characters could confuse the exact repair
+    request.
+  - A clean restatement is lower risk than local takeover while Jules is still
+    able to process PR feedback.
+- Mutation performed or skipped: Posted clean repair feedback at
+  `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537832896`.
+  Skipped local implementation, hidden endpoints, PR merge, and replacement
+  handoff.
+- Scope guardrails: The restatement repeats the same narrow repair: merge or
+  rebase current `master`, preserve current tracker/decision truth, do not mark
+  P12 closed before acceptance, keep `SpellCommandFactory.createCommand`
+  private unless production code requires otherwise, remove unused test imports,
+  and stay within `hex`, `hunters-mark`, `detect-thoughts`, `flame-arrows`, and
+  `knock`.
+- Result: Jules acknowledged the clean restatement with an eyes reaction, but
+  no repair commit was visible after the next refresh. PR #1084 remained at
+  head `d7e92fa075c4442c4c4efe04595e84d3e9e23148` and `DIRTY`.
+- Next expected proof: Jules repair commit, explicit Jules failure report, or a
+  later stale-repair decision if the acknowledged request remains unchanged
+  after further monitoring.

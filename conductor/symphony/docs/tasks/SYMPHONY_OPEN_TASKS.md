@@ -269,6 +269,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   `SpellCommandFactory.createCommand` from private to public without a clear
   production need. Codex posted bounded repair feedback at
   `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537781802`.
+  Because that first repair comment had shell-escaped text damage, Codex posted
+  a clean explicit `@jules` restatement at
+  `https://github.com/Gambitnl/Aralia/pull/1084#issuecomment-4537832896`.
+  Jules acknowledged the clean restatement with an eyes reaction, but no repair
+  commit is visible yet.
 - **Future repair target**: update package templates so they include a minimum
   package-value check, an explicit candidate-classification step, and a rule
   that plans naming files outside expected scope must justify why the file is
