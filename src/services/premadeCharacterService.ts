@@ -46,6 +46,8 @@ export interface PremadeCharacterSummary {
     level: number;
     /** Short flavor description for the picker card */
     description: string;
+    /** Whether this is a test/simulator-only fixture (should not appear in standard UI) */
+    isTestFixture?: boolean;
 }
 
 export interface PremadeManifest {
@@ -73,9 +75,20 @@ const PREMADE_DIR = `${BASE_URL}premade-characters`;
 
 let cachedManifest: PremadeManifest | null = null;
 
-export async function loadPremadeManifest(): Promise<PremadeManifest> {
+export async function loadPremadeManifest(includeTestFixtures = false): Promise<PremadeManifest> {
     // Return cached manifest if we already loaded it this session
-    if (cachedManifest) return cachedManifest;
+    // We only use the cache if it matches the test fixtures flag we want,
+    // though in practice the UI only calls this once without the flag.
+    if (cachedManifest && !includeTestFixtures) {
+        // Return only non-test characters from the cache
+        return {
+            characters: cachedManifest.characters.filter(c => !c.isTestFixture)
+        };
+    }
+
+    if (cachedManifest && includeTestFixtures) {
+        return cachedManifest;
+    }
 
     try {
         const response = await fetch(`${PREMADE_DIR}/manifest.json`);
@@ -85,7 +98,14 @@ export async function loadPremadeManifest(): Promise<PremadeManifest> {
         }
         const manifest: PremadeManifest = await response.json();
         cachedManifest = manifest;
-        return manifest;
+
+        if (includeTestFixtures) {
+            return manifest;
+        }
+
+        return {
+            characters: manifest.characters.filter(c => !c.isTestFixture)
+        };
     } catch (error) {
         console.warn('[PremadeCharacters] Failed to load manifest:', error);
         return { characters: [] };
