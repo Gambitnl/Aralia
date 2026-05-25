@@ -1,17 +1,16 @@
 # Package 9 Jules Task: Higher-Level Caster Fixture Coverage
 
-Status: queued package packet; do not dispatch while Package 8 is still the
-active Jules implementation handoff.
+Status: active package packet; Package 8 has merged and this is now the next
+Spell Phase 1 Jules implementation boundary.
 
 This packet promotes tracker gap `G3` into the next non-overlapping Spell Phase
-1 candidate. It exists because Package 8 is waiting on Jules for Bless/Bane roll
-modifiers, and fixture coverage for level 2 and level 3 spell testing can be
-prepared without touching the Package 8 Bless/Bane runtime files.
+1 candidate. Package 8 has now merged, so fixture coverage for level 2 and
+level 3 spell testing is the next sequential package. Keep this package
+separate from the already-merged Package 8 Bless/Bane runtime files.
 
 ## Worker
 
-Default worker: Jules after Package 8 reaches a PR, completion, blocker, or
-explicit foreman decision to start the next sequential handoff.
+Default worker: Jules, through the visible Symphony/Jules handoff path.
 
 Codex role: foreman. Codex owns sequencing, dashboard handoff, PR review,
 verification, decision reporting, and tracker updates. Jules should own the
@@ -86,8 +85,9 @@ Jules should not edit:
 - Symphony dashboard/runtime/source files
 - `.symphony`, `.jules`, generated manifests, draft IDs, click receipts, or
   other orchestration state
-- Package 8 Bless/Bane files or roll-runtime files unless the Package 8 PR has
-  already landed and this packet is explicitly refreshed
+- Package 8 Bless/Bane files or roll-runtime files; PR #1020 has already
+  landed and should remain closed unless fixture work reveals a separate,
+  tracker-worthy follow-up
 - levels 4-9 spell data
 - broad character creator or spellbook UI unrelated to fixture loading
 - broad AI arbitration policy
@@ -157,16 +157,15 @@ command required by `AGENTS.md` for each changed exported/shared file.
 
 ## Decision Report
 
-Decision point: choose the next non-overlapping package to prepare while
-Package 8 waits on Jules.
+Decision point: choose the next non-overlapping package after Package 8 merged.
 
-Decision made by Codex foreman: prepare `G3` as queued Package 9, but do not
-launch it while Package 8 is still the active implementation handoff.
+Decision made by Codex foreman: promote `G3` from queued fixture work into
+active Package 9 and launch it through the visible Symphony/Jules path.
 
 Why: all current premades are level 1, so level 2 and level 3 spell testing
 still lacks legal caster fixtures. This package is product-relevant, does not
-overlap the Package 8 Bless/Bane write scope, and can be delegated to Jules once
-the current sequential boundary is clear.
+overlap the now-merged Package 8 Bless/Bane write scope, and can be delegated to
+Jules because the sequential boundary is clear.
 
 Artifact boundary:
 
