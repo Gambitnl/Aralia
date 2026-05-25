@@ -174,9 +174,12 @@ When GitHub still shows the same PR head after repair feedback, do a visible
 Jules-page check before calling the work blocked. If Jules visibly says it has
 received the comments or is processing the repair, the valid next action is a
 recorded `wait_for_jules_repair_commit` state with the current PR head, visible
-Jules state, and next recheck condition. If Jules shows failure, no activity
-after repeated waits, or a completed no-PR state, record the different decision
-gate explicitly before choosing another repair path.
+Jules state, and next recheck condition. The first wait after a new repair
+request or new visible Jules signal may be a full decision entry; repeated
+unchanged waits should be compact wait-state rows in the tracker, task receipt,
+or open-task queue. If Jules shows failure, no activity after repeated waits, or
+a completed no-PR state, record the different decision gate explicitly before
+choosing another repair path.
 
 The dashboard should make this boundary visible whenever a handoff has both a
 Jules launch receipt and newer tracker/GitHub evidence. The next action should
@@ -352,6 +355,16 @@ produce a decision report entry that states the phase, decision point, available
 options, decision made by the agent, evidence/rationale, resulting mutation or
 non-mutation, and next expected proof. The purpose is to make the agent's
 decision behavior inspectable after the run.
+
+Decision reporting is not the same as logging every observation. Use the full
+decision report for material forks: plan approval/rejection, external mutation,
+Jules feedback, stale-session replacement, branch-hygiene repair, merge,
+deployment waiver, local sync, or scope expansion. Use compact tracker,
+wait-ledger, receipt, or open-task rows for repeated refreshes that preserve the
+same wait state. A compact wait row still needs the observed PR/session state,
+what is being waited for, and the next recheck condition, but it should not
+duplicate the full assumed-approval template unless the available choices
+changed.
 
 ### Workflow Phases
 

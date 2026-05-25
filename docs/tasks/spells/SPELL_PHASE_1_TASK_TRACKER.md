@@ -75,7 +75,7 @@ audit, open task queue, and decision report.
 
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
-| P0 | active | Codex foreman | Symphony finalization baseline: dashboard-first workflow, branch/worktree discipline, decision reporting, task evidence pathways, and artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Preserve Symphony runtime/source/local state outside Aralia. The visible dashboard remains the workflow surface, but Aralia GitHub should only receive Jules-readable task packets, prompts, package tracker updates, final product PR links, and short blocker summaries. Raw Symphony receipts and support-PR lists belong in ignored/local Symphony state or Symphony-owned docs, not in this spell tracker. Current evidence on 2026-05-25 after PR #1072: Package 11 is closed; the active next product slice should be selected from the tracker and execution plan rather than encoded into the persistent goal. |
+| P0 | active | Codex foreman | Symphony finalization baseline: dashboard-first workflow, branch/worktree discipline, compact decision reporting, task evidence pathways, and artifact lifecycle rules | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, `SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` | Preserve Symphony runtime/source/local state outside Aralia. The visible dashboard remains the workflow surface, but Aralia GitHub should only receive Jules-readable task packets, prompts, package tracker updates, final product PR links, and short blocker summaries. Raw Symphony receipts and support-PR lists belong in ignored/local Symphony state or Symphony-owned docs, not in this spell tracker. Current evidence on 2026-05-26 after PR #1087: Package 12 is closed; the next product slice should be selected from the tracker and execution plan, and repeated Jules wait observations should use compact wait-state rows rather than full decision entries unless the foreman reaches a real fork. |
 | P1 | done | Codex foreman | Scoped baseline inventory for levels 0-3 | `SPELL_PHASE_1_BASELINE_REPORT.md` | Baseline report exists; use as context for later packages |
 | P2 | done | Jules implementation, Codex foreman review | Premade level-1 party gear, combat readiness, and caster spellbook legality | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`, `PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md` | PR #935 merged on 2026-05-22 after the review workflow was repaired, the PR branch was updated with current `master`, GitHub CI reran clean, and post-merge local gate checks passed |
 | P3 | done | Codex foreman closeout | Character creator spell selection and character sheet spellbook visibility | `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md` | Local proof and the merged GitHub work now cover wizard spell selection, selected-spell assembly, and spellbook visibility for cantrips plus levels 1-3; keep the packet durable and separate from transient Symphony state |
@@ -300,8 +300,8 @@ ignored unless a concise package-facing summary is useful after the run.
 | `PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_PROMPT.md` | Exact Jules prompt for Package 10 | done; replacement prompt dispatched through Jules session `344957924579130899`; PR #1059 merged |
 | `PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_TASK.md` | Package 11 status/state-change mechanics bucket scope and acceptance criteria | done; dispatched through Jules session `13361122470730968094`; PR #1072 merged after bounded branch-hygiene repair |
 | `PACKAGE_11_STATUS_OR_STATE_CHANGE_JULES_PROMPT.md` | Exact Jules prompt for Package 11 | done; dispatched through Jules session `13361122470730968094`; PR #1072 merged |
-| `PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md` | Package 12 conditional-ending mechanics bucket scope and acceptance criteria | active; prepared for visible Symphony/Jules dispatch |
-| `PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md` | Exact Jules prompt for Package 12 | active; prepared for visible Symphony/Jules dispatch |
+| `PACKAGE_12_CONDITIONAL_ENDING_JULES_TASK.md` | Package 12 conditional-ending mechanics bucket scope and acceptance criteria | done; dispatched through Jules session `3991627368289943007`; PR #1084 merged after bounded branch-hygiene repair |
+| `PACKAGE_12_CONDITIONAL_ENDING_JULES_PROMPT.md` | Exact Jules prompt for Package 12 | done; dispatched through Jules session `3991627368289943007`; PR #1084 merged |
 
 ## Update Rules
 
@@ -313,6 +313,12 @@ ignored unless a concise package-facing summary is useful after the run.
   or ignored unless the tracker needs a short durable summary.
 - When a change only repairs Symphony dashboard/workflow support machinery,
   summarize the durable outcome without adding every support PR to this tracker.
+- For the next Jules package, include a compact decision-logging instruction in
+  the task/prompt: full decision entries are for real forks such as plan
+  approval/rejection, repair request, stale-session replacement,
+  branch-hygiene repair, merge, or scope expansion. Repeated observations that
+  only confirm the same wait state should be compact tracker or wait-ledger rows
+  with the observed PR/session state and the next recheck condition.
   Detailed support provenance belongs in Symphony-owned docs.
 - If a spell package exposes Symphony dashboard or documentation friction,
   update this tracker or link the Symphony task queue/audit entry in the same
