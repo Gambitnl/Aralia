@@ -16,13 +16,14 @@ and live task status; this spec defines what the system must handle.
   - 1.3 [Codex And Jules Roles](#codex-and-jules-roles)
   - 1.4 [Waits, Nudges, And Routing](#waits-nudges-and-routing)
   - 1.5 [Live Browser Inspection](#live-browser-inspection)
-  - 1.6 [Task-Centered Dashboard](#task-centered-dashboard)
-  - 1.7 [Current Task-Page Baseline](#current-task-page-baseline)
-  - 1.8 [Human Direction And Quiet Hours](#human-direction-and-quiet-hours)
-  - 1.9 [Active Goal Scope](#active-goal-scope)
-  - 1.10 [Approval Scope](#approval-scope)
-  - 1.11 [Approval Boundaries](#approval-boundaries)
-  - 1.12 [Workflow Phases](#workflow-phases)
+  - 1.6 [Post-Launch Jules Update Boundary](#post-launch-jules-update-boundary)
+  - 1.7 [Task-Centered Dashboard](#task-centered-dashboard)
+  - 1.8 [Current Task-Page Baseline](#current-task-page-baseline)
+  - 1.9 [Human Direction And Quiet Hours](#human-direction-and-quiet-hours)
+  - 1.10 [Active Goal Scope](#active-goal-scope)
+  - 1.11 [Approval Scope](#approval-scope)
+  - 1.12 [Approval Boundaries](#approval-boundaries)
+  - 1.13 [Workflow Phases](#workflow-phases)
 - 2. [System Boundaries](#system-boundaries)
   - 2.1 [Git Tracking And Jules Handoff Boundary](#git-tracking-and-jules-handoff-boundary)
 - 3. [Task Scenarios To Cover](#task-scenarios-to-cover)
@@ -153,6 +154,29 @@ replacement handoff from current `origin/master`. Before accepting or merging a
 Jules PR, compare the Jules session base with current `origin/master`; if master
 advanced, classify any tracker/docs conflict as a session-base drift issue and
 preserve foreman-reviewed tracker wording over stale Jules-authored status.
+
+### Post-Launch Jules Update Boundary
+
+A Jules launch is a source-boundary decision. The launched session receives the
+repo state and handoff packet available at its launch base; it does not keep
+subscribing to later local tracker edits, merged tracker PRs, or GitHub `master`
+changes. After launch, the foreman must treat new task instructions as unsent
+until one of these update paths is recorded:
+
+| Post-launch adjustment | Reaches running Jules automatically? | Valid update path |
+|---|---:|---|
+| Local tracker edit or local task note | No | Convert to a visible Jules message, PR feedback, or replacement handoff. |
+| Merged task-doc PR after Jules launch | No | Compare base commits, then send the delta through Jules/GitHub feedback or relaunch from current `origin/master`. |
+| PR review finding on Jules branch | Only if Jules reads the PR comment/session | Post bounded `[Jules feedback]`, confirm visible Jules acknowledgement when possible, and wait for a new PR head before accepting. |
+| Out-of-scope/stale-base PR file list | No | Request Jules rebase/scope repair first; if repeated repair fails, use a foreman PR-branch repair/rebase or replacement handoff and record the decision. |
+
+The dashboard should make this boundary visible whenever a handoff has both a
+Jules launch receipt and newer tracker/GitHub evidence. The next action should
+name the valid choice, such as `Wait for Jules repair commit`,
+`Send post-launch task adjustment`, `Repair PR branch from current master`, or
+`Create replacement handoff`. It should not say or imply that a tracker merge
+has updated the running Jules clone unless the receipt proves one of those
+channels happened.
 
 ### Task-Centered Dashboard
 
