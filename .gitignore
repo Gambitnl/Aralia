@@ -146,13 +146,17 @@ state_*.sqlite
 pnpm-lock.yaml
 
 # Design Preview Tool (local-only developer tool)
-src/components/DesignPreview/
+src/components/DesignPreview/*
+!src/components/DesignPreview/steps/
+src/components/DesignPreview/steps/*
+!src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx
 src/design-preview.tsx
 src/components/SpellPipelineAtlas/
-src/spell-pipeline-atlas.tsx
+!src/spell-pipeline-atlas.tsx
 src/agent-docs-entry.tsx
 misc/*
 !misc/dev_hub.html
+!misc/spell_pipeline_atlas.html
 !misc/spell_data_validation.html
 !misc/spell_data_validation.css
 !misc/spell_data_validation_app.js

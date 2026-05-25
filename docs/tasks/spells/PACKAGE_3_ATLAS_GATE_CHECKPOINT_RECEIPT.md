@@ -55,7 +55,7 @@ npx vitest run src/components/CharacterCreator/Class/__tests__/FeatureSelectionC
   worktree does not contain that file. `node scripts/auditAtlasBuckets.mjs`
   also fails because it expects
   `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx`, which is not
-  present in this worktree.
+  present in this worktree. [CORRECTION: Package 7 has repaired this missing-source diagnosis. See Package 7 PR.]
 - Visual proof receipt linked: `docs/tasks/spells/PACKAGE_3_VISUAL_PROOF_RECEIPT.md`
 - Follow-up bucket, combat, fixture, or AI arbitration work discovered:
   G46 remains as creator accessibility semantics; Package 4 still owns combat

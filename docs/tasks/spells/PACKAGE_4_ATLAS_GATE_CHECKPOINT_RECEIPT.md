@@ -53,7 +53,7 @@ If a more focused combat pilot test is added, record the exact command that ran.
 - Dependency-header sync result:
   `blocked; misc/dev_hub/codebase-visualizer/server/index.ts is not present in
   this worktree`
-- Atlas surface checked or updated: `blocked by G48`
+- Atlas surface checked or updated: `blocked by G48` [CORRECTION: Package 7 has repaired G48. See Package 7 PR.]
 - Follow-up mechanics, fixture, or AI arbitration work discovered:
   `bless/status bridge remains a follow-up gap`
 - Can Package 5 begin after this checkpoint: `yes, if G48 remains visible as a
