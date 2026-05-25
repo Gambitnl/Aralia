@@ -1,6 +1,6 @@
 # Spell Phase 1 Assumed-Approval Decisions
 
-Last Updated: 2026-05-22
+Last Updated: 2026-05-25
 
 This report records decision points for the early-game spell execution flow:
 cantrips and spell levels 1-3. The operator has approved the test flow to assume
@@ -28,6 +28,10 @@ dashboard caches, generated manifests, click logs, local task-store JSON, or
 lists of every Symphony support PR into a spell package record. If the decision
 matters to future spell work, summarize the durable consequence in the spell
 tracker or package packet; keep raw Symphony receipts external or ignored.
+
+For a compact map of recurring patterns in this large ledger, use
+`SPELL_PHASE_1_DECISION_TRENDS_INDEX.md`. That index is the operator-facing
+summary; this file remains the detailed audit archive.
 
 ## Approval Envelope
 
@@ -4880,3 +4884,61 @@ Copy this block for each decision.
 - Next expected proof: PR/merge for the dashboard shortcut repair, then visible
   Package 12 draft promotion, Linear issue creation, manifest staging, and
   Jules launch from clean `origin/master`.
+
+### Decision 115: Withhold Package 12 Plan Approval For Scope And Value Revision
+
+- Date/time: 2026-05-25 23:57 +02:00
+- Phase: `package_12_plan_gate`
+- Active slice: Package 12 conditional-ending mechanics for cantrips and
+  levels 1-3.
+- Decision point: After PR #1079 landed the Package 12 visible dashboard
+  shortcut, Codex used the dashboard path to create draft
+  `draft-1779743756459-8uvr0z`, Linear `ARA-21`, handoff
+  `handoff-1779744252464-e065rv`, staged the ignored Jules manifest, launched
+  Jules session `3991627368289943007`, and refreshed it to `IN_PROGRESS`.
+  Visual Jules inspection then showed an `Approve plan?` gate. The first plan
+  proposed `UtilityCommand.test.ts`, `src/types/spells.ts`,
+  `src/commands/effects/UtilityCommand.ts`, inspection and JSON updates for
+  `hex`, `hunters-mark`, and `knock`, validation/schema audit, tracker docs,
+  and commit/finish.
+- Options considered:
+  - Approve the plan as-is because it is small and likely easy to review.
+  - Reject Package 12 entirely and start a replacement handoff from a wider
+    packet.
+  - Send a visible Jules revision request before approval, keeping the same
+    launched session but asking for higher implementation value and file-scope
+    justification.
+- Decision made by agent: Withhold approval and send a visible Jules revision
+  request.
+- Model routing: Jules remains the implementation worker. Codex remains foreman
+  for plan approval, package value classification, scope control, and tracker
+  updates. A lightweight Codex explorer summarized decision-log trends in
+  parallel; it did not edit files.
+- Rationale/evidence:
+  - `src/commands/effects/UtilityCommand.ts` was not in the declared expected
+    write scope for Package 12. If it is unavoidable, Jules must explain why
+    before approval.
+  - A three-spell conditional-ending slice is too small for the full
+    Symphony/Linear/Jules/GitHub orchestration cycle unless there is a clear
+    safety reason for keeping it that small.
+  - The current goal explicitly asks Codex to improve implementation value per
+    orchestration cycle by preferring larger coherent Jules batches when work is
+    repetitive, testable, and covered by existing schema/test patterns.
+  - The visible Jules session was available, so the correct update method was a
+    visible Jules message rather than hidden endpoint use or local takeover.
+- Mutation performed or skipped: Sent a visible Jules message asking for a
+  revised plan. The message asked Jules to classify all cantrip/level 1-3
+  `conditional_ending` candidates that fit existing schema/test patterns,
+  implement the largest coherent safe subset, justify any unavoidable file
+  outside the original write scope, and list deferred rows with reasons. Skipped
+  plan approval, local implementation, PR creation, merge, and hidden API
+  shortcuts.
+- Scope guardrails: The revision request keeps broad terrain, light/vision,
+  summon/control, social AI, trap/glyph, combat HUD, levels 4-9, Symphony
+  runtime files, and GitHub workflows out of scope.
+- Result: Package 12 remains at a plan-revision gate. The active next action is
+  a visible Jules recheck for a revised plan, then either approve the revised
+  bounded plan or record a replacement/blocker decision.
+- Next expected proof: Visible Jules page showing a revised plan with chosen
+  spell rows, file scope, test plan, and deferred rows; or a visible failure/no
+  revision state that justifies a replacement handoff or blocker record.
