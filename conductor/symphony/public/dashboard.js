@@ -58,6 +58,39 @@ const PACKAGE_6_CHOICE_MODE_DRAFT = {
     'npx vitest run <focused test file> --reporter=verbose',
   ].join('\n'),
 };
+const PACKAGE_10_TARGET_FILTER_DRAFT = {
+  title: 'Spell Phase 1 Package 10 target filters and eligibility',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_TASK.md and docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make a representative cantrip/level 1-3 subset of target filters and placement eligibility mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: choose at least one object-eligibility row, one placement-eligibility row, and one special target-identity row unless current code evidence proves one family is already represented. Preserve existing broad target categories where useful, add the smallest reusable data/runtime bridge, and record residual rows instead of marking unimplemented rows closed.',
+    '',
+    'Candidate rows include burning-hands, find-familiar, hellish-rebuke, tensers-floating-disk, unseen-servant, darkness, enlarge-reduce, find-steed, flaming-sphere, gentle-repose, hold-person, knock, levitate, misty-step, pyrotechnics, shatter, summon-beast, animate-dead, daylight, fireball, revivify, sending, spirit-guardians, and thunder-step.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, levels 4-9, broad AI arbitration policy, broad terrain/object-state systems, or generated report timestamps.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_10_TARGET_FILTER_ELIGIBILITY_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/target_filter_or_eligibility.md',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/utils/character/spellAbilityFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+  ].join('\n'),
+};
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 let taskIntakeInteractionHoldUntil = 0;
 
@@ -140,6 +173,10 @@ taskIntakeRoot?.addEventListener('click', async event => {
 
   if (action === 'create-package6-choice-mode-draft') {
     await createPackage6ChoiceModeDraft(button);
+  }
+
+  if (action === 'create-package10-target-filter-draft') {
+    await createPackage10TargetFilterDraft(button);
   }
 
   if (action === 'record-operator-preferences') {
@@ -632,6 +669,26 @@ async function createPackage6ChoiceModeDraft(button) {
     setStatus('Created Package 6 task draft from the visible packet button.');
   } catch (err) {
     setStatus(`Package 6 packet draft failed: ${err.message}`);
+    await refreshTaskIntake();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function createPackage10TargetFilterDraft(button) {
+  // This mirrors the Package 6 packet shortcut for the same reason: the visible
+  // dashboard is the required operator surface, but long text entry through the
+  // in-app browser can fail when its virtual clipboard is unavailable. The
+  // button still creates an ordinary local draft through the dashboard API.
+  button.disabled = true;
+  setStatus('Creating Package 10 Jules task draft from the committed packet.');
+
+  try {
+    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_10_TARGET_FILTER_DRAFT);
+    renderTaskIntake(snapshot);
+    setStatus('Created Package 10 task draft from the visible packet button.');
+  } catch (err) {
+    setStatus(`Package 10 packet draft failed: ${err.message}`);
     await refreshTaskIntake();
   } finally {
     button.disabled = false;
@@ -1392,6 +1449,7 @@ function renderTaskIntake(snapshot) {
         <h3>Package Packet Drafts</h3>
         <p class="usage-summary">Create known Jules drafts from committed task packets when text entry is blocked by browser tooling.</p>
         <button type="button" data-task-action="create-package6-choice-mode-draft">Create Package 6 Draft</button>
+        <button type="button" data-task-action="create-package10-target-filter-draft">Create Package 10 Draft</button>
       </section>
 
       <form id="task-draft-form" class="task-form">
