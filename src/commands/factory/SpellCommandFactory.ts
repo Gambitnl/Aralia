@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect, StatusConditionEffect } from '@/types/spells'
 import { CombatCharacter } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
@@ -157,6 +157,40 @@ export class SpellCommandFactory {
 
     for (const effect of activeEffects) {
       const scaledEffect = this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
+
+      // Support for condition removal (e.g. Lesser Restoration) without changing UtilityCommand
+      if (scaledEffect.conditionRemoval && scaledEffect.conditionRemoval.length > 0) {
+        const removalEffect: SpellEffect = {
+          ...scaledEffect,
+          type: 'STATUS_CONDITION',
+          statusCondition: { name: 'Prone', duration: { type: 'rounds', value: 0 } }, // Dummy condition, conditionRemoval logic fires first
+          conditionRemoval: scaledEffect.conditionRemoval
+        } as StatusConditionEffect;
+        const removalCommand = this.createCommand(removalEffect, context);
+        if (removalCommand) {
+          commands.push(removalCommand);
+        }
+      }
+
+      // Support for option-specific status payloads (e.g. Command's Grovel option)
+      if (scaledEffect.type === 'UTILITY' && scaledEffect.controlOptions && playerInput) {
+        const chosenOption = scaledEffect.controlOptions.find(opt =>
+          opt.name.toLowerCase() === playerInput.toLowerCase() ||
+          opt.effect.toLowerCase() === playerInput.toLowerCase()
+        );
+        if (chosenOption && chosenOption.statusCondition) {
+          const statusEffect: SpellEffect = {
+            ...scaledEffect,
+            type: 'STATUS_CONDITION',
+            statusCondition: chosenOption.statusCondition
+          } as StatusConditionEffect;
+          const statusCommand = this.createCommand(statusEffect, context);
+          if (statusCommand) {
+            commands.push(statusCommand);
+          }
+        }
+      }
+
       const command = this.createCommand(scaledEffect, context)
       if (command) {
         commands.push(command)
