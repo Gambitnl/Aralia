@@ -1,0 +1,14 @@
+{
+  "id": "dragonchess_set",
+  "title": "Dragonchess Set",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: GS|XPHB - Cost: 1 gp - Ability:: Wisdom - Utilize:: Discern whether someone is cheating (DC 10), or win the game (DC 20)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/dragonchess_set.json",
+  "markdown": "# Dragonchess Set\n\n- **Type**: GS|XPHB\n- **Cost**: 1 gp\n\n- **Ability::** Wisdom\n- **Utilize::** Discern whether someone is cheating (DC 10), or win the game (DC 20)"
+}

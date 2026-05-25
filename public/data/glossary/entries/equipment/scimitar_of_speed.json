@@ -1,0 +1,14 @@
+{
+  "id": "scimitar_of_speed",
+  "title": "Scimitar of Speed",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M|XPHB - Weight: 3 lb. - Damage: 1d6 S - Properties: F|XPHB, L|XPHB You gain a +2 bonus to attack rolls and damage rolls made with this magic ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scimitar_of_speed.json",
+  "markdown": "# Scimitar of Speed\n\n- **Type**: M|XPHB\n- **Weight**: 3 lb.\n- **Damage**: 1d6 S\n- **Properties**: F|XPHB, L|XPHB\n\nYou gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a [[bonus_action Action]] on each of your turns."
+}

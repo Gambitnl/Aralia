@@ -1,0 +1,14 @@
+{
+  "id": "pipes_of_the_sewers",
+  "title": "Pipes of the Sewers",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While these pipes are on your person, ordinary rat and giant rat are indifferent_attitude toward you and won't attack you unless you threaten or harm ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pipes_of_the_sewers.json",
+  "markdown": "# Pipes of the Sewers\n\nWhile these pipes are on your person, ordinary rat and giant rat are [[indifferent_attitude]] toward you and won't attack you unless you threaten or harm them.\n\nThe pipes have 3 charges and regain 1d3 expended charges daily at dawn. If you play the pipes as a [[magic]] action, you can take a [[bonus_action Action]] to expend 1 to 3 charges, calling forth one Swarm of Rats with each expended charge if enough rats are within half a mile of you to be called in this fashion (as determined by the DM). If there aren't enough rats to form a swarm, the charge is wasted. Called swarms move toward the music by the shortest available route but aren't under your control otherwise.\n\nWhenever a Swarm of Rats that isn't under another creature's control comes within 30 feet of you while you are playing the pipes, the swarm makes a DC 15 Wisdom saving throw. On a successful save, the swarm behaves as it normally would and can't be swayed by the pipes' music for the next 24 hours. On a failed save, the swarm is swayed by the pipes' music and becomes [[friendly_attitude]] to you and your allies for as long as you continue to play the pipes each round as a [[magic]] action. A [[friendly_attitude]] swarm obeys your commands. If you issue no commands to a [[friendly_attitude]] swarm, it defends itself but otherwise takes no actions. If a [[friendly_attitude]] swarm starts its turn more than 30 feet away from you, your control over that swarm ends, and the swarm behaves as it normally would and can't be swayed by the pipes' music for the next 24 hours."
+}

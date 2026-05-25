@@ -1,0 +1,14 @@
+{
+  "id": "reliquary",
+  "title": "Reliquary",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp - Weight: 2 lb. For a Reliquary to be an effective Holy Symbol, it must be held....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/reliquary.json",
+  "markdown": "# Reliquary\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n- **Weight**: 2 lb.\n\nFor a Reliquary to be an effective Holy Symbol, it must be held."
+}

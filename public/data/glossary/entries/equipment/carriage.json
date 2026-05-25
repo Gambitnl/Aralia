@@ -1,0 +1,14 @@
+{
+  "id": "carriage",
+  "title": "Carriage",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: VEH|XPHB - Cost: 100 gp - Weight: 600 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/carriage.json",
+  "markdown": "# Carriage\n\n- **Type**: VEH|XPHB\n- **Cost**: 100 gp\n- **Weight**: 600 lb.\n\n"
+}

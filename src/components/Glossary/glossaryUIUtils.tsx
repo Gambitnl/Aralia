@@ -28,6 +28,21 @@ export const getCategoryIcon = (category: string): React.ReactNode => {
           <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" />
         </svg>
       );
+    case 'feats':
+      // Star/badge icon for feats
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      );
+    case 'character backgrounds':
+      // Compass/origin icon for backgrounds
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" opacity="0.3" />
+        </svg>
+      );
     case 'rules glossary':
       // Book icon for rules
       return (
@@ -217,6 +232,10 @@ export const getCategoryColor = (category: string): string => {
       return 'text-red-400';
     case 'character races':
       return 'text-green-400';
+    case 'character backgrounds':
+      return 'text-teal-400';
+    case 'feats':
+      return 'text-indigo-400';
     case 'spells':
       return 'text-purple-400';
     case 'rules glossary':

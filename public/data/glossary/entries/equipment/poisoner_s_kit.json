@@ -1,0 +1,14 @@
+{
+  "id": "poisoner_s_kit",
+  "title": "Poisoner's Kit",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: T|XPHB - Cost: 50 gp - Weight: 2 lb. - Ability:: Intelligence - Utilize:: Detect a poisoned object (DC 10) - Craft:: basic_poison Poison...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/poisoner_s_kit.json",
+  "markdown": "# Poisoner's Kit\n\n- **Type**: T|XPHB\n- **Cost**: 50 gp\n- **Weight**: 2 lb.\n\n- **Ability::** Intelligence\n- **Utilize::** Detect a poisoned object (DC 10)\n- **Craft::** [[basic_poison Poison]]"
+}

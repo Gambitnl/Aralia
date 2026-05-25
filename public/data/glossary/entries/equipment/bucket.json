@@ -1,0 +1,14 @@
+{
+  "id": "bucket",
+  "title": "Bucket",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.05 gp - Weight: 2 lb. A Bucket holds up to half a cubic foot of contents....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bucket.json",
+  "markdown": "# Bucket\n\n- **Type**: G|XPHB\n- **Cost**: 0.05 gp\n- **Weight**: 2 lb.\n\nA Bucket holds up to half a cubic foot of contents."
+}

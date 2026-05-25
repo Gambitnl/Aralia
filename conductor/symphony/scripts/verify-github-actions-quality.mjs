@@ -13,7 +13,7 @@ assert.match(workflow, /run:\s*npm run scan/);
 assert.match(workflow, /surfaces grouped quality-debt counts/);
 assert.match(workflow, /does not block merges/);
 assert.match(workflow, /npm --silent run scan -- --json > quality-scan\.json/);
-assert.match(workflow, /actions\/upload-artifact@v4/);
+assert.match(workflow, /actions\/upload-artifact@v7/);
 assert.match(workflow, /name:\s*quality-scan-json/);
 assert.match(workflow, /path:\s*quality-scan\.json/);
 assert.match(workflow, /GITHUB_STEP_SUMMARY/);

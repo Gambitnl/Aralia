@@ -1,0 +1,14 @@
+{
+  "id": "paper",
+  "title": "Paper",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.2 gp One sheet of Paper can hold about 250 handwritten words....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/paper.json",
+  "markdown": "# Paper\n\n- **Type**: G|XPHB\n- **Cost**: 0.2 gp\n\nOne sheet of Paper can hold about 250 handwritten words."
+}

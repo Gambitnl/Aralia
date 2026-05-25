@@ -3,20 +3,12 @@
   "title": "Expertise",
   "category": "Rules Glossary",
   "tags": [
-    "rules",
-    "skill",
-    "proficiency bonus",
-    "ability check"
+    "source:xphb",
+    "variantrule"
   ],
-  "excerpt": "A feature that doubles your proficiency bonus for chosen skills or tools, representing exceptional mastery in those areas.",
-  "aliases": [
-    "skill expertise",
-    "tool expertise"
-  ],
-  "seeAlso": [
-    "proficiency_bonus",
-    "proficiency"
-  ],
+  "excerpt": "Expertise is a feature that enhances your use of a skill proficiency. When you make an ability check with a skill proficiency in which you have Expert...",
+  "aliases": [],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/expertise.json",
-  "markdown": "Expertise is a feature that enhances your use of a skill proficiency. When you make an ability check with a skill proficiency in which you have Expertise, your <span data-term-id=\"proficiency_bonus\" class=\"glossary-term-link-from-markdown\">Proficiency Bonus</span> is doubled for that check unless the bonus is doubled by another feature.\r\n\r\nIf you gain Expertise, you gain it in one skill in which you have <span data-term-id=\"proficiency\" class=\"glossary-term-link-from-markdown\">proficiency</span>. You can't have Expertise in the same skill proficiency more than once.\r\n\r\nSee also the Playing the Game section for <span data-term-id=\"proficiency\" class=\"glossary-term-link-from-markdown\">Proficiency</span>."
+  "markdown": "# Expertise\n\nExpertise is a feature that enhances your use of a skill proficiency. When you make an ability check with a skill proficiency in which you have Expertise, your [[proficiency Bonus]] is doubled for that check unless the bonus is doubled by another feature.\n\nIf you gain Expertise, you gain it in one [[skill]] in which you have proficiency. You can't have Expertise in the same skill proficiency more than once."
 }

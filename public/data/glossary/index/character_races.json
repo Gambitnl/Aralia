@@ -1588,52 +1588,6 @@
     "filePath": null,
     "subEntries": [
       {
-        "id": "goblin",
-        "title": "Goblin",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "goblin",
-          "goblinoid",
-          "fey",
-          "stealth",
-          "nimble escape"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "goblinoid",
-          "darkvision",
-          "fey_ancestry",
-          "fury_of_the_small",
-          "nimble_escape"
-        ],
-        "filePath": "/data/glossary/entries/races/goblin.json"
-      },
-      {
-        "id": "orc",
-        "title": "Orc",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "orc",
-          "relentless",
-          "adrenaline",
-          "humanoid",
-          "gruumsh"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [],
-        "seeAlso": [
-          "humanoid",
-          "darkvision",
-          "temporary_hit_points",
-          "dash_action",
-          "relentless_endurance"
-        ],
-        "filePath": "/data/glossary/entries/races/orc.json"
-      },
-      {
         "id": "bugbear",
         "title": "Bugbear",
         "category": "Character Races",
@@ -1927,28 +1881,6 @@
     "excerpt": "Halfling subraces and variants.",
     "filePath": null,
     "subEntries": [
-      {
-        "id": "halfling",
-        "title": "Halfling",
-        "category": "Character Races",
-        "tags": [
-          "race",
-          "halfling",
-          "humanoid",
-          "small"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "hin"
-        ],
-        "seeAlso": [
-          "humanoid",
-          "brave_trait",
-          "halfling_luck",
-          "nimbleness"
-        ],
-        "filePath": "/data/glossary/entries/races/halfling.json"
-      },
       {
         "id": "lightfoot_halfling",
         "title": "Lightfoot Halfling",
@@ -2446,30 +2378,6 @@
     "filePath": null,
     "subEntries": [
       {
-        "id": "abyssal_tiefling",
-        "title": "Abyssal Legacy",
-        "category": "Character Races",
-        "tags": [
-          "tiefling",
-          "legacy",
-          "abyssal",
-          "demon",
-          "poison"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "abyssal legacy"
-        ],
-        "seeAlso": [
-          "tiefling",
-          "poison_damage",
-          "poison_spray",
-          "ray_of_sickness",
-          "hold_person"
-        ],
-        "filePath": "/data/glossary/entries/races/tiefling_legacies/abyssal.json"
-      },
-      {
         "id": "chthonic_tiefling",
         "title": "Chthonic Legacy",
         "category": "Character Races",
@@ -2492,30 +2400,6 @@
           "ray_of_enfeeblement"
         ],
         "filePath": "/data/glossary/entries/races/tiefling_legacies/chthonic.json"
-      },
-      {
-        "id": "infernal_tiefling",
-        "title": "Infernal Legacy",
-        "category": "Character Races",
-        "tags": [
-          "tiefling",
-          "legacy",
-          "infernal",
-          "devil",
-          "fire"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "infernal legacy"
-        ],
-        "seeAlso": [
-          "tiefling",
-          "fire_damage",
-          "fire_bolt",
-          "hellish_rebuke",
-          "darkness"
-        ],
-        "filePath": "/data/glossary/entries/races/tiefling_legacies/infernal.json"
       }
     ]
   }

@@ -1,0 +1,14 @@
+{
+  "id": "repelling_blast",
+  "title": "Repelling Blast",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "Choose one of your known Warlock cantrips that requires an attack roll. When you hit a Large or smaller creature with that cantrip, you can push the c...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/repelling_blast.json",
+  "markdown": "# Repelling Blast\n\nChoose one of your known Warlock cantrips that requires an attack roll. When you hit a Large or smaller creature with that cantrip, you can push the creature up to 10 feet straight away from you.\n\n### Repeatable\n\nYou can gain this invocation more than once. Each time you do so, choose a different eligible cantrip."
+}

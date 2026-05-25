@@ -1,0 +1,14 @@
+{
+  "id": "slasher",
+  "title": "Slasher",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Hamstring Once per turn when you hit a creature with an attack that deals Slashing damage, you can reduce the speed ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/slasher.json",
+  "markdown": "# Slasher\n\nYou gain the following benefits.\n\n## Hamstring\n\nOnce per turn when you hit a creature with an attack that deals Slashing damage, you can reduce the [[speed]] of that creature by 10 feet until the start of your next turn.\n\n## Enhanced Critical\n\nWhen you score a [[critical_hit Hit]] that deals Slashing damage to a creature, it has [[disadvantage]] on attack rolls until the start of your next turn."
+}

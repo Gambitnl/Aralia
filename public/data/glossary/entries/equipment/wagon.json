@@ -1,0 +1,14 @@
+{
+  "id": "wagon",
+  "title": "Wagon",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: VEH|XPHB - Cost: 35 gp - Weight: 400 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/wagon.json",
+  "markdown": "# Wagon\n\n- **Type**: VEH|XPHB\n- **Cost**: 35 gp\n- **Weight**: 400 lb.\n\n"
+}

@@ -12,6 +12,18 @@ Start with `docs/SYMPHONY_NORTH_STAR.md` if you want the top-level objective,
 what has been built so far, what still remains, and where the proving-ground and
 workflow progress docs live.
 
+Treat every live task as a workflow proof. A Codex foreman should move the
+bounded task forward while also fixing or logging any dashboard, documentation,
+proof, or decision-boundary friction that the task reveals.
+
+Keep the GitHub boundary narrow. Aralia-facing task packets, prompts,
+acceptance criteria, package tracker updates, final product PR links, focused
+workflow verifiers, and short blocker summaries are durable. Raw Symphony
+receipts, local dashboard state, generated manifests, click logs, local
+task-store churn, and `.symphony`/`.jules` run output are local by default.
+Promote only a concise summary when it explains a real Aralia package decision;
+do not send Jules or the spell tracker a list of every Symphony support PR.
+
 The canonical operating spec is
 `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`. Use it for the full task and blocker
 matrix; use `JULES_MIDDLEMAN_AUDIT.md` for current proof and remaining gaps.

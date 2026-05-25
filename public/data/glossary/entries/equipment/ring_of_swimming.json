@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_swimming",
+  "title": "Ring of Swimming",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG You have a swim_speed Speed of 40 feet while wearing this ring....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_swimming.json",
+  "markdown": "# Ring of Swimming\n\n- **Type**: RG|XDMG\n\nYou have a [[swim_speed Speed]] of 40 feet while wearing this ring."
+}

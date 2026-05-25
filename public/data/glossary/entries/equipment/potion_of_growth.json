@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_growth",
+  "title": "Potion of Growth",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain the \"enlarge\" effect of the enlarge_reduce/Reduce spell for 10 minutes (no Conce...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_growth.json",
+  "markdown": "# Potion of Growth\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain the \"enlarge\" effect of the [[enlarge_reduce/Reduce]] spell for 10 minutes (no Concentration required).\n\nThe red in the potion's liquid continuously expands from a tiny bead to color the clear liquid around it and then contracts. Shaking the bottle fails to interrupt this process."
+}

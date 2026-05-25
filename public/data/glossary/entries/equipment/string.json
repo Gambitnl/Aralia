@@ -1,0 +1,14 @@
+{
+  "id": "string",
+  "title": "String",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.1 gp String is 10 feet long. You can tie a knot in it as a utilize action....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/string.json",
+  "markdown": "# String\n\n- **Type**: G|XPHB\n- **Cost**: 0.1 gp\n\nString is 10 feet long. You can tie a knot in it as a [[utilize]] action."
+}

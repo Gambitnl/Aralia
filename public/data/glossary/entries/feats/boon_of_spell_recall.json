@@ -1,0 +1,14 @@
+{
+  "id": "boon_of_spell_recall",
+  "title": "Boon of Spell Recall",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Free Casting Whenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/boon_of_spell_recall.json",
+  "markdown": "# Boon of Spell Recall\n\nYou gain the following benefits.\n\n## Free Casting\n\nWhenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as the slot's level, the slot isn't expended."
+}

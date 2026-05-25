@@ -1,0 +1,14 @@
+{
+  "id": "boots_of_striding_and_springing",
+  "title": "Boots of Striding and Springing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While you wear these boots, your speed becomes 30 feet unless your speed is higher, and your speed isn't reduced by you carrying weight in excess of y...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/boots_of_striding_and_springing.json",
+  "markdown": "# Boots of Striding and Springing\n\nWhile you wear these boots, your [[speed]] becomes 30 feet unless your [[speed]] is higher, and your [[speed]] isn't reduced by you carrying weight in excess of your carrying capacity or wearing Heavy Armor.\n\nOnce on each of your turns, you can jump up to 30 feet by spending only 10 feet of movement."
+}

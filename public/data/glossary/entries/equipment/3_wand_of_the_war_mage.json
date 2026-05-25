@@ -1,0 +1,14 @@
+{
+  "id": "3_wand_of_the_war_mage",
+  "title": "+3 Wand of the War Mage",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: WD|XDMG - Weight: 1 lb. While holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore cover Cover when making a ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/3_wand_of_the_war_mage.json",
+  "markdown": "# +3 Wand of the War Mage\n\n- **Type**: WD|XDMG\n- **Weight**: 1 lb.\n\nWhile holding this wand, you gain a +3 bonus to spell attack rolls. In addition, you ignore [[cover Cover]] when making a spell attack roll."
+}

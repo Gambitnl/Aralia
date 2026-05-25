@@ -1,0 +1,14 @@
+{
+  "id": "common",
+  "title": "Common",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "language"
+  ],
+  "excerpt": "standard...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/common.json",
+  "markdown": "# Common\n\n*standard*\n"
+}

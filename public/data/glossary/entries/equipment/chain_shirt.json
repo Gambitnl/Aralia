@@ -1,0 +1,14 @@
+{
+  "id": "chain_shirt",
+  "title": "Chain Shirt",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: MA|XPHB - Cost: 50 gp - Weight: 20 lb. - Armor Class: 13...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chain_shirt.json",
+  "markdown": "# Chain Shirt\n\n- **Type**: MA|XPHB\n- **Cost**: 50 gp\n- **Weight**: 20 lb.\n- **Armor Class**: 13\n\n"
+}

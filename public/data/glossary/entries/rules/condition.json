@@ -1,0 +1,14 @@
+{
+  "id": "condition",
+  "title": "Condition",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A condition is a temporary game state. The definition of a condition says how it affects its recipient, and various rules define how to end a conditio...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/condition.json",
+  "markdown": "# Condition\n\nA condition is a temporary game state. The definition of a condition says how it affects its recipient, and various rules define how to end a condition. This glossary defines these conditions:\n\n- [[blinded]]\n- [[charmed]]\n- [[deafened]]\n- [[exhaustion]]\n- [[frightened]]\n- [[grappled]]\n- [[incapacitated]]\n- [[invisible]]\n- [[paralyzed]]\n- [[petrified]]\n- [[poisoned]]\n- [[prone]]\n- [[restrained]]\n- [[stunned]]\n- [[unconscious]]\n\nA condition doesn't stack with itself; a recipient either has a condition or doesn't. The [[exhaustion]] condition is an exception to that rule."
+}

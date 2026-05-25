@@ -1,0 +1,14 @@
+{
+  "id": "gloves_of_thievery",
+  "title": "Gloves of Thievery",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "These gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity (sleight_of_hand of Hand) checks....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/gloves_of_thievery.json",
+  "markdown": "# Gloves of Thievery\n\nThese gloves are imperceptible while worn. While wearing them, you gain a +5 bonus to Dexterity ([[sleight_of_hand of Hand]]) checks."
+}

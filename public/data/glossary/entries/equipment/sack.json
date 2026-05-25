@@ -1,0 +1,14 @@
+{
+  "id": "sack",
+  "title": "Sack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.01 gp - Weight: 0.5 lb. A Sack holds up to 30 pounds within 1 cubic foot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/sack.json",
+  "markdown": "# Sack\n\n- **Type**: G|XPHB\n- **Cost**: 0.01 gp\n- **Weight**: 0.5 lb.\n\nA Sack holds up to 30 pounds within 1 cubic foot."
+}

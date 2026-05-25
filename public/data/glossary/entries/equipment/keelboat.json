@@ -1,0 +1,14 @@
+{
+  "id": "keelboat",
+  "title": "Keelboat",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SHP|XPHB - Cost: 3000 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/keelboat.json",
+  "markdown": "# Keelboat\n\n- **Type**: SHP|XPHB\n- **Cost**: 3000 gp\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "crystal",
+  "title": "Crystal",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 10 gp - Weight: 1 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/crystal.json",
+  "markdown": "# Crystal\n\n- **Type**: SCF|XPHB\n- **Cost**: 10 gp\n- **Weight**: 1 lb.\n\n"
+}

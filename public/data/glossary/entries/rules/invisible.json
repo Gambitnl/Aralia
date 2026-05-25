@@ -1,0 +1,14 @@
+{
+  "id": "invisible",
+  "title": "Invisible",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Invisible condition, you experience the following effects....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/invisible.json",
+  "markdown": "# Invisible\n\nWhile you have the Invisible condition, you experience the following effects.\n\n### Surprise\n\nIf you're Invisible when you roll [[initiative]], you have [[advantage]] on the roll.\n\n### Concealed\n\nYou aren't affected by any effect that requires its target to be seen unless the effect's creator can somehow see you. Any equipment you are wearing or carrying is also concealed.\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[disadvantage]], and your attack rolls have [[advantage]]. If a creature can somehow see you, you don't gain this benefit against that creature."
+}

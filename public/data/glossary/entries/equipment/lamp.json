@@ -1,0 +1,14 @@
+{
+  "id": "lamp",
+  "title": "Lamp",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.5 gp - Weight: 1 lb. A Lamp burns oil as fuel to cast bright_light Light in a 15-foot radius and dim_light Light for an addit...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/lamp.json",
+  "markdown": "# Lamp\n\n- **Type**: G|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 1 lb.\n\nA Lamp burns [[oil]] as fuel to cast [[bright_light Light]] in a 15-foot radius and [[dim_light Light]] for an additional 30 feet."
+}

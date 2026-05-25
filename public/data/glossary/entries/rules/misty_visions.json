@@ -1,0 +1,14 @@
+{
+  "id": "misty_visions",
+  "title": "Misty Visions",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You can cast silent_image Image without expending a spell slot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/misty_visions.json",
+  "markdown": "# Misty Visions\n\nYou can cast [[silent_image Image]] without expending a spell slot."
+}

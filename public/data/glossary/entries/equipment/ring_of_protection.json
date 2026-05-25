@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_protection",
+  "title": "Ring of Protection",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG You gain a +1 bonus to armor_class Class and saving throws while wearing this ring....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_protection.json",
+  "markdown": "# Ring of Protection\n\n- **Type**: RG|XDMG\n\nYou gain a +1 bonus to [[armor_class Class]] and saving throws while wearing this ring."
+}

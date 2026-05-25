@@ -1,0 +1,14 @@
+{
+  "id": "priest_s_pack",
+  "title": "Priest's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 33 gp - Weight: 29 lb. A Priest's Pack contains the following items: backpack, blanket, holy_water Water, lamp, 7 days of ratio...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/priest_s_pack.json",
+  "markdown": "# Priest's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 33 gp\n- **Weight**: 29 lb.\n\nA Priest's Pack contains the following items: [[backpack]], [[blanket]], [[holy_water Water]], [[lamp]], 7 days of [[rations]], [[robe]], and [[tinderbox]]."
+}

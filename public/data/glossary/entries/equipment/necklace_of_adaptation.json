@@ -1,0 +1,14 @@
+{
+  "id": "necklace_of_adaptation",
+  "title": "Necklace of Adaptation",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. While wearing this necklace, you can breathe normally in any environment, and you have advantage on saving throws made to avoid or end...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/necklace_of_adaptation.json",
+  "markdown": "# Necklace of Adaptation\n\n- **Weight**: 1 lb.\n\nWhile wearing this necklace, you can breathe normally in any environment, and you have [[advantage]] on saving throws made to avoid or end the [[poisoned]] condition."
+}

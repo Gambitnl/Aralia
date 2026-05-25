@@ -1,0 +1,14 @@
+{
+  "id": "ink",
+  "title": "Ink",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 10 gp Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ink.json",
+  "markdown": "# Ink\n\n- **Type**: G|XPHB\n- **Cost**: 10 gp\n\nInk comes in a 1-ounce bottle, which provides enough ink to write about 500 pages."
+}

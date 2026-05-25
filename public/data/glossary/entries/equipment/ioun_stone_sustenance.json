@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone_sustenance",
+  "title": "Ioun Stone, Sustenance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} You don't need to eat or drink while this clear spindle orbits your head....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone_sustenance.json",
+  "markdown": "# Ioun Stone, Sustenance\n\n{#itemEntry Ioun Stone}\n\nYou don't need to eat or drink while this clear spindle orbits your head."
+}

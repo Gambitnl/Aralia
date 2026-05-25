@@ -1,0 +1,14 @@
+{
+  "id": "nature",
+  "title": "Nature",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Recall lore about terrain, plants, animals, and weather....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/nature.json",
+  "markdown": "# Nature\n\nRecall lore about terrain, plants, animals, and weather."
+}

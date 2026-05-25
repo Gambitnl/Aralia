@@ -1,0 +1,14 @@
+{
+  "id": "climb_speed",
+  "title": "Climb Speed",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A Climb Speed can be used in place of [[speed]] to traverse a vertical surface without expending the extra movement normally associated with climbing....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/climb_speed.json",
+  "markdown": "# Climb Speed\n\nA Climb Speed can be used in place of [[speed]] to traverse a vertical surface without expending the extra movement normally associated with climbing."
+}

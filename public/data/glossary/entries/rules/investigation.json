@@ -1,0 +1,14 @@
+{
+  "id": "investigation",
+  "title": "Investigation",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Find obscure information in books, or deduce how something works....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/investigation.json",
+  "markdown": "# Investigation\n\nFind obscure information in books, or deduce how something works."
+}

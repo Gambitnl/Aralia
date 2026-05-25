@@ -1,0 +1,14 @@
+{
+  "id": "l",
+  "title": "L",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemProperty"
+  ],
+  "excerpt": "Light When you take the attack action on your turn and attack with a Light weapon, you can make one extra attack as a bonus_action Action later on the...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/l.json",
+  "markdown": "# L\n\n## Light\n\nWhen you take the [[attack]] action on your turn and attack with a Light weapon, you can make one extra attack as a [[bonus_action Action]] later on the same turn. That extra attack must be made with a different Light weapon, and you don't add your ability modifier to the extra attack's damage unless that modifier is negative. For example, you can attack with a [[shortsword]] in one hand and a [[dagger]] in the other using the [[attack]] action and a [[bonus_action Action]], but you don't add your Strength or Dexterity modifier to the damage roll of the [[bonus_action Action]] unless that modifier is negative."
+}

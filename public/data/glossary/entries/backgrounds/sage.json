@@ -1,0 +1,14 @@
+{
+  "id": "sage",
+  "title": "Sage",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Constitution, Intelligence, Wisdom - Feat:: magic_initiate Initiate (Wizard) - Skill Proficiencies:: arcana, history - Tool Profici...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/sage.json",
+  "markdown": "# Sage\n\n- **Ability Scores::** Constitution, Intelligence, Wisdom\n- **Feat::** [[magic_initiate Initiate]] (Wizard)\n- **Skill Proficiencies::** [[arcana]], [[history]]\n- **Tool Proficiency::** [[calligrapher_s_supplies's Supplies]]\n- **Equipment::** Choose A or B: (A) [[quarterstaff]], [[calligrapher_s_supplies's Supplies]], [[book]] (history), [[parchment]] (8 sheets), [[robe]], 8 GP; or (B) 50 GP"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "spyglass",
+  "title": "Spyglass",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1000 gp - Weight: 1 lb. Objects viewed through a Spyglass are magnified to twice their size....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/spyglass.json",
+  "markdown": "# Spyglass\n\n- **Type**: G|XPHB\n- **Cost**: 1000 gp\n- **Weight**: 1 lb.\n\nObjects viewed through a Spyglass are magnified to twice their size."
+}

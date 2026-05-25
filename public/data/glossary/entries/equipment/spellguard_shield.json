@@ -1,0 +1,14 @@
+{
+  "id": "spellguard_shield",
+  "title": "Spellguard Shield",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: S|XPHB - Weight: 6 lb. - Armor Class: 2 While holding this Shield, you have advantage on saving throws against spells and other magical effect...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/spellguard_shield.json",
+  "markdown": "# Spellguard Shield\n\n- **Type**: S|XPHB\n- **Weight**: 6 lb.\n- **Armor Class**: 2\n\nWhile holding this Shield, you have [[advantage]] on saving throws against spells and other magical effects, and spell attack rolls have [[disadvantage]] against you."
+}

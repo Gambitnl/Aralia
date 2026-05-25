@@ -1,0 +1,14 @@
+{
+  "id": "mantle_of_spell_resistance",
+  "title": "Mantle of Spell Resistance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "You have advantage on saving throws against spells while you wear this cloak....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/mantle_of_spell_resistance.json",
+  "markdown": "# Mantle of Spell Resistance\n\nYou have [[advantage]] on saving throws against spells while you wear this cloak."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "poisoned",
+  "title": "Poisoned",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Poisoned condition, you experience the following effect....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/poisoned.json",
+  "markdown": "# Poisoned\n\nWhile you have the Poisoned condition, you experience the following effect.\n\n### Ability Checks and Attacks Affected\n\nYou have [[disadvantage]] on attack rolls and ability checks."
+}

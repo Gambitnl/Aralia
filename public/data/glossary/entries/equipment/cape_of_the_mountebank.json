@@ -1,0 +1,14 @@
+{
+  "id": "cape_of_the_mountebank",
+  "title": "Cape of the Mountebank",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "This cape smells faintly of brimstone. While wearing it, you can use it to cast dimension_door Door as a magic action. This property can't be used aga...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cape_of_the_mountebank.json",
+  "markdown": "# Cape of the Mountebank\n\nThis cape smells faintly of brimstone. While wearing it, you can use it to cast [[dimension_door Door]] as a [[magic]] action. This property can't be used again until the next dawn.\n\nWhen you teleport with that spell, you leave behind a cloud of smoke. The space you left is [[lightly_obscured Obscured]] by that smoke until the end of your next turn."
+}

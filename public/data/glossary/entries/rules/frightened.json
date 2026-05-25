@@ -1,0 +1,14 @@
+{
+  "id": "frightened",
+  "title": "Frightened",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Frightened condition, you experience the following effects....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/frightened.json",
+  "markdown": "# Frightened\n\nWhile you have the Frightened condition, you experience the following effects.\n\n### Ability Checks and Attacks Affected\n\nYou have [[disadvantage]] on ability checks and attack rolls while the source of fear is within line of sight.\n\n### Can't Approach\n\nYou can't willingly move closer to the source of fear."
+}

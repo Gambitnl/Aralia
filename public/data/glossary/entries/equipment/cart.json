@@ -1,0 +1,14 @@
+{
+  "id": "cart",
+  "title": "Cart",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: VEH|XPHB - Cost: 15 gp - Weight: 200 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cart.json",
+  "markdown": "# Cart\n\n- **Type**: VEH|XPHB\n- **Cost**: 15 gp\n- **Weight**: 200 lb.\n\n"
+}

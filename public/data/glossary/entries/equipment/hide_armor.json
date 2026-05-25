@@ -1,0 +1,14 @@
+{
+  "id": "hide_armor",
+  "title": "Hide Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: MA|XPHB - Cost: 10 gp - Weight: 12 lb. - Armor Class: 12...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/hide_armor.json",
+  "markdown": "# Hide Armor\n\n- **Type**: MA|XPHB\n- **Cost**: 10 gp\n- **Weight**: 12 lb.\n- **Armor Class**: 12\n\n"
+}

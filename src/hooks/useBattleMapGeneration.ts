@@ -14,7 +14,8 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
     const playerSpawnTiles: BattleMapTile[] = [];
     const enemySpawnTiles: BattleMapTile[] = [];
     const { width, height } = mapData.dimensions;
-    const cornerSize = 8; // How large the corner spawn areas are
+    // Wide corners ensure enough walkable tiles even in dense biomes
+    const cornerSize = Math.floor(Math.min(width, height) * 0.35); // ~35% of shorter dimension
 
     const addTilesFromRect = (tiles: BattleMapTile[], x1: number, y1: number, x2: number, y2: number) => {
         for (let y = y1; y < y2; y++) {
@@ -26,23 +27,27 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
     };
 
     switch(config) {
-        case 'top-bottom':
-            addTilesFromRect(playerSpawnTiles, 0, 0, width, 5); // Top 5 rows
-            addTilesFromRect(enemySpawnTiles, 0, height - 5, width, height); // Bottom 5 rows
+        case 'top-bottom': {
+            const stripH = Math.floor(height * 0.25); // top/bottom 25% each
+            addTilesFromRect(playerSpawnTiles, 0, 0, width, stripH);
+            addTilesFromRect(enemySpawnTiles, 0, height - stripH, width, height);
             break;
+        }
         case 'corners-tl-br':
-            addTilesFromRect(playerSpawnTiles, 0, 0, cornerSize, cornerSize); // Top-left
-            addTilesFromRect(enemySpawnTiles, width - cornerSize, height - cornerSize, width, height); // Bottom-right
+            addTilesFromRect(playerSpawnTiles, 0, 0, cornerSize, cornerSize);
+            addTilesFromRect(enemySpawnTiles, width - cornerSize, height - cornerSize, width, height);
             break;
         case 'corners-tr-bl':
-            addTilesFromRect(playerSpawnTiles, width - cornerSize, 0, width, cornerSize); // Top-right
-            addTilesFromRect(enemySpawnTiles, 0, height - cornerSize, 0 + cornerSize, height); // Bottom-left
+            addTilesFromRect(playerSpawnTiles, width - cornerSize, 0, width, cornerSize);
+            addTilesFromRect(enemySpawnTiles, 0, height - cornerSize, cornerSize, height);
             break;
         case 'left-right':
-        default:
-            addTilesFromRect(playerSpawnTiles, 0, 0, 5, height); // Left 5 columns
-            addTilesFromRect(enemySpawnTiles, width - 5, 0, width, height); // Right 5 columns
+        default: {
+            const stripW = Math.floor(width * 0.25); // left/right 25% each
+            addTilesFromRect(playerSpawnTiles, 0, 0, stripW, height);
+            addTilesFromRect(enemySpawnTiles, width - stripW, 0, width, height);
             break;
+        }
     }
 
     // Shuffle results
@@ -52,9 +57,39 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
-    }
+    };
 
-    return { playerTiles: shuffle([...playerSpawnTiles]), enemyTiles: shuffle([...enemySpawnTiles]) };
+    // Spread characters within their zone: skip tiles adjacent to already-claimed tiles
+    // so characters get at least 1-tile separation by default.
+    const spreadTiles = (tiles: BattleMapTile[], count: number): BattleMapTile[] => {
+        const shuffled = shuffle([...tiles]);
+        const occupied = new Set<string>();
+        const result: BattleMapTile[] = [];
+        const fallback: BattleMapTile[] = [];
+
+        for (const tile of shuffled) {
+            const { x, y } = tile.coordinates;
+            const key = `${x}-${y}`;
+            const hasNeighbor = (
+                occupied.has(`${x - 1}-${y}`) || occupied.has(`${x + 1}-${y}`) ||
+                occupied.has(`${x}-${y - 1}`) || occupied.has(`${x}-${y + 1}`)
+            );
+            if (!hasNeighbor) {
+                occupied.add(key);
+                result.push(tile);
+            } else {
+                fallback.push(tile);
+            }
+        }
+        // Fill remaining slots from fallback if spread tiles don't cover all characters
+        for (const tile of fallback) {
+            if (result.length >= count) break;
+            result.push(tile);
+        }
+        return result;
+    };
+
+    return { playerTiles: spreadTiles(playerSpawnTiles, 20), enemyTiles: spreadTiles(enemySpawnTiles, 20) };
 }
 
 export const generateBattleSetup = (

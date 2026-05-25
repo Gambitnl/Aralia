@@ -1,0 +1,14 @@
+{
+  "id": "handaxe",
+  "title": "Handaxe",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 2 lb. - Damage: 1d6 S - Properties: L|XPHB, T|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/handaxe.json",
+  "markdown": "# Handaxe\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d6 S\n- **Properties**: L|XPHB, T|XPHB\n\n"
+}

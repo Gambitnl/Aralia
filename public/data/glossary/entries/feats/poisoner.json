@@ -1,0 +1,14 @@
+{
+  "id": "poisoner",
+  "title": "Poisoner",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Potent Poison When you make a damage roll that deals Poison damage, it ignores resistance to Poison damage.  Brew Po...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/poisoner.json",
+  "markdown": "# Poisoner\n\nYou gain the following benefits.\n\n## Potent Poison\n\nWhen you make a damage roll that deals Poison damage, it ignores [[resistance]] to Poison damage.\n\n## Brew Poison\n\nYou gain proficiency with the [[poisoner_s_kit's Kit]]. With 1 hour of work using such a kit and expending 50 GP worth of materials, you can create a number of poison doses equal to your [[proficiency Bonus]]. As a [[bonus_action Action]], you can apply a poison dose to a weapon or piece of ammunition. Once applied, the poison retains its potency for 1 minute or until you deal damage with the poisoned item, whichever is shorter. When a creature takes damage from the poisoned item, that creature must succeed on a Constitution saving throw (DC 8 plus the modifier of the ability increased by this feat and your [[proficiency Bonus]]) or take 2d8 Poison damage and have the [[poisoned]] condition until the end of your next turn."
+}

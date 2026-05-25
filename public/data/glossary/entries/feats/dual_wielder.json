@@ -1,0 +1,14 @@
+{
+  "id": "dual_wielder",
+  "title": "Dual Wielder",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Enhanced Dual Wielding When you take the attack action on your turn and attack with a weapon that has the L property...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/dual_wielder.json",
+  "markdown": "# Dual Wielder\n\nYou gain the following benefits.\n\n## Enhanced Dual Wielding\n\nWhen you take the [[attack]] action on your turn and attack with a weapon that has the L property, you can make one extra attack as a [[bonus_action Action]] later on the same turn with a different weapon, which must be a Melee weapon that lacks the 2H property. You don't add your ability modifier to the extra attack's damage unless that modifier is negative.\n\n## Quick Draw\n\nYou can draw or stow two weapons that lack the 2H property when you would normally be able to draw or stow only one."
+}

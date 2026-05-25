@@ -1,0 +1,14 @@
+{
+  "id": "rowboat",
+  "title": "Rowboat",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SHP|XPHB - Cost: 50 gp - Weight: 100 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/rowboat.json",
+  "markdown": "# Rowboat\n\n- **Type**: SHP|XPHB\n- **Cost**: 50 gp\n- **Weight**: 100 lb.\n\n"
+}

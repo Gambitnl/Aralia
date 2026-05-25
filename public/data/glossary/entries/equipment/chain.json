@@ -1,0 +1,14 @@
+{
+  "id": "chain",
+  "title": "Chain",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 5 gp - Weight: 10 lb. As a utilize action, you can wrap a Chain around an unwilling creature within 5 feet of yourself that has...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chain.json",
+  "markdown": "# Chain\n\n- **Type**: G|XPHB\n- **Cost**: 5 gp\n- **Weight**: 10 lb.\n\nAs a [[utilize]] action, you can wrap a Chain around an unwilling creature within 5 feet of yourself that has the [[grappled]], [[incapacitated]], or [[restrained]] condition if you succeed on a DC 13 Strength ([[athletics]]) check. If the creature's legs are bound, the creature has the [[restrained]] condition until it escapes. Escaping the Chain requires the creature to make a successful DC 18 Dexterity ([[acrobatics]]) check as an action. Bursting the Chain requires a successful DC 20 Strength ([[athletics]]) check as an action."
+}

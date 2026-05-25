@@ -1,0 +1,14 @@
+{
+  "id": "crystal_ball_of_mind_reading",
+  "title": "Crystal Ball of Mind Reading",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 3 lb. While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can cast detect_thoughts Thoughts (save D...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/crystal_ball_of_mind_reading.json",
+  "markdown": "# Crystal Ball of Mind Reading\n\n- **Weight**: 3 lb.\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you can cast [[detect_thoughts Thoughts]] (save DC 17) targeting creatures you can see within 30 feet of the spell's sensor. You don't need to concentrate on this [[detect_thoughts Thoughts]] spell to maintain it during its duration, but it ends if the [[scrying]] spell ends."
+}

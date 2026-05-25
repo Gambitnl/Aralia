@@ -1,0 +1,14 @@
+{
+  "id": "ring_mail",
+  "title": "Ring Mail",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: HA|XPHB - Cost: 30 gp - Weight: 40 lb. - Armor Class: 14...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_mail.json",
+  "markdown": "# Ring Mail\n\n- **Type**: HA|XPHB\n- **Cost**: 30 gp\n- **Weight**: 40 lb.\n- **Armor Class**: 14\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "thieves_tools",
+  "title": "Thieves' Tools",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: T|XPHB - Cost: 25 gp - Weight: 1 lb. - Ability:: Dexterity - Utilize:: Pick a lock (DC 15), or disarm a trap (DC 15)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/thieves_tools.json",
+  "markdown": "# Thieves' Tools\n\n- **Type**: T|XPHB\n- **Cost**: 25 gp\n- **Weight**: 1 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Pick a lock (DC 15), or disarm a trap (DC 15)"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "heroic_inspiration",
+  "title": "Heroic Inspiration",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "If you ([[player_character player character]]) have Heroic Inspiration, you can expend it to reroll any die immediately after rolling it, and you must...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/heroic_inspiration.json",
+  "markdown": "# Heroic Inspiration\n\nIf you ([[player_character player character]]) have Heroic Inspiration, you can expend it to reroll any die immediately after rolling it, and you must use the new roll.\n\nIf you gain Heroic Inspiration but already have it, it's lost unless you give it to a [[player_character character]] who lacks it."
+}

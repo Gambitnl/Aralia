@@ -200,6 +200,7 @@ scripts/tooling/
 .symphony/
 conductor/symphony/.symphony/
 .jules/runs/
+.jules/feedback/
 .superpowers/
 .jules/verification/
 .jules/dashboard/

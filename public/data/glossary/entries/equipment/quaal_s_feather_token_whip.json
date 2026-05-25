@@ -1,0 +1,14 @@
+{
+  "id": "quaal_s_feather_token_whip",
+  "title": "Quaal's Feather Token, Whip",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "This object looks like a feather. You can take a magic action to throw the token to a point within 10 feet of yourself. The token disappears, and a fl...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/quaal_s_feather_token_whip.json",
+  "markdown": "# Quaal's Feather Token, Whip\n\nThis object looks like a feather.\n\nYou can take a [[magic]] action to throw the token to a point within 10 feet of yourself. The token disappears, and a floating whip takes its place. You can then take a [[bonus_action Action]] to make a melee spell attack against a creature within 10 feet of the whip, with an attack bonus of +9. On a hit, the target takes 1d6 + 5 Force damage.\n\nAs a [[bonus_action Action]], you can direct the whip to fly up to 20 feet and repeat the attack against a creature within 10 feet of the whip. The whip disappears after 1 hour, when you take a [[magic]] action to dismiss it, or when you die or have the [[incapacitated]] condition."
+}

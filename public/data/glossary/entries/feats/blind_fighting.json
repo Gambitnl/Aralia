@@ -1,0 +1,14 @@
+{
+  "id": "blind_fighting",
+  "title": "Blind Fighting",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You have blindsight with a range of 10 feet....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/blind_fighting.json",
+  "markdown": "# Blind Fighting\n\nYou have [[blindsight]] with a range of 10 feet."
+}

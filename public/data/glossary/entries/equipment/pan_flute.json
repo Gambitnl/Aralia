@@ -1,0 +1,14 @@
+{
+  "id": "pan_flute",
+  "title": "Pan Flute",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: INS|XPHB - Cost: 12 gp - Weight: 2 lb. - Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pan_flute.json",
+  "markdown": "# Pan Flute\n\n- **Type**: INS|XPHB\n- **Cost**: 12 gp\n- **Weight**: 2 lb.\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)"
+}

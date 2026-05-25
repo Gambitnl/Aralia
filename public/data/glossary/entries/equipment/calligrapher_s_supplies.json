@@ -1,0 +1,14 @@
+{
+  "id": "calligrapher_s_supplies",
+  "title": "Calligrapher's Supplies",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: AT|XPHB - Cost: 10 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Write text with impressive flourishes that guard against forgery (DC 1...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/calligrapher_s_supplies.json",
+  "markdown": "# Calligrapher's Supplies\n\n- **Type**: AT|XPHB\n- **Cost**: 10 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Write text with impressive flourishes that guard against forgery (DC 15)\n- **Craft::** [[ink]], [[spell_scroll Scroll]]"
+}

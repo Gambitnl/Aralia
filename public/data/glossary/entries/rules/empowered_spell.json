@@ -1,0 +1,14 @@
+{
+  "id": "empowered_spell",
+  "title": "Empowered Spell",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you roll damage for a spell, you can spend 1 Sorcery Point to reroll a number of the damage dice up to your Charisma modifier (minimum of one), a...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/empowered_spell.json",
+  "markdown": "# Empowered Spell\n\nWhen you roll damage for a spell, you can spend 1 Sorcery Point to reroll a number of the damage dice up to your Charisma modifier (minimum of one), and you must use the new rolls.\n\nYou can use Empowered Spell even if you've already used a different Metamagic option during the casting of the spell."
+}

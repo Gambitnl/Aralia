@@ -1,0 +1,14 @@
+{
+  "id": "longship",
+  "title": "Longship",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SHP|XPHB - Cost: 10000 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/longship.json",
+  "markdown": "# Longship\n\n- **Type**: SHP|XPHB\n- **Cost**: 10000 gp\n\n"
+}

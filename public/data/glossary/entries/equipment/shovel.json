@@ -1,0 +1,14 @@
+{
+  "id": "shovel",
+  "title": "Shovel",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 5 lb. Working for 1 hour, you can use a Shovel to dig a hole that is 5 feet on each side in soil or similar mate...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/shovel.json",
+  "markdown": "# Shovel\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 5 lb.\n\nWorking for 1 hour, you can use a Shovel to dig a hole that is 5 feet on each side in soil or similar material."
+}

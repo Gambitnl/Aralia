@@ -1,0 +1,14 @@
+{
+  "id": "acid",
+  "title": "Acid",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 1 lb. When you take the attack action, you can replace one of your attacks with throwing a vial of Acid. Target...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/acid.json",
+  "markdown": "# Acid\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 1 lb.\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency Bonus]]) or take 2d6 Acid damage."
+}

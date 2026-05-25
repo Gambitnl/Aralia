@@ -1,0 +1,14 @@
+{
+  "id": "blanket",
+  "title": "Blanket",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.5 gp - Weight: 3 lb. While wrapped in a blanket, you have advantage on saving throws against extreme cold (see the Dungeon Ma...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/blanket.json",
+  "markdown": "# Blanket\n\n- **Type**: G|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 3 lb.\n\nWhile wrapped in a blanket, you have [[advantage]] on saving throws against extreme cold (see the Dungeon Master's Guide)."
+}

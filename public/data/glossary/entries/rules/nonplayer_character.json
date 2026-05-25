@@ -1,0 +1,14 @@
+{
+  "id": "nonplayer_character",
+  "title": "Nonplayer Character",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A nonplayer character (NPC) is a [[monster]] that has a personal name and a distinct personality....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/nonplayer_character.json",
+  "markdown": "# Nonplayer Character\n\nA nonplayer character (NPC) is a [[monster]] that has a personal name and a distinct personality."
+}

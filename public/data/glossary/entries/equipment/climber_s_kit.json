@@ -1,0 +1,14 @@
+{
+  "id": "climber_s_kit",
+  "title": "Climber's Kit",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 12 lb. A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a utilize action, you can use the ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/climber_s_kit.json",
+  "markdown": "# Climber's Kit\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 12 lb.\n\nA Climber's Kit includes boot tips, gloves, pitons, and a harness. As a [[utilize]] action, you can use the Climber's Kit to anchor yourself; when you do, you can't fall more than 25 feet from the anchor point, and you can't move more than 25 feet from there without undoing the anchor as a [[bonus_action Action]]."
+}

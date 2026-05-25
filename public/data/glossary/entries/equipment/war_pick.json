@@ -1,0 +1,14 @@
+{
+  "id": "war_pick",
+  "title": "War Pick",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 2 lb. - Damage: 1d8 P - Properties: V|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/war_pick.json",
+  "markdown": "# War Pick\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d8 P\n- **Properties**: V|XPHB\n\n"
+}

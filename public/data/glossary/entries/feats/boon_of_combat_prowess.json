@@ -1,0 +1,14 @@
+{
+  "id": "boon_of_combat_prowess",
+  "title": "Boon of Combat Prowess",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Peerless Aim When you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it aga...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/boon_of_combat_prowess.json",
+  "markdown": "# Boon of Combat Prowess\n\nYou gain the following benefits.\n\n## Peerless Aim\n\nWhen you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it again until the start of your next turn."
+}

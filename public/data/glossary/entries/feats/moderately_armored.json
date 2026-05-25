@@ -1,0 +1,14 @@
+{
+  "id": "moderately_armored",
+  "title": "Moderately Armored",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Armor Training You gain training with Medium armor....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/moderately_armored.json",
+  "markdown": "# Moderately Armored\n\nYou gain the following benefits.\n\n## Armor Training\n\nYou gain training with Medium armor."
+}

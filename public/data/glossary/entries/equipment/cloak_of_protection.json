@@ -1,0 +1,14 @@
+{
+  "id": "cloak_of_protection",
+  "title": "Cloak of Protection",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "You gain a +1 bonus to armor_class Class and saving throws while you wear this cloak....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_protection.json",
+  "markdown": "# Cloak of Protection\n\nYou gain a +1 bonus to [[armor_class Class]] and saving throws while you wear this cloak."
+}

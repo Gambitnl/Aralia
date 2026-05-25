@@ -1,0 +1,14 @@
+{
+  "id": "ale_mug",
+  "title": "Ale (mug)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: FD|XPHB - Cost: 0.04 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ale_mug.json",
+  "markdown": "# Ale (mug)\n\n- **Type**: FD|XPHB\n- **Cost**: 0.04 gp\n\n"
+}

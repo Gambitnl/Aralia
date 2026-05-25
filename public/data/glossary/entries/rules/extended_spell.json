@@ -1,0 +1,14 @@
+{
+  "id": "extended_spell",
+  "title": "Extended Spell",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you cast a spell that has a duration of 1 minute or longer, you can spend 1 Sorcery Point to double its duration to a maximum duration of 24 hour...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/extended_spell.json",
+  "markdown": "# Extended Spell\n\nWhen you cast a spell that has a duration of 1 minute or longer, you can spend 1 Sorcery Point to double its duration to a maximum duration of 24 hours.\n\nIf the affected spell requires Concentration, you have [[advantage]] on any saving throw you make to maintain that Concentration."
+}

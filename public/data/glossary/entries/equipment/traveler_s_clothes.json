@@ -1,0 +1,14 @@
+{
+  "id": "traveler_s_clothes",
+  "title": "Traveler's Clothes",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 4 lb. Traveler's Clothes are resilient garments designed for travel in various environments....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/traveler_s_clothes.json",
+  "markdown": "# Traveler's Clothes\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 4 lb.\n\nTraveler's Clothes are resilient garments designed for travel in various environments."
+}

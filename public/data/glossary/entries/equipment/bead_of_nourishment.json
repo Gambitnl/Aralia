@@ -1,0 +1,14 @@
+{
+  "id": "bead_of_nourishment",
+  "title": "Bead of Nourishment",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "This flavorless, gelatinous bead dissolves on your tongue and provides as much nourishment as 1 day of Rations....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bead_of_nourishment.json",
+  "markdown": "# Bead of Nourishment\n\nThis flavorless, gelatinous bead dissolves on your tongue and provides as much nourishment as 1 day of Rations."
+}

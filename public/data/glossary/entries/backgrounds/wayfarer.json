@@ -1,0 +1,14 @@
+{
+  "id": "wayfarer",
+  "title": "Wayfarer",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Dexterity, Wisdom, Charisma - Feat:: lucky - Skill Proficiencies:: insight, stealth - Tool Proficiency:: thieves_tools' Tools - Equ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/wayfarer.json",
+  "markdown": "# Wayfarer\n\n- **Ability Scores::** Dexterity, Wisdom, Charisma\n- **Feat::** [[lucky]]\n- **Skill Proficiencies::** [[insight]], [[stealth]]\n- **Tool Proficiency::** [[thieves_tools' Tools]]\n- **Equipment::** Choose A or B: (A) [[dagger Daggers]], [[thieves_tools' Tools]], [[gaming_set Set]] (any), [[bedroll]], [[pouch Pouches]], [[traveler_s_clothes's Clothes]], 16 GP; or (B) 50 GP"
+}

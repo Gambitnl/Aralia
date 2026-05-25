@@ -1,0 +1,14 @@
+{
+  "id": "charmed",
+  "title": "Charmed",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Charmed condition, you experience the following effects....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/charmed.json",
+  "markdown": "# Charmed\n\nWhile you have the Charmed condition, you experience the following effects.\n\n### Can't Harm the Charmer\n\nYou can't attack the charmer or target the charmer with damaging abilities or [[magical_effect effects]].\n\n### Social Advantage\n\nThe charmer has [[advantage]] on any ability check to interact with you socially."
+}

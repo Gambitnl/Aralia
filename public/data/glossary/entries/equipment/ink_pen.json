@@ -1,0 +1,14 @@
+{
+  "id": "ink_pen",
+  "title": "Ink Pen",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.02 gp Using ink, an Ink Pen is used to write or draw....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ink_pen.json",
+  "markdown": "# Ink Pen\n\n- **Type**: G|XPHB\n- **Cost**: 0.02 gp\n\nUsing [[ink]], an Ink Pen is used to write or draw."
+}

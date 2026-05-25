@@ -1,0 +1,14 @@
+{
+  "id": "jeweler_s_tools",
+  "title": "Jeweler's Tools",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: AT|XPHB - Cost: 25 gp - Weight: 2 lb. - Ability:: Intelligence - Utilize:: Discern a gem's value (DC 15) - Craft:: arcane_focus Focus, holy_sy...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/jeweler_s_tools.json",
+  "markdown": "# Jeweler's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n\n- **Ability::** Intelligence\n- **Utilize::** Discern a gem's value (DC 15)\n- **Craft::** [[arcane_focus Focus]], [[holy_symbol Symbol]]"
+}

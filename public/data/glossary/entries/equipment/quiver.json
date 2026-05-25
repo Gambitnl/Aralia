@@ -1,0 +1,14 @@
+{
+  "id": "quiver",
+  "title": "Quiver",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 1 lb. A Quiver holds up to 20 Arrows....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/quiver.json",
+  "markdown": "# Quiver\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 1 lb.\n\nA Quiver holds up to 20 Arrows."
+}

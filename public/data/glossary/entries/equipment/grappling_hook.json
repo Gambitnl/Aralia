@@ -1,0 +1,14 @@
+{
+  "id": "grappling_hook",
+  "title": "Grappling Hook",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 4 lb. As a utilize action, you can throw the Grappling Hook at a railing, a ledge, or another catch within 50 fe...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/grappling_hook.json",
+  "markdown": "# Grappling Hook\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 4 lb.\n\nAs a [[utilize]] action, you can throw the Grappling Hook at a railing, a ledge, or another catch within 50 feet of yourself, and the hook catches on if you succeed on a DC 13 Dexterity ([[acrobatics]]) check. If you tied a Rope to the hook, you can then climb it."
+}

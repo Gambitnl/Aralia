@@ -1,0 +1,14 @@
+{
+  "id": "robe",
+  "title": "Robe",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 4 lb. A Robe has vocational or ceremonial significance. Some events and locations admit only people wearing a Ro...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/robe.json",
+  "markdown": "# Robe\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 4 lb.\n\nA Robe has vocational or ceremonial significance. Some events and locations admit only people wearing a Robe bearing certain colors or symbols."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "necklace_of_prayer_beads",
+  "title": "Necklace of Prayer Beads",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. This necklace has 1d4 + 2 magic beads made from aquamarine, black pearl, or topaz. It also has many nonmagical beads made from stones ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/necklace_of_prayer_beads.json",
+  "markdown": "# Necklace of Prayer Beads\n\n- **Weight**: 1 lb.\n\nThis necklace has 1d4 + 2 magic beads made from aquamarine, black pearl, or topaz. It also has many nonmagical beads made from stones such as amber, bloodstone, citrine, coral, jade, pearl, or quartz. If a magic bead is removed from the necklace, that bead loses its magic.\n\nSix types of magic beads exist. The DM decides the type of each bead on the necklace or determines it randomly by rolling on the table below. A necklace can have more than one bead of the same type. To use one, you must be wearing the necklace. Each bead contains a spell that you can cast from it as a [[bonus_action Action]] (using your spell save DC if a save is necessary). Once a magic bead's spell is cast, that bead can't be used again until the next dawn.\n\n| 1d20 | Bead | Spell |\n| --- | --- | --- |\n| 1-6 | Bead of Blessing | [[bless]] |\n| 7-12 | Bead of Curing | [[cure_wounds Wounds]] (level 2 version) |\n| 13-16 | Bead of Favor | [[greater_restoration Restoration]] |\n| 17-18 | Bead of Smiting | [[shining_smite Smite]] |\n| 19 | Bead of Summons | [[guardian_of_faith of Faith]] |\n| 20 | Bead of Wind Walking | [[wind_walk Walk]] |"
+}

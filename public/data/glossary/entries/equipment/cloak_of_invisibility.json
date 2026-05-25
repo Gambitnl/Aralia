@@ -1,0 +1,14 @@
+{
+  "id": "cloak_of_invisibility",
+  "title": "Cloak of Invisibility",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "This cloak has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the cloak, you can take a magic action to pull its hood over yo...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_invisibility.json",
+  "markdown": "# Cloak of Invisibility\n\nThis cloak has 3 charges and regains 1d3 expended charges daily at dawn. While wearing the cloak, you can take a [[magic]] action to pull its hood over your head and expend 1 charge to give yourself the [[invisible]] condition for 1 hour. The effect ends early if you pull the hood down (no action required) or cease wearing the hood."
+}

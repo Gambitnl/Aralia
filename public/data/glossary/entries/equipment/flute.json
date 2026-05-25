@@ -1,0 +1,14 @@
+{
+  "id": "flute",
+  "title": "Flute",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: INS|XPHB - Cost: 2 gp - Weight: 1 lb. - Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/flute.json",
+  "markdown": "# Flute\n\n- **Type**: INS|XPHB\n- **Cost**: 2 gp\n- **Weight**: 1 lb.\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)"
+}

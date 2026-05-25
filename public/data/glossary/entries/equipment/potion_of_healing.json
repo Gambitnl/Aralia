@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_healing",
+  "title": "Potion of Healing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Cost: 50 gp - Weight: 0.5 lb. This potion is a magic item. As a bonus_action Action, you can drink it or administer it to another cre...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_healing.json",
+  "markdown": "# Potion of Healing\n\n- **Type**: P|XPHB\n- **Cost**: 50 gp\n- **Weight**: 0.5 lb.\n\nThis potion is a magic item. As a [[bonus_action Action]], you can drink it or administer it to another creature within 5 feet of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 [[hit_points Points]]. The potion's red liquid glimmers when agitated."
+}

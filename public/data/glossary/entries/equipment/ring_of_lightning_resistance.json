@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_lightning_resistance",
+  "title": "Ring of Lightning Resistance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG {itemEntry Ring of Resistance}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_lightning_resistance.json",
+  "markdown": "# Ring of Lightning Resistance\n\n- **Type**: RG|XDMG\n\n{#itemEntry Ring of Resistance}"
+}

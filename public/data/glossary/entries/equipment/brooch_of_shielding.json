@@ -1,0 +1,14 @@
+{
+  "id": "brooch_of_shielding",
+  "title": "Brooch of Shielding",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While wearing this brooch, you have resistance to Force damage, and you have immunity to damage from the magic_missile Missile spell....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/brooch_of_shielding.json",
+  "markdown": "# Brooch of Shielding\n\nWhile wearing this brooch, you have [[resistance]] to Force damage, and you have [[immunity]] to damage from the [[magic_missile Missile]] spell."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "inspiring_leader",
+  "title": "Inspiring Leader",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Bolstering Performance When you finish a short_rest or long_rest Rest, you can give an inspiring performance: a spee...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/inspiring_leader.json",
+  "markdown": "# Inspiring Leader\n\nYou gain the following benefits.\n\n## Bolstering Performance\n\nWhen you finish a [[short_rest]] or [[long_rest Rest]], you can give an inspiring performance: a speech, song, or dance. When you do so, choose up to six allies (which can include yourself) within 30 feet of yourself who witness the performance. The chosen creatures each gain [[temporary_hit_points Hit Points]] equal to your character level plus the modifier of the ability you increased with this feat."
+}

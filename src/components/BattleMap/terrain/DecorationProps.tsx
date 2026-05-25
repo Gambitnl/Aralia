@@ -479,8 +479,26 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
         material: THREE.Material;
         matrices: Float32Array;
         count: number;
+        colors?: Float32Array;
       }[];
     }[] = [];
+
+    /** Build per-instance RGB color variation — subtle brightness jitter for a natural look */
+    const buildColorVariations = (
+      baseColor: THREE.Color,
+      count: number,
+      colorRand: () => number,
+      range = 0.28,
+    ): Float32Array => {
+      const out = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        const t = 0.86 + colorRand() * range;
+        out[i * 3 + 0] = Math.min(1, baseColor.r * t);
+        out[i * 3 + 1] = Math.min(1, baseColor.g * t);
+        out[i * 3 + 2] = Math.min(1, baseColor.b * t);
+      }
+      return out;
+    };
 
     /** Helper: build instance matrices for a set of tiles */
     const buildMatrices = (
@@ -526,12 +544,17 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
           const matrices = buildMatrices(buckets[v]);
           result.push({
             key: `tree-v${v}`,
-            parts: geoSets.map(gs => ({
-              geometry: gs.geometry,
-              material: gs.material,
-              matrices,
-              count: buckets[v].length,
-            })),
+            parts: geoSets.map((gs, partIdx) => {
+              const baseMat = gs.material as THREE.MeshStandardMaterial;
+              const colorRand = seededRandom((mapData.seed ?? 42) + v * 137 + partIdx * 53);
+              return {
+                geometry: gs.geometry,
+                material: gs.material,
+                matrices,
+                count: buckets[v].length,
+                colors: buildColorVariations(baseMat.color, buckets[v].length, colorRand),
+              };
+            }),
           });
         }
         continue;
@@ -569,6 +592,7 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
               material={part.material}
               matrices={part.matrices}
               count={part.count}
+              colors={part.colors}
             />
           ))}
         </group>
@@ -586,21 +610,27 @@ const InstancedPropMesh: React.FC<{
   material: THREE.Material;
   matrices: Float32Array;
   count: number;
-}> = ({ geometry, material, matrices, count }) => {
+  colors?: Float32Array;
+}> = ({ geometry, material, matrices, count, colors }) => {
   const meshRef = React.useRef<THREE.InstancedMesh>(null);
 
-  // Apply instance matrices — useEffect (not useMemo) so meshRef.current is assigned
   useEffect(() => {
     if (!meshRef.current) return;
     const mesh = meshRef.current;
     const dummy = new THREE.Matrix4();
+    const col = new THREE.Color();
 
     for (let i = 0; i < count; i++) {
       dummy.fromArray(matrices, i * 16);
       mesh.setMatrixAt(i, dummy);
+      if (colors) {
+        col.setRGB(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
+        mesh.setColorAt(i, col);
+      }
     }
     mesh.instanceMatrix.needsUpdate = true;
-  }, [matrices, count]);
+    if (colors && mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [matrices, count, colors]);
 
   if (count === 0) return null;
 

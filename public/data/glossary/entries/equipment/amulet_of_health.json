@@ -1,0 +1,14 @@
+{
+  "id": "amulet_of_health",
+  "title": "Amulet of Health",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution is already 19 or higher without...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/amulet_of_health.json",
+  "markdown": "# Amulet of Health\n\n- **Weight**: 1 lb.\n\nYour Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution is already 19 or higher without it."
+}

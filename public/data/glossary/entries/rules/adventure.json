@@ -1,0 +1,14 @@
+{
+  "id": "adventure",
+  "title": "Adventure",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "An adventure is a series of [[encounter]]. A story emerges through playing them....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/adventure.json",
+  "markdown": "# Adventure\n\nAn adventure is a series of [[encounter]]. A story emerges through playing them."
+}

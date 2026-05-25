@@ -1,0 +1,14 @@
+{
+  "id": "blinded",
+  "title": "Blinded",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Blinded condition, you experience the following effects....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/blinded.json",
+  "markdown": "# Blinded\n\nWhile you have the Blinded condition, you experience the following effects.\n\n### Can't See\n\nYou can't see and automatically fail any ability check that requires sight.\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[advantage]], and your attack rolls have [[disadvantage]]."
+}

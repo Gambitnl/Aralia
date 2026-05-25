@@ -1,0 +1,14 @@
+{
+  "id": "mason_s_tools",
+  "title": "Mason's Tools",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: AT|XPHB - Cost: 10 gp - Weight: 8 lb. - Ability:: Strength - Utilize:: Chisel a symbol or hole in stone (DC 10) - Craft:: block_and_tackle and...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/mason_s_tools.json",
+  "markdown": "# Mason's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 10 gp\n- **Weight**: 8 lb.\n\n- **Ability::** Strength\n- **Utilize::** Chisel a symbol or hole in stone (DC 10)\n- **Craft::** [[block_and_tackle and Tackle]]"
+}

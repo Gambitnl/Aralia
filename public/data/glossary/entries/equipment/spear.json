@@ -1,0 +1,14 @@
+{
+  "id": "spear",
+  "title": "Spear",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 1 gp - Weight: 3 lb. - Damage: 1d6 P - Properties: T|XPHB, V|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/spear.json",
+  "markdown": "# Spear\n\n- **Type**: M|XPHB\n- **Cost**: 1 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d6 P\n- **Properties**: T|XPHB, V|XPHB\n\n"
+}

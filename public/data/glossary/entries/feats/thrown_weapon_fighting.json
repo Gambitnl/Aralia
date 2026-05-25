@@ -1,0 +1,14 @@
+{
+  "id": "thrown_weapon_fighting",
+  "title": "Thrown Weapon Fighting",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "When you hit with a ranged attack roll using a weapon that has the T property, you gain a +2 bonus to the damage roll....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/thrown_weapon_fighting.json",
+  "markdown": "# Thrown Weapon Fighting\n\nWhen you hit with a ranged attack roll using a weapon that has the T property, you gain a +2 bonus to the damage roll."
+}

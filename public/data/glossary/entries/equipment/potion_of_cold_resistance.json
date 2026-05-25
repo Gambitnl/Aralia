@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_cold_resistance",
+  "title": "Potion of Cold Resistance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. {itemEntry Potion of Resistance}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_cold_resistance.json",
+  "markdown": "# Potion of Cold Resistance\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\n{#itemEntry Potion of Resistance}"
+}

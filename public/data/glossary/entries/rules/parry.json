@@ -1,0 +1,14 @@
+{
+  "id": "parry",
+  "title": "Parry",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When another creature damages you with a melee attack roll, you can take a reaction and expend one Superiority Die to reduce the damage by the number ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/parry.json",
+  "markdown": "# Parry\n\nWhen another creature damages you with a melee attack roll, you can take a [[reaction]] and expend one Superiority Die to reduce the damage by the number you roll on your Superiority Die plus your Strength or Dexterity modifier (your choice)."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_water_breathing",
+  "title": "Potion of Water Breathing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. You can breathe underwater for 24 hours after drinking this potion. This potion's cloudy green fluid smells of the se...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_water_breathing.json",
+  "markdown": "# Potion of Water Breathing\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nYou can breathe underwater for 24 hours after drinking this potion.\n\nThis potion's cloudy green fluid smells of the sea and has a jellyfish-like bubble floating in it."
+}

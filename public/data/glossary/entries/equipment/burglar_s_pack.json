@@ -1,0 +1,14 @@
+{
+  "id": "burglar_s_pack",
+  "title": "Burglar's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 16 gp - Weight: 47.5 lb. A Burglar's Pack contains the following items: backpack, ball_bearings Bearings, bell, 10 candle, crow...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/burglar_s_pack.json",
+  "markdown": "# Burglar's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 16 gp\n- **Weight**: 47.5 lb.\n\nA Burglar's Pack contains the following items: [[backpack]], [[ball_bearings Bearings]], [[bell]], 10 [[candle]], [[crowbar]], [[hooded_lantern Lantern]], 7 flasks of [[oil]], 5 days of [[rations]], [[rope]], [[tinderbox]], and [[waterskin]]."
+}

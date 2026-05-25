@@ -1,0 +1,210 @@
+[
+  {
+    "id": "acolyte",
+    "title": "Acolyte",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Intelligence, Wisdom, Charisma - Feat:: magic_initiate Initiate (Cleric) - Skill Proficiencies:: insight, religion - Tool Proficien...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/acolyte.json"
+  },
+  {
+    "id": "artisan",
+    "title": "Artisan",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Dexterity, Intelligence - Feat:: crafter - Skill Proficiencies:: investigation, persuasion - Tool Proficiency:: Choose on...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/artisan.json"
+  },
+  {
+    "id": "charlatan",
+    "title": "Charlatan",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Dexterity, Constitution, Charisma - Feat:: skilled - Skill Proficiencies:: deception, sleight_of_hand of Hand - Tool Proficiency:: ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/charlatan.json"
+  },
+  {
+    "id": "criminal",
+    "title": "Criminal",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Dexterity, Constitution, Intelligence - Feat:: alert - Skill Proficiencies:: sleight_of_hand of Hand, stealth - Tool Proficiency:: ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/criminal.json"
+  },
+  {
+    "id": "entertainer",
+    "title": "Entertainer",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Dexterity, Charisma - Feat:: musician - Skill Proficiencies:: acrobatics, performance - Tool Proficiency:: Choose one kin...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/entertainer.json"
+  },
+  {
+    "id": "farmer",
+    "title": "Farmer",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Constitution, Wisdom - Feat:: tough - Skill Proficiencies:: animal_handling Handling, nature - Tool Proficiency:: carpent...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/farmer.json"
+  },
+  {
+    "id": "guard",
+    "title": "Guard",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Intelligence, Wisdom - Feat:: alert - Skill Proficiencies:: athletics, perception - Tool Proficiency:: Choose one kind of...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/guard.json"
+  },
+  {
+    "id": "guide",
+    "title": "Guide",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Dexterity, Constitution, Wisdom - Feat:: magic_initiate Initiate (Druid) - Skill Proficiencies:: stealth, survival - Tool Proficien...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/guide.json"
+  },
+  {
+    "id": "hermit",
+    "title": "Hermit",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Constitution, Wisdom, Charisma - Feat:: healer - Skill Proficiencies:: medicine, religion - Tool Proficiency:: herbalism_kit Kit - ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/hermit.json"
+  },
+  {
+    "id": "merchant",
+    "title": "Merchant",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Constitution, Intelligence, Charisma - Feat:: lucky - Skill Proficiencies:: animal_handling Handling, persuasion - Tool Proficiency...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/merchant.json"
+  },
+  {
+    "id": "noble",
+    "title": "Noble",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Intelligence, Charisma - Feat:: skilled - Skill Proficiencies:: history, persuasion - Tool Proficiency:: Choose one kind ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/noble.json"
+  },
+  {
+    "id": "sage",
+    "title": "Sage",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Constitution, Intelligence, Wisdom - Feat:: magic_initiate Initiate (Wizard) - Skill Proficiencies:: arcana, history - Tool Profici...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/sage.json"
+  },
+  {
+    "id": "sailor",
+    "title": "Sailor",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Dexterity, Wisdom - Feat:: tavern_brawler Brawler - Skill Proficiencies:: acrobatics, perception - Tool Proficiency:: nav...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/sailor.json"
+  },
+  {
+    "id": "scribe",
+    "title": "Scribe",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Dexterity, Intelligence, Wisdom - Feat:: skilled - Skill Proficiencies:: investigation, perception - Tool Proficiency:: calligraphe...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/scribe.json"
+  },
+  {
+    "id": "soldier",
+    "title": "Soldier",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Strength, Dexterity, Constitution - Feat:: savage_attacker Attacker - Skill Proficiencies:: athletics, intimidation - Tool Proficie...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/soldier.json"
+  },
+  {
+    "id": "wayfarer",
+    "title": "Wayfarer",
+    "category": "Character Backgrounds",
+    "tags": [
+      "source:xphb",
+      "background"
+    ],
+    "excerpt": "- Ability Scores:: Dexterity, Wisdom, Charisma - Feat:: lucky - Skill Proficiencies:: insight, stealth - Tool Proficiency:: thieves_tools' Tools - Equ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/backgrounds/wayfarer.json"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "id": "character_sheet",
+  "title": "Character Sheet",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A character sheet is a paper or digital record that you use to track your character's information....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/character_sheet.json",
+  "markdown": "# Character Sheet\n\nA character sheet is a paper or digital record that you use to track your character's information."
+}

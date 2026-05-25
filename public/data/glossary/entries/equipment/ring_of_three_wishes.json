@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_three_wishes",
+  "title": "Ring of Three Wishes",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG While wearing this ring, you can expend 1 of its 3 charges to cast wish from it. The ring becomes nonmagical when you use the last cha...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_three_wishes.json",
+  "markdown": "# Ring of Three Wishes\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you can expend 1 of its 3 charges to cast [[wish]] from it. The ring becomes nonmagical when you use the last charge."
+}

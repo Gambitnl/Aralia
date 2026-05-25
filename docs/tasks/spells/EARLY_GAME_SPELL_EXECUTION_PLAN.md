@@ -1,6 +1,6 @@
 # Early-Game Spell Execution Plan
 
-Last Updated: 2026-05-24
+Last Updated: 2026-05-25
 
 ## Purpose
 
@@ -751,6 +751,10 @@ Outputs:
 - add tests or audit script for premade loadout legality
 - use the drafted Jules task at
   `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`
+- use the exact Jules prompt packet at
+  `docs/tasks/spells/PACKAGE_2_PREMADE_PARTY_GEAR_JULES_PROMPT.md`
+- preserve the Symphony draft payload at
+  `docs/tasks/spells/PACKAGE_2_SYMPHONY_TASK_DRAFT_PAYLOAD.json`
 - use the dispatch-readiness checklist at
   `docs/tasks/spells/PACKAGE_2_DISPATCH_READINESS_CHECKLIST.md` before creating
   a Symphony task draft, Jules handoff, branch, worktree, or PR
@@ -843,6 +847,15 @@ Outputs:
 
 ## Next Action
 
-Start with Package 1: Scoped Baseline. Do not dispatch broad implementation work
-to Jules until the level 0-3 affected-spell inventory, current simulator path,
-and premade party facts are recorded.
+Continue the post-Package 6 consolidation boundary before dispatching another
+Jules implementation slice. The visible dashboard currently reports `Review
+Local Changes` because local `master` contains broad glossary/rules migration
+work plus spell/Symphony documentation edits. Classify or isolate those local
+changes first so the next Spell Phase package starts from a clean, deliberate
+base instead of mixing unrelated local work into a Jules handoff.
+
+After the checkout is clean or the next package has an isolated clean-base
+worktree, choose the next package from the active gap log. The strongest current
+candidates are the Atlas source/discoverability repair (`G48`) and the small
+buff/status combat bridge follow-up (`G49`), because they are explicit blockers
+in the completion definition rather than raw Symphony workflow churn.

@@ -1,0 +1,14 @@
+{
+  "id": "portable_ram",
+  "title": "Portable Ram",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 4 gp - Weight: 35 lb. You can use a Portable Ram to break down doors. When doing so, you gain a +4 bonus to the Strength check....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/portable_ram.json",
+  "markdown": "# Portable Ram\n\n- **Type**: G|XPHB\n- **Cost**: 4 gp\n- **Weight**: 35 lb.\n\nYou can use a Portable Ram to break down doors. When doing so, you gain a +4 bonus to the Strength check. One other character can help you use the ram, giving you [[advantage]] on this check."
+}

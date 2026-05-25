@@ -1,0 +1,14 @@
+{
+  "id": "hazard",
+  "title": "Hazard",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A hazard is an environmental danger....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/hazard.json",
+  "markdown": "# Hazard\n\nA hazard is an environmental danger."
+}

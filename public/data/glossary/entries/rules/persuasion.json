@@ -1,0 +1,14 @@
+{
+  "id": "persuasion",
+  "title": "Persuasion",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Honestly and graciously convince someone of something....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/persuasion.json",
+  "markdown": "# Persuasion\n\nHonestly and graciously convince someone of something."
+}

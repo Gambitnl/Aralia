@@ -1,0 +1,14 @@
+{
+  "id": "iron_spike",
+  "title": "Iron Spike",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.1 gp - Weight: 0.5 lb. Iron Spikes come in bundles of ten. As a utilize action, you can use a blunt object, such as a light_h...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/iron_spike.json",
+  "markdown": "# Iron Spike\n\n- **Type**: G|XPHB\n- **Cost**: 0.1 gp\n- **Weight**: 0.5 lb.\n\nIron Spikes come in bundles of ten. As a [[utilize]] action, you can use a blunt object, such as a [[light_hammer Hammer]], to hammer a spike into wood, earth, or a similar material. You can do so to jam a door shut or to then tie a [[rope]] or [[chain]] to the Spike."
+}

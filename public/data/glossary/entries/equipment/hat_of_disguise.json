@@ -1,0 +1,14 @@
+{
+  "id": "hat_of_disguise",
+  "title": "Hat of Disguise",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While wearing this hat, you can cast the disguise_self Self spell. The spell ends if the hat is removed....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/hat_of_disguise.json",
+  "markdown": "# Hat of Disguise\n\nWhile wearing this hat, you can cast the [[disguise_self Self]] spell. The spell ends if the hat is removed."
+}

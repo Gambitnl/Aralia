@@ -1,5 +1,18 @@
 [
   {
+    "id": "ability_check",
+    "title": "Ability Check",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An ability check is a [[d20_test Test]] that represents using one of the six abilities—or a specific skill associated with an ability—to overcome a ch...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ability_check.json"
+  },
+  {
     "id": "ability_check_examples",
     "title": "Ability Check Examples",
     "category": "Rules Glossary",
@@ -8,21 +21,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ability_check_examples.json"
-  },
-  {
-    "id": "ability_check",
-    "title": "Ability Checks",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "A D20 Test representing a creature's effort to overcome a challenge. See the main D20 Tests entry for full details.",
-    "aliases": [],
-    "seeAlso": [
-      "d20_test",
-      "ability_check_modifier",
-      "ability_check_proficiency",
-      "ability_check_dc"
-    ],
-    "filePath": "/data/glossary/entries/rules/ability_check.json"
   },
   {
     "id": "saving_throw_modifier",
@@ -55,6 +53,32 @@
     "filePath": "/data/glossary/entries/rules/ability_check_modifier.json"
   },
   {
+    "id": "ability_score_and_modifier",
+    "title": "Ability Score and Modifier",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature has six ability scores—Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma—each of which has a corresponding modifier. Ad...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ability_score_and_modifier.json"
+  },
+  {
+    "id": "abyssal",
+    "title": "Abyssal",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/abyssal.json"
+  },
+  {
     "id": "acid_item",
     "title": "Acid",
     "category": "Rules Glossary",
@@ -65,22 +89,29 @@
     "filePath": "/data/glossary/entries/rules/equipment/gear/acid_item.json"
   },
   {
+    "id": "acrobatics",
+    "title": "Acrobatics",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Stay on your feet in a tricky situation, or perform an acrobatic stunt....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/acrobatics.json"
+  },
+  {
     "id": "action",
     "title": "Action",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "turn",
-      "actions"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "The main thing you can do on your turn in combat. You can take one action per turn, choosing from options like Attack, Cast a Spell, Dash, Disengage, Dodge, Help, Hide, Ready, Search, or Use an Object.",
+    "excerpt": "On your turn, you can take one action. Choose which action to take from those below or from the special actions provided by your features. These actio...",
     "aliases": [],
-    "seeAlso": [
-      "bonus_action",
-      "reaction",
-      "attack_action",
-      "magic_action"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/action.json"
   },
   {
@@ -108,16 +139,12 @@
     "title": "Advantage",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "rolls",
-      "mechanics"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "When you have advantage on a d20 roll, you roll two d20s and use the higher result. Advantage and disadvantage cancel each other out.",
+    "excerpt": "If you have Advantage on a [[d20_test Test]], roll two d20s, and use the higher roll. A roll can't be affected by more than one Advantage, and Advanta...",
     "aliases": [],
-    "seeAlso": [
-      "disadvantage",
-      "d20_test"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/advantage.json"
   },
   {
@@ -136,6 +163,19 @@
     "filePath": "/data/glossary/entries/rules/advantage_disadvantage.json"
   },
   {
+    "id": "adventure",
+    "title": "Adventure",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An adventure is a series of [[encounter]]. A story emerges through playing them....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/adventure.json"
+  },
+  {
     "id": "adventuring_equipment",
     "title": "Adventuring Equipment",
     "category": "Rules Glossary",
@@ -146,14 +186,17 @@
     "filePath": "/data/glossary/entries/rules/adventuring_equipment.json"
   },
   {
-    "id": "adventuring_gear",
-    "title": "Adventuring Gear",
+    "id": "agonizing_blast",
+    "title": "Agonizing Blast",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "A list of useful items for adventurers.",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "Choose one of your known Warlock cantrips that deals damage. You can add your Charisma modifier to that spell's damage rolls.  Repeatable You can gain...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/adventuring_gear.json"
+    "filePath": "/data/glossary/entries/rules/agonizing_blast.json"
   },
   {
     "id": "airborne_waterborne_vehicles",
@@ -207,14 +250,43 @@
     "filePath": "/data/glossary/entries/rules/crafting/alchemy_crafting.json"
   },
   {
-    "id": "ammunition_property",
-    "title": "Ammunition",
+    "id": "alignment",
+    "title": "Alignment",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature's alignment broadly describes its ethical attitudes and ideals. Alignment is a combination of two factors: one identifies morality (good, e...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/ammunition.json"
+    "filePath": "/data/glossary/entries/rules/alignment.json"
+  },
+  {
+    "id": "ally",
+    "title": "Ally",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature is your ally if it is a member of your adventuring party, your friend, on your side in combat, or a creature that the rules or the DM desig...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ally.json"
+  },
+  {
+    "id": "ambush",
+    "title": "Ambush",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you make a Dexterity (stealth) check or an initiative roll, you can expend one Superiority Die and add the die to the roll, unless you have the i...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ambush.json"
   },
   {
     "id": "ammunition_item",
@@ -227,6 +299,19 @@
     "filePath": "/data/glossary/entries/rules/equipment/gear/ammunition_item.json"
   },
   {
+    "id": "animal_handling",
+    "title": "Animal Handling",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Calm or train an animal, or get an animal to behave in a certain way....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/animal_handling.json"
+  },
+  {
     "id": "antitoxin_item",
     "title": "Antitoxin",
     "category": "Rules Glossary",
@@ -237,6 +322,19 @@
     "filePath": "/data/glossary/entries/rules/equipment/gear/antitoxin_item.json"
   },
   {
+    "id": "arcana",
+    "title": "Arcana",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Recall lore about spells, magic items, and the planes of existence....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/arcana.json"
+  },
+  {
     "id": "arcane_focus_item",
     "title": "Arcane Focus",
     "category": "Rules Glossary",
@@ -245,6 +343,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/gear/arcane_focus_item.json"
+  },
+  {
+    "id": "area_of_effect",
+    "title": "Area of Effect",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "The descriptions of many spells and other features specify that they have an area of effect, which typically has one of six shapes. These shapes are d...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/area_of_effect.json"
   },
   {
     "id": "aristocratic_lifestyle",
@@ -270,21 +381,40 @@
     "id": "armor_class",
     "title": "Armor Class",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Represents how well a creature avoids being wounded.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An Armor Class (AC) is the target number for an attack roll. AC represents how difficult it is to hit a target....",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/armor_class.json"
   },
   {
+    "id": "armor_of_shadows",
+    "title": "Armor of Shadows",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast mage_armor Armor on yourself without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/armor_of_shadows.json"
+  },
+  {
     "id": "armor_training",
     "title": "Armor Training",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules on wearing armor with and without training.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Armor training allows you to use armor of a certain category without the following drawbacks. If you wear Light, Medium, or Heavy armor and lack train...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor/armor_training.json"
+    "filePath": "/data/glossary/entries/rules/armor_training.json"
   },
   {
     "id": "artisans_tools",
@@ -295,6 +425,45 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/artisans_tools.json"
+  },
+  {
+    "id": "ascendant_step",
+    "title": "Ascendant Step",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast levitate on yourself without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ascendant_step.json"
+  },
+  {
+    "id": "athletics",
+    "title": "Athletics",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Jump farther than normal, stay afloat in rough water, or break something....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/athletics.json"
+  },
+  {
+    "id": "attack",
+    "title": "Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "When you take the Attack action, you can make one attack roll with a weapon or an [[unarmed_strike Strike]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/attack.json"
   },
   {
     "id": "attack_action",
@@ -317,6 +486,19 @@
     "filePath": "/data/glossary/entries/rules/attack_action.json"
   },
   {
+    "id": "attack_roll",
+    "title": "Attack Roll",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An attack roll is a [[d20_test Test]] that represents making an attack with a weapon, an [[unarmed_strike Strike]], or a spell....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/attack_roll.json"
+  },
+  {
     "id": "attack_roll_abilities",
     "title": "Attack Roll Abilities",
     "category": "Rules Glossary",
@@ -327,20 +509,17 @@
     "filePath": "/data/glossary/entries/rules/attack_roll_abilities.json"
   },
   {
-    "id": "attack_roll",
-    "title": "Attack Rolls",
+    "id": "attitude",
+    "title": "Attitude",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "A D20 Test that determines whether an attack hits a target. See the main D20 Tests entry for full details.",
-    "aliases": [],
-    "seeAlso": [
-      "d20_test",
-      "attack_roll_modifier",
-      "attack_roll_proficiency",
-      "armor_class",
-      "rolling_20_or_1"
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
-    "filePath": "/data/glossary/entries/rules/attack_roll.json"
+    "excerpt": "A [[monster]] has a starting attitude toward a [[player_character character]]: [[friendly_attitude]], [[hostile_attitude]], or [[indifferent_attitude]...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/attitude.json"
   },
   {
     "id": "attune_during_short_rest",
@@ -356,11 +535,27 @@
     "id": "attunement",
     "title": "Attunement",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for forming a bond with a magic item.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Some magic items require a creature to form a bond—called Attunement—with them before the creature can use an item's magical properties. A creature ca...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json"
+    "filePath": "/data/glossary/entries/rules/attunement.json"
+  },
+  {
+    "id": "bait_and_switch",
+    "title": "Bait and Switch",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you're within 5 feet of a creature on your turn, you can expend one Superiority Die and switch places with that creature, provided you spend at l...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/bait_and_switch.json"
   },
   {
     "id": "barding",
@@ -371,6 +566,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/mounts/barding.json"
+  },
+  {
+    "id": "blinded",
+    "title": "Blinded",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Blinded condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/blinded.json"
   },
   {
     "id": "blinded_condition",
@@ -393,34 +601,45 @@
     "title": "Blindsight",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "vision",
-      "special senses"
+      "source:xphb",
+      "sense"
     ],
-    "excerpt": "Perceiving surroundings without relying on sight.",
+    "excerpt": "If you have Blindsight, you can see within a specific range without relying on physical sight. Within that range, you can see anything that isn't behi...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/blindsight.json"
+  },
+  {
+    "id": "bloodied",
+    "title": "Bloodied",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "health",
+      "world-state",
+      "thresholds"
+    ],
+    "excerpt": "A creature is bloodied when its current hit points are at or below half its hit point maximum and it still has at least 1 hit point.",
     "aliases": [],
     "seeAlso": [
-      "vision",
-      "invisible_condition",
-      "special_senses"
+      "hit_points",
+      "healing",
+      "temporary_hp",
+      "conditions"
     ],
-    "filePath": "/data/glossary/entries/rules/blindsight.json"
+    "filePath": "/data/glossary/entries/rules/bloodied.json"
   },
   {
     "id": "bonus_action",
     "title": "Bonus Action",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "turn",
-      "actions"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A special additional action you can take on your turn. You can take a bonus action only when a special ability, spell, or feature states that you can do something as a bonus action.",
+    "excerpt": "A Bonus Action is a special action that you can take on the same turn that you take an action. You can't take more than one Bonus Action on a turn, an...",
     "aliases": [],
-    "seeAlso": [
-      "action",
-      "reaction"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/bonus_action.json"
   },
   {
@@ -446,8 +665,11 @@
     "id": "breaking_objects",
     "title": "Breaking Objects",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for damaging and destroying objects.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Objects can be harmed by attacks and by some spells, using the rules below. If an object is exceedingly fragile, the DM may allow a creature to break ...",
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/breaking_objects.json"
@@ -477,19 +699,39 @@
     "title": "Bright Light",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "light",
-      "vision",
-      "illumination"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Bright Light lets most creatures see normally. Even gloomy days provide Bright Light, as do torches, lanterns, fires, and other sources of illumination within a specific radius.",
+    "excerpt": "Bright Light is normal illumination....",
     "aliases": [],
-    "seeAlso": [
-      "light_rules",
-      "dim_light",
-      "darkness"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/bright_light.json"
+  },
+  {
+    "id": "burning",
+    "title": "Burning",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A burning creature or object takes 1d4 Fire damage at the start of each of its turns. As an action, you can extinguish fire on yourself by giving your...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/burning.json"
+  },
+  {
+    "id": "burrow_speed",
+    "title": "Burrow Speed",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature that has a Burrow Speed can use that speed to move through sand, earth, mud, or ice. The creature can't burrow through solid rock unless th...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/burrow_speed.json"
   },
   {
     "id": "calligraphers_supplies",
@@ -502,21 +744,43 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/calligraphers_supplies.json"
   },
   {
-    "id": "cantrip",
-    "title": "Cantrips",
+    "id": "campaign",
+    "title": "Campaign",
     "category": "Rules Glossary",
     "tags": [
-      "spellcasting",
-      "magic"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A spell that can be cast at will, without using a spell slot and without being prepared in advance. Cantrips are simple but reliable magical effects.",
-    "aliases": [
-      "Cantrip"
+    "excerpt": "A campaign is a series of [[adventure]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/campaign.json"
+  },
+  {
+    "id": "cantrip",
+    "title": "Cantrip",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
-    "seeAlso": [
-      "spell_slot"
-    ],
+    "excerpt": "A cantrip is a level 0 spell, which is cast without a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/cantrip.json"
+  },
+  {
+    "id": "careful_spell",
+    "title": "Careful Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell that forces other creatures to make a saving throw, you can protect some of those creatures from the spell's full force. To do s...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/careful_spell.json"
   },
   {
     "id": "carpenters_tools",
@@ -527,6 +791,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/carpenters_tools.json"
+  },
+  {
+    "id": "carrying_capacity",
+    "title": "Carrying Capacity",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Your size and Strength score determines the maximum weight in pounds that you can carry, as shown in the Carrying Capacity table. The table also shows...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/carrying_capacity.json"
   },
   {
     "id": "carrying_objects",
@@ -549,6 +826,32 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/cartographers_tools.json"
   },
   {
+    "id": "celestial",
+    "title": "Celestial",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/celestial.json"
+  },
+  {
+    "id": "challenge_rating",
+    "title": "Challenge Rating",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Challenge Rating (CR) summarizes the threat a [[monster]] poses to a group of four [[player_character characters]]. Compare a [[monster's]] CR to the ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/challenge_rating.json"
+  },
+  {
     "id": "changes_to_your_speeds",
     "title": "Changes to Your Speeds",
     "category": "Rules Glossary",
@@ -566,6 +869,19 @@
       "special_speeds"
     ],
     "filePath": "/data/glossary/entries/rules/changes_to_your_speeds.json"
+  },
+  {
+    "id": "character_sheet",
+    "title": "Character Sheet",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A character sheet is a paper or digital record that you use to track your character's information....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/character_sheet.json"
   },
   {
     "id": "charisma",
@@ -588,6 +904,19 @@
     "filePath": "/data/glossary/entries/rules/charisma.json"
   },
   {
+    "id": "charmed",
+    "title": "Charmed",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Charmed condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/charmed.json"
+  },
+  {
     "id": "charmed_condition",
     "title": "Charmed",
     "category": "Rules Glossary",
@@ -604,33 +933,30 @@
     "filePath": "/data/glossary/entries/rules/conditions/charmed_condition.json"
   },
   {
-    "id": "cleave_mastery_property",
-    "title": "Cleave",
+    "id": "climb_speed",
+    "title": "Climb Speed",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Climb Speed can be used in place of [[speed]] to traverse a vertical surface without expending the extra movement normally associated with climbing....",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/cleave.json"
+    "filePath": "/data/glossary/entries/rules/climb_speed.json"
   },
   {
     "id": "climbing",
     "title": "Climbing",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "movement",
-      "climbing",
-      "speed"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "While climbing, each foot of movement costs 1 extra foot. A successful DC 15 Strength (Athletics) check may be required for difficult surfaces.",
+    "excerpt": "While you're climbing, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain terrain]]). You ignore this extra cost if you hav...",
     "aliases": [],
-    "seeAlso": [
-      "speed",
-      "special_speeds",
-      "difficult_terrain"
-    ],
-    "filePath": "/data/glossary/entries/rules/movement/climbing.json"
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/climbing.json"
   },
   {
     "id": "cobblers_tools",
@@ -673,6 +999,58 @@
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/comfortable_lifestyle.json"
   },
   {
+    "id": "commander_s_strike",
+    "title": "Commander's Strike",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you take the attack action on your turn, you can replace one of your attacks to direct one of your companions to strike. When you do so, choose a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/commander_s_strike.json"
+  },
+  {
+    "id": "commanding_presence",
+    "title": "Commanding Presence",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you make a Charisma (intimidation, performance, or persuasion) check, you can expend one Superiority Die and add that die to the roll....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/commanding_presence.json"
+  },
+  {
+    "id": "common",
+    "title": "Common",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/common.json"
+  },
+  {
+    "id": "common_sign_language",
+    "title": "Common Sign Language",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/common_sign_language.json"
+  },
+  {
     "id": "concentration",
     "title": "Concentration",
     "category": "Rules Glossary",
@@ -688,6 +1066,19 @@
       "constitution"
     ],
     "filePath": "/data/glossary/entries/rules/concentration.json"
+  },
+  {
+    "id": "condition",
+    "title": "Condition",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A condition is a temporary game state. The definition of a condition says how it affects its recipient, and various rules define how to end a conditio...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/condition.json"
   },
   {
     "id": "conditions",
@@ -752,6 +1143,19 @@
     "filePath": "/data/glossary/entries/rules/cone_area.json"
   },
   {
+    "id": "cone_area_of_effect",
+    "title": "Cone [Area of Effect]",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Cone is an area of effect that extends in straight lines from a point of origin in a direction its creator chooses. A Cone's width at any point alon...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/cone_area_of_effect.json"
+  },
+  {
     "id": "constitution",
     "title": "Constitution",
     "category": "Rules Glossary",
@@ -784,6 +1188,19 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/cooks_utensils.json"
   },
   {
+    "id": "cover",
+    "title": "Cover",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Cover provides a degree of protection to a target behind it. There are three degrees of cover, each of which provides a different benefit to a target:...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/cover.json"
+  },
+  {
     "id": "crafting_equipment",
     "title": "Crafting Equipment",
     "category": "Rules Glossary",
@@ -808,20 +1225,39 @@
     "title": "Crawling",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "movement",
-      "crawling",
-      "speed",
-      "prone"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "While crawling, each foot of movement costs 1 extra foot. Crawling is often associated with the Prone condition.",
+    "excerpt": "While you're crawling, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain terrain]])....",
     "aliases": [],
-    "seeAlso": [
-      "speed",
-      "prone_condition",
-      "difficult_terrain"
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/crawling.json"
+  },
+  {
+    "id": "creature",
+    "title": "Creature",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/crawling.json"
+    "excerpt": "Any being in the game, including [[player_character player's character]], is a creature....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/creature.json"
+  },
+  {
+    "id": "creature_type",
+    "title": "Creature Type",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Every creature, including every [[player_character character]], has a tag in the rules that identifies the type of creature it is. Most [[player_chara...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/creature_type.json"
   },
   {
     "id": "large_vehicles_crew",
@@ -832,6 +1268,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/vehicles/crew.json"
+  },
+  {
+    "id": "critical_hit",
+    "title": "Critical Hit",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If you roll a 20 on the d20 for an attack roll, you score a Critical Hit, and the attack hits regardless of any modifiers or the target's AC. A Critic...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/critical_hit.json"
   },
   {
     "id": "cube_area",
@@ -858,6 +1307,19 @@
     "filePath": "/data/glossary/entries/rules/cube_area.json"
   },
   {
+    "id": "cube_area_of_effect",
+    "title": "Cube [Area of Effect]",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Cube is an area of effect that extends in straight lines from a point of origin located anywhere on a face of the Cube. The effect that creates a Cu...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/cube_area_of_effect.json"
+  },
+  {
     "id": "curse",
     "title": "Curse",
     "category": "Rules Glossary",
@@ -876,6 +1338,19 @@
       "spell_referenced_rules_enrichment"
     ],
     "filePath": "/data/glossary/entries/rules/curse.json"
+  },
+  {
+    "id": "curses",
+    "title": "Curses",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Some game effects curse a creature or an object. The effect that confers a curse defines what the curse does. Curses can be removed by the Remove Curs...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/curses.json"
   },
   {
     "id": "cylinder_area",
@@ -902,58 +1377,94 @@
     "filePath": "/data/glossary/entries/rules/cylinder_area.json"
   },
   {
-    "id": "d20_test",
-    "title": "D20 Tests",
+    "id": "cylinder_area_of_effect",
+    "title": "Cylinder [Area of Effect]",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "d20",
-      "ability check",
-      "saving throw",
-      "attack roll",
-      "advantage",
-      "disadvantage",
-      "core mechanic"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "The core mechanic for determining the outcome of an uncertain action, encompassing ability checks, saving throws, and attack rolls.",
+    "excerpt": "A Cylinder is an area of effect that extends in straight lines from a point of origin located at the center of the circular top or bottom of the Cylin...",
     "aliases": [],
-    "seeAlso": [
-      "ability_check",
-      "saving_throw",
-      "attack_roll",
-      "advantage_disadvantage"
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/cylinder_area_of_effect.json"
+  },
+  {
+    "id": "d20_test",
+    "title": "D20 Test",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
+    "excerpt": "D20 Tests encompass the three main d20 rolls of the game: [[ability_check checks]], [[attack_roll rolls]], and [[saving_throw throws]]. If something i...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/d20_test.json"
+  },
+  {
+    "id": "damage",
+    "title": "Damage",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Damage represents harm that causes a creature or an object to lose [[hit_points Points]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/damage.json"
+  },
+  {
+    "id": "damage_roll",
+    "title": "Damage Roll",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A damage roll is a die roll, adjusted by any applicable modifiers, that deals damage to a target....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/damage_roll.json"
   },
   {
     "id": "damage_threshold",
     "title": "Damage Threshold",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature or an object that has a damage threshold has [[immunity]] to all damage unless it takes an amount of damage from a single attack or effect ...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/damage_threshold.json"
+    "filePath": "/data/glossary/entries/rules/damage_threshold.json"
+  },
+  {
+    "id": "damage_types",
+    "title": "Damage Types",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Attacks and other harmful effects deal different types of damage. Damage types have no rules of their own, but other rules, such as Resistance, rely o...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/damage_types.json"
   },
   {
     "id": "darkness",
     "title": "Darkness",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "light",
-      "vision",
-      "illumination",
-      "heavily obscured"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Darkness creates a Heavily Obscured area. Characters face Darkness outdoors at night, within unlit dungeons, or in areas of magical Darkness.",
+    "excerpt": "An area of Darkness is [[heavily_obscured Obscured]]....",
     "aliases": [],
-    "seeAlso": [
-      "light_rules",
-      "bright_light",
-      "dim_light",
-      "obscured_areas"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/darkness.json"
   },
   {
@@ -961,21 +1472,74 @@
     "title": "Darkvision",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "vision",
-      "special senses"
+      "source:xphb",
+      "sense"
     ],
-    "excerpt": "The ability to see in the dark without a light source.",
+    "excerpt": "If you have Darkvision, you can see in dim_light Light within a specified range as if it were bright_light Light and in darkness within that range as ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/darkvision.json"
+  },
+  {
+    "id": "dash",
+    "title": "Dash",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "When you take the Dash action, you gain extra movement for the current turn. The increase equals your [[speed]] after applying any modifiers. With a [...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/dash.json"
+  },
+  {
+    "id": "dash_action",
+    "title": "Dash [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "actions",
+      "movement",
+      "combat"
+    ],
+    "excerpt": "The Dash action spends a creature's action to add extra movement equal to its current speed for the turn.",
     "aliases": [
-      "superior darkvision"
+      "Dash"
     ],
     "seeAlso": [
-      "vision",
-      "dim_light",
-      "darkness",
-      "obscured_areas"
+      "action",
+      "speed",
+      "climbing",
+      "swimming",
+      "flying"
     ],
-    "filePath": "/data/glossary/entries/rules/darkvision.json"
+    "filePath": "/data/glossary/entries/rules/dash_action.json"
+  },
+  {
+    "id": "dead",
+    "title": "Dead",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A dead creature has no [[hit_points Points]] and can't regain them unless it is first revived by magic such as the Raise Dead or Revivify spell. When ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/dead.json"
+  },
+  {
+    "id": "deafened",
+    "title": "Deafened",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Deafened condition, you experience the following effect....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/deafened.json"
   },
   {
     "id": "deafened_condition",
@@ -990,6 +1554,84 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/conditions/deafened_condition.json"
+  },
+  {
+    "id": "death_saving_throw",
+    "title": "Death Saving Throw",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A [[player_character character]] must make a Death Saving Throw (also called a Death Save) if they start their turn with 0 [[hit_points Points]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/death_saving_throw.json"
+  },
+  {
+    "id": "deception",
+    "title": "Deception",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Tell a convincing lie, or wear a disguise convincingly....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/deception.json"
+  },
+  {
+    "id": "deep_speech",
+    "title": "Deep Speech",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/deep_speech.json"
+  },
+  {
+    "id": "dehydration",
+    "title": "Dehydration",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A creature requires an amount of water per day based on its size, as shown in the Water Needs per Day table. A creature that drinks less than half the...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/dehydration.json"
+  },
+  {
+    "id": "devil_s_sight",
+    "title": "Devil's Sight",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can see normally in dim_light Light and darkness—both magical and nonmagical—within 120 feet of yourself....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/devil_s_sight.json"
+  },
+  {
+    "id": "devouring_blade",
+    "title": "Devouring Blade",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "The Extra Attack of your Thirsting Blade invocation confers two extra attacks rather than one....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/devouring_blade.json"
   },
   {
     "id": "dexterity",
@@ -1016,20 +1658,12 @@
     "title": "Difficult Terrain",
     "category": "Rules Glossary",
     "tags": [
-      "movement",
-      "terrain",
-      "travel",
-      "positioning"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Difficult terrain is ground, material, or space that costs extra movement to cross because it resists clear, efficient travel.",
+    "excerpt": "If a space is Difficult Terrain, every foot of movement in that space costs 1 extra foot. For example, moving 5 feet through Difficult Terrain costs 1...",
     "aliases": [],
-    "seeAlso": [
-      "speed",
-      "dash_action",
-      "travel_pace",
-      "climbing",
-      "swimming"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/difficult_terrain.json"
   },
   {
@@ -1041,6 +1675,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/saving_throw_dc.json"
+  },
+  {
+    "id": "difficulty_class",
+    "title": "Difficulty Class",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Difficulty Class (DC) is the target number for an ability check or a [[saving_throw throw]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/difficulty_class.json"
   },
   {
     "id": "ability_check_dc",
@@ -1057,21 +1704,12 @@
     "title": "Dim Light",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "light",
-      "vision",
-      "illumination",
-      "shadows",
-      "obscured"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Dim Light, also called shadows, creates a Lightly Obscured area. The soft light of twilight and dawn also counts as Dim Light.",
+    "excerpt": "An area with Dim Light is [[lightly_obscured Obscured]]....",
     "aliases": [],
-    "seeAlso": [
-      "light_rules",
-      "bright_light",
-      "darkness",
-      "obscured_areas"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/dim_light.json"
   },
   {
@@ -1079,27 +1717,160 @@
     "title": "Disadvantage",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "rolls",
-      "mechanics"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "When you have disadvantage on a d20 roll, you roll two d20s and use the lower result. Advantage and disadvantage cancel each other out.",
+    "excerpt": "If you have Disadvantage on a [[d20_test Test]], roll two d20s and use the lower roll. A roll can't be affected by more than one Disadvantage, and [[a...",
     "aliases": [],
-    "seeAlso": [
-      "advantage",
-      "d20_test"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/disadvantage.json"
   },
   {
-    "id": "disguise_kit",
-    "title": "Disguise Kit",
+    "id": "disarming_attack",
+    "title": "Disarming Attack",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to disarm the target. Add the Superiority Die roll to the a...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/disguise_kit.json"
+    "filePath": "/data/glossary/entries/rules/disarming_attack.json"
+  },
+  {
+    "id": "disengage",
+    "title": "Disengage",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "If you take the Disengage action, your movement doesn't provoke [[opportunity_attack Attacks]] for the rest of the current turn....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/disengage.json"
+  },
+  {
+    "id": "disengage_action",
+    "title": "Disengage [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "actions",
+      "combat",
+      "movement"
+    ],
+    "excerpt": "The Disengage action lets a creature move without provoking opportunity attacks for the rest of the current turn.",
+    "aliases": [
+      "Disengage"
+    ],
+    "seeAlso": [
+      "action",
+      "reaction",
+      "opportunity_attack",
+      "speed"
+    ],
+    "filePath": "/data/glossary/entries/rules/disengage_action.json"
+  },
+  {
+    "id": "distant_spell",
+    "title": "Distant Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell that has a range of at least 5 feet, you can spend 1 Sorcery Point to double the spell's range. Or when you cast a spell that ha...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/distant_spell.json"
+  },
+  {
+    "id": "distracting_strike",
+    "title": "Distracting Strike",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to distract the target. Add the Superiority Die roll to the attack's d...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/distracting_strike.json"
+  },
+  {
+    "id": "dodge",
+    "title": "Dodge",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "lf you take the Dodge action, you gain the following benefits: until the start of your next turn, any attack roll made against you has [[disadvantage]...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/dodge.json"
+  },
+  {
+    "id": "dodge_action",
+    "title": "Dodge [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "actions",
+      "combat",
+      "defense"
+    ],
+    "excerpt": "The Dodge action commits a creature's action to active defense, imposing disadvantage on attacks against it and improving Dexterity saving throws until its next turn begins.",
+    "aliases": [
+      "Dodge"
+    ],
+    "seeAlso": [
+      "action",
+      "attack_roll",
+      "saving_throw",
+      "advantage",
+      "disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/dodge_action.json"
+  },
+  {
+    "id": "don_or_doff_a_shield",
+    "title": "Don or Doff a Shield",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "A Shield can be donned or doffed as an action....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/don_or_doff_a_shield.json"
+  },
+  {
+    "id": "draconic",
+    "title": "Draconic",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/draconic.json"
+  },
+  {
+    "id": "druidic",
+    "title": "Druidic",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/druidic.json"
   },
   {
     "id": "duration_condition",
@@ -1116,6 +1887,71 @@
       "conditions"
     ],
     "filePath": "/data/glossary/entries/rules/duration_condition.json"
+  },
+  {
+    "id": "dwarvish",
+    "title": "Dwarvish",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/dwarvish.json"
+  },
+  {
+    "id": "eldritch_mind",
+    "title": "Eldritch Mind",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You have advantage on Constitution saving throws that you make to maintain Concentration....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/eldritch_mind.json"
+  },
+  {
+    "id": "eldritch_smite",
+    "title": "Eldritch Smite",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, p...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/eldritch_smite.json"
+  },
+  {
+    "id": "eldritch_spear",
+    "title": "Eldritch Spear",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "Choose one of your known Warlock cantrips that deals damage and has a range of 10+ feet. When you cast that spell, its range increases by a number of ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/eldritch_spear.json"
+  },
+  {
+    "id": "elvish",
+    "title": "Elvish",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/elvish.json"
   },
   {
     "id": "emanation_area",
@@ -1142,6 +1978,58 @@
     "filePath": "/data/glossary/entries/rules/emanation_area.json"
   },
   {
+    "id": "emanation_area_of_effect",
+    "title": "Emanation [Area of Effect]",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An Emanation is an area of effect that extends in straight lines from a creature or an object in all directions. The effect that creates an Emanation ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/emanation_area_of_effect.json"
+  },
+  {
+    "id": "empowered_spell",
+    "title": "Empowered Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you roll damage for a spell, you can spend 1 Sorcery Point to reroll a number of the damage dice up to your Charisma modifier (minimum of one), a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/empowered_spell.json"
+  },
+  {
+    "id": "encounter",
+    "title": "Encounter",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An encounter is a scene in an adventure that is part of at least one of the game's three pillars: social interaction, exploration, or combat....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/encounter.json"
+  },
+  {
+    "id": "end_concentration",
+    "title": "End Concentration",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "Some spells and other effects require Concentration to remain active, as specified in their descriptions. You can end Concentration at any time (no ac...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/end_concentration.json"
+  },
+  {
     "id": "ending_attunement",
     "title": "Ending Attunement",
     "category": "Rules Glossary",
@@ -1150,6 +2038,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/magic_items/ending_attunement.json"
+  },
+  {
+    "id": "enemy",
+    "title": "Enemy",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature is your enemy if it fights against you in combat, actively works to harm you, or is designated as your enemy by the rules or DM....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/enemy.json"
   },
   {
     "id": "equipment",
@@ -1184,6 +2085,45 @@
     "filePath": "/data/glossary/entries/rules/equipment_proficiencies.json"
   },
   {
+    "id": "escape_a_grapple",
+    "title": "Escape a Grapple",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "A Grappled creature can use its action to make a Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check against the grapple's escape DC, ending ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/escape_a_grapple.json"
+  },
+  {
+    "id": "evasive_footwork",
+    "title": "Evasive Footwork",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the disengage action. You also roll the die and add the number rolled to your AC...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/evasive_footwork.json"
+  },
+  {
+    "id": "exhaustion",
+    "title": "Exhaustion",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Exhaustion condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/exhaustion.json"
+  },
+  {
     "id": "exhaustion_condition",
     "title": "Exhaustion",
     "category": "Rules Glossary",
@@ -1200,24 +2140,29 @@
     "filePath": "/data/glossary/entries/rules/conditions/exhaustion_condition.json"
   },
   {
+    "id": "experience_points",
+    "title": "Experience Points",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "As they overcome challenges and complete adventures, characters earn Experience Points (XP) which are awarded by the Dungeon Master. When a character'...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/experience_points.json"
+  },
+  {
     "id": "expertise",
     "title": "Expertise",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "skill",
-      "proficiency bonus",
-      "ability check"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A feature that doubles your proficiency bonus for chosen skills or tools, representing exceptional mastery in those areas.",
-    "aliases": [
-      "skill expertise",
-      "tool expertise"
-    ],
-    "seeAlso": [
-      "proficiency_bonus",
-      "proficiency"
-    ],
+    "excerpt": "Expertise is a feature that enhances your use of a skill proficiency. When you make an ability check with a skill proficiency in which you have Expert...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/expertise.json"
   },
   {
@@ -1229,6 +2174,58 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/exploration.json"
+  },
+  {
+    "id": "extended_spell",
+    "title": "Extended Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell that has a duration of 1 minute or longer, you can spend 1 Sorcery Point to double its duration to a maximum duration of 24 hour...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/extended_spell.json"
+  },
+  {
+    "id": "falling",
+    "title": "Falling",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A creature that falls takes 1d6 Bludgeoning damage at the end of the fall for every 10 feet it fell, to a maximum of 20d6. When the creature lands, it...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/falling.json"
+  },
+  {
+    "id": "feinting_attack",
+    "title": "Feinting Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "As a bonus_action Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have advant...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/feinting_attack.json"
+  },
+  {
+    "id": "fiendish_vigor",
+    "title": "Fiendish Vigor",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast false_life Life on yourself without expending a spell slot. When you cast the spell with this feature, you don't roll the die for the tem...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/fiendish_vigor.json"
   },
   {
     "id": "finding_hidden_objects",
@@ -1251,25 +2248,30 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/finesse.json"
   },
   {
+    "id": "fly_speed",
+    "title": "Fly Speed",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Fly Speed can be used to travel through the air. While you have a Fly Speed, you can stay aloft until you land, fall, or die....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/fly_speed.json"
+  },
+  {
     "id": "flying",
     "title": "Flying",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "movement",
-      "flying",
-      "fly speed"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A variety of effects allow a creature to fly. While flying, you fall if you have the Incapacitated or Prone condition or your Fly Speed is reduced to 0.",
+    "excerpt": "A variety of effects allow a creature to fly. While flying, you fall if you have the [[incapacitated]] or [[prone]] condition or your [[fly_speed Spee...",
     "aliases": [],
-    "seeAlso": [
-      "speed",
-      "special_speeds",
-      "incapacitated_condition",
-      "prone_condition",
-      "falling"
-    ],
-    "filePath": "/data/glossary/entries/rules/movement/flying.json"
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/flying.json"
   },
   {
     "id": "food_drink_lodging",
@@ -1282,35 +2284,30 @@
     "filePath": "/data/glossary/entries/rules/equipment/services/food_drink_lodging.json"
   },
   {
-    "id": "forgery_kit",
-    "title": "Forgery Kit",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/forgery_kit.json"
-  },
-  {
     "id": "friendly_attitude",
-    "title": "Friendly",
+    "title": "Friendly [Attitude]",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "relationships",
-      "social",
-      "attitude"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A friendly attitude means one creature currently regards another with goodwill and is inclined toward cooperation, help, or other favorable treatment.",
+    "excerpt": "A Friendly creature views you favorably. You have [[advantage]] on an ability check to influence a Friendly creature....",
     "aliases": [],
-    "seeAlso": [
-      "attitude",
-      "ally",
-      "indifferent_attitude",
-      "hostile_attitude",
-      "influence_action"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/friendly_attitude.json"
+  },
+  {
+    "id": "frightened",
+    "title": "Frightened",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Frightened condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/frightened.json"
   },
   {
     "id": "frightened_condition",
@@ -1329,14 +2326,56 @@
     "filePath": "/data/glossary/entries/rules/conditions/frightened_condition.json"
   },
   {
-    "id": "gaming_set",
-    "title": "Gaming Set (Varies)",
+    "id": "gaze_of_two_minds",
+    "title": "Gaze of Two Minds",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can use a bonus_action Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/gaming_set.json"
+    "filePath": "/data/glossary/entries/rules/gaze_of_two_minds.json"
+  },
+  {
+    "id": "giant",
+    "title": "Giant",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/giant.json"
+  },
+  {
+    "id": "gift_of_the_depths",
+    "title": "Gift of the Depths",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can breathe underwater, and you gain a swim_speed Speed equal to your speed. You can also cast water_breathing Breathing once without expending a ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/gift_of_the_depths.json"
+  },
+  {
+    "id": "gift_of_the_protectors",
+    "title": "Gift of the Protectors",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "A new page appears in your Book of Shadows when you conjure it. With your permission, a creature can take an action to write its name on that page, wh...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/gift_of_the_protectors.json"
   },
   {
     "id": "glassblowers_tools",
@@ -1371,6 +2410,58 @@
     "filePath": "/data/glossary/entries/rules/glossary_conventions.json"
   },
   {
+    "id": "gnomish",
+    "title": "Gnomish",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/gnomish.json"
+  },
+  {
+    "id": "goading_attack",
+    "title": "Goading Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to goad the target into attacking you. Add the Superiority ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/goading_attack.json"
+  },
+  {
+    "id": "goblin",
+    "title": "Goblin",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/goblin.json"
+  },
+  {
+    "id": "grappled",
+    "title": "Grappled",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Grappled condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/grappled.json"
+  },
+  {
     "id": "grappled_condition",
     "title": "Grappled",
     "category": "Rules Glossary",
@@ -1387,14 +2478,17 @@
     "filePath": "/data/glossary/entries/rules/conditions/grappled_condition.json"
   },
   {
-    "id": "graze_mastery_property",
-    "title": "Graze",
+    "id": "grappling",
+    "title": "Grappling",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A creature can grapple another creature. Characters typically grapple by using an [[unarmed_strike Strike]]. Many [[monster]] have special attacks tha...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/graze.json"
+    "filePath": "/data/glossary/entries/rules/grappling.json"
   },
   {
     "id": "half_cover",
@@ -1418,6 +2512,32 @@
     "filePath": "/data/glossary/entries/rules/half_cover.json"
   },
   {
+    "id": "halfling",
+    "title": "Halfling",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/halfling.json"
+  },
+  {
+    "id": "hazard",
+    "title": "Hazard",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A hazard is an environmental danger....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/hazard.json"
+  },
+  {
     "id": "hazards",
     "title": "Hazards",
     "category": "Rules Glossary",
@@ -1428,24 +2548,29 @@
     "filePath": "/data/glossary/entries/rules/hazards.json"
   },
   {
+    "id": "healing",
+    "title": "Healing",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Healing is how you regain [[hit_points Points]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/healing.json"
+  },
+  {
     "id": "heavily_obscured",
     "title": "Heavily Obscured",
     "category": "Rules Glossary",
     "tags": [
-      "vision",
-      "obscurement",
-      "visibility",
-      "detection"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A heavily obscured area blocks ordinary sight so strongly that creatures effectively cannot see clearly into, through, or within it.",
+    "excerpt": "You have the [[blinded]] condition while trying to see something in a Heavily Obscured space....",
     "aliases": [],
-    "seeAlso": [
-      "obscured_areas",
-      "vision",
-      "darkness",
-      "blinded_condition",
-      "hide_action"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/heavily_obscured.json"
   },
   {
@@ -1457,6 +2582,54 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/heavy.json"
+  },
+  {
+    "id": "heightened_spell",
+    "title": "Heightened Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell that forces a creature to make a saving throw, you can spend 2 Sorcery Points to give one target of the spell disadvantage on sa...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/heightened_spell.json"
+  },
+  {
+    "id": "help",
+    "title": "Help",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "When you take the Help action, you do one of the following....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/help.json"
+  },
+  {
+    "id": "help_action",
+    "title": "Help [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "actions",
+      "combat",
+      "support",
+      "coordination"
+    ],
+    "excerpt": "The Help action lets a creature spend its action to improve another creature's attempt or to assist with another immediate task in the current scene.",
+    "aliases": [
+      "Help"
+    ],
+    "seeAlso": [
+      "action",
+      "ally",
+      "advantage",
+      "skill"
+    ],
+    "filePath": "/data/glossary/entries/rules/help_action.json"
   },
   {
     "id": "herbalism_gathering",
@@ -1480,14 +2653,53 @@
     "filePath": "/data/glossary/entries/rules/crafting/herbalism_gathering.json"
   },
   {
-    "id": "herbalism_kit",
-    "title": "Herbalism Kit",
+    "id": "heroic_inspiration",
+    "title": "Heroic Inspiration",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If you ([[player_character player character]]) have Heroic Inspiration, you can expend it to reroll any die immediately after rolling it, and you must...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/herbalism_kit.json"
+    "filePath": "/data/glossary/entries/rules/heroic_inspiration.json"
+  },
+  {
+    "id": "hide",
+    "title": "Hide",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "With the Hide action, you try to conceal yourself. To do so, you must succeed on a DC 15 Dexterity ([[stealth]]) check while you're [[heavily_obscured...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/hide.json"
+  },
+  {
+    "id": "hide_action",
+    "title": "Hide [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "actions",
+      "stealth",
+      "visibility"
+    ],
+    "excerpt": "A creature uses the Hide action to become harder to detect. Hiding depends on line of sight, cover, obscuration, noise, and other conditions that affect whether observers can locate the creature reliably.",
+    "aliases": [
+      "Hide"
+    ],
+    "seeAlso": [
+      "action",
+      "hiding",
+      "obscured_areas",
+      "invisible_condition",
+      "heavily_obscured"
+    ],
+    "filePath": "/data/glossary/entries/rules/hide_action.json"
   },
   {
     "id": "hiding",
@@ -1500,6 +2712,19 @@
     "filePath": "/data/glossary/entries/rules/hiding.json"
   },
   {
+    "id": "high_jump",
+    "title": "High Jump",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "When you make a High Jump, you leap into the air a number of feet equal to 3 plus your Strength modifier (minimum of 0 feet) if you move at least 10 f...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/high_jump.json"
+  },
+  {
     "id": "hirelings",
     "title": "Hirelings",
     "category": "Rules Glossary",
@@ -1510,46 +2735,69 @@
     "filePath": "/data/glossary/entries/rules/equipment/services/hirelings.json"
   },
   {
+    "id": "history",
+    "title": "History",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Recall lore about historical events, people, nations, and cultures....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/history.json"
+  },
+  {
+    "id": "hit_point_dice",
+    "title": "Hit Point Dice",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Hit Point Dice, or Hit Dice for short, help determine a [[player_character character's]] Hit Point maximum, as explained in chapter 2. Most [[monster]...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/hit_point_dice.json"
+  },
+  {
     "id": "hit_points",
     "title": "Hit Points",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "health",
-      "damage"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A measure of your character's health and stamina. When your hit points drop to 0, you fall unconscious and begin making death saving throws.",
-    "aliases": [
-      "HP",
-      "Health"
-    ],
-    "seeAlso": [
-      "temporary_hp",
-      "long_rest",
-      "short_rest"
-    ],
+    "excerpt": "Hit Points (HP) are a measure of how difficult it is to kill or destroy a creature or an object. Damage reduces Hit Points, and healing restores them....",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/hit_points.json"
   },
   {
     "id": "hostile_attitude",
-    "title": "Hostile",
+    "title": "Hostile [Attitude]",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "relationships",
-      "social",
-      "attitude"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A hostile attitude means one creature currently opposes another and is disposed to resist, undermine, injure, or otherwise work against it.",
+    "excerpt": "A Hostile creature views you unfavorably. You have [[disadvantage]] on an ability check to influence a Hostile creature....",
     "aliases": [],
-    "seeAlso": [
-      "attitude",
-      "enemy",
-      "friendly_attitude",
-      "indifferent_attitude",
-      "influence_action"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/hostile_attitude.json"
+  },
+  {
+    "id": "hover",
+    "title": "Hover",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Some creatures can hover, as noted in their stat blocks, and some spells and other effects grant the ability to hover. Hovering while [[flying]] preve...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/hover.json"
   },
   {
     "id": "identifying_magic_item",
@@ -1560,6 +2808,71 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/magic_items/identifying_magic_item.json"
+  },
+  {
+    "id": "illusions",
+    "title": "Illusions",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Spells and other effects sometimes create magical illusions. Such an effect defines what the illusion does and which senses or mental faculties it dec...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/illusions.json"
+  },
+  {
+    "id": "immunity",
+    "title": "Immunity",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If you have Immunity to a [[damage_types type]] or a [[condition]], it doesn't affect you in any way....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/immunity.json"
+  },
+  {
+    "id": "improvised_weapons",
+    "title": "Improvised Weapons",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An improvised weapon is an object wielded as a makeshift weapon, such as broken glass, a table leg, or a frying pan. A Simple or Martial weapon also c...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/improvised_weapons.json"
+  },
+  {
+    "id": "improvising_an_action",
+    "title": "Improvising an Action",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "Player characters and monsters can also do things not covered by other actions. Many class features and other abilities provide additional action opti...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/improvising_an_action.json"
+  },
+  {
+    "id": "incapacitated",
+    "title": "Incapacitated",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Incapacitated condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/incapacitated.json"
   },
   {
     "id": "incapacitated_condition",
@@ -1582,41 +2895,91 @@
   },
   {
     "id": "indifferent_attitude",
-    "title": "Indifferent",
+    "title": "Indifferent [Attitude]",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "relationships",
-      "social",
-      "attitude"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "An indifferent attitude means one creature currently has no strong goodwill or hostility toward another and is not especially motivated to help or hinder it.",
+    "excerpt": "An Indifferent creature has no desire to help or hinder you. Indifferent is the default attitude of a [[monster]]....",
     "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/indifferent_attitude.json"
+  },
+  {
+    "id": "infernal",
+    "title": "Infernal",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/infernal.json"
+  },
+  {
+    "id": "influence",
+    "title": "Influence",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "With the Influence action, you urge a monster to do something. Describe or roleplay how you're communicating with the monster. Are you trying to decei...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/influence.json"
+  },
+  {
+    "id": "influence_action",
+    "title": "Influence [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "actions",
+      "social",
+      "relationships",
+      "resolution"
+    ],
+    "excerpt": "A creature uses the Influence action to apply deliberate social pressure, persuasion, leverage, or presence in an attempt to change another creature's disposition, decision state, or willingness to cooperate.",
+    "aliases": [
+      "Influence"
+    ],
     "seeAlso": [
-      "attitude",
+      "action",
+      "ally",
       "friendly_attitude",
       "hostile_attitude",
-      "influence_action"
+      "indifferent_attitude"
     ],
-    "filePath": "/data/glossary/entries/rules/indifferent_attitude.json"
+    "filePath": "/data/glossary/entries/rules/influence_action.json"
   },
   {
     "id": "initiative",
     "title": "Initiative",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "turn order"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Determines the order of turns in combat. At the start of combat, everyone rolls initiative by making a Dexterity check.",
-    "aliases": [
-      "Turn Order"
-    ],
-    "seeAlso": [
-      "dexterity",
-      "action"
-    ],
+    "excerpt": "Initiative determines the order of turns during combat. The combat rules in chapter 1 explain how to roll Initiative....",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/initiative.json"
+  },
+  {
+    "id": "insight",
+    "title": "Insight",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Discern a person's mood and intentions....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/insight.json"
   },
   {
     "id": "interacting_with_objects",
@@ -1637,6 +3000,58 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/advantage_disadvantage_rerolls.json"
+  },
+  {
+    "id": "intimidation",
+    "title": "Intimidation",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Awe or threaten someone into doing what you want....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/intimidation.json"
+  },
+  {
+    "id": "investigation",
+    "title": "Investigation",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Find obscure information in books, or deduce how something works....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/investigation.json"
+  },
+  {
+    "id": "investment_of_the_chain_master",
+    "title": "Investment of the Chain Master",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast find_familiar Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following bene...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/investment_of_the_chain_master.json"
+  },
+  {
+    "id": "invisible",
+    "title": "Invisible",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Invisible condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/invisible.json"
   },
   {
     "id": "invisible_condition",
@@ -1669,23 +3084,26 @@
     "title": "Jumping",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "movement",
-      "jumping",
-      "long jump",
-      "high jump",
-      "strength"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "When you jump, you make either a Long Jump (horizontal) or a High Jump (vertical), both of which are based on your Strength score.",
+    "excerpt": "When you jump, you make either a [[long_jump Jump]] (horizontal) or a [[high_jump Jump]] (vertical)....",
     "aliases": [],
-    "seeAlso": [
-      "speed",
-      "athletics",
-      "acrobatics",
-      "prone_condition",
-      "difficult_terrain"
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/jumping.json"
+  },
+  {
+    "id": "knocking_out_a_creature",
+    "title": "Knocking Out a Creature",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/jumping.json"
+    "excerpt": "When you would reduce a creature to 0 [[hit_points Points]] with a melee attack, you can instead reduce the creature to 1 Hit Point. The creature then...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/knocking_out_a_creature.json"
   },
   {
     "id": "large_vehicles",
@@ -1706,6 +3124,32 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/leatherworkers_tools.json"
+  },
+  {
+    "id": "lessons_of_the_first_ones",
+    "title": "Lessons of the First Ones",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You have received knowledge from an elder entity of the multiverse, allowing you to gain one Origin feat of your choice.  Repeatable You can gain this...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/lessons_of_the_first_ones.json"
+  },
+  {
+    "id": "lifedrinker",
+    "title": "Lifedrinker",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "Once per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creat...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/lifedrinker.json"
   },
   {
     "id": "lifestyle_expenses",
@@ -1758,20 +3202,12 @@
     "title": "Lightly Obscured",
     "category": "Rules Glossary",
     "tags": [
-      "vision",
-      "obscurement",
-      "visibility",
-      "detection"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A lightly obscured area interferes with sight enough to reduce visual clarity without fully blocking what lies inside or beyond it.",
+    "excerpt": "You have [[disadvantage]] on Wisdom ([[perception]]) checks to see something in a Lightly Obscured space....",
     "aliases": [],
-    "seeAlso": [
-      "obscured_areas",
-      "vision",
-      "dim_light",
-      "search_action",
-      "heavily_obscured"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/lightly_obscured.json"
   },
   {
@@ -1797,6 +3233,19 @@
       "sphere_area"
     ],
     "filePath": "/data/glossary/entries/rules/line_area.json"
+  },
+  {
+    "id": "line_area_of_effect",
+    "title": "Line [Area of Effect]",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Line is an area of effect that extends from a point of origin in a straight path along its length and covers an area defined by its width. The effec...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/line_area_of_effect.json"
   },
   {
     "id": "loading_property",
@@ -1831,22 +3280,56 @@
     "filePath": "/data/glossary/entries/rules/lockpicking.json"
   },
   {
+    "id": "long_jump",
+    "title": "Long Jump",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "When you make a Long Jump, you leap horizontally a number of feet up to your Strength score if you move at least 10 feet immediately before the jump. ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/long_jump.json"
+  },
+  {
     "id": "long_rest",
     "title": "Long Rest",
     "category": "Rules Glossary",
     "tags": [
-      "rest",
-      "recovery",
-      "healing"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A period of extended downtime lasting at least 8 hours, during which a character sleeps or performs light activity. A long rest restores all lost hit points and spent resources.",
+    "excerpt": "A Long Rest is a period of extended downtime—at least 8 hours—available to any creature. During a Long Rest, you sleep for at least 6 hours and perfor...",
     "aliases": [],
-    "seeAlso": [
-      "short_rest",
-      "hit_points",
-      "spell_slot"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/long_rest.json"
+  },
+  {
+    "id": "lunging_attack",
+    "title": "Lunging Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the dash action. If you move at least 5 feet in a straight line immediately befo...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/lunging_attack.json"
+  },
+  {
+    "id": "magic",
+    "title": "Magic",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "When you take the Magic action, you cast a spell that has a casting time of an action or use a feature or magic item that requires a Magic action to b...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/magic.json"
   },
   {
     "id": "magic_action",
@@ -1881,6 +3364,58 @@
     "filePath": "/data/glossary/entries/rules/equipment/magic_items.json"
   },
   {
+    "id": "magical_effect",
+    "title": "Magical Effect",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An effect is magical if it is created by a spell, a magic item, or a phenomenon that a rule labels as magical....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/magical_effect.json"
+  },
+  {
+    "id": "malnutrition",
+    "title": "Malnutrition",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A creature needs an amount of food per day based on its size, as shown in the Food Needs per Day table. A creature that eats but consumes less than ha...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/malnutrition.json"
+  },
+  {
+    "id": "maneuvering_attack",
+    "title": "Maneuvering Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to maneuver one of your comrades into another position. Add the Superi...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/maneuvering_attack.json"
+  },
+  {
+    "id": "mask_of_many_faces",
+    "title": "Mask of Many Faces",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast disguise_self Self without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/mask_of_many_faces.json"
+  },
+  {
     "id": "masons_tools",
     "title": "Mason's Tools",
     "category": "Rules Glossary",
@@ -1889,6 +3424,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/masons_tools.json"
+  },
+  {
+    "id": "master_of_myriad_forms",
+    "title": "Master of Myriad Forms",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast alter_self Self without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/master_of_myriad_forms.json"
   },
   {
     "id": "weapon_mastery_properties",
@@ -1901,6 +3449,45 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties.json"
   },
   {
+    "id": "medicine",
+    "title": "Medicine",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Diagnose an illness, or determine what killed the recently slain....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/medicine.json"
+  },
+  {
+    "id": "menacing_attack",
+    "title": "Menacing Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to frighten the target. Add the Superiority Die to the atta...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/menacing_attack.json"
+  },
+  {
+    "id": "misty_visions",
+    "title": "Misty Visions",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast silent_image Image without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/misty_visions.json"
+  },
+  {
     "id": "modest_lifestyle",
     "title": "Modest (1 GP per Day)",
     "category": "Rules Glossary",
@@ -1909,6 +3496,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/modest_lifestyle.json"
+  },
+  {
+    "id": "monster",
+    "title": "Monster",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A monster is a creature controlled by the DM, even if the creature is benevolent....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/monster.json"
   },
   {
     "id": "mounts_and_cargo",
@@ -1951,14 +3551,17 @@
     "filePath": "/data/glossary/entries/rules/equipment/magic_items/multiple_items_of_same_kind.json"
   },
   {
-    "id": "musical_instrument",
-    "title": "Musical Instrument (Varies)",
+    "id": "nature",
+    "title": "Nature",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Recall lore about terrain, plants, animals, and weather....",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/musical_instrument.json"
+    "filePath": "/data/glossary/entries/rules/nature.json"
   },
   {
     "id": "navigators_tools",
@@ -1971,16 +3574,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/navigators_tools.json"
   },
   {
-    "id": "nick_mastery_property",
-    "title": "Nick",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/nick.json"
-  },
-  {
     "id": "no_more_than_three_items",
     "title": "No More Than Three Items",
     "category": "Rules Glossary",
@@ -1991,6 +3584,32 @@
     "filePath": "/data/glossary/entries/rules/equipment/magic_items/no_more_than_three_items.json"
   },
   {
+    "id": "nonplayer_character",
+    "title": "Nonplayer Character",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A nonplayer character (NPC) is a [[monster]] that has a personal name and a distinct personality....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/nonplayer_character.json"
+  },
+  {
+    "id": "object",
+    "title": "Object",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "An object is a nonliving, distinct thing. Composite things, like buildings, comprise more than one object....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/object.json"
+  },
+  {
     "id": "obscured_areas",
     "title": "Obscured Areas",
     "category": "Rules Glossary",
@@ -1999,6 +3618,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/obscured_areas.json"
+  },
+  {
+    "id": "occupied_space",
+    "title": "Occupied Space",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A space is occupied if a creature is in it or if it is completely filled by objects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/occupied_space.json"
   },
   {
     "id": "one_armor_at_a_time",
@@ -2030,24 +3662,43 @@
     "filePath": "/data/glossary/entries/rules/one_thing_at_a_time.json"
   },
   {
+    "id": "one_with_shadows",
+    "title": "One with Shadows",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "While you're in an area of dim_light Light or darkness, you can cast invisibility on yourself without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/one_with_shadows.json"
+  },
+  {
     "id": "opportunity_attack",
     "title": "Opportunity Attack",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "attack",
-      "reaction"
+      "source:xphb",
+      "action"
     ],
-    "excerpt": "A special reaction you can take when a hostile creature you can see moves out of your reach. The most common type of reaction.",
-    "aliases": [
-      "Attack of Opportunity",
-      "AoO"
-    ],
-    "seeAlso": [
-      "reaction",
-      "attack_action"
-    ],
+    "excerpt": "You can make an Opportunity Attack when a creature that you can see leaves your reach using its action, its [[bonus_action Action]], its [[reaction]],...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/opportunity_attack.json"
+  },
+  {
+    "id": "orc",
+    "title": "Orc",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "standard...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/orc.json"
   },
   {
     "id": "other_tools",
@@ -2058,6 +3709,58 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/other_tools.json"
+  },
+  {
+    "id": "otherworldly_leap",
+    "title": "Otherworldly Leap",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast jump on yourself without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/otherworldly_leap.json"
+  },
+  {
+    "id": "pact_of_the_blade",
+    "title": "Pact of the Blade",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "As a bonus_action Action, you can conjure a pact weapon in your hand—a Simple or Martial Melee weapon of your choice with which you bond—or create a b...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/pact_of_the_blade.json"
+  },
+  {
+    "id": "pact_of_the_chain",
+    "title": "Pact of the Chain",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You learn the find_familiar Familiar spell and can cast it as a magic action without expending a spell slot. When you cast the spell, you choose one o...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/pact_of_the_chain.json"
+  },
+  {
+    "id": "pact_of_the_tome",
+    "title": "Pact of the Tome",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a short_rest or long_rest Rest. This Book of Shadows (you de...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/pact_of_the_tome.json"
   },
   {
     "id": "painters_supplies",
@@ -2080,6 +3783,19 @@
     "filePath": "/data/glossary/entries/rules/equipment/magic_items/paired_items.json"
   },
   {
+    "id": "paralyzed",
+    "title": "Paralyzed",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Paralyzed condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/paralyzed.json"
+  },
+  {
     "id": "paralyzed_condition",
     "title": "Paralyzed",
     "category": "Rules Glossary",
@@ -2097,6 +3813,19 @@
     "filePath": "/data/glossary/entries/rules/conditions/paralyzed_condition.json"
   },
   {
+    "id": "parry",
+    "title": "Parry",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When another creature damages you with a melee attack roll, you can take a reaction and expend one Superiority Die to reduce the damage by the number ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/parry.json"
+  },
+  {
     "id": "large_vehicles_passengers",
     "title": "Passengers",
     "category": "Rules Glossary",
@@ -2111,19 +3840,78 @@
     "title": "Passive Perception",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "perception",
-      "awareness",
-      "world-state"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Passive Perception is a creature's ongoing background awareness when it is not actively using an action to search for detail.",
+    "excerpt": "Passive Perception is a score that reflects a creature's general awareness of its surroundings. The DM uses this score when determining whether a crea...",
     "aliases": [],
-    "seeAlso": [
-      "search_action",
-      "hide_action",
-      "invisible_condition"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/passive_perception.json"
+  },
+  {
+    "id": "per_day",
+    "title": "Per Day",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If a rule says you can use something a certain number of times per day, that means you must finish a [[long_rest Rest]] to use it again after you run ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/per_day.json"
+  },
+  {
+    "id": "perception",
+    "title": "Perception",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Using a combination of senses, notice something that's easy to miss....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/perception.json"
+  },
+  {
+    "id": "performance",
+    "title": "Performance",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Act, tell a story, perform music, or dance....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/performance.json"
+  },
+  {
+    "id": "persuasion",
+    "title": "Persuasion",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Honestly and graciously convince someone of something....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/persuasion.json"
+  },
+  {
+    "id": "petrified",
+    "title": "Petrified",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Petrified condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/petrified.json"
   },
   {
     "id": "petrified_condition",
@@ -2141,6 +3929,19 @@
       "resistance"
     ],
     "filePath": "/data/glossary/entries/rules/conditions/petrified_condition.json"
+  },
+  {
+    "id": "player_character",
+    "title": "Player Character",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A player character is a character controlled by a player....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/player_character.json"
   },
   {
     "id": "poison_crafting",
@@ -2162,6 +3963,19 @@
       "herbalism_gathering"
     ],
     "filePath": "/data/glossary/entries/rules/crafting/poison_crafting.json"
+  },
+  {
+    "id": "poisoned",
+    "title": "Poisoned",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Poisoned condition, you experience the following effect....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/poisoned.json"
   },
   {
     "id": "poisoned_condition",
@@ -2218,6 +4032,19 @@
     "filePath": "/data/glossary/entries/rules/possessed.json"
   },
   {
+    "id": "possession",
+    "title": "Possession",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Some effects cause a creature to be possessed by another creature or entity. A possessing effect defines how the possession operates. Possession can b...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/possession.json"
+  },
+  {
     "id": "potters_tools",
     "title": "Potter's Tools",
     "category": "Rules Glossary",
@@ -2228,29 +4055,42 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/potters_tools.json"
   },
   {
+    "id": "precision_attack",
+    "title": "Precision Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you miss with an attack roll, you can expend one Superiority Die, roll that die, and add it to the attack roll, potentially causing the attack to...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/precision_attack.json"
+  },
+  {
+    "id": "primordial",
+    "title": "Primordial",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/primordial.json"
+  },
+  {
     "id": "proficiency",
     "title": "Proficiency",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "character",
-      "d20 test",
-      "skill",
-      "saving throw",
-      "weapon",
-      "tool"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "Represents a character's training and aptitude, allowing them to add their proficiency bonus to certain D20 tests. See sub-entries for details on skills, saves, and equipment.",
-    "aliases": [
-      "proficient"
-    ],
-    "seeAlso": [
-      "proficiency_bonus",
-      "skill_proficiencies",
-      "saving_throw_proficiencies",
-      "equipment_proficiencies",
-      "expertise"
-    ],
+    "excerpt": "If you have proficiency with something, you can add your Proficiency Bonus to any [[d20_test Test]] you make using that thing. A creature might have p...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/proficiency.json"
   },
   {
@@ -2309,6 +4149,19 @@
     "filePath": "/data/glossary/entries/rules/ability_check_proficiency.json"
   },
   {
+    "id": "prone",
+    "title": "Prone",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Prone condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/prone.json"
+  },
+  {
     "id": "prone_condition",
     "title": "Prone",
     "category": "Rules Glossary",
@@ -2335,14 +4188,43 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_properties.json"
   },
   {
-    "id": "push_mastery_property",
-    "title": "Push",
+    "id": "pushing_attack",
+    "title": "Pushing Attack",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to drive the tar...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/push.json"
+    "filePath": "/data/glossary/entries/rules/pushing_attack.json"
+  },
+  {
+    "id": "quickened_spell",
+    "title": "Quickened Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell that has a casting time of an action, you can spend 2 Sorcery Points to change the casting time to a bonus_action Action for thi...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/quickened_spell.json"
+  },
+  {
+    "id": "rally",
+    "title": "Rally",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "As a bonus_action Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/rally.json"
   },
   {
     "id": "range_property",
@@ -2365,6 +4247,26 @@
     "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json"
   },
   {
+    "id": "reach",
+    "title": "Reach",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "space",
+      "targeting",
+      "weapons"
+    ],
+    "excerpt": "Reach is the distance from which a creature can affect a target with a close-quarters attack or similar direct interaction.",
+    "aliases": [],
+    "seeAlso": [
+      "target",
+      "opportunity_attack",
+      "weapon",
+      "reach_property"
+    ],
+    "filePath": "/data/glossary/entries/rules/reach.json"
+  },
+  {
     "id": "reach_property",
     "title": "Reach",
     "category": "Rules Glossary",
@@ -2379,17 +4281,12 @@
     "title": "Reaction",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "turn",
-      "actions"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "An instant response to a trigger of some kind, which can occur on your turn or on someone else's. The most common reaction is an opportunity attack.",
+    "excerpt": "A Reaction is a special action taken in response to a trigger defined in the Reaction's description. You can take a Reaction on another creature's tur...",
     "aliases": [],
-    "seeAlso": [
-      "action",
-      "bonus_action",
-      "opportunity_attack"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/reaction.json"
   },
   {
@@ -2414,6 +4311,93 @@
     "filePath": "/data/glossary/entries/rules/reactions.json"
   },
   {
+    "id": "ready",
+    "title": "Ready",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "You take the Ready action to wait for a particular circumstance before you act. To do so, you take this action on your turn, which lets you act by tak...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ready.json"
+  },
+  {
+    "id": "ready_action",
+    "title": "Ready [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "actions",
+      "timing",
+      "reactions"
+    ],
+    "excerpt": "A creature uses the Ready action to hold part of its turn in reserve, define a trigger, and resolve the prepared response later as a reaction if that trigger occurs before the start of its next turn.",
+    "aliases": [
+      "Ready"
+    ],
+    "seeAlso": [
+      "action",
+      "reaction",
+      "initiative",
+      "bonus_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/ready_action.json"
+  },
+  {
+    "id": "religion",
+    "title": "Religion",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Recall lore about gods, religious rituals, and holy symbols....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/religion.json"
+  },
+  {
+    "id": "repelling_blast",
+    "title": "Repelling Blast",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "Choose one of your known Warlock cantrips that requires an attack roll. When you hit a Large or smaller creature with that cantrip, you can push the c...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/repelling_blast.json"
+  },
+  {
+    "id": "resistance",
+    "title": "Resistance",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If you have Resistance to a [[damage_types type]], damage of that type is halved against you (round down). Resistance is applied only once to an insta...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/resistance.json"
+  },
+  {
+    "id": "restrained",
+    "title": "Restrained",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Restrained condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/restrained.json"
+  },
+  {
     "id": "restrained_condition",
     "title": "Restrained",
     "category": "Rules Glossary",
@@ -2430,20 +4414,29 @@
     "filePath": "/data/glossary/entries/rules/conditions/restrained_condition.json"
   },
   {
-    "id": "ritual",
-    "title": "Ritual Casting",
+    "id": "riposte",
+    "title": "Riposte",
     "category": "Rules Glossary",
     "tags": [
-      "spellcasting",
-      "magic"
+      "source:xphb",
+      "optionalfeature"
     ],
-    "excerpt": "Certain spells can be cast as rituals, taking 10 additional minutes but not consuming a spell slot. Only some classes can cast rituals.",
-    "aliases": [
-      "Ritual"
+    "excerpt": "When a creature misses you with a melee attack roll, you can take a reaction and expend one Superiority Die to make a melee attack roll with a weapon ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/riposte.json"
+  },
+  {
+    "id": "ritual",
+    "title": "Ritual",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
-    "seeAlso": [
-      "spell_slot"
-    ],
+    "excerpt": "If you have a spell prepared that has the Ritual tag, you can cast that spell as a Ritual. The Ritual version of a spell takes 10 minutes longer to ca...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ritual.json"
   },
   {
@@ -2467,6 +4460,19 @@
     "filePath": "/data/glossary/entries/rules/rolling_20_or_1.json"
   },
   {
+    "id": "round_down",
+    "title": "Round Down",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Whenever you divide or multiply a number in the game, round down if you end up with a fraction, even if the fraction is one-half or greater. Some rule...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/round_down.json"
+  },
+  {
     "id": "saddles",
     "title": "Saddles",
     "category": "Rules Glossary",
@@ -2477,14 +4483,30 @@
     "filePath": "/data/glossary/entries/rules/equipment/mounts/saddles.json"
   },
   {
-    "id": "sap_mastery_property",
-    "title": "Sap",
+    "id": "save",
+    "title": "Save",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Save is another name for a [[saving_throw throw]]....",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/sap.json"
+    "filePath": "/data/glossary/entries/rules/save.json"
+  },
+  {
+    "id": "saving_throw",
+    "title": "Saving Throw",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A saving throw—also called a save—represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/saving_throw.json"
   },
   {
     "id": "saving_throw_examples",
@@ -2514,19 +4536,53 @@
     "filePath": "/data/glossary/entries/rules/saving_throw_proficiencies.json"
   },
   {
-    "id": "saving_throw",
-    "title": "Saving Throws",
+    "id": "search",
+    "title": "Search",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "A D20 Test representing an attempt to evade or resist a threat. See the main D20 Tests entry for full details.",
-    "aliases": [],
-    "seeAlso": [
-      "d20_test",
-      "saving_throw_modifier",
-      "saving_throw_proficiency",
-      "saving_throw_dc"
+    "tags": [
+      "source:xphb",
+      "action"
     ],
-    "filePath": "/data/glossary/entries/rules/saving_throw.json"
+    "excerpt": "When you take the Search action, you make a Wisdom check to discern something that isn't obvious. The Search table suggests which skills are applicabl...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/search.json"
+  },
+  {
+    "id": "search_action",
+    "title": "Search [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "actions",
+      "perception",
+      "investigation",
+      "detection"
+    ],
+    "excerpt": "A creature uses the Search action to actively gather information from its surroundings, looking for hidden creatures, concealed objects, tracks, weak points, or other details that are not immediately obvious.",
+    "aliases": [
+      "Search"
+    ],
+    "seeAlso": [
+      "action",
+      "passive_perception",
+      "invisible_condition",
+      "hide_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/search_action.json"
+  },
+  {
+    "id": "seeking_spell",
+    "title": "Seeking Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "If you make an attack roll for a spell and miss, you can spend 1 Sorcery Point to reroll the d20, and you must use the new roll. You can use Seeking S...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/seeking_spell.json"
   },
   {
     "id": "services",
@@ -2537,6 +4593,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services.json"
+  },
+  {
+    "id": "shape_shifting",
+    "title": "Shape-Shifting",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If an effect, such as Wild Shape or the Polymorph spell, lets you shape-shift, its description specifies what happens to you. Unless that description ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/shape_shifting.json"
   },
   {
     "id": "shape_shift",
@@ -2561,16 +4630,6 @@
     "filePath": "/data/glossary/entries/rules/shape_shift.json"
   },
   {
-    "id": "shield_rules",
-    "title": "Shield",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor/shield.json"
-  },
-  {
     "id": "ship_repair",
     "title": "Ship Repair",
     "category": "Rules Glossary",
@@ -2585,45 +4644,52 @@
     "title": "Short Rest",
     "category": "Rules Glossary",
     "tags": [
-      "rest",
-      "recovery",
-      "healing"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A period of downtime lasting at least 1 hour, during which a character does nothing more strenuous than eating, drinking, reading, and tending to wounds.",
+    "excerpt": "A Short Rest is a 1-hour period of downtime, during which a creature does nothing more strenuous than reading, talking, eating, or standing watch. To ...",
     "aliases": [],
-    "seeAlso": [
-      "long_rest",
-      "hit_points"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/short_rest.json"
   },
   {
-    "id": "size",
-    "title": "Size Categories",
+    "id": "simultaneous_effects",
+    "title": "Simultaneous Effects",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "size",
-      "tiny",
-      "small",
-      "medium",
-      "large",
-      "huge",
-      "gargantuan",
-      "combat",
-      "space"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A creature or an object belongs to a size category: Tiny, Small, Medium, Large, Huge, or Gargantuan. Size determines space occupied in combat.",
-    "aliases": [
-      "size category",
-      "creature size",
-      "object size"
+    "excerpt": "If two or more things happen at the same time on a turn, the person at the game table—player or DM whose turn it is decides the order in which those t...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/simultaneous_effects.json"
+  },
+  {
+    "id": "size",
+    "title": "Size",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
     ],
-    "seeAlso": [
-      "combat",
-      "hit_points"
-    ],
+    "excerpt": "A creature or an object belongs to a size category: Tiny, Small, Medium, Large, Huge, or Gargantuan. A creature's size determines how much space the c...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/size.json"
+  },
+  {
+    "id": "skill",
+    "title": "Skill",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A skill is an area of specialization associated with an ability check. If you have proficiency in a skill, you can add your [[proficiency Bonus]] when...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/skill.json"
   },
   {
     "id": "skill_proficiencies",
@@ -2644,14 +4710,17 @@
     "filePath": "/data/glossary/entries/rules/skill_proficiencies.json"
   },
   {
-    "id": "slow_mastery_property",
-    "title": "Slow",
+    "id": "sleight_of_hand",
+    "title": "Sleight of Hand",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Pick a pocket, conceal a handheld object, or perform legerdemain....",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/slow.json"
+    "filePath": "/data/glossary/entries/rules/sleight_of_hand.json"
   },
   {
     "id": "smiths_tools",
@@ -2701,32 +4770,39 @@
     "title": "Speed",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "movement",
-      "speed"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "The distance in feet a creature can cover when it moves on its turn. Special movement types like climbing and swimming have specific rules.",
+    "excerpt": "A creature has a Speed, which is the distance in feet the creature can cover when it moves on its turn....",
     "aliases": [],
-    "seeAlso": [
-      "climbing",
-      "crawling",
-      "flying",
-      "jumping",
-      "swimming",
-      "special_speeds",
-      "changes_to_your_speeds"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/speed.json"
   },
   {
-    "id": "large_vehicles_speed",
-    "title": "Speed",
+    "id": "spell",
+    "title": "Spell",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A spell is a [[magical_effect effect]] that has the characteristics described in chapter 7....",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/speed.json"
+    "filePath": "/data/glossary/entries/rules/spell.json"
+  },
+  {
+    "id": "spell_attack",
+    "title": "Spell Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A spell attack is an attack roll made as part of a spell or another [[magical_effect effect]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/spell_attack.json"
   },
   {
     "id": "spell_slot",
@@ -2798,6 +4874,19 @@
     "filePath": "/data/glossary/entries/rules/spells_chapter.json"
   },
   {
+    "id": "sphere_area_of_effect",
+    "title": "Sphere [Area of Effect]",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specif...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/sphere_area_of_effect.json"
+  },
+  {
     "id": "squalid_lifestyle",
     "title": "Squalid (1 SP per Day)",
     "category": "Rules Glossary",
@@ -2812,20 +4901,39 @@
     "title": "Stable",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "death",
-      "hit_points",
-      "recovery"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A stable creature at 0 hit points is no longer at immediate risk of dying from that collapse and stops making death saving throws, though it remains unconscious until it recovers.",
+    "excerpt": "A creature is Stable if it has 0 [[hit_points Points]] but isn't required to make [[death_saving_throw Saving Throws]]....",
     "aliases": [],
-    "seeAlso": [
-      "death_saving_throw",
-      "hit_points",
-      "unconscious_condition",
-      "dead"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/stable.json"
+  },
+  {
+    "id": "stat_block",
+    "title": "Stat Block",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A stat block contains the game statistics of a [[monster]]. Each stat block includes the following information presented after the [[monster's]] name....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/stat_block.json"
+  },
+  {
+    "id": "stealth",
+    "title": "Stealth",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Escape notice by moving quietly and hiding behind things....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/stealth.json"
   },
   {
     "id": "strength",
@@ -2848,6 +4956,56 @@
     "filePath": "/data/glossary/entries/rules/strength.json"
   },
   {
+    "id": "study",
+    "title": "Study",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "When you take the Study action, you make an Intelligence check to study your memory, a book, a clue, or another source of knowledge and call to mind a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/study.json"
+  },
+  {
+    "id": "study_action",
+    "title": "Study [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "actions",
+      "knowledge",
+      "detection",
+      "analysis"
+    ],
+    "excerpt": "The Study action is a deliberate attempt to analyze, identify, or interpret something in the scene. It is used when a creature spends focused effort to understand a creature, effect, object, clue, or other sign that is not resolved by a glance alone.",
+    "aliases": [
+      "Study"
+    ],
+    "seeAlso": [
+      "action",
+      "ability_check",
+      "search_action",
+      "conditions",
+      "spell_effects_rules"
+    ],
+    "filePath": "/data/glossary/entries/rules/study_action.json"
+  },
+  {
+    "id": "stunned",
+    "title": "Stunned",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Stunned condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/stunned.json"
+  },
+  {
     "id": "stunned_condition",
     "title": "Stunned",
     "category": "Rules Glossary",
@@ -2864,24 +5022,114 @@
     "filePath": "/data/glossary/entries/rules/conditions/stunned_condition.json"
   },
   {
+    "id": "subtle_spell",
+    "title": "Subtle Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell, you can spend 1 Sorcery Point to cast it without any Verbal, Somatic, or Material components, except Material components that a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/subtle_spell.json"
+  },
+  {
+    "id": "suffocation",
+    "title": "Suffocation",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A creature can hold its breath for a number of minutes equal to 1 plus its Constitution modifier (minimum of 30 seconds) before suffocation begins. Wh...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/suffocation.json"
+  },
+  {
+    "id": "surprise",
+    "title": "Surprise",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "combat",
+      "encounter",
+      "initiative"
+    ],
+    "excerpt": "Surprise is a combat-start state that reflects an encounter beginning before one side is fully ready to respond. It affects how creatures enter the first round and whether they can act immediately when initiative begins.",
+    "aliases": [],
+    "seeAlso": [
+      "hide_action",
+      "initiative",
+      "invisible_condition"
+    ],
+    "filePath": "/data/glossary/entries/rules/surprise.json"
+  },
+  {
+    "id": "survival",
+    "title": "Survival",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "skill"
+    ],
+    "excerpt": "Follow tracks, forage, find a trail, or avoid natural hazards....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/survival.json"
+  },
+  {
+    "id": "sweeping_attack",
+    "title": "Sweeping Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with a melee attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to damage a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/sweeping_attack.json"
+  },
+  {
+    "id": "swim_speed",
+    "title": "Swim Speed",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A Swim Speed can be used to swim without expending the extra movement normally associated with swimming....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/swim_speed.json"
+  },
+  {
     "id": "swimming",
     "title": "Swimming",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "movement",
-      "swimming",
-      "swim speed"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "While swimming, each foot of movement costs 1 extra foot. A successful DC 15 Strength (Athletics) check may be required for rough water.",
+    "excerpt": "While you're swimming, each foot of movement costs 1 extra foot (2 extra feet in [[difficult_terrain terrain]]). You ignore this extra cost if you hav...",
     "aliases": [],
-    "seeAlso": [
-      "speed",
-      "special_speeds",
-      "athletics",
-      "difficult_terrain"
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/swimming.json"
+  },
+  {
+    "id": "sylvan",
+    "title": "Sylvan",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/swimming.json"
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/sylvan.json"
   },
   {
     "id": "tack_harness_vehicles",
@@ -2892,6 +5140,58 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/mounts/tack_harness_vehicles.json"
+  },
+  {
+    "id": "tactical_assessment",
+    "title": "Tactical Assessment",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you make an Intelligence (history or investigation) check or a Wisdom (insight) check, you can expend one Superiority Die and add that die to the...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/tactical_assessment.json"
+  },
+  {
+    "id": "target",
+    "title": "Target",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A target is the creature or object targeted by an attack roll, forced to make a [[saving_throw throw]] by an effect, or selected to receive the effect...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/target.json"
+  },
+  {
+    "id": "telepathy",
+    "title": "Telepathy",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Telepathy is a magical ability that allows a creature to communicate mentally with another creature within a specified range. Unless a rule states oth...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/telepathy.json"
+  },
+  {
+    "id": "teleportation",
+    "title": "Teleportation",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Teleportation is a special kind of magical transportation. If you teleport, you disappear and reappear elsewhere instantly, without moving through the...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/teleportation.json"
   },
   {
     "id": "temporary_hp",
@@ -2913,6 +5213,19 @@
     "filePath": "/data/glossary/entries/rules/temporary_hp.json"
   },
   {
+    "id": "temporary_hit_points",
+    "title": "Temporary Hit Points",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "Temporary Hit Points are granted by certain effects and act as a buffer against losing real [[hit_points Points]]....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/temporary_hit_points.json"
+  },
+  {
     "id": "advantage_disadvantage_stacking",
     "title": "They Don't Stack",
     "category": "Rules Glossary",
@@ -2923,14 +5236,30 @@
     "filePath": "/data/glossary/entries/rules/advantage_disadvantage_stacking.json"
   },
   {
-    "id": "thieves_tools",
-    "title": "Thieves' Tools",
+    "id": "thieves_cant",
+    "title": "Thieves' Cant",
     "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.json"
+    "filePath": "/data/glossary/entries/rules/thieves_cant.json"
+  },
+  {
+    "id": "thirsting_blade",
+    "title": "Thirsting Blade",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You gain the Extra Attack feature for your pact weapon only. With that feature, you can attack twice with the weapon instead of once when you take the...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/thirsting_blade.json"
   },
   {
     "id": "three_quarters_cover",
@@ -3014,16 +5343,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools.json"
   },
   {
-    "id": "topple_mastery_property",
-    "title": "Topple",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/topple.json"
-  },
-  {
     "id": "total_cover",
     "title": "Total Cover",
     "category": "Rules Glossary",
@@ -3043,6 +5362,19 @@
       "target"
     ],
     "filePath": "/data/glossary/entries/rules/total_cover.json"
+  },
+  {
+    "id": "transmuted_spell",
+    "title": "Transmuted Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell that deals a type of damage from the following list, you can spend 1 Sorcery Point to change that damage type to one of the othe...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/transmuted_spell.json"
   },
   {
     "id": "traps",
@@ -3100,38 +5432,52 @@
     "title": "Tremorsense",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "vision",
-      "special senses"
+      "source:xphb",
+      "sense"
     ],
-    "excerpt": "Detecting vibrations through the ground or other surfaces.",
+    "excerpt": "A creature with Tremorsense can pinpoint the location of creatures and moving objects within a specific range, provided that the creature with Tremors...",
     "aliases": [],
-    "seeAlso": [
-      "vision",
-      "special_senses",
-      "stonecunning"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/tremorsense.json"
+  },
+  {
+    "id": "trip_attack",
+    "title": "Trip Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die and add the die to the atta...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/trip_attack.json"
   },
   {
     "id": "truesight",
     "title": "Truesight",
     "category": "Rules Glossary",
     "tags": [
-      "rules",
-      "vision",
-      "special senses",
-      "magic"
+      "source:xphb",
+      "sense"
     ],
-    "excerpt": "The ultimate form of vision, piercing through illusions and darkness.",
+    "excerpt": "If you have Truesight, your vision is enhanced within a specified range. Within that range, your vision pierces through the following: - Darkness: You...",
     "aliases": [],
-    "seeAlso": [
-      "vision",
-      "darkvision",
-      "special_senses",
-      "ethereal_plane"
-    ],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/truesight.json"
+  },
+  {
+    "id": "twinned_spell",
+    "title": "Twinned Spell",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "When you cast a spell, such as charm_person Person, that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/twinned_spell.json"
   },
   {
     "id": "two_handed_property",
@@ -3148,18 +5494,26 @@
     "title": "Unarmed Strike",
     "category": "Rules Glossary",
     "tags": [
-      "combat",
-      "attack",
-      "melee"
+      "source:xphb",
+      "variantrule"
     ],
-    "excerpt": "A melee attack made with a punch, kick, head-butt, or similar forceful blow. Instead of using a weapon, you use your fist, foot, or another body part.",
-    "aliases": [
-      "Unarmed Attack"
-    ],
-    "seeAlso": [
-      "attack_action"
-    ],
+    "excerpt": "Instead of using a weapon to make a melee attack, you can use a punch, kick, head-butt, or similar forceful blow. In game terms, this is an Unarmed St...",
+    "aliases": [],
+    "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/unarmed_strike.json"
+  },
+  {
+    "id": "unconscious",
+    "title": "Unconscious",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "condition"
+    ],
+    "excerpt": "While you have the Unconscious condition, you experience the following effects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/unconscious.json"
   },
   {
     "id": "unconscious_condition",
@@ -3180,6 +5534,70 @@
     "filePath": "/data/glossary/entries/rules/conditions/unconscious_condition.json"
   },
   {
+    "id": "undercommon",
+    "title": "Undercommon",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "language"
+    ],
+    "excerpt": "rare...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/undercommon.json"
+  },
+  {
+    "id": "unoccupied_space",
+    "title": "Unoccupied Space",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A space is unoccupied if no creatures are in it and it isn't completely filled by objects....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/unoccupied_space.json"
+  },
+  {
+    "id": "utilize",
+    "title": "Utilize",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "action"
+    ],
+    "excerpt": "You normally interact with an object while doing something else, such as when you draw a sword as part of the [[attack]] action. When an object requir...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/utilize.json"
+  },
+  {
+    "id": "utilize_action",
+    "title": "Utilize [Action]",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "actions",
+      "objects",
+      "interaction",
+      "systems"
+    ],
+    "excerpt": "The Utilize action is a deliberate use of an object or interactable feature that requires more commitment than a free interaction. It covers operating, activating, manipulating, or applying something when that use meaningfully occupies the creature's action.",
+    "aliases": [
+      "Utilize",
+      "Use an Object"
+    ],
+    "seeAlso": [
+      "action",
+      "magic_action",
+      "attack_action",
+      "interacting_with_objects",
+      "weapons"
+    ],
+    "filePath": "/data/glossary/entries/rules/utilize_action.json"
+  },
+  {
     "id": "vehicles",
     "title": "Vehicles",
     "category": "Rules Glossary",
@@ -3198,16 +5616,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/versatile.json"
-  },
-  {
-    "id": "vex_mastery_property",
-    "title": "Vex",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/vex.json"
   },
   {
     "id": "vision",
@@ -3243,6 +5651,32 @@
     "filePath": "/data/glossary/entries/rules/vision_and_light.json"
   },
   {
+    "id": "visions_of_distant_realms",
+    "title": "Visions of Distant Realms",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast arcane_eye Eye without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/visions_of_distant_realms.json"
+  },
+  {
+    "id": "vulnerability",
+    "title": "Vulnerability",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "If you have Vulnerability to a [[damage_types type]], damage of that type is doubled against you. Vulnerability is applied only once to an instance of...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/vulnerability.json"
+  },
+  {
     "id": "wealthy_lifestyle",
     "title": "Wealthy (4 GP per Day)",
     "category": "Rules Glossary",
@@ -3251,6 +5685,32 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/wealthy_lifestyle.json"
+  },
+  {
+    "id": "weapon",
+    "title": "Weapon",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A weapon is an object that is in the Simple or Martial weapon category....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/weapon.json"
+  },
+  {
+    "id": "weapon_attack",
+    "title": "Weapon Attack",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "variantrule"
+    ],
+    "excerpt": "A weapon attack is an attack roll made with a weapon....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/weapon_attack.json"
   },
   {
     "id": "weapon_proficiency",
@@ -3307,6 +5767,19 @@
     "filePath": "/data/glossary/entries/rules/what_is_an_object.json"
   },
   {
+    "id": "whispers_of_the_grave",
+    "title": "Whispers of the Grave",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You can cast speak_with_dead with Dead without expending a spell slot....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/whispers_of_the_grave.json"
+  },
+  {
     "id": "wisdom",
     "title": "Wisdom",
     "category": "Rules Glossary",
@@ -3325,6 +5798,19 @@
       "ability_check"
     ],
     "filePath": "/data/glossary/entries/rules/wisdom.json"
+  },
+  {
+    "id": "witch_sight",
+    "title": "Witch Sight",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "optionalfeature"
+    ],
+    "excerpt": "You have truesight with a range of 30 feet....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/witch_sight.json"
   },
   {
     "id": "woodcarvers_tools",

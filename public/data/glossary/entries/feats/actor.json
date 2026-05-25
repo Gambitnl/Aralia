@@ -1,0 +1,14 @@
+{
+  "id": "actor",
+  "title": "Actor",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Impersonation While you're disguised as a real or fictional person, you have advantage on Charisma (deception or per...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/actor.json",
+  "markdown": "# Actor\n\nYou gain the following benefits.\n\n## Impersonation\n\nWhile you're disguised as a real or fictional person, you have [[advantage]] on Charisma ([[deception]] or [[performance]]) checks to convince others that you are that person.\n\n## Mimicry\n\nYou can mimic the sounds of other creatures, including speech. A creature that hears the mimicry must succeed on a Wisdom ([[insight]]) check to determine the effect is faked (DC 8 plus your Charisma modifier and [[proficiency Bonus]])."
+}

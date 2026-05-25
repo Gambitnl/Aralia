@@ -1,0 +1,14 @@
+{
+  "id": "telekinetic",
+  "title": "Telekinetic",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Minor Telekinesis You learn the mage_hand Hand spell. You can cast it without Verbal or Somatic components, you can ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/telekinetic.json",
+  "markdown": "# Telekinetic\n\nYou gain the following benefits.\n\n## Minor Telekinesis\n\nYou learn the [[mage_hand Hand]] spell. You can cast it without Verbal or Somatic components, you can make the spectral hand [[invisible]], and its range and the distance it can be away from you both increase by 30 feet when you cast it. The spell's spellcasting ability is the ability increased by this feat.\n\n## Telekinetic Shove\n\nAs a [[bonus_action Action]], you can telekinetically shove one creature you can see within 30 feet of yourself. When you do so, the target must succeed on a Strength saving throw (DC 8 plus the ability modifier of the score increased by this feat and your [[proficiency Bonus]]) or be moved 5 feet toward or away from you."
+}

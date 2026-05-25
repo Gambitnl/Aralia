@@ -1,0 +1,14 @@
+{
+  "id": "jumping",
+  "title": "Jumping",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "When you jump, you make either a [[long_jump Jump]] (horizontal) or a [[high_jump Jump]] (vertical)....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/jumping.json",
+  "markdown": "# Jumping\n\nWhen you jump, you make either a [[long_jump Jump]] (horizontal) or a [[high_jump Jump]] (vertical)."
+}

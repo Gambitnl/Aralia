@@ -1,0 +1,14 @@
+{
+  "id": "tactical_assessment",
+  "title": "Tactical Assessment",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you make an Intelligence (history or investigation) check or a Wisdom (insight) check, you can expend one Superiority Die and add that die to the...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/tactical_assessment.json",
+  "markdown": "# Tactical Assessment\n\nWhen you make an Intelligence ([[history]] or [[investigation]]) check or a Wisdom ([[insight]]) check, you can expend one Superiority Die and add that die to the ability check."
+}

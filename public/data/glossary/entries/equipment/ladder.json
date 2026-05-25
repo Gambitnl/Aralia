@@ -1,0 +1,14 @@
+{
+  "id": "ladder",
+  "title": "Ladder",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.1 gp - Weight: 25 lb. A Ladder is 10 feet tall. You must climb to move up or down it....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ladder.json",
+  "markdown": "# Ladder\n\n- **Type**: G|XPHB\n- **Cost**: 0.1 gp\n- **Weight**: 25 lb.\n\nA Ladder is 10 feet tall. You must climb to move up or down it."
+}

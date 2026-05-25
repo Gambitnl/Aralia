@@ -1,0 +1,14 @@
+{
+  "id": "warhorse",
+  "title": "Warhorse",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MNT|XPHB - Cost: 400 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/warhorse.json",
+  "markdown": "# Warhorse\n\n- **Type**: MNT|XPHB\n- **Cost**: 400 gp\n\n"
+}

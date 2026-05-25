@@ -65,6 +65,7 @@ for (const path of [
   'conductor/symphony/.symphony/task-drafts.json',
   'conductor/symphony/.symphony/live-proof/example.json',
   'conductor/symphony/.symphony/visual-verification/example.png',
+  '.jules/feedback/handoff-example-pr-feedback.md',
 ]) {
   assert.equal(checkIgnore(path), true, `${path} should remain ignored runtime/proof output`);
 }

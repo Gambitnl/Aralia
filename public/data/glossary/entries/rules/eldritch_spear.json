@@ -1,0 +1,14 @@
+{
+  "id": "eldritch_spear",
+  "title": "Eldritch Spear",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "Choose one of your known Warlock cantrips that deals damage and has a range of 10+ feet. When you cast that spell, its range increases by a number of ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/eldritch_spear.json",
+  "markdown": "# Eldritch Spear\n\nChoose one of your known Warlock cantrips that deals damage and has a range of 10+ feet. When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.\n\n### Repeatable\n\nYou can gain this invocation more than once. Each time you do so, choose a different eligible cantrip."
+}

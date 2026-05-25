@@ -1,0 +1,14 @@
+{
+  "id": "fine_clothes",
+  "title": "Fine Clothes",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 15 gp - Weight: 6 lb. Fine Clothes are made of expensive fabrics and adorned with expertly crafted details. Some events and loc...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/fine_clothes.json",
+  "markdown": "# Fine Clothes\n\n- **Type**: G|XPHB\n- **Cost**: 15 gp\n- **Weight**: 6 lb.\n\nFine Clothes are made of expensive fabrics and adorned with expertly crafted details. Some events and locations admit only people wearing these clothes."
+}

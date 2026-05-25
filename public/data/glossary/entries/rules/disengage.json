@@ -1,0 +1,14 @@
+{
+  "id": "disengage",
+  "title": "Disengage",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "If you take the Disengage action, your movement doesn't provoke [[opportunity_attack Attacks]] for the rest of the current turn....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/disengage.json",
+  "markdown": "# Disengage\n\nIf you take the Disengage action, your movement doesn't provoke [[opportunity_attack Attacks]] for the rest of the current turn."
+}

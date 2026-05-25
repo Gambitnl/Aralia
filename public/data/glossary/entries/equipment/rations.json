@@ -1,0 +1,14 @@
+{
+  "id": "rations",
+  "title": "Rations",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.5 gp - Weight: 2 lb. Rations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See \"Malnutritio...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/rations.json",
+  "markdown": "# Rations\n\n- **Type**: G|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 2 lb.\n\nRations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See \"Malnutrition\" for the risks of not eating."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "tough",
+  "title": "Tough",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "Your hit_points Point maximum increases by an amount equal to twice your character level when you gain this feat. Whenever you gain a character level ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/tough.json",
+  "markdown": "# Tough\n\nYour [[hit_points Point]] maximum increases by an amount equal to twice your character level when you gain this feat. Whenever you gain a character level thereafter, your [[hit_points Point]] maximum increases by an additional 2 [[hit_points Points]]."
+}

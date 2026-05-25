@@ -1,0 +1,14 @@
+{
+  "id": "herbalism_kit",
+  "title": "Herbalism Kit",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: T|XPHB - Cost: 5 gp - Weight: 3 lb. - Ability:: Intelligence - Utilize:: Identify a plant (DC 10) - Craft:: antitoxin, candle, healer_s_kit's ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/herbalism_kit.json",
+  "markdown": "# Herbalism Kit\n\n- **Type**: T|XPHB\n- **Cost**: 5 gp\n- **Weight**: 3 lb.\n\n- **Ability::** Intelligence\n- **Utilize::** Identify a plant (DC 10)\n- **Craft::** [[antitoxin]], [[candle]], [[healer_s_kit's Kit]], [[potion_of_healing of Healing]]"
+}

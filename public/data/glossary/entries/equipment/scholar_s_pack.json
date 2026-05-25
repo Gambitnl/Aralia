@@ -1,0 +1,14 @@
+{
+  "id": "scholar_s_pack",
+  "title": "Scholar's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 40 gp - Weight: 22 lb. A Scholar's Pack contains the following items: backpack, book, ink, ink_pen Pen, lamp, 10 flasks of oil,...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scholar_s_pack.json",
+  "markdown": "# Scholar's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 40 gp\n- **Weight**: 22 lb.\n\nA Scholar's Pack contains the following items: [[backpack]], [[book]], [[ink]], [[ink_pen Pen]], [[lamp]], 10 flasks of [[oil]], 10 sheets of [[parchment]], and [[tinderbox]]."
+}

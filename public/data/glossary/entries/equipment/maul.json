@@ -1,0 +1,14 @@
+{
+  "id": "maul",
+  "title": "Maul",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 10 lb. - Damage: 2d6 B - Properties: H|XPHB, 2H|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/maul.json",
+  "markdown": "# Maul\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 10 lb.\n- **Damage**: 2d6 B\n- **Properties**: H|XPHB, 2H|XPHB\n\n"
+}

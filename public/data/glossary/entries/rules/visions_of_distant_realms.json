@@ -1,0 +1,14 @@
+{
+  "id": "visions_of_distant_realms",
+  "title": "Visions of Distant Realms",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You can cast arcane_eye Eye without expending a spell slot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/visions_of_distant_realms.json",
+  "markdown": "# Visions of Distant Realms\n\nYou can cast [[arcane_eye Eye]] without expending a spell slot."
+}

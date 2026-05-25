@@ -1,0 +1,14 @@
+{
+  "id": "martial_weapon_training",
+  "title": "Martial Weapon Training",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Weapon Proficiency You gain proficiency with Martial weapons....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/martial_weapon_training.json",
+  "markdown": "# Martial Weapon Training\n\nYou gain the following benefits.\n\n## Weapon Proficiency\n\nYou gain proficiency with Martial weapons."
+}

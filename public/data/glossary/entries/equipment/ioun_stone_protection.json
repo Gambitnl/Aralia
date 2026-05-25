@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone_protection",
+  "title": "Ioun Stone, Protection",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} You gain a +1 bonus to armor_class Class while this dusty-rose prism orbits your head....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone_protection.json",
+  "markdown": "# Ioun Stone, Protection\n\n{#itemEntry Ioun Stone}\n\nYou gain a +1 bonus to [[armor_class Class]] while this dusty-rose prism orbits your head."
+}

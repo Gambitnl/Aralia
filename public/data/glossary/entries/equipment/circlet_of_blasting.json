@@ -1,0 +1,14 @@
+{
+  "id": "circlet_of_blasting",
+  "title": "Circlet of Blasting",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While wearing this circlet, you can cast scorching_ray Ray with it (5 to hit). The circlet can't cast this spell again until the next dawn....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/circlet_of_blasting.json",
+  "markdown": "# Circlet of Blasting\n\nWhile wearing this circlet, you can cast [[scorching_ray Ray]] with it (5 to hit). The circlet can't cast this spell again until the next dawn."
+}

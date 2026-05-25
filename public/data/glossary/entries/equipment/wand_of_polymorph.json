@@ -1,0 +1,14 @@
+{
+  "id": "wand_of_polymorph",
+  "title": "Wand of Polymorph",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: WD|XDMG - Weight: 1 lb. This wand has 7 charges. While holding it, you can expend 1 charge to cast polymorph (save DC 15) from it.  Regaining ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/wand_of_polymorph.json",
+  "markdown": "# Wand of Polymorph\n\n- **Type**: WD|XDMG\n- **Weight**: 1 lb.\n\nThis wand has 7 charges. While holding it, you can expend 1 charge to cast [[polymorph]] (save DC 15) from it.\n\n## Regaining Charges\n\nThe wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+}

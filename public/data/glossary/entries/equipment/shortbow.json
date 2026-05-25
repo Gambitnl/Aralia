@@ -1,0 +1,14 @@
+{
+  "id": "shortbow",
+  "title": "Shortbow",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 25 gp - Weight: 2 lb. - Damage: 1d6 P - Properties: A|XPHB, 2H|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/shortbow.json",
+  "markdown": "# Shortbow\n\n- **Type**: R|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d6 P\n- **Properties**: A|XPHB, 2H|XPHB\n\n"
+}

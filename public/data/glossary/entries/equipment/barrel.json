@@ -1,0 +1,14 @@
+{
+  "id": "barrel",
+  "title": "Barrel",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 70 lb. A Barrel holds up to 40 gallons of liquid or up to 4 cubic feet of dry goods....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/barrel.json",
+  "markdown": "# Barrel\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 70 lb.\n\nA Barrel holds up to 40 gallons of liquid or up to 4 cubic feet of dry goods."
+}

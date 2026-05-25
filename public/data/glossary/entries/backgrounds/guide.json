@@ -1,0 +1,14 @@
+{
+  "id": "guide",
+  "title": "Guide",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Dexterity, Constitution, Wisdom - Feat:: magic_initiate Initiate (Druid) - Skill Proficiencies:: stealth, survival - Tool Proficien...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/guide.json",
+  "markdown": "# Guide\n\n- **Ability Scores::** Dexterity, Constitution, Wisdom\n- **Feat::** [[magic_initiate Initiate]] (Druid)\n- **Skill Proficiencies::** [[stealth]], [[survival]]\n- **Tool Proficiency::** [[cartographer_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[shortbow]], [[arrow Arrows]], [[cartographer_s_tools's Tools]], [[bedroll]], [[quiver]], [[tent]], [[traveler_s_clothes's Clothes]], 3 GP; or (B) 50 GP"
+}

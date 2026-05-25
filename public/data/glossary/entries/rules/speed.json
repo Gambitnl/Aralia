@@ -3,21 +3,12 @@
   "title": "Speed",
   "category": "Rules Glossary",
   "tags": [
-    "rules",
-    "movement",
-    "speed"
+    "source:xphb",
+    "variantrule"
   ],
-  "excerpt": "The distance in feet a creature can cover when it moves on its turn. Special movement types like climbing and swimming have specific rules.",
+  "excerpt": "A creature has a Speed, which is the distance in feet the creature can cover when it moves on its turn....",
   "aliases": [],
-  "seeAlso": [
-    "climbing",
-    "crawling",
-    "flying",
-    "jumping",
-    "swimming",
-    "special_speeds",
-    "changes_to_your_speeds"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/speed.json",
-  "markdown": "# Speed\r\nA creature has a Speed, which is the distance in feet the creature can cover when it moves on its turn. See also \"Climbing,\" \"Crawling,\" \"Flying,\" \"Jumping,\" \"Swimming\" and \"Playing the Game\" (\"Combat\").\r\n"
+  "markdown": "# Speed\n\nA creature has a Speed, which is the distance in feet the creature can cover when it moves on its turn.\n\n### Special Speeds\n\nSome creatures have special speeds, such as a [[burrow_speed Speed]], [[climb_speed Speed]], [[fly_speed Speed]], or [[swim_speed Speed]], each of which is defined in this glossary. If you have more than one speed, choose which one to use when you move; you can switch between the speeds during your move. Whenever you switch, subtract the distance already moved from the new speed. The result determines how much farther you can move. If the result is 0 or less, you can't use the new speed during the current move. For example, if you have a Speed of 30 and a [[fly_speed Speed]] of 40, you could fly 10 feet, walk 10 feet, and leap into the air to fly 20 feet more.\n\n### Changes to Your Speeds\n\nIf an effect increases or decreases your Speed for a time, any special speed you have increases or decreases by an equal amount for the same duration. For example, if your Speed is reduced to 0 and you have a [[climb_speed Speed]], your [[climb_speed Speed]] is also reduced to 0. Similarly, if your Speed is halved and you have a [[fly_speed Speed]], your [[fly_speed Speed]] is also halved."
 }

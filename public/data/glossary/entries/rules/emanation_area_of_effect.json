@@ -1,0 +1,14 @@
+{
+  "id": "emanation_area_of_effect",
+  "title": "Emanation [Area of Effect]",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "An Emanation is an area of effect that extends in straight lines from a creature or an object in all directions. The effect that creates an Emanation ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/emanation_area_of_effect.json",
+  "markdown": "# Emanation [Area of Effect]\n\nAn Emanation is an area of effect that extends in straight lines from a creature or an object in all directions. The effect that creates an Emanation specifies the distance it extends.\n\nAn Emanation moves with the creature or object that is its origin unless it is an instantaneous or a stationary effect.\n\nAn Emanation's origin (creature or object) isn't included in the area of effect unless its creator decides otherwise."
+}

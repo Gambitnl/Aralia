@@ -2,13 +2,13 @@
   "id": "short_rest",
   "title": "Short Rest",
   "category": "Rules Glossary",
-  "tags": ["rest", "recovery", "healing"],
-  "excerpt": "A period of downtime lasting at least 1 hour, during which a character does nothing more strenuous than eating, drinking, reading, and tending to wounds.",
-  "aliases": [],
-  "seeAlso": [
-    "long_rest",
-    "hit_points"
+  "tags": [
+    "source:xphb",
+    "variantrule"
   ],
+  "excerpt": "A Short Rest is a 1-hour period of downtime, during which a creature does nothing more strenuous than reading, talking, eating, or standing watch. To ...",
+  "aliases": [],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/short_rest.json",
-  "markdown": "# Short Rest\n\nA short rest is a period of downtime, at least 1 hour long, during which a character does nothing more strenuous than eating, drinking, reading, and tending to wounds.\n\n## Benefits\n\nAt the end of a short rest, a character can:\n- Spend one or more Hit Dice to regain [[hit_points]]\n- Regain certain class features and abilities that recharge on a short rest (such as a Fighter's Second Wind or a Warlock's spell slots)\n\n### Hit Dice\n\nFor each Hit Die spent in this way, the player rolls the die and adds the character's Constitution modifier to it. The character regains hit points equal to the total (minimum of 0). The player can decide to spend an additional Hit Die after each roll.\n\n## Interruption\n\nIf the rest is interrupted by a period of strenuous activity-at least 1 minute of walking, fighting, casting spells, or similar adventuring activity-the characters must begin the rest again to gain any benefit from it.\n"
+  "markdown": "# Short Rest\n\nA Short Rest is a 1-hour period of downtime, during which a creature does nothing more strenuous than reading, talking, eating, or standing watch. To start a Short Rest, you must have at least 1 [[hit_points Point]].\n\n### Benefits of the Rest\n\nWhen you finish the rest, you gain the following benefits:\n\n- **Spend Hit Point Dice:** You can spend one or more of your [[hit_point_dice Point Dice]] to regain [[hit_points Points]]. For each [[hit_point_dice Point Die]] you spend in this way, roll the die and add your Constitution modifier to it. You regain [[hit_points Points]] equal to the total (minimum of 1 Hit Point). You can decide to spend an additional [[hit_point_dice Point Die]] after each roll.\n- **Special Feature:** Some features are recharged by a Short Rest. If you have such a feature, it recharges in the way specified in its description.\n\n### Interrupting the Rest\n\nA Short Rest is stopped by the following interruptions:\n\n- Rolling [[initiative]]\n- Casting a spell other than a cantrip\n- Taking any damage\n\nAn interrupted Short Rest confers no benefits."
 }

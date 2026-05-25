@@ -1,0 +1,14 @@
+{
+  "id": "amulet",
+  "title": "Amulet",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp - Weight: 1 lb. For an Amulet to be an effective Holy Symbol, it must be worn or held....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/amulet.json",
+  "markdown": "# Amulet\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n- **Weight**: 1 lb.\n\nFor an Amulet to be an effective Holy Symbol, it must be worn or held."
+}

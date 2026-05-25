@@ -1,0 +1,14 @@
+{
+  "id": "devouring_blade",
+  "title": "Devouring Blade",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "The Extra Attack of your Thirsting Blade invocation confers two extra attacks rather than one....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/devouring_blade.json",
+  "markdown": "# Devouring Blade\n\nThe Extra Attack of your Thirsting Blade invocation confers two extra attacks rather than one."
+}

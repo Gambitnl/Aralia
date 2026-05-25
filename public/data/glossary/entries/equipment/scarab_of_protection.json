@@ -1,0 +1,14 @@
+{
+  "id": "scarab_of_protection",
+  "title": "Scarab of Protection",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. This beetle-shaped medallion provides three benefits while it is on your person.  Defense You gain a +1 bonus to armor_class Class.  P...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scarab_of_protection.json",
+  "markdown": "# Scarab of Protection\n\n- **Weight**: 1 lb.\n\nThis beetle-shaped medallion provides three benefits while it is on your person.\n\n## Defense\n\nYou gain a +1 bonus to [[armor_class Class]].\n\n## Preservation\n\nThe scarab has 12 charges. If you fail a saving throw against a Necromancy spell or a harmful effect originating from an Undead, you can take a [[reaction]] to expend 1 charge and turn the failed save into a successful one. The scarab crumbles into powder and is destroyed when its last charge is expended.\n\n## Spell Resistance\n\nYou have [[advantage]] on saving throws against spells."
+}

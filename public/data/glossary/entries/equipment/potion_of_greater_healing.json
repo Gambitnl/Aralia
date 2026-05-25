@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_greater_healing",
+  "title": "Potion of Greater Healing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. You regain 4d4 + 4 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_greater_healing.json",
+  "markdown": "# Potion of Greater Healing\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nYou regain 4d4 + 4 [[hit_points Points]] when you drink this potion. The potion's red liquid glimmers when agitated."
+}

@@ -2,10 +2,13 @@
   "id": "truesight",
   "title": "Truesight",
   "category": "Rules Glossary",
-  "tags": ["rules", "vision", "special senses", "magic"],
-  "excerpt": "The ultimate form of vision, piercing through illusions and darkness.",
+  "tags": [
+    "source:xphb",
+    "sense"
+  ],
+  "excerpt": "If you have Truesight, your vision is enhanced within a specified range. Within that range, your vision pierces through the following: - Darkness: You...",
   "aliases": [],
-  "seeAlso": ["vision", "darkvision", "special_senses", "ethereal_plane"],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/truesight.json",
-  "markdown": "# Truesight\n\nA creature with Truesight can, out to a specific range, see in normal and magical [[darkness|Darkness]], see [[invisible_condition|Invisible]] creatures and objects, automatically detect visual illusions and succeed on saving throws against them, and perceive the original form of a shapechanger or a creature that is transformed by magic.\n\nFurthermore, the creature can see into the Ethereal Plane within the same range."
+  "markdown": "# Truesight\n\nIf you have Truesight, your vision is enhanced within a specified range. Within that range, your vision pierces through the following:\n\n- **Darkness:** You can see in normal and magical [[darkness]].\n- **Invisibility:** You see creatures and objects that have the [[invisible]] condition.\n- **Visual Illusions:** Visual illusions appear transparent to you, and you automatically succeed on [[saving_throw throws]] against them.\n- **Transformations:** You discern the true form of any creature or object you see that has been transformed by magic.\n- **Ethereal Plane:** You see into the Ethereal Plane."
 }

@@ -1,0 +1,14 @@
+{
+  "id": "durable",
+  "title": "Durable",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Defy Death You have advantage on death_saving_throw Saving Throws.  Speedy Recovery As a bonus_action Action, you ca...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/durable.json",
+  "markdown": "# Durable\n\nYou gain the following benefits.\n\n## Defy Death\n\nYou have [[advantage]] on [[death_saving_throw Saving Throws]].\n\n## Speedy Recovery\n\nAs a [[bonus_action Action]], you can expend one of your [[hit_point_dice Point Dice]], roll the die, and regain a number of [[hit_points Points]] equal to the roll."
+}

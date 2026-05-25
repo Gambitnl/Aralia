@@ -1,0 +1,14 @@
+{
+  "id": "morningstar",
+  "title": "Morningstar",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 15 gp - Weight: 4 lb. - Damage: 1d8 P...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/morningstar.json",
+  "markdown": "# Morningstar\n\n- **Type**: M|XPHB\n- **Cost**: 15 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d8 P\n\n"
+}

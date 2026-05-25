@@ -1,0 +1,14 @@
+{
+  "id": "skilled",
+  "title": "Skilled",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain proficiency in any combination of three Skill List; Skills or tools of your choice.  Repeatable You can take this feat more than once....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/skilled.json",
+  "markdown": "# Skilled\n\nYou gain proficiency in any combination of three Skill List; Skills or tools of your choice.\n\n## Repeatable\n\nYou can take this feat more than once."
+}

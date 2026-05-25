@@ -1,0 +1,14 @@
+{
+  "id": "shield",
+  "title": "Shield",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "No description available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/shield.json",
+  "markdown": "# Shield\n\n"
+}

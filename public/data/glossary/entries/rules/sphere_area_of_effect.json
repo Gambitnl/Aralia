@@ -1,0 +1,14 @@
+{
+  "id": "sphere_area_of_effect",
+  "title": "Sphere [Area of Effect]",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specif...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/sphere_area_of_effect.json",
+  "markdown": "# Sphere [Area of Effect]\n\nA Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere.\n\nA Sphere's point of origin is included in the Sphere's area of effect."
+}

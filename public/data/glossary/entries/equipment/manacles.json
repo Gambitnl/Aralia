@@ -1,0 +1,14 @@
+{
+  "id": "manacles",
+  "title": "Manacles",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 6 lb. As a utilize action, you can use Manacles to bind an unwilling Small or Medium creature within 5 feet of y...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/manacles.json",
+  "markdown": "# Manacles\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 6 lb.\n\nAs a [[utilize]] action, you can use Manacles to bind an unwilling Small or Medium creature within 5 feet of yourself that has the [[grappled]], [[incapacitated]], or [[restrained]] condition if you succeed on a DC 13 Dexterity ([[sleight_of_hand of Hand]]) check. While bound, a creature has [[disadvantage]] on attack rolls, and the creature is [[restrained]] if the Manacles are attached to a chain or hook that is fixed in place. Escaping the Manacles requires a successful DC 20 Dexterity ([[sleight_of_hand of Hand]]) check as an action. Bursting them requires a successful DC 25 Strength ([[athletics]]) check as an action.\n\nEach set of Manacles comes with a key. Without the key, a creature can use [[thieves_tools' Tools]] to pick the Manacles' lock with a successful DC 15 Dexterity ([[sleight_of_hand of Hand]]) check."
+}

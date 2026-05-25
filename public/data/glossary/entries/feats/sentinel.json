@@ -1,0 +1,14 @@
+{
+  "id": "sentinel",
+  "title": "Sentinel",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Guardian Immediately after a creature within 5 feet of you takes the disengage action or hits a target other than yo...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/sentinel.json",
+  "markdown": "# Sentinel\n\nYou gain the following benefits.\n\n## Guardian\n\nImmediately after a creature within 5 feet of you takes the [[disengage]] action or hits a target other than you with an attack, you can make an [[opportunity_attack Attack]] against that creature.\n\n## Halt\n\nWhen you hit a creature with an [[opportunity_attack Attack]], the creature's [[speed]] becomes 0 for the rest of the current turn."
+}

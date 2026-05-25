@@ -1,0 +1,14 @@
+{
+  "id": "candle",
+  "title": "Candle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.01 gp For 1 hour, a lit Candle sheds bright_light Light in a 5-foot radius and dim_light Light for an additional 5 feet....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/candle.json",
+  "markdown": "# Candle\n\n- **Type**: G|XPHB\n- **Cost**: 0.01 gp\n\nFor 1 hour, a lit Candle sheds [[bright_light Light]] in a 5-foot radius and [[dim_light Light]] for an additional 5 feet."
+}

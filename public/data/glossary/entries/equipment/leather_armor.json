@@ -1,0 +1,14 @@
+{
+  "id": "leather_armor",
+  "title": "Leather Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: LA|XPHB - Cost: 10 gp - Weight: 10 lb. - Armor Class: 11...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/leather_armor.json",
+  "markdown": "# Leather Armor\n\n- **Type**: LA|XPHB\n- **Cost**: 10 gp\n- **Weight**: 10 lb.\n- **Armor Class**: 11\n\n"
+}

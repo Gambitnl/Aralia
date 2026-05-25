@@ -1,0 +1,14 @@
+{
+  "id": "viol",
+  "title": "Viol",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: INS|XPHB - Cost: 30 gp - Weight: 1 lb. - Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/viol.json",
+  "markdown": "# Viol\n\n- **Type**: INS|XPHB\n- **Cost**: 30 gp\n- **Weight**: 1 lb.\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)"
+}

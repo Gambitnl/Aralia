@@ -1643,31 +1643,6 @@
         "type": "subclass"
       },
       {
-        "id": "celestial_patron_subclass",
-        "title": "Celestial Patron (Warlock Subclass)",
-        "category": "Character Classes",
-        "tags": [
-          "warlock",
-          "subclass",
-          "patron",
-          "celestial",
-          "healing",
-          "radiant"
-        ],
-        "excerpt": "Call on the power of the heavens, healing allies and searing foes with holy light.",
-        "aliases": [
-          "holy warlock"
-        ],
-        "seeAlso": [
-          "warlock",
-          "healing_light",
-          "radiant_soul"
-        ],
-        "filePath": "/data/glossary/entries/classes/warlock_subclasses/celestial.json",
-        "parentClass": "warlock",
-        "type": "subclass"
-      },
-      {
         "id": "fiend_patron_subclass",
         "title": "Fiend Patron (Warlock Subclass)",
         "category": "Character Classes",

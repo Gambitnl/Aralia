@@ -1,0 +1,14 @@
+{
+  "id": "evasive_footwork",
+  "title": "Evasive Footwork",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the disengage action. You also roll the die and add the number rolled to your AC...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/evasive_footwork.json",
+  "markdown": "# Evasive Footwork\n\nAs a [[bonus_action Action]], you can expend one Superiority Die and take the [[disengage]] action. You also roll the die and add the number rolled to your AC until the start of your next turn."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_vitality",
+  "title": "Potion of Vitality",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, it removes any exhaustion levels you have and ends the poisoned condition on you. For the...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_vitality.json",
+  "markdown": "# Potion of Vitality\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, it removes any [[exhaustion]] levels you have and ends the [[poisoned]] condition on you. For the next 24 hours, you regain the maximum number of [[hit_points Points]] for any [[hit_point_dice Point Die]] you spend.\n\nThis potion's crimson liquid regularly pulses with dull light, calling to mind a heartbeat."
+}

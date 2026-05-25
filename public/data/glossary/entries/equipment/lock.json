@@ -1,0 +1,14 @@
+{
+  "id": "lock",
+  "title": "Lock",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 10 gp - Weight: 1 lb. A Lock comes with a key. Without the key, a creature can use thieves_tools' Tools to pick this Lock with ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/lock.json",
+  "markdown": "# Lock\n\n- **Type**: G|XPHB\n- **Cost**: 10 gp\n- **Weight**: 1 lb.\n\nA Lock comes with a key. Without the key, a creature can use [[thieves_tools' Tools]] to pick this Lock with a successful DC 15 Dexterity ([[sleight_of_hand of Hand]]) check."
+}

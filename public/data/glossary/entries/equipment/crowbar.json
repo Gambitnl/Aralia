@@ -1,0 +1,14 @@
+{
+  "id": "crowbar",
+  "title": "Crowbar",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 5 lb. Using a Crowbar gives you advantage on Strength checks where the Crowbar's leverage can be applied....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/crowbar.json",
+  "markdown": "# Crowbar\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 5 lb.\n\nUsing a Crowbar gives you [[advantage]] on Strength checks where the Crowbar's leverage can be applied."
+}

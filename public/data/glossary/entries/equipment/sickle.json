@@ -1,0 +1,14 @@
+{
+  "id": "sickle",
+  "title": "Sickle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 1 gp - Weight: 2 lb. - Damage: 1d4 S - Properties: L|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/sickle.json",
+  "markdown": "# Sickle\n\n- **Type**: M|XPHB\n- **Cost**: 1 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d4 S\n- **Properties**: L|XPHB\n\n"
+}

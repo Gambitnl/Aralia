@@ -1,0 +1,14 @@
+{
+  "id": "boots_of_elvenkind",
+  "title": "Boots of Elvenkind",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While you wear these boots, your steps make no sound, regardless of the surface you are moving across. You also have advantage on Dexterity (stealth) ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/boots_of_elvenkind.json",
+  "markdown": "# Boots of Elvenkind\n\nWhile you wear these boots, your steps make no sound, regardless of the surface you are moving across. You also have [[advantage]] on Dexterity ([[stealth]]) checks."
+}

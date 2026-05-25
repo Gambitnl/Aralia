@@ -1,0 +1,14 @@
+{
+  "id": "pony",
+  "title": "Pony",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MNT|XPHB - Cost: 30 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pony.json",
+  "markdown": "# Pony\n\n- **Type**: MNT|XPHB\n- **Cost**: 30 gp\n\n"
+}

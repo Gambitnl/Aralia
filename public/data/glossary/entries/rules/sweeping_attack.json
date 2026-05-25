@@ -1,0 +1,14 @@
+{
+  "id": "sweeping_attack",
+  "title": "Sweeping Attack",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you hit a creature with a melee attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to damage a...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/sweeping_attack.json",
+  "markdown": "# Sweeping Attack\n\nWhen you hit a creature with a melee attack roll using a weapon or an [[unarmed_strike Strike]], you can expend one Superiority Die to attempt to damage another creature. Choose another creature within 5 feet of the original target and within your reach. If the original attack roll would hit the second creature, it takes damage equal to the number you roll on your Superiority Die. The damage is of the same type dealt by the original attack."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone_regeneration",
+  "title": "Ioun Stone, Regeneration",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} You regain 15 hit_points Points at the end of each hour this pearly white spindle orbits your head if you have at least 1 hit_p...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone_regeneration.json",
+  "markdown": "# Ioun Stone, Regeneration\n\n{#itemEntry Ioun Stone}\n\nYou regain 15 [[hit_points Points]] at the end of each hour this pearly white spindle orbits your head if you have at least 1 [[hit_points Point]]."
+}

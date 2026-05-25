@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone_absorption",
+  "title": "Ioun Stone, Absorption",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} While this pale lavender ellipsoid orbits your head, you can take a reaction to cancel a spell of level 4 or lower cast by a cr...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone_absorption.json",
+  "markdown": "# Ioun Stone, Absorption\n\n{#itemEntry Ioun Stone}\n\nWhile this pale lavender ellipsoid orbits your head, you can take a [[reaction]] to cancel a spell of level 4 or lower cast by a creature you can see. A canceled spell has no effect, and any resources used to cast it are wasted. Once the stone has canceled 20 levels of spells, it burns out, turns dull gray, and loses its magic."
+}

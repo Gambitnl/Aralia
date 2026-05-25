@@ -1,0 +1,14 @@
+{
+  "id": "pike",
+  "title": "Pike",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 18 lb. - Damage: 1d10 P - Properties: H|XPHB, R|XPHB, 2H|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pike.json",
+  "markdown": "# Pike\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 18 lb.\n- **Damage**: 1d10 P\n- **Properties**: H|XPHB, R|XPHB, 2H|XPHB\n\n"
+}

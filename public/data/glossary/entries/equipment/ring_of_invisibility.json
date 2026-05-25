@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_invisibility",
+  "title": "Ring of Invisibility",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG While wearing this ring, you can take a magic action to give yourself the invisible condition. You remain invisible until the ring is ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_invisibility.json",
+  "markdown": "# Ring of Invisibility\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you can take a [[magic]] action to give yourself the [[invisible]] condition. You remain [[invisible]] until the ring is removed or until you take a [[bonus_action Action]] to become visible again."
+}

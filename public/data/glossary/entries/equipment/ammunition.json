@@ -1,0 +1,14 @@
+{
+  "id": "ammunition",
+  "title": "Ammunition",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "No description available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ammunition.json",
+  "markdown": "# Ammunition\n\n"
+}

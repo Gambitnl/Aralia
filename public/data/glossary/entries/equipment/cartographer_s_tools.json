@@ -1,0 +1,14 @@
+{
+  "id": "cartographer_s_tools",
+  "title": "Cartographer's Tools",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: AT|XPHB - Cost: 15 gp - Weight: 6 lb. - Ability:: Wisdom - Utilize:: Draft a map of a small area (DC 15) - Craft:: map...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cartographer_s_tools.json",
+  "markdown": "# Cartographer's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 15 gp\n- **Weight**: 6 lb.\n\n- **Ability::** Wisdom\n- **Utilize::** Draft a map of a small area (DC 15)\n- **Craft::** [[map]]"
+}

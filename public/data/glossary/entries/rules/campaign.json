@@ -1,0 +1,14 @@
+{
+  "id": "campaign",
+  "title": "Campaign",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A campaign is a series of [[adventure]]....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/campaign.json",
+  "markdown": "# Campaign\n\nA campaign is a series of [[adventure]]."
+}

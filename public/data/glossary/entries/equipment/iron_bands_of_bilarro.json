@@ -1,0 +1,14 @@
+{
+  "id": "iron_bands_of_bilarro",
+  "title": "Iron Bands of Bilarro",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. This rusty iron sphere measures 3 inches in diameter and weighs 1 pound. You can take a magic action to throw the sphere at a Huge or ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/iron_bands_of_bilarro.json",
+  "markdown": "# Iron Bands of Bilarro\n\n- **Weight**: 1 lb.\n\nThis rusty iron sphere measures 3 inches in diameter and weighs 1 pound. You can take a [[magic]] action to throw the sphere at a Huge or smaller creature you can see within 60 feet of yourself. As the sphere moves through the air, it opens into a tangle of metal bands.\n\nMake a ranged attack roll with an attack bonus equal to your Dexterity modifier plus your [[proficiency Bonus]]. On a hit, the target has the [[restrained]] condition until you take a [[bonus_action Action]] to issue a command that releases it. Doing so or missing with the attack causes the bands to contract and become a sphere once more.\n\nA creature that can touch the bands, including the one [[restrained]], can take an action to make a DC 20 Strength ([[athletics]]) check to break the iron bands. On a successful check, the item is destroyed, and the [[restrained]] creature is freed. On a failed check, any further attempts made by that creature automatically fail until 24 hours have elapsed.\n\nOnce the bands are used, they can't be used again until the next dawn."
+}

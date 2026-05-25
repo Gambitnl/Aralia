@@ -1,0 +1,14 @@
+{
+  "id": "slow",
+  "title": "Slow",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemMastery"
+  ],
+  "excerpt": "If you hit a creature with this weapon and deal damage to it, you can reduce its speed by 10 feet until the start of your next turn. If the creature i...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/slow.json",
+  "markdown": "# Slow\n\nIf you hit a creature with this weapon and deal damage to it, you can reduce its [[speed]] by 10 feet until the start of your next turn. If the creature is hit more than once by weapons that have this property, the [[speed]] reduction doesn't exceed 10 feet."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "vial",
+  "title": "Vial",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp A Vial holds up to 4 ounces....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/vial.json",
+  "markdown": "# Vial\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n\nA Vial holds up to 4 ounces."
+}

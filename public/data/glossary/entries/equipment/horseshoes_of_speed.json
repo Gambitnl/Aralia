@@ -1,0 +1,14 @@
+{
+  "id": "horseshoes_of_speed",
+  "title": "Horseshoes of Speed",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "These horseshoes come in a set of four. As a magic action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon t...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/horseshoes_of_speed.json",
+  "markdown": "# Horseshoes of Speed\n\nThese horseshoes come in a set of four. As a [[magic]] action, you can touch one of the horseshoes to the hoof of a horse or similar creature, whereupon the horseshoe affixes itself to the hoof. Removing a horseshoe also takes a [[magic]] action.\n\nWhile all four horseshoes are attached to the same creature, its [[speed]] is increased by 30 feet."
+}

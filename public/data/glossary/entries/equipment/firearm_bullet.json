@@ -1,0 +1,14 @@
+{
+  "id": "firearm_bullet",
+  "title": "Firearm Bullet",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: A|XPHB - Cost: 0.3 gp - Weight: 0.2 lb. Firearm Bullets are destroyed upon use in a modern firearm....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/firearm_bullet.json",
+  "markdown": "# Firearm Bullet\n\n- **Type**: A|XPHB\n- **Cost**: 0.3 gp\n- **Weight**: 0.2 lb.\n\nFirearm Bullets are destroyed upon use in a modern firearm."
+}

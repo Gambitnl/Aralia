@@ -44,6 +44,23 @@ dashboard/API code edits, verifier runs, and local checkpoint commits stays
 inside the implementation loop as long as it does not push, launch, merge, sync,
 contact external systems, or claim that a live boundary advanced.
 
+Documentation/proof synchronization is part of the architecture, not editorial
+cleanup. The cold-start guide, operating spec, audit, open task queue,
+proving-ground tracker, and decision ledger must stay aligned as real tasks
+move through Symphony. When task execution reveals workflow friction, the local
+foreman either patches the bounded doc/workflow issue or records the gap in the
+owning live tracker before treating that proof slice as settled.
+
+Artifact ownership is intentionally narrow. Symphony may produce rich local
+receipts and runtime state so the dashboard can explain itself, but those
+artifacts are not automatically Aralia GitHub history. Durable repo history
+should contain task packets, prompts, acceptance criteria, package tracker
+updates, final product PR links, focused workflow source/verifiers, and short
+summaries of material blockers or accepted repairs. Raw receipts, generated
+manifests, dashboard caches, click logs, local task-store churn, and
+`.symphony`/`.jules` run output stay ignored or external unless a small excerpt
+is deliberately promoted into an Aralia-facing doc.
+
 ## Architecture At A Glance
 
 ```mermaid
@@ -62,7 +79,7 @@ flowchart TD
   Browser["Codex Browser plugin bridge\nJules visual status reconciliation"]
   Worker["Codex worker runner\nsrc/agent-runner.ts\nsrc/workspace.ts\nsrc/prompt-renderer.ts"]
   Proof["Verifiers and proof board\nscripts/verify-*.mjs\n/proof"]
-  Docs["Spec and audit\nJULES_MIDDLEMAN_OPERATING_SPEC.md\nJULES_MIDDLEMAN_AUDIT.md"]
+  Docs["Spec, audit, queue, and cold-start docs\nJULES_MIDDLEMAN_OPERATING_SPEC.md\nJULES_MIDDLEMAN_AUDIT.md"]
 
   CLI --> Workflow
   Workflow --> Orchestrator

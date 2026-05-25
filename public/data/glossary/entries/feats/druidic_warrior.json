@@ -1,0 +1,14 @@
+{
+  "id": "druidic_warrior",
+  "title": "Druidic Warrior",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You learn two Druid cantrips of your choice. guidance and starry_wisp Wisp are recommended. The chosen cantrips count as Ranger spells for you, and Wi...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/druidic_warrior.json",
+  "markdown": "# Druidic Warrior\n\nYou learn two Druid cantrips of your choice. [[guidance]] and [[starry_wisp Wisp]] are recommended. The chosen cantrips count as Ranger spells for you, and Wisdom is your spellcasting ability for them. Whenever you gain a Ranger level, you can replace one of these cantrips with another Druid cantrip."
+}

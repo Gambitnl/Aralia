@@ -1,0 +1,14 @@
+{
+  "id": "stabling_per_day",
+  "title": "Stabling (per day)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: TAH|XPHB - Cost: 0.05 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/stabling_per_day.json",
+  "markdown": "# Stabling (per day)\n\n- **Type**: TAH|XPHB\n- **Cost**: 0.05 gp\n\n"
+}

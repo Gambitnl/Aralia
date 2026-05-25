@@ -1,0 +1,14 @@
+{
+  "id": "musical_instrument",
+  "title": "Musical Instrument",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemGroup"
+  ],
+  "excerpt": "- Type: INS|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/musical_instrument.json",
+  "markdown": "# Musical Instrument\n\n- **Type**: INS|XPHB\n\n"
+}

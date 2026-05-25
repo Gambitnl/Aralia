@@ -1,0 +1,14 @@
+{
+  "id": "dagger",
+  "title": "Dagger",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 2 gp - Weight: 1 lb. - Damage: 1d4 P - Properties: F|XPHB, L|XPHB, T|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/dagger.json",
+  "markdown": "# Dagger\n\n- **Type**: M|XPHB\n- **Cost**: 2 gp\n- **Weight**: 1 lb.\n- **Damage**: 1d4 P\n- **Properties**: F|XPHB, L|XPHB, T|XPHB\n\n"
+}

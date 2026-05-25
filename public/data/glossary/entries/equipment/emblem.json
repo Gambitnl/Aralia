@@ -1,0 +1,14 @@
+{
+  "id": "emblem",
+  "title": "Emblem",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp For an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a shield....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/emblem.json",
+  "markdown": "# Emblem\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n\nFor an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a [[shield]]."
+}

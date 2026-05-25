@@ -1,0 +1,14 @@
+{
+  "id": "explorer_s_pack",
+  "title": "Explorer's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 10 gp - Weight: 55 lb. An Explorer's Pack contains the following items: backpack, bedroll, 2 flasks of oil, 10 days of rations,...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/explorer_s_pack.json",
+  "markdown": "# Explorer's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 10 gp\n- **Weight**: 55 lb.\n\nAn Explorer's Pack contains the following items: [[backpack]], [[bedroll]], 2 flasks of [[oil]], 10 days of [[rations]], [[rope]], [[tinderbox]], 10 [[torch]], and [[waterskin]]."
+}

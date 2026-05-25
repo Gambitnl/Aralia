@@ -1,0 +1,14 @@
+{
+  "id": "longbow",
+  "title": "Longbow",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 50 gp - Weight: 2 lb. - Damage: 1d8 P - Properties: A|XPHB, H|XPHB, 2H|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/longbow.json",
+  "markdown": "# Longbow\n\n- **Type**: R|XPHB\n- **Cost**: 50 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d8 P\n- **Properties**: A|XPHB, H|XPHB, 2H|XPHB\n\n"
+}

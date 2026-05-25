@@ -1,0 +1,14 @@
+{
+  "id": "pole",
+  "title": "Pole",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.05 gp - Weight: 7 lb. A Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Streng...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pole.json",
+  "markdown": "# Pole\n\n- **Type**: G|XPHB\n- **Cost**: 0.05 gp\n- **Weight**: 7 lb.\n\nA Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength ([[athletics]]) check as part of a High or [[long_jump Jump]], you can use the Pole to vault, giving yourself [[advantage]] on the check."
+}

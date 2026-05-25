@@ -1,0 +1,14 @@
+{
+  "id": "cylinder_area_of_effect",
+  "title": "Cylinder [Area of Effect]",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A Cylinder is an area of effect that extends in straight lines from a point of origin located at the center of the circular top or bottom of the Cylin...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/cylinder_area_of_effect.json",
+  "markdown": "# Cylinder [Area of Effect]\n\nA Cylinder is an area of effect that extends in straight lines from a point of origin located at the center of the circular top or bottom of the Cylinder. The effect that creates a Cylinder specifies the radius of the Cylinder's base and the Cylinder's height.\n\nA Cylinder's point of origin is included in the area of effect."
+}

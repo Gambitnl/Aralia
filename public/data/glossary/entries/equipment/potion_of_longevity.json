@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_longevity",
+  "title": "Potion of Longevity",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, your physical age is reduced by 1d6 + 6 years, to a minimum of 13 years. Each time you su...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_longevity.json",
+  "markdown": "# Potion of Longevity\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, your physical age is reduced by 1d6 + 6 years, to a minimum of 13 years. Each time you subsequently drink a Potion of Longevity, there is 10 percent cumulative chance that you instead age by 1d6 + 6 years.\n\nSuspended in this amber liquid is a tiny heart that, against all reason, is still beating. These ingredients vanish when the potion is opened."
+}

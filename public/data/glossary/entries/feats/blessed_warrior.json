@@ -1,0 +1,14 @@
+{
+  "id": "blessed_warrior",
+  "title": "Blessed Warrior",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You learn two Cleric cantrips of your choice. guidance and sacred_flame Flame are recommended. The chosen cantrips count as Paladin spells for you, an...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/blessed_warrior.json",
+  "markdown": "# Blessed Warrior\n\nYou learn two Cleric cantrips of your choice. [[guidance]] and [[sacred_flame Flame]] are recommended. The chosen cantrips count as Paladin spells for you, and Charisma is your spellcasting ability for them. Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
+}

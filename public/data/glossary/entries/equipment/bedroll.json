@@ -1,0 +1,14 @@
+{
+  "id": "bedroll",
+  "title": "Bedroll",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 7 lb. A Bedroll sleeps one Small or Medium creature. While in a Bedroll, you automatically succeed on saving thr...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bedroll.json",
+  "markdown": "# Bedroll\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 7 lb.\n\nA Bedroll sleeps one Small or Medium creature. While in a Bedroll, you automatically succeed on saving throws against extreme cold (see the Dungeon Master's Guide)."
+}

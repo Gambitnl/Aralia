@@ -1,0 +1,14 @@
+{
+  "id": "archery",
+  "title": "Archery",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain a +2 bonus to attack rolls you make with Ranged weapons....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/archery.json",
+  "markdown": "# Archery\n\nYou gain a +2 bonus to attack rolls you make with Ranged weapons."
+}

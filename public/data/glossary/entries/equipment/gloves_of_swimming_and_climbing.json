@@ -1,0 +1,14 @@
+{
+  "id": "gloves_of_swimming_and_climbing",
+  "title": "Gloves of Swimming and Climbing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength (athletics) checks made to climb ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/gloves_of_swimming_and_climbing.json",
+  "markdown": "# Gloves of Swimming and Climbing\n\nWhile wearing these gloves, climbing and swimming don't cost you extra movement, and you gain a +5 bonus to Strength ([[athletics]]) checks made to climb or swim."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "camel",
+  "title": "Camel",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MNT|XPHB - Cost: 50 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/camel.json",
+  "markdown": "# Camel\n\n- **Type**: MNT|XPHB\n- **Cost**: 50 gp\n\n"
+}

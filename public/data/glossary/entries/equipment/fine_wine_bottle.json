@@ -1,0 +1,14 @@
+{
+  "id": "fine_wine_bottle",
+  "title": "Fine Wine (bottle)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: FD|XPHB - Cost: 10 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/fine_wine_bottle.json",
+  "markdown": "# Fine Wine (bottle)\n\n- **Type**: FD|XPHB\n- **Cost**: 10 gp\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone_mastery",
+  "title": "Ioun Stone, Mastery",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} Your proficiency Bonus increases by 1 while this pale green prism orbits your head....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone_mastery.json",
+  "markdown": "# Ioun Stone, Mastery\n\n{#itemEntry Ioun Stone}\n\nYour [[proficiency Bonus]] increases by 1 while this pale green prism orbits your head."
+}

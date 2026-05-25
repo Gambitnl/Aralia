@@ -1,0 +1,14 @@
+{
+  "id": "insight",
+  "title": "Insight",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Discern a person's mood and intentions....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/insight.json",
+  "markdown": "# Insight\n\nDiscern a person's mood and intentions."
+}

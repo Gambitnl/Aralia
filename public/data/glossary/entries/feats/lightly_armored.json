@@ -1,0 +1,14 @@
+{
+  "id": "lightly_armored",
+  "title": "Lightly Armored",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Armor Training You gain training with Light armor and Shields....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/lightly_armored.json",
+  "markdown": "# Lightly Armored\n\nYou gain the following benefits.\n\n## Armor Training\n\nYou gain training with Light armor and Shields."
+}

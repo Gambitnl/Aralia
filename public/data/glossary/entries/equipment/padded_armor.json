@@ -1,0 +1,14 @@
+{
+  "id": "padded_armor",
+  "title": "Padded Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: LA|XPHB - Cost: 5 gp - Weight: 8 lb. - Armor Class: 11...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/padded_armor.json",
+  "markdown": "# Padded Armor\n\n- **Type**: LA|XPHB\n- **Cost**: 5 gp\n- **Weight**: 8 lb.\n- **Armor Class**: 11\n\n"
+}

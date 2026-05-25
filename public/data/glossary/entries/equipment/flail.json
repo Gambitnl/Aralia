@@ -1,0 +1,14 @@
+{
+  "id": "flail",
+  "title": "Flail",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 2 lb. - Damage: 1d8 B...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/flail.json",
+  "markdown": "# Flail\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d8 B\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "longsword",
+  "title": "Longsword",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 15 gp - Weight: 3 lb. - Damage: 1d8 S - Properties: V|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/longsword.json",
+  "markdown": "# Longsword\n\n- **Type**: M|XPHB\n- **Cost**: 15 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d8 S\n- **Properties**: V|XPHB\n\n"
+}

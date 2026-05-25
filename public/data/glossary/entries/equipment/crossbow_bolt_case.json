@@ -1,0 +1,14 @@
+{
+  "id": "crossbow_bolt_case",
+  "title": "Crossbow Bolt Case",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 1 lb. A crossbow_bolt_case Bolt Case holds up to 20 Bolts....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/crossbow_bolt_case.json",
+  "markdown": "# Crossbow Bolt Case\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 1 lb.\n\nA [[crossbow_bolt_case Bolt Case]] holds up to 20 Bolts."
+}

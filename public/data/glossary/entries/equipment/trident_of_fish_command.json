@@ -1,0 +1,14 @@
+{
+  "id": "trident_of_fish_command",
+  "title": "Trident of Fish Command",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d8 P - Properties: T|XPHB, V|XPHB This magic weapon has 3 charges, and it regains 1d3 expended charges daily...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/trident_of_fish_command.json",
+  "markdown": "# Trident of Fish Command\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d8 P\n- **Properties**: T|XPHB, V|XPHB\n\nThis magic weapon has 3 charges, and it regains 1d3 expended charges daily at dawn. While you carry it, you can expend 1 charge to cast [[dominate_beast Beast]] (save DC 15) from it on a Beast that has a [[swim_speed Speed]]."
+}

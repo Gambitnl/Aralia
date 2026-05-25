@@ -1,0 +1,14 @@
+{
+  "id": "manual_of_gainful_exercise",
+  "title": "Manual of Gainful Exercise",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 5 lb. This book describes fitness exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer st...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/manual_of_gainful_exercise.json",
+  "markdown": "# Manual of Gainful Exercise\n\n- **Weight**: 5 lb.\n\nThis book describes fitness exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book's contents and practicing its guidelines, your Strength increases by 2, to a maximum of 30. The manual then loses its magic, but regains it in a century."
+}

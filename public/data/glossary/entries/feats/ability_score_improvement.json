@@ -1,0 +1,14 @@
+{
+  "id": "ability_score_improvement",
+  "title": "Ability Score Improvement",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "Increase one ability score of your choice by 2, or increase two ability scores of your choice by 1. This feat can't increase an ability score above 20...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/ability_score_improvement.json",
+  "markdown": "# Ability Score Improvement\n\nIncrease one ability score of your choice by 2, or increase two ability scores of your choice by 1. This feat can't increase an ability score above 20.\n\n## Repeatable\n\nYou can take this feat more than once."
+}

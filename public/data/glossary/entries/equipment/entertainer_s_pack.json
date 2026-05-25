@@ -1,0 +1,14 @@
+{
+  "id": "entertainer_s_pack",
+  "title": "Entertainer's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 40 gp - Weight: 58.5 lb. An Entertainer's Pack contains the following items: backpack, bedroll, bell, bullseye_lantern Lantern,...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/entertainer_s_pack.json",
+  "markdown": "# Entertainer's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 40 gp\n- **Weight**: 58.5 lb.\n\nAn Entertainer's Pack contains the following items: [[backpack]], [[bedroll]], [[bell]], [[bullseye_lantern Lantern]], 3 [[costume]], [[mirror]], 8 flasks of [[oil]], 9 days of [[rations]], [[tinderbox]], and [[waterskin]]."
+}

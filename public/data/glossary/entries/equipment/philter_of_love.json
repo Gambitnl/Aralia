@@ -1,0 +1,14 @@
+{
+  "id": "philter_of_love",
+  "title": "Philter of Love",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. The next time you see a creature within 10 minutes after drinking this philter, you are charmed by that creature and ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/philter_of_love.json",
+  "markdown": "# Philter of Love\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nThe next time you see a creature within 10 minutes after drinking this philter, you are [[charmed]] by that creature and have the [[charmed]] condition for 1 hour.\n\nThis rose-hued, effervescent liquid contains one easy-to-miss bubble shaped like a heart."
+}

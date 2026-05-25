@@ -2,10 +2,13 @@
   "id": "breaking_objects",
   "title": "Breaking Objects",
   "category": "Rules Glossary",
-  "tags": [],
-  "excerpt": "Rules for damaging and destroying objects.",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "Objects can be harmed by attacks and by some spells, using the rules below. If an object is exceedingly fragile, the DM may allow a creature to break ...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/breaking_objects.json",
-  "markdown": "# Breaking Objects\r\nAs an action, you can automatically break or otherwise destroy a fragile, nonmagical object, such as a glass container or a piece of paper. If you try to damage something more resilient, the game might use the rules on breaking objects in the Rules Glossary."
+  "markdown": "# Breaking Objects\n\nObjects can be harmed by attacks and by some spells, using the rules below. If an object is exceedingly fragile, the DM may allow a creature to break it automatically with the [[attack]] or [[utilize]] action.\n\n### Armor Class\n\nThe Object [[armor_class Class]] table suggests ACs for various substances.\n\n**Object Armor Class**\n\n| AC | Substance |\n| --- | --- |\n| 11 | Cloth, paper, rope |\n| 13 | Crystal, glass, ice |\n| 15 | Wood |\n| 17 | Stone |\n| 19 | Iron, steel |\n| 21 | Mithral |\n| 23 | Adamantite |\n\n### Hit Points\n\nAn object is destroyed when it has 0 Hit Points. The Object Hit Points table suggests [[hit_points Points]] for fragile and resilient objects that are Large or smaller. To track Hit Points for a Huge or Gargantuan object, divide it into Large or smaller sections, and track each section's [[hit_points Points]] separately. The DM determines whether destroying part of an object causes the whole thing to collapse.\n\n**Object Hit Points**\n\n| Size | Fragile | Resilient |\n| --- | --- | --- |\n| Tiny (bottle, lock) | 2 (1d4) | 5 (2d4) |\n| Small (chest, lute) | 3 (1d6) | 10 (3d6) |\n| Medium (barrel, chandelier) | 4 (1d8) | 18 (4d8) |\n| Large (cart, dining table) | 5 (1d10) | 27 (5d10) |\n\n### Damage Types and Objects\n\nObjects have [[immunity]] to Poison and Psychic damage. The DM might decide that some [[damage_types types]] are more or less effective against an object. For example, Bludgeoning damage works well for smashing things but not for cutting. Paper or cloth objects might have [[vulnerability]] to Fire damage.\n\n### Damage Threshold\n\nBig objects, such as castle walls, often have extra resilience represented by a damage threshold.\n\n### No Ability Scores\n\nAn object lacks ability scores unless a rule assigns scores to the object. Without ability scores, an object can't make ability checks, and it fails all saving throws."
 }

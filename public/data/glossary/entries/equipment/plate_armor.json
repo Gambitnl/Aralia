@@ -1,0 +1,14 @@
+{
+  "id": "plate_armor",
+  "title": "Plate Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: HA|XPHB - Cost: 1500 gp - Weight: 65 lb. - Armor Class: 18...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/plate_armor.json",
+  "markdown": "# Plate Armor\n\n- **Type**: HA|XPHB\n- **Cost**: 1500 gp\n- **Weight**: 65 lb.\n- **Armor Class**: 18\n\n"
+}

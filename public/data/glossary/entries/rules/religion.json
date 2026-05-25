@@ -1,0 +1,14 @@
+{
+  "id": "religion",
+  "title": "Religion",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Recall lore about gods, religious rituals, and holy symbols....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/religion.json",
+  "markdown": "# Religion\n\nRecall lore about gods, religious rituals, and holy symbols."
+}

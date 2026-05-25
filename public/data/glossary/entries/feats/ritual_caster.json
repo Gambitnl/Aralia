@@ -1,0 +1,14 @@
+{
+  "id": "ritual_caster",
+  "title": "Ritual Caster",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Ritual Spells Choose a number of level 1 spells equal to your proficiency Bonus that have the Ritual tag. You always...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/ritual_caster.json",
+  "markdown": "# Ritual Caster\n\nYou gain the following benefits.\n\n## Ritual Spells\n\nChoose a number of level 1 spells equal to your [[proficiency Bonus]] that have the Ritual tag. You always have those spells prepared, and you can cast them with any spell slots you have. The spells' spellcasting ability is the ability increased by this feat. Whenever your [[proficiency Bonus]] increases thereafter, you can add an additional level 1 spell with the [[ritual]] tag to the spells always prepared with this feature.\n\n## Quick Ritual\n\nWith this benefit, you can cast a [[ritual]] spell that you have prepared using its regular casting time rather than the extended time for a [[ritual]]. Doing so doesn't require a spell slot. Once you cast the spell in this way, you can't use this benefit again until you finish a [[long_rest Rest]]."
+}

@@ -29,8 +29,8 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1, 2, 3, and 4 are fully merged and completed.
-- The active frontier has advanced to **Package 5** (AI arbitration pilot) and **Package 6** (first mechanics bucket closure).
+- Packages 1 through 6 have been used to exercise the Symphony/Jules path; use
+  the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
 
 ---
@@ -39,16 +39,34 @@ For the active proving-ground Spell Phase 1 track:
 
 Documentation is part of the live workflow, not an after-action cleanup item. The following principles govern Symphony development and must be preserved by all foremen and workers.
 
+Every live task is also a workflow test. Foremen should advance the bounded
+task and correct the workflow record in the same pass when the task reveals
+dashboard friction, stale docs, unclear ownership, or missing proof. If the
+repair would cross a guarded boundary or derail the task, log the gap here, in
+the audit, or in the proving-ground tracker with the next proof target.
+
 ### 1. Canonical Reference Mapping
 - The canonical approval-boundary table is `../JULES_MIDDLEMAN_OPERATING_SPEC.md#approval-boundaries`.
 - The canonical workflow-phase table is `../JULES_MIDDLEMAN_OPERATING_SPEC.md#workflow-phases`.
 - For the active spell Phase 1 track, the operator has allowed assumed approvals at each phase boundary.
-- Every assumed approval must be logged in `SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` listing the decision point, options, decision made by the agent, rationale, and mutation performed or skipped.
+- Every assumed approval must be logged in
+  [`SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`](../decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md)
+  listing the decision point, options, decision made by the agent, rationale,
+  and mutation performed or skipped.
+- If an assumed approval or boundary decision exposes workflow/doc friction,
+  the same decision entry should point to the repair proof or the owning gap
+  entry so the decision report is not the only durable record.
 
 ### 2. Git & Verification Discipline
 - Do not gitignore contract verifiers.
 - Files matching `conductor/symphony/scripts/verify-*.mjs` are durable source when they protect the Symphony workflow.
 - Runtime state such as `conductor/symphony/.symphony/*`, live proof captures, visual verification images, and Jules run output should stay ignored.
+- Raw Symphony receipts and local dashboard byproducts should also stay ignored
+  by default. Promote only the short Aralia-facing answer that a future worker
+  needs, such as final package status, material PR links, current blocker, or
+  accepted repair outcome. Do not make spell trackers list every Symphony
+  support PR; point detailed workflow provenance back to this queue, the audit,
+  or the decision report.
 
 ### 3. Environment & Execution Guidelines
 - **Task Routing**: Symphony evaluates task scope sequentially. The next proof demonstrates sequential Jules execution and not parallel local workers.

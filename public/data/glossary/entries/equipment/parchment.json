@@ -1,0 +1,14 @@
+{
+  "id": "parchment",
+  "title": "Parchment",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.1 gp One sheet of Parchment can hold about 250 handwritten words....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/parchment.json",
+  "markdown": "# Parchment\n\n- **Type**: G|XPHB\n- **Cost**: 0.1 gp\n\nOne sheet of Parchment can hold about 250 handwritten words."
+}

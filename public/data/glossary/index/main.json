@@ -1,9 +1,12 @@
 {
-  "lastGenerated": "2026-04-22T20:05:08.311Z",
+  "lastGenerated": "2026-05-24T23:07:44.423Z",
   "index_files": [
+    "/data/glossary/index/character_backgrounds.json",
     "/data/glossary/index/character_classes.json",
     "/data/glossary/index/character_races.json",
     "/data/glossary/index/crafting.json",
+    "/data/glossary/index/equipment.json",
+    "/data/glossary/index/feats.json",
     "/data/glossary/index/lore.json",
     "/data/glossary/index/magic_items.json",
     "/data/glossary/index/rules_glossary.json",

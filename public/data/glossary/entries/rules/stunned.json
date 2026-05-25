@@ -1,0 +1,14 @@
+{
+  "id": "stunned",
+  "title": "Stunned",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Stunned condition, you experience the following effects....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/stunned.json",
+  "markdown": "# Stunned\n\nWhile you have the Stunned condition, you experience the following effects.\n\n### Incapacitated\n\nYou have the [[incapacitated]] condition.\n\n### Saving Throws Affected\n\nYou automatically fail Strength and Dexterity [[saving_throw throws]].\n\n### Attacks Affected\n\n[[attack]] rolls against you have [[advantage]]."
+}

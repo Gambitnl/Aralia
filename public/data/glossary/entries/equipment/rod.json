@@ -1,0 +1,14 @@
+{
+  "id": "rod",
+  "title": "Rod",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 10 gp - Weight: 2 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/rod.json",
+  "markdown": "# Rod\n\n- **Type**: SCF|XPHB\n- **Cost**: 10 gp\n- **Weight**: 2 lb.\n\n"
+}

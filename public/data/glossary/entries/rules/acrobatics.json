@@ -1,0 +1,14 @@
+{
+  "id": "acrobatics",
+  "title": "Acrobatics",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Stay on your feet in a tricky situation, or perform an acrobatic stunt....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/acrobatics.json",
+  "markdown": "# Acrobatics\n\nStay on your feet in a tricky situation, or perform an acrobatic stunt."
+}

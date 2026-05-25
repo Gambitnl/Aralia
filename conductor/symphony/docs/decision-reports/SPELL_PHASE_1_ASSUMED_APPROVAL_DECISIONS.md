@@ -14,6 +14,21 @@ It is to make the agent's choices inspectable after each phase: what decision
 was needed, what options existed, what the agent chose, why it chose that path,
 what changed, and what proof should come next.
 
+If a decision exposes Symphony workflow or documentation friction, the entry
+must also say whether the issue was repaired locally, logged in
+`conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`, logged in
+`conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`, or recorded as an
+adjacent gap in `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. The decision
+ledger should make the choice inspectable, but it should not become the only
+durable home for unresolved workflow work.
+
+This report is not a raw receipt archive. Record the decision moment, options,
+agent choice, evidence, mutation or non-mutation, and next proof. Do not copy
+dashboard caches, generated manifests, click logs, local task-store JSON, or
+lists of every Symphony support PR into a spell package record. If the decision
+matters to future spell work, summarize the durable consequence in the spell
+tracker or package packet; keep raw Symphony receipts external or ignored.
+
 ## Approval Envelope
 
 Approved for this Phase 1 test flow when scoped to the active documented slice:

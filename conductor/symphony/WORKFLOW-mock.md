@@ -37,3 +37,8 @@ Act as the Symphony foreman for this mock issue. Exercise the same path the real
 workflow should use: explain GitHub sync status, prepare or monitor a Jules
 handoff, track PR readiness, and avoid broad local implementation unless the
 operator explicitly asks for local-only coding.
+
+Use the same artifact boundary as the real workflow: durable task summaries can
+be tracked, but raw Symphony receipts, dashboard state, generated manifests,
+click logs, and support-PR lists stay local unless a concise summary is needed
+to explain the mock proof.

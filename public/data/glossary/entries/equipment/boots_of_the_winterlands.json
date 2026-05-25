@@ -1,0 +1,14 @@
+{
+  "id": "boots_of_the_winterlands",
+  "title": "Boots of the Winterlands",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "These furred boots are snug and feel warm. While wearing them, you gain the following benefits.  Cold Resistance You have resistance to Cold damage an...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/boots_of_the_winterlands.json",
+  "markdown": "# Boots of the Winterlands\n\nThese furred boots are snug and feel warm. While wearing them, you gain the following benefits.\n\n## Cold Resistance\n\nYou have [[resistance]] to Cold damage and can tolerate temperatures of 0 degrees Fahrenheit or lower without any additional protection.\n\n## Winter Strider\n\nYou ignore [[difficult_terrain Terrain]] created by ice or snow."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "sling",
+  "title": "Sling",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 0.1 gp - Damage: 1d4 B - Properties: A|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/sling.json",
+  "markdown": "# Sling\n\n- **Type**: R|XPHB\n- **Cost**: 0.1 gp\n- **Damage**: 1d4 B\n- **Properties**: A|XPHB\n\n"
+}

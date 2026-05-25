@@ -1,0 +1,14 @@
+{
+  "id": "quaal_s_feather_token_fan",
+  "title": "Quaal's Feather Token, Fan",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "This object looks like a feather. If you are on a boat or ship, you can take a magic action to toss the token up to 10 feet in the air. The token disa...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/quaal_s_feather_token_fan.json",
+  "markdown": "# Quaal's Feather Token, Fan\n\nThis object looks like a feather.\n\nIf you are on a boat or ship, you can take a [[magic]] action to toss the token up to 10 feet in the air. The token disappears, and a giant flapping fan takes its place. The fan floats and creates a strong wind. This wind can fill the sails of one ship, increasing its speed by 5 miles per hour for 8 hours. You can dismiss the fan as a [[magic]] action."
+}

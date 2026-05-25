@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_climbing",
+  "title": "Potion of Climbing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain a climb_speed Speed equal to your speed for 1 hour. During this time, you have a...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_climbing.json",
+  "markdown": "# Potion of Climbing\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain a [[climb_speed Speed]] equal to your [[speed]] for 1 hour. During this time, you have [[advantage]] on Strength ([[athletics]]) checks to climb.\n\nThis potion is separated into brown, silver, and gray layers resembling bands of stone. Shaking the bottle fails to mix the colors."
+}

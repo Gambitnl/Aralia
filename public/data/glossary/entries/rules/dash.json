@@ -1,0 +1,14 @@
+{
+  "id": "dash",
+  "title": "Dash",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "When you take the Dash action, you gain extra movement for the current turn. The increase equals your [[speed]] after applying any modifiers. With a [...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/dash.json",
+  "markdown": "# Dash\n\nWhen you take the Dash action, you gain extra movement for the current turn. The increase equals your [[speed]] after applying any modifiers. With a [[speed]] of 30 feet, for example, you can move up to 60 feet on your turn if you Dash. If your [[speed]] of 30 feet is reduced to 15 feet, you can move up to 30 feet this turn if you Dash.\n\nIf you have a special speed, such as a [[fly_speed Speed]] or [[swim_speed Speed]], you can use that speed instead of your [[speed]] when you take this action. You choose which speed to use each time you take it."
+}

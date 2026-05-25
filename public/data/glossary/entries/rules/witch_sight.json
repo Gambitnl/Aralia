@@ -1,0 +1,14 @@
+{
+  "id": "witch_sight",
+  "title": "Witch Sight",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You have truesight with a range of 30 feet....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/witch_sight.json",
+  "markdown": "# Witch Sight\n\nYou have [[truesight]] with a range of 30 feet."
+}

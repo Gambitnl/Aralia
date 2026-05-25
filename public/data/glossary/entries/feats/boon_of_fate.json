@@ -1,0 +1,14 @@
+{
+  "id": "boon_of_fate",
+  "title": "Boon of Fate",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Improve Fate When you or another creature within 60 feet of you succeeds on or fails a d20_test Test, you can roll 2...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/boon_of_fate.json",
+  "markdown": "# Boon of Fate\n\nYou gain the following benefits.\n\n## Improve Fate\n\nWhen you or another creature within 60 feet of you succeeds on or fails a [[d20_test Test]], you can roll 2d4 and apply the total rolled as a bonus or penalty to the d20 roll. Once you use this benefit, you can't use it again until you roll [[initiative]] or finish a [[short_rest]] or [[long_rest Rest]]."
+}

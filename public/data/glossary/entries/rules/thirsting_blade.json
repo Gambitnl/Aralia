@@ -1,0 +1,14 @@
+{
+  "id": "thirsting_blade",
+  "title": "Thirsting Blade",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You gain the Extra Attack feature for your pact weapon only. With that feature, you can attack twice with the weapon instead of once when you take the...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/thirsting_blade.json",
+  "markdown": "# Thirsting Blade\n\nYou gain the Extra Attack feature for your pact weapon only. With that feature, you can attack twice with the weapon instead of once when you take the [[attack]] action on your turn."
+}

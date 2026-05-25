@@ -1,0 +1,14 @@
+{
+  "id": "hermit",
+  "title": "Hermit",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Constitution, Wisdom, Charisma - Feat:: healer - Skill Proficiencies:: medicine, religion - Tool Proficiency:: herbalism_kit Kit - ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/hermit.json",
+  "markdown": "# Hermit\n\n- **Ability Scores::** Constitution, Wisdom, Charisma\n- **Feat::** [[healer]]\n- **Skill Proficiencies::** [[medicine]], [[religion]]\n- **Tool Proficiency::** [[herbalism_kit Kit]]\n- **Equipment::** Choose A or B: (A) [[quarterstaff]], [[herbalism_kit Kit]], [[bedroll]], [[book]] (philosophy), [[lamp]], [[oil]] (3 flasks), [[traveler_s_clothes's Clothes]], 16 GP; or (B) 50 GP"
+}

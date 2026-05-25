@@ -1,0 +1,14 @@
+{
+  "id": "blowgun",
+  "title": "Blowgun",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 10 gp - Weight: 1 lb. - Damage: 1 P - Properties: A|XPHB, LD|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/blowgun.json",
+  "markdown": "# Blowgun\n\n- **Type**: R|XPHB\n- **Cost**: 10 gp\n- **Weight**: 1 lb.\n- **Damage**: 1 P\n- **Properties**: A|XPHB, LD|XPHB\n\n"
+}

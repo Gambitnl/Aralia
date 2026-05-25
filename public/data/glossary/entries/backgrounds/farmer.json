@@ -1,0 +1,14 @@
+{
+  "id": "farmer",
+  "title": "Farmer",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Strength, Constitution, Wisdom - Feat:: tough - Skill Proficiencies:: animal_handling Handling, nature - Tool Proficiency:: carpent...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/farmer.json",
+  "markdown": "# Farmer\n\n- **Ability Scores::** Strength, Constitution, Wisdom\n- **Feat::** [[tough]]\n- **Skill Proficiencies::** [[animal_handling Handling]], [[nature]]\n- **Tool Proficiency::** [[carpenter_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[sickle]], [[carpenter_s_tools's Tools]], [[healer_s_kit's Kit]], [[iron_pot Pot]], [[shovel]], 30 GP; or (B) 50 GP"
+}

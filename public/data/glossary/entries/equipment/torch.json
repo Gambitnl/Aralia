@@ -1,0 +1,14 @@
+{
+  "id": "torch",
+  "title": "Torch",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.01 gp - Weight: 1 lb. A Torch burns for 1 hour, casting bright_light Light in a 20-foot radius and dim_light Light for an add...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/torch.json",
+  "markdown": "# Torch\n\n- **Type**: G|XPHB\n- **Cost**: 0.01 gp\n- **Weight**: 1 lb.\n\nA Torch burns for 1 hour, casting [[bright_light Light]] in a 20-foot radius and [[dim_light Light]] for an additional 20 feet. When you take the [[attack]] action, you can attack with the Torch, using it as a Simple Melee weapon. On a hit, the target takes 1 Fire damage."
+}

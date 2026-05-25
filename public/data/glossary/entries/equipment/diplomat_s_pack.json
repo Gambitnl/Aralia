@@ -1,0 +1,14 @@
+{
+  "id": "diplomat_s_pack",
+  "title": "Diplomat's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 39 gp - Weight: 39 lb. A Diplomat's Pack contains the following items: chest, fine_clothes Clothes, ink, 5 ink_pen Pens, lamp, ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/diplomat_s_pack.json",
+  "markdown": "# Diplomat's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 39 gp\n- **Weight**: 39 lb.\n\nA Diplomat's Pack contains the following items: [[chest]], [[fine_clothes Clothes]], [[ink]], 5 [[ink_pen Pens]], [[lamp]], 2 [[map_or_scroll_case or Scroll Cases]], 4 flasks of [[oil]], 5 sheets of [[paper]], 5 sheets of [[parchment]], [[perfume]], and [[tinderbox]]."
+}

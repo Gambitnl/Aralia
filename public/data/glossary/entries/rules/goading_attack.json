@@ -1,0 +1,14 @@
+{
+  "id": "goading_attack",
+  "title": "Goading Attack",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to goad the target into attacking you. Add the Superiority ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/goading_attack.json",
+  "markdown": "# Goading Attack\n\nWhen you hit a creature with an attack roll, you can expend one Superiority Die to attempt to goad the target into attacking you. Add the Superiority Die to the attack's damage roll. The target must succeed on a Wisdom saving throw or have [[disadvantage]] on attack rolls against targets other than you until the end of your next turn."
+}

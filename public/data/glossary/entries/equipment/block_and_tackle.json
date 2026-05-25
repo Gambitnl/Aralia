@@ -1,0 +1,14 @@
+{
+  "id": "block_and_tackle",
+  "title": "Block and Tackle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 5 lb. A block_and_tackle and Tackle allows you to hoist up to four times the weight you can normally lift....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/block_and_tackle.json",
+  "markdown": "# Block and Tackle\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 5 lb.\n\nA [[block_and_tackle and Tackle]] allows you to hoist up to four times the weight you can normally lift."
+}

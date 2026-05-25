@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_spell_turning",
+  "title": "Ring of Spell Turning",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG While wearing this ring, you have advantage on saving throws against spells. If you succeed on the save for a spell of level 7 or lowe...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_spell_turning.json",
+  "markdown": "# Ring of Spell Turning\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you have [[advantage]] on saving throws against spells. If you succeed on the save for a spell of level 7 or lower, the spell has no effect on you. If that spell targeted only you and didn't create an area of effect, you can take a [[reaction]] to deflect the spell back at the spell's caster; the caster must make a saving throw against the spell using their own spell save DC."
+}

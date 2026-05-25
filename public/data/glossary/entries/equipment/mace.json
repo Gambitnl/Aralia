@@ -1,0 +1,14 @@
+{
+  "id": "mace",
+  "title": "Mace",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 4 lb. - Damage: 1d6 B...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/mace.json",
+  "markdown": "# Mace\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cloak_of_the_manta_ray",
+  "title": "Cloak of the Manta Ray",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While wearing this cloak, you can breathe underwater, and you have a swim_speed Speed of 60 feet....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_the_manta_ray.json",
+  "markdown": "# Cloak of the Manta Ray\n\nWhile wearing this cloak, you can breathe underwater, and you have a [[swim_speed Speed]] of 60 feet."
+}

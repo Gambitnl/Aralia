@@ -1,0 +1,14 @@
+{
+  "id": "bagpipes",
+  "title": "Bagpipes",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: INS|XPHB - Cost: 30 gp - Weight: 6 lb. - Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bagpipes.json",
+  "markdown": "# Bagpipes\n\n- **Type**: INS|XPHB\n- **Cost**: 30 gp\n- **Weight**: 6 lb.\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)"
+}

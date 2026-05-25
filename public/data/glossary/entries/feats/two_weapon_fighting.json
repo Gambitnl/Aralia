@@ -1,0 +1,14 @@
+{
+  "id": "two_weapon_fighting",
+  "title": "Two-Weapon Fighting",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "When you make an extra attack as a result of using a weapon that has the L property, you can add your ability modifier to the damage of that attack if...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/two_weapon_fighting.json",
+  "markdown": "# Two-Weapon Fighting\n\nWhen you make an extra attack as a result of using a weapon that has the L property, you can add your ability modifier to the damage of that attack if you aren't already adding it to the damage."
+}

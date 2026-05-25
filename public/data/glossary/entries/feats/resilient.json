@@ -1,0 +1,14 @@
+{
+  "id": "resilient",
+  "title": "Resilient",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Saving Throw Proficiency You gain saving throw proficiency with the chosen ability....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/resilient.json",
+  "markdown": "# Resilient\n\nYou gain the following benefits.\n\n## Saving Throw Proficiency\n\nYou gain saving throw proficiency with the chosen ability."
+}

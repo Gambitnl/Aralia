@@ -1,0 +1,14 @@
+{
+  "id": "chime_of_opening",
+  "title": "Chime of Opening",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. This hollow metal tube measures about 1 foot long and weighs 1 pound. As a magic action, you can strike the chime to cast knock. The s...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chime_of_opening.json",
+  "markdown": "# Chime of Opening\n\n- **Weight**: 1 lb.\n\nThis hollow metal tube measures about 1 foot long and weighs 1 pound. As a [[magic]] action, you can strike the chime to cast [[knock]]. The spell's customary knocking sound is replaced by the clear, ringing tone of the chime, which is audible out to 300 feet. The chime can be used 10 times. After the tenth time, it cracks and becomes useless."
+}

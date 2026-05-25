@@ -1,0 +1,14 @@
+{
+  "id": "temporary_hit_points",
+  "title": "Temporary Hit Points",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "Temporary Hit Points are granted by certain effects and act as a buffer against losing real [[hit_points Points]]....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/temporary_hit_points.json",
+  "markdown": "# Temporary Hit Points\n\nTemporary Hit Points are granted by certain effects and act as a buffer against losing real [[hit_points Points]]."
+}

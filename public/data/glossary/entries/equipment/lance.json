@@ -1,0 +1,14 @@
+{
+  "id": "lance",
+  "title": "Lance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 6 lb. - Damage: 1d10 P - Properties: H|XPHB, R|XPHB, object Object A Lance requires two hands to wield when you...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/lance.json",
+  "markdown": "# Lance\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 6 lb.\n- **Damage**: 1d10 P\n- **Properties**: H|XPHB, R|XPHB, [object Object]\n\nA Lance requires two hands to wield when you aren't mounted."
+}

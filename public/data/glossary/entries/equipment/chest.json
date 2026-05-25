@@ -1,0 +1,14 @@
+{
+  "id": "chest",
+  "title": "Chest",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 5 gp - Weight: 25 lb. A Chest holds up to 12 cubic feet of contents....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chest.json",
+  "markdown": "# Chest\n\n- **Type**: G|XPHB\n- **Cost**: 5 gp\n- **Weight**: 25 lb.\n\nA Chest holds up to 12 cubic feet of contents."
+}

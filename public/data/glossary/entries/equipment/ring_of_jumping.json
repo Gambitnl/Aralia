@@ -1,0 +1,14 @@
+{
+  "id": "ring_of_jumping",
+  "title": "Ring of Jumping",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: RG|XDMG While wearing this ring, you can cast jump from it, but can target only yourself when you do so....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ring_of_jumping.json",
+  "markdown": "# Ring of Jumping\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you can cast [[jump]] from it, but can target only yourself when you do so."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "sentinel_shield",
+  "title": "Sentinel Shield",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: S|XPHB - Weight: 6 lb. - Armor Class: 2 While holding this Shield, you have advantage on initiative rolls and Wisdom (perception) checks. The ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/sentinel_shield.json",
+  "markdown": "# Sentinel Shield\n\n- **Type**: S|XPHB\n- **Weight**: 6 lb.\n- **Armor Class**: 2\n\nWhile holding this Shield, you have [[advantage]] on [[initiative]] rolls and Wisdom ([[perception]]) checks. The Shield is emblazoned with a symbol of an eye."
+}

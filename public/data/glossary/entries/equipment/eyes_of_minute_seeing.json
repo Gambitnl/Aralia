@@ -1,0 +1,14 @@
+{
+  "id": "eyes_of_minute_seeing",
+  "title": "Eyes of Minute Seeing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "These crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you darkvision withi...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/eyes_of_minute_seeing.json",
+  "markdown": "# Eyes of Minute Seeing\n\nThese crystal lenses fit over the eyes. While wearing them, your vision improves significantly out to a range of 1 foot, granting you [[darkvision]] within that range and [[advantage]] on Intelligence ([[investigation]]) checks made to examine something within that range."
+}

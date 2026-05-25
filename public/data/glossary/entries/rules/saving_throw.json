@@ -1,16 +1,14 @@
 {
   "id": "saving_throw",
-  "title": "Saving Throws",
+  "title": "Saving Throw",
   "category": "Rules Glossary",
-  "tags": [],
-  "excerpt": "A D20 Test representing an attempt to evade or resist a threat. See the main D20 Tests entry for full details.",
-  "aliases": [],
-  "seeAlso": [
-    "d20_test",
-    "saving_throw_modifier",
-    "saving_throw_proficiency",
-    "saving_throw_dc"
+  "tags": [
+    "source:xphb",
+    "variantrule"
   ],
+  "excerpt": "A saving throw—also called a save—represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to...",
+  "aliases": [],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/saving_throw.json",
-  "markdown": "# Saving Throws\r\nA saving throw-also called a save-represents an attempt to evade or resist a threat, such as a fiery explosion, a blast of poisonous gas, or a spell trying to invade your mind. You don't normally choose to make a save; you must make one because your character or a monster is at risk. A save's result is detailed in the effect that caused it.\r\n\r\nIf you don't want to resist the effect, you can choose to fail the save without rolling.\r\n\r\nFor more details on modifiers, proficiency, and difficulty, see the sub-entries.\r\n"
+  "markdown": "# Saving Throw\n\nA saving throw—also called a save—represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to do so, but you can decide to fail the save without rolling. The result of a save is detailed in the effect that allowed it. If a target is forced to make a save and lacks the ability score used by it, the target automatically fails."
 }

@@ -1,0 +1,14 @@
+{
+  "id": "whispers_of_the_grave",
+  "title": "Whispers of the Grave",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You can cast speak_with_dead with Dead without expending a spell slot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/whispers_of_the_grave.json",
+  "markdown": "# Whispers of the Grave\n\nYou can cast [[speak_with_dead with Dead]] without expending a spell slot."
+}

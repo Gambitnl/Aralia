@@ -1,0 +1,14 @@
+{
+  "id": "studded_leather_armor",
+  "title": "Studded Leather Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: LA|XPHB - Cost: 45 gp - Weight: 13 lb. - Armor Class: 12...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/studded_leather_armor.json",
+  "markdown": "# Studded Leather Armor\n\n- **Type**: LA|XPHB\n- **Cost**: 45 gp\n- **Weight**: 13 lb.\n- **Armor Class**: 12\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "mirror",
+  "title": "Mirror",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 5 gp - Weight: 0.5 lb. A handheld steel Mirror is useful for personal cosmetics but also for peeking around corners and reflect...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/mirror.json",
+  "markdown": "# Mirror\n\n- **Type**: G|XPHB\n- **Cost**: 5 gp\n- **Weight**: 0.5 lb.\n\nA handheld steel Mirror is useful for personal cosmetics but also for peeking around corners and reflecting light as a signal."
+}

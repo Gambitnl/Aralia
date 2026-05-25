@@ -1,0 +1,14 @@
+{
+  "id": "cloak_of_displacement",
+  "title": "Cloak of Displacement",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While you wear this cloak, it magically projects an illusion that makes you appear to be standing in a place near your actual location, causing any cr...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_displacement.json",
+  "markdown": "# Cloak of Displacement\n\nWhile you wear this cloak, it magically projects an illusion that makes you appear to be standing in a place near your actual location, causing any creature to have [[disadvantage]] on attack rolls against you. If you take damage, the property ceases to function until the start of your next turn. This property is suppressed while your [[speed]] is 0."
+}

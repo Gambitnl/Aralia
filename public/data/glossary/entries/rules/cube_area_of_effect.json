@@ -1,0 +1,14 @@
+{
+  "id": "cube_area_of_effect",
+  "title": "Cube [Area of Effect]",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A Cube is an area of effect that extends in straight lines from a point of origin located anywhere on a face of the Cube. The effect that creates a Cu...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/cube_area_of_effect.json",
+  "markdown": "# Cube [Area of Effect]\n\nA Cube is an area of effect that extends in straight lines from a point of origin located anywhere on a face of the Cube. The effect that creates a Cube specifies its size, which is the length of each side. A Cube's point of origin isn't included in the area of effect unless its creator decides otherwise."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "whip",
+  "title": "Whip",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 2 gp - Weight: 3 lb. - Damage: 1d4 S - Properties: F|XPHB, R|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/whip.json",
+  "markdown": "# Whip\n\n- **Type**: M|XPHB\n- **Cost**: 2 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d4 S\n- **Properties**: F|XPHB, R|XPHB\n\n"
+}

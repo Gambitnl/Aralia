@@ -1,0 +1,14 @@
+{
+  "id": "observant",
+  "title": "Observant",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Keen Observer Choose one of the following skills: insight, investigation, or perception. If you lack proficiency wit...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/observant.json",
+  "markdown": "# Observant\n\nYou gain the following benefits.\n\n## Keen Observer\n\nChoose one of the following skills: [[insight]], [[investigation]], or [[perception]]. If you lack proficiency with the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain [[expertise]] in it.\n\n## Quick Search\n\nYou can take the [[search]] action as a [[bonus_action Action]]."
+}

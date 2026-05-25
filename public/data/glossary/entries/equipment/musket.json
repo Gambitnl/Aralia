@@ -1,0 +1,14 @@
+{
+  "id": "musket",
+  "title": "Musket",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 500 gp - Weight: 10 lb. - Damage: 1d12 P - Properties: A|XPHB, LD|XPHB, 2H|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/musket.json",
+  "markdown": "# Musket\n\n- **Type**: R|XPHB\n- **Cost**: 500 gp\n- **Weight**: 10 lb.\n- **Damage**: 1d12 P\n- **Properties**: A|XPHB, LD|XPHB, 2H|XPHB\n\n"
+}

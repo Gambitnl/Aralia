@@ -1,0 +1,14 @@
+{
+  "id": "medicine",
+  "title": "Medicine",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Diagnose an illness, or determine what killed the recently slain....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/medicine.json",
+  "markdown": "# Medicine\n\nDiagnose an illness, or determine what killed the recently slain."
+}

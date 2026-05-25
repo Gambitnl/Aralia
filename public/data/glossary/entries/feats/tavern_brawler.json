@@ -1,0 +1,14 @@
+{
+  "id": "tavern_brawler",
+  "title": "Tavern Brawler",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Enhanced Unarmed Strike When you hit with your unarmed_strike Strike and deal damage, you can deal Bludgeoning damag...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/tavern_brawler.json",
+  "markdown": "# Tavern Brawler\n\nYou gain the following benefits.\n\n## Enhanced Unarmed Strike\n\nWhen you hit with your [[unarmed_strike Strike]] and deal damage, you can deal Bludgeoning damage equal to 1d4 plus your Strength modifier instead of the normal damage of an [[unarmed_strike Strike]].\n\n## Damage Rerolls\n\nWhenever you roll a damage die for your [[unarmed_strike Strike]], you can reroll the die if it rolls a 1, and you must use the new roll.\n\n## Improvised Weaponry\n\nYou have proficiency with improvised weapons.\n\n## Push\n\nWhen you hit a creature with an [[unarmed_strike Strike]] as part of the [[attack]] action on your turn, you can deal damage to the target and also push it 5 feet away from you. You can use this benefit only once per turn."
+}

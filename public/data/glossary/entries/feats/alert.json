@@ -1,0 +1,14 @@
+{
+  "id": "alert",
+  "title": "Alert",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Initiative Proficiency When you roll initiative, you can add your proficiency Bonus to the roll.  Initiative Swap Im...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/alert.json",
+  "markdown": "# Alert\n\nYou gain the following benefits.\n\n## Initiative Proficiency\n\nWhen you roll [[initiative]], you can add your [[proficiency Bonus]] to the roll.\n\n## Initiative Swap\n\nImmediately after you roll [[initiative]], you can swap your [[initiative]] with the [[initiative]] of one willing ally in the same combat. You can't make this swap if you or the ally has the [[incapacitated]] condition."
+}

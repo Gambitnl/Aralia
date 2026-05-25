@@ -1,0 +1,14 @@
+{
+  "id": "chariot",
+  "title": "Chariot",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: VEH|XPHB - Cost: 250 gp - Weight: 100 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chariot.json",
+  "markdown": "# Chariot\n\n- **Type**: VEH|XPHB\n- **Cost**: 250 gp\n- **Weight**: 100 lb.\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "riding_horse",
+  "title": "Riding Horse",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MNT|XPHB - Cost: 75 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/riding_horse.json",
+  "markdown": "# Riding Horse\n\n- **Type**: MNT|XPHB\n- **Cost**: 75 gp\n\n"
+}

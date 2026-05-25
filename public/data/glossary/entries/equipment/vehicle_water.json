@@ -1,0 +1,14 @@
+{
+  "id": "vehicle_water",
+  "title": "Vehicle (Water)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "Speed A ship sailing against a strong wind moves at half speed. In a dead calm (no wind), waterborne ships can't move under sail and must be rowed. Ke...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/vehicle_water.json",
+  "markdown": "# Vehicle (Water)\n\n## Speed\n\nA ship sailing against a strong wind moves at half speed. In a dead calm (no wind), waterborne ships can't move under sail and must be rowed. Keelboats and Rowboats are used on lakes and rivers. If going downstream, add the speed of the current (typically 3 miles per hour) to the speed of the vehicle. These vehicles can't be rowed against any significant current, but they can be pulled upstream by draft animals on the shores. A Rowboat can be carried and weighs 100 pounds.\n\n## Crew\n\nA ship larger than a Keelboat or Rowboat needs a crew of skilled hirelings (see \"Services\") to function. The minimum number of skilled hirelings needed to crew a ship depends on the type of ship.\n\n## Passengers\n\nThe number of Small and Medium passengers the ship can accommodate using hammocks. A ship outfitted with private accommodations can carry one-fifth as many passengers. A passenger usually pays 5 SP per day for a hammock, but prices can vary from ship to ship. A small private cabin usually costs 2 GP per day.\n\n## Damage Threshold\n\nSee the [[damage_threshold glossary]].\n\n## Ship Repair\n\nRepairs to a damaged ship can be made while the vessel is berthed. Repairing 1 [[hit_points Point]] of damage requires 1 day and costs 20 GP for materials and labor. If the repairs are made in a location where supplies and skilled labor are abundant, such as a city shipyard, the repair time and cost are halved."
+}

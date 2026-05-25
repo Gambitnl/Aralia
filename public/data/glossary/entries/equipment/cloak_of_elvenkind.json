@@ -1,0 +1,14 @@
+{
+  "id": "cloak_of_elvenkind",
+  "title": "Cloak of Elvenkind",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While you wear this cloak, Wisdom (perception) checks made to perceive you have disadvantage, and you have advantage on Dexterity (stealth) checks....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_elvenkind.json",
+  "markdown": "# Cloak of Elvenkind\n\nWhile you wear this cloak, Wisdom ([[perception]]) checks made to perceive you have [[disadvantage]], and you have [[advantage]] on Dexterity ([[stealth]]) checks."
+}

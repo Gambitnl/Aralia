@@ -1,0 +1,14 @@
+{
+  "id": "draft_horse",
+  "title": "Draft Horse",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MNT|XPHB - Cost: 50 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/draft_horse.json",
+  "markdown": "# Draft Horse\n\n- **Type**: MNT|XPHB\n- **Cost**: 50 gp\n\n"
+}

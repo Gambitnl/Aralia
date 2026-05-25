@@ -1,0 +1,14 @@
+{
+  "id": "cook_s_utensils",
+  "title": "Cook's Utensils",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: AT|XPHB - Cost: 1 gp - Weight: 8 lb. - Ability:: Wisdom - Utilize:: Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15) ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cook_s_utensils.json",
+  "markdown": "# Cook's Utensils\n\n- **Type**: AT|XPHB\n- **Cost**: 1 gp\n- **Weight**: 8 lb.\n\n- **Ability::** Wisdom\n- **Utilize::** Improve food's flavor (DC 10), or detect spoiled or poisoned food (DC 15)\n- **Craft::** [[rations]]"
+}

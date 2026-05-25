@@ -1,17 +1,14 @@
 {
   "id": "attack_roll",
-  "title": "Attack Rolls",
+  "title": "Attack Roll",
   "category": "Rules Glossary",
-  "tags": [],
-  "excerpt": "A D20 Test that determines whether an attack hits a target. See the main D20 Tests entry for full details.",
-  "aliases": [],
-  "seeAlso": [
-    "d20_test",
-    "attack_roll_modifier",
-    "attack_roll_proficiency",
-    "armor_class",
-    "rolling_20_or_1"
+  "tags": [
+    "source:xphb",
+    "variantrule"
   ],
+  "excerpt": "An attack roll is a [[d20_test Test]] that represents making an attack with a weapon, an [[unarmed_strike Strike]], or a spell....",
+  "aliases": [],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/attack_roll.json",
-  "markdown": "# Attack Rolls\r\nAn attack roll determines whether an attack hits a target. An attack roll hits if the roll equals or exceeds the target's Armor Class. Attack rolls usually occur in battle, but the game might also call for an attack roll in other situations, such as an archery competition.\r\n\r\nFor more details on modifiers, proficiency, Armor Class, and critical rolls, see the sub-entries.\r\n"
+  "markdown": "# Attack Roll\n\nAn attack roll is a [[d20_test Test]] that represents making an attack with a weapon, an [[unarmed_strike Strike]], or a spell."
 }

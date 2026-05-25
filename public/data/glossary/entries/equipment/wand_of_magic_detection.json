@@ -1,0 +1,14 @@
+{
+  "id": "wand_of_magic_detection",
+  "title": "Wand of Magic Detection",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: WD|XDMG - Weight: 1 lb. This wand has 3 charges. While holding it, you can expend 1 charge to cast detect_magic Magic from it. The wand regain...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/wand_of_magic_detection.json",
+  "markdown": "# Wand of Magic Detection\n\n- **Type**: WD|XDMG\n- **Weight**: 1 lb.\n\nThis wand has 3 charges. While holding it, you can expend 1 charge to cast [[detect_magic Magic]] from it. The wand regains 1d3 expended charges daily at dawn."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "waterskin",
+  "title": "Waterskin",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.2 gp - Weight: 5 lb. A Waterskin holds up to 4 pints. If you don't drink sufficient water, you risk dehydration....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/waterskin.json",
+  "markdown": "# Waterskin\n\n- **Type**: G|XPHB\n- **Cost**: 0.2 gp\n- **Weight**: 5 lb.\n\nA Waterskin holds up to 4 pints. If you don't drink sufficient water, you risk dehydration."
+}

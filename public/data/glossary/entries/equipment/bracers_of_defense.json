@@ -1,0 +1,14 @@
+{
+  "id": "bracers_of_defense",
+  "title": "Bracers of Defense",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While wearing these bracers, you gain a +2 bonus to armor_class Class if you are wearing no armor and using no shield....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bracers_of_defense.json",
+  "markdown": "# Bracers of Defense\n\nWhile wearing these bracers, you gain a +2 bonus to [[armor_class Class]] if you are wearing no armor and using no [[shield]]."
+}

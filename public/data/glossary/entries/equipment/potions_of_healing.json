@@ -1,0 +1,14 @@
+{
+  "id": "potions_of_healing",
+  "title": "Potions of Healing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemGroup"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potions_of_healing.json",
+  "markdown": "# Potions of Healing\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\n"
+}

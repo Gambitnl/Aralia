@@ -1,0 +1,14 @@
+{
+  "id": "splint_armor",
+  "title": "Splint Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: HA|XPHB - Cost: 200 gp - Weight: 60 lb. - Armor Class: 17...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/splint_armor.json",
+  "markdown": "# Splint Armor\n\n- **Type**: HA|XPHB\n- **Cost**: 200 gp\n- **Weight**: 60 lb.\n- **Armor Class**: 17\n\n"
+}

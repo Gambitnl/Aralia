@@ -1,0 +1,14 @@
+{
+  "id": "component_pouch",
+  "title": "Component Pouch",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 2 lb. A Component Pouch is watertight and filled with compartments that hold all the free Material components o...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/component_pouch.json",
+  "markdown": "# Component Pouch\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n\nA Component Pouch is watertight and filled with compartments that hold all the free Material components of your spells."
+}

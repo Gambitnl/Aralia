@@ -1,0 +1,14 @@
+{
+  "id": "crafter",
+  "title": "Crafter",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Tool Proficiency You gain proficiency with three different artisan_s_tools's Tools of your choice from the Fast Craf...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/crafter.json",
+  "markdown": "# Crafter\n\nYou gain the following benefits.\n\n## Tool Proficiency\n\nYou gain proficiency with three different [[artisan_s_tools's Tools]] of your choice from the Fast Crafting table.\n\n## Discount\n\nWhenever you buy a nonmagical item, you receive a 20 percent discount on it.\n\n## Fast Crafting\n\nWhen you finish a [[long_rest Rest]], you can craft one piece of gear from the Fast Crafting table, provided you have the [[artisan_s_tools's Tools]] associated with that item and have proficiency with those tools. The item lasts until you finish another [[long_rest Rest]], at which point the item falls apart.\n\n**Fast Crafting**\n\n| Artisan's Tools | Crafted Gear |\n| --- | --- |\n| [[carpenter_s_tools's Tools]] | [[ladder]], [[torch]] |\n| [[leatherworker_s_tools's Tools]] | [[crossbow_bolt_case Bolt Case]], [[map_or_scroll_case or Scroll Case]], [[pouch]] |\n| [[mason_s_tools's Tools]] | [[block_and_tackle and Tackle]] |\n| [[potter_s_tools's Tools]] | [[jug]], [[lamp]] |\n| [[smith_s_tools's Tools]] | [[ball_bearings Bearings]], [[bucket]], [[caltrops]], [[grappling_hook Hook]], [[iron_pot Pot]] |\n| [[tinker_s_tools's Tools]] | [[bell]], [[shovel]], [[tinderbox]] |\n| [[weaver_s_tools's Tools]] | [[basket]], [[rope]], [[net]], [[tent]] |\n| [[woodcarver_s_tools's Tools]] | [[club]], [[greatclub]], [[quarterstaff]] |"
+}

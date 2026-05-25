@@ -33,22 +33,25 @@ const ELEVATION_SCALE = 0.3;
 // Animation states
 type AnimationState = 'idle' | 'walk' | 'attack_melee' | 'attack_ranged' | 'cast_spell' | 'hit_react' | 'death';
 
-// Team colors
+// Team colors — warm/heroic for players, cold/hostile for enemies
 const TEAM_COLORS = {
   player: {
-    primary: 0x3b82f6,    // Blue
-    selection: 0x22d3ee,   // Cyan
-    nameAccent: '#3b82f6',
+    primary: 0xd4a017,    // Gold armor
+    selection: 0xfbbf24,  // Bright amber ring
+    nameAccent: '#d4a017',
+    groundGlow: 0xffd060, // Warm amber ground light
   },
   enemy: {
-    primary: 0xdc2626,     // Red
-    selection: 0xef4444,   // Light red
-    nameAccent: '#ef4444',
+    primary: 0xcc1111,    // Vivid crimson armor
+    selection: 0xff2020,  // Bright red ring
+    nameAccent: '#ff4444',
+    groundGlow: 0xff1100, // Intense red ground light
   },
   neutral: {
-    primary: 0xeab308,     // Yellow
-    selection: 0xfbbf24,   // Light yellow
+    primary: 0xeab308,    // Yellow
+    selection: 0xfbbf24,  // Light yellow
     nameAccent: '#eab308',
+    groundGlow: 0xffcc00,
   },
 };
 
@@ -92,11 +95,12 @@ function getArchetype(className: string): CharacterArchetype {
  */
 const HumanoidModel: React.FC<{
   teamColor: number;
+  isPlayerTeam: boolean;
   isAlive: boolean;
   animState: AnimationState;
   animTime: number;
   archetype: CharacterArchetype;
-}> = ({ teamColor, isAlive, animState, animTime, archetype }) => {
+}> = ({ teamColor, isPlayerTeam, isAlive, animState, animTime, archetype }) => {
   const groupRef = useRef<THREE.Group>(null);
 
   // Animation parameters
@@ -130,37 +134,37 @@ const HumanoidModel: React.FC<{
     >
       {/* ---- TORSO ---- */}
       {archetype === 'caster' ? (
-        /* Caster: flowing robe — taller, wider at bottom */
+        /* Caster: flowing robe — enemy emits strongly to cut through any lighting */
         <mesh position={[0, 0.30, 0]} castShadow>
           <cylinderGeometry args={[0.08, 0.14, 0.35, 8]} />
           <meshStandardMaterial
             color={robeColor}
             emissive={robeColor}
-            emissiveIntensity={0.05}
+            emissiveIntensity={isPlayerTeam ? 0.15 : 0.75}
             roughness={0.8}
             metalness={0.0}
           />
         </mesh>
       ) : archetype === 'rogue' ? (
-        /* Rogue: slim leather armor */
+        /* Rogue: slim leather armor — warm brown for players, near-black with red glow for enemies */
         <mesh position={[0, 0.35, 0]} castShadow>
           <boxGeometry args={[0.18, 0.26, 0.12]} />
           <meshStandardMaterial
-            color={new THREE.Color(0x3a2a1a)} // Dark leather brown
-            emissive={new THREE.Color(0x3a2a1a)}
-            emissiveIntensity={0.05}
+            color={isPlayerTeam ? new THREE.Color(0x7a4a22) : new THREE.Color(0x1a0808)}
+            emissive={isPlayerTeam ? new THREE.Color(0x5a3010) : new THREE.Color(0xcc1111)}
+            emissiveIntensity={isPlayerTeam ? 0.15 : 0.75}
             roughness={0.75}
             metalness={0.1}
           />
         </mesh>
       ) : (
-        /* Fighter: chunky plate armor */
+        /* Fighter: chunky plate armor — enemy emits strongly to cut through any lighting */
         <mesh position={[0, 0.35, 0]} castShadow>
           <boxGeometry args={[0.24, 0.28, 0.15]} />
           <meshStandardMaterial
             color={armorColor}
             emissive={armorColor}
-            emissiveIntensity={0.05}
+            emissiveIntensity={isPlayerTeam ? 0.15 : 0.75}
             roughness={0.4}
             metalness={0.5}
           />
@@ -189,10 +193,10 @@ const HumanoidModel: React.FC<{
           </mesh>
         </group>
       ) : archetype === 'rogue' ? (
-        /* Rogue: hood/cowl draped over head */
+        /* Rogue: hood/cowl — warm dark brown for players, near-black for enemies */
         <mesh position={[0, 0.62, -0.01]}>
           <sphereGeometry args={[0.09, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.7]} />
-          <meshStandardMaterial color={new THREE.Color(0x2a1a10)} roughness={0.8} />
+          <meshStandardMaterial color={isPlayerTeam ? new THREE.Color(0x4a2a12) : new THREE.Color(0x0d0505)} roughness={0.8} />
         </mesh>
       ) : (
         /* Fighter: half-sphere helmet */
@@ -295,7 +299,7 @@ const HumanoidModel: React.FC<{
             <mesh castShadow>
               <boxGeometry args={[0.07, 0.2, 0.08]} />
               <meshStandardMaterial
-                color={archetype === 'rogue' ? new THREE.Color(0x2a1a10) : armorDark}
+                color={archetype === 'rogue' ? (isPlayerTeam ? new THREE.Color(0x5a3410) : new THREE.Color(0x100505)) : armorDark}
                 roughness={0.6}
                 metalness={archetype === 'rogue' ? 0.0 : 0.2}
               />
@@ -306,7 +310,7 @@ const HumanoidModel: React.FC<{
             <mesh castShadow>
               <boxGeometry args={[0.07, 0.2, 0.08]} />
               <meshStandardMaterial
-                color={archetype === 'rogue' ? new THREE.Color(0x2a1a10) : armorDark}
+                color={archetype === 'rogue' ? (isPlayerTeam ? new THREE.Color(0x5a3410) : new THREE.Color(0x100505)) : armorDark}
                 roughness={0.6}
                 metalness={archetype === 'rogue' ? 0.0 : 0.2}
               />
@@ -354,16 +358,18 @@ const SelectionDecal: React.FC<{
   color: number;
   visible: boolean;
   pulse: boolean;
-}> = ({ color, visible, pulse }) => {
+  baseOpacity?: number;
+}> = ({ color, visible, pulse, baseOpacity = 0.85 }) => {
   const ringRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
-    if (!ringRef.current || !visible) return;
-    if (pulse) {
-      const scale = 1.0 + Math.sin(state.clock.elapsedTime * 3) * 0.05;
+    if (!ringRef.current) return;
+    if (pulse && visible) {
+      const scale = 1.0 + Math.sin(state.clock.elapsedTime * 3) * 0.08;
       ringRef.current.scale.setScalar(scale);
+    } else {
+      ringRef.current.scale.setScalar(1.0);
     }
-    ringRef.current.visible = visible;
   });
 
   return (
@@ -371,15 +377,14 @@ const SelectionDecal: React.FC<{
       ref={ringRef}
       position={[0, 0.02, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
-      visible={visible}
     >
-      <ringGeometry args={[0.42, 0.48, 32]} />
+      <ringGeometry args={[0.40, 0.50, 32]} />
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={0.8}
+        emissiveIntensity={visible ? 1.2 : 0.6}
         transparent
-        opacity={0.85}
+        opacity={visible ? baseOpacity : 0.40}
         side={THREE.DoubleSide}
         depthWrite={false}
       />
@@ -392,64 +397,87 @@ const SelectionDecal: React.FC<{
 // ---------------------------------------------------------------------------
 
 const TurnIndicator: React.FC<{ active: boolean }> = ({ active }) => {
-  const ringRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const pillarMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const arrowMatRef = useRef<THREE.MeshStandardMaterial>(null);
 
   useFrame((state) => {
-    if (!ringRef.current || !active) return;
-    ringRef.current.rotation.y = state.clock.elapsedTime * 0.5;
-    // Gentle vertical bob
-    ringRef.current.position.y = 0.03 + Math.sin(state.clock.elapsedTime * 2) * 0.01;
+    if (!groupRef.current || !active) return;
+    // Pulse pillar opacity and emissive
+    const pulse = 0.7 + Math.sin(state.clock.elapsedTime * 2.5) * 0.3;
+    if (pillarMatRef.current) {
+      pillarMatRef.current.opacity = pulse;
+      pillarMatRef.current.emissiveIntensity = 1.5 + Math.sin(state.clock.elapsedTime * 2.5) * 0.5;
+    }
+    // Bob the arrow indicator
+    if (groupRef.current) {
+      groupRef.current.children[1].position.y = 4.8 + Math.sin(state.clock.elapsedTime * 3) * 0.15;
+    }
+    if (arrowMatRef.current) {
+      arrowMatRef.current.opacity = 0.8 + Math.sin(state.clock.elapsedTime * 2.5) * 0.2;
+    }
   });
 
   if (!active) return null;
 
   return (
-    <group ref={ringRef} position={[0, 0.03, 0]}>
-      {/* Inner ring */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.50, 0.54, 32]} />
+    <group ref={groupRef}>
+      {/* Tall vertical beam — visible at 20+ units */}
+      <mesh position={[0, 2.5, 0]}>
+        <cylinderGeometry args={[0.055, 0.055, 5.0, 8]} />
         <meshStandardMaterial
+          ref={pillarMatRef}
           color={0xfbbf24}
           emissive={0xfbbf24}
-          emissiveIntensity={1.2}
+          emissiveIntensity={1.5}
           transparent
-          opacity={0.9}
-          side={THREE.DoubleSide}
+          opacity={0.85}
           depthWrite={false}
         />
       </mesh>
-      {/* Outer glow ring */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.54, 0.60, 32]} />
-        <meshStandardMaterial
-          color={0xfbbf24}
-          emissive={0xfbbf24}
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.3}
-          side={THREE.DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* Directional arrows (4 small triangles pointing inward) */}
-      {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle, i) => (
-        <mesh
-          key={i}
-          position={[
-            Math.cos(angle) * 0.58,
-            0,
-            Math.sin(angle) * 0.58,
-          ]}
-          rotation={[-Math.PI / 2, 0, -angle + Math.PI / 2]}
-        >
-          <coneGeometry args={[0.03, 0.06, 3]} />
+
+      {/* Downward-pointing chevron arrow — bobbing above pillar */}
+      <group position={[0, 4.8, 0]}>
+        {/* Main arrow cone pointing down */}
+        <mesh rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.22, 0.45, 8]} />
+          <meshStandardMaterial
+            ref={arrowMatRef}
+            color={0xfbbf24}
+            emissive={0xfbbf24}
+            emissiveIntensity={2.0}
+            transparent
+            opacity={0.9}
+            depthWrite={false}
+          />
+        </mesh>
+        {/* Second arrow cone slightly above for chevron look */}
+        <mesh position={[0, 0.3, 0]} rotation={[Math.PI, 0, 0]}>
+          <coneGeometry args={[0.16, 0.32, 8]} />
           <meshStandardMaterial
             color={0xfbbf24}
             emissive={0xfbbf24}
-            emissiveIntensity={1.0}
+            emissiveIntensity={2.0}
+            transparent
+            opacity={0.7}
+            depthWrite={false}
           />
         </mesh>
-      ))}
+      </group>
+
+      {/* Wide ground ring — enhanced for visibility */}
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.55, 0.80, 32]} />
+        <meshStandardMaterial
+          color={0xfbbf24}
+          emissive={0xfbbf24}
+          emissiveIntensity={1.5}
+          transparent
+          opacity={0.85}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
     </group>
   );
 };
@@ -569,20 +597,30 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       }}
       onPointerLeave={() => setHovered(false)}
     >
-      {/* Selection decal — BG3 style ground ring */}
+      {/* Selection decal — always-on BG3 style ground ring for team identity */}
       <SelectionDecal
-        color={showTargetHighlight ? 0xef4444 : teamColors.selection}
+        color={showTargetHighlight ? 0xff4444 : teamColors.selection}
         visible={isSelected || isTurn || showTargetHighlight}
-        pulse={showTargetHighlight}
+        pulse={showTargetHighlight || isTurn}
+        baseOpacity={isSelected || isTurn ? 0.90 : 0.50}
       />
 
       {/* Active turn golden ring */}
       <TurnIndicator active={isTurn} />
 
+      {/* Team-colored ground glow — most readable team indicator at tactical distance */}
+      <pointLight
+        color={teamColors.groundGlow}
+        intensity={isPlayer ? 0.7 : 1.0}
+        distance={3.2}
+        position={[0, 0.05, 0]}
+      />
+
       {/* Character model — scaled up, rotated to face enemies */}
-      <group scale={[2.5, 2.5, 2.5]} rotation={[0, facingRotation, 0]}>
+      <group scale={[3.2, 3.2, 3.2]} rotation={[0, facingRotation, 0]}>
         <HumanoidModel
           teamColor={teamColors.primary}
+          isPlayerTeam={isPlayer}
           isAlive={isAlive}
           animState={isAlive ? animState : 'death'}
           animTime={animTimeRef.current}
@@ -600,10 +638,38 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         />
       )}
 
+      {/* Always-visible HP pip — sphere + team ring, positioned above the 3.2× scaled model */}
+      <group position={[0, 2.65, 0]}>
+        {/* HP color sphere — glows team-appropriate health color */}
+        <mesh>
+          <sphereGeometry args={[0.18, 10, 8]} />
+          <meshStandardMaterial
+            color={hpColor}
+            emissive={hpColor}
+            emissiveIntensity={1.0}
+            transparent
+            opacity={0.95}
+          />
+        </mesh>
+        {/* Team ring — larger for visibility at 20+ unit distance */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]}>
+          <ringGeometry args={[0.20, 0.36, 20]} />
+          <meshStandardMaterial
+            color={teamColors.selection}
+            emissive={teamColors.selection}
+            emissiveIntensity={1.2}
+            transparent
+            opacity={0.95}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
+
       {/* Nameplate — shown on hover, selection, or active turn (BG3 style) */}
-      {(isSelected || isTurn || hovered) ? (
+      {(isSelected || isTurn || hovered) && (
         <Html
-          position={[0, 1.85, 0]}
+          position={[0, 3.0, 0]}
           center
           distanceFactor={10}
           style={{ pointerEvents: 'none' }}
@@ -647,34 +713,6 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
             </div>
           </div>
         </Html>
-      ) : (
-        /* Minimal HP pip — larger sphere + team ring for visibility at tactical zoom */
-        <group position={[0, 1.85, 0]}>
-          {/* HP color sphere */}
-          <mesh>
-            <sphereGeometry args={[0.12, 10, 8]} />
-            <meshStandardMaterial
-              color={hpColor}
-              emissive={hpColor}
-              emissiveIntensity={0.6}
-              transparent
-              opacity={0.9}
-            />
-          </mesh>
-          {/* Team-colored ring around pip */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-            <ringGeometry args={[0.14, 0.18, 16]} />
-            <meshStandardMaterial
-              color={teamColors.selection}
-              emissive={teamColors.selection}
-              emissiveIntensity={0.5}
-              transparent
-              opacity={0.7}
-              side={THREE.DoubleSide}
-              depthWrite={false}
-            />
-          </mesh>
-        </group>
       )}
     </group>
   );

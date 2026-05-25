@@ -1,0 +1,14 @@
+{
+  "id": "armor_of_resistance",
+  "title": "Armor of Resistance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemGroup"
+  ],
+  "excerpt": "- Type: GV|XDMG You have resistance to one type of damage while you wear this armor. The DM chooses the type or determines it randomly by rolling on t...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/armor_of_resistance.json",
+  "markdown": "# Armor of Resistance\n\n- **Type**: GV|XDMG\n\nYou have [[resistance]] to one type of damage while you wear this armor. The DM chooses the type or determines it randomly by rolling on the following table.\n\n| d10 | Damage Type |\n| --- | --- |\n| 1 | [[armor_of_acid_resistance]] |\n| 2 | [[armor_of_cold_resistance]] |\n| 3 | [[armor_of_fire_resistance]] |\n| 4 | [[armor_of_force_resistance]] |\n| 5 | [[armor_of_lightning_resistance]] |\n| 6 | [[armor_of_necrotic_resistance]] |\n| 7 | [[armor_of_poison_resistance]] |\n| 8 | [[armor_of_psychic_resistance]] |\n| 9 | [[armor_of_radiant_resistance]] |\n| 10 | [[armor_of_thunder_resistance]] |"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "hit_point_dice",
+  "title": "Hit Point Dice",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "Hit Point Dice, or Hit Dice for short, help determine a [[player_character character's]] Hit Point maximum, as explained in chapter 2. Most [[monster]...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/hit_point_dice.json",
+  "markdown": "# Hit Point Dice\n\nHit Point Dice, or Hit Dice for short, help determine a [[player_character character's]] Hit Point maximum, as explained in chapter 2. Most [[monster]] also have Hit Dice. A creature can spend Hit Dice during a [[short_rest Rest]] to regain [[hit_points Points]]."
+}

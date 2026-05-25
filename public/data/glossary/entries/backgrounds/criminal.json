@@ -1,0 +1,14 @@
+{
+  "id": "criminal",
+  "title": "Criminal",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Dexterity, Constitution, Intelligence - Feat:: alert - Skill Proficiencies:: sleight_of_hand of Hand, stealth - Tool Proficiency:: ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/criminal.json",
+  "markdown": "# Criminal\n\n- **Ability Scores::** Dexterity, Constitution, Intelligence\n- **Feat::** [[alert]]\n- **Skill Proficiencies::** [[sleight_of_hand of Hand]], [[stealth]]\n- **Tool Proficiency::** [[thieves_tools' Tools]]\n- **Equipment::** Choose A or B: (A) [[dagger Daggers]], [[thieves_tools' Tools]], [[crowbar]], [[pouch Pouches]], [[traveler_s_clothes's Clothes]], 16 GP; or (B) 50 GP"
+}

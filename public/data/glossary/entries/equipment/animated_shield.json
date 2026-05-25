@@ -1,0 +1,14 @@
+{
+  "id": "animated_shield",
+  "title": "Animated Shield",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: S|XPHB - Weight: 6 lb. - Armor Class: 2 While holding this Shield, you can take a bonus_action Action to cause it to animate. The Shield leaps...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/animated_shield.json",
+  "markdown": "# Animated Shield\n\n- **Type**: S|XPHB\n- **Weight**: 6 lb.\n- **Armor Class**: 2\n\nWhile holding this Shield, you can take a [[bonus_action Action]] to cause it to animate. The Shield leaps into the air and hovers in your space to protect you as if you were wielding it, leaving your hands free. The Shield remains animate for 1 minute, until you take a [[bonus_action Action]] to end this effect, or until you die or have the [[incapacitated]] condition, at which point the Shield falls to the ground or into your hand if you have one free."
+}

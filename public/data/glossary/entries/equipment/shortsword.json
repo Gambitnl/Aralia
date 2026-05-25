@@ -1,0 +1,14 @@
+{
+  "id": "shortsword",
+  "title": "Shortsword",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 2 lb. - Damage: 1d6 P - Properties: F|XPHB, L|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/shortsword.json",
+  "markdown": "# Shortsword\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d6 P\n- **Properties**: F|XPHB, L|XPHB\n\n"
+}

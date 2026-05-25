@@ -3,18 +3,12 @@
   "title": "Passive Perception",
   "category": "Rules Glossary",
   "tags": [
-    "rules",
-    "perception",
-    "awareness",
-    "world-state"
+    "source:xphb",
+    "variantrule"
   ],
-  "excerpt": "Passive Perception is a creature's ongoing background awareness when it is not actively using an action to search for detail.",
+  "excerpt": "Passive Perception is a score that reflects a creature's general awareness of its surroundings. The DM uses this score when determining whether a crea...",
   "aliases": [],
-  "seeAlso": [
-    "search_action",
-    "hide_action",
-    "invisible_condition"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/passive_perception.json",
-  "markdown": "# Passive Perception\n\nPassive Perception is a creature's ongoing background awareness when it is not spending time or an action on deliberate searching.\n\n## Rules Use\n\nPassive Perception represents what a creature can notice through ordinary alertness, routine observation, and constant low-level awareness.\n\n## Passive Versus Active Detection\n\n- passive awareness runs in the background without using an action\n- [[search_action|Search [Action]]] represents deliberate effort to uncover something not already obvious\n- passive perception is often the first threshold another effect must overcome before remaining unnoticed\n\n## Related Concepts\n\nPassive Perception matters when another creature tries to remain hidden, when a subtle effect competes with ordinary awareness, or when the scene contains details that should be noticed without a focused search.\n"
+  "markdown": "# Passive Perception\n\nPassive Perception is a score that reflects a creature's general awareness of its surroundings. The DM uses this score when determining whether a creature notices something without consciously making a Wisdom ([[perception]]) check.\n\nA creature's Passive Perception equals 10 plus the creature's Wisdom ([[perception]]) check bonus. If the creature has [[advantage]] on such checks, increase the score by 5. If the creature has [[disadvantage]] on them, decrease the score by 5. For example, a level 1 character with a Wisdom of 15 and proficiency in Perception has a Passive Perception of 14 (10 + 2 + 2). If that character has [[advantage]] on Wisdom ([[perception]]) checks, the score becomes 10 + 2 + 2 + 5."
 }

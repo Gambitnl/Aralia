@@ -14,6 +14,14 @@ local run state, and other orchestration artifacts should stay external or
 ignored unless a small excerpt is intentionally copied into an Aralia-facing
 task packet or temporary migration note.
 
+For Symphony/Jules work, preserve Aralia-facing intent and proof rather than
+raw process exhaust. Track task packets, prompts, acceptance criteria, package
+tracker updates, focused workflow verifiers, final product PR links, and short
+blocker or repair summaries. Keep raw Symphony receipts, dashboard caches,
+generated manifests, click logs, local task-store churn, and `.symphony` /
+`.jules` runtime output ignored or external unless one concise excerpt is needed
+to explain a real Aralia package decision.
+
 Under uncertainty, the safer failure is usually temporary duplication, not premature pruning.
 
 ## User Calibration

@@ -1,0 +1,1003 @@
+[
+  {
+    "id": "ability_score_improvement",
+    "title": "Ability Score Improvement",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "Increase one ability score of your choice by 2, or increase two ability scores of your choice by 1. This feat can't increase an ability score above 20...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/ability_score_improvement.json"
+  },
+  {
+    "id": "actor",
+    "title": "Actor",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Impersonation While you're disguised as a real or fictional person, you have advantage on Charisma (deception or per...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/actor.json"
+  },
+  {
+    "id": "alert",
+    "title": "Alert",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Initiative Proficiency When you roll initiative, you can add your proficiency Bonus to the roll.  Initiative Swap Im...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/alert.json"
+  },
+  {
+    "id": "archery",
+    "title": "Archery",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain a +2 bonus to attack rolls you make with Ranged weapons....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/archery.json"
+  },
+  {
+    "id": "athlete",
+    "title": "Athlete",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Climb Speed You gain a climb_speed Speed equal to your speed.  Hop Up When you have the prone condition, you can rig...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/athlete.json"
+  },
+  {
+    "id": "blessed_warrior",
+    "title": "Blessed Warrior",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You learn two Cleric cantrips of your choice. guidance and sacred_flame Flame are recommended. The chosen cantrips count as Paladin spells for you, an...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/blessed_warrior.json"
+  },
+  {
+    "id": "blind_fighting",
+    "title": "Blind Fighting",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You have blindsight with a range of 10 feet....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/blind_fighting.json"
+  },
+  {
+    "id": "boon_of_combat_prowess",
+    "title": "Boon of Combat Prowess",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Peerless Aim When you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it aga...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_combat_prowess.json"
+  },
+  {
+    "id": "boon_of_dimensional_travel",
+    "title": "Boon of Dimensional Travel",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Blink Steps Immediately after you take the attack action or the magic action, you can teleport up to 30 feet to an u...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_dimensional_travel.json"
+  },
+  {
+    "id": "boon_of_energy_resistance",
+    "title": "Boon of Energy Resistance",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Energy Resistances You gain resistance to two of the following damage types of your choice: Acid, Cold, Fire, Lightn...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_energy_resistance.json"
+  },
+  {
+    "id": "boon_of_fate",
+    "title": "Boon of Fate",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Improve Fate When you or another creature within 60 feet of you succeeds on or fails a d20_test Test, you can roll 2...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_fate.json"
+  },
+  {
+    "id": "boon_of_fortitude",
+    "title": "Boon of Fortitude",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Fortified Health Your hit_points Point maximum increases by 40. In addition, whenever you regain hit_points Points, ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_fortitude.json"
+  },
+  {
+    "id": "boon_of_irresistible_offense",
+    "title": "Boon of Irresistible Offense",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Overcome Defenses The Bludgeoning, Piercing, and Slashing damage you deal always ignores resistance.  Overwhelming S...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_irresistible_offense.json"
+  },
+  {
+    "id": "boon_of_recovery",
+    "title": "Boon of Recovery",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Last Stand When you would be reduced to 0 hit_points Points, you can drop to 1 hit_points Point instead and regain a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_recovery.json"
+  },
+  {
+    "id": "boon_of_skill",
+    "title": "Boon of Skill",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  All-Around Adept You gain proficiency in all skills.  Expertise Choose one skill in which you lack expertise. You ga...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_skill.json"
+  },
+  {
+    "id": "boon_of_speed",
+    "title": "Boon of Speed",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Escape Artist As a bonus_action Action, you can take the disengage action, which also ends the grappled condition on...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_speed.json"
+  },
+  {
+    "id": "boon_of_spell_recall",
+    "title": "Boon of Spell Recall",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Free Casting Whenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_spell_recall.json"
+  },
+  {
+    "id": "boon_of_the_night_spirit",
+    "title": "Boon of the Night Spirit",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Merge with Shadows While within dim_light Light or darkness, you can give yourself the invisible condition as a bonu...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_the_night_spirit.json"
+  },
+  {
+    "id": "boon_of_truesight",
+    "title": "Boon of Truesight",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Truesight You have truesight with a range of 60 feet....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/boon_of_truesight.json"
+  },
+  {
+    "id": "charger",
+    "title": "Charger",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Improved Dash When you take the dash action, your speed increases by 10 feet for that action.  Charge Attack If you ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/charger.json"
+  },
+  {
+    "id": "chef",
+    "title": "Chef",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Cook's Utensils You gain proficiency with cook_s_utensils's Utensils if you don't already have it.  Replenishing Mea...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/chef.json"
+  },
+  {
+    "id": "crafter",
+    "title": "Crafter",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Tool Proficiency You gain proficiency with three different artisan_s_tools's Tools of your choice from the Fast Craf...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/crafter.json"
+  },
+  {
+    "id": "crossbow_expert",
+    "title": "Crossbow Expert",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Ignore Loading You ignore the LD property of the hand_crossbow Crossbow, heavy_crossbow Crossbow, and light_crossbow...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/crossbow_expert.json"
+  },
+  {
+    "id": "crusher",
+    "title": "Crusher",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Push Once per turn, when you hit a creature with an attack that deals Bludgeoning damage, you can move it 5 feet to ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/crusher.json"
+  },
+  {
+    "id": "defense",
+    "title": "Defense",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to armor_class Class....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/defense.json"
+  },
+  {
+    "id": "defensive_duelist",
+    "title": "Defensive Duelist",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Parry If you're holding a Finesse weapon and another creature hits you with a melee attack, you can take a reaction ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/defensive_duelist.json"
+  },
+  {
+    "id": "druidic_warrior",
+    "title": "Druidic Warrior",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You learn two Druid cantrips of your choice. guidance and starry_wisp Wisp are recommended. The chosen cantrips count as Ranger spells for you, and Wi...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/druidic_warrior.json"
+  },
+  {
+    "id": "dual_wielder",
+    "title": "Dual Wielder",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Enhanced Dual Wielding When you take the attack action on your turn and attack with a weapon that has the L property...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/dual_wielder.json"
+  },
+  {
+    "id": "dueling",
+    "title": "Dueling",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When you're holding a Melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/dueling.json"
+  },
+  {
+    "id": "durable",
+    "title": "Durable",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Defy Death You have advantage on death_saving_throw Saving Throws.  Speedy Recovery As a bonus_action Action, you ca...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/durable.json"
+  },
+  {
+    "id": "elemental_adept",
+    "title": "Elemental Adept",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Energy Mastery Choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. Spells you cast ig...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/elemental_adept.json"
+  },
+  {
+    "id": "fey_touched",
+    "title": "Fey-Touched",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "Your exposure to the Feywild's magic grants you the following benefits.  Fey Magic Choose one level 1 spell from the Divination or Enchantment school ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/fey_touched.json"
+  },
+  {
+    "id": "grappler",
+    "title": "Grappler",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Punch and Grab When you hit a creature with an unarmed_strike Strike as part of the attack action on your turn, you ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/grappler.json"
+  },
+  {
+    "id": "great_weapon_fighting",
+    "title": "Great Weapon Fighting",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When you roll damage for an attack you make with a Melee weapon that you are holding with two hands, you can treat any 1 or 2 on a damage die as a 3. ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/great_weapon_fighting.json"
+  },
+  {
+    "id": "great_weapon_master",
+    "title": "Great Weapon Master",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Heavy Weapon Mastery When you hit a creature with a weapon that has the H property as part of the attack action on y...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/great_weapon_master.json"
+  },
+  {
+    "id": "healer",
+    "title": "Healer",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Battle Medic If you have a healer_s_kit's Kit, you can expend one use of it and tend to a creature within 5 feet of ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/healer.json"
+  },
+  {
+    "id": "heavily_armored",
+    "title": "Heavily Armored",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Armor Training You gain training with Heavy armor....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/heavily_armored.json"
+  },
+  {
+    "id": "heavy_armor_master",
+    "title": "Heavy Armor Master",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Damage Reduction When you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slash...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/heavy_armor_master.json"
+  },
+  {
+    "id": "inspiring_leader",
+    "title": "Inspiring Leader",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Bolstering Performance When you finish a short_rest or long_rest Rest, you can give an inspiring performance: a spee...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/inspiring_leader.json"
+  },
+  {
+    "id": "interception",
+    "title": "Interception",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When a creature you can see hits another creature within 5 feet of you with an attack roll, you can take a reaction to reduce the damage dealt to the ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/interception.json"
+  },
+  {
+    "id": "keen_mind",
+    "title": "Keen Mind",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Lore Knowledge Choose one of the following skills: arcana, history, investigation, nature, or religion. If you lack ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/keen_mind.json"
+  },
+  {
+    "id": "lightly_armored",
+    "title": "Lightly Armored",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Armor Training You gain training with Light armor and Shields....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/lightly_armored.json"
+  },
+  {
+    "id": "lucky",
+    "title": "Lucky",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Luck Points You have a number of Luck Points equal to your proficiency Bonus and can spend the points on the benefit...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/lucky.json"
+  },
+  {
+    "id": "mage_slayer",
+    "title": "Mage Slayer",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Concentration Breaker When you damage a creature that is Concentration, it has disadvantage on the saving throw it m...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/mage_slayer.json"
+  },
+  {
+    "id": "magic_initiate",
+    "title": "Magic Initiate",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Two Cantrips You learn two cantrips of your choice from the Cleric, Druid, or Wizard spell list. Intelligence, Wisdo...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/magic_initiate.json"
+  },
+  {
+    "id": "martial_weapon_training",
+    "title": "Martial Weapon Training",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Weapon Proficiency You gain proficiency with Martial weapons....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/martial_weapon_training.json"
+  },
+  {
+    "id": "medium_armor_master",
+    "title": "Medium Armor Master",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Dexterous Wearer While you're wearing Medium armor, you can add 3, rather than 2 to your AC if you have a Dexterity ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/medium_armor_master.json"
+  },
+  {
+    "id": "moderately_armored",
+    "title": "Moderately Armored",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Armor Training You gain training with Medium armor....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/moderately_armored.json"
+  },
+  {
+    "id": "mounted_combatant",
+    "title": "Mounted Combatant",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Mounted Strike While mounted, you have advantage on attack rolls against any unmounted creature within 5 feet of you...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/mounted_combatant.json"
+  },
+  {
+    "id": "musician",
+    "title": "Musician",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Instrument Training You gain proficiency with three Musical Instruments of your choice.  Encouraging Song As you fin...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/musician.json"
+  },
+  {
+    "id": "observant",
+    "title": "Observant",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Keen Observer Choose one of the following skills: insight, investigation, or perception. If you lack proficiency wit...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/observant.json"
+  },
+  {
+    "id": "piercer",
+    "title": "Piercer",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Puncture Once per turn, when you hit a creature with an attack that deals Piercing damage, you can reroll one of the...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/piercer.json"
+  },
+  {
+    "id": "poisoner",
+    "title": "Poisoner",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Potent Poison When you make a damage roll that deals Poison damage, it ignores resistance to Poison damage.  Brew Po...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/poisoner.json"
+  },
+  {
+    "id": "polearm_master",
+    "title": "Polearm Master",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Pole Strike Immediately after you take the attack action and attack with a quarterstaff, a spear, or a weapon that h...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/polearm_master.json"
+  },
+  {
+    "id": "protection",
+    "title": "Protection",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When a creature you can see attacks a target other than you that is within 5 feet of you, you can take a reaction to interpose your shield if you're h...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/protection.json"
+  },
+  {
+    "id": "resilient",
+    "title": "Resilient",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Saving Throw Proficiency You gain saving throw proficiency with the chosen ability....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/resilient.json"
+  },
+  {
+    "id": "ritual_caster",
+    "title": "Ritual Caster",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Ritual Spells Choose a number of level 1 spells equal to your proficiency Bonus that have the Ritual tag. You always...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/ritual_caster.json"
+  },
+  {
+    "id": "savage_attacker",
+    "title": "Savage Attacker",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You've trained to deal particularly damaging strikes. Once per turn when you hit a target with a weapon, you can roll the weapon's damage dice twice a...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/savage_attacker.json"
+  },
+  {
+    "id": "sentinel",
+    "title": "Sentinel",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Guardian Immediately after a creature within 5 feet of you takes the disengage action or hits a target other than yo...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/sentinel.json"
+  },
+  {
+    "id": "shadow_touched",
+    "title": "Shadow-Touched",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "Your exposure to the Shadowfell's magic grants you the following benefits.  Shadow Magic Choose one level 1 spell from the Illusion or Necromancy scho...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/shadow_touched.json"
+  },
+  {
+    "id": "sharpshooter",
+    "title": "Sharpshooter",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Bypass Cover Your ranged attacks with weapons ignore cover Cover and cover-Quarters Cover.  Firing in Melee Being wi...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/sharpshooter.json"
+  },
+  {
+    "id": "shield_master",
+    "title": "Shield Master",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Shield Bash If you attack a creature within 5 feet of you as part of the attack action and hit with a Melee weapon, ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/shield_master.json"
+  },
+  {
+    "id": "skill_expert",
+    "title": "Skill Expert",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Skill Proficiency You gain proficiency in one skill of your choice.  Expertise Choose one skill in which you have pr...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/skill_expert.json"
+  },
+  {
+    "id": "skilled",
+    "title": "Skilled",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain proficiency in any combination of three Skill List; Skills or tools of your choice.  Repeatable You can take this feat more than once....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/skilled.json"
+  },
+  {
+    "id": "skulker",
+    "title": "Skulker",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Blindsight You have blindsight with a range of 10 feet.  Fog of War You exploit the distractions of battle, gaining ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/skulker.json"
+  },
+  {
+    "id": "slasher",
+    "title": "Slasher",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Hamstring Once per turn when you hit a creature with an attack that deals Slashing damage, you can reduce the speed ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/slasher.json"
+  },
+  {
+    "id": "speedy",
+    "title": "Speedy",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Speed Increase Your speed increases by 10 feet.  Dash over Difficult Terrain When you take the dash action on your t...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/speedy.json"
+  },
+  {
+    "id": "spell_sniper",
+    "title": "Spell Sniper",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Bypass Cover Your attack rolls for spells ignore cover Cover and cover-Quarters Cover.  Casting in Melee Being withi...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/spell_sniper.json"
+  },
+  {
+    "id": "tavern_brawler",
+    "title": "Tavern Brawler",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Enhanced Unarmed Strike When you hit with your unarmed_strike Strike and deal damage, you can deal Bludgeoning damag...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/tavern_brawler.json"
+  },
+  {
+    "id": "telekinetic",
+    "title": "Telekinetic",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Minor Telekinesis You learn the mage_hand Hand spell. You can cast it without Verbal or Somatic components, you can ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/telekinetic.json"
+  },
+  {
+    "id": "telepathic",
+    "title": "Telepathic",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Telepathic Utterance You can speak telepathically to any creature you can see within 60 feet of yourself. Your telep...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/telepathic.json"
+  },
+  {
+    "id": "thrown_weapon_fighting",
+    "title": "Thrown Weapon Fighting",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When you hit with a ranged attack roll using a weapon that has the T property, you gain a +2 bonus to the damage roll....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/thrown_weapon_fighting.json"
+  },
+  {
+    "id": "tough",
+    "title": "Tough",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "Your hit_points Point maximum increases by an amount equal to twice your character level when you gain this feat. Whenever you gain a character level ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/tough.json"
+  },
+  {
+    "id": "two_weapon_fighting",
+    "title": "Two-Weapon Fighting",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When you make an extra attack as a result of using a weapon that has the L property, you can add your ability modifier to the damage of that attack if...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/two_weapon_fighting.json"
+  },
+  {
+    "id": "unarmed_fighting",
+    "title": "Unarmed Fighting",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "When you hit with your unarmed_strike Strike and deal damage, you can deal Bludgeoning damage equal to 1d6 plus your Strength modifier instead of the ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/unarmed_fighting.json"
+  },
+  {
+    "id": "war_caster",
+    "title": "War Caster",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Concentration You have advantage on Constitution saving throws that you make to maintain Concentration.  Reactive Sp...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/war_caster.json"
+  },
+  {
+    "id": "weapon_master",
+    "title": "Weapon Master",
+    "category": "Feats",
+    "tags": [
+      "source:xphb",
+      "feat"
+    ],
+    "excerpt": "You gain the following benefits.  Mastery Property Your training with weapons allows you to use the mastery property of one kind of Simple or Martial ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/feats/weapon_master.json"
+  }
+]

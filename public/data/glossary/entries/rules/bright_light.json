@@ -3,18 +3,12 @@
   "title": "Bright Light",
   "category": "Rules Glossary",
   "tags": [
-    "rules",
-    "light",
-    "vision",
-    "illumination"
+    "source:xphb",
+    "variantrule"
   ],
-  "excerpt": "Bright Light lets most creatures see normally. Even gloomy days provide Bright Light, as do torches, lanterns, fires, and other sources of illumination within a specific radius.",
+  "excerpt": "Bright Light is normal illumination....",
   "aliases": [],
-  "seeAlso": [
-    "light_rules",
-    "dim_light",
-    "darkness"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/bright_light.json",
-  "markdown": "# Bright Light\r\n\r\nBright Light lets most creatures see normally. Even gloomy days provide Bright Light, as do torches, lanterns, fires, and other sources of illumination within a specific radius."
+  "markdown": "# Bright Light\n\nBright Light is normal illumination."
 }

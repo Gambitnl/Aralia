@@ -1,0 +1,14 @@
+{
+  "id": "ambush",
+  "title": "Ambush",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you make a Dexterity (stealth) check or an initiative roll, you can expend one Superiority Die and add the die to the roll, unless you have the i...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/ambush.json",
+  "markdown": "# Ambush\n\nWhen you make a Dexterity ([[stealth]]) check or an [[initiative]] roll, you can expend one Superiority Die and add the die to the roll, unless you have the [[incapacitated]] condition."
+}

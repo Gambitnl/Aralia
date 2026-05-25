@@ -1,0 +1,14 @@
+{
+  "id": "animal_handling",
+  "title": "Animal Handling",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Calm or train an animal, or get an animal to behave in a certain way....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/animal_handling.json",
+  "markdown": "# Animal Handling\n\nCalm or train an animal, or get an animal to behave in a certain way."
+}

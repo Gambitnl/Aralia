@@ -2,15 +2,13 @@
   "id": "damage_types",
   "title": "Damage Types",
   "category": "Rules Glossary",
-  "tags": ["combat", "damage", "resistance", "vulnerability"],
-  "excerpt": "Damage types classify the kind of harm an effect deals, which matters for interaction with resistance, vulnerability, immunity, and rule-specific triggers.",
-  "aliases": [],
-  "seeAlso": [
-    "damage",
-    "resistance",
-    "vulnerability",
-    "immunity"
+  "tags": [
+    "source:xphb",
+    "variantrule"
   ],
+  "excerpt": "Attacks and other harmful effects deal different types of damage. Damage types have no rules of their own, but other rules, such as Resistance, rely o...",
+  "aliases": [],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/damage_types.json",
-  "markdown": "# Damage Types\n\nDamage types classify the kind of harm an effect deals. The type matters because other rules can react differently depending on whether the harm is physical, elemental, psychic, necrotic, radiant, or another specific form.\n\n## Rules Use\n\nDamage type is part of the effect being resolved, not just descriptive flavor. It determines how that damage interacts with [[resistance|Resistance]], [[vulnerability|Vulnerability]], [[immunity|Immunity]], and other rule-specific checks.\n\n## Why It Matters\n\n- two effects can deal the same amount of [[damage]] but behave differently if their damage types differ\n- a target's defenses or weaknesses often depend on damage type rather than on the source's name alone\n- some rules care whether the effect is magical, elemental, physical, or tied to a specific damage family\n"
+  "markdown": "# Damage Types\n\nAttacks and other harmful effects deal different types of damage. Damage types have no rules of their own, but other rules, such as Resistance, rely on the types. The Damage Types table offers examples to help a DM assign a type to a new effect.\n\n**Damage Types**\n\n| Type | Examples |\n| --- | --- |\n| Acid | Corrosive liquids, digestive enzymes |\n| Bludgeoning | Blunt objects, constriction, falling |\n| Cold | Freezing water, icy blasts |\n| Fire | Flames, unbearable heat |\n| Force | Pure magical energy |\n| Lightning | Electricity |\n| Necrotic | Life-draining energy |\n| Piercing | Fangs, puncturing objects |\n| Poison | Toxic gas, venom |\n| Psychic | Mind-rending energy |\n| Radiant | Holy energy, searing radiation |\n| Slashing | Claws, cutting objects |\n| Thunder | Concussive sound |"
 }

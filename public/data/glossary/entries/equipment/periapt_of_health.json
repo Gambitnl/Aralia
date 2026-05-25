@@ -1,0 +1,14 @@
+{
+  "id": "periapt_of_health",
+  "title": "Periapt of Health",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. While wearing this pendant, you can take a magic action to regain 2d4 + 2 hit_points Points. Once used, this property can't be used ag...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/periapt_of_health.json",
+  "markdown": "# Periapt of Health\n\n- **Weight**: 1 lb.\n\nWhile wearing this pendant, you can take a [[magic]] action to regain 2d4 + 2 [[hit_points Points]]. Once used, this property can't be used again until the next dawn.\n\nIn addition, you have [[advantage]] on saving throws to avoid or end the [[poisoned]] condition while you wear this pendant."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cobbler_s_tools",
+  "title": "Cobbler's Tools",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: AT|XPHB - Cost: 5 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Modify footwear to give advantage on the wearer's next Dexterity (acrob...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cobbler_s_tools.json",
+  "markdown": "# Cobbler's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 5 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Modify footwear to give [[advantage]] on the wearer's next Dexterity ([[acrobatics]]) check (DC 10)\n- **Craft::** [[climber_s_kit's Kit]]"
+}

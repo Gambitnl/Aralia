@@ -1,0 +1,14 @@
+{
+  "id": "medium_armor_master",
+  "title": "Medium Armor Master",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Dexterous Wearer While you're wearing Medium armor, you can add 3, rather than 2 to your AC if you have a Dexterity ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/medium_armor_master.json",
+  "markdown": "# Medium Armor Master\n\nYou gain the following benefits.\n\n## Dexterous Wearer\n\nWhile you're wearing Medium armor, you can add 3, rather than 2 to your AC if you have a Dexterity score of 16 or higher."
+}

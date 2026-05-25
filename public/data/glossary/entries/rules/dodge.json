@@ -1,0 +1,14 @@
+{
+  "id": "dodge",
+  "title": "Dodge",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "lf you take the Dodge action, you gain the following benefits: until the start of your next turn, any attack roll made against you has [[disadvantage]...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/dodge.json",
+  "markdown": "# Dodge\n\nlf you take the Dodge action, you gain the following benefits: until the start of your next turn, any attack roll made against you has [[disadvantage]] if you can see the attacker, and you make Dexterity [[saving_throw throws]] with [[advantage]].\n\nYou lose these benefits if you have the [[incapacitated]] condition or if your [[speed]] is 0."
+}

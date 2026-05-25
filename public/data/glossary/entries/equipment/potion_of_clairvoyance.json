@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_clairvoyance",
+  "title": "Potion of Clairvoyance",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain the effect of the clairvoyance spell (no Concentration required). An eyeball bob...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_clairvoyance.json",
+  "markdown": "# Potion of Clairvoyance\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain the effect of the [[clairvoyance]] spell (no Concentration required).\n\nAn eyeball bobs in this potion's yellowish liquid but vanishes when the potion is opened."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "staff_of_frost",
+  "title": "Staff of Frost",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB You have resistance to Cold damage while you hold this staff.  Spells The staff ha...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/staff_of_frost.json",
+  "markdown": "# Staff of Frost\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nYou have [[resistance]] to Cold damage while you hold this staff.\n\n## Spells\n\nThe staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[cone_of_cold of Cold]] | 5 |\n| [[fog_cloud Cloud]] | 1 |\n| [[ice_storm Storm]] | 4 |\n| [[wall_of_ice of Ice]] | 4 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff turns to water and is destroyed."
+}

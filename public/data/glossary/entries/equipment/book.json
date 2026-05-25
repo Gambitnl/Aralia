@@ -1,0 +1,14 @@
+{
+  "id": "book",
+  "title": "Book",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 5 lb. A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you ga...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/book.json",
+  "markdown": "# Book\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 5 lb.\n\nA Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence ([[arcana]], [[history]], [[nature]], or [[religion]]) checks you make about that topic."
+}

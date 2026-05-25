@@ -1,0 +1,14 @@
+{
+  "id": "sled",
+  "title": "Sled",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: VEH|XPHB - Cost: 20 gp - Weight: 300 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/sled.json",
+  "markdown": "# Sled\n\n- **Type**: VEH|XPHB\n- **Cost**: 20 gp\n- **Weight**: 300 lb.\n\n"
+}

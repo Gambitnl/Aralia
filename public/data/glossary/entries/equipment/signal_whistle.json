@@ -1,0 +1,14 @@
+{
+  "id": "signal_whistle",
+  "title": "Signal Whistle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.05 gp When blown as a utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/signal_whistle.json",
+  "markdown": "# Signal Whistle\n\n- **Type**: G|XPHB\n- **Cost**: 0.05 gp\n\nWhen blown as a [[utilize]] action, a Signal Whistle produces a sound that can be heard up to 600 feet away."
+}

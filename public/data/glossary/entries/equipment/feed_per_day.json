@@ -1,0 +1,14 @@
+{
+  "id": "feed_per_day",
+  "title": "Feed (per day)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: TAH|XPHB - Cost: 0.05 gp - Weight: 10 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/feed_per_day.json",
+  "markdown": "# Feed (per day)\n\n- **Type**: TAH|XPHB\n- **Cost**: 0.05 gp\n- **Weight**: 10 lb.\n\n"
+}

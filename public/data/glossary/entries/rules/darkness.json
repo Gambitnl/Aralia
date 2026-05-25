@@ -3,20 +3,12 @@
   "title": "Darkness",
   "category": "Rules Glossary",
   "tags": [
-    "rules",
-    "light",
-    "vision",
-    "illumination",
-    "heavily obscured"
+    "source:xphb",
+    "variantrule"
   ],
-  "excerpt": "Darkness creates a Heavily Obscured area. Characters face Darkness outdoors at night, within unlit dungeons, or in areas of magical Darkness.",
+  "excerpt": "An area of Darkness is [[heavily_obscured Obscured]]....",
   "aliases": [],
-  "seeAlso": [
-    "light_rules",
-    "bright_light",
-    "dim_light",
-    "obscured_areas"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/darkness.json",
-  "markdown": "# Darkness\r\n\r\nDarkness creates a <span data-term-id=\"obscured_areas\" class=\"glossary-term-link-from-markdown\">Heavily Obscured area</span>. Characters face Darkness outdoors at night (even most moonlit nights), within the confines of an unlit dungeon, or in an area of magical <span data-term-id=\"darkness_spell\" class=\"glossary-term-link-from-markdown\">Darkness</span>."
+  "markdown": "# Darkness\n\nAn area of Darkness is [[heavily_obscured Obscured]]."
 }

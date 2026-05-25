@@ -1,0 +1,14 @@
+{
+  "id": "staff_of_thunder_and_lightning",
+  "title": "Staff of Thunder and Lightning",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB This staff can be wielded as a magic Quarterstaff that grants a +2 bonus to attack...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/staff_of_thunder_and_lightning.json",
+  "markdown": "# Staff of Thunder and Lightning\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nThis staff can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. It also has the following additional properties. Once one of these properties is used, it can't be used again until the next dawn.\n\n## Lightning\n\nWhen you hit with a melee attack using the staff, you can cause the target to take an extra 2d6 Lightning damage (no action required).\n\n## Thunder\n\nWhen you hit with a melee attack using the staff, you can cause the staff to emit a crack of thunder audible out to 300 feet (no action required). The target you hit must succeed on a DC 17 Constitution saving throw or have the [[stunned]] condition until the end of your next turn.\n\n## Thunder and Lightning\n\nImmediately after you hit with a melee attack using the staff, you can take a [[bonus_action Action]] to use the Lightning and Thunder properties (see above) at the same time. Doing so doesn't expend the daily use of those properties, only the use of this one.\n\n## Lightning Strike\n\nYou can take a [[magic]] action to cause a bolt of lightning to leap from the staff's tip in a [[line_area_of_effect]] that is 5 feet wide and 120 feet long. Each creature in that [[line_area_of_effect]] makes a DC 17 Dexterity saving throw, taking 9d6 Lightning damage on a failed save or half as much damage on a successful one.\n\n## Thunderclap\n\nYou can take a [[magic]] action to cause the staff to produce a thunderclap audible out to 600 feet. Every creature within a 60-foot [[emanation_area_of_effect]] originating from you makes a DC 17 Constitution saving throw. On a failed save, a creature takes 2d6 Thunder damage and has the [[deafened]] condition for 1 minute. On a successful save, a creature takes half as much damage only."
+}

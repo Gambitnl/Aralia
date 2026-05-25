@@ -1,0 +1,14 @@
+{
+  "id": "escape_a_grapple",
+  "title": "Escape a Grapple",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "A Grappled creature can use its action to make a Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check against the grapple's escape DC, ending ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/escape_a_grapple.json",
+  "markdown": "# Escape a Grapple\n\nA Grappled creature can use its action to make a Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check against the grapple's escape DC, ending the [[condition]] on itself on a success. The [[condition]] also ends if the grappler has the [[incapacitated]] condition or if the distance between the Grappled target and the grappler exceeds the grapple's range."
+}

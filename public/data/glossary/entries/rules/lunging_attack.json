@@ -1,0 +1,14 @@
+{
+  "id": "lunging_attack",
+  "title": "Lunging Attack",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the dash action. If you move at least 5 feet in a straight line immediately befo...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/lunging_attack.json",
+  "markdown": "# Lunging Attack\n\nAs a [[bonus_action Action]], you can expend one Superiority Die and take the [[dash]] action. If you move at least 5 feet in a straight line immediately before hitting with a melee attack as part of the [[attack]] action on this turn, you can add the Superiority Die to the attack's damage roll."
+}

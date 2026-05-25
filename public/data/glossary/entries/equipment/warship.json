@@ -1,0 +1,14 @@
+{
+  "id": "warship",
+  "title": "Warship",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SHP|XPHB - Cost: 25000 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/warship.json",
+  "markdown": "# Warship\n\n- **Type**: SHP|XPHB\n- **Cost**: 25000 gp\n\n"
+}

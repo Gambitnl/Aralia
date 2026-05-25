@@ -1,0 +1,14 @@
+{
+  "id": "investment_of_the_chain_master",
+  "title": "Investment of the Chain Master",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "When you cast find_familiar Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following bene...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/investment_of_the_chain_master.json",
+  "markdown": "# Investment of the Chain Master\n\nWhen you cast [[find_familiar Familiar]], you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following benefits.\n\n### Aerial or Aquatic\n\nThe familiar gains either a [[fly_speed Speed]] or a [[swim_speed Speed]] (your choice) of 40 feet.\n\n### Quick Attack\n\nAs a [[bonus_action Action]], you can command the familiar to take the [[attack]] action.\n\n### Necrotic or Radiant Damage\n\nWhenever the familiar deals Bludgeoning, Piercing, or Slashing damage, you can make it deal Necrotic or Radiant damage instead.\n\n### Your Save DC\n\nIf the familiar forces a creature to make a saving throw, it uses your spell save DC.\n\n### Resistance\n\nWhen the familiar takes damage, you can take a [[reaction]] to grant it [[resistance]] against that damage."
+}

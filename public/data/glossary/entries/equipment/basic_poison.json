@@ -1,0 +1,14 @@
+{
+  "id": "basic_poison",
+  "title": "Basic Poison",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 100 gp As a bonus_action Action, you can use a vial of Basic Poison to coat one weapon or up to three pieces of ammunition. A c...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/basic_poison.json",
+  "markdown": "# Basic Poison\n\n- **Type**: G|XPHB\n- **Cost**: 100 gp\n\nAs a [[bonus_action Action]], you can use a vial of Basic Poison to coat one weapon or up to three pieces of ammunition. A creature that takes Piercing or Slashing damage from the poisoned weapon or ammunition takes an extra 1d4 Poison damage. Once applied, the poison retains potency for 1 minute or until its damage is dealt, whichever comes first."
+}

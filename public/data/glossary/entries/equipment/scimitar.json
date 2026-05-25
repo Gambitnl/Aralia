@@ -1,0 +1,14 @@
+{
+  "id": "scimitar",
+  "title": "Scimitar",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 25 gp - Weight: 3 lb. - Damage: 1d6 S - Properties: F|XPHB, L|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scimitar.json",
+  "markdown": "# Scimitar\n\n- **Type**: M|XPHB\n- **Cost**: 25 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d6 S\n- **Properties**: F|XPHB, L|XPHB\n\n"
+}

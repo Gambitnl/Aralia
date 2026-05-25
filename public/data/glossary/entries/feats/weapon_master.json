@@ -1,0 +1,14 @@
+{
+  "id": "weapon_master",
+  "title": "Weapon Master",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Mastery Property Your training with weapons allows you to use the mastery property of one kind of Simple or Martial ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/weapon_master.json",
+  "markdown": "# Weapon Master\n\nYou gain the following benefits.\n\n## Mastery Property\n\nYour training with weapons allows you to use the mastery property of one kind of Simple or Martial weapon of your choice, provided you have proficiency with it. Whenever you finish a [[long_rest Rest]], you can change the kind of weapon to another eligible kind."
+}

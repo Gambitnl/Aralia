@@ -1,0 +1,14 @@
+{
+  "id": "bullseye_lantern",
+  "title": "Bullseye Lantern",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 10 gp - Weight: 2 lb. A Bullseye Lantern burns Oil as fuel to cast bright_light Light in a 60-foot Cone and dim_light Light for...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bullseye_lantern.json",
+  "markdown": "# Bullseye Lantern\n\n- **Type**: G|XPHB\n- **Cost**: 10 gp\n- **Weight**: 2 lb.\n\nA Bullseye Lantern burns Oil as fuel to cast [[bright_light Light]] in a 60-foot Cone and [[dim_light Light]] for an additional 60 feet."
+}

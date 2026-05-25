@@ -1,0 +1,14 @@
+{
+  "id": "sprig_of_mistletoe",
+  "title": "Sprig of Mistletoe",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 1 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/sprig_of_mistletoe.json",
+  "markdown": "# Sprig of Mistletoe\n\n- **Type**: SCF|XPHB\n- **Cost**: 1 gp\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "potion",
+  "title": "Potion",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "No description available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion.json",
+  "markdown": "# Potion\n\n"
+}

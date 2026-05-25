@@ -1,0 +1,14 @@
+{
+  "id": "boots_of_levitation",
+  "title": "Boots of Levitation",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "While you wear these boots, you can cast levitate on yourself....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/boots_of_levitation.json",
+  "markdown": "# Boots of Levitation\n\nWhile you wear these boots, you can cast [[levitate]] on yourself."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "periapt_of_proof_against_poison",
+  "title": "Periapt of Proof against Poison",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. This delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have immunity to the poisoned condition and P...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/periapt_of_proof_against_poison.json",
+  "markdown": "# Periapt of Proof against Poison\n\n- **Weight**: 1 lb.\n\nThis delicate silver chain has a brilliant-cut black gem pendant. While you wear it, you have [[immunity]] to the [[poisoned]] condition and Poison damage."
+}

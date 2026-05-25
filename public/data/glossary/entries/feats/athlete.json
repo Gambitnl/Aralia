@@ -1,0 +1,14 @@
+{
+  "id": "athlete",
+  "title": "Athlete",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Climb Speed You gain a climb_speed Speed equal to your speed.  Hop Up When you have the prone condition, you can rig...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/athlete.json",
+  "markdown": "# Athlete\n\nYou gain the following benefits.\n\n## Climb Speed\n\nYou gain a [[climb_speed Speed]] equal to your [[speed]].\n\n## Hop Up\n\nWhen you have the [[prone]] condition, you can right yourself with only 5 feet of movement.\n\n## Jumping\n\nYou can make a running [[long_jump]] or [[high_jump Jump]] after moving only 5 feet."
+}

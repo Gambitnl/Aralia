@@ -1,0 +1,14 @@
+{
+  "id": "deafened",
+  "title": "Deafened",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "condition"
+  ],
+  "excerpt": "While you have the Deafened condition, you experience the following effect....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/deafened.json",
+  "markdown": "# Deafened\n\nWhile you have the Deafened condition, you experience the following effect.\n\n### Can't Hear\n\nYou can't hear and automatically fail any ability check that requires hearing."
+}

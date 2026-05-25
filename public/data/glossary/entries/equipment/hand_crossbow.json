@@ -1,0 +1,14 @@
+{
+  "id": "hand_crossbow",
+  "title": "Hand Crossbow",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 75 gp - Weight: 3 lb. - Damage: 1d6 P - Properties: A|XPHB, L|XPHB, LD|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/hand_crossbow.json",
+  "markdown": "# Hand Crossbow\n\n- **Type**: R|XPHB\n- **Cost**: 75 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d6 P\n- **Properties**: A|XPHB, L|XPHB, LD|XPHB\n\n"
+}

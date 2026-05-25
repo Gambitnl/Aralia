@@ -1,0 +1,14 @@
+{
+  "id": "green_dragon_scale_mail",
+  "title": "Green Dragon Scale Mail",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MA|XPHB - Weight: 45 lb. - Armor Class: 14 {itemEntry Dragon Scale Mail}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/green_dragon_scale_mail.json",
+  "markdown": "# Green Dragon Scale Mail\n\n- **Type**: MA|XPHB\n- **Weight**: 45 lb.\n- **Armor Class**: 14\n\n{#itemEntry Dragon Scale Mail}"
+}

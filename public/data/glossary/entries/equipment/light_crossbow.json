@@ -1,0 +1,14 @@
+{
+  "id": "light_crossbow",
+  "title": "Light Crossbow",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: R|XPHB - Cost: 25 gp - Weight: 5 lb. - Damage: 1d8 P - Properties: A|XPHB, LD|XPHB, 2H|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/light_crossbow.json",
+  "markdown": "# Light Crossbow\n\n- **Type**: R|XPHB\n- **Cost**: 25 gp\n- **Weight**: 5 lb.\n- **Damage**: 1d8 P\n- **Properties**: A|XPHB, LD|XPHB, 2H|XPHB\n\n"
+}

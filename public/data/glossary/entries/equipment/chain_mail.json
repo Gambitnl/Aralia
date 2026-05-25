@@ -1,0 +1,14 @@
+{
+  "id": "chain_mail",
+  "title": "Chain Mail",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: HA|XPHB - Cost: 75 gp - Weight: 55 lb. - Armor Class: 16...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chain_mail.json",
+  "markdown": "# Chain Mail\n\n- **Type**: HA|XPHB\n- **Cost**: 75 gp\n- **Weight**: 55 lb.\n- **Armor Class**: 16\n\n"
+}

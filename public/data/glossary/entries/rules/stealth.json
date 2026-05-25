@@ -1,0 +1,14 @@
+{
+  "id": "stealth",
+  "title": "Stealth",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Escape notice by moving quietly and hiding behind things....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/stealth.json",
+  "markdown": "# Stealth\n\nEscape notice by moving quietly and hiding behind things."
+}

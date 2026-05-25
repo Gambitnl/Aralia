@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone_awareness",
+  "title": "Ioun Stone, Awareness",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} While this dark-blue rhomboid orbits your head, you have advantage on initiative rolls and Wisdom (perception) checks....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone_awareness.json",
+  "markdown": "# Ioun Stone, Awareness\n\n{#itemEntry Ioun Stone}\n\nWhile this dark-blue rhomboid orbits your head, you have [[advantage]] on [[initiative]] rolls and Wisdom ([[perception]]) checks."
+}

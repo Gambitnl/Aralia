@@ -1,0 +1,14 @@
+{
+  "id": "athletics",
+  "title": "Athletics",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Jump farther than normal, stay afloat in rough water, or break something....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/athletics.json",
+  "markdown": "# Athletics\n\nJump farther than normal, stay afloat in rough water, or break something."
+}

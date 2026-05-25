@@ -1,0 +1,14 @@
+{
+  "id": "musician",
+  "title": "Musician",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Instrument Training You gain proficiency with three Musical Instruments of your choice.  Encouraging Song As you fin...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/musician.json",
+  "markdown": "# Musician\n\nYou gain the following benefits.\n\n## Instrument Training\n\nYou gain proficiency with three Musical Instruments of your choice.\n\n## Encouraging Song\n\nAs you finish a [[short_rest]] or [[long_rest Rest]], you can play a song on a [[musical_instrument Instrument]] with which you have proficiency and give [[heroic_inspiration Inspiration]] to allies who hear the song. The number of allies you can affect in this way equals your [[proficiency Bonus]]."
+}

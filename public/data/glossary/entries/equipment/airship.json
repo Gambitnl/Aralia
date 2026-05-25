@@ -1,0 +1,14 @@
+{
+  "id": "airship",
+  "title": "Airship",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: AIR|XPHB - Cost: 40000 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/airship.json",
+  "markdown": "# Airship\n\n- **Type**: AIR|XPHB\n- **Cost**: 40000 gp\n\n"
+}

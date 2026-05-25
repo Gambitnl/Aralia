@@ -1,0 +1,14 @@
+{
+  "id": "staff_of_striking",
+  "title": "Staff of Striking",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB This staff can be wielded as a magic Quarterstaff that grants a +3 bonus to attack...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/staff_of_striking.json",
+  "markdown": "# Staff of Striking\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nThis staff can be wielded as a magic Quarterstaff that grants a +3 bonus to attack rolls and damage rolls made with it.\n\nThe staff has 10 charges. When you hit with a melee attack using it, you can expend up to 3 charges. For each charge you expend, the target takes an extra 1d6 Force damage.\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff becomes a nonmagical Quarterstaff."
+}

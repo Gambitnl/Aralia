@@ -1,0 +1,14 @@
+{
+  "id": "psychic_blade",
+  "title": "Psychic Blade",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M - Damage: 1d6 Y - Properties: F|XPHB, T|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/psychic_blade.json",
+  "markdown": "# Psychic Blade\n\n- **Type**: M\n- **Damage**: 1d6 Y\n- **Properties**: F|XPHB, T|XPHB\n\n"
+}

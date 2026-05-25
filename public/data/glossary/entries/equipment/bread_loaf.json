@@ -1,0 +1,14 @@
+{
+  "id": "bread_loaf",
+  "title": "Bread (loaf)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: FD|XPHB - Cost: 0.02 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bread_loaf.json",
+  "markdown": "# Bread (loaf)\n\n- **Type**: FD|XPHB\n- **Cost**: 0.02 gp\n\n"
+}

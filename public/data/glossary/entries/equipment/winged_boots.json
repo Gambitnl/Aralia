@@ -1,0 +1,14 @@
+{
+  "id": "winged_boots",
+  "title": "Winged Boots",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "These boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a magic action to expend 1 charge, gai...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/winged_boots.json",
+  "markdown": "# Winged Boots\n\nThese boots have 4 charges and regain 1d4 expended charges daily at dawn. While wearing the boots, you can take a [[magic]] action to expend 1 charge, gaining a [[fly_speed Speed]] of 30 feet for 1 hour. If you are flying when the duration expires, you descend at a rate of 30 feet per round until you land."
+}

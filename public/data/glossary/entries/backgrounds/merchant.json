@@ -1,0 +1,14 @@
+{
+  "id": "merchant",
+  "title": "Merchant",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Constitution, Intelligence, Charisma - Feat:: lucky - Skill Proficiencies:: animal_handling Handling, persuasion - Tool Proficiency...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/merchant.json",
+  "markdown": "# Merchant\n\n- **Ability Scores::** Constitution, Intelligence, Charisma\n- **Feat::** [[lucky]]\n- **Skill Proficiencies::** [[animal_handling Handling]], [[persuasion]]\n- **Tool Proficiency::** [[navigator_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[navigator_s_tools's Tools]], [[pouch Pouches]], [[traveler_s_clothes's Clothes]], 22 GP; or (B) 50 GP"
+}

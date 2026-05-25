@@ -1,0 +1,14 @@
+{
+  "id": "encounter",
+  "title": "Encounter",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "An encounter is a scene in an adventure that is part of at least one of the game's three pillars: social interaction, exploration, or combat....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/encounter.json",
+  "markdown": "# Encounter\n\nAn encounter is a scene in an adventure that is part of at least one of the game's three pillars: social interaction, exploration, or combat."
+}

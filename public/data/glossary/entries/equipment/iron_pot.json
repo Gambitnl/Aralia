@@ -1,0 +1,14 @@
+{
+  "id": "iron_pot",
+  "title": "Iron Pot",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 10 lb. An Iron Pot holds up to 1 gallon....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/iron_pot.json",
+  "markdown": "# Iron Pot\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 10 lb.\n\nAn Iron Pot holds up to 1 gallon."
+}

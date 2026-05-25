@@ -1,0 +1,14 @@
+{
+  "id": "history",
+  "title": "History",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Recall lore about historical events, people, nations, and cultures....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/history.json",
+  "markdown": "# History\n\nRecall lore about historical events, people, nations, and cultures."
+}

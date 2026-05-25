@@ -1,0 +1,14 @@
+{
+  "id": "galley",
+  "title": "Galley",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: SHP|XPHB - Cost: 30000 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/galley.json",
+  "markdown": "# Galley\n\n- **Type**: SHP|XPHB\n- **Cost**: 30000 gp\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_gaseous_form",
+  "title": "Potion of Gaseous Form",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain the effect of the gaseous_form Form spell for 1 hour (no Concentration required)...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_gaseous_form.json",
+  "markdown": "# Potion of Gaseous Form\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain the effect of the [[gaseous_form Form]] spell for 1 hour (no Concentration required) or until you end the effect as a [[bonus_action Action]].\n\nThis potion's container seems to hold fog that moves and pours like water."
+}

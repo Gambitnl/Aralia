@@ -1,0 +1,14 @@
+{
+  "id": "medallion_of_thoughts",
+  "title": "Medallion of Thoughts",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. The medallion has 5 charges. While wearing it, you can expend 1 charge to cast detect_thoughts Thoughts (save DC 13) from it. The meda...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/medallion_of_thoughts.json",
+  "markdown": "# Medallion of Thoughts\n\n- **Weight**: 1 lb.\n\nThe medallion has 5 charges. While wearing it, you can expend 1 charge to cast [[detect_thoughts Thoughts]] (save DC 13) from it. The medallion regains 1d4 expended charges daily at dawn."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "potion_of_speed",
+  "title": "Potion of Speed",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain the effect of the haste spell for 1 minute (no Concentration required) without s...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/potion_of_speed.json",
+  "markdown": "# Potion of Speed\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain the effect of the [[haste]] spell for 1 minute (no Concentration required) without suffering the wave of lethargy that typically occurs when the effect ends.\n\nThis potion's yellow fluid is streaked with black and swirls on its own."
+}

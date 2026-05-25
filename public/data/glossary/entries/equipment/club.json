@@ -1,0 +1,14 @@
+{
+  "id": "club",
+  "title": "Club",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 0.1 gp - Weight: 2 lb. - Damage: 1d4 B - Properties: L|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/club.json",
+  "markdown": "# Club\n\n- **Type**: M|XPHB\n- **Cost**: 0.1 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d4 B\n- **Properties**: L|XPHB\n\n"
+}

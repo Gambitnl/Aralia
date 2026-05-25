@@ -1,0 +1,14 @@
+{
+  "id": "improvising_an_action",
+  "title": "Improvising an Action",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "Player characters and monsters can also do things not covered by other actions. Many class features and other abilities provide additional action opti...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/improvising_an_action.json",
+  "markdown": "# Improvising an Action\n\nPlayer characters and monsters can also do things not covered by other actions. Many class features and other abilities provide additional action options, and you can improvise other actions. When you describe an action not detailed elsewhere in the rules, the Dungeon Master tells you whether that action is possible and what kind of [[d20_test Test]] you need to make, if any."
+}

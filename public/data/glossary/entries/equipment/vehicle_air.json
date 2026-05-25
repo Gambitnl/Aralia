@@ -1,0 +1,14 @@
+{
+  "id": "vehicle_air",
+  "title": "Vehicle (Air)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "No description available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/vehicle_air.json",
+  "markdown": "# Vehicle (Air)\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "eldritch_mind",
+  "title": "Eldritch Mind",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You have advantage on Constitution saving throws that you make to maintain Concentration....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/eldritch_mind.json",
+  "markdown": "# Eldritch Mind\n\nYou have [[advantage]] on Constitution saving throws that you make to maintain Concentration."
+}

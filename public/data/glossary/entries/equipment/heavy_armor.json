@@ -1,0 +1,14 @@
+{
+  "id": "heavy_armor",
+  "title": "Heavy Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "No description available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/heavy_armor.json",
+  "markdown": "# Heavy Armor\n\n"
+}

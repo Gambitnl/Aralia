@@ -1,0 +1,14 @@
+{
+  "id": "ioun_stone",
+  "title": "Ioun Stone",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemGroup"
+  ],
+  "excerpt": "{itemEntry Ioun Stone} The type of stone determines its rarity and effects....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ioun_stone.json",
+  "markdown": "# Ioun Stone\n\n{#itemEntry Ioun Stone}\n\nThe type of stone determines its rarity and effects."
+}

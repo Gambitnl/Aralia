@@ -1,0 +1,14 @@
+{
+  "id": "quarterstaff",
+  "title": "Quarterstaff",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: M|XPHB - Cost: 0.2 gp - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/quarterstaff.json",
+  "markdown": "# Quarterstaff\n\n- **Type**: M|XPHB\n- **Cost**: 0.2 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\n"
+}

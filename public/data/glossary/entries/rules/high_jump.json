@@ -3,20 +3,12 @@
   "title": "High Jump",
   "category": "Rules Glossary",
   "tags": [
-    "rules",
-    "movement",
-    "jumping",
-    "high jump",
-    "strength"
+    "source:xphb",
+    "variantrule"
   ],
-  "excerpt": "A High Jump is the vertical branch of the broader jumping rules. It resolves through Strength-based jump distance, movement expenditure, and any nearby terrain or obstacle constraints.",
+  "excerpt": "When you make a High Jump, you leap into the air a number of feet equal to 3 plus your Strength modifier (minimum of 0 feet) if you move at least 10 f...",
   "aliases": [],
-  "seeAlso": [
-    "jumping",
-    "speed",
-    "strength",
-    "difficult_terrain"
-  ],
+  "seeAlso": [],
   "filePath": "/data/glossary/entries/rules/high_jump.json",
-  "markdown": "# High Jump\r\nA High Jump is the vertical form of <span data-term-id=\"jumping\" class=\"glossary-term-link-from-markdown\">Jumping</span>. Resolve it through the broader <span data-term-id=\"jumping\" class=\"glossary-term-link-from-markdown\">Jumping</span> rules, which establish how <span data-term-id=\"strength\" class=\"glossary-term-link-from-markdown\">Strength</span>, movement cost, running start, and landing context shape the leap. If the jump interacts with hazardous footing or constrained landing space, the result can also turn on the creature's remaining <span data-term-id=\"speed\" class=\"glossary-term-link-from-markdown\">Speed</span> and any <span data-term-id=\"difficult_terrain\" class=\"glossary-term-link-from-markdown\">Difficult Terrain</span> at the destination.\r\n"
+  "markdown": "# High Jump\n\nWhen you make a High Jump, you leap into the air a number of feet equal to 3 plus your Strength modifier (minimum of 0 feet) if you move at least 10 feet on foot immediately before the jump. When you make a standing High Jump, you can jump only half that distance. Either way, each foot of the jump costs a foot of movement.\n\nYou can extend your arms half your height above yourself during the jump. Thus, you can reach a distance equal to the height of the jump plus 1½ times your height."
 }

@@ -1,0 +1,14 @@
+{
+  "id": "one_with_shadows",
+  "title": "One with Shadows",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "While you're in an area of dim_light Light or darkness, you can cast invisibility on yourself without expending a spell slot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/one_with_shadows.json",
+  "markdown": "# One with Shadows\n\nWhile you're in an area of [[dim_light Light]] or [[darkness]], you can cast [[invisibility]] on yourself without expending a spell slot."
+}

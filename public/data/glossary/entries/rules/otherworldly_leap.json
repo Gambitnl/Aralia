@@ -1,0 +1,14 @@
+{
+  "id": "otherworldly_leap",
+  "title": "Otherworldly Leap",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You can cast jump on yourself without expending a spell slot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/otherworldly_leap.json",
+  "markdown": "# Otherworldly Leap\n\nYou can cast [[jump]] on yourself without expending a spell slot."
+}

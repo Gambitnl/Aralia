@@ -1,0 +1,14 @@
+{
+  "id": "map_or_scroll_case",
+  "title": "Map or Scroll Case",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 1 lb. A map_or_scroll_case or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/map_or_scroll_case.json",
+  "markdown": "# Map or Scroll Case\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 1 lb.\n\nA [[map_or_scroll_case or Scroll Case]] holds up to 10 sheets of paper or 5 sheets of parchment."
+}

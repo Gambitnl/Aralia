@@ -1,0 +1,14 @@
+{
+  "id": "lessons_of_the_first_ones",
+  "title": "Lessons of the First Ones",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You have received knowledge from an elder entity of the multiverse, allowing you to gain one Origin feat of your choice.  Repeatable You can gain this...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/lessons_of_the_first_ones.json",
+  "markdown": "# Lessons of the First Ones\n\nYou have received knowledge from an elder entity of the multiverse, allowing you to gain one Origin feat of your choice.\n\n### Repeatable\n\nYou can gain this invocation more than once. Each time you do so, choose a different Origin feat."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "hide",
+  "title": "Hide",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "With the Hide action, you try to conceal yourself. To do so, you must succeed on a DC 15 Dexterity ([[stealth]]) check while you're [[heavily_obscured...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/hide.json",
+  "markdown": "# Hide\n\nWith the Hide action, you try to conceal yourself. To do so, you must succeed on a DC 15 Dexterity ([[stealth]]) check while you're [[heavily_obscured Obscured]] or behind [[cover-Quarters Cover or Total Cover]], and you must be out of any enemy's line of sight; if you can see a creature, you can discern whether it can see you.\n\nOn a successful check, you have the [[invisible]] condition while hidden. Make note of your check's total, which is the DC for a creature to find you with a Wisdom ([[perception]]) check.\n\nYou stop being hidden immediately after any of the following occurs: you make a sound louder than a whisper, an enemy finds you, you make an attack roll, or you cast a spell with a Verbal component."
+}

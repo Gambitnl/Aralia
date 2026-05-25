@@ -1,0 +1,14 @@
+{
+  "id": "mastiff",
+  "title": "Mastiff",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: MNT|XPHB - Cost: 25 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/mastiff.json",
+  "markdown": "# Mastiff\n\n- **Type**: MNT|XPHB\n- **Cost**: 25 gp\n\n"
+}

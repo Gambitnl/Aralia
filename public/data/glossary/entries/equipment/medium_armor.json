@@ -1,0 +1,14 @@
+{
+  "id": "medium_armor",
+  "title": "Medium Armor",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "No description available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/medium_armor.json",
+  "markdown": "# Medium Armor\n\n"
+}

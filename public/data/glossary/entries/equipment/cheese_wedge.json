@@ -1,0 +1,14 @@
+{
+  "id": "cheese_wedge",
+  "title": "Cheese (wedge)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: FD|XPHB - Cost: 0.1 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cheese_wedge.json",
+  "markdown": "# Cheese (wedge)\n\n- **Type**: FD|XPHB\n- **Cost**: 0.1 gp\n\n"
+}

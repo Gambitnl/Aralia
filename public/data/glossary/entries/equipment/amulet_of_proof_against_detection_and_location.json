@@ -1,0 +1,14 @@
+{
+  "id": "amulet_of_proof_against_detection_and_location",
+  "title": "Amulet of Proof against Detection and Location",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Weight: 1 lb. While wearing this amulet, you can't be targeted by Divination spells or perceived through magical scrying sensors unless you allow it...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/amulet_of_proof_against_detection_and_location.json",
+  "markdown": "# Amulet of Proof against Detection and Location\n\n- **Weight**: 1 lb.\n\nWhile wearing this amulet, you can't be targeted by Divination spells or perceived through magical scrying sensors unless you allow it."
+}

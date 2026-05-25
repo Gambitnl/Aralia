@@ -1,0 +1,14 @@
+{
+  "id": "dagger_of_venom",
+  "title": "Dagger of Venom",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: M|XPHB - Weight: 1 lb. - Damage: 1d4 P - Properties: F|XPHB, L|XPHB, T|XPHB You gain a +1 bonus to attack rolls and damage rolls made with thi...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/dagger_of_venom.json",
+  "markdown": "# Dagger of Venom\n\n- **Type**: M|XPHB\n- **Weight**: 1 lb.\n- **Damage**: 1d4 P\n- **Properties**: F|XPHB, L|XPHB, T|XPHB\n\nYou gain a +1 bonus to attack rolls and damage rolls made with this magic weapon.\n\nYou can take a [[bonus_action Action]] to magically coat the blade with poison. The poison remains for 1 minute or until an attack using this weapon hits a creature. That creature must succeed on a DC 15 Constitution saving throw or take 2d10 Poison damage and have the [[poisoned]] condition for 1 minute. The weapon can't be used this way again until the next dawn."
+}

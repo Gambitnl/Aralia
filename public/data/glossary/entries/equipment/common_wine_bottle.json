@@ -1,0 +1,14 @@
+{
+  "id": "common_wine_bottle",
+  "title": "Common Wine (bottle)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: FD|XPHB - Cost: 0.2 gp...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/common_wine_bottle.json",
+  "markdown": "# Common Wine (bottle)\n\n- **Type**: FD|XPHB\n- **Cost**: 0.2 gp\n\n"
+}

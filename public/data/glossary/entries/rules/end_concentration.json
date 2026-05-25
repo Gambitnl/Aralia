@@ -1,0 +1,14 @@
+{
+  "id": "end_concentration",
+  "title": "End Concentration",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "action"
+  ],
+  "excerpt": "Some spells and other effects require Concentration to remain active, as specified in their descriptions. You can end Concentration at any time (no ac...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/end_concentration.json",
+  "markdown": "# End Concentration\n\nSome spells and other effects require Concentration to remain active, as specified in their descriptions. You can end Concentration at any time (no action required)."
+}

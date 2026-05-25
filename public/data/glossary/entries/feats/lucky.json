@@ -1,0 +1,14 @@
+{
+  "id": "lucky",
+  "title": "Lucky",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Luck Points You have a number of Luck Points equal to your proficiency Bonus and can spend the points on the benefit...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/lucky.json",
+  "markdown": "# Lucky\n\nYou gain the following benefits.\n\n## Luck Points\n\nYou have a number of Luck Points equal to your [[proficiency Bonus]] and can spend the points on the benefits below. You regain your expended Luck Points when you finish a [[long_rest Rest]].\n\n## Advantage\n\nWhen you roll a d20 for a [[d20_test Test]], you can spend 1 Luck Point to give yourself [[advantage]] on the roll.\n\n## Disadvantage\n\nWhen a creature rolls a d20 for an attack roll against you, you can spend 1 Luck Point to impose [[disadvantage]] on that roll."
+}

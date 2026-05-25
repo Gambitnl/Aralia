@@ -1,0 +1,14 @@
+{
+  "id": "arcana",
+  "title": "Arcana",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Recall lore about spells, magic items, and the planes of existence....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/arcana.json",
+  "markdown": "# Arcana\n\nRecall lore about spells, magic items, and the planes of existence."
+}

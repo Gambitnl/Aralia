@@ -49,8 +49,11 @@ Description: {{ issue.description }}
 
 This workflow manages external orchestration state. The durable Aralia-facing
 task packet lives under `docs/tasks/spells/`; keep transient drafts, manifests,
-click receipts, retry state, and local run state out of GitHub unless they are
-intentionally summarized into that packet for future Aralia contributors.
+raw receipts, dashboard caches, click receipts, retry state, task-store churn,
+and local run state out of GitHub unless a concise summary is intentionally
+promoted into that packet for future Aralia contributors. Do not send Jules a
+list of Symphony support PRs unless one of those PRs materially changes the
+current task boundary.
 
 Act as the Symphony foreman for this issue. Your first responsibility is to
 turn the issue into a bounded Jules handoff or to monitor the existing Jules

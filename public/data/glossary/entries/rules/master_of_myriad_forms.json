@@ -1,0 +1,14 @@
+{
+  "id": "master_of_myriad_forms",
+  "title": "Master of Myriad Forms",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "optionalfeature"
+  ],
+  "excerpt": "You can cast alter_self Self without expending a spell slot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/master_of_myriad_forms.json",
+  "markdown": "# Master of Myriad Forms\n\nYou can cast [[alter_self Self]] without expending a spell slot."
+}

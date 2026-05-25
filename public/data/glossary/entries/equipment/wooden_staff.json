@@ -1,0 +1,14 @@
+{
+  "id": "wooden_staff",
+  "title": "Wooden Staff",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp - Weight: 4 lb. - Damage: 1d6 B - Properties: V...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/wooden_staff.json",
+  "markdown": "# Wooden Staff\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V\n\n"
+}

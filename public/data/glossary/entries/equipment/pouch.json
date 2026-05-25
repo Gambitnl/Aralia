@@ -1,0 +1,14 @@
+{
+  "id": "pouch",
+  "title": "Pouch",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 0.5 gp - Weight: 1 lb. A Pouch holds up to 6 pounds within one-fifth of a cubic foot....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pouch.json",
+  "markdown": "# Pouch\n\n- **Type**: G|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 1 lb.\n\nA Pouch holds up to 6 pounds within one-fifth of a cubic foot."
+}

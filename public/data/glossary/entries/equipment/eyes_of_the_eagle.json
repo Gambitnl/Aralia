@@ -1,0 +1,14 @@
+{
+  "id": "eyes_of_the_eagle",
+  "title": "Eyes of the Eagle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "These crystal lenses fit over the eyes. While wearing them, you have advantage on Wisdom (perception) checks that rely on sight. In conditions of clea...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/eyes_of_the_eagle.json",
+  "markdown": "# Eyes of the Eagle\n\nThese crystal lenses fit over the eyes. While wearing them, you have [[advantage]] on Wisdom ([[perception]]) checks that rely on sight. In conditions of clear visibility, you can make out details of even extremely distant creatures and objects as small as 2 feet across."
+}

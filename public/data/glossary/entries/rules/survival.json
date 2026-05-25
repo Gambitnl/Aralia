@@ -1,0 +1,14 @@
+{
+  "id": "survival",
+  "title": "Survival",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Follow tracks, forage, find a trail, or avoid natural hazards....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/survival.json",
+  "markdown": "# Survival\n\nFollow tracks, forage, find a trail, or avoid natural hazards."
+}

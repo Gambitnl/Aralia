@@ -1,0 +1,14 @@
+{
+  "id": "dungeoneer_s_pack",
+  "title": "Dungeoneer's Pack",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 12 gp - Weight: 55 lb. A Dungeoneer's Pack contains the following items: backpack, caltrops, crowbar, 2 flasks of oil, 10 days ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/dungeoneer_s_pack.json",
+  "markdown": "# Dungeoneer's Pack\n\n- **Type**: G|XPHB\n- **Cost**: 12 gp\n- **Weight**: 55 lb.\n\nA Dungeoneer's Pack contains the following items: [[backpack]], [[caltrops]], [[crowbar]], 2 flasks of [[oil]], 10 days of [[rations]], [[rope]], [[tinderbox]], 10 [[torch]], and [[waterskin]]."
+}

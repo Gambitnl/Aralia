@@ -1,0 +1,14 @@
+{
+  "id": "artisan_s_tools",
+  "title": "Artisan's Tools",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "itemType"
+  ],
+  "excerpt": "Artisan's Tools are each focused on crafting items and pursuing a trade. Each type of Artisan's Tools tools requires a separate proficiency. If you ha...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/artisan_s_tools.json",
+  "markdown": "# Artisan's Tools\n\nArtisan's Tools are each focused on crafting items and pursuing a trade. Each type of Artisan's Tools tools requires a separate proficiency.\n\nIf you have proficiency with a tool, add your [[proficiency Bonus]] to any ability check you make that uses the tool. If you have proficiency in a skill that's used with that check, you have [[advantage]] on the check too."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "acolyte",
+  "title": "Acolyte",
+  "category": "Character Backgrounds",
+  "tags": [
+    "source:xphb",
+    "background"
+  ],
+  "excerpt": "- Ability Scores:: Intelligence, Wisdom, Charisma - Feat:: magic_initiate Initiate (Cleric) - Skill Proficiencies:: insight, religion - Tool Proficien...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/backgrounds/acolyte.json",
+  "markdown": "# Acolyte\n\n- **Ability Scores::** Intelligence, Wisdom, Charisma\n- **Feat::** [[magic_initiate Initiate]] (Cleric)\n- **Skill Proficiencies::** [[insight]], [[religion]]\n- **Tool Proficiency::** [[calligrapher_s_supplies's Supplies]]\n- **Equipment::** Choose A or B: (A) [[calligrapher_s_supplies's Supplies]], [[book (prayers)]], [[holy_symbol Symbol]], [[parchment]] (10 sheets), [[robe]], 8 GP; or (B) 50 GP"
+}

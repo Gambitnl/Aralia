@@ -1,0 +1,14 @@
+{
+  "id": "perception",
+  "title": "Perception",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "skill"
+  ],
+  "excerpt": "Using a combination of senses, notice something that's easy to miss....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/perception.json",
+  "markdown": "# Perception\n\nUsing a combination of senses, notice something that's easy to miss."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "heavily_armored",
+  "title": "Heavily Armored",
+  "category": "Feats",
+  "tags": [
+    "source:xphb",
+    "feat"
+  ],
+  "excerpt": "You gain the following benefits.  Armor Training You gain training with Heavy armor....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/feats/heavily_armored.json",
+  "markdown": "# Heavily Armored\n\nYou gain the following benefits.\n\n## Armor Training\n\nYou gain training with Heavy armor."
+}

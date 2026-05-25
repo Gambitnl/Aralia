@@ -1,0 +1,14 @@
+{
+  "id": "player_character",
+  "title": "Player Character",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A player character is a character controlled by a player....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/player_character.json",
+  "markdown": "# Player Character\n\nA player character is a character controlled by a player."
+}

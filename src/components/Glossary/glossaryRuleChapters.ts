@@ -61,96 +61,78 @@ const RULES_GLOSSARY_CHAPTERS: ChapterDefinition[] = [
     fallbackSectionTitle: 'Other Core Resolution Rules',
     sections: [
       {
-        id: 'tests_checks_and_rolls',
+        id: 'tests_and_checks',
         title: 'Tests, Checks, and Rolls',
         match: (entry) => matchesId(entry, [
-          'd20_test',
-          'ability_check',
-          'ability_check_dc',
-          'ability_check_modifier',
-          'ability_check_proficiency',
-          'ability_check_examples',
-          'attack_roll',
-          'attack_roll_abilities',
-          'attack_roll_modifier',
-          'attack_roll_proficiency',
-          'saving_throw',
-          'saving_throw_modifier',
-          'saving_throw_proficiency',
-          'saving_throw_success_failure',
-          'saving_throw_timing',
-          'critical_hit',
-          'advantage',
-          'advantage_disadvantage',
-          'advantage_disadvantage_rerolls',
-          'advantage_disadvantage_roll_two',
-          'advantage_disadvantage_stacking',
-          'proficiency_bonus',
-          'armor_class',
+          'd20_test', 'ability_check', 'ability_check_dc', 'ability_check_examples',
+          'ability_check_modifier', 'ability_check_proficiency', 'ability_score_and_modifier',
+          'advantage', 'advantage_disadvantage', 'advantage_disadvantage_rerolls',
+          'advantage_disadvantage_roll_two', 'advantage_disadvantage_stacking',
+          'critical_hit', 'difficulty_class', 'disadvantage', 'heroic_inspiration',
+          'proficiency', 'proficiency_bonus', 'rolling_20_or_1', 'round_down',
+          'save', 'saving_throw', 'saving_throw_dc', 'saving_throw_examples',
+          'saving_throw_modifier', 'saving_throw_proficiencies', 'saving_throw_proficiency',
+          'skill', 'skill_proficiencies', 'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'
         ]),
       },
+    ]
+  },
+  {
+    id: 'combat_and_actions',
+    title: 'Combat & Actions',
+    fallbackSectionTitle: 'Other Combat & Actions',
+    sections: [
       {
         id: 'action_economy',
         title: 'Actions and Turn Economy',
         match: (entry) => matchesId(entry, [
-          'action',
-          'actions',
-          'attack_action',
-          'bonus_action',
-          'bonus_actions',
-          'reaction',
-          'dash_action',
-          'disengage_action',
-          'dodge_action',
-          'help_action',
-          'hide_action',
-          'influence_action',
-          'magic_action',
-          'opportunity_attack',
-          'ready_action',
-          'search_action',
-          'study_action',
-          'utilize_action',
-          'initiative',
-          'surprise',
+          'action', 'actions', 'bonus_action', 'bonus_actions', 'reaction', 'reactions',
+          'attack', 'attack_action', 'dash', 'dash_action', 'disengage', 'disengage_action',
+          'dodge', 'dodge_action', 'help', 'help_action', 'hide', 'hide_action', 'hiding',
+          'influence', 'influence_action', 'magic', 'magic_action', 'ready', 'ready_action',
+          'search', 'search_action', 'study', 'study_action', 'utilize', 'utilize_action',
+          'improvising_an_action', 'one_thing_at_a_time'
         ]),
       },
-    ],
+      {
+        id: 'combat_mechanics',
+        title: 'Combat Mechanics',
+        match: (entry) => matchesId(entry, [
+          'attack_roll', 'attack_roll_abilities', 'attack_roll_modifier', 'attack_roll_proficiency',
+          'damage', 'damage_roll', 'damage_types', 'healing', 'immunity', 'resistance', 'vulnerability',
+          'initiative', 'surprise', 'encounter', 'opportunity_attack', 'two_weapon_fighting',
+          'grappled', 'grappling', 'escape_a_grapple', 'unarmed_strike', 'weapon_attack', 'spell_attack',
+          'cover', 'half_cover', 'three_quarters_cover', 'total_cover'
+        ]),
+      }
+    ]
   },
   {
-    id: 'space_visibility_and_movement',
-    title: 'Space, Visibility, and Movement',
-    fallbackSectionTitle: 'Other Space and Movement Rules',
+    id: 'movement_and_environment',
+    title: 'Movement & Environment',
+    fallbackSectionTitle: 'Other Movement & Environment',
     sections: [
       {
-        id: 'light_and_obscurity',
-        title: 'Light and Obscurity',
-        match: (entry) => matchesId(entry, [
-          'bright_light',
-          'dim_light',
-          'darkness',
-          'obscured_areas',
-          'blindsight',
-          'darkvision',
-          'tremorsense',
-          'truesight',
-        ]),
-      },
-      {
-        id: 'movement_and_positioning',
+        id: 'movement_positioning',
         title: 'Movement and Positioning',
         match: (entry) => matchesId(entry, [
-          'speed',
-          'climbing',
-          'crawling',
-          'flying',
-          'swimming',
-          'swim_speed',
-          'teleportation',
-          'unoccupied_space',
+          'speed', 'changes_to_your_speeds', 'special_speeds',
+          'burrow_speed', 'climb_speed', 'fly_speed', 'swim_speed',
+          'climbing', 'crawling', 'flying', 'jumping', 'swimming',
+          'high_jump', 'long_jump', 'hover', 'falling', 'teleportation',
+          'occupied_space', 'unoccupied_space', 'size', 'reach'
         ]) || titleIncludes(entry, 'movement'),
       },
-    ],
+      {
+        id: 'light_obscurity',
+        title: 'Light and Obscurity',
+        match: (entry) => matchesId(entry, [
+          'light', 'bright_light', 'dim_light', 'darkness', 'obscured_areas',
+          'lightly_obscured', 'heavily_obscured', 'vision', 'vision_and_light',
+          'blindsight', 'darkvision', 'tremorsense', 'truesight', 'special_senses'
+        ]),
+      }
+    ]
   },
   {
     id: 'conditions_and_states',
@@ -158,50 +140,94 @@ const RULES_GLOSSARY_CHAPTERS: ChapterDefinition[] = [
     fallbackSectionTitle: 'Other Conditions and States',
     sections: [
       {
-        id: 'condition_entries',
+        id: 'conditions',
         title: 'Conditions',
-        match: (entry) => entry.id.includes('_condition') || titleIncludes(entry, '[condition]'),
-      },
-      {
-        id: 'special_states',
-        title: 'Special States',
         match: (entry) => matchesId(entry, [
-          'exhaustion',
-          'temporary_hit_points',
-          'hit_points',
-          'death_saving_throws',
-          'unarmed_strike',
+          'condition', 'conditions', 'conditions_dont_stack', 'duration_condition',
+          'blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'grappled',
+          'incapacitated', 'invisible', 'paralyzed', 'petrified', 'poisoned', 'prone',
+          'restrained', 'stunned', 'unconscious'
         ]),
       },
-    ],
+      {
+        id: 'health_states',
+        title: 'Health and States',
+        match: (entry) => matchesId(entry, [
+          'bloodied', 'dead', 'death_saving_throw', 'hit_points', 'hit_point_dice',
+          'temporary_hit_points', 'temporary_hp', 'stable', 'knocking_out_a_creature',
+          'dehydration', 'malnutrition', 'suffocation', 'disease', 'diseases',
+          'curse', 'curses', 'possessed', 'possession', 'shape_shift', 'shape_shifting'
+        ]),
+      }
+    ]
   },
   {
-    id: 'interaction_and_worldplay',
-    title: 'Interaction and Worldplay',
-    fallbackSectionTitle: 'Other Worldplay Rules',
+    id: 'equipment_and_crafting',
+    title: 'Equipment & Crafting',
+    fallbackSectionTitle: 'Other Equipment & Crafting',
     sections: [
       {
-        id: 'creatures_objects_and_targets',
-        title: 'Creatures, Objects, and Targets',
+        id: 'equipment',
+        title: 'Equipment and Items',
         match: (entry) => matchesId(entry, [
-          'object',
-          'weapon',
-          'weapon_attack',
-          'telepathy',
-          'target',
+          'adventuring_equipment', 'armor_class', 'armor_training', 'don_or_doff_a_shield',
+          'weapon', 'improvised_weapons', 'damage_threshold', 'breaking_objects',
+          'carrying_capacity', 'carrying_objects', 'equipment_proficiencies', 'attunement',
+          'interacting_with_objects', 'time_limited_object_interactions', 'finding_hidden_objects',
+          'lockpicking', 'what_is_an_object', 'vehicles', 'object'
+        ]),
+      }
+    ]
+  },
+  {
+    id: 'magic_and_spellcasting',
+    title: 'Magic & Spellcasting',
+    fallbackSectionTitle: 'Other Magic Rules',
+    sections: [
+      {
+        id: 'magic_basics',
+        title: 'Spellcasting Basics',
+        match: (entry) => matchesId(entry, [
+          'spell', 'spells_chapter', 'cantrip', 'spell_slot', 'spellcasting_focus',
+          'concentration', 'end_concentration', 'ritual', 'magical_effect', 'simultaneous_effects', 'illusions'
         ]),
       },
       {
-        id: 'social_and_environmental',
-        title: 'Social and Environmental Concepts',
+        id: 'areas_of_effect',
+        title: 'Areas of Effect',
         match: (entry) => matchesId(entry, [
-          'friendly_attitude',
-          'hostile_attitude',
-          'indifferent_attitude',
-        ]) || tagIncludes(entry, 'hazard') || titleIncludes(entry, 'hazard'),
-      },
-    ],
+          'area_of_effect', 'cone_area', 'cone_area_of_effect', 'cube_area', 'cube_area_of_effect',
+          'cylinder_area', 'cylinder_area_of_effect', 'emanation_area', 'emanation_area_of_effect',
+          'line_area', 'line_area_of_effect', 'sphere_area_of_effect'
+        ]),
+      }
+    ]
   },
+  {
+    id: 'adventuring_worldplay',
+    title: 'Adventuring & Worldplay',
+    fallbackSectionTitle: 'Other Adventuring Rules',
+    sections: [
+      {
+        id: 'creatures_environment',
+        title: 'Creatures and Environment',
+        match: (entry) => matchesId(entry, [
+          'creature', 'creature_type', 'monster', 'ally', 'enemy', 'target',
+          'nonplayer_character', 'player_character', 'stat_block', 'alignment',
+          'attitude', 'friendly_attitude', 'hostile_attitude', 'indifferent_attitude',
+          'telepathy', 'hazard', 'hazards', 'traps', 'difficult_terrain'
+        ]),
+      },
+      {
+        id: 'exploration_progression',
+        title: 'Exploration and Progression',
+        match: (entry) => matchesId(entry, [
+          'adventure', 'campaign', 'exploration', 'travel', 'travel_pace',
+          'short_rest', 'long_rest', 'experience_points', 'glossary_conventions'
+        ]),
+      }
+    ]
+  }
 ];
 
 const SPELLCASTING_MECHANICS_CHAPTERS: ChapterDefinition[] = [

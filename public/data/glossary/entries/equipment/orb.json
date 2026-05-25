@@ -1,0 +1,14 @@
+{
+  "id": "orb",
+  "title": "Orb",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem"
+  ],
+  "excerpt": "- Type: SCF|XPHB - Cost: 20 gp - Weight: 3 lb....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/orb.json",
+  "markdown": "# Orb\n\n- **Type**: SCF|XPHB\n- **Cost**: 20 gp\n- **Weight**: 3 lb.\n\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "map",
+  "title": "Map",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item"
+  ],
+  "excerpt": "- Type: G|XPHB - Cost: 1 gp If you consult an accurate Map, you gain a +5 bonus to Wisdom (survival) checks you make to find your way in the place rep...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/map.json",
+  "markdown": "# Map\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n\nIf you consult an accurate Map, you gain a +5 bonus to Wisdom ([[survival]]) checks you make to find your way in the place represented on it."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "monster",
+  "title": "Monster",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "variantrule"
+  ],
+  "excerpt": "A monster is a creature controlled by the DM, even if the creature is benevolent....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/monster.json",
+  "markdown": "# Monster\n\nA monster is a creature controlled by the DM, even if the creature is benevolent."
+}

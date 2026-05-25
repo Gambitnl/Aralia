@@ -58,9 +58,14 @@ You are building a system where:
   cheaper or safer to offload.
 - Linear, GitHub, deployment, and local sync advance through explicit workflow
   boundaries instead of hidden side channels.
-- Durable docs stay in GitHub; transient Symphony runtime state, receipts, and
-  scratch artifacts stay external or ignored unless a short summary is
-  intentionally needed for future contributors.
+- Durable Aralia-facing task docs stay in GitHub; transient Symphony runtime
+  state, raw receipts, and scratch artifacts stay external or ignored unless a
+  short summary is intentionally needed for future contributors.
+- Every live task is also a workflow test. When task execution exposes
+  dashboard friction, stale instructions, missing proof, unclear ownership, or
+  repeated decision ambiguity, the Codex foreman should either repair that
+  workflow/documentation issue in the same pass or record the gap in the
+  owning live tracker before moving on.
 
 ## How We Achieve It
 
@@ -76,6 +81,12 @@ You get there by moving through a staged workflow:
    sync from the same workflow surface.
 6. Record the proof and the decision trail in durable docs so later foremen can
    understand what happened without replaying the entire thread.
+
+This is a dual responsibility, not a later cleanup phase: progress the bounded
+task and keep the workflow/docs true while doing it. If fixing a workflow issue
+would cross an external boundary or derail the active task, log the gap with an
+owner, location, and next proof target in the audit, open queue, or proving
+ground tracker.
 
 You are validating that approach with the spell execution project as the
 proving ground. The spell work is not the product goal by itself; it is the
@@ -111,11 +122,10 @@ As of the latest verified docs, assume:
 - The Symphony progress doc set currently contains the operating spec,
   architecture map, open task queue, audit, and proof tasks that define the
   live workflow.
-- Spell Phase 1 is actively in progress as the proving ground: Packages 2, 3, and 4
-  have been successfully merged and closed out. The active frontier of development
-  has advanced to Package 5 (AI arbitration pilot) and Package 6 (mechanics bucket
-  closure). The durable tracker, packet docs, decision reports, and closeout
-  references are actively maintained for future contributors.
+- Spell Phase 1 remains the active proving ground: Packages 2 through 6 have
+  been used to exercise the Symphony/Jules path, with the exact current package
+  frontier and remaining adjacent gaps tracked in
+  `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
 - Much of Symphony's runtime byproduct is intentionally untracked. Do not use
   local runtime artifacts as a substitute for the live queue, audit, or task
   tracker.
@@ -152,7 +162,7 @@ the live source of truth instead of keeping it here:
   or `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`
 - Spell Phase 1 gaps belong in `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
 - Spell decision history belongs in
-  `docs/tasks/spells/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+  `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
 
 ## What Still Needs To Be Done
 
@@ -164,6 +174,10 @@ and hardening the existing one:
   as the workflow changes
 - continue using bounded tasks to prove the orchestration model beyond the
   spell proving ground
+- treat workflow/documentation friction discovered during task execution as
+  part of the live slice: repair it when bounded, or log it with an owner and
+  next proof target when repair would derail the task or cross a guarded
+  boundary
 - keep separating durable documentation from transient Symphony runtime state
 - keep the north-star, audit, and task trackers current as the system evolves
 
@@ -172,9 +186,11 @@ and hardening the existing one:
 Much of Symphony's operational byproduct is intentionally not tracked in Git.
 The tracked parts are the source files, docs, and verifiers that define and
 prove the workflow. The untracked parts are the runtime state, generated
-manifests, click receipts, local dashboard state, and other scratch artifacts
-that would only distract future contributors if they were committed as if they
-were durable design intent.
+manifests, click receipts, raw local receipts, local dashboard state, and other
+scratch artifacts that would only distract future contributors if they were
+committed as if they were durable design intent. If a receipt matters to future
+Aralia work, promote only the useful summary into the package tracker, package
+packet, audit, or open queue.
 
 ### Project Symphony Code And Runtime
 
@@ -207,8 +223,8 @@ were durable design intent.
   tracker and adjacent gap log
 - `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` - Spell Phase 1
   artifact retention and runtime-state policy
-- `docs/tasks/spells/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` - the durable
-  decision report for the Spell Phase 1 flow
+- `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` -
+  the durable decision report for the Spell Phase 1 flow
 
 ## Proving-Ground Project: Spell Phase 1
 
@@ -234,7 +250,7 @@ Jules/Linear/GitHub/dashboard handoff flow.
 
 ### Progress Reports
 
-- `docs/tasks/spells/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+- `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
 - package closeout sections inside the P3/P4 packet docs
 - linked PRs and verification receipts referenced by the tracker
 
