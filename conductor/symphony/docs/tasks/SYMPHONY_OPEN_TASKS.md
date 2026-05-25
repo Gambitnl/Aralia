@@ -142,6 +142,26 @@ the audit, or in the proving-ground tracker with the next proof target.
   receipts and refresh to the live handoff after promotion; prevent repeated
   draft promotion when a draft already has a promoted handoff.
 
+### 7. Active Workflow Gap: Jules PR Branch Hygiene After Base Drift
+- **Status**: observed during Package 11 PR #1072; waiting on Jules repair.
+- **Observed failure mode**: Jules opened PR #1072 with useful Package 11 product
+  work, but the branch also included raw `.jules` worklog state and stale-base
+  rewinds of current Symphony docs/tracker records that had already landed on
+  `master`.
+- **Operating rule**: a Jules PR that contains useful implementation work is not
+  automatically acceptable if it carries raw runtime artifacts or stale-base
+  workflow doc rewinds. Foreman review must compare the PR against current
+  `origin/master`, remove or request removal of raw `.jules`/runtime state, and
+  preserve current durable tracker and decision records.
+- **Latest Package 11 proof**: Codex posted bounded repair feedback on PR #1072
+  at `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536811401`.
+  Local review found `validate:spells`, Atlas audit, and focused Vitest passed,
+  but `npx tsc --noEmit --pretty false` failed in the new test file.
+- **Next repair target**: wait for Jules to push a scoped repair head that
+  removes `.jules/worklogs/worklog_scribe.md`, preserves current `master`
+  Symphony docs, fixes the TypeScript test errors, and keeps Package 11 tracker
+  wording in review-pending state until foreman acceptance.
+
 ---
 
 ## Superseded Per-Task Status

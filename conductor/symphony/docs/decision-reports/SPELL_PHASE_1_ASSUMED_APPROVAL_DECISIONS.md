@@ -4583,3 +4583,45 @@ Copy this block for each decision.
   represented.
 - Next expected proof: visible Jules/GitHub monitoring until a PR URL, blocker,
   or reviewable result appears.
+
+### Decision 108: Request Bounded Package 11 PR #1072 Repair
+
+- Date/time: 2026-05-25 21:49 +02:00
+- Phase: `package_11_pr_review`
+- Active slice: Package 11 status/state-change mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules opened PR #1072 after the revised plan was approved.
+  The implementation direction was useful, but the PR was not acceptable as a
+  merge candidate.
+- Options considered:
+  - Merge PR #1072 because the focused spell validation and Vitest checks
+    passed.
+  - Take over the PR branch locally immediately.
+  - Send bounded Jules repair feedback and preserve Jules as implementation
+    owner for the first repair loop.
+- Decision made by agent: Do not accept the current PR head; post bounded repair
+  feedback at `https://github.com/Gambitnl/Aralia/pull/1072#issuecomment-4536811401`.
+- Model routing: Jules remains the implementation worker for the repair. Codex
+  remains foreman reviewer and evidence recorder.
+- Rationale/evidence:
+  - GitHub reports PR #1072 as `DIRTY`.
+  - The diff includes raw `.jules/worklogs/worklog_scribe.md`, which should stay
+    external or ignored.
+  - The branch rewinds recent Symphony decision/open-task docs from current
+    `master`, including Package 11 launch/approval records.
+  - Local review passed `npm run validate:spells`,
+    `node scripts\auditAtlasBuckets.mjs`, and focused Vitest for the two new
+    test files, but `npx tsc --noEmit --pretty false` fails on invalid test
+    fields: `turnOrder`, `sourceAbilityId`, and `naturalRoll`.
+  - The tracker/task packet wording marks Package 11 complete before foreman
+    acceptance.
+- Mutation performed or skipped: Posted a PR repair comment. Skipped merge,
+  skipped local product takeover, and skipped treating green focused tests as
+  sufficient acceptance proof.
+- Scope guardrails: The requested repair must stay inside the Package 11 product
+  slice and cleanup the PR branch: remove raw `.jules` state, preserve current
+  `master` docs, fix TypeScript, and avoid broad UI/runtime/policy expansion.
+- Result: Package 11 remains waiting on a Jules repair head for PR #1072.
+- Next expected proof: new PR #1072 head with scoped file list, clean
+  mergeability, passing `validate:spells`, Atlas audit, focused Vitest, and
+  `npx tsc --noEmit --pretty false`.
