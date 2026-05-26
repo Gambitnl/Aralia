@@ -53,6 +53,10 @@ For the active proving-ground Spell Phase 1 track:
   diff. Codex sent a bounded visible correction asking Jules to clean those
   artifacts before submit and stay on durable Package 13 files unless
   `src/types/combat.ts` is explicitly unavoidable.
+- On 2026-05-26 03:00 +02:00, a follow-up visual Jules refresh showed the first
+  correction had only partially cleaned the diff: `patch_bucket.js`,
+  `patch_bucket_more.js`, `.orig` files, and `src/types/combat.ts` were still
+  visible. Codex sent a second visible correction before PR submission.
 - Visible dashboard use exposed that the Package Packet Drafts section had no
   Package 13 button. PR #1090 repaired that blocker by rendering package
   shortcuts from a shared registry and adding Package 13 there, rather than
