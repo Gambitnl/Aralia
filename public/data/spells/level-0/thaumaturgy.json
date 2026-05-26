@@ -272,7 +272,14 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "soundEmission": {
+        "audibleRadius": "not_applicable",
+        "radiusUnit": "not_applicable",
+        "source": "caster",
+        "trigger": "on_cast",
+        "description": "Your voice booms up to three times as loud as normal for 1 minute."
+      }
     }
   ],
   "arbitrationType": "mechanical",

@@ -197,7 +197,45 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "sensoryManifestation": {
+        "modeSource": "not_applicable",
+        "variants": [
+          {
+            "label": "Phantasm",
+            "allowedSenses": [
+              "sight",
+              "sound",
+              "other_sensory_effect"
+            ],
+            "excludedSenses": [],
+            "maxSize": {
+              "shape": "Cube",
+              "size": 10,
+              "unit": "feet"
+            },
+            "notes": "The phantasm includes sound, temperature, and other stimuli, but only in the mind of the target."
+          }
+        ]
+      },
+      "illusion": {
+        "revealScope": "per_creature",
+        "revealRules": [
+          {
+            "method": "study_action",
+            "actionCost": "action",
+            "ability": "Intelligence",
+            "skill": "Investigation",
+            "dc": "spell_save_dc",
+            "appliesTo": [
+              "Phantasm"
+            ],
+            "notes": "The target can use its Action to examine the phantasm."
+          }
+        ],
+        "discernedState": "not_applicable",
+        "notes": "If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends."
+      }
     },
     {
       "type": "DAMAGE",

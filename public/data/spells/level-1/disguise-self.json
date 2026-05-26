@@ -173,7 +173,32 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "illusion": {
+        "revealScope": "per_creature",
+        "revealRules": [
+          {
+            "method": "study_action",
+            "actionCost": "action",
+            "ability": "Intelligence",
+            "skill": "Investigation",
+            "dc": "spell_save_dc",
+            "appliesTo": [
+              "image"
+            ],
+            "notes": "A creature can use its Action to inspect your appearance."
+          },
+          {
+            "method": "physical_interaction",
+            "appliesTo": [
+              "image"
+            ],
+            "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
+          }
+        ],
+        "discernedState": "faint_to_discerning_creature",
+        "notes": "The changes wrought by this spell fail to hold up to physical inspection."
+      }
     }
   ],
   "arbitrationType": "mechanical",

@@ -562,6 +562,16 @@ export interface SecondaryTargeting {
   notes?: string;
 }
 
+
+/** Describes sound emitted by a spell or effect. */
+export interface SoundEmission {
+  audibleRadius: number | "not_applicable";
+  radiusUnit: "feet" | "miles" | "not_applicable";
+  source: "caster" | "target" | "target_object" | "origin_space" | "spell_area" | "not_applicable";
+  trigger: "on_cast" | "on_hit" | "after_teleport" | "on_trigger" | "not_applicable";
+  description?: string;
+}
+
 /** Base interface for all spell effects. */
 export interface BaseEffect {
   trigger: EffectTrigger;
@@ -571,6 +581,8 @@ export interface BaseEffect {
   secondaryTargeting?: SecondaryTargeting;
   /** Repeated secondary mechanics, such as turn-start temp HP or first-per-turn rider damage. */
   recurringMechanics?: RecurringMechanic[];
+  /** Sound is a sensory mechanic when it has gameplay-facing radius, source, or timing. */
+  soundEmission?: SoundEmission;
   /** Sensory manifestation limits, such as which senses an illusion can or cannot create. */
   sensoryManifestation?: SensoryManifestation;
   /** Illusion reveal/discernment rules and the state after a creature sees through the effect. */
