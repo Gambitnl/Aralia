@@ -5485,3 +5485,63 @@ Copy this block for each decision.
   `0cd0af47f348b21f331644e7d1bdb502400d3f3a`; Package 13 is closed.
 - Next expected proof: select the next tracker-defined mechanics bucket from
   `EARLY_GAME_SPELL_EXECUTION_PLAN.md` before dispatching another Jules task.
+
+### Decision 127: Request Revised Package 14 Jules Plan
+
+- Date/time: 2026-05-26 05:05-05:06 +02:00
+- Phase: `package_14_plan_review`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: Visual Jules inspection of session `16016352181102771214`
+  showed an `Approve plan?` gate. Jules' first plan had useful direction, but
+  it did not yet satisfy the Package 14 packet. It reviewed likely candidates
+  rather than explicitly classifying every named early-game open row first,
+  selected `alarm`, `daylight`, `silent-image`, `major-image`, `fog-cloud`, and
+  `darkness`, and proposed marking rows closed before proving the full
+  classification and residual boundary. Codex also checked current source
+  evidence and found that `spellValidator.ts` accepts `soundEmission` and
+  existing spell JSON already uses it, while `src/types/spells.ts` lacks the
+  matching `SoundEmission` type and `BaseEffect.soundEmission` field.
+- Options considered:
+  - Approve the first plan because it names plausible implementation files and
+    a coherent subset.
+  - Reject the plan and take over Package 14 locally.
+  - Ask Jules for a revised plan through visible chat before approval.
+- Decision made by agent: Ask Jules for a revised plan before approval.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  plan review, scope enforcement, visible feedback, PR review, and verification.
+- Rationale/evidence:
+  - The package requires full classification of every named cantrip/level 1-3
+    open row before selecting `implement_now` rows. That classification is the
+    guardrail that lets Package 14 be larger without becoming vague.
+  - A focused additive `soundEmission` type bridge in `src/types/spells.ts`
+    appears plausible because validation and JSON evidence already use the
+    field, but it still needs to stay narrow and verified.
+  - `fog-cloud`, `darkness`, and `silence` should not be closed unless current
+    structures prove the exact row without broad line-of-sight,
+    magical-darkness, one-way-visibility, remote-sensor, or
+    silence-propagation work.
+  - The desired improvement is higher implementation value per Jules cycle, not
+    approving a broad-looking plan that will need predictable repair later.
+- Mutation performed or skipped:
+  - Performed: sent a visible Jules message requesting a revised plan. The
+    message required full named-row classification, a separated
+    `implement_now` subset, additive-only `soundEmission` typing if needed,
+    residual rows left open with reasons, and verification through
+    `validate:spells`, `auditAtlasBuckets`, focused tests, and `tsc` if
+    `src/types/spells.ts` changes.
+  - Skipped: approving the plan, local implementation, hidden endpoint update,
+    PR merge, and replacement handoff.
+- Scope guardrails:
+  - Keep Package 14 inside selected spell JSON, `src/types/spells.ts` or
+    validator only for the narrow reusable bridge, focused runtime/data tests,
+    and `vision_light_sound.md`.
+  - Exclude broad line-of-sight, magical-darkness, one-way-visibility,
+    remote-sensor, silence-propagation, glyph/trap, summon/control,
+    illusion/social arbitration, combat HUD rider icons, levels 4-9, Symphony
+    runtime/source files, and GitHub workflows.
+- Result: Package 14 is waiting for a revised Jules plan, not blocked and not
+  locally taken over.
+- Next expected proof: revised visible Jules plan that classifies every named
+  early-game row and separates the approved implementation subset from deferred
+  residual rows.

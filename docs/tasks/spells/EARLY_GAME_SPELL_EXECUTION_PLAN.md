@@ -860,13 +860,17 @@ clean `origin/master @ a164a420f4c9289c8a5214bf7e3498515d41ce92`.
 The latest visual Jules recheck showed repository setup in progress and Jules
 reading `public/data/spells/level-1/alarm.json`, with no plan gate, PR,
 blocker, or question visible yet.
+Jules later presented a plan gate; Codex requested a revised plan because the
+first plan did not explicitly classify every named row before selecting the
+implementation subset.
 
 Immediate action:
 
-1. Visually recheck Jules session `16016352181102771214` for a plan approval
-   gate, PR URL, explicit blocker, question, or continued setup/working state.
-2. If Jules is still queued/loading/setting-up/working with no new choice,
+1. Visually recheck Jules session `16016352181102771214` for a revised plan,
+   PR URL, explicit blocker, question, or continued thinking/working state.
+2. If Jules is still thinking/working on the revision with no new choice,
    record only a compact wait-state row.
-3. If a plan appears, review it against the Package 14 packet before approving:
-   it must classify the named early-game rows first and implement the largest
-   coherent safe subset covered by existing schema/runtime/test patterns.
+3. If a revised plan appears, approve it only if it explicitly classifies every
+   named early-game row first, separates the selected `implement_now` subset
+   from residual/deferred rows, and keeps broad visibility/silence systems out
+   of scope.

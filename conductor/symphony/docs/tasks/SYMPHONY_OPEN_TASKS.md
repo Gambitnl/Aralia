@@ -44,6 +44,12 @@ For the active proving-ground Spell Phase 1 track:
   approval gate, PR URL, explicit blocker, or Jules question yet. That is a
   compact wait state: the next proof target is plan approval, PR/result, or an
   explicit blocker, not another full decision entry.
+- Visual recheck on 2026-05-26 05:05 +02:00 showed a Package 14 plan approval
+  gate. Codex rejected the first plan through visible Jules chat because it did
+  not make the required full named-row classification explicit before choosing
+  a subset, and it risked closing `fog-cloud`/`darkness` rows without proving
+  the exact non-broad visibility facts. Next proof target: revised Jules plan
+  with full classification and a separated `implement_now` subset.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
