@@ -72,9 +72,14 @@ For the active proving-ground Spell Phase 1 track:
   A later visible Jules check showed all plan steps completed, and GitHub now
   has PR #1122 from branch
   `jules/spells-package15-summon-controlled-entity-5400768066928394476`. The
-  current proof target is Codex foreman review of PR #1122 against the Package
-  15 task packet, including file hygiene, focused verification, tracker truth,
-  and whether repair is needed before merge.
+  current proof target moved to Codex foreman review of PR #1122 against the
+  Package 15 task packet. GitHub checks were green, but foreman review found
+  acceptance blockers: raw `.jules/worklogs/worklog_scribe.md` runtime noise in
+  the diff, stale `summon_or_controlled_entity.md` header counts after row
+  status changes, and structured `summon-beast` / `phantom-steed` data that
+  needs to either carry the supported stat-block facts or narrow its claim.
+  Codex posted bounded PR feedback at
+  `https://github.com/Gambitnl/Aralia/pull/1122#issuecomment-4541506297`.
 - Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
@@ -90,9 +95,10 @@ For the active proving-ground Spell Phase 1 track:
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
   launch. PR #1119 then proved the plan-revision routing repair. Current next
-  proof target: review Package 15 PR #1122 now that visible Jules/GitHub
-  evidence confirms submission, while preserving the stale-completion mismatch
-  as a workflow reconciliation gap rather than a product blocker.
+  proof target: wait for a new Package 15 PR #1122 head from Jules, then compare
+  that head with the bounded repair request before accepting. Green checks alone
+  are not enough while the raw `.jules` file, stale bucket counts, or partial
+  stat-block claim remain unresolved.
 
 ---
 

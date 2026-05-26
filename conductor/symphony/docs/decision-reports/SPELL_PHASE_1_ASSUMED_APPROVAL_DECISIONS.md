@@ -6040,3 +6040,52 @@ Copy this block for each decision.
   Jules later shows a PR, move to PR review. If it remains plan-approved/working
   with no PR, record a compact wait. If the mismatch repeats, repair Symphony's
   completion reconciliation before filing the handoff as no-PR/stale.
+
+### Decision 137: Request Bounded Repair On Package 15 PR #1122
+
+- Date/time: 2026-05-26 09:12 +02:00
+- Phase: `package_15_pr_review_repair`
+- Active slice: Package 15 summon/control mechanics for cantrips and levels
+  1-3.
+- Decision point: Jules opened PR #1122 from
+  `jules/spells-package15-summon-controlled-entity-5400768066928394476`.
+  GitHub checks were green, but foreman review found acceptance blockers before
+  merge.
+- Options considered:
+  - Merge PR #1122 because Build, Lint, Tests, Quality, Poison, Analyze,
+    CodeQL, and Gemini review were green.
+  - Request a bounded Jules repair on the existing PR branch.
+  - Take over locally with a foreman branch-hygiene repair immediately.
+  - Reject or supersede Package 15.
+- Decision made by agent: Request a bounded Jules repair through visible GitHub
+  PR feedback before any local branch-hygiene takeover.
+- Model routing: Strong foreman reasoning, because this chooses between
+  accepting green checks, sending Jules repair feedback, and local takeover.
+- Rationale/evidence:
+  - The Package 15 packet explicitly forbids raw `.jules`, Symphony runtime,
+    helper, cache, workflow, and local orchestration artifacts in the final PR,
+    but PR #1122 modifies `.jules/worklogs/worklog_scribe.md`.
+  - `summon_or_controlled_entity.md` changes many row statuses while the header
+    still says Open `44`, Closed `13`, Deferred flavor `1`.
+  - The new `summon-beast` and `phantom-steed` inline stat-block data appears
+    too partial or arbitrary for the PR's stat-block coverage claim. The repair
+    should either encode the supported stat-block facts current schema/runtime
+    can carry or narrow the residual documentation instead of implying full
+    coverage.
+  - GitHub would not allow a formal "request changes" review because the PR is
+    treated as same-owner, so Codex posted the repair as a visible PR comment.
+- Mutation performed or skipped:
+  - Performed: posted bounded PR feedback at
+    `https://github.com/Gambitnl/Aralia/pull/1122#issuecomment-4541506297`.
+  - Skipped: merging on green checks, local implementation takeover, broad
+    summon AI/object-animation/social/trap scope expansion, and Symphony
+    workflow code changes.
+- Scope guardrails:
+  - Keep the repair inside durable Package 15 files only.
+  - Do not accept a new PR head until it is compared with the exact repair
+    request, not merely because checks pass or the commit hash changes.
+- Result: Package 15 remains Jules-owned and PR #1122 is waiting for a bounded
+  repair head.
+- Next expected proof: a new PR #1122 head or Jules reply. If Jules repairs,
+  compare the new diff with the requested `.jules` removal, bucket-count fix,
+  structured summon-data tightening, and verification report before accepting.
