@@ -96,7 +96,7 @@
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "TERRAIN",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -145,44 +145,45 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
       "description": "This spell channels vitality into plants. The casting time you use determines whether the spell has the Overgrowth or the Enrichment effect below. Overgrowth. Choose a point within range. All normal plants in a 100-foot-radius Sphere centered on that point become thick and overgrown. A creature moving through that area must spend 4 feet of movement for every 1 foot it moves. You can exclude one or more areas of any size within the spell's area from being affected. Enrichment. All plants in a half-mile radius centered on a point within range become enriched for 365 days. The plants yield twice the normal amount of food when harvested. They can benefit from only one Plant Growth per year.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
+      "conditionalEndings": [],
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 100,
+        "height": 0
       },
-      "savePenalty": {
+      "duration": {
+        "type": "special",
+        "value": 0
+      },
+      "damage": {
         "dice": "",
-        "flat": 0,
-        "applies": "next_save",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 0,
+          "depth": 0
+        },
         "duration": {
           "type": "rounds",
           "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
-      },
-      "conditionalEndings": []
+        },
+        "depositDistance": 0
+      }
     },
     {
       "type": "UTILITY",
