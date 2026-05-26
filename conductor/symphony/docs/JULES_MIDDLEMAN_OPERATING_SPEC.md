@@ -398,6 +398,13 @@ The practical test is whether the foreman had to choose between materially
 different next actions. If the only honest action is still "wait for Jules to
 produce the next proof," keep it compact and name the next proof target.
 
+Every future Jules package task and prompt should carry this compact-reporting
+rule before launch. A running Jules session only sees the packet from its
+launch base, so later local edits to this spec do not update that session by
+themselves. Jules final reports should summarize files changed, verification,
+and deferred work; the full assumed-approval ledger is for foreman decisions
+that change the workflow path.
+
 ### Workflow Phases
 
 This table is the canonical phase list for the dashboard-created

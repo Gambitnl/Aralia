@@ -61,17 +61,20 @@ For the active proving-ground Spell Phase 1 track:
   until Jules responds with a revised plan, starts work, opens a PR, or exposes
   a blocker; stale `Approve Jules Plan` should not remain the next action after
   an operator revision note has been sent.
-- Current Package 15 live gap: Jules produced a revised plan that begins with
+- Current Package 15 live state: Jules produced a revised plan that begins with
   row classification and Codex approved it visibly. A later dashboard refresh
   recorded Jules `COMPLETED` with no PR URL, no completion result, and no branch,
   while visible Jules still showed `Plan approved` plus a `Pause session`
-  control. GitHub open-PR search found no current Package 15 PR. Treat this as
-  stale completion reconciliation, not package closeout. Follow-up visible Jules
-  inspection then showed `Jules is working`, `Pre-commit checks passed`, Package
-  15 file content, and still no PR link; GitHub open-PR search still found no
-  Package 15 PR. The current proof target is continued visible Jules/GitHub
-  monitoring until a PR, explicit blocker, or repeated stale-state mismatch
-  requires a Symphony reconciliation repair.
+  control. GitHub open-PR search found no current Package 15 PR, so Codex
+  treated that as stale completion reconciliation, not package closeout.
+  Follow-up visible Jules inspection then showed `Jules is working`,
+  `Pre-commit checks passed`, Package 15 file content, and still no PR link.
+  A later visible Jules check showed all plan steps completed, and GitHub now
+  has PR #1122 from branch
+  `jules/spells-package15-summon-controlled-entity-5400768066928394476`. The
+  current proof target is Codex foreman review of PR #1122 against the Package
+  15 task packet, including file hygiene, focused verification, tracker truth,
+  and whether repair is needed before merge.
 - Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
@@ -87,9 +90,9 @@ For the active proving-ground Spell Phase 1 track:
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
   launch. PR #1119 then proved the plan-revision routing repair. Current next
-  proof target: monitor the visibly working Package 15 Jules session for PR
-  creation or explicit failure, while treating the local `COMPLETED` record as
-  stale unless visible Jules/GitHub evidence confirms completion.
+  proof target: review Package 15 PR #1122 now that visible Jules/GitHub
+  evidence confirms submission, while preserving the stale-completion mismatch
+  as a workflow reconciliation gap rather than a product blocker.
 
 ---
 
