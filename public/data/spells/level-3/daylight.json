@@ -174,7 +174,7 @@
         "attachedTo": "point",
         "color": "sunlight",
         "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
+        "opaqueCoverBlocks": true,
         "emitsHeat": "not_applicable",
         "ignitesObjects": "not_applicable",
         "consumesFuel": "not_applicable",

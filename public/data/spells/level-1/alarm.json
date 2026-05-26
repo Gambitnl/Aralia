@@ -178,7 +178,14 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "soundEmission": {
+        "audibleRadius": 60,
+        "radiusUnit": "feet",
+        "source": "spell_area",
+        "trigger": "on_trigger",
+        "description": "Produces the sound of a handbell for 10 seconds."
+      }
     },
     {
       "type": "UTILITY",

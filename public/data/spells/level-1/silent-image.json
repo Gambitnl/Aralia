@@ -177,7 +177,53 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "sensoryManifestation": {
+        "modeSource": "not_applicable",
+        "variants": [
+          {
+            "label": "Visual Image",
+            "allowedSenses": [
+              "sight"
+            ],
+            "excludedSenses": [
+              "sound",
+              "smell",
+              "other_sensory_effect"
+            ],
+            "maxSize": {
+              "shape": "Cube",
+              "size": 15,
+              "unit": "feet"
+            },
+            "notes": "The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects."
+          }
+        ]
+      },
+      "illusion": {
+        "revealScope": "per_creature",
+        "revealRules": [
+          {
+            "method": "physical_interaction",
+            "appliesTo": [
+              "Visual Image"
+            ],
+            "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
+          },
+          {
+            "method": "study_action",
+            "actionCost": "action",
+            "ability": "Intelligence",
+            "skill": "Investigation",
+            "dc": "spell_save_dc",
+            "appliesTo": [
+              "Visual Image"
+            ]
+          }
+        ],
+        "discernedState": "transparent_to_discerning_creature",
+        "notes": "If a creature discerns the illusion for what it is, the creature can see through the image."
+      }
     }
   ],
   "arbitrationType": "mechanical",

@@ -178,7 +178,53 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "sensoryManifestation": {
+        "modeSource": "not_applicable",
+        "variants": [
+          {
+            "label": "Major Image",
+            "allowedSenses": [
+              "sight",
+              "sound",
+              "smell",
+              "other_sensory_effect"
+            ],
+            "excludedSenses": [],
+            "maxSize": {
+              "shape": "Cube",
+              "size": 20,
+              "unit": "feet"
+            },
+            "timing": "continuous_or_discrete_before_spell_end",
+            "notes": "It seems real, including sounds, smells, and temperature appropriate to the thing depicted. You can cause the illusion to make different sounds at different times."
+          }
+        ]
+      },
+      "illusion": {
+        "revealScope": "per_creature",
+        "revealRules": [
+          {
+            "method": "physical_interaction",
+            "appliesTo": [
+              "Major Image"
+            ],
+            "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
+          },
+          {
+            "method": "study_action",
+            "actionCost": "action",
+            "ability": "Intelligence",
+            "skill": "Investigation",
+            "dc": "spell_save_dc",
+            "appliesTo": [
+              "Major Image"
+            ]
+          }
+        ],
+        "discernedState": "faint_to_discerning_creature",
+        "notes": "If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature."
+      }
     }
   ],
   "arbitrationType": "mechanical",

@@ -394,11 +394,28 @@ export interface TargetConditionFilter {
     /** Whether the target must be the caster, another creature, or has no self/other rule. */
     selfRelation?: string;
 }
+
+/** Describes sound that a spell creates, including where it comes from and how far it can be heard. */
+export interface SoundEmission {
+    /** The distance at which the sound can be heard, or not_applicable when the spell is silent. */
+    audibleRadius: number | "not_applicable";
+    /** The distance unit for the audible radius. */
+    radiusUnit: "feet" | "miles" | "not_applicable";
+    /** The in-world point or object that emits the sound. */
+    source: "caster" | "target" | "target_object" | "origin_space" | "spell_area" | "not_applicable";
+    /** The spell moment that starts the sound. */
+    trigger: "on_cast" | "on_hit" | "after_teleport" | "on_trigger" | "not_applicable";
+    /** Human-readable explanation for players, logs, or future arbitration. */
+    description?: string;
+}
+
 /** Base interface for all spell effects. */
 export interface BaseEffect {
     trigger: EffectTrigger;
     condition: EffectCondition;
     scaling?: ScalingFormula;
+    /** Sound is a sensory mechanic when it has gameplay-facing radius, source, or timing. */
+    soundEmission?: SoundEmission;
     description?: string;
 }
 /** An effect that deals damage. */
