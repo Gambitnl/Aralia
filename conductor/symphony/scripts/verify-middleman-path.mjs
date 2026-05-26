@@ -360,6 +360,125 @@ try {
   const runningJulesStage = runningSnapshot.middleman_path.stages.find(stage => stage.id === 'jules_session');
   assert.equal(runningJulesStage.status, 'active');
   assert.equal(runningJulesStage.receipt, 'https://jules.google.com/session/15527431301408060204');
+
+  const cleanPreflight = {
+    ...blockedPreflight,
+    ok: true,
+    currentBranch: 'codex/package14-dashboard-launch',
+    localCommit: 'merged-head',
+    remoteCommit: 'merged-head',
+    ahead: 0,
+    behind: 0,
+    dirtyFiles: 0,
+    untrackedFiles: 0,
+    blockers: [],
+    summary: 'Ready: checkout matches origin/master and the working tree is clean.',
+    nextAction: {
+      code: 'complete',
+      tone: 'ready',
+      label: 'GitHub Synced',
+      summary: 'GitHub sync gate is clean.',
+      steps: [],
+    },
+  };
+  const mergedHandoffWithOldRisk = {
+    ...runningJulesHandoff,
+    id: 'handoff-merged-risk',
+    title: 'Merged PR with stale risk evidence',
+    githubPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/1096',
+    githubPullRequestState: 'MERGED',
+    githubPullRequestChecks: {
+      total: 7,
+      passed: 7,
+      failed: 0,
+      pending: 0,
+      skipped: 0,
+      unknown: 0,
+      conclusion: 'passing',
+      artifacts: [],
+    },
+    githubPullRequestFiles: {
+      files: [{
+        path: 'src/commands/effects/TerrainCommand.ts',
+        risk: 'medium',
+        reason: 'conflict-prone runtime file',
+      }],
+    },
+    githubPullRequestNextAction: {
+      code: 'check_local_sync',
+      tone: 'ready',
+      label: 'Check Local Sync',
+      summary: 'The PR is merged. Symphony needs one final local safety check before pulling.',
+      steps: ['Click Check Local Sync.'],
+    },
+    localSyncStatus: {
+      checkedAt: '2026-05-26T02:02:55.000Z',
+      upToDate: true,
+      safeToPull: false,
+      summary: 'The merged Jules work is already present on local master.',
+      blockers: [],
+      currentBranch: 'codex/package14-dashboard-launch',
+      currentBranchCanStandInForBase: true,
+      localCommit: 'merged-head',
+      remoteCommit: 'merged-head',
+      ahead: 0,
+      behind: 0,
+      dirtyFiles: 0,
+      untrackedFiles: 0,
+      nextAction: {
+        code: 'local_master_current',
+        tone: 'ready',
+        label: 'Local checkout is current',
+        summary: 'The merged Jules work is already present on local master.',
+        steps: ['Use the dashboard to draft the next bounded Jules task.'],
+      },
+    },
+  };
+
+  // A merged PR can keep historical file-risk data on its card, but that old
+  // Scout/Core warning must not keep the global path blocked after local sync
+  // proves the merged work is already present.
+  server.taskIntake.snapshot = async () => ({
+    drafts: [],
+    handoffs: [mergedHandoffWithOldRisk],
+    preflight: cleanPreflight,
+    gitDisposition: {
+      categories: [],
+      decidedCount: 0,
+      totalRequired: 0,
+      readyForHumanSync: true,
+      summary: 'No Git disposition decisions required.',
+      updatedAt: null,
+    },
+    gitSyncPlan: null,
+    taskRouting: null,
+    taskNudges: {
+      total: 0,
+      summary: 'No durable nudge evidence recorded yet.',
+      latest: null,
+      recent: [],
+      nextNudgeAt: null,
+      scheduler: {
+        checkedAt: '2026-05-26T02:02:55.000Z',
+        status: 'idle',
+        summary: 'No recorded nudges are scheduled.',
+        dueCount: 0,
+        waitingCount: 0,
+        blockedCount: 0,
+        nextDueAt: null,
+        mutatesExternalSystems: false,
+        due: [],
+        waiting: [],
+        blocked: [],
+      },
+    },
+  });
+
+  const mergedSnapshot = await getJson('http://127.0.0.1:8203/api/v1/task-drafts');
+  assert.equal(mergedSnapshot.middleman_path.status, 'complete');
+  assert.equal(mergedSnapshot.middleman_path.currentBoundary, 'local_sync');
+  assert.equal(mergedSnapshot.middleman_path.stages.find(stage => stage.id === 'scout_core').status, 'complete');
+  assert.equal(mergedSnapshot.middleman_path.stages.find(stage => stage.id === 'local_sync').status, 'complete');
 } finally {
   await server.stop();
 }

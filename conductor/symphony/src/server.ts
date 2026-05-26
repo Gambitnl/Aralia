@@ -3256,11 +3256,17 @@ export class HttpServer {
     // pushes a new repair, but until then the main dashboard should match the
     // task page and wait for the PR to change instead of repeatedly surfacing
     // Scout/Core as the active boundary.
-    const scoutAttention = prNextActionCode !== 'wait_for_checks'
+    // Merged PRs have already crossed the Scout/Core boundary. Keep their
+    // old file-risk evidence visible on the handoff card, but do not let stale
+    // conflict-watch data hold the global dashboard on a review step that can
+    // no longer change the already-merged package.
+    const scoutAttention = prState !== 'MERGED'
+      && prNextActionCode !== 'wait_for_checks'
       && (conflictWatch.status === 'blocked' || conflictWatch.status === 'attention');
     const localSyncHandoff = hasDashboardPr ? prHandoff : null;
     const localSync = localSyncHandoff?.localSyncStatus ?? null;
     const localSyncSafe = Boolean(localSync?.safeToPull);
+    const localSyncCurrent = Boolean(localSync?.upToDate);
 
     // The middleman path is the global version of the per-card readiness
     // packets. It does not replace the guarded endpoints; it gives foremen and
@@ -3410,7 +3416,7 @@ export class HttpServer {
       {
         id: 'scout_core',
         label: 'Scout/Core review',
-        status: scoutAttention ? 'blocked' : 'waiting',
+        status: prState === 'MERGED' ? 'complete' : scoutAttention ? 'blocked' : 'waiting',
         sourceId: prHandoff?.id ?? null,
         sourceTitle: prHandoff?.title ?? null,
         detail: scoutAttention
@@ -3435,10 +3441,12 @@ export class HttpServer {
       {
         id: 'local_sync',
         label: 'Local sync',
-        status: localSyncSafe ? 'ready' : prState === 'MERGED' ? 'blocked' : 'waiting',
+        status: localSyncCurrent ? 'complete' : localSyncSafe ? 'ready' : prState === 'MERGED' ? 'blocked' : 'waiting',
         sourceId: localSyncHandoff?.id ?? null,
         sourceTitle: localSyncHandoff?.title ?? null,
-        detail: localSyncSafe
+        detail: localSyncCurrent
+          ? 'Merged PR is already present in the current checkout.'
+          : localSyncSafe
           ? 'Merged PR can be safely fast-forwarded locally.'
           : prState === 'MERGED'
             ? 'Merged PR exists, but local sync safety is not proven.'
