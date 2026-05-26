@@ -865,6 +865,9 @@ first plan did not explicitly classify every named row before selecting the
 implementation subset.
 Codex approved the revised plan after it added the full classification step and
 separated the likely implementation subset from residual/deferred rows.
+After approval, Codex sent one early scope correction because Jules' visible
+work showed `classify.js` / `classify.cjs` helper scripts; those should be
+temporary only and not part of the final PR.
 
 Immediate action:
 
@@ -874,5 +877,5 @@ Immediate action:
    record only a compact wait-state row.
 3. If a PR appears, review it against the approved plan before accepting:
    it must classify every named early-game row, close only proven rows, keep
-   broad visibility/silence systems out of scope, and include the requested
-   focused verification.
+   broad visibility/silence systems out of scope, exclude helper scripts and
+   scratch artifacts, and include the requested focused verification.

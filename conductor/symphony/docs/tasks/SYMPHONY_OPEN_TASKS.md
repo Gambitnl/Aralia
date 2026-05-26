@@ -56,6 +56,11 @@ For the active proving-ground Spell Phase 1 track:
   (`alarm`, `thaumaturgy`, `daylight`, `silent-image`, `major-image`) from
   narrow proofs and deferred broader systems. Package 14 is now waiting for
   Jules implementation/PR evidence or an explicit blocker.
+- Visual check on 2026-05-26 05:21 +02:00 showed Jules working with
+  `classify.js` / `classify.cjs` helper activity. Codex sent a visible scope
+  correction: preserve the classification results in durable bucket/task notes,
+  but remove helper scripts before PR submission and keep the final file list to
+  approved Package 14 artifacts.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
