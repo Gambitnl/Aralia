@@ -5323,3 +5323,54 @@ Copy this block for each decision.
   state.
 - Next expected proof: visible Jules working state, PR URL, exact blocker, or
   repair request.
+
+### Decision 124: Send Early Package 13 Scope-Correction Message
+
+- Date/time: 2026-05-26 02:52 +02:00
+- Phase: `package_13_active_work_scope_correction`
+- Active slice: Package 13 terrain/surface mechanics for cantrips and levels
+  1-3.
+- Decision point: After approving the Package 13 plan, Codex refreshed the
+  visible Jules session and saw Jules actively working with a visible diff that
+  already included helper/process artifacts and files outside the approved
+  write path: `fix_terrain.patch`, `fix_terrain_cmd.patch`, `patch_web.js`,
+  `patch_spike_growth.js`, `patch_sleet_storm.js`,
+  `patch_plant_growth.js`, `src/types/combat.ts.orig`, root
+  `test_terrain_command.ts`, and `src/types/combat.ts`.
+- Options considered:
+  - Wait silently until Jules submits a PR, then repair through PR review.
+  - Take over implementation locally while Jules is still active.
+  - Send a bounded visible Jules correction before submit.
+- Decision made by agent: Send a bounded visible Jules correction.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  scope hygiene, visible repair feedback, PR review, and final verification.
+- Rationale/evidence:
+  - Patch scripts, `.orig` files, and root ad hoc test files are not durable
+    Aralia-facing package artifacts.
+  - The approved Package 13 path was selected spell JSON,
+    `TerrainCommand.ts`, focused tests under the existing test tree, bucket
+    docs, and concise completion notes.
+  - `src/types/combat.ts` was not in the approved write path unless Jules can
+    justify it as unavoidable for the terrain behavior; an early correction is
+    cheaper than accepting a noisy PR and doing branch-hygiene repair later.
+- Mutation performed or skipped:
+  - Performed: sent a visible Jules message asking Jules to remove temporary
+    helper artifacts, keep the PR scoped to durable package files, use a normal
+    focused test under
+    `src/commands/effects/__tests__/TerrainCommand.test.ts`, avoid
+    `src/types/combat.ts` unless unavoidable and justified, and clean the diff
+    before PR submission.
+  - Skipped: hidden endpoint update, local implementation, PR merge, and
+    replacement handoff.
+- Scope guardrails:
+  - Keep the useful terrain implementation value if Jules can clean the diff.
+  - Do not broaden Package 13 into shared combat type redesign, generated
+    helper scripts, root test scaffolds, Symphony runtime/source files, GitHub
+    workflows, combat HUD, levels 4-9, wall/glyph/trap/summon/illusion systems,
+    or broad AI policy.
+  - If Jules later keeps `src/types/combat.ts`, the PR review must require an
+    explicit necessity explanation and focused verification.
+- Result: Package 13 moved into `wait_for_jules_scope_cleanup_or_justification`
+  state, not local takeover and not blocked-goal status.
+- Next expected proof: visible Jules cleanup, PR URL with scoped diff, explicit
+  blocker/justification, or a later bounded PR repair request.
