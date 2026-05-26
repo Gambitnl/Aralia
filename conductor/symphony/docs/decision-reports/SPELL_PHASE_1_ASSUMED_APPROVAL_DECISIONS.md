@@ -5418,3 +5418,70 @@ Copy this block for each decision.
   `wait_for_jules_scope_cleanup_or_justification` state.
 - Next expected proof: a cleaned visible diff, PR URL with scoped file list,
   explicit blocker/justification, or a later bounded PR repair request.
+
+### Decision 126: Clean-Accept Package 13 PR #1096 From Current Master
+
+- Date/time: 2026-05-26 03:24-03:32 +02:00
+- Phase: `package_13_pr_review_branch_hygiene`
+- Active slice: Package 13 terrain/surface mechanics for cantrips and levels
+  1-3.
+- Decision point: Jules opened PR #1096 with useful terrain/surface product
+  work, but visible Jules/GitHub review showed the branch was not safe to merge
+  as-is. The visible Jules page showed post-submit
+  `.github/workflows/gemini-review.yml` / `.orig` edits. GitHub later showed a
+  second Jules commit that changed `.github/workflows/gemini-review.yml` to
+  work around review quota. Direct comparison against current `origin/master`
+  also showed stale tracker/process-doc risk and a tracker conflict.
+- Options considered:
+  - Merge Jules' PR branch as-is because the product files were useful and CI
+    was mostly green.
+  - Ask Jules for another repair loop and wait for a new head.
+  - Close/relaunch Package 13 from current `origin/master`.
+  - Perform a bounded foreman clean-acceptance repair from current
+    `origin/master`, preserving only accepted Package 13 product/test files.
+- Decision made by agent: Perform the bounded clean-acceptance repair and
+  merge only after local and GitHub verification passed.
+- Model routing: Jules remained the implementation-heavy worker for the
+  terrain/surface product slice. Codex acted as foreman for PR hygiene, branch
+  repair, verification, and merge readiness.
+- Rationale/evidence:
+  - The scoped product value was useful: explicit `TERRAIN` `difficult`
+    effects for `web`, `spike-growth`, `sleet-storm`, and `plant-growth`,
+    focused `TerrainCommand` tests, and bucket/completion notes.
+  - The workflow edit was outside Package 13 scope. Quota/model routing changes
+    belong to a separate workflow task, not a spell mechanics PR.
+  - The Plant Growth exact 4-feet-per-1-foot movement multiplier was not fully
+    implemented by standard difficult terrain, so the clean branch preserved
+    the visible mechanical approximation while recording the exact multiplier
+    as a residual gap.
+  - Starting from current `origin/master` avoided stale tracker/process-doc
+    drift while preserving the accepted implementation files.
+- Mutation performed or skipped:
+  - Performed: created clean branch `codex/package13-clean-acceptance` from
+    current `origin/master`, copied only the accepted Package 13 files, corrected
+    the tracker/bucket/completion-note wording, ran verification, and
+    force-pushed the clean head with lease to PR #1096.
+  - Performed: merged PR #1096 after GitHub Build, Lint, Tests, Quality, Poison,
+    Analyze, and CodeQL checks passed.
+  - Skipped: merging the workflow quota-bypass edit, merging stale Symphony
+    process-doc drift, replacing the Jules task, and broad local product
+    implementation beyond the accepted Jules slice.
+- Verification:
+  - Local: `npm run validate:spells`; `npx vitest run
+    src/commands/effects/__tests__/TerrainCommand.test.ts --reporter=verbose`;
+    `npx vitest run
+    src/utils/combat/__tests__/combatUtils_premade.test.ts --reporter=verbose`;
+    `node scripts\auditAtlasBuckets.mjs`; `npx tsc --noEmit --pretty false`;
+    `git diff --cached --check`.
+  - GitHub: PR #1096 passed Build, Lint, Tests, Quality Scan, Poison File
+    Check, Analyze actions/javascript-typescript/python, and CodeQL.
+- Scope guardrails:
+  - Keep PR #1096 product-only: spell JSON, `TerrainCommand` test proof,
+    bucket docs, completion note, and tracker status.
+  - Leave `.github/workflows/gemini-review.yml`, raw Jules/Symphony artifacts,
+    helper scripts, `.orig` files, dashboard runtime state, combat HUD rider
+    icons, levels 4-9, and broad movement-multiplier architecture out of scope.
+- Result: PR #1096 merged on 2026-05-26 as
+  `0cd0af47f348b21f331644e7d1bdb502400d3f3a`; Package 13 is closed.
+- Next expected proof: select the next tracker-defined mechanics bucket from
+  `EARLY_GAME_SPELL_EXECUTION_PLAN.md` before dispatching another Jules task.
