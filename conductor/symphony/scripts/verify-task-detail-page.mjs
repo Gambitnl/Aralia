@@ -121,6 +121,63 @@ server.taskIntake = {
         pullRequestViewCommand: null,
         next_action: null,
       }, {
+        // This mirrors the Package 15 plan-revision gate. Once the operator has
+        // sent feedback asking Jules to revise a bad plan, the visible page must
+        // route to status refresh instead of leaving "Approve Jules Plan" as the
+        // next tempting click.
+        id: 'handoff-plan-revision-sent',
+        draftId: 'draft-plan-revision-sent',
+        title: 'Package 15 plan revision requested',
+        executor: 'jules',
+        status: 'sent_to_jules',
+        manifestPath: 'F:\\Repos\\Aralia\\.jules\\runs\\handoff-plan-revision-sent\\manifest.json',
+        prompt: 'Show that a plan-revision message blocks stale approval routing.',
+        expectedFiles: ['docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_TASK.md'],
+        verificationCommands: ['npm run validate:spells'],
+        createdAt: generatedAt,
+        updatedAt: generatedAt,
+        operatorMessages: [{
+          id: 'message-plan-revision',
+          body: 'Please revise the plan before implementation; classify rows first.',
+          createdAt: generatedAt,
+          status: 'sent',
+          command: 'npx tsx .jules/orchestrator/cli.ts message 5400768066928394476 Please revise the plan before implementation',
+          output: 'Sent message to Jules session 5400768066928394476.',
+          error: null,
+        }],
+        planApprovals: [],
+        taskMessages: [],
+        taskClarifications: [],
+        handoffTimeline: {
+          generatedAt,
+          summary: 'Timeline events: 2',
+          events: [
+            { stage: 'jules_status', label: 'Jules status refreshed', occurredAt: generatedAt, source: 'jules', status: 'waiting', detail: 'Jules reported AWAITING_PLAN_APPROVAL.' },
+            { stage: 'operator_message', label: 'Operator note sent', occurredAt: generatedAt, source: 'operator', status: 'recorded', detail: 'Please revise the plan before implementation; classify rows first.' },
+          ],
+        },
+        operatorQuestion: null,
+        operatorAnswers: [],
+        repairLaneExecutions: [],
+        repairPushReadiness: null,
+        repairPushResult: null,
+        deploymentEvidence: null,
+        julesStateReconciliation: null,
+        delegationRoiLedger: null,
+        linearIssueIdentifier: 'ARA-24',
+        linearIssueUrl: 'https://linear.app/aralia/issue/ARA-24/example',
+        julesSessionId: '5400768066928394476',
+        julesSessionUrl: 'https://jules.google.com/session/5400768066928394476',
+        julesState: 'AWAITING_PLAN_APPROVAL',
+        githubPullRequestUrl: null,
+        githubPullRequestState: null,
+        githubPullRequestChecks: null,
+        githubPullRequestFeedback: null,
+        githubPullRequestNextAction: null,
+        pullRequestChecksCommand: null,
+        pullRequestViewCommand: null,
+        next_action: null,
+      }, {
         id: 'handoff-awaiting-user-feedback',
         draftId: 'draft-awaiting-user-feedback',
         title: 'Package 6 choice/mode Jules feedback proof',
@@ -562,6 +619,15 @@ try {
   assert.match(approvedStalePage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-approved-stale-state\/refresh-status"/);
   assert.match(approvedStalePage.body, /Jules plan approval recorded/);
   assert.doesNotMatch(approvedStalePage.body, /type="submit"[^>]+>Approve Jules Plan<\/button>/);
+
+  const revisionSentPage = await getText(`${BASE_URL}/tasks/handoff-plan-revision-sent`);
+  assert.match(revisionSentPage.body, /Package 15 plan revision requested/);
+  assert.match(revisionSentPage.body, /Current Boundary/);
+  assert.match(revisionSentPage.body, /Refresh Jules Status/);
+  assert.match(revisionSentPage.body, /Operator feedback was sent while Jules was waiting on plan approval/);
+  assert.match(revisionSentPage.body, /data-guarded-safe-endpoint="http:\/\/127\.0\.0\.1:8199\/api\/v1\/jules-handoffs\/handoff-plan-revision-sent\/refresh-status"/);
+  assert.match(revisionSentPage.body, /Operator note sent/);
+  assert.doesNotMatch(revisionSentPage.body, /type="submit"[^>]+>Approve Jules Plan<\/button>/);
 
   const awaitingFeedbackPage = await getText(`${BASE_URL}/tasks/handoff-awaiting-user-feedback`);
   assert.match(awaitingFeedbackPage.body, /Package 6 choice\/mode Jules feedback proof/);

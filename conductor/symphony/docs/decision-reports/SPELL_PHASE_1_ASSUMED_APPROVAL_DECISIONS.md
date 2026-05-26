@@ -5915,3 +5915,63 @@ Copy this block for each decision.
 - Next expected proof: Package 15 selection from the execution plan, likely the
   `summon_or_controlled_entity` bucket, with affected-row mapping before Jules
   dispatch.
+
+### Decision 135: Request Revised Package 15 Jules Plan
+
+- Date/time: 2026-05-26 08:15 +02:00
+- Phase: `package_15_jules_plan_revision`
+- Active slice: Package 15 summon/control mechanics for cantrips and levels
+  1-3.
+- Decision point: Visible Jules session `5400768066928394476` showed an
+  `Approve plan?` gate. The plan had useful implementation ambition, but it
+  ordered type/runtime/test/spell migration work before the required full
+  early-game row classification. The Package 15 packet explicitly requires
+  classifying every named cantrip/level 1-3 `summon_or_controlled_entity` row
+  before selecting the implementation subset.
+- Options considered:
+  - Approve the plan as-is and rely on Jules to classify later.
+  - Reject the plan by abandoning/relaunching the handoff.
+  - Send a bounded revision request through the visible dashboard/Jules message
+    bridge, then wait for a revised plan or status change.
+- Decision made by agent: Send the bounded revision request and do not approve
+  the stale plan.
+- Model routing: Strong foreman reasoning, because this is a package-boundary
+  decision and affects whether Package 15 preserves the classification-first
+  contract.
+- Rationale/evidence:
+  - The plan's Step 5 was row classification, after Step 1 type changes,
+    Step 2 runtime changes, Step 3 tests, and Step 4 spell migration.
+  - The task packet requires classification first so the larger Package 15
+    batch stays valuable without silently crossing into broad summon AI,
+    initiative, object-animation, trap/glyph, social-command, or file-backed
+    entity systems.
+  - The dashboard already had a visible `Send Jules Note` control for the
+    handoff, so a replacement handoff was premature.
+- Mutation performed or skipped:
+  - Performed: sent a visible dashboard/Jules operator note asking Jules to
+    revise the plan, classify all named early-game rows first, then choose the
+    largest safe subset that fits existing `SUMMONING`, summon-template,
+    `controlledEntity`, validation, `SummoningCommand`, and focused-test
+    patterns.
+  - Performed: recorded the operator-message receipt on handoff
+    `handoff-1779774561087-k9184e`.
+  - Performed: repaired Symphony routing so `AWAITING_PLAN_APPROVAL` plus a
+    sent operator message routes to `Refresh Jules Status` instead of stale
+    `Approve Jules Plan`.
+  - Skipped: approving the stale plan, local Package 15 implementation,
+    replacement handoff, and hidden Jules endpoint use.
+- Scope guardrails:
+  - Keep Package 15 inside selected early-game spell JSON, summon/control
+    bucket docs, summoned-entities tracker, the smallest summon/control type or
+    validation bridge, `SummoningCommand`, summon templates, and focused tests.
+  - Do not allow broad AI arbitration, independent initiative, hostile summon
+    control, object-animation engines, trap/glyph authoring, social-command
+    systems, combat HUD rider icons, levels 4-9, or Symphony runtime edits into
+    the Package 15 product PR.
+- Result: Package 15 remains Jules-owned, but the first plan was not accepted.
+  The next safe dashboard action is status refresh / visible Jules inspection
+  for a revised plan, work state, PR URL, or explicit blocker.
+- Next expected proof: `npm run build`,
+  `node scripts\verify-task-detail-page.mjs`, rendered dashboard check showing
+  the handoff routes to `Refresh Jules Status` after the revision note, then a
+  visual Jules recheck for the revised plan or next state.
