@@ -50,6 +50,12 @@ For the active proving-ground Spell Phase 1 track:
   a subset, and it risked closing `fog-cloud`/`darkness` rows without proving
   the exact non-broad visibility facts. Next proof target: revised Jules plan
   with full classification and a separated `implement_now` subset.
+- Visual approval on 2026-05-26 05:14 +02:00 accepted Jules' revised Package
+  14 plan. The revised plan begins with classification of every named
+  cantrip/level 1-3 row, then separates the likely implementation subset
+  (`alarm`, `thaumaturgy`, `daylight`, `silent-image`, `major-image`) from
+  narrow proofs and deferred broader systems. Package 14 is now waiting for
+  Jules implementation/PR evidence or an explicit blocker.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR

@@ -863,14 +863,16 @@ blocker, or question visible yet.
 Jules later presented a plan gate; Codex requested a revised plan because the
 first plan did not explicitly classify every named row before selecting the
 implementation subset.
+Codex approved the revised plan after it added the full classification step and
+separated the likely implementation subset from residual/deferred rows.
 
 Immediate action:
 
-1. Visually recheck Jules session `16016352181102771214` for a revised plan,
-   PR URL, explicit blocker, question, or continued thinking/working state.
-2. If Jules is still thinking/working on the revision with no new choice,
+1. Visually recheck Jules session `16016352181102771214` for working progress,
+   PR URL, explicit blocker, question, or continued implementation state.
+2. If Jules is working with no new choice,
    record only a compact wait-state row.
-3. If a revised plan appears, approve it only if it explicitly classifies every
-   named early-game row first, separates the selected `implement_now` subset
-   from residual/deferred rows, and keeps broad visibility/silence systems out
-   of scope.
+3. If a PR appears, review it against the approved plan before accepting:
+   it must classify every named early-game row, close only proven rows, keep
+   broad visibility/silence systems out of scope, and include the requested
+   focused verification.

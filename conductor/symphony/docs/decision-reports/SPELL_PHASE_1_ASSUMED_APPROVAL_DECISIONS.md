@@ -5545,3 +5545,50 @@ Copy this block for each decision.
 - Next expected proof: revised visible Jules plan that classifies every named
   early-game row and separates the approved implementation subset from deferred
   residual rows.
+
+### Decision 128: Approve Revised Package 14 Jules Plan
+
+- Date/time: 2026-05-26 05:14 +02:00
+- Phase: `package_14_plan_review`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: After Codex requested a revision, the visible Jules session
+  showed a revised `Approve plan?` gate. The revised plan starts with
+  classification of every named cantrip/level 1-3 row from the Package 14
+  packet, then selects a likely `implement_now` subset while leaving broad
+  residual systems deferred.
+- Options considered:
+  - Reject the revised plan again and ask for a more explicit row-by-row table
+    before any implementation.
+  - Approve the revised plan and let Jules implement.
+  - Take over Package 14 locally.
+- Decision made by agent: Approve the revised plan.
+- Model routing: Jules owns implementation. Codex remains foreman for monitoring,
+  PR review, repair feedback, branch hygiene, and merge verification.
+- Rationale/evidence:
+  - The revised plan now names all candidate rows from the packet: cantrips,
+    level 1, level 2, and level 3 rows.
+  - It separates the likely implementation subset (`alarm`, `thaumaturgy`,
+    `daylight`, `silent-image`, `major-image`) from narrow proofs
+    (`fog-cloud`, `darkness`, `silence`) and broader deferred systems such as
+    remote sensors, glyph/trap authoring, summon/control, and broad
+    magical-darkness interaction.
+  - The `soundEmission` type bridge remains additive and justified by existing
+    validator and JSON evidence.
+  - Verification remains focused: `npm run validate:spells`,
+    `node scripts/auditAtlasBuckets.mjs`, focused Vitest, and `npx tsc
+    --noEmit --pretty false` if `src/types/spells.ts` changes.
+- Mutation performed or skipped:
+  - Performed: clicked the visible Jules `Approve plan?` control.
+  - Skipped: local implementation, hidden endpoint approval, replacement
+    handoff, PR merge, and scope expansion.
+- Scope guardrails:
+  - Close only rows proven by JSON/runtime/test evidence.
+  - Leave residual rows open with concise reasons when they need broad
+    line-of-sight, magical-darkness, one-way-visibility, remote-sensor,
+    silence-propagation, glyph/trap, summon/control, illusion/social
+    arbitration, combat HUD rider icons, levels 4-9, Symphony runtime/source
+    files, or GitHub workflows.
+- Result: Jules plan approved; Package 14 is now in Jules implementation wait.
+- Next expected proof: visible Jules working state, PR URL, exact blocker, or
+  scoped PR ready for foreman review.
