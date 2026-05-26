@@ -104,6 +104,16 @@ creating a clean current-master acceptance branch, preserving only the Package
 13 product/test/bucket/completion-note files, correcting the Plant Growth
 residual-gap record, and force-pushing that clean head with lease before merge.
 
+Package 14 shows that helper-artifact drift can appear before the PR, not only
+during final review. Jules first created `classify.js` / `classify.cjs`, then
+deleted them after a visible scope correction, but later showed `patch_types.js`,
+`patch_types.cjs`, and `patch_json.cjs` while doing useful type/data/test work.
+The useful pattern is to send a bounded visible cleanup correction before PR
+submission, then review the final PR file list for durable package artifacts
+only. A tracked generated-looking source mirror such as `src/types/spells.d.ts`
+is different from a helper script: it may be acceptable only when the PR
+explains the repo convention and verifies the paired source/type change.
+
 ## 4. Active Operating Rules
 
 - Use the visible Symphony/Jules/GitHub path as the operator surface.
@@ -122,6 +132,10 @@ residual-gap record, and force-pushing that clean head with lease before merge.
   queued/working refreshes, classify that as a template/spec enforcement gap.
   The desired behavior is not "never record waits"; it is "record repeated
   waits as compact wait states unless a real fork appears."
+- Treat helper-script drift during active Jules work as a real scope-correction
+  fork, not a passive wait. Send one visible cleanup request before PR
+  submission when `classify*`, `patch_*`, `.orig`, generated caches, or
+  orchestration artifacts appear in the active file list.
 - A visible Jules state change is not automatically a decision. Package 14's
   first recheck moved from launch/loading evidence to repository setup and
   reading `alarm.json`; because no plan gate, PR, blocker, or Jules question was
@@ -142,6 +156,7 @@ residual-gap record, and force-pushing that clean head with lease before merge.
 | Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. Package 13 now includes the compact wait-state rule in its task packet/prompt before launch. | Use compact wait-state rows for repeated refreshes, reserving full decisions for real forks; if Jules ignores this, repair the task template/spec instead of expanding the decision ledger. |
 | State changes can be mistaken for decisions | Package 14 visually advanced to repository setup and reading `alarm.json`, but still showed no plan approval, PR, blocker, or question. | Treat ordinary progress states as compact evidence unless the foreman has to choose between materially different next actions. |
 | Larger packages still need explicit classification gates | Package 14's first plan named plausible vision/light/sound work but did not explicitly classify every named early-game row before selecting the subset, and it risked closing fog/darkness rows too broadly. | Require revised plans to separate full row classification, `implement_now` selection, and residual/deferred rows before approval. |
+| Helper artifacts recur during useful Jules work | Package 13 showed patch/orig helpers at PR review. Package 14 showed `classify*` helpers, then later `patch_*` helpers, during active implementation before PR submission. | Include explicit "no helper artifacts in final PR" language in package prompts, send visible cleanup corrections as soon as helper drift appears, and reject final PRs that still contain scratch scripts or caches. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |

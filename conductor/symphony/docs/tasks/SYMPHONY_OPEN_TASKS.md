@@ -61,6 +61,14 @@ For the active proving-ground Spell Phase 1 track:
   correction: preserve the classification results in durable bucket/task notes,
   but remove helper scripts before PR submission and keep the final file list to
   approved Package 14 artifacts.
+- Visual check on 2026-05-26 05:32 +02:00 showed Jules had removed the earlier
+  classification helpers, selected the Package 14 implementation subset, and
+  moved into type/data/test updates. The visible activity still included
+  `patch_types.js`, `patch_types.cjs`, and `patch_json.cjs`, so Codex sent a
+  second visible scope correction: those patch helpers must be deleted before
+  PR submission, while the tracked `src/types/spells.d.ts` mirror may remain
+  only if Jules explains and verifies the repo convention that keeps it aligned
+  with `src/types/spells.ts`.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR

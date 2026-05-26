@@ -868,6 +868,11 @@ separated the likely implementation subset from residual/deferred rows.
 After approval, Codex sent one early scope correction because Jules' visible
 work showed `classify.js` / `classify.cjs` helper scripts; those should be
 temporary only and not part of the final PR.
+Codex later sent a second visible scope correction when Jules' active file
+activity showed `patch_types.js`, `patch_types.cjs`, and `patch_json.cjs`;
+those patch helpers should also be temporary only. A tracked
+`src/types/spells.d.ts` mirror may remain only if the final PR explains and
+verifies why it must stay aligned with `src/types/spells.ts`.
 
 Immediate action:
 
@@ -878,4 +883,5 @@ Immediate action:
 3. If a PR appears, review it against the approved plan before accepting:
    it must classify every named early-game row, close only proven rows, keep
    broad visibility/silence systems out of scope, exclude helper scripts and
-   scratch artifacts, and include the requested focused verification.
+   scratch artifacts including `classify*` and `patch_*` files, and include
+   the requested focused verification.

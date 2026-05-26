@@ -5642,3 +5642,54 @@ Copy this block for each decision.
   evidence, scoped PR, or explicit blocker.
 - Next expected proof: visible cleanup, PR URL with scoped file list, exact
   blocker/justification, or a later bounded PR repair request.
+
+### Decision 130: Send Second Package 14 Patch-Helper Scope Correction
+
+- Date/time: 2026-05-26 05:32 +02:00
+- Phase: `package_14_active_work_scope_correction`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: After the first helper-script correction, a visible Jules
+  recheck showed Jules had deleted the classification helpers and moved into
+  focused type/data/test updates. The visible file activity and review pane
+  still showed `patch_types.js`, `patch_types.cjs`, and `patch_json.cjs`, which
+  look like temporary patch helpers rather than durable Package 14 artifacts.
+- Options considered:
+  - Wait for the PR and repair the branch only if the patch helpers remain.
+  - Take over the implementation locally while Jules is active.
+  - Send a second bounded visible correction before PR submission.
+- Decision made by agent: Send a second bounded visible correction before PR
+  submission.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  visible scope correction, PR file-list review, branch hygiene, and merge
+  verification.
+- Rationale/evidence:
+  - Package 13 and the first Package 14 correction show a recurring Jules
+    pattern: helper and patch scripts can appear during useful product work.
+  - Correcting the file-list boundary before PR submission is cheaper than
+    accepting another stale or noisy PR branch and then performing a larger
+    clean-acceptance repair.
+  - `src/types/spells.d.ts` is a tracked source mirror, unlike the `patch_*`
+    helpers. It may be valid if Jules explains why repo convention requires it
+    to stay aligned with `src/types/spells.ts` and includes it in verification.
+- Mutation performed or skipped:
+  - Performed: sent a visible Jules message requiring deletion of
+    `patch_json.cjs`, `patch_types.js`, `patch_types.cjs`, and any other
+    `patch_*.js` / `patch_*.cjs` helper before PR submission.
+  - Performed: told Jules the final PR should remain durable: selected spell
+    JSON, `src/types/spells.ts`, the matching tracked `.d.ts` only if
+    necessary and explained, focused tests, `vision_light_sound.md`, and
+    concise package/tracker notes.
+  - Skipped: local implementation, hidden endpoint update, replacement
+    handoff, PR branch repair, and PR merge.
+- Scope guardrails:
+  - Exclude `patch_*`, `classify*`, `.orig` files, generated caches,
+    orchestration artifacts, GitHub workflows, broad visibility/silence
+    systems, combat HUD rider icons, and levels 4-9.
+  - Treat any remaining tracked `.d.ts` edit as reviewable only if it is
+    explained as a source mirror and verified with the matching TypeScript
+    check.
+- Result: Package 14 remains Jules-owned and is waiting for cleaned working
+  evidence, a scoped PR, or an explicit blocker.
+- Next expected proof: visible cleanup, PR URL with scoped file list, exact
+  blocker/justification, or a later bounded PR repair request.
