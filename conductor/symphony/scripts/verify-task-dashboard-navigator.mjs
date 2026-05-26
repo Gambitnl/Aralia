@@ -24,6 +24,7 @@ assert.match(dashboardSource, /Check Local Sync/);
 assert.match(dashboardSource, /PACKAGE_PACKET_DRAFTS/);
 assert.match(dashboardSource, /function createPackagePacketDraft/);
 assert.match(dashboardSource, /function renderPackagePacketDraftButtons/);
+assert.match(dashboardSource, /data-foreman-group/);
 assert.match(dashboardSource, /PACKAGE_10_TARGET_FILTER_DRAFT/);
 assert.match(dashboardSource, /PACKAGE_11_STATUS_STATE_DRAFT/);
 assert.match(dashboardSource, /PACKAGE_12_CONDITIONAL_ENDING_DRAFT/);
@@ -175,7 +176,7 @@ completedPathSandbox.renderTaskIntake(completedPathSnapshot);
 // Completed handoff paths should reveal next-work controls. This protects the
 // dashboard-first workflow from leaving the Package 14 shortcut hidden behind a
 // collapsed drawer after the old package has already been locally reconciled.
-assert.match(completedPathRoot.innerHTML, /<details class="foreman-detail-group" open>\s*<summary>\s*<span>Task Intake And Records<\/span>/);
+assert.match(completedPathRoot.innerHTML, /<details class="foreman-detail-group" data-foreman-group="Task Intake And Records" open>\s*<summary>\s*<span>Task Intake And Records<\/span>/);
 assert.match(completedPathRoot.innerHTML, /Create Package 14 Draft/);
 
 const completedRoot = {
