@@ -5742,3 +5742,58 @@ Copy this block for each decision.
   evidence, a scoped PR, or an explicit blocker.
 - Next expected proof: visible cleanup, PR URL with scoped file list, exact
   blocker/justification, or a later bounded PR repair request.
+
+### Decision 132: Request Package 14 PR #1110 Bucket Count Repair
+
+- Date/time: 2026-05-26 06:08 +02:00
+- Phase: `package_14_pr_review_repair`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: Jules opened PR #1110 from branch
+  `jules/ara-23-spell-phase-1-package-14-16016352181102771214`. The final file
+  list was helper-clean and stayed inside durable Package 14 artifacts:
+  selected spell JSON, `src/types/spells.ts`, tracked `src/types/spells.d.ts`,
+  focused `SensoryMechanics.test.ts`, and `vision_light_sound.md`. Core GitHub
+  checks were green except the known advisory `review / review` quota failure,
+  and local merge-result verification passed the focused spell, Atlas, Vitest,
+  and TypeScript checks. The remaining issue was that
+  `vision_light_sound.md` changed row statuses but kept stale header counts.
+- Options considered:
+  - Accept the PR because product files, helper hygiene, and core checks were
+    good.
+  - Take over locally and repair the header counts immediately.
+  - Send bounded PR feedback and wait for a Jules repair commit.
+- Decision made by agent: Send bounded PR feedback and wait for a Jules repair
+  commit.
+- Model routing: Jules remains implementation worker for the PR branch. Codex
+  remains foreman for PR review, repair routing, focused verification, and merge
+  readiness.
+- Rationale/evidence:
+  - The first PR head counted `closed: 185`, `open/actionable_open combined:
+    61` (`33 open` + `28 actionable_open`), and `deferred_flavor: 7`, while the
+    header still said `Open findings: 76` and `Closed findings: 170`.
+  - The issue is small and precise enough for Jules to repair without widening
+    the package.
+  - Jules reacted with eyes to the PR feedback, so the current state is
+    `wait_for_jules_repair_commit`, not a stale-session failure or local
+    takeover.
+  - A visible Jules-page check confirmed the active Package 14 session/branch
+    after the PR feedback.
+- Mutation performed or skipped:
+  - Performed: posted bounded GitHub PR feedback requesting only the bucket
+    header count repair or an explicit alternate counting rule.
+  - Performed: visually checked the Jules Package 14 page after the feedback.
+  - Skipped: local implementation, hidden endpoint update, replacement handoff,
+    PR branch repair, and PR merge.
+- Scope guardrails:
+  - Keep the PR otherwise scoped as-is: selected spell JSON,
+    `src/types/spells.ts`, the tracked `.d.ts` mirror, focused
+    `SensoryMechanics` test, and `vision_light_sound.md`.
+  - Do not reintroduce helper scripts, scratch files, GitHub workflows, broad
+    visibility/silence systems, combat HUD rider icons, or levels 4-9.
+- Result: Package 14 remains Jules-owned and is waiting for a new PR #1110
+  head.
+- Next expected proof: new PR #1110 head with fixed bucket header counts or an
+  explicit documented counting rule. If the head remains unchanged after
+  repeated visible Jules checks, record the stale repair wait before choosing a
+  foreman branch repair or replacement handoff.
