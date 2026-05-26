@@ -38,6 +38,12 @@ For the active proving-ground Spell Phase 1 track:
   `16016352181102771214`. Its task packet and Jules prompt carry the compact
   decision/wait-state rule directly, so ordinary queued/loading/working
   rechecks should stay compact unless a real decision fork appears.
+- Visual recheck on 2026-05-26 04:54 +02:00 showed the Package 14 Jules page
+  signed in, displaying the launched task packet, setting up the repository,
+  and reading `public/data/spells/level-1/alarm.json`. There was no plan
+  approval gate, PR URL, explicit blocker, or Jules question yet. That is a
+  compact wait state: the next proof target is plan approval, PR/result, or an
+  explicit blocker, not another full decision entry.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
@@ -113,6 +119,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   expanding scope. Repeated observations that preserve the same state should use
   a compact wait-state row in the tracker, task receipt, or this queue instead
   of another full decision entry.
+- A state can advance visually without becoming a full decision. For example,
+  `queued` -> `setting up repository` -> `working` is still compact when no
+  approval gate, PR, blocker, or Jules question appears. It becomes a full
+  decision only when the foreman must choose between materially different next
+  actions.
 - Package 14 is the next spell package that carries this compact rule in the
   Jules task/prompt before launch. If Jules still writes full decision entries
   for plain queued/working refreshes, treat that as a workflow-template gap to

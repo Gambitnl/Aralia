@@ -366,6 +366,20 @@ what is being waited for, and the next recheck condition, but it should not
 duplicate the full assumed-approval template unless the available choices
 changed.
 
+Use this boundary when deciding where an observation belongs:
+
+| Observation or action | Record as full decision? | Preferred record |
+|---|---:|---|
+| Launching Jules, approving or rejecting a plan, sending Jules feedback, replacing a handoff, repairing a PR branch, merging, syncing local master, or expanding scope | Yes | Decision report entry plus the relevant task/tracker receipt |
+| First wait after a new repair request, plan gate, visible Jules status change, or PR state change where the foreman chooses to wait instead of another valid action | Usually yes | Decision report entry that names the alternatives and the chosen wait |
+| Repeated queued, setting-up, working, verifying, or waiting-for-repair observations with no new choice | No | Compact wait row in the tracker, task receipt, or open-task queue |
+| Read-only visual Jules/dashboard/GitHub checks that confirm the same state | No | Compact wait row or no new row if the owning row already captures the same evidence |
+| A visible blocker, failed command, no-PR completion, stale branch, out-of-scope file, or damaged repair feedback | Yes | Decision report entry because the available choices changed |
+
+The practical test is whether the foreman had to choose between materially
+different next actions. If the only honest action is still "wait for Jules to
+produce the next proof," keep it compact and name the next proof target.
+
 ### Workflow Phases
 
 This table is the canonical phase list for the dashboard-created

@@ -122,6 +122,11 @@ residual-gap record, and force-pushing that clean head with lease before merge.
   queued/working refreshes, classify that as a template/spec enforcement gap.
   The desired behavior is not "never record waits"; it is "record repeated
   waits as compact wait states unless a real fork appears."
+- A visible Jules state change is not automatically a decision. Package 14's
+  first recheck moved from launch/loading evidence to repository setup and
+  reading `alarm.json`; because no plan gate, PR, blocker, or Jules question was
+  visible, the correct record is a compact wait state with the next proof
+  target, not a new full ledger entry.
 - Preserve Aralia-facing context in GitHub; keep raw Symphony/Jules runtime
   state, generated manifests, draft ids, click receipts, and local run logs
   external or ignored unless a concise excerpt explains a real package decision.
@@ -135,6 +140,7 @@ residual-gap record, and force-pushing that clean head with lease before merge.
 | Merged handoff can remain the active dashboard boundary | After Package 13 and Package 14 prep merged, visual dashboard use still kept the old Package 13 handoff on the active Scout/Core review boundary because historical conflict-prone file evidence outlived the merged PR and local-current proof. | Merged PRs should complete the Scout/Core lane, local-current proof should complete the local-sync lane, and the dashboard should surface the next package draft path instead of stale review. |
 | Visible controls can still be unstable | Package 14 launch showed that even after a next-package button exists and the correct drawer is open, automatic dashboard repainting can detach the button while the operator or browser automation is trying to click it. | Keep next-action intake controls visible and stable during interaction. PR #1101 tags the open Task Intake drawer and pauses automatic repainting while it is open; future controls should follow the same stability rule. |
 | Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. Package 13 now includes the compact wait-state rule in its task packet/prompt before launch. | Use compact wait-state rows for repeated refreshes, reserving full decisions for real forks; if Jules ignores this, repair the task template/spec instead of expanding the decision ledger. |
+| State changes can be mistaken for decisions | Package 14 visually advanced to repository setup and reading `alarm.json`, but still showed no plan approval, PR, blocker, or question. | Treat ordinary progress states as compact evidence unless the foreman has to choose between materially different next actions. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |
