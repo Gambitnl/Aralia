@@ -29,9 +29,12 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1 through 11 have been used to exercise the Symphony/Jules path; use
+- Packages 1 through 12 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
+- The next prepared package is Package 13 `terrain_or_surface`, with compact
+  wait-state logging carried directly in the Jules task/prompt so repeated
+  observations do not create another oversized decision ledger.
 
 ---
 

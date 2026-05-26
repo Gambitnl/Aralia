@@ -106,9 +106,9 @@ orchestration loop.
   explains why the file is necessary and bounded.
 - Do not keep full decision entries for every repeated wait if a compact
   wait-state table or tracker row can preserve the same operator truth.
-- The next Jules task packet/prompt should make that compact logging rule
-  explicit before launch so the old Package 12 pattern does not repeat inside a
-  fresh isolated Jules clone.
+- Package 13's Jules task packet/prompt makes that compact logging rule
+  explicit before launch so the old Package 12 pattern does not repeat inside
+  a fresh isolated Jules clone.
 - Preserve Aralia-facing context in GitHub; keep raw Symphony/Jules runtime
   state, generated manifests, draft ids, click receipts, and local run logs
   external or ignored unless a concise excerpt explains a real package decision.
@@ -126,4 +126,5 @@ orchestration loop.
 | PR appears after wait but is stale/noisy | Package 12 PR #1084 appeared after the monitored wait, but was `DIRTY` and rewound tracker closeout state. | Use bounded Jules PR feedback first when product work is useful but branch hygiene/tracker truth/API scope need repair. |
 | Repair feedback can be damaged by shell quoting | The first Package 12 PR #1084 repair comment contained malformed escaped text in a few command/file references. | If feedback text is damaged, post one clean explicit `@jules` restatement rather than relying on inference. |
 | Useful Jules work can outlive repeated branch noise | Package 11 and Package 12 both reached useful product/test slices while still carrying stale docs, helper artifacts, or current-master drift. | After at least one clear Jules repair request, bounded foreman branch-hygiene repair is valid when it starts from current `origin/master`, preserves only accepted product/test files, and reruns focused proof before merge. |
+| Next package must carry the new logging rule | Package 13 prep now includes compact decision/wait-state instructions in both the task packet and Jules prompt. | Dispatch Package 13 from those files rather than relying on Jules to infer the updated flow from later local docs. |
 | Mutation labels understate boundaries | Task pages have shown Linear creation and manifest staging as non-mutating. | Correct task-page safety labels so operators can trust the visible boundary summary. |
