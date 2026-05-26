@@ -85,6 +85,15 @@ For the active proving-ground Spell Phase 1 track:
   feedback, Jules reacted with eyes, and a visible Jules-page check confirmed
   the active Package 14 session/branch. Current next action is to wait for a
   new PR #1110 head, then verify the count repair before acceptance.
+- Follow-up refresh showed PR #1110 still at head `2c7cb414...` with no new
+  repair commit. A visible Jules-page check showed the session on
+  `.github/workflows/gemini-review.yml`; GitHub confirmed that workflow file is
+  not in the submitted PR diff, so this is a session-drift warning rather than
+  a current PR artifact. Codex posted one bounded PR nudge asking Jules to push
+  the count-only repair or state the blocker/counting rule, and restated that
+  workflow edits must stay out of Package 14. If the next visible check still
+  shows no new head, choose and record a foreman branch repair or replacement
+  handoff path before acting.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
