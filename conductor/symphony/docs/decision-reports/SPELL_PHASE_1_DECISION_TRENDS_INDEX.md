@@ -109,6 +109,10 @@ orchestration loop.
 - Package 13's Jules task packet/prompt makes that compact logging rule
   explicit before launch so the old Package 12 pattern does not repeat inside
   a fresh isolated Jules clone.
+- If Package 13 still produces full decision entries for ordinary
+  queued/working refreshes, classify that as a template/spec enforcement gap.
+  The desired behavior is not "never record waits"; it is "record repeated
+  waits as compact wait states unless a real fork appears."
 - Preserve Aralia-facing context in GitHub; keep raw Symphony/Jules runtime
   state, generated manifests, draft ids, click receipts, and local run logs
   external or ignored unless a concise excerpt explains a real package decision.
@@ -118,8 +122,8 @@ orchestration loop.
 | Gap | Current evidence | Desired repair |
 |---|---|---|
 | Decision report is too large to navigate | The assumed-approval report is over 4,000 lines and mixes audit entries with trend discovery. | Keep this trends index current when a repeated pattern appears or closes. |
-| Packet shortcuts are hardcoded | Package 11, Package 12, and Package 13 all exposed that the visible draft path lags behind new committed package packets. | Active Package 13 repair moves rendering/click handling to a small packet registry; the later target is metadata-derived discovery from committed packet files. |
-| Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. | Use compact wait-state rows for repeated refreshes, reserving full decisions for real forks; include that rule in the next Jules packet/prompt before launch. |
+| Packet shortcuts are hardcoded | Package 11, Package 12, and Package 13 all exposed that the visible draft path lags behind new committed package packets. PR #1090 moved Package 13 shortcut rendering/click handling to a small packet registry. | Next target is metadata-derived discovery from committed packet files so a new package packet does not require another dashboard source edit. |
+| Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. Package 13 now includes the compact wait-state rule in its task packet/prompt before launch. | Use compact wait-state rows for repeated refreshes, reserving full decisions for real forks; if Jules ignores this, repair the task template/spec instead of expanding the decision ledger. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |
