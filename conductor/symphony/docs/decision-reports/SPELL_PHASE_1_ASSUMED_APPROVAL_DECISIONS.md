@@ -5374,3 +5374,47 @@ Copy this block for each decision.
   state, not local takeover and not blocked-goal status.
 - Next expected proof: visible Jules cleanup, PR URL with scoped diff, explicit
   blocker/justification, or a later bounded PR repair request.
+
+### Decision 125: Send Second Package 13 Scope-Correction Message
+
+- Date/time: 2026-05-26 03:00 +02:00
+- Phase: `package_13_active_work_scope_correction`
+- Active slice: Package 13 terrain/surface mechanics for cantrips and levels
+  1-3.
+- Decision point: After the first visible correction, Jules continued working
+  and removed some patch artifacts, but a later visible refresh still showed
+  `patch_bucket.js`, `patch_bucket_more.js`,
+  `src/commands/effects/__tests__/TerrainCommand.test.ts.orig`,
+  `src/types/combat.ts`, and `src/types/combat.ts.orig` in the active diff.
+- Options considered:
+  - Wait for Jules to clean the remaining artifacts without another message.
+  - Take over locally while Jules is still actively working.
+  - Send a second bounded visible correction before PR submission.
+- Decision made by agent: Send a second bounded visible correction.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  visible correction, PR review, and final acceptance.
+- Rationale/evidence:
+  - The first correction reduced some noise but did not fully restore the
+    approved file boundary.
+  - A second correction before PR submission keeps the useful terrain work with
+    Jules while reducing the chance of another branch-hygiene repair loop.
+  - `src/types/combat.ts` still needs an explicit necessity explanation if it
+    remains in the final PR.
+- Mutation performed or skipped:
+  - Performed: sent a visible Jules message saying the diff still showed bucket
+    patch scripts, `.orig` files, and `src/types/combat.ts`; asked Jules to
+    remove them before PR submission unless `src/types/combat.ts` is explicitly
+    justified.
+  - Skipped: local implementation, hidden endpoint update, replacement handoff,
+    and PR merge.
+- Scope guardrails:
+  - Keep the final Package 13 PR to durable package files: selected spell JSON,
+    `TerrainCommand.ts`, focused `TerrainCommand` tests, bucket docs, and
+    concise completion notes.
+  - Exclude helper scripts, patch files, `.orig` files, root ad hoc tests,
+    Symphony runtime/source files, GitHub workflows, combat HUD, levels 4-9,
+    wall/glyph/trap/summon/illusion systems, and broad AI policy.
+- Result: Package 13 remains in
+  `wait_for_jules_scope_cleanup_or_justification` state.
+- Next expected proof: a cleaned visible diff, PR URL with scoped file list,
+  explicit blocker/justification, or a later bounded PR repair request.
