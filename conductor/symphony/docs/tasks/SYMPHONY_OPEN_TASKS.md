@@ -56,9 +56,12 @@ For the active proving-ground Spell Phase 1 track:
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
   still preferred older stale handoff bookkeeping over the new Package 15
-  `Create Linear Issue` boundary. After the focused verifier and visual/API
-  proof pass, continue through Linear, handoff, manifest, and Jules launch using
-  the visible dashboard path.
+  `Create Linear Issue` boundary. PR #1115 repaired that first stale-history
+  path and Codex created Linear `ARA-24`; the follow-up live check then exposed
+  an older completed/no-PR Package 10 post-launch update record stealing focus
+  from Package 15 `Prepare Handoff`. After the extended verifier and visual/API
+  proof pass, continue through handoff, manifest, and Jules launch using the
+  visible dashboard path.
 
 ---
 
@@ -264,7 +267,9 @@ the audit, or in the proving-ground tracker with the next proof target.
   draft `draft-1779771507621-vox90j`, but then the global queue action still
   preferred stale older handoff bookkeeping over the fresh draft. The shortcut
   exists; the remaining defect is queue focus after old handoffs reconcile to
-  completed or stale-local states.
+  completed, stale-local, or completed/no-PR superseded states. PR #1115 fixed
+  the unlaunched stale duplicate case; the active follow-up extends that repair
+  to the completed/no-PR post-launch update case exposed after Linear `ARA-24`.
 - **Immediate Package 12 repair**: PR #1079 added a visible
   `Create Package 12 Draft` button wired to the committed Package 12 task and
   prompt, and extended

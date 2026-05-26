@@ -4030,22 +4030,27 @@ export class HttpServer {
     handoffs: Array<TaskDraftSnapshot['handoffs'][number] & { next_action: Record<string, unknown> }>,
     newestDraft: (TaskDraftSnapshot['drafts'][number] & { next_action: Record<string, unknown> }) | null,
   ): (TaskDraftSnapshot['handoffs'][number] & { next_action: Record<string, unknown> }) | null {
-    const newestDraftTime = newestDraft ? new Date(newestDraft.updatedAt ?? newestDraft.createdAt ?? 0).getTime() : 0;
+    const newestDraftTime = newestDraft ? new Date(newestDraft.createdAt ?? newestDraft.updatedAt ?? 0).getTime() : 0;
     const scored = handoffs
       .filter(handoff => {
         if (!handoff.next_action) return false;
 
-        // An unlaunched stale handoff is local bookkeeping, not live cloud work.
-        // When the operator has already created a newer draft, the queue should
+        // Old stale handoffs are local bookkeeping, not live cloud work. When
+        // the operator has already created a newer draft, the queue should
         // surface that draft instead of pulling the foreman back to an old
-        // duplicate "re-stage manifest" lane.
-        const handoffTime = new Date(handoff.updatedAt ?? handoff.createdAt ?? 0).getTime();
+        // duplicate manifest lane or a completed no-PR session that was already
+        // superseded by a replacement package path.
+        const handoffTime = new Date(handoff.createdAt ?? handoff.updatedAt ?? 0).getTime();
         const isUnlaunchedStaleHandoff = handoff.status === 'base_commit_stale'
           && !handoff.julesSessionId
           && !handoff.julesState
           && !handoff.githubPullRequestUrl;
+        const actionCode = this.readStringField(handoff.next_action, 'code');
+        const isCompletedNoPrDriftHistory = actionCode === 'record_post_launch_update_path'
+          && handoff.julesState === 'COMPLETED'
+          && !handoff.githubPullRequestUrl;
 
-        return !(isUnlaunchedStaleHandoff && newestDraftTime > handoffTime);
+        return !((isUnlaunchedStaleHandoff || isCompletedNoPrDriftHistory) && newestDraftTime > handoffTime);
       })
       .map((handoff, index) => ({
         handoff,
