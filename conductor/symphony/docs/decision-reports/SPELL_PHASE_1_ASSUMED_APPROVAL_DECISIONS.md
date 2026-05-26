@@ -5592,3 +5592,53 @@ Copy this block for each decision.
 - Result: Jules plan approved; Package 14 is now in Jules implementation wait.
 - Next expected proof: visible Jules working state, PR URL, exact blocker, or
   scoped PR ready for foreman review.
+
+### Decision 129: Send Early Package 14 Helper-Script Scope Correction
+
+- Date/time: 2026-05-26 05:21 +02:00
+- Phase: `package_14_active_work_scope_correction`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: After the revised Package 14 plan was approved, the visible
+  Jules session showed active work and the code view at `classify.cjs`, with
+  visible updates to `classify.js` and `classify.cjs`. Those look like temporary
+  classification helper scripts rather than durable Package 14 artifacts.
+- Options considered:
+  - Wait silently until Jules opens a PR, then reject or clean the branch if the
+    helper scripts remain.
+  - Take over the implementation locally while Jules is active.
+  - Send a bounded visible scope correction before PR submission.
+- Decision made by agent: Send a bounded visible scope correction before PR
+  submission.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  scope hygiene, visible correction, PR review, and verification.
+- Rationale/evidence:
+  - Package 13 already showed that helper scripts, patch files, and `.orig`
+    artifacts can survive into a Jules PR if they are not corrected early.
+  - Package 14 needs the classification result, not the scratch scripts. The
+    durable home for the result is `vision_light_sound.md`, package completion
+    notes, or the tracker.
+  - Correcting before PR submission preserves Jules' implementation momentum
+    while reducing the chance of another branch-hygiene repair loop.
+- Mutation performed or skipped:
+  - Performed: sent a visible Jules message saying `classify.js` and
+    `classify.cjs` must be treated as temporary helper artifacts, deleted before
+    PR submission, and not included alongside patch files, `.orig` files,
+    generated caches, or orchestration artifacts.
+  - Performed: asked Jules to preserve the useful classification/residual
+    reasoning in `vision_light_sound.md`, the package completion note, or the
+    tracker.
+  - Skipped: local implementation, hidden endpoint update, replacement handoff,
+    PR branch repair, and PR merge.
+- Scope guardrails:
+  - Final Package 14 PR should stay inside selected spell JSON, the narrow
+    `src/types/spells.ts` `soundEmission` bridge if needed, focused tests,
+    `vision_light_sound.md`, and concise package/tracker notes.
+  - Exclude root helper scripts, `.cjs`/`.js` scratch files, patch files,
+    `.orig` files, generated caches, Symphony/Jules runtime state, GitHub
+    workflows, combat HUD rider icons, levels 4-9, and broad visibility/silence
+    systems.
+- Result: Package 14 remains Jules-owned and is waiting for cleaned working
+  evidence, scoped PR, or explicit blocker.
+- Next expected proof: visible cleanup, PR URL with scoped file list, exact
+  blocker/justification, or a later bounded PR repair request.
