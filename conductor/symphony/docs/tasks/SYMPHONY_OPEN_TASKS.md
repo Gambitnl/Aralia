@@ -32,12 +32,6 @@ For the active proving-ground Spell Phase 1 track:
 - Packages 1 through 14 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
-- Package 14 `vision_light_sound` launched through the visible dashboard/Jules
-  path as Linear `ARA-23`, draft `draft-1779763218951-adiujn`, handoff
-  `handoff-1779763287600-th7aze`, and Jules session
-  `16016352181102771214`. Its task packet and Jules prompt carry the compact
-  decision/wait-state rule directly, so ordinary queued/loading/working
-  rechecks should stay compact unless a real decision fork appears.
 - Package 14 is now complete on `master` through PR #1110,
   `3fdf4cb174d42f15f38353adf69890015ec33ff6`. Jules produced useful
   sound/sensory/illusion product work, but after bounded count-repair feedback
@@ -48,111 +42,20 @@ For the active proving-ground Spell Phase 1 track:
   bucket counts to Open `61`, Closed `185`, Deferred flavor `7`, added
   interpretability comments to the new focused test/type mirror, force-pushed
   the clean head with lease, and merged after local and GitHub verification.
-  Next spell action: select Package 15 from the execution-plan priority list,
-  likely `summon_or_controlled_entity`, before launching another Jules task.
-- Visual recheck on 2026-05-26 04:54 +02:00 showed the Package 14 Jules page
-  signed in, displaying the launched task packet, setting up the repository,
-  and reading `public/data/spells/level-1/alarm.json`. There was no plan
-  approval gate, PR URL, explicit blocker, or Jules question yet. That is a
-  compact wait state: the next proof target is plan approval, PR/result, or an
-  explicit blocker, not another full decision entry.
-- Visual recheck on 2026-05-26 05:05 +02:00 showed a Package 14 plan approval
-  gate. Codex rejected the first plan through visible Jules chat because it did
-  not make the required full named-row classification explicit before choosing
-  a subset, and it risked closing `fog-cloud`/`darkness` rows without proving
-  the exact non-broad visibility facts. Next proof target: revised Jules plan
-  with full classification and a separated `implement_now` subset.
-- Visual approval on 2026-05-26 05:14 +02:00 accepted Jules' revised Package
-  14 plan. The revised plan begins with classification of every named
-  cantrip/level 1-3 row, then separates the likely implementation subset
-  (`alarm`, `thaumaturgy`, `daylight`, `silent-image`, `major-image`) from
-  narrow proofs and deferred broader systems. Package 14 is now waiting for
-  Jules implementation/PR evidence or an explicit blocker.
-- Visual check on 2026-05-26 05:21 +02:00 showed Jules working with
-  `classify.js` / `classify.cjs` helper activity. Codex sent a visible scope
-  correction: preserve the classification results in durable bucket/task notes,
-  but remove helper scripts before PR submission and keep the final file list to
-  approved Package 14 artifacts.
-- Visual checks through 2026-05-26 05:40 +02:00 showed Jules had removed the earlier
-  classification helpers, selected the Package 14 implementation subset, and
-  moved into type/data/test/doc updates. The visible activity still included
-  `patch_types.js`, `patch_types.cjs`, `patch_json.cjs`, and
-  `patch_markdown.cjs`, so Codex sent a second visible scope correction after
-  confirming the chat submission: those patch helpers must be deleted before PR
-  submission, while the tracked `src/types/spells.d.ts` mirror may remain only
-  if Jules explains and verifies the repo convention that keeps it aligned with
-  `src/types/spells.ts`.
-- Visual check on 2026-05-26 05:49 +02:00 showed Jules still in `Running code
-  review ...`, no open Package 14 PR on GitHub, and a new `patch_alarm.js`
-  helper after the broader patch-helper correction. Codex sent a shorter
-  visible reminder that `patch_alarm.js` is also temporary and every
-  `patch_*.js` / `patch_*.cjs` helper must be removed before PR submission.
-- Jules opened PR #1110 for Package 14 with a helper-clean durable file list
-  and green core GitHub checks. Codex's local merge-result review passed the
-  focused spell validation, Atlas bucket audit, sensory mechanics Vitest, and
-  TypeScript proof, but found one bounded stale-count issue in
-  `vision_light_sound.md`: the table rows now count `closed: 185`,
-  `open/actionable_open: 61`, and `deferred_flavor: 7`, while the header still
-  showed the old `76` open and `170` closed summary. Codex posted bounded PR
-  feedback, Jules reacted with eyes, and a visible Jules-page check confirmed
-  the active Package 14 session/branch. Current next action is to wait for a
-  new PR #1110 head, then verify the count repair before acceptance.
-- Follow-up refresh showed PR #1110 still at head `2c7cb414...` with no new
-  repair commit. A visible Jules-page check showed the session on
-  `.github/workflows/gemini-review.yml`; GitHub confirmed that workflow file is
-  not in the submitted PR diff, so this is a session-drift warning rather than
-  a current PR artifact. Codex posted one bounded PR nudge asking Jules to push
-  the count-only repair or state the blocker/counting rule, and restated that
-  workflow edits must stay out of Package 14. If the next visible check still
-  shows no new head, choose and record a foreman branch repair or replacement
-  handoff path before acting.
-- Package 14 launch exposed two dashboard UI blockers after the durable packet
-  landed: completed Package 13 closeout did not reveal next-package intake, and
-  the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
-  #1101 repaired those dashboard-first blockers before Jules launch.
-- Package 13 `terrain_or_surface` is complete. It launched to Jules as Linear
-  `ARA-22`, handoff `handoff-1779754985825-4yijzn`, and Jules session
-  `4325471518148676473`, then merged through PR #1096 as
-  `0cd0af47f348b21f331644e7d1bdb502400d3f3a`.
-- Package 13 proved the compact wait-state rule and also exposed the remaining
-  high-friction pattern: useful Jules product work can still need a bounded
-  foreman clean-acceptance repair when the PR branch is stale or carries
-  out-of-scope workflow edits.
-- Visual recheck on 2026-05-26 02:31 +02:00 showed the Package 13 Jules page
-  still displaying the task content and pause-session control, with no plan
-  approval, PR, blocker, or question visible yet. That is a compact wait state,
-  not a new assumed-approval decision.
-- On 2026-05-26 02:40 +02:00, Codex approved the visible Package 13 Jules plan.
-  The plan stays inside the expected terrain data/runtime/test path, includes
-  full row classification before bucket closure, and targets a coherent
-  terrain subset instead of a tiny one-row implementation.
-- On 2026-05-26 02:52 +02:00, a visual Jules refresh showed early scope drift:
-  patch helper files, `patch_*.js`, `src/types/combat.ts.orig`, root
-  `test_terrain_command.ts`, and `src/types/combat.ts` appeared in the visible
-  diff. Codex sent a bounded visible correction asking Jules to clean those
-  artifacts before submit and stay on durable Package 13 files unless
-  `src/types/combat.ts` is explicitly unavoidable.
-- On 2026-05-26 03:00 +02:00, a follow-up visual Jules refresh showed the first
-  correction had only partially cleaned the diff: `patch_bucket.js`,
-  `patch_bucket_more.js`, `.orig` files, and `src/types/combat.ts` were still
-  visible. Codex sent a second visible correction before PR submission.
-- On 2026-05-26 03:08 +02:00, Jules' visible session reported that it removed
-  all patch/orig files, reverted `src/types/combat.ts`, moved the terrain type
-  mapping into `TerrainCommand.ts`, and kept focused `TerrainCommand` tests.
-  The session was running code review with no PR URL yet, so the next state is
-  compact wait for PR or exact blocker.
-- Jules then opened PR #1096. Codex reviewed the visible Jules page and GitHub
-  PR state, found a later out-of-scope `.github/workflows/gemini-review.yml`
-  quota-bypass edit plus stale tracker/process-doc risk, and force-pushed a
-  clean current-master acceptance branch with lease. The accepted head kept
-  only the Package 13 product/test/bucket/completion-note files and recorded
-  Plant Growth's exact 4:1 movement multiplier as a residual gap.
-- PR #1096 passed local verification and GitHub Build, Lint, Tests, Quality,
-  Poison, Analyze, and CodeQL checks, then merged on 2026-05-26.
-- Visible dashboard use exposed that the Package Packet Drafts section had no
-  Package 13 button. PR #1090 repaired that blocker by rendering package
-  shortcuts from a shared registry and adding Package 13 there, rather than
-  adding another one-off click handler.
+- Package 15 `summon_or_controlled_entity` is now the active next package in
+  prep. The packet and prompt are being added as durable Aralia-facing task
+  material, and the dashboard shortcut registry is being extended so the next
+  dispatch can start from a visible `Create Package 15 Draft` control instead
+  of a hidden API call or unreliable long-form browser typing.
+- Package 15 carries the compact decision/wait-state rule directly. The next
+  Jules run should record full decisions only for real forks such as plan
+  approval/rejection, repair requests, branch-hygiene repair, replacement
+  handoff, scope expansion, and merge/closeout. Routine implementation choices,
+  repeated unchanged waits, file lists, and verification output should stay in
+  compact wait rows, task receipts, PR summaries, or completion reports.
+- Current next proof target: land the Package 15 prep branch, verify the
+  dashboard shortcut contract, then use the visible dashboard path to create the
+  Package 15 draft from current `origin/master`.
 
 ---
 

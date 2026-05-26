@@ -30,6 +30,7 @@ assert.match(dashboardSource, /PACKAGE_11_STATUS_STATE_DRAFT/);
 assert.match(dashboardSource, /PACKAGE_12_CONDITIONAL_ENDING_DRAFT/);
 assert.match(dashboardSource, /PACKAGE_13_TERRAIN_SURFACE_DRAFT/);
 assert.match(dashboardSource, /PACKAGE_14_VISION_LIGHT_SOUND_DRAFT/);
+assert.match(dashboardSource, /PACKAGE_15_SUMMON_CONTROLLED_ENTITY_DRAFT/);
 assert.match(dashboardCss, /\.task-navigator/);
 assert.match(dashboardCss, /\.task-navigator-filters/);
 assert.match(dashboardCss, /\.task-detail-preview/);
@@ -107,6 +108,8 @@ assert.match(html, /Create Package 13 Draft/);
 assert.match(html, /data-task-action="create-package13-terrain-surface-draft"/);
 assert.match(html, /Create Package 14 Draft/);
 assert.match(html, /data-task-action="create-package14-vision-light-sound-draft"/);
+assert.match(html, /Create Package 15 Draft/);
+assert.match(html, /data-task-action="create-package15-summon-controlled-entity-draft"/);
 assert.match(navigatorHtml, /Current boundary/);
 assert.match(navigatorHtml, /Answer repair decision/);
 assert.match(navigatorHtml, /Jules session/);
@@ -174,10 +177,10 @@ completedPathSnapshot.middleman_path = {
 completedPathSandbox.renderTaskIntake(completedPathSnapshot);
 
 // Completed handoff paths should reveal next-work controls. This protects the
-// dashboard-first workflow from leaving the Package 14 shortcut hidden behind a
+// dashboard-first workflow from leaving the Package 15 shortcut hidden behind a
 // collapsed drawer after the old package has already been locally reconciled.
 assert.match(completedPathRoot.innerHTML, /<details class="foreman-detail-group" data-foreman-group="Task Intake And Records" open>\s*<summary>\s*<span>Task Intake And Records<\/span>/);
-assert.match(completedPathRoot.innerHTML, /Create Package 14 Draft/);
+assert.match(completedPathRoot.innerHTML, /Create Package 15 Draft/);
 
 const completedRoot = {
   html: '',

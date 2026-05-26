@@ -14,14 +14,15 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Packages 1 through 13 have merged history and receipts,
+Current live boundary: Packages 1 through 14 have merged history and receipts,
 including the Package 9 higher-level caster fixture coverage, the `G93` Jules
 post-launch update-boundary repair, Package 10 target-filter/eligibility,
 Package 11 status/state-change, Package 12 conditional-ending, and Package 13
-terrain/surface slices. Package 14 is now selected as the
-`vision_light_sound` mechanics slice and is in handoff preparation. Treat the
-task tracker below as the spell-project source of truth while the Package 14
-Jules handoff is landed and dispatched through the visible dashboard path.
+terrain/surface, and Package 14 vision/light/sound slices. Package 15 is now
+selected as the `summon_or_controlled_entity` mechanics slice and is in handoff
+preparation. Treat the task tracker below as the spell-project source of truth
+while the Package 15 Jules handoff is landed and dispatched through the visible
+dashboard path.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -869,12 +870,18 @@ to Open `61`, Closed `185`, Deferred flavor `7`, and merged as
 
 Immediate action:
 
-1. Select Package 15 from the priority list before launching another Jules
-   task; the next listed bucket is likely `summon_or_controlled_entity`.
-2. Before dispatch, map the cantrip/level 1-3 affected rows and decide whether
-   the package is large enough to justify the Jules handoff overhead.
-3. If a PR appears, review it against the approved plan before accepting:
+1. Land Package 15 prep for `summon_or_controlled_entity` from current
+   `origin/master`: package task, Jules prompt, tracker row, and visible
+   dashboard draft shortcut.
+2. Before dispatch, confirm the cantrip/level 1-3 affected rows are mapped and
+   that the package remains large enough to justify the Jules handoff overhead.
+3. Use the visible Symphony dashboard path for draft, Linear, handoff,
+   manifest, Jules launch, and visual Jules-page inspection.
+4. If a PR appears, review it against the approved plan before accepting:
    it must classify every named early-game row, close only proven rows, keep
-   broad visibility/silence systems out of scope, exclude helper scripts and
+   broad summon/control systems out of scope, exclude helper scripts and
    scratch artifacts including `classify*` and `patch_*` files, and include
    the requested focused verification.
+5. Keep decision logging compact in the next run: full decision entries only
+   for real forks, compact wait rows for repeated unchanged Jules/GitHub states,
+   and routine implementation details in the completion report.
