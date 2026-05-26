@@ -29,7 +29,7 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1 through 14 have been used to exercise the Symphony/Jules path; use
+- Packages 1 through 15 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
 - Package 14 is now complete on `master` through PR #1110,
@@ -42,51 +42,32 @@ For the active proving-ground Spell Phase 1 track:
   bucket counts to Open `61`, Closed `185`, Deferred flavor `7`, added
   interpretability comments to the new focused test/type mirror, force-pushed
   the clean head with lease, and merged after local and GitHub verification.
-- Package 15 `summon_or_controlled_entity` is now the active Jules package.
+- Package 15 `summon_or_controlled_entity` is now complete on `master` through
+  PR #1122, `829405547b7505adb409cccd420f8541d6840a83`.
   PR #1114 landed the durable Aralia-facing packet/prompt and visible dashboard
   shortcut. Codex used that visible `Create Package 15 Draft` control to create
   draft `draft-1779771507621-vox90j`, linked Linear `ARA-24`, prepared handoff
   `handoff-1779774561087-k9184e`, staged the ignored `.jules` manifest, and
-  launched Jules session `5400768066928394476`.
+  launched Jules session `5400768066928394476`. Jules opened PR #1122. After
+  bounded feedback and one explicit `@jules` nudge, Jules pushed a repair head,
+  but the repaired head still missed bucket counts and summon-data acceptance
+  details. Codex then performed a bounded current-master branch-hygiene repair,
+  preserved only the accepted Package 15 product/test/bucket files, removed
+  tracked raw `.jules` worklog noise, force-pushed clean head `409561db` with
+  lease, and merged PR #1122 after local and GitHub verification.
 - Package 15 carries the compact decision/wait-state rule directly. The next
   Jules run should record full decisions only for real forks such as plan
   approval/rejection, repair requests, branch-hygiene repair, replacement
   handoff, scope expansion, and merge/closeout. Routine implementation choices,
   repeated unchanged waits, file lists, and verification output should stay in
   compact wait rows, task receipts, PR summaries, or completion reports.
-- Latest Package 15 live fork: visible Jules inspection showed a plan approval
-  gate, but the plan ordered implementation before the required full row
-  classification. Codex sent a bounded dashboard/Jules revision request instead
-  of approving it. Symphony must now route that state to `Refresh Jules Status`
-  until Jules responds with a revised plan, starts work, opens a PR, or exposes
-  a blocker; stale `Approve Jules Plan` should not remain the next action after
-  an operator revision note has been sent.
-- Current Package 15 live state: Jules produced a revised plan that begins with
-  row classification and Codex approved it visibly. A later dashboard refresh
-  recorded Jules `COMPLETED` with no PR URL, no completion result, and no branch,
-  while visible Jules still showed `Plan approved` plus a `Pause session`
-  control. GitHub open-PR search found no current Package 15 PR, so Codex
-  treated that as stale completion reconciliation, not package closeout.
-  Follow-up visible Jules inspection then showed `Jules is working`,
-  `Pre-commit checks passed`, Package 15 file content, and still no PR link.
-  A later visible Jules check showed all plan steps completed, and GitHub now
-  has PR #1122 from branch
-  `jules/spells-package15-summon-controlled-entity-5400768066928394476`. The
-  current proof target moved to Codex foreman review of PR #1122 against the
-  Package 15 task packet. GitHub checks were green, but foreman review found
-  acceptance blockers: raw `.jules/worklogs/worklog_scribe.md` runtime noise in
-  the diff, stale `summon_or_controlled_entity.md` header counts after row
-  status changes, and structured `summon-beast` / `phantom-steed` data that
-  needs to either carry the supported stat-block facts or narrow its claim.
-  Codex posted bounded PR feedback at
-  `https://github.com/Gambitnl/Aralia/pull/1122#issuecomment-4541506297`.
-  A later GitHub refresh still showed original head
-  `197021520769bf9303db7dc331972a85f805605d`, and a visual Jules inspection
-  still showed `Ready for review` with the raw `.jules/worklogs/worklog_scribe.md`
-  diff visible. Codex posted one explicit `@jules` repair nudge at
-  `https://github.com/Gambitnl/Aralia/pull/1122#issuecomment-4549145355`.
-  Jules reacted with eyes to that nudge, but GitHub still showed the same PR
-  head at the time this status was recorded.
+- Package 15 routing lesson: the full package was valid for Jules, but the
+  final repair loop was no longer worth another tiny orchestration cycle after
+  one bounded feedback comment, one explicit nudge, and one still-incomplete
+  repair head. Future packages should set a clearer minimum boundary before
+  launch: Jules gets coherent multi-row implementation or deliberate workflow
+  proof; local Codex keeps stale counts, raw-artifact cleanup, PR-body edits,
+  tracker closeout, and branch-hygiene acceptance repairs.
 - Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
@@ -101,14 +82,11 @@ For the active proving-ground Spell Phase 1 track:
   from the global queue when a newer draft owns the path. PR #1117 merged that
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
-  launch. PR #1119 then proved the plan-revision routing repair. Current next
-  proof target: wait for a new Package 15 PR #1122 head or Jules reply after the
-  explicit nudge, then compare that head with the bounded repair request before
-  accepting. Green checks alone are not enough while the raw `.jules` file,
-  stale bucket counts, or partial stat-block claim remain unresolved. If the
-  PR head remains unchanged after the explicit nudge/acknowledgement, the next
-  real fork is a bounded current-master branch-hygiene repair, a replacement
-  handoff from current `origin/master`, or filing the Jules session as stale.
+  launch. PR #1119 then proved the plan-revision routing repair. The Package 15
+  product PR #1122 has now merged, so the next proof target is choosing the
+  Package 16 spell boundary from the tracker/execution plan with the stricter
+  Jules package-size gate. Do not launch Jules for a tiny count/doc/closeout
+  repair merely because Jules was the previous package owner.
 
 ---
 
@@ -142,10 +120,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   approval gate, PR, blocker, or Jules question appears. It becomes a full
   decision only when the foreman must choose between materially different next
   actions.
-- Package 15 is the current spell package carrying this compact rule in the
-  Jules task/prompt before launch. If Jules still writes full decision entries
-  for plain queued/working refreshes, treat that as a workflow-template gap to
-  repair, not as evidence that every wait needs another decision.
+- Package 15 carried this compact rule in the Jules task/prompt before launch.
+  Future packages should copy it before dispatch. If Jules still writes full
+  decision entries for plain queued/working refreshes, treat that as a
+  workflow-template gap to repair, not as evidence that every wait needs
+  another decision.
 - If an assumed approval or boundary decision exposes workflow/doc friction,
   the same decision entry should point to the repair proof or the owning gap
   entry so the decision report is not the only durable record.
@@ -338,20 +317,27 @@ the audit, or in the proving-ground tracker with the next proof target.
   launch Jules session `4325471518148676473`.
 
 ### 9. Active Workflow Gap: Low-Value Jules Package Sizing
-- **Status**: observed during Package 12 plan approval; operating rule added,
-  durable repair still needed in future packet/scoping templates.
+- **Status**: observed during Packages 12 and 15; stricter routing gate added,
+  durable repair still needed in future packet/scoping templates and dashboard
+  package-value prompts.
 - **Observed failure mode**: the Package 12 visible Jules plan proposed a small
   three-spell implementation and named `src/commands/effects/UtilityCommand.ts`
   outside the declared expected write scope. Approving that plan would pay the
   full Symphony/Linear/Jules/GitHub overhead for a low-yield slice while also
   allowing a scope expansion without an explicit file-scope reason.
 - **Operating rule**: before approving a Jules plan, compare the proposed
-  implementation value with the orchestration cost. If the work is repetitive,
-  testable, and covered by existing schema/test patterns, ask Jules for a
-  larger coherent safe batch instead of approving a tiny representative slice.
-  Keep exclusions explicit: broad terrain, light/vision, summon/control, social
-  AI, trap/glyph, combat HUD, levels 4-9, Symphony runtime, and GitHub workflow
-  edits remain out of scope unless a later package says otherwise.
+  implementation value with the orchestration cost. Jules should normally
+  receive a coherent mechanics bucket/sub-bucket with at least five related
+  rows when the pattern is established, a reusable runtime/schema/test slice,
+  a product change where cloud implementation clearly saves foreman time, or a
+  deliberate workflow proof. One-file docs, stale count fixes, helper-artifact
+  removal, PR-body edits, tracker closeout, narrow branch-hygiene repairs, and
+  one- or two-row established-pattern spell edits stay with local Codex unless
+  the package packet explicitly explains why finishing that tiny slice is worth
+  the orchestration overhead. Keep exclusions explicit: broad terrain,
+  light/vision, summon/control, social AI, trap/glyph, combat HUD, levels 4-9,
+  Symphony runtime, and GitHub workflow edits remain out of scope unless a
+  later package says otherwise.
 - **Latest Package 12 proof**: Codex withheld approval for Jules session
   `3991627368289943007` and sent a visible revision request asking Jules to
   classify all cantrip/level 1-3 `conditional_ending` candidates that fit
@@ -390,10 +376,12 @@ the audit, or in the proving-ground tracker with the next proof target.
   GitHub Build/Lint/Tests/Quality/Poison/Analyze/CodeQL checks passed. PR #1084
   merged on 2026-05-25 as
   `2a9dc25e19daae04db06053b61cdca9e1dc82a4e`.
-- **Future repair target**: update package templates so they include a minimum
-  package-value check, an explicit candidate-classification step, and a rule
-  that plans naming files outside expected scope must justify why the file is
-  necessary before approval.
+- **Future repair target**: update package templates so they include a
+  `Jules value: ...` line, a minimum package-value check, an explicit
+  candidate-classification step, and a rule that plans naming files outside
+  expected scope must justify why the file is necessary before approval. The
+  dashboard should eventually surface this as a visible routing question before
+  `Launch Jules` or `Approve Jules Plan`.
 
 ---
 
