@@ -182,12 +182,42 @@ const staleDuplicateHandoff = {
   },
 };
 
+const completedNoPrDriftHandoff = {
+  ...completedPackage14Handoff,
+  id: 'handoff-completed-no-pr-drift',
+  draftId: 'draft-completed-no-pr-drift',
+  title: 'Spell Phase 1 Package 10 superseded no-PR handoff',
+  createdAt: '2026-05-25T15:21:00.000Z',
+  updatedAt: '2026-05-26T04:00:00.000Z',
+  runId: 'run-completed-no-pr-drift',
+  manifestPath: '.jules/runs/run-completed-no-pr-drift/manifest.json',
+  launchedAt: '2026-05-25T15:25:00.000Z',
+  julesSessionId: 'session-completed-no-pr-drift',
+  julesSessionUrl: 'https://jules.google.com/session/session-completed-no-pr-drift',
+  julesState: 'COMPLETED',
+  linearIssueId: 'linear-package-10',
+  linearIssueIdentifier: 'ARA-18',
+  linearIssueUrl: 'https://linear.app/aralia/issue/ARA-18/package-10',
+  githubPullRequestUrl: null,
+  githubPullRequestState: null,
+  githubPullRequestNextAction: null,
+  localSyncStatus: null,
+  baseCommitDrift: {
+    previousCommit: 'old',
+    currentCommit: 'new',
+    phase: 'post_launch',
+    requiredAction: 'send_post_launch_update',
+    summary: 'origin/master moved after this old no-PR session was superseded.',
+    nextExpectedProof: 'Record the explicit update path only if this old session is revived.',
+  },
+};
+
 const server = new HttpServer(8218, orchestrator, logger);
 server.taskIntake = {
   async snapshot() {
     return {
       drafts: [freshPackage15Draft],
-      handoffs: [completedPackage14Handoff, staleDuplicateHandoff],
+      handoffs: [completedPackage14Handoff, completedNoPrDriftHandoff, staleDuplicateHandoff],
       preflight: {
         ok: true,
         checkedAt: generatedAt,
