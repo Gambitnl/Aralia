@@ -178,7 +178,7 @@ const PACKAGE_13_TERRAIN_SURFACE_DRAFT = {
     '',
     'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
     '',
-    'Decision-log note: repeated unchanged waits should be compact wait-state rows. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout.',
+    'Decision-log note: repeated queued/setup/working/verifying observations should be compact wait-state rows when no new choice appears. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout.',
   ].join('\n'),
   expectedFiles: [
     'docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_TASK.md',
@@ -218,7 +218,7 @@ const PACKAGE_14_VISION_LIGHT_SOUND_DRAFT = {
     '',
     'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
     '',
-    'Decision-log note: repeated unchanged waits should be compact wait-state rows. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout.',
+    'Decision-log note: repeated queued/setup/working/verifying observations should be compact wait-state rows when no new choice appears. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout.',
   ].join('\n'),
   expectedFiles: [
     'docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md',

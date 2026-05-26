@@ -857,13 +857,16 @@ Current slice: Package 14 is active as `vision_light_sound`. Codex launched it
 through the visible Symphony dashboard as Linear `ARA-23`, handoff
 `handoff-1779763287600-th7aze`, and Jules session `16016352181102771214` from
 clean `origin/master @ a164a420f4c9289c8a5214bf7e3498515d41ce92`.
+The latest visual Jules recheck showed repository setup in progress and Jules
+reading `public/data/spells/level-1/alarm.json`, with no plan gate, PR,
+blocker, or question visible yet.
 
 Immediate action:
 
 1. Visually recheck Jules session `16016352181102771214` for a plan approval
-   gate, PR URL, explicit blocker, or unchanged queued/loading state.
-2. If Jules is still queued/loading/working with no new choice, record only a
-   compact wait-state row.
+   gate, PR URL, explicit blocker, question, or continued setup/working state.
+2. If Jules is still queued/loading/setting-up/working with no new choice,
+   record only a compact wait-state row.
 3. If a plan appears, review it against the Package 14 packet before approving:
    it must classify the named early-game rows first and implement the largest
    coherent safe subset covered by existing schema/runtime/test patterns.
