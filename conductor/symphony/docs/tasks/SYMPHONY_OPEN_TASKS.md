@@ -32,13 +32,21 @@ For the active proving-ground Spell Phase 1 track:
 - Packages 1 through 12 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
-- The next prepared package is Package 13 `terrain_or_surface`, with compact
-  wait-state logging carried directly in the Jules task/prompt so repeated
-  observations do not create another oversized decision ledger.
-- Visible dashboard use then exposed that the Package Packet Drafts section had
-  no Package 13 button. The active repair is to render packet shortcuts from a
-  shared registry and add Package 13 there, rather than adding another one-off
-  click handler.
+- Package 13 `terrain_or_surface` has been prepared, exposed through the
+  dashboard, and launched to Jules as Linear `ARA-22`, handoff
+  `handoff-1779754985825-4yijzn`, and Jules session `4325471518148676473`.
+- Package 13 carries compact wait-state logging directly in the Jules
+  task/prompt. The next check should prove whether Jules follows that newer
+  flow; repeated queued/working observations should not become another
+  oversized full-decision ledger.
+- Visual recheck on 2026-05-26 02:31 +02:00 showed the Package 13 Jules page
+  still displaying the task content and pause-session control, with no plan
+  approval, PR, blocker, or question visible yet. That is a compact wait state,
+  not a new assumed-approval decision.
+- Visible dashboard use exposed that the Package Packet Drafts section had no
+  Package 13 button. PR #1090 repaired that blocker by rendering package
+  shortcuts from a shared registry and adding Package 13 there, rather than
+  adding another one-off click handler.
 
 ---
 
@@ -67,6 +75,10 @@ the audit, or in the proving-ground tracker with the next proof target.
   expanding scope. Repeated observations that preserve the same state should use
   a compact wait-state row in the tracker, task receipt, or this queue instead
   of another full decision entry.
+- Package 13 is the first launched spell package that carries this compact rule
+  in the Jules task/prompt before launch. If Jules still writes full decision
+  entries for plain queued/working refreshes, treat that as a workflow-template
+  gap to repair, not as evidence that every wait needs another decision.
 - If an assumed approval or boundary decision exposes workflow/doc friction,
   the same decision entry should point to the repair proof or the owning gap
   entry so the decision report is not the only durable record.
@@ -217,13 +229,15 @@ the audit, or in the proving-ground tracker with the next proof target.
   and keeping the scoped Jules implementation files.
 
 ### 8. Active Workflow Gap: Package Packet Shortcut Drift
-- **Status**: immediate Package 12 repair landed through PR #1079; broader
-  registry-derived shortcut repair remains open.
-- **Observed failure mode**: after the Package 12 task packet landed on
-  `master`, the visible dashboard still offered only Package 6, Package 10, and
-  Package 11 packet buttons. The manual draft form existed, but the known
-  in-app browser long-text-entry path is unreliable in this proving-ground, so a
-  hidden task-draft API call would skip the operator-facing blocker.
+- **Status**: immediate Package 12 repair landed through PR #1079; Package 13
+  registry repair landed through PR #1090; metadata-derived shortcut discovery
+  remains open.
+- **Observed failure mode**: after the Package 12 and Package 13 task packets
+  landed on `master`, the visible dashboard still lagged behind the next
+  package boundary until a separate dashboard repair added the button. The
+  manual draft form existed, but the known in-app browser long-text-entry path
+  is unreliable in this proving-ground, so a hidden task-draft API call would
+  skip the operator-facing blocker.
 - **Operating rule**: when a committed spell package packet is the next tracker
   boundary, the dashboard must expose a visible way to create the corresponding
   local draft before Codex launches Jules. If the visible control is missing,
@@ -242,6 +256,12 @@ the audit, or in the proving-ground tracker with the next proof target.
   becomes visible without another dashboard source edit. Preserve the current
   explicit-button behavior until that registry exists; it is still safer than
   hidden endpoint use during the active proving-ground.
+- **Latest Package 13 proof**: PR #1090 added Package 13 to a shared packet
+  registry, rendered shortcut buttons from that registry, and routed package
+  draft clicks through one generic handler. Codex then used the visible Package
+  13 button to create draft `draft-1779754729582-hqen06`, Linear `ARA-22`,
+  handoff `handoff-1779754985825-4yijzn`, stage the ignored Jules manifest, and
+  launch Jules session `4325471518148676473`.
 
 ### 9. Active Workflow Gap: Low-Value Jules Package Sizing
 - **Status**: observed during Package 12 plan approval; operating rule added,
