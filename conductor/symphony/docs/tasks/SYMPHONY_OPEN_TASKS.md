@@ -43,19 +43,22 @@ For the active proving-ground Spell Phase 1 track:
   interpretability comments to the new focused test/type mirror, force-pushed
   the clean head with lease, and merged after local and GitHub verification.
 - Package 15 `summon_or_controlled_entity` is now the active next package in
-  prep. The packet and prompt are being added as durable Aralia-facing task
-  material, and the dashboard shortcut registry is being extended so the next
-  dispatch can start from a visible `Create Package 15 Draft` control instead
-  of a hidden API call or unreliable long-form browser typing.
+  prep. PR #1114 landed the durable Aralia-facing packet/prompt and visible
+  dashboard shortcut. Codex used that visible `Create Package 15 Draft` control
+  to create draft `draft-1779771507621-vox90j` from current `origin/master`.
 - Package 15 carries the compact decision/wait-state rule directly. The next
   Jules run should record full decisions only for real forks such as plan
   approval/rejection, repair requests, branch-hygiene repair, replacement
   handoff, scope expansion, and merge/closeout. Routine implementation choices,
   repeated unchanged waits, file lists, and verification output should stay in
   compact wait rows, task receipts, PR summaries, or completion reports.
-- Current next proof target: land the Package 15 prep branch, verify the
-  dashboard shortcut contract, then use the visible dashboard path to create the
-  Package 15 draft from current `origin/master`.
+- Current next proof target: repair and prove the queue-focus rule exposed
+  after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
+  Package 14 to completed/merged/local-current, but the dashboard top action
+  still preferred older stale handoff bookkeeping over the new Package 15
+  `Create Linear Issue` boundary. After the focused verifier and visual/API
+  proof pass, continue through Linear, handoff, manifest, and Jules launch using
+  the visible dashboard path.
 
 ---
 
@@ -257,6 +260,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   local draft before Codex launches Jules. If the visible control is missing,
   repair the dashboard control or record the blocker; do not silently create the
   draft through a hidden endpoint.
+- **Package 15 follow-up**: PR #1114 proved the visible shortcut could create
+  draft `draft-1779771507621-vox90j`, but then the global queue action still
+  preferred stale older handoff bookkeeping over the fresh draft. The shortcut
+  exists; the remaining defect is queue focus after old handoffs reconcile to
+  completed or stale-local states.
 - **Immediate Package 12 repair**: PR #1079 added a visible
   `Create Package 12 Draft` button wired to the committed Package 12 task and
   prompt, and extended

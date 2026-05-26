@@ -195,6 +195,15 @@ enough. If the new head addresses unrelated files, adds out-of-scope workflow
 changes, or leaves the requested acceptance repair undone, the task remains in
 `Wait for Jules repair commit` with a fresh bounded feedback receipt.
 
+When a package has already reconciled to merged/local-current proof, its handoff
+history should not keep owning the global queue action. Old completed handoffs
+and unlaunched stale duplicate handoffs may remain visible as task history, but
+they should not outrank a newer ready draft unless they represent a live Jules
+session, active PR, unresolved plan/feedback gate, or unsafe local-sync boundary
+that still requires operator action. This protects the visible next package path
+from being hidden behind historical bookkeeping after the operator has already
+created the next draft.
+
 ### Task-Centered Dashboard
 
 The intended operator experience is task-centered. The dashboard should let the
