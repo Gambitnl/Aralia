@@ -5695,3 +5695,50 @@ Copy this block for each decision.
   evidence, a scoped PR, or an explicit blocker.
 - Next expected proof: visible cleanup, PR URL with scoped file list, exact
   blocker/justification, or a later bounded PR repair request.
+
+### Decision 131: Send Package 14 `patch_alarm.js` Helper Reminder
+
+- Date/time: 2026-05-26 05:49 +02:00
+- Phase: `package_14_active_work_scope_correction`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: After Decision 130, Jules remained visibly in `Running code
+  review ...` and GitHub still showed no open Package 14 PR. A remote branch
+  named `codex/package14-selection` existed, but it belonged to already-merged
+  prep PR #1098, not the active Jules result. A later visible Jules check showed
+  a new `patch_alarm.js` update after the earlier all-`patch_*` cleanup
+  correction.
+- Options considered:
+  - Wait for the PR and repair only if `patch_alarm.js` remains.
+  - Treat the repeated helper drift as a reason to take over locally.
+  - Send one short visible reminder that `patch_alarm.js` is covered by the
+    same helper-artifact boundary.
+- Decision made by agent: Send one short visible reminder before PR submission.
+- Model routing: Jules remains implementation worker. Codex remains foreman for
+  visible scope correction, PR file-list review, branch hygiene, and merge
+  verification.
+- Rationale/evidence:
+  - The previous correction already covered all `patch_*.js` /
+    `patch_*.cjs` helpers, so `patch_alarm.js` is not a new approved artifact
+    category.
+  - A short reminder is cheaper than waiting for a PR known to be likely noisy,
+    while still keeping Jules as owner of the implementation.
+  - No PR exists yet, so this is still pre-submit scope guidance rather than a
+    PR repair or local takeover.
+- Mutation performed or skipped:
+  - Performed: sent a visible Jules message saying `patch_alarm.js` is a
+    temporary helper and must not be included in the final PR.
+  - Performed: restated that the durable final file list should be selected
+    spell JSON, `src/types/spells.ts`, a matching tracked `.d.ts` only if
+    necessary and explained, focused tests, `vision_light_sound.md`, and
+    concise tracker/package notes.
+  - Skipped: local implementation, hidden endpoint update, replacement
+    handoff, PR branch repair, and PR merge.
+- Scope guardrails:
+  - Exclude every `patch_*.js` / `patch_*.cjs` helper, `classify*`, `.orig`
+    files, generated caches, orchestration artifacts, GitHub workflows, broad
+    visibility/silence systems, combat HUD rider icons, and levels 4-9.
+- Result: Package 14 remains Jules-owned and is waiting for cleaned working
+  evidence, a scoped PR, or an explicit blocker.
+- Next expected proof: visible cleanup, PR URL with scoped file list, exact
+  blocker/justification, or a later bounded PR repair request.

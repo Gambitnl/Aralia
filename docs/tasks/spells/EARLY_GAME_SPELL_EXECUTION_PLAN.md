@@ -873,6 +873,9 @@ activity showed `patch_types.js`, `patch_types.cjs`, `patch_json.cjs`, and
 `patch_markdown.cjs`; those patch helpers should also be temporary only. A
 tracked `src/types/spells.d.ts` mirror may remain only if the final PR explains
 and verifies why it must stay aligned with `src/types/spells.ts`.
+Codex then sent a shorter follow-up reminder when `patch_alarm.js` appeared
+after the broader cleanup correction; it is covered by the same no-helper-files
+boundary.
 
 Immediate action:
 
