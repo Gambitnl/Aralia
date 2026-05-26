@@ -47,6 +47,12 @@ For the active proving-ground Spell Phase 1 track:
   The plan stays inside the expected terrain data/runtime/test path, includes
   full row classification before bucket closure, and targets a coherent
   terrain subset instead of a tiny one-row implementation.
+- On 2026-05-26 02:52 +02:00, a visual Jules refresh showed early scope drift:
+  patch helper files, `patch_*.js`, `src/types/combat.ts.orig`, root
+  `test_terrain_command.ts`, and `src/types/combat.ts` appeared in the visible
+  diff. Codex sent a bounded visible correction asking Jules to clean those
+  artifacts before submit and stay on durable Package 13 files unless
+  `src/types/combat.ts` is explicitly unavoidable.
 - Visible dashboard use exposed that the Package Packet Drafts section had no
   Package 13 button. PR #1090 repaired that blocker by rendering package
   shortcuts from a shared registry and adding Package 13 there, rather than
