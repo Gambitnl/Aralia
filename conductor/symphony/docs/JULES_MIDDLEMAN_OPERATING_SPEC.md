@@ -123,10 +123,16 @@ operator-facing documentation, count/header repairs, raw-artifact cleanup, and
 branch-hygiene acceptance repairs should normally stay with local Codex because
 the Jules handoff/plan/PR/review loop costs more than the work.
 
-Use Jules only when the task clears an implementation-value floor. As a rule of
-thumb, a Jules package should include at least one of these:
+Use Jules only when the task clears an implementation-value floor. This is a
+routing gate, not a vague preference. If the work is smaller than the gate, keep
+it with local Codex and record the outcome in the tracker instead of paying a
+full draft, Linear, handoff, Jules launch, plan approval, PR review, repair, and
+merge cycle.
 
-- a coherent mechanics bucket or sub-bucket with several related spell rows;
+A Jules package should include at least one of these:
+
+- a coherent mechanics bucket or sub-bucket with several related spell rows,
+  normally at least five when the rows follow an established pattern;
 - a runtime/schema/test slice where the same pattern is reused across multiple
   data files;
 - a product change large enough that isolated cloud implementation saves more
@@ -134,10 +140,20 @@ thumb, a Jules package should include at least one of these:
 - a deliberate workflow proof where the goal is to exercise Jules/Symphony,
   even if the implementation itself is small.
 
-If a proposed Jules task is only a one-file documentation fix, a stale count
-repair, helper-artifact removal, a PR-body adjustment, or a narrow cleanup after
-foreman review, route it to local Codex unless the operator explicitly wants to
-test that orchestration boundary.
+Do not route to Jules when the task is only a one-file documentation fix, a
+stale count repair, helper-artifact removal, a PR-body adjustment, a package
+tracker closeout, or a narrow cleanup after foreman review. Do not launch Jules
+for one or two spell rows that use an already-proven schema/test pattern unless
+those rows are the last remaining rows in a bucket and the package packet says
+why finishing the bucket is worth the overhead.
+
+Before launch or plan approval, the foreman should write a short package-value
+line in the tracker or task receipt:
+
+`Jules value: <why this clears the minimum boundary>; local fallback if it does not.`
+
+If that sentence cannot be written concretely, the task is too small or too
+ambiguous for Jules and should be rescoped before launch.
 
 ### Live Browser Inspection
 

@@ -43,7 +43,7 @@ plan approval, PR review, repair, merge, and tracker closeout.
 | Jules wait state | 52, 58-60, 93-96, 98-103, 109-111 | Jules is queued, working, processing feedback, or has not pushed a claimed repair. | State what is being waited for: new PR, new head commit, plan revision, visible failure, or explicit blocker. |
 | Branch hygiene | 77-78, 97-112, 120-122, 126 | Jules produces useful work on a stale or noisy branch. | Prefer bounded Jules repair first; use foreman branch-hygiene repair only when product work is verified and the repair only preserves current base and removes noise. |
 | Package selection | 2-4, 44, 81, 87, 113 | The next slice is chosen from tracker and mechanics evidence. | Select from the living tracker and execution plan; do not encode temporary package state into the goal. |
-| Package value | 113-115 | A package may be safe but too small for the orchestration cost. | Prefer larger coherent batches when rows are repetitive, testable, and covered by existing schema/test patterns. |
+| Package value | 113-115, Package 15 closeout | A package may be safe but too small for the orchestration cost, or large enough in theory but too prone to review/repair churn if the handoff is not precise. | Prefer larger coherent batches when rows are repetitive, testable, and covered by existing schema/test patterns; keep tiny docs/count/PR-body/branch-hygiene work local. |
 
 ## 3. Implementation Value Lessons
 
@@ -52,14 +52,17 @@ mechanic pattern. They are inefficient once the pattern is established. Packages
 8 through 12 show that each slice pays similar overhead regardless of whether it
 changes three spell rows or a broader coherent bucket.
 
-Use this package-sizing bias:
+Use this package-sizing bias. The practical boundary has now moved upward:
+Jules should normally get a coherent multi-row package, not a tiny correction
+that Codex can finish and verify faster than the handoff loop can complete.
 
 | Candidate work | Preferred owner | Sizing rule |
 |---|---|---|
-| Repetitive spell JSON/schema rows with existing test patterns | Jules | Batch the largest coherent safe subset. |
+| Repetitive spell JSON/schema rows with existing test patterns | Jules | Batch the largest coherent safe subset; normally at least five related rows unless finishing a bucket is explicitly worth the overhead. |
 | Dashboard controls, task routing, local workflow labels | Codex | Keep local and focused; record only durable summaries. |
 | Scope ambiguity, branch hygiene, merge readiness | Codex foreman | Decide from visible Jules/GitHub/dashboard evidence. |
 | Tiny docs repairs after a package state change | Codex | Do locally; do not pay a Jules handoff cycle. |
+| Stale count fixes, PR-body edits, raw-artifact cleanup, tracker closeout | Codex | These are closeout or hygiene chores, not cloud implementation packages. |
 | Broad mechanics with unclear engine shape | Codex scoping first, Jules later | Write a better packet before implementation. |
 
 Package 12 is the latest completed example. Jules' first plan proposed a small
@@ -186,7 +189,7 @@ lease, and merged after focused local and GitHub verification.
 | Local Jules state can claim completion before visible proof exists | Package 15 reported `COMPLETED` in Symphony/local Jules records after revised-plan approval, but the visible Jules page still showed `Plan approved`, a `Pause session` control, no completion report, and no PR link. GitHub open-PR search initially found no Package 15 PR. A later visible Jules check showed all plan steps completed and GitHub found PR #1122. | Treat `COMPLETED` plus no PR/completion text as `needs_browser_reconciliation`, not package closeout. The valid next action is visible Jules/GitHub recheck or a workflow repair that reconciles stale local records against visible session evidence before no-PR filing. If a PR appears later, move to foreman PR review and keep the stale local completion as a workflow gap, not a package failure. |
 | Helper artifacts recur during useful Jules work | Package 13 showed patch/orig helpers at PR review. Package 14 showed `classify*` helpers, then later `patch_*` helpers, during active implementation before PR submission. | Include explicit "no helper artifacts in final PR" language in package prompts, send visible cleanup corrections as soon as helper drift appears, and reject final PRs that still contain scratch scripts or caches. |
 | PR review can expose small acceptance repairs after helper cleanup succeeds | Package 14 PR #1110 removed helper artifacts and passed core checks, but `vision_light_sound.md` kept pre-PR header counts after row status changes. | Send bounded PR feedback for the exact acceptance repair, record `wait_for_jules_repair_commit`, and verify the new head before accepting. Do not convert every repair wait into a full local takeover. |
-| Unchanged repair feedback needs one explicit nudge before takeover | Package 15 PR #1122 received bounded repair feedback for raw `.jules` noise, stale bucket counts, and overbroad summon stat-block claims, but GitHub and visual Jules checks still showed the original head and `Ready for review` state. Jules later reacted with eyes to the explicit nudge while the head was still unchanged. | Post one explicit `@jules` nudge that restates the same narrow repair and asks for either a repair head or exact blocker. Only after that unchanged-nudge/acknowledgement state should Codex choose between bounded branch hygiene, replacement handoff, or stale-session filing. |
+| Unchanged repair feedback needs one explicit nudge before takeover | Package 15 PR #1122 received bounded repair feedback for raw `.jules` noise, stale bucket counts, and overbroad summon stat-block claims, but GitHub and visual Jules checks still showed the original head and `Ready for review` state. Jules reacted with eyes, later replied, and pushed a repair head, but the repair still missed bucket counts and summon-data acceptance details. | Post one explicit `@jules` nudge that restates the same narrow repair and asks for either a repair head or exact blocker. If Jules pushes a new head, compare it to the requested repair before accepting. If the repair is still a small acceptance/hygiene miss, use bounded branch hygiene instead of another tiny orchestration loop. |
 | Visible Jules session may drift into out-of-scope files not yet in the PR | After Package 14 PR #1110 repair feedback, the visible Jules page showed `.github/workflows/gemini-review.yml`, while GitHub initially showed the PR diff was helper-clean and had no workflow file. Jules later pushed that workflow file without the requested count repair. | Classify visible-only drift as a warning until GitHub proves a submitted diff change. If a new head adds the out-of-scope file, treat it as branch noise and use bounded branch hygiene when the product work is otherwise verified. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
