@@ -245,6 +245,50 @@ const PACKAGE_14_VISION_LIGHT_SOUND_DRAFT = {
     'npx tsc --noEmit --pretty false',
   ].join('\n'),
 };
+const PACKAGE_15_SUMMON_CONTROLLED_ENTITY_DRAFT = {
+  title: 'Spell Phase 1 Package 15 summons and controlled entities',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_TASK.md and docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make the largest coherent safe subset of early-game summon_or_controlled_entity rows mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: first classify the named cantrip/level 1-3 open rows as implement_now, already_represented_after_proof, defer_broader_system, or not_really_summon_control. Then implement the largest coherent safe subset covered by existing SUMMONING, summon-template, controlledEntity, validation, command, and focused test patterns.',
+    '',
+    'Likely candidates include proof or cleanup for already-structured find-familiar, unseen-servant, find-steed, conjure-animals, and mage-hand, plus summon-beast or tiny-servant only if current runtime shape supports a narrow safe migration.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, combat rider-icon UI, levels 4-9, broad AI arbitration policy, broad file-backed entity trees, hostile-summon AI, independent initiative systems, demon-control breakout, long-term reassert-control, trap/glyph authoring, social arbitration for speaking spells, object-animation engines, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+    '',
+    'Decision-log note: repeated queued/setup/working/verifying observations should be compact wait-state rows when no new choice appears. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout. Routine implementation choices and verification output belong in the completion report.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/summon_or_controlled_entity.md',
+    'docs/tasks/spells/summoned-entities/SPELL_SUMMONED_ENTITIES_TRACKER.md',
+    'public/data/spells/level-0/*.json',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/types/spellControlledEntity.ts',
+    'src/systems/spells/validation/controlledEntitySchemas.ts',
+    'src/systems/spells/validation/spellValidator.ts',
+    'src/commands/effects/SummoningCommand.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/data/summonTemplates.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+    'npx tsc --noEmit --pretty false',
+  ].join('\n'),
+};
 // Package packet shortcuts are still declared in this dashboard file, but the
 // rendering and click handling now read from one registry. That keeps each new
 // packet from needing a separate button, handler branch, and duplicate function.
@@ -287,6 +331,12 @@ const PACKAGE_PACKET_DRAFTS = [
     label: 'Create Package 14 Draft',
     packageId: 'Package 14',
     draft: PACKAGE_14_VISION_LIGHT_SOUND_DRAFT,
+  },
+  {
+    action: 'create-package15-summon-controlled-entity-draft',
+    label: 'Create Package 15 Draft',
+    packageId: 'Package 15',
+    draft: PACKAGE_15_SUMMON_CONTROLLED_ENTITY_DRAFT,
   },
 ];
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();

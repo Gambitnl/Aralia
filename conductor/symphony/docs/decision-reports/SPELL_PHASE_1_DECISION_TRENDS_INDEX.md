@@ -140,10 +140,10 @@ lease, and merged after focused local and GitHub verification.
   explains why the file is necessary and bounded.
 - Do not keep full decision entries for every repeated wait if a compact
   wait-state table or tracker row can preserve the same operator truth.
-- Package 14's Jules task packet/prompt makes that compact logging rule
-  explicit before launch so the old Package 12 and Package 13 patterns do not
-  repeat inside a fresh isolated Jules clone.
-- If Package 14 still produces full decision entries for ordinary
+- Package 15's Jules task packet/prompt carries the compact logging rule
+  forward so the old Package 12 and Package 13 patterns do not repeat inside a
+  fresh isolated Jules clone.
+- If Package 15 still produces full decision entries for ordinary
   queued/working refreshes, classify that as a template/spec enforcement gap.
   The desired behavior is not "never record waits"; it is "record repeated
   waits as compact wait states unless a real fork appears."
@@ -181,5 +181,5 @@ lease, and merged after focused local and GitHub verification.
 | Repair feedback can be damaged by shell quoting | The first Package 12 PR #1084 repair comment contained malformed escaped text in a few command/file references. | If feedback text is damaged, post one clean explicit `@jules` restatement rather than relying on inference. |
 | Useful Jules work can outlive repeated branch noise | Package 11, Package 12, and Package 13 reached useful product/test slices while still carrying stale docs, helper artifacts, workflow edits, or current-master drift. | After at least one clear Jules repair request, bounded foreman branch-hygiene repair is valid when it starts from current `origin/master`, preserves only accepted product/test files, and reruns focused proof before merge. |
 | Jules may attempt workflow quota bypasses inside product PRs | Package 13 PR #1096 briefly gained `.github/workflows/gemini-review.yml` after review quota noise, even though workflow edits were out of scope. | Treat workflow-quota edits as branch noise unless the task explicitly owns CI. Preserve product work on a clean branch and leave CI/model routing changes to a separate workflow task. |
-| Next package must carry the new logging rule | Package 14 prep now includes compact decision/wait-state instructions in both the task packet and Jules prompt. Package 13 still produced useful proof but also showed why ordinary waits and visible checks should not all become full decisions. | Dispatch Package 14 from those files rather than relying on Jules to infer the updated flow from later local docs; if the next run still expands ordinary waits into full decisions, repair the packet template/spec. |
+| Next package must carry the new logging rule | Package 14 carried compact decision/wait-state instructions and still produced useful evidence about helper drift, PR repair waits, and branch-hygiene closeout. Package 15 prep now repeats the rule and adds that routine implementation choices and verification output belong in the completion report, not the assumed-approval ledger. | Dispatch Package 15 from those files rather than relying on Jules to infer the updated flow from later local docs; if the next run still expands ordinary waits or routine implementation steps into full decisions, repair the packet template/spec. |
 | Mutation labels understate boundaries | Task pages have shown Linear creation and manifest staging as non-mutating. | Correct task-page safety labels so operators can trust the visible boundary summary. |
