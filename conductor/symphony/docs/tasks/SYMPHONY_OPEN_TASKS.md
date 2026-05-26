@@ -57,6 +57,11 @@ For the active proving-ground Spell Phase 1 track:
   correction had only partially cleaned the diff: `patch_bucket.js`,
   `patch_bucket_more.js`, `.orig` files, and `src/types/combat.ts` were still
   visible. Codex sent a second visible correction before PR submission.
+- On 2026-05-26 03:08 +02:00, Jules' visible session reported that it removed
+  all patch/orig files, reverted `src/types/combat.ts`, moved the terrain type
+  mapping into `TerrainCommand.ts`, and kept focused `TerrainCommand` tests.
+  The session was running code review with no PR URL yet, so the next state is
+  compact wait for PR or exact blocker.
 - Visible dashboard use exposed that the Package Packet Drafts section had no
   Package 13 button. PR #1090 repaired that blocker by rendering package
   shortcuts from a shared registry and adding Package 13 there, rather than
