@@ -356,6 +356,12 @@ ignored unless a concise package-facing summary is useful after the run.
   only confirm the same wait state should be compact tracker or wait-ledger rows
   with the observed PR/session state and the next recheck condition.
   Detailed support provenance belongs in Symphony-owned docs.
+- Before launching the next Jules package, apply the implementation-value floor
+  from `conductor/symphony/docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`: Jules should
+  get coherent multi-row mechanics/schema/test batches or deliberate workflow
+  proofs, not one-file docs, stale count fixes, raw-artifact cleanup, PR-body
+  adjustments, or narrow branch-hygiene acceptance repairs that local Codex can
+  complete faster.
 - If a spell package exposes Symphony dashboard or documentation friction,
   update this tracker or link the Symphony task queue/audit entry in the same
   pass.
