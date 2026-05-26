@@ -106,13 +106,14 @@ residual-gap record, and force-pushing that clean head with lease before merge.
 
 Package 14 shows that helper-artifact drift can appear before the PR, not only
 during final review. Jules first created `classify.js` / `classify.cjs`, then
-deleted them after a visible scope correction, but later showed `patch_types.js`,
-`patch_types.cjs`, and `patch_json.cjs` while doing useful type/data/test work.
-The useful pattern is to send a bounded visible cleanup correction before PR
-submission, then review the final PR file list for durable package artifacts
-only. A tracked generated-looking source mirror such as `src/types/spells.d.ts`
-is different from a helper script: it may be acceptable only when the PR
-explains the repo convention and verifies the paired source/type change.
+deleted them after a visible scope correction, but later showed
+`patch_types.js`, `patch_types.cjs`, `patch_json.cjs`, and
+`patch_markdown.cjs` while doing useful type/data/test/doc work. The useful
+pattern is to send a bounded visible cleanup correction before PR submission,
+then review the final PR file list for durable package artifacts only. A
+tracked generated-looking source mirror such as `src/types/spells.d.ts` is
+different from a helper script: it may be acceptable only when the PR explains
+the repo convention and verifies the paired source/type change.
 
 ## 4. Active Operating Rules
 

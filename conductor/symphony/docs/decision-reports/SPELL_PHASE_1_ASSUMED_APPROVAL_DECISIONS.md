@@ -5645,15 +5645,16 @@ Copy this block for each decision.
 
 ### Decision 130: Send Second Package 14 Patch-Helper Scope Correction
 
-- Date/time: 2026-05-26 05:32 +02:00
+- Date/time: 2026-05-26 05:40 +02:00
 - Phase: `package_14_active_work_scope_correction`
 - Active slice: Package 14 vision/light/sound mechanics for cantrips and
   levels 1-3.
 - Decision point: After the first helper-script correction, a visible Jules
   recheck showed Jules had deleted the classification helpers and moved into
-  focused type/data/test updates. The visible file activity and review pane
-  still showed `patch_types.js`, `patch_types.cjs`, and `patch_json.cjs`, which
-  look like temporary patch helpers rather than durable Package 14 artifacts.
+  focused type/data/test/doc updates. The visible file activity and review pane
+  still showed `patch_types.js`, `patch_types.cjs`, `patch_json.cjs`, and
+  `patch_markdown.cjs`, which look like temporary patch helpers rather than
+  durable Package 14 artifacts.
 - Options considered:
   - Wait for the PR and repair the branch only if the patch helpers remain.
   - Take over the implementation locally while Jules is active.
@@ -5674,8 +5675,9 @@ Copy this block for each decision.
     to stay aligned with `src/types/spells.ts` and includes it in verification.
 - Mutation performed or skipped:
   - Performed: sent a visible Jules message requiring deletion of
-    `patch_json.cjs`, `patch_types.js`, `patch_types.cjs`, and any other
-    `patch_*.js` / `patch_*.cjs` helper before PR submission.
+    `patch_json.cjs`, `patch_types.js`, `patch_types.cjs`,
+    `patch_markdown.cjs`, and any other `patch_*.js` / `patch_*.cjs` helper
+    before PR submission.
   - Performed: told Jules the final PR should remain durable: selected spell
     JSON, `src/types/spells.ts`, the matching tracked `.d.ts` only if
     necessary and explained, focused tests, `vision_light_sound.md`, and
