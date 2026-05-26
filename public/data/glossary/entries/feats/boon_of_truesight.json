@@ -8,7 +8,9 @@
   ],
   "excerpt": "You gain the following benefits.  Truesight You have truesight with a range of 60 feet....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "truesight"
+  ],
   "filePath": "/data/glossary/entries/feats/boon_of_truesight.json",
   "markdown": "# Boon of Truesight\n\nYou gain the following benefits.\n\n## Truesight\n\nYou have [[truesight]] with a range of 60 feet."
 }

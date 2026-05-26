@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.4 gp - Weight: 2 lb. A Basket holds up to 40 pounds within 2 cubic feet....",
+  "excerpt": "A Basket holds up to 40 pounds within 2 cubic feet....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/basket.json",
-  "markdown": "# Basket\n\n- **Type**: G|XPHB\n- **Cost**: 0.4 gp\n- **Weight**: 2 lb.\n\nA Basket holds up to 40 pounds within 2 cubic feet."
+  "markdown": "# Basket\n\nA Basket holds up to 40 pounds within 2 cubic feet.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.4,
+    "weight": 2
+  }
 }

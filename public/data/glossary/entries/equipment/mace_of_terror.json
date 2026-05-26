@@ -1,0 +1,28 @@
+{
+  "id": "mace_of_terror",
+  "title": "Mace of Terror",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Melee Weapon"
+  ],
+  "excerpt": "This magic weapon has 3 charges and regains 1d3 expended charges daily at dawn. While holding the weapon, you can take a magic action and expend 1 cha...",
+  "aliases": [],
+  "seeAlso": [
+    "magic",
+    "frightened",
+    "opportunity_attack Attacks",
+    "dash",
+    "dodge"
+  ],
+  "filePath": "/data/glossary/entries/equipment/mace_of_terror.json",
+  "markdown": "# Mace of Terror\n\nThis magic weapon has 3 charges and regains 1d3 expended charges daily at dawn. While holding the weapon, you can take a [[magic]] action and expend 1 charge to release a wave of terror from it. Each creature of your choice within 30 feet of you must succeed on a DC 15 Wisdom saving throw or have the [[frightened]] condition for 1 minute. While [[frightened]] in this way, a creature must spend its turns trying to move as far away from you as it can, and it can't make [[opportunity_attack Attacks]]. For its action, it can use only the [[dash]] action or try to escape from an effect that prevents it from moving. If it has nowhere it can move, the creature can take the [[dodge]] action. At the end of each of its turns, a creature repeats the save, ending the effect on itself on a success.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required",
+    "weight": 4,
+    "damage": "1d6 B"
+  }
+}

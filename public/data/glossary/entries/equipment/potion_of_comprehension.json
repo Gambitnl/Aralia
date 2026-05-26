@@ -1,0 +1,22 @@
+{
+  "id": "potion_of_comprehension",
+  "title": "Potion of Comprehension",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Potion"
+  ],
+  "excerpt": "When you drink this potion, you gain the effect of the comprehend_languages Languages spell for 1 hour. This potion's liquid is a clear concoction wit...",
+  "aliases": [],
+  "seeAlso": [
+    "comprehend_languages Languages"
+  ],
+  "filePath": "/data/glossary/entries/equipment/potion_of_comprehension.json",
+  "markdown": "# Potion of Comprehension\n\nWhen you drink this potion, you gain the effect of the [[comprehend_languages Languages]] spell for 1 hour.\n\nThis potion's liquid is a clear concoction with bits of salt and soot swirling in it.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Common",
+    "weight": 0.5
+  }
+}

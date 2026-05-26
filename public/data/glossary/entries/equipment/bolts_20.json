@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ammunition"
   ],
-  "excerpt": "- Type: A|XPHB - Cost: 1 gp - Weight: 1.5 lb. Crossbow bolts are used with a weapon that has the ammunition property to make a ranged attack. Each tim...",
+  "excerpt": "Crossbow bolts are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one p...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "crossbow_bolt_case Bolt Case"
+  ],
   "filePath": "/data/glossary/entries/equipment/bolts_20.json",
-  "markdown": "# Bolts (20)\n\n- **Type**: A|XPHB\n- **Cost**: 1 gp\n- **Weight**: 1.5 lb.\n\nCrossbow bolts are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ammunition. Drawing the ammunition from a quiver, case, or other container is part of the attack (you need a free hand to load a one-handed weapon). At the end of the battle, you can recover half your expended ammunition by taking a minute to search the battlefield.\n\nBolts are typically stored in a [[crossbow_bolt_case Bolt Case]] (bought separately)."
+  "markdown": "# Bolts (20)\n\nCrossbow bolts are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ammunition. Drawing the ammunition from a quiver, case, or other container is part of the attack (you need a free hand to load a one-handed weapon). At the end of the battle, you can recover half your expended ammunition by taking a minute to search the battlefield.\n\nBolts are typically stored in a [[crossbow_bolt_case Bolt Case]] (bought separately).",
+  "itemMetadata": {
+    "type": "Ammunition",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 1.5
+  }
 }

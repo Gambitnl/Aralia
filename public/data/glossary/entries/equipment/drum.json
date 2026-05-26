@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Instrument"
   ],
-  "excerpt": "- Type: INS|XPHB - Cost: 6 gp - Weight: 3 lb. - Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
+  "excerpt": "- Ability:: Charisma - Utilize:: Play a known tune (DC 10), or improvise a song (DC 15)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/drum.json",
-  "markdown": "# Drum\n\n- **Type**: INS|XPHB\n- **Cost**: 6 gp\n- **Weight**: 3 lb.\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)"
+  "markdown": "# Drum\n\n- **Ability::** Charisma\n- **Utilize::** Play a known tune (DC 10), or improvise a song (DC 15)",
+  "itemMetadata": {
+    "type": "Instrument",
+    "rarity": "None",
+    "cost": 6,
+    "weight": 3
+  }
 }

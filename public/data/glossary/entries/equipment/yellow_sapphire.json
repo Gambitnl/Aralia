@@ -1,0 +1,20 @@
+{
+  "id": "yellow_sapphire",
+  "title": "Yellow Sapphire",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A fiery yellow or yellow green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/yellow_sapphire.json",
+  "markdown": "# Yellow Sapphire\n\nA fiery yellow or yellow green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 1000
+  }
+}

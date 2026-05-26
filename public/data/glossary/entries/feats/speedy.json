@@ -8,7 +8,13 @@
   ],
   "excerpt": "You gain the following benefits.  Speed Increase Your speed increases by 10 feet.  Dash over Difficult Terrain When you take the dash action on your t...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "speed",
+    "dash",
+    "difficult_terrain Terrain",
+    "opportunity_attack Attacks",
+    "disadvantage"
+  ],
   "filePath": "/data/glossary/entries/feats/speedy.json",
   "markdown": "# Speedy\n\nYou gain the following benefits.\n\n## Speed Increase\n\nYour [[speed]] increases by 10 feet.\n\n## Dash over Difficult Terrain\n\nWhen you take the [[dash]] action on your turn, [[difficult_terrain Terrain]] doesn't cost you extra movement for the rest of that turn.\n\n## Agile Movement\n\n[[opportunity_attack Attacks]] have [[disadvantage]] against you."
 }

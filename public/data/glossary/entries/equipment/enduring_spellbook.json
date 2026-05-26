@@ -1,0 +1,19 @@
+{
+  "id": "enduring_spellbook",
+  "title": "Enduring Spellbook",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This spellbook, along with anything written on its pages, can't be damaged by fire or water. In addition, the spellbook doesn't deteriorate with age....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/enduring_spellbook.json",
+  "markdown": "# Enduring Spellbook\n\nThis spellbook, along with anything written on its pages, can't be damaged by fire or water. In addition, the spellbook doesn't deteriorate with age.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

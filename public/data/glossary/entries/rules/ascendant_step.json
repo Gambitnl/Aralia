@@ -8,7 +8,9 @@
   ],
   "excerpt": "You can cast levitate on yourself without expending a spell slot....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "levitate"
+  ],
   "filePath": "/data/glossary/entries/rules/ascendant_step.json",
   "markdown": "# Ascendant Step\n\nYou can cast [[levitate]] on yourself without expending a spell slot."
 }

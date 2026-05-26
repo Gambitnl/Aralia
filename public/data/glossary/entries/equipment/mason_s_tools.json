@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 10 gp - Weight: 8 lb. - Ability:: Strength - Utilize:: Chisel a symbol or hole in stone (DC 10) - Craft:: block_and_tackle and...",
+  "excerpt": "- Ability:: Strength - Utilize:: Chisel a symbol or hole in stone (DC 10) - Craft:: block_and_tackle and Tackle...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "block_and_tackle and Tackle"
+  ],
   "filePath": "/data/glossary/entries/equipment/mason_s_tools.json",
-  "markdown": "# Mason's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 10 gp\n- **Weight**: 8 lb.\n\n- **Ability::** Strength\n- **Utilize::** Chisel a symbol or hole in stone (DC 10)\n- **Craft::** [[block_and_tackle and Tackle]]"
+  "markdown": "# Mason's Tools\n\n- **Ability::** Strength\n- **Utilize::** Chisel a symbol or hole in stone (DC 10)\n- **Craft::** [[block_and_tackle and Tackle]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 8
+  }
 }

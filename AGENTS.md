@@ -8,6 +8,8 @@ This repo should be approached as **expansion-first**, not cleanup-first.
 Preserve unfinished intent, future optionality, and embryonic systems unless removal is clearly justified.
 Do not mistake a cleaner diff, lower lint count, or less code for automatic progress.
 
+**The goal is an ever-widening scope.** When executing a task, treat it as a discovery process. Do not artificially shrink success to whatever is easiest to complete. When you discover gaps, missing features, or adjacent debt, classify them and add them to the relevant project's `GAPS.md` tracker without letting discovery swallow the active task.
+
 Aralia task docs are the durable GitHub-synced home for Jules-readable handoff
 material. Symphony dashboards, generated manifests, draft ids, click receipts,
 local run state, and other orchestration artifacts should stay external or

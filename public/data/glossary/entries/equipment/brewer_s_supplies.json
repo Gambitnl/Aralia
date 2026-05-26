@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 20 gp - Weight: 9 lb. - Ability:: Intelligence - Utilize:: Detect poisoned drink (DC 15), or identify alcohol (DC 10) - Craft:...",
+  "excerpt": "- Ability:: Intelligence - Utilize:: Detect poisoned drink (DC 15), or identify alcohol (DC 10) - Craft:: antitoxin...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "antitoxin"
+  ],
   "filePath": "/data/glossary/entries/equipment/brewer_s_supplies.json",
-  "markdown": "# Brewer's Supplies\n\n- **Type**: AT|XPHB\n- **Cost**: 20 gp\n- **Weight**: 9 lb.\n\n- **Ability::** Intelligence\n- **Utilize::** Detect poisoned drink (DC 15), or identify alcohol (DC 10)\n- **Craft::** [[antitoxin]]"
+  "markdown": "# Brewer's Supplies\n\n- **Ability::** Intelligence\n- **Utilize::** Detect poisoned drink (DC 15), or identify alcohol (DC 10)\n- **Craft::** [[antitoxin]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 20,
+    "weight": 9
+  }
 }

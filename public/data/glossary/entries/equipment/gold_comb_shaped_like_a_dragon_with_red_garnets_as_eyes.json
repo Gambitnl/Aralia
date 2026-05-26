@@ -1,0 +1,20 @@
+{
+  "id": "gold_comb_shaped_like_a_dragon_with_red_garnets_as_eyes",
+  "title": "Gold comb shaped like a dragon with red garnets as eyes",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/gold_comb_shaped_like_a_dragon_with_red_garnets_as_eyes.json",
+  "markdown": "# Gold comb shaped like a dragon with red garnets as eyes\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 750
+  }
+}

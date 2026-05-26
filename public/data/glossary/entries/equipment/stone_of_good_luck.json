@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While this polished agate is on your person, you gain a +1 bonus to ability checks and saving throws....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/stone_of_good_luck.json",
-  "markdown": "# Stone of Good Luck\n\nWhile this polished agate is on your person, you gain a +1 bonus to ability checks and saving throws."
+  "markdown": "# Stone of Good Luck\n\nWhile this polished agate is on your person, you gain a +1 bonus to ability checks and saving throws.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Heavy Armor"
   ],
-  "excerpt": "- Type: HA|XPHB - Cost: 30 gp - Weight: 40 lb. - Armor Class: 14...",
+  "excerpt": "HA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/ring_mail.json",
-  "markdown": "# Ring Mail\n\n- **Type**: HA|XPHB\n- **Cost**: 30 gp\n- **Weight**: 40 lb.\n- **Armor Class**: 14\n\n"
+  "markdown": "# Ring Mail\n\n*HA*\n",
+  "itemMetadata": {
+    "type": "Heavy Armor",
+    "rarity": "None",
+    "cost": 30,
+    "weight": 40,
+    "ac": 14
+  }
 }

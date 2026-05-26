@@ -4,11 +4,30 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "This robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a magic action to detach one of the patches...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "bullseye_lantern Lantern",
+    "dagger",
+    "mirror",
+    "pole",
+    "rope",
+    "sack",
+    "riding_saddle Saddle",
+    "cube_area_of_effect",
+    "potion_of_healing of Healing",
+    "rowboat",
+    "spell_scroll Scroll",
+    "portable_ram Ram"
+  ],
   "filePath": "/data/glossary/entries/equipment/robe_of_useful_items.json",
-  "markdown": "# Robe of Useful Items\n\nThis robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a [[magic]] action to detach one of the patches, causing it to become the object or creature it represents. Once the last patch is removed, the robe becomes an ordinary garment.\n\nThe robe has two of each of the following patches:\n\n- [[bullseye_lantern Lantern]] (filled and lit)\n- [[dagger]]\n- [[mirror]]\n- [[pole]]\n- [[rope]] (coiled)\n- [[sack]]\n\nIn addition, the robe has 4d4 other patches. The DM chooses the patches or determines them randomly by rolling on the following table.\n\n| 1d100 | Patch |\n| --- | --- |\n| 01-08 | Bag of 100 GP |\n| 09-15 | Silver coffer (1 foot long, 6 inches wide and deep) worth 500 GP |\n| 16-22 | Iron door (up to 10 feet wide and 10 feet high, barred on one side of your choice), which you can place in an opening you can reach; it conforms to fit the opening, attaching and hinging itself |\n| 23-30 | 10 gems worth 100 GP each |\n| 31-44 | Wooden ladder (24 feet long) |\n| 45-51 | Riding Horse with a [[riding_saddle Saddle]] |\n| 52-59 | Open pit (a 10-foot [[cube_area_of_effect]]), which you can place on the ground within 10 feet of yourself |\n| 60-68 | 4 [[potion_of_healing of Healing]] |\n| 69-75 | [[rowboat]] (12 feet long) |\n| 76-83 | [[spell_scroll Scroll]] containing one spell of level 1, 2, or 3 (your choice) |\n| 84-90 | 2 Mastiff |\n| 91-96 | Window (2 feet by 4 feet, up to 2 feet deep), which you can place on a vertical surface you can reach |\n| 97-00 | [[portable_ram Ram]] |"
+  "markdown": "# Robe of Useful Items\n\nThis robe has cloth patches of various shapes and colors covering it. While wearing the robe, you can take a [[magic]] action to detach one of the patches, causing it to become the object or creature it represents. Once the last patch is removed, the robe becomes an ordinary garment.\n\nThe robe has two of each of the following patches:\n\n- [[bullseye_lantern Lantern]] (filled and lit)\n- [[dagger]]\n- [[mirror]]\n- [[pole]]\n- [[rope]] (coiled)\n- [[sack]]\n\nIn addition, the robe has 4d4 other patches. The DM chooses the patches or determines them randomly by rolling on the following table.\n\n| 1d100 | Patch |\n| --- | --- |\n| 01-08 | Bag of 100 GP |\n| 09-15 | Silver coffer (1 foot long, 6 inches wide and deep) worth 500 GP |\n| 16-22 | Iron door (up to 10 feet wide and 10 feet high, barred on one side of your choice), which you can place in an opening you can reach; it conforms to fit the opening, attaching and hinging itself |\n| 23-30 | 10 gems worth 100 GP each |\n| 31-44 | Wooden ladder (24 feet long) |\n| 45-51 | Riding Horse with a [[riding_saddle Saddle]] |\n| 52-59 | Open pit (a 10-foot [[cube_area_of_effect]]), which you can place on the ground within 10 feet of yourself |\n| 60-68 | 4 [[potion_of_healing of Healing]] |\n| 69-75 | [[rowboat]] (12 feet long) |\n| 76-83 | [[spell_scroll Scroll]] containing one spell of level 1, 2, or 3 (your choice) |\n| 84-90 | 2 Mastiff |\n| 91-96 | Window (2 feet by 4 feet, up to 2 feet deep), which you can place on a vertical surface you can reach |\n| 97-00 | [[portable_ram Ram]] |",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
 }

@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG While wearing this ring, you regain 1d6 hit_points Points every 10 minutes if you have at least 1 hit_points Point. If you lose a body...",
+  "excerpt": "While wearing this ring, you regain 1d6 hit_points Points every 10 minutes if you have at least 1 hit_points Point. If you lose a body part, the ring ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "hit_points Points",
+    "hit_points Point"
+  ],
   "filePath": "/data/glossary/entries/equipment/ring_of_regeneration.json",
-  "markdown": "# Ring of Regeneration\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you regain 1d6 [[hit_points Points]] every 10 minutes if you have at least 1 [[hit_points Point]]. If you lose a body part, the ring causes the missing part to regrow and return to full functionality after 1d6 + 1 days if you have at least 1 [[hit_points Point]] the whole time."
+  "markdown": "# Ring of Regeneration\n\nWhile wearing this ring, you regain 1d6 [[hit_points Points]] every 10 minutes if you have at least 1 [[hit_points Point]]. If you lose a body part, the ring causes the missing part to regrow and return to full functionality after 1d6 + 1 days if you have at least 1 [[hit_points Point]] the whole time.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Very rare",
+    "reqAttune": "Required"
+  }
 }

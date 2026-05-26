@@ -1,0 +1,19 @@
+{
+  "id": "river_styx",
+  "title": "River Styx",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "The River Styx courses through the Lower Planes. Tasting or touching its waters can shatter a creature's intellect and personality, as well as strip a...",
+  "aliases": [],
+  "seeAlso": [
+    "magic",
+    "greater_restoration Restoration",
+    "heal",
+    "wish"
+  ],
+  "filePath": "/data/glossary/entries/rules/river_styx.json",
+  "markdown": "# River Styx\n\nThe River Styx courses through the Lower Planes. Tasting or touching its waters can shatter a creature's intellect and personality, as well as strip away its memories. Certain Fiends are immune to the river's effects.\n\nUnless immune to the river's effects, a creature that drinks from the Styx, enters the river, or starts its turn in the river makes a DC 20 Intelligence saving throw. On a failed save, the creature takes 19 (3d12) Psychic damage and can't cast spells or take the [[magic]] action for 30 days. An affected creature can drink from the Styx and swim in its waters without suffering any additional effects.\n\nThe effect can be ended only by the [[greater_restoration Restoration]], [[heal]], or [[wish]] spell. If the effect isn't ended after 30 days, the effect becomes permanent and the creature loses all its memories. At that point, nothing short of a [[wish]] spell or divine intervention can undo the effect.\n\nWater taken from the River Styx loses its potency after 24 hours, becoming a harmless, foul-tasting liquid. Arcanaloths, night hags, and other fell creatures might know rituals that can prolong the water's potency, at your discretion."
+}

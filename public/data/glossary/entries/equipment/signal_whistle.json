@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.05 gp When blown as a utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away....",
+  "excerpt": "When blown as a utilize action, a Signal Whistle produces a sound that can be heard up to 600 feet away....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize"
+  ],
   "filePath": "/data/glossary/entries/equipment/signal_whistle.json",
-  "markdown": "# Signal Whistle\n\n- **Type**: G|XPHB\n- **Cost**: 0.05 gp\n\nWhen blown as a [[utilize]] action, a Signal Whistle produces a sound that can be heard up to 600 feet away."
+  "markdown": "# Signal Whistle\n\nWhen blown as a [[utilize]] action, a Signal Whistle produces a sound that can be heard up to 600 feet away.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.05
+  }
 }

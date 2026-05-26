@@ -1,0 +1,19 @@
+{
+  "id": "dread_helm",
+  "title": "Dread Helm",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While you're wearing this fearsome steel helm, your eyes glow red and the rest of your face is hidden in shadow....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/dread_helm.json",
+  "markdown": "# Dread Helm\n\nWhile you're wearing this fearsome steel helm, your eyes glow red and the rest of your face is hidden in shadow.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

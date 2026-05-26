@@ -4,11 +4,34 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 20 gp - Weight: 8 lb. - Ability:: Strength - Utilize:: Pry open a door or container (DC 20) - Craft:: Any Melee weapon (except...",
+  "excerpt": "- Ability:: Strength - Utilize:: Pry open a door or container (DC 20) - Craft:: Any Melee weapon (except club, greatclub, quarterstaff, and whip), Med...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "club",
+    "greatclub",
+    "quarterstaff",
+    "whip",
+    "hide_armor",
+    "ball_bearings Bearings",
+    "bucket",
+    "caltrops",
+    "chain",
+    "crowbar",
+    "firearm_bullets_10 Bullets",
+    "grappling_hook Hook",
+    "iron_pot Pot",
+    "iron_spikes Spikes",
+    "sling_bullets_20 Bullets"
+  ],
   "filePath": "/data/glossary/entries/equipment/smith_s_tools.json",
-  "markdown": "# Smith's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 20 gp\n- **Weight**: 8 lb.\n\n- **Ability::** Strength\n- **Utilize::** Pry open a door or container (DC 20)\n- **Craft::** Any Melee weapon (except [[club]], [[greatclub]], [[quarterstaff]], and [[whip]]), Medium armor (except [[hide_armor]]), Heavy armor, [[ball_bearings Bearings]], [[bucket]], [[caltrops]], [[chain]], [[crowbar]], [[firearm_bullets_10 Bullets]], [[grappling_hook Hook]], [[iron_pot Pot]], [[iron_spikes Spikes]], [[sling_bullets_20 Bullets]]"
+  "markdown": "# Smith's Tools\n\n- **Ability::** Strength\n- **Utilize::** Pry open a door or container (DC 20)\n- **Craft::** Any Melee weapon (except [[club]], [[greatclub]], [[quarterstaff]], and [[whip]]), Medium armor (except [[hide_armor]]), Heavy armor, [[ball_bearings Bearings]], [[bucket]], [[caltrops]], [[chain]], [[crowbar]], [[firearm_bullets_10 Bullets]], [[grappling_hook Hook]], [[iron_pot Pot]], [[iron_spikes Spikes]], [[sling_bullets_20 Bullets]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 20,
+    "weight": 8
+  }
 }

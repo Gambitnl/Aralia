@@ -1,0 +1,16 @@
+{
+  "id": "rld",
+  "title": "RLD",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "itemProperty"
+  ],
+  "excerpt": "Reload You can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a bonus_action Action....",
+  "aliases": [],
+  "seeAlso": [
+    "bonus_action Action"
+  ],
+  "filePath": "/data/glossary/entries/rules/rld.json",
+  "markdown": "# RLD\n\n## Reload\n\nYou can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a [[bonus_action Action]]."
+}

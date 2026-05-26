@@ -1,0 +1,18 @@
+{
+  "id": "heavy_precipitation",
+  "title": "Heavy Precipitation",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "Everything within an area of heavy rain or heavy snowfall is lightly_obscured Obscured, and creatures in the area have disadvantage on all Wisdom (per...",
+  "aliases": [],
+  "seeAlso": [
+    "lightly_obscured Obscured",
+    "disadvantage",
+    "perception"
+  ],
+  "filePath": "/data/glossary/entries/rules/heavy_precipitation.json",
+  "markdown": "# Heavy Precipitation\n\nEverything within an area of heavy rain or heavy snowfall is [[lightly_obscured Obscured]], and creatures in the area have [[disadvantage]] on all Wisdom ([[perception]]) checks. Heavy rain also extinguishes open flames."
+}

@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While you wear these boots, you can cast levitate on yourself....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "levitate"
+  ],
   "filePath": "/data/glossary/entries/equipment/boots_of_levitation.json",
-  "markdown": "# Boots of Levitation\n\nWhile you wear these boots, you can cast [[levitate]] on yourself."
+  "markdown": "# Boots of Levitation\n\nWhile you wear these boots, you can cast [[levitate]] on yourself.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

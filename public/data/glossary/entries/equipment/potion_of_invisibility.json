@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the invi...",
+  "excerpt": "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the invisible condition for 1 hour. The e...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "invisible"
+  ],
   "filePath": "/data/glossary/entries/equipment/potion_of_invisibility.json",
-  "markdown": "# Potion of Invisibility\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nThis potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the [[invisible]] condition for 1 hour. The effect ends early if you make an attack roll, deal damage, or cast a spell."
+  "markdown": "# Potion of Invisibility\n\nThis potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the [[invisible]] condition for 1 hour. The effect ends early if you make an attack roll, deal damage, or cast a spell.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Rare",
+    "weight": 0.5
+  }
 }

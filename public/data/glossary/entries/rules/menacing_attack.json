@@ -8,7 +8,9 @@
   ],
   "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to frighten the target. Add the Superiority Die to the atta...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "frightened"
+  ],
   "filePath": "/data/glossary/entries/rules/menacing_attack.json",
   "markdown": "# Menacing Attack\n\nWhen you hit a creature with an attack roll, you can expend one Superiority Die to attempt to frighten the target. Add the Superiority Die to the attack's damage roll. The target must succeed on a Wisdom saving throw or have the [[frightened]] condition until the end of your next turn."
 }

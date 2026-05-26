@@ -8,7 +8,9 @@
   ],
   "excerpt": "You gain the following benefits.  All-Around Adept You gain proficiency in all skills.  Expertise Choose one skill in which you lack expertise. You ga...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "expertise"
+  ],
   "filePath": "/data/glossary/entries/feats/boon_of_skill.json",
   "markdown": "# Boon of Skill\n\nYou gain the following benefits.\n\n## All-Around Adept\n\nYou gain proficiency in all skills.\n\n## Expertise\n\nChoose one skill in which you lack [[expertise]]. You gain [[expertise]] in that skill."
 }

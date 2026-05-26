@@ -1,0 +1,27 @@
+{
+  "id": "cauldron_of_rebirth",
+  "title": "Cauldron of Rebirth",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This Tiny pot bears relief scenes of heroes on its cast-iron sides. You can use the cauldron as a spellcasting_focus Focus for your spells, and it fun...",
+  "aliases": [],
+  "seeAlso": [
+    "spellcasting_focus Focus",
+    "scrying",
+    "long_rest Rest",
+    "potion_of_greater_healing of Healing (greater)",
+    "magic",
+    "raise_dead Dead"
+  ],
+  "filePath": "/data/glossary/entries/equipment/cauldron_of_rebirth.json",
+  "markdown": "# Cauldron of Rebirth\n\nThis Tiny pot bears relief scenes of heroes on its cast-iron sides.\n\nYou can use the cauldron as a [[spellcasting_focus Focus]] for your spells, and it functions as a suitable component for the [[scrying]] spell.\n\n## Brew Potion\n\nWhen you finish a [[long_rest Rest]], you can use the cauldron to create a [[potion_of_greater_healing of Healing (greater)]], which takes 1 minute. The potion lasts for 24 hours, then loses its magic if not consumed.\n\n## Raise Dead\n\nAs a [[magic]] action, you can cause the cauldron to grow large enough for a Medium creature to crouch within. You can revert the cauldron to its normal size as a [[magic]] action, harmlessly shunting anything that can't fit inside to the nearest unoccupied space.\n\nIf you place the corpse of a Humanoid into the cauldron and cover the corpse with 200 pounds of salt (which costs 10 GP) for at least 8 hours, the salt is consumed and the creature returns to life as if by [[raise_dead Dead]] at the next dawn. Once used, this property can't be used again for 7 days.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Very rare",
+    "reqAttune": "Required by a druid or warlock"
+  }
+}

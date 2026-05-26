@@ -8,7 +8,11 @@
   ],
   "excerpt": "While you're in an area of dim_light Light or darkness, you can cast invisibility on yourself without expending a spell slot....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "dim_light Light",
+    "darkness",
+    "invisibility"
+  ],
   "filePath": "/data/glossary/entries/rules/one_with_shadows.json",
   "markdown": "# One with Shadows\n\nWhile you're in an area of [[dim_light Light]] or [[darkness]], you can cast [[invisibility]] on yourself without expending a spell slot."
 }

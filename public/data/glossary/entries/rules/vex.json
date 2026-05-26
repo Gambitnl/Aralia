@@ -1,0 +1,16 @@
+{
+  "id": "vex",
+  "title": "Vex",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "itemMastery"
+  ],
+  "excerpt": "If you hit a creature with this weapon and deal damage to the creature, you have advantage on your next attack roll against that creature before the e...",
+  "aliases": [],
+  "seeAlso": [
+    "advantage"
+  ],
+  "filePath": "/data/glossary/entries/rules/vex.json",
+  "markdown": "# Vex\n\nIf you hit a creature with this weapon and deal damage to the creature, you have [[advantage]] on your next attack roll against that creature before the end of your next turn."
+}

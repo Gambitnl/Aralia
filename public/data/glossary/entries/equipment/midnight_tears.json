@@ -1,0 +1,22 @@
+{
+  "id": "midnight_tears",
+  "title": "Midnight Tears",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the poisoned condition neutralizes this po...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned"
+  ],
+  "filePath": "/data/glossary/entries/equipment/midnight_tears.json",
+  "markdown": "# Midnight Tears\n\nA creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the [[poisoned]] condition neutralizes this poison. If the poison hasn't been neutralized before midnight, the creature makes a DC 17 Constitution saving throw, taking 31 (9d6) Poison damage on a failed save or half as much damage on a successful one.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1500
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "chicken",
+  "title": "Chicken",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chicken.json",
+  "markdown": "# Chicken\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 0.02
+  }
+}

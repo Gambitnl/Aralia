@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "Your Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/headband_of_intellect.json",
-  "markdown": "# Headband of Intellect\n\nYour Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it."
+  "markdown": "# Headband of Intellect\n\nYour Intelligence score is 19 while you wear this headband. It has no effect on you if your Intelligence is 19 or higher without it.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

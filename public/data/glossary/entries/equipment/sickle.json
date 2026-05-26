@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 1 gp - Weight: 2 lb. - Damage: 1d4 S - Properties: L|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/sickle.json",
-  "markdown": "# Sickle\n\n- **Type**: M|XPHB\n- **Cost**: 1 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d4 S\n- **Properties**: L|XPHB\n\n"
+  "markdown": "# Sickle\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 2,
+    "damage": "1d4 S",
+    "properties": [
+      "L|XPHB"
+    ]
+  }
 }

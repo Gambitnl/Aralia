@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Land)"
   ],
-  "excerpt": "- Type: VEH|XPHB - Cost: 20 gp - Weight: 300 lb....",
+  "excerpt": "VEH...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/sled.json",
-  "markdown": "# Sled\n\n- **Type**: VEH|XPHB\n- **Cost**: 20 gp\n- **Weight**: 300 lb.\n\n"
+  "markdown": "# Sled\n\n*VEH*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Land)",
+    "rarity": "None",
+    "cost": 20,
+    "weight": 300
+  }
 }

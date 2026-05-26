@@ -4,11 +4,26 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB This staff has 10 charges. While holding the staff, you can cast one of the spells...",
+  "excerpt": "This staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spellcasting ability mod...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "cure_wounds Wounds",
+    "lesser_restoration Restoration",
+    "mass_cure_wounds Cure Wounds"
+  ],
   "filePath": "/data/glossary/entries/equipment/staff_of_healing.json",
-  "markdown": "# Staff of Healing\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nThis staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spellcasting ability modifier. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[cure_wounds Wounds]] | 1 charge per spell level (maximum 4 for a level 4 spell) |\n| [[lesser_restoration Restoration]] | 2 |\n| [[mass_cure_wounds Cure Wounds]] | 5 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff vanishes in a flash of light, lost forever."
+  "markdown": "# Staff of Healing\n\nThis staff has 10 charges. While holding the staff, you can cast one of the spells on the following table from it, using your spellcasting ability modifier. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[cure_wounds Wounds]] | 1 charge per spell level (maximum 4 for a level 4 spell) |\n| [[lesser_restoration Restoration]] | 2 |\n| [[mass_cure_wounds Cure Wounds]] | 5 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff vanishes in a flash of light, lost forever.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required by a bard, cleric, or druid",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
 }

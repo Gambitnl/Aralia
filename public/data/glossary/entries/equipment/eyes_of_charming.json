@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "These crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast charm_person Person (save DC...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "charm_person Person"
+  ],
   "filePath": "/data/glossary/entries/equipment/eyes_of_charming.json",
-  "markdown": "# Eyes of Charming\n\nThese crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast [[charm_person Person]] (save DC 13). For 1 charge, you cast the level 1 version of the spell. You increase the spell's level by one for each additional charge you expend. The lenses regain all expended charges daily at dawn."
+  "markdown": "# Eyes of Charming\n\nThese crystal lenses fit over the eyes. They have 3 charges. While wearing them, you can expend 1 or more charges to cast [[charm_person Person]] (save DC 13). For 1 charge, you cast the level 1 version of the spell. You increase the spell's level by one for each additional charge you expend. The lenses regain all expended charges daily at dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

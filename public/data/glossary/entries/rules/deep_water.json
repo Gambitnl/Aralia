@@ -1,0 +1,16 @@
+{
+  "id": "deep_water",
+  "title": "Deep Water",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "Swimming through deep water (more than 100 feet deep) presents additional challenges because of the water's pressure and cold temperature. After each ...",
+  "aliases": [],
+  "seeAlso": [
+    "exhaustion"
+  ],
+  "filePath": "/data/glossary/entries/rules/deep_water.json",
+  "markdown": "# Deep Water\n\nSwimming through deep water (more than 100 feet deep) presents additional challenges because of the water's pressure and cold temperature. After each hour of swimming in deep water, a creature that lacks a Swim Speed must succeed on a DC 10 Constitution saving throw or gain 1 [[exhaustion]] level."
+}

@@ -8,7 +8,9 @@
   ],
   "excerpt": "You can cast jump on yourself without expending a spell slot....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "jump"
+  ],
   "filePath": "/data/glossary/entries/rules/otherworldly_leap.json",
   "markdown": "# Otherworldly Leap\n\nYou can cast [[jump]] on yourself without expending a spell slot."
 }

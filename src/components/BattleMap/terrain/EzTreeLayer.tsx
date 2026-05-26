@@ -1,77 +1,141 @@
 /**
  * @file EzTreeLayer.tsx
- * Replaces the sphere-on-cylinder tree geometry with @dgreenheck/ez-tree procedural trees.
+ * Procedural trees using the vendored ez-tree library (vendor/ez-tree/).
  *
- * Strategy: generate N tree variant groups (different presets + seeds), then use
- * THREE.InstancedMesh for branches and leaves so all trees share draw calls.
- * With 6 variants × 2 meshes = 12 draw calls for the entire forest, regardless
- * of tree count.
+ * The npm package @dgreenheck/ez-tree has module-level TextureLoader side-effects
+ * in textures.js that prevent R3F Canvas WebGL initialization. The vendored copy
+ * stubs that file out so the Tree geometry generator can be imported safely.
  *
- * Materials are overridden with solid MeshStandardMaterial to avoid uploading
- * ez-tree's 20 texture files to the GPU.
+ * Strategy:
+ * - Generate N tree variant geometries once (different presets + seeds per biome)
+ * - Use THREE.InstancedMesh for branches and leaves — all trees share draw calls
+ * - Override ALL materials with solid MeshStandardMaterial (no texture uploads)
+ * - Biome configs own which species and seeds to use
+ *
+ * Scale calibration:
+ * - Oak Medium: trunk length[0] = 37.24 native units
+ * - At scale 0.065 → 37.24 * 0.065 ≈ 2.4 world units of trunk
+ * - Full tree height ~3-4 world units (one tile = 1 world unit, camera at y=10)
  */
 import React, { useMemo, useEffect } from 'react';
-import { Tree } from '@dgreenheck/ez-tree';
 import * as THREE from 'three';
 import { BattleMapData } from '../../../types/combat';
 
+// Vendored ez-tree — stub textures.js removes module-level TextureLoader side-effects.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — vendor JS library; types not required
+import { Tree, TreePreset } from '../../../../vendor/ez-tree/src/lib/index.js';
+
+// ---------------------------------------------------------------------------
+// Biome tree configuration
+// ---------------------------------------------------------------------------
+
+interface TreeVariantConfig {
+  preset: string;    // ez-tree preset name: 'Oak Medium', 'Pine Medium', etc.
+  seed: number;      // Deterministic seed for this variant
+  scale: number;     // Uniform world-space scale factor
+  barkColor: number; // Hex color for branch material
+  leafColor: number; // Hex color for leaf material
+  weight: number;    // Relative spawn weight (values need not sum to 1)
+}
+
+interface BiomeTreeConfig {
+  variants: TreeVariantConfig[];
+}
+
+/**
+ * Per-biome tree species selection.
+ * Add entries here when adding new biomes — EzTreeLayer reads this config.
+ * Seed values are stable and should not be changed once committed (they define
+ * the visual character of each variant across all maps).
+ */
+const BIOME_TREES: Record<string, BiomeTreeConfig> = {
+  forest: {
+    variants: [
+      { preset: 'Oak Medium',  seed: 1001, scale: 0.065, barkColor: 0x5a3318, leafColor: 0x2d6b1a, weight: 3 },
+      { preset: 'Oak Large',   seed: 1002, scale: 0.058, barkColor: 0x4a2a12, leafColor: 0x1f5212, weight: 2 },
+      { preset: 'Pine Medium', seed: 1003, scale: 0.078, barkColor: 0x3d2a18, leafColor: 0x1a3a14, weight: 3 },
+      { preset: 'Ash Medium',  seed: 1004, scale: 0.068, barkColor: 0x6a4a30, leafColor: 0x3a7020, weight: 2 },
+    ],
+  },
+  swamp: {
+    variants: [
+      // Swamp uses ash and aspen — gnarled, moss-covered, muted palette
+      { preset: 'Ash Large',   seed: 2001, scale: 0.056, barkColor: 0x5a4a38, leafColor: 0x3a5028, weight: 3 },
+      { preset: 'Ash Medium',  seed: 2002, scale: 0.064, barkColor: 0x6a5848, leafColor: 0x2a4820, weight: 3 },
+      { preset: 'Aspen Small', seed: 2003, scale: 0.062, barkColor: 0x8a7860, leafColor: 0x4a5c30, weight: 2 },
+      { preset: 'Ash Small',   seed: 2004, scale: 0.060, barkColor: 0x6a5840, leafColor: 0x3a5030, weight: 2 },
+    ],
+  },
+  desert: {
+    // Desert: dead/dry trees and scrubby bushes — muted, sun-bleached
+    variants: [
+      { preset: 'Ash Small',   seed: 3001, scale: 0.058, barkColor: 0x8a7050, leafColor: 0x7a6038, weight: 2 },
+      { preset: 'Bush 1',      seed: 3002, scale: 0.090, barkColor: 0x7a6040, leafColor: 0x8a7240, weight: 3 },
+      { preset: 'Bush 2',      seed: 3003, scale: 0.080, barkColor: 0x8a6a38, leafColor: 0x7a6030, weight: 3 },
+    ],
+  },
+  cave: {
+    // Cave: sparse dark vegetation — fungal/shadowy palette
+    variants: [
+      { preset: 'Bush 2',      seed: 4001, scale: 0.080, barkColor: 0x3a2a40, leafColor: 0x4a3060, weight: 2 },
+      { preset: 'Bush 3',      seed: 4002, scale: 0.075, barkColor: 0x2a2038, leafColor: 0x5a3878, weight: 2 },
+      { preset: 'Ash Small',   seed: 4003, scale: 0.050, barkColor: 0x2a2030, leafColor: 0x1a1828, weight: 1 },
+    ],
+  },
+  dungeon: {
+    // Dungeon: bare/skeletal only — dark stone-grey
+    variants: [
+      { preset: 'Ash Small',   seed: 5001, scale: 0.048, barkColor: 0x3a3230, leafColor: 0x282620, weight: 1 },
+    ],
+  },
+};
+
+/** Fallback when biome is not configured */
+const DEFAULT_BIOME_TREES = BIOME_TREES.forest;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
 const TILE_SIZE = 1.0;
 const ELEVATION_SCALE = 0.3;
-const POSITION_JITTER = 0.28;
+const POSITION_JITTER = 0.30;
 
-// [presetName, seed, uniformScale, branchColor, leafColor]
-// Scale calibrated so trunk height ≈ 2-3 world units (one tile = 1 unit, camera at y=10).
-// Oak Medium trunk length[0] = 37.24 → 37 * 0.065 ≈ 2.4 units tall.
-const TREE_CONFIGS: [string, number, number, number, number][] = [
-  ['Oak Medium',  101, 0.065, 0x6b4123, 0x2d7a1a],
-  ['Oak Large',   202, 0.072, 0x5a3318, 0x1f5c12],
-  ['Pine Medium', 303, 0.068, 0x4a3020, 0x1a3d1a],
-  ['Ash Medium',  404, 0.060, 0x7a5535, 0x3a8a25],
-  ['Aspen Small', 505, 0.052, 0x9a8070, 0x8aad3a],
-  ['Oak Small',   606, 0.055, 0x5c3d1e, 0x356b1f],
-];
+/** Stable deterministic float [0,1) from integers — no Math.random() */
+function stableRand(i: number, salt: number): number {
+  const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+/** Pick variant index by weighted random given a stable seed */
+function pickVariant(variants: TreeVariantConfig[], tileIdx: number): number {
+  const totalWeight = variants.reduce((s, v) => s + v.weight, 0);
+  let cursor = stableRand(tileIdx, 9999) * totalWeight;
+  for (let vi = 0; vi < variants.length; vi++) {
+    cursor -= variants[vi].weight;
+    if (cursor <= 0) return vi;
+  }
+  return variants.length - 1;
+}
+
+// ---------------------------------------------------------------------------
+// Props
+// ---------------------------------------------------------------------------
 
 interface EzTreeLayerProps {
   mapData: BattleMapData;
 }
 
-// Stable deterministic jitter / rotation from an integer index
-function stableRand(i: number, offset = 0): number {
-  const x = Math.sin(i * 127.1 + offset * 311.7) * 43758.5453;
-  return x - Math.floor(x);
-}
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
-  // Generate tree variant geometries once — only geometry is used; materials are overridden
-  const variants = useMemo(() => {
-    return TREE_CONFIGS.map(([preset, seed]) => {
-      const tree = new Tree();
-      tree.loadPreset(preset);
-      tree.options.seed = seed;
-      tree.generate();
-      return tree;
-    });
-  }, []); // presets are constant
+  const biome = (mapData as BattleMapData & { biome?: string }).biome ?? 'forest';
+  const biomeConfig = BIOME_TREES[biome] ?? DEFAULT_BIOME_TREES;
 
-  // Solid-color materials per variant — no texture uploads to GPU
-  const variantMaterials = useMemo(() => {
-    return TREE_CONFIGS.map(([, , , branchColor, leafColor]) => ({
-      branch: new THREE.MeshStandardMaterial({
-        color: branchColor,
-        roughness: 0.92,
-        metalness: 0.0,
-      }),
-      leaf: new THREE.MeshStandardMaterial({
-        color: leafColor,
-        roughness: 0.85,
-        metalness: 0.0,
-        side: THREE.DoubleSide,
-        alphaTest: 0.1,
-      }),
-    }));
-  }, []);
-
-  // Collect all tree tile positions
+  // --- Collect tile positions that have tree decoration ---
   const treeTiles = useMemo(() => {
     const tiles: { x: number; y: number; elevation: number }[] = [];
     for (const [, tile] of mapData.tiles) {
@@ -86,34 +150,81 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
     return tiles;
   }, [mapData]);
 
-  // Build InstancedMesh objects: one pair (branches + leaves) per variant
+  // --- Generate tree variant geometries (runs once per biome config change) ---
+  const variantGeometries = useMemo(() => {
+    return biomeConfig.variants.map((cfg) => {
+      const tree = new Tree();
+
+      // Get preset JSON, override seed and disable textures (we override materials anyway)
+      const presetData = (TreePreset as Record<string, unknown>)[cfg.preset] ?? TreePreset['Oak Medium'];
+      const presetClone = JSON.parse(JSON.stringify(presetData)) as Record<string, unknown>;
+      presetClone.seed = cfg.seed;
+      // Disable texture loading — our textures.js stub returns null anyway,
+      // but this avoids the null assignment to material maps
+      if (presetClone.bark && typeof presetClone.bark === 'object') {
+        (presetClone.bark as Record<string, unknown>).textured = false;
+      }
+      tree.loadFromJson(presetClone as any);
+
+      return {
+        branches: tree.branchesMesh.geometry as THREE.BufferGeometry,
+        leaves: tree.leavesMesh.geometry as THREE.BufferGeometry,
+      };
+    });
+  }, [biomeConfig]);
+
+  // --- Solid-color materials per variant (no texture uploads) ---
+  const variantMaterials = useMemo(() => {
+    return biomeConfig.variants.map((cfg) => ({
+      branch: new THREE.MeshStandardMaterial({
+        color: cfg.barkColor,
+        roughness: 0.92,
+        metalness: 0.0,
+      }),
+      leaf: new THREE.MeshStandardMaterial({
+        color: cfg.leafColor,
+        roughness: 0.80,
+        metalness: 0.0,
+        side: THREE.DoubleSide,
+        // Slight transparency makes leaf clusters feel less solid
+        transparent: true,
+        opacity: 0.92,
+      }),
+    }));
+  }, [biomeConfig]);
+
+  // --- Build per-variant tile buckets, then InstancedMeshes ---
   const { branchMeshes, leafMeshes } = useMemo(() => {
     if (treeTiles.length === 0) return { branchMeshes: [], leafMeshes: [] };
 
-    // Distribute tiles round-robin among variants
+    const numVariants = biomeConfig.variants.length;
+
+    // Assign each tile to a variant by weighted random
     const buckets: { x: number; y: number; elevation: number }[][] =
-      TREE_CONFIGS.map(() => []);
+      Array.from({ length: numVariants }, () => []);
     treeTiles.forEach((tile, i) => {
-      buckets[i % TREE_CONFIGS.length].push(tile);
+      const vi = pickVariant(biomeConfig.variants, i);
+      buckets[vi].push(tile);
     });
 
+    const dummy = new THREE.Object3D();
     const branchMeshes: THREE.InstancedMesh[] = [];
     const leafMeshes: THREE.InstancedMesh[] = [];
-    const dummy = new THREE.Object3D();
 
-    for (let vi = 0; vi < variants.length; vi++) {
-      const tree = variants[vi];
+    for (let vi = 0; vi < numVariants; vi++) {
       const tiles = buckets[vi];
       if (tiles.length === 0) continue;
 
-      const scale = TREE_CONFIGS[vi][2];
-      const mats = variantMaterials[vi];
+      const cfg = biomeConfig.variants[vi];
+      const geo = variantGeometries[vi];
+      const mat = variantMaterials[vi];
 
       const setMatrix = (mesh: THREE.InstancedMesh, idx: number, tile: { x: number; y: number; elevation: number }) => {
         const jx = (stableRand(idx, vi + 1) - 0.5) * 2 * POSITION_JITTER;
         const jz = (stableRand(idx, vi + 2) - 0.5) * 2 * POSITION_JITTER;
         const rotY = stableRand(idx, vi + 3) * Math.PI * 2;
-        const sv = scale * (0.85 + stableRand(idx, vi + 4) * 0.30);
+        // Scale variation ±22%
+        const sv = cfg.scale * (0.82 + stableRand(idx, vi + 4) * 0.40);
 
         dummy.position.set(
           tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jx,
@@ -126,24 +237,16 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
         mesh.setMatrixAt(idx, dummy.matrix);
       };
 
-      // Branch InstancedMesh — use solid material, not ez-tree's textured one
-      const bMesh = new THREE.InstancedMesh(
-        tree.branchesMesh.geometry,
-        mats.branch,
-        tiles.length,
-      );
+      // Branch instances
+      const bMesh = new THREE.InstancedMesh(geo.branches, mat.branch, tiles.length);
       bMesh.castShadow = true;
       bMesh.receiveShadow = true;
       tiles.forEach((tile, i) => setMatrix(bMesh, i, tile));
       bMesh.instanceMatrix.needsUpdate = true;
       branchMeshes.push(bMesh);
 
-      // Leaf InstancedMesh — use solid material, not ez-tree's shader
-      const lMesh = new THREE.InstancedMesh(
-        tree.leavesMesh.geometry,
-        mats.leaf,
-        tiles.length,
-      );
+      // Leaf instances
+      const lMesh = new THREE.InstancedMesh(geo.leaves, mat.leaf, tiles.length);
       lMesh.castShadow = true;
       lMesh.receiveShadow = true;
       tiles.forEach((tile, i) => setMatrix(lMesh, i, tile));
@@ -152,16 +255,17 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
     }
 
     return { branchMeshes, leafMeshes };
-  }, [treeTiles, variants, variantMaterials]);
+  }, [treeTiles, biomeConfig, variantGeometries, variantMaterials]);
 
-  // Dispose GPU resources on unmount / mapData change
+  // --- Dispose GPU resources on unmount / data change ---
   useEffect(() => {
     return () => {
       branchMeshes.forEach(m => m.dispose());
       leafMeshes.forEach(m => m.dispose());
       variantMaterials.forEach(m => { m.branch.dispose(); m.leaf.dispose(); });
+      variantGeometries.forEach(g => { g.branches.dispose(); g.leaves.dispose(); });
     };
-  }, [branchMeshes, leafMeshes, variantMaterials]);
+  }, [branchMeshes, leafMeshes, variantMaterials, variantGeometries]);
 
   if (treeTiles.length === 0) return null;
 

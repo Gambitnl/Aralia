@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 5 gp - Weight: 25 lb. A Chest holds up to 12 cubic feet of contents....",
+  "excerpt": "A Chest holds up to 12 cubic feet of contents....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/chest.json",
-  "markdown": "# Chest\n\n- **Type**: G|XPHB\n- **Cost**: 5 gp\n- **Weight**: 25 lb.\n\nA Chest holds up to 12 cubic feet of contents."
+  "markdown": "# Chest\n\nA Chest holds up to 12 cubic feet of contents.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 25
+  }
 }

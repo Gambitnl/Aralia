@@ -1,0 +1,20 @@
+{
+  "id": "malachite",
+  "title": "Malachite",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A striated light and dark green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/malachite.json",
+  "markdown": "# Malachite\n\nA striated light and dark green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

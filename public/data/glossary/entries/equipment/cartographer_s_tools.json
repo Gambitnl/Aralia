@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 15 gp - Weight: 6 lb. - Ability:: Wisdom - Utilize:: Draft a map of a small area (DC 15) - Craft:: map...",
+  "excerpt": "- Ability:: Wisdom - Utilize:: Draft a map of a small area (DC 15) - Craft:: map...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "map"
+  ],
   "filePath": "/data/glossary/entries/equipment/cartographer_s_tools.json",
-  "markdown": "# Cartographer's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 15 gp\n- **Weight**: 6 lb.\n\n- **Ability::** Wisdom\n- **Utilize::** Draft a map of a small area (DC 15)\n- **Craft::** [[map]]"
+  "markdown": "# Cartographer's Tools\n\n- **Ability::** Wisdom\n- **Utilize::** Draft a map of a small area (DC 15)\n- **Craft::** [[map]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 15,
+    "weight": 6
+  }
 }

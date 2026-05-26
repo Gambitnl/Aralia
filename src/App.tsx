@@ -73,6 +73,7 @@ import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // Context providers - wrap the app to provide glossary and spell data to all child components
 import { AppProviders } from './components/providers/AppProviders';
+import { DataLoaderGate } from './components/providers/DataLoaderGate';
 import {
   STARTING_LOCATION_ID,
   LOCATIONS,
@@ -1063,7 +1064,13 @@ const App: React.FC = () => {
 
           {/* Primary View */}
           <Suspense fallback={<LoadingSpinner />}>
-            {mainContent}
+            {gameState.phase === GamePhase.MAIN_MENU ? (
+              mainContent
+            ) : (
+              <DataLoaderGate>
+                {mainContent}
+              </DataLoaderGate>
+            )}
           </Suspense>
 
           {/* Interactive Companion Conversation Panel */}

@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wand"
   ],
-  "excerpt": "- Type: WD|XDMG - Weight: 1 lb. While holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore cover Cover when making a ...",
+  "excerpt": "While holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore cover Cover when making a spell attack roll....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "cover Cover"
+  ],
   "filePath": "/data/glossary/entries/equipment/2_wand_of_the_war_mage.json",
-  "markdown": "# +2 Wand of the War Mage\n\n- **Type**: WD|XDMG\n- **Weight**: 1 lb.\n\nWhile holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore [[cover Cover]] when making a spell attack roll."
+  "markdown": "# +2 Wand of the War Mage\n\nWhile holding this wand, you gain a +2 bonus to spell attack rolls. In addition, you ignore [[cover Cover]] when making a spell attack roll.",
+  "itemMetadata": {
+    "type": "Wand",
+    "rarity": "Rare",
+    "reqAttune": "Required by a spellcaster",
+    "weight": 1
+  }
 }

@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ranged Weapon"
   ],
-  "excerpt": "- Type: R|XPHB - Cost: 50 gp - Weight: 2 lb. - Damage: 1d8 P - Properties: A|XPHB, H|XPHB, 2H|XPHB...",
+  "excerpt": "R...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/longbow.json",
-  "markdown": "# Longbow\n\n- **Type**: R|XPHB\n- **Cost**: 50 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d8 P\n- **Properties**: A|XPHB, H|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Longbow\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "cost": 50,
+    "weight": 2,
+    "damage": "1d8 P",
+    "properties": [
+      "A|XPHB",
+      "H|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

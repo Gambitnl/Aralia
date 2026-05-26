@@ -1,0 +1,30 @@
+{
+  "id": "sword_of_answering",
+  "title": "Sword of Answering",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Melee Weapon"
+  ],
+  "excerpt": "You gain a +3 bonus to attack rolls and damage rolls made with this sword. In addition, while you hold the sword, you can take a reaction to make one ...",
+  "aliases": [],
+  "seeAlso": [
+    "reaction",
+    "advantage",
+    "immunity",
+    "resistance"
+  ],
+  "filePath": "/data/glossary/entries/equipment/sword_of_answering.json",
+  "markdown": "# Sword of Answering\n\nYou gain a +3 bonus to attack rolls and damage rolls made with this sword. In addition, while you hold the sword, you can take a [[reaction]] to make one melee attack with it against any creature in your reach that deals damage to you. You have [[advantage]] on the attack roll, and any damage dealt with this special attack ignores any [[immunity]] or [[resistance]] the target has to that damage.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Legendary",
+    "reqAttune": "Required",
+    "weight": 3,
+    "damage": "1d8 S",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
+}

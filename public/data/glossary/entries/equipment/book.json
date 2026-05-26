@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 5 lb. A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you ga...",
+  "excerpt": "A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (arcana, histor...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "arcana",
+    "history",
+    "nature",
+    "religion"
+  ],
   "filePath": "/data/glossary/entries/equipment/book.json",
-  "markdown": "# Book\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 5 lb.\n\nA Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence ([[arcana]], [[history]], [[nature]], or [[religion]]) checks you make about that topic."
+  "markdown": "# Book\n\nA Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence ([[arcana]], [[history]], [[nature]], or [[religion]]) checks you make about that topic.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 5
+  }
 }

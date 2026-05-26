@@ -1,0 +1,20 @@
+{
+  "id": "fine_gold_chain_set_with_a_fire_opal",
+  "title": "Fine gold chain set with a fire opal",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/fine_gold_chain_set_with_a_fire_opal.json",
+  "markdown": "# Fine gold chain set with a fire opal\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 2500
+  }
+}

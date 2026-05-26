@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 0.2 gp - Weight: 10 lb. - Damage: 1d8 B - Properties: 2H|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/greatclub.json",
-  "markdown": "# Greatclub\n\n- **Type**: M|XPHB\n- **Cost**: 0.2 gp\n- **Weight**: 10 lb.\n- **Damage**: 1d8 B\n- **Properties**: 2H|XPHB\n\n"
+  "markdown": "# Greatclub\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 0.2,
+    "weight": 10,
+    "damage": "1d8 B",
+    "properties": [
+      "2H|XPHB"
+    ]
+  }
 }

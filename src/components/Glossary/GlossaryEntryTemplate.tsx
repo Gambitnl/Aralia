@@ -3,6 +3,7 @@ import { GlossaryTraitTable } from './GlossaryTraitTable';
 import { GlossarySpellsOfTheMarkTable } from './GlossarySpellsOfTheMarkTable';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
 import { ArtificerInfusionsTable } from './ArtificerInfusionsTable';
+import { GlossaryItemStatBlock } from './GlossaryItemStatBlock';
 import ImageModal from '../ImageModal';
 import { GlossaryEntry } from '../../types';
 
@@ -134,6 +135,11 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
                             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent pointer-events-none"></div>
                         </div>
                     ) : null}
+
+                    {/* New Structured Item Metadata Visuals */}
+                    {entry.itemMetadata && (
+                        <GlossaryItemStatBlock metadata={entry.itemMetadata} />
+                    )}
 
                     {/* Lore / Introductory Text (New or Legacy) */}
                     {(entry.entryLore || (!entry.characteristics && markdownContent)) && (

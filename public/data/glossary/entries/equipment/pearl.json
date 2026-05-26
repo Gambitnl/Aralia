@@ -1,0 +1,20 @@
+{
+  "id": "pearl",
+  "title": "Pearl",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A lustrous white, yellow, or pink gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pearl.json",
+  "markdown": "# Pearl\n\nA lustrous white, yellow, or pink gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 100
+  }
+}

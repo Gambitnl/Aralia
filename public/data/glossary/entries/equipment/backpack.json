@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 5 lb. A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag....",
+  "excerpt": "A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/backpack.json",
-  "markdown": "# Backpack\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 5 lb.\n\nA Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag."
+  "markdown": "# Backpack\n\nA Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 2,
+    "weight": 5
+  }
 }

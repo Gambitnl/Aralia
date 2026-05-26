@@ -4,11 +4,28 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB As a magic action, you can throw this staff so that it lands in an unoccupied spac...",
+  "excerpt": "As a magic action, you can throw this staff so that it lands in an unoccupied space within 10 feet of you, causing the staff to become a Giant Constri...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "initiative",
+    "incapacitated",
+    "bonus_action Action",
+    "hit_points Points"
+  ],
   "filePath": "/data/glossary/entries/equipment/staff_of_the_python.json",
-  "markdown": "# Staff of the Python\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nAs a [[magic]] action, you can throw this staff so that it lands in an unoccupied space within 10 feet of you, causing the staff to become a Giant Constrictor Snake in that space. The snake is under your control and shares your [[initiative]] count, taking its turn immediately after yours.\n\nOn your turn, you can mentally command the snake (no action required) if it is within 60 feet of you and you don't have the [[incapacitated]] condition. You decide what action the snake takes and where it moves during its turn, or you can issue it a general command, such as to attack your enemies or guard a location. Absent commands from you, the snake defends itself.\n\nAs a [[bonus_action Action]], you can command the snake to revert to staff form in its current space, and you can't use the staff's property again for 1 hour. If the snake is reduced to 0 [[hit_points Points]], it dies and reverts to its staff form; the staff then shatters and is destroyed. If the snake reverts to staff form before losing all its [[hit_points Points]], it regains all of them."
+  "markdown": "# Staff of the Python\n\nAs a [[magic]] action, you can throw this staff so that it lands in an unoccupied space within 10 feet of you, causing the staff to become a Giant Constrictor Snake in that space. The snake is under your control and shares your [[initiative]] count, taking its turn immediately after yours.\n\nOn your turn, you can mentally command the snake (no action required) if it is within 60 feet of you and you don't have the [[incapacitated]] condition. You decide what action the snake takes and where it moves during its turn, or you can issue it a general command, such as to attack your enemies or guard a location. Absent commands from you, the snake defends itself.\n\nAs a [[bonus_action Action]], you can command the snake to revert to staff form in its current space, and you can't use the staff's property again for 1 hour. If the snake is reduced to 0 [[hit_points Points]], it dies and reverts to its staff form; the staff then shatters and is destroyed. If the snake reverts to staff form before losing all its [[hit_points Points]], it regains all of them.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Uncommon",
+    "reqAttune": "Required",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
 }

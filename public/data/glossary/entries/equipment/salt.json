@@ -1,0 +1,21 @@
+{
+  "id": "salt",
+  "title": "Salt",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/salt.json",
+  "markdown": "# Salt\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 0.05,
+    "weight": 1
+  }
+}

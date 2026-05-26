@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you...",
+  "excerpt": "When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: blinded, deafened, paralyzed, a...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "blinded",
+    "deafened",
+    "paralyzed",
+    "poisoned"
+  ],
   "filePath": "/data/glossary/entries/equipment/elixir_of_health.json",
-  "markdown": "# Elixir of Health\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: [[blinded]], [[deafened]], [[paralyzed]], and [[poisoned]].\n\nThe clear, red liquid has tiny bubbles of light in it."
+  "markdown": "# Elixir of Health\n\nWhen you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: [[blinded]], [[deafened]], [[paralyzed]], and [[poisoned]].\n\nThe clear, red liquid has tiny bubbles of light in it.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Rare",
+    "weight": 0.5
+  }
 }

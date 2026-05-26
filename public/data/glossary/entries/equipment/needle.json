@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ammunition"
   ],
-  "excerpt": "- Type: A|XPHB - Cost: 0.02 gp - Weight: 0.02 lb. Blowgun needles are used with a weapon that has the ammunition property to make a ranged attack. Eac...",
+  "excerpt": "Blowgun needles are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "pouch"
+  ],
   "filePath": "/data/glossary/entries/equipment/needle.json",
-  "markdown": "# Needle\n\n- **Type**: A|XPHB\n- **Cost**: 0.02 gp\n- **Weight**: 0.02 lb.\n\nBlowgun needles are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ammunition. Drawing the ammunition from a quiver, case, or other container is part of the attack (you need a free hand to load a one-handed weapon). At the end of the battle, you can recover half your expended ammunition by taking a minute to search the battlefield.\n\nNeedles are typically stored in a [[pouch]] (bought separately)."
+  "markdown": "# Needle\n\nBlowgun needles are used with a weapon that has the ammunition property to make a ranged attack. Each time you attack with the weapon, you expend one piece of ammunition. Drawing the ammunition from a quiver, case, or other container is part of the attack (you need a free hand to load a one-handed weapon). At the end of the battle, you can recover half your expended ammunition by taking a minute to search the battlefield.\n\nNeedles are typically stored in a [[pouch]] (bought separately).",
+  "itemMetadata": {
+    "type": "Ammunition",
+    "rarity": "None",
+    "cost": 0.02,
+    "weight": 0.02
+  }
 }

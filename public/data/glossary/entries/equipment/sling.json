@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ranged Weapon"
   ],
-  "excerpt": "- Type: R|XPHB - Cost: 0.1 gp - Damage: 1d4 B - Properties: A|XPHB...",
+  "excerpt": "R...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/sling.json",
-  "markdown": "# Sling\n\n- **Type**: R|XPHB\n- **Cost**: 0.1 gp\n- **Damage**: 1d4 B\n- **Properties**: A|XPHB\n\n"
+  "markdown": "# Sling\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "cost": 0.1,
+    "damage": "1d4 B",
+    "properties": [
+      "A|XPHB"
+    ]
+  }
 }

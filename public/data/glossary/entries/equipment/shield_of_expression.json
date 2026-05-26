@@ -1,0 +1,23 @@
+{
+  "id": "shield_of_expression",
+  "title": "Shield of Expression",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Shield"
+  ],
+  "excerpt": "The front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a bonus_action Action to alter the face's express...",
+  "aliases": [],
+  "seeAlso": [
+    "bonus_action Action"
+  ],
+  "filePath": "/data/glossary/entries/equipment/shield_of_expression.json",
+  "markdown": "# Shield of Expression\n\nThe front of this Shield is shaped in the likeness of a face. While bearing the Shield, you can take a [[bonus_action Action]] to alter the face's expression.",
+  "itemMetadata": {
+    "type": "Shield",
+    "rarity": "Common",
+    "weight": 6,
+    "ac": 2
+  }
+}

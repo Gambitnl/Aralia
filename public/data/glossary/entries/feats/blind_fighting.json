@@ -8,7 +8,9 @@
   ],
   "excerpt": "You have blindsight with a range of 10 feet....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "blindsight"
+  ],
   "filePath": "/data/glossary/entries/feats/blind_fighting.json",
   "markdown": "# Blind Fighting\n\nYou have [[blindsight]] with a range of 10 feet."
 }

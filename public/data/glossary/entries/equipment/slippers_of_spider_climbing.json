@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While you wear these light shoes, you can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free. You have a cl...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "climb_speed Speed",
+    "speed"
+  ],
   "filePath": "/data/glossary/entries/equipment/slippers_of_spider_climbing.json",
-  "markdown": "# Slippers of Spider Climbing\n\nWhile you wear these light shoes, you can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free. You have a [[climb_speed Speed]] equal to your [[speed]]. However, the slippers don't allow you to move this way on a slippery surface, such as one covered by ice or oil."
+  "markdown": "# Slippers of Spider Climbing\n\nWhile you wear these light shoes, you can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free. You have a [[climb_speed Speed]] equal to your [[speed]]. However, the slippers don't allow you to move this way on a slippery surface, such as one covered by ice or oil.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

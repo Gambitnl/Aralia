@@ -4,11 +4,27 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 6 lb. - Damage: 1d10 P - Properties: H|XPHB, R|XPHB, object Object A Lance requires two hands to wield when you...",
+  "excerpt": "A Lance requires two hands to wield when you aren't mounted....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/lance.json",
-  "markdown": "# Lance\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 6 lb.\n- **Damage**: 1d10 P\n- **Properties**: H|XPHB, R|XPHB, [object Object]\n\nA Lance requires two hands to wield when you aren't mounted."
+  "markdown": "# Lance\n\nA Lance requires two hands to wield when you aren't mounted.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 6,
+    "damage": "1d10 P",
+    "properties": [
+      "H|XPHB",
+      "R|XPHB",
+      {
+        "uid": "2H|XPHB",
+        "note": "unless mounted"
+      }
+    ]
+  }
 }

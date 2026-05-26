@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Rod"
   ],
-  "excerpt": "- Type: RD|XDMG - Weight: 2 lb. You can take a magic action to present the rod and command obedience from each creature of your choice that you can se...",
+  "excerpt": "You can take a magic action to present the rod and command obedience from each creature of your choice that you can see within 120 feet of yourself. E...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "charmed"
+  ],
   "filePath": "/data/glossary/entries/equipment/rod_of_rulership.json",
-  "markdown": "# Rod of Rulership\n\n- **Type**: RD|XDMG\n- **Weight**: 2 lb.\n\nYou can take a [[magic]] action to present the rod and command obedience from each creature of your choice that you can see within 120 feet of yourself. Each target must succeed on a DC 15 Wisdom saving throw or have the [[charmed]] condition for 8 hours. While [[charmed]] in this way, the creature regards you as its trusted leader. If harmed by you or your allies or commanded to do something contrary to its nature, a target ceases to be [[charmed]] in this way. Once used, this property can't be used again until the next dawn."
+  "markdown": "# Rod of Rulership\n\nYou can take a [[magic]] action to present the rod and command obedience from each creature of your choice that you can see within 120 feet of yourself. Each target must succeed on a DC 15 Wisdom saving throw or have the [[charmed]] condition for 8 hours. While [[charmed]] in this way, the creature regards you as its trusted leader. If harmed by you or your allies or commanded to do something contrary to its nature, a target ceases to be [[charmed]] in this way. Once used, this property can't be used again until the next dawn.",
+  "itemMetadata": {
+    "type": "Rod",
+    "rarity": "Rare",
+    "reqAttune": "Required",
+    "weight": 2
+  }
 }

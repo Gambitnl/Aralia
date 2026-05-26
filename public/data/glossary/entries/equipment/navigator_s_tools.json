@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tool"
   ],
-  "excerpt": "- Type: T|XPHB - Cost: 25 gp - Weight: 2 lb. - Ability:: Wisdom - Utilize:: Plot a course (DC 10), or determine position by stargazing (DC 15)...",
+  "excerpt": "- Ability:: Wisdom - Utilize:: Plot a course (DC 10), or determine position by stargazing (DC 15)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/navigator_s_tools.json",
-  "markdown": "# Navigator's Tools\n\n- **Type**: T|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n\n- **Ability::** Wisdom\n- **Utilize::** Plot a course (DC 10), or determine position by stargazing (DC 15)"
+  "markdown": "# Navigator's Tools\n\n- **Ability::** Wisdom\n- **Utilize::** Plot a course (DC 10), or determine position by stargazing (DC 15)",
+  "itemMetadata": {
+    "type": "Tool",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 2
+  }
 }

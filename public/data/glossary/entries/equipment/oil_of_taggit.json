@@ -1,0 +1,23 @@
+{
+  "id": "oil_of_taggit",
+  "title": "Oil of Taggit",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Oil of Taggit must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 24 hours. The creature also...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned",
+    "unconscious"
+  ],
+  "filePath": "/data/glossary/entries/equipment/oil_of_taggit.json",
+  "markdown": "# Oil of Taggit\n\nA creature subjected to Oil of Taggit must succeed on a DC 13 Constitution saving throw or have the [[poisoned]] condition for 24 hours. The creature also has the [[unconscious]] condition while [[poisoned]] in this way. It wakes up if it takes damage.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 400
+  }
+}

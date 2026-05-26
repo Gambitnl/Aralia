@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Land)"
   ],
-  "excerpt": "- Type: VEH|XPHB - Cost: 250 gp - Weight: 100 lb....",
+  "excerpt": "VEH...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/chariot.json",
-  "markdown": "# Chariot\n\n- **Type**: VEH|XPHB\n- **Cost**: 250 gp\n- **Weight**: 100 lb.\n\n"
+  "markdown": "# Chariot\n\n*VEH*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Land)",
+    "rarity": "None",
+    "cost": 250,
+    "weight": 100
+  }
 }

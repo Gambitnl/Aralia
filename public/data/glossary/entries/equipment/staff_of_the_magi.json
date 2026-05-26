@@ -4,11 +4,46 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB This staff has 50 charges and can be wielded as a magic Quarterstaff that grants a...",
+  "excerpt": "This staff has 50 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While you h...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "reaction",
+    "arcane_lock Lock",
+    "conjure_elemental Elemental",
+    "detect_magic Magic",
+    "dispel_magic Magic",
+    "enlarge_reduce/Reduce",
+    "fireball",
+    "flaming_sphere Sphere",
+    "ice_storm Storm",
+    "invisibility",
+    "knock",
+    "light",
+    "lightning_bolt Bolt",
+    "mage_hand Hand",
+    "passwall",
+    "plane_shift Shift",
+    "protection_from_evil_and_good from Evil and Good",
+    "telekinesis",
+    "wall_of_fire of Fire",
+    "web",
+    "magic",
+    "emanation_area_of_effect"
+  ],
   "filePath": "/data/glossary/entries/equipment/staff_of_the_magi.json",
-  "markdown": "# Staff of the Magi\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nThis staff has 50 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While you hold it, you gain a +2 bonus to spell attack rolls.\n\n## Spell Absorption\n\nWhile holding the staff , you have [[advantage]] on saving throws against spells. In addition, you can take a [[reaction]] when another creature casts a spell that targets only you. If you do, the staff absorbs the magic of the spell, canceling its effect and gaining a number of charges equal to the absorbed spell's level. However, if doing so brings the staff's total number of charges above 50, the staff explodes as if you activated its Retributive Strike (see below).\n\n## Spells\n\nWhile holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[arcane_lock Lock]] | 0 |\n| [[conjure_elemental Elemental]] | 7 |\n| [[detect_magic Magic]] | 0 |\n| [[dispel_magic Magic]] | 3 |\n| [[enlarge_reduce/Reduce]] | 0 |\n| [[fireball]] (level 7 version) | 7 |\n| [[flaming_sphere Sphere]] | 2 |\n| [[ice_storm Storm]] | 4 |\n| [[invisibility]] | 2 |\n| [[knock]] | 2 |\n| [[light]] | 0 |\n| [[lightning_bolt Bolt]] (level 7 version) | 7 |\n| [[mage_hand Hand]] | 0 |\n| [[passwall]] | 5 |\n| [[plane_shift Shift]] | 7 |\n| [[protection_from_evil_and_good from Evil and Good]] | 0 |\n| [[telekinesis]] | 5 |\n| [[wall_of_fire of Fire]] | 4 |\n| [[web]] | 2 |\n\n## Regaining Charges\n\nThe staff regains 4d6 + 2 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 20, the staff regains 1d12 + 1 charges.\n\n## Retributive Strike\n\nYou can take a [[magic]] action to break the staff over your knee or against a solid surface. The staff is destroyed and releases its magic in an explosion that fills a 30-foot [[emanation_area_of_effect]] originating from itself. You have a 50 chance to instantly travel to a random plane of existence, avoiding the explosion. If you fail to avoid the effect, you take Force damage equal to 16 times the number of charges in the staff. Each other creature in the area makes a DC 17 Dexterity saving throw. On a failed save, a creature takes Force damage equal to 6 times the number of charges in the staff. On a successful save, a creature takes half as much damage."
+  "markdown": "# Staff of the Magi\n\nThis staff has 50 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to attack rolls and damage rolls made with it. While you hold it, you gain a +2 bonus to spell attack rolls.\n\n## Spell Absorption\n\nWhile holding the staff , you have [[advantage]] on saving throws against spells. In addition, you can take a [[reaction]] when another creature casts a spell that targets only you. If you do, the staff absorbs the magic of the spell, canceling its effect and gaining a number of charges equal to the absorbed spell's level. However, if doing so brings the staff's total number of charges above 50, the staff explodes as if you activated its Retributive Strike (see below).\n\n## Spells\n\nWhile holding the staff, you can cast one of the spells on the following table from it, using your spell save DC. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[arcane_lock Lock]] | 0 |\n| [[conjure_elemental Elemental]] | 7 |\n| [[detect_magic Magic]] | 0 |\n| [[dispel_magic Magic]] | 3 |\n| [[enlarge_reduce/Reduce]] | 0 |\n| [[fireball]] (level 7 version) | 7 |\n| [[flaming_sphere Sphere]] | 2 |\n| [[ice_storm Storm]] | 4 |\n| [[invisibility]] | 2 |\n| [[knock]] | 2 |\n| [[light]] | 0 |\n| [[lightning_bolt Bolt]] (level 7 version) | 7 |\n| [[mage_hand Hand]] | 0 |\n| [[passwall]] | 5 |\n| [[plane_shift Shift]] | 7 |\n| [[protection_from_evil_and_good from Evil and Good]] | 0 |\n| [[telekinesis]] | 5 |\n| [[wall_of_fire of Fire]] | 4 |\n| [[web]] | 2 |\n\n## Regaining Charges\n\nThe staff regains 4d6 + 2 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 20, the staff regains 1d12 + 1 charges.\n\n## Retributive Strike\n\nYou can take a [[magic]] action to break the staff over your knee or against a solid surface. The staff is destroyed and releases its magic in an explosion that fills a 30-foot [[emanation_area_of_effect]] originating from itself. You have a 50% chance to instantly travel to a random plane of existence, avoiding the explosion. If you fail to avoid the effect, you take Force damage equal to 16 times the number of charges in the staff. Each other creature in the area makes a DC 17 Dexterity saving throw. On a failed save, a creature takes Force damage equal to 6 times the number of charges in the staff. On a successful save, a creature takes half as much damage.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Legendary",
+    "reqAttune": "Required by a sorcerer, warlock, or wizard",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
 }

@@ -212,24 +212,33 @@ function createStalagmiteGeometry(): PropGeometrySet[] {
 }
 
 function createPillarGeometry(): PropGeometrySet[] {
-  const geo = new THREE.CylinderGeometry(0.14, 0.16, 1.4, 8);
-  geo.translate(0, 0.7, 0);
+  // Target: 3–4× character height (~7 world units total).
+  // Characters stand ~2.3 units tall (3.2× scale × 0.72 local height).
+  // Dungeon pillars should feel architectural and imposing.
 
-  // Add a simple capital (top piece)
-  const capital = new THREE.CylinderGeometry(0.2, 0.14, 0.1, 8);
-  capital.translate(0, 1.4, 0);
+  // Plinth / base — wide, short slab at ground level
+  const plinth = new THREE.CylinderGeometry(0.32, 0.36, 0.22, 12);
+  plinth.translate(0, 0.11, 0);
 
-  // Base
-  const base = new THREE.CylinderGeometry(0.16, 0.2, 0.1, 8);
-  base.translate(0, 0.05, 0);
+  // Shaft — tapers slightly from base to top
+  const shaft = new THREE.CylinderGeometry(0.20, 0.26, 6.5, 12);
+  shaft.translate(0, 3.47, 0);   // center at (0 + 0.22 + 6.5/2)
+
+  // Capital — flared top block, wider than shaft
+  const capital = new THREE.CylinderGeometry(0.36, 0.22, 0.30, 12);
+  capital.translate(0, 6.87, 0); // just above shaft top (0.22 + 6.5 + 0.15)
+
+  // Crown disc — flat widening at very top
+  const crown = new THREE.CylinderGeometry(0.40, 0.36, 0.10, 12);
+  crown.translate(0, 7.07, 0);   // sits atop the capital
 
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x8a8070,
-    roughness: 0.7,
-    metalness: 0.1,
+    color: 0x7a7060,
+    roughness: 0.75,
+    metalness: 0.08,
   });
 
-  const merged = mergeGeometries([base, geo, capital]);
+  const merged = mergeGeometries([plinth, shaft, capital, crown]);
   return [{ geometry: merged, material: mat }];
 }
 
@@ -527,36 +536,9 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
     };
 
     for (const [decorationType, tiles] of decorationGroups) {
-      // --- Tree variant handling: split tiles across 2-4 species ---
+      // --- Tree tiles are now handled by EzTreeLayer (ez-tree procedural geometry) ---
+      // Skip here to avoid double-rendering with the old sphere-based geometry.
       if (decorationType === 'tree') {
-        const variantRand = seededRandom((mapData.seed ?? 42) + 12345);
-        // Weighted random: oak 40%, pine 25%, wide 25%, dead 10%
-        const buckets: { x: number; y: number; elevation: number }[][] = TREE_VARIANTS.map(() => []);
-        for (const tile of tiles) {
-          const r = variantRand();
-          const v = r < 0.40 ? 0 : r < 0.65 ? 1 : r < 0.90 ? 2 : 3;
-          buckets[v].push(tile);
-        }
-
-        for (let v = 0; v < TREE_VARIANTS.length; v++) {
-          if (buckets[v].length === 0) continue;
-          const geoSets = TREE_VARIANTS[v]();
-          const matrices = buildMatrices(buckets[v]);
-          result.push({
-            key: `tree-v${v}`,
-            parts: geoSets.map((gs, partIdx) => {
-              const baseMat = gs.material as THREE.MeshStandardMaterial;
-              const colorRand = seededRandom((mapData.seed ?? 42) + v * 137 + partIdx * 53);
-              return {
-                geometry: gs.geometry,
-                material: gs.material,
-                matrices,
-                count: buckets[v].length,
-                colors: buildColorVariations(baseMat.color, buckets[v].length, colorRand),
-              };
-            }),
-          });
-        }
         continue;
       }
 

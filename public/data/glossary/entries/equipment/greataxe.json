@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 30 gp - Weight: 7 lb. - Damage: 1d12 S - Properties: H|XPHB, 2H|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/greataxe.json",
-  "markdown": "# Greataxe\n\n- **Type**: M|XPHB\n- **Cost**: 30 gp\n- **Weight**: 7 lb.\n- **Damage**: 1d12 S\n- **Properties**: H|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Greataxe\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 30,
+    "weight": 7,
+    "damage": "1d12 S",
+    "properties": [
+      "H|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

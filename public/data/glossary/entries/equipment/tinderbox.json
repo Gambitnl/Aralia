@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.5 gp - Weight: 1 lb. A Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in ligh...",
+  "excerpt": "A Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to ligh...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "candle",
+    "lamp",
+    "hooded_lantern",
+    "torch",
+    "bonus_action Action"
+  ],
   "filePath": "/data/glossary/entries/equipment/tinderbox.json",
-  "markdown": "# Tinderbox\n\n- **Type**: G|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 1 lb.\n\nA Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to light a [[candle]], [[lamp]], [[hooded_lantern]], or [[torch]]—or anything else with exposed fuel—takes a [[bonus_action Action]]. Lighting any other fire takes 1 minute."
+  "markdown": "# Tinderbox\n\nA Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to light a [[candle]], [[lamp]], [[hooded_lantern]], or [[torch]]—or anything else with exposed fuel—takes a [[bonus_action Action]]. Lighting any other fire takes 1 minute.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.5,
+    "weight": 1
+  }
 }

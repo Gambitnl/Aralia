@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG While wearing this ring, you can cast telekinesis from it....",
+  "excerpt": "While wearing this ring, you can cast telekinesis from it....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "telekinesis"
+  ],
   "filePath": "/data/glossary/entries/equipment/ring_of_telekinesis.json",
-  "markdown": "# Ring of Telekinesis\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you can cast [[telekinesis]] from it."
+  "markdown": "# Ring of Telekinesis\n\nWhile wearing this ring, you can cast [[telekinesis]] from it.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Very rare",
+    "reqAttune": "Required"
+  }
 }

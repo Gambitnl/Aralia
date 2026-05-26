@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Medium Armor"
   ],
-  "excerpt": "- Type: MA|XPHB - Cost: 10 gp - Weight: 12 lb. - Armor Class: 12...",
+  "excerpt": "MA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/hide_armor.json",
-  "markdown": "# Hide Armor\n\n- **Type**: MA|XPHB\n- **Cost**: 10 gp\n- **Weight**: 12 lb.\n- **Armor Class**: 12\n\n"
+  "markdown": "# Hide Armor\n\n*MA*\n",
+  "itemMetadata": {
+    "type": "Medium Armor",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 12,
+    "ac": 12
+  }
 }

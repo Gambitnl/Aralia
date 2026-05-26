@@ -1,0 +1,21 @@
+{
+  "id": "silver",
+  "title": "Silver",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/silver.json",
+  "markdown": "# Silver\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 1
+  }
+}

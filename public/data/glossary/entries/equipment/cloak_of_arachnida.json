@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "This fine garment is made of black silk interwoven with faint, silvery threads. While wearing it, you gain the following benefits.  Poison Resistance ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "resistance",
+    "climb_speed Speed",
+    "speed",
+    "difficult_terrain Terrain",
+    "web"
+  ],
   "filePath": "/data/glossary/entries/equipment/cloak_of_arachnida.json",
-  "markdown": "# Cloak of Arachnida\n\nThis fine garment is made of black silk interwoven with faint, silvery threads. While wearing it, you gain the following benefits.\n\n## Poison Resistance\n\nYou have [[resistance]] to Poison damage.\n\n## Spider Climb\n\nYou have a [[climb_speed Speed]] equal to your [[speed]] and can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free.\n\n## Spider Walk\n\nYou can't be caught in webs of any sort and can move through webs as if they were [[difficult_terrain Terrain]].\n\n## Web\n\nYou can cast [[web]] (save DC 13). The web created by the spell fills twice its normal area. Once used, this property can't be used again until the next dawn."
+  "markdown": "# Cloak of Arachnida\n\nThis fine garment is made of black silk interwoven with faint, silvery threads. While wearing it, you gain the following benefits.\n\n## Poison Resistance\n\nYou have [[resistance]] to Poison damage.\n\n## Spider Climb\n\nYou have a [[climb_speed Speed]] equal to your [[speed]] and can move up, down, and across vertical surfaces and along ceilings, while leaving your hands free.\n\n## Spider Walk\n\nYou can't be caught in webs of any sort and can move through webs as if they were [[difficult_terrain Terrain]].\n\n## Web\n\nYou can cast [[web]] (save DC 13). The web created by the spell fills twice its normal area. Once used, this property can't be used again until the next dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Very rare",
+    "reqAttune": "Required"
+  }
 }

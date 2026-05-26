@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ranged Weapon"
   ],
-  "excerpt": "- Type: R|XPHB - Cost: 25 gp - Weight: 2 lb. - Damage: 1d6 P - Properties: A|XPHB, 2H|XPHB...",
+  "excerpt": "R...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/shortbow.json",
-  "markdown": "# Shortbow\n\n- **Type**: R|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d6 P\n- **Properties**: A|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Shortbow\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 2,
+    "damage": "1d6 P",
+    "properties": [
+      "A|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

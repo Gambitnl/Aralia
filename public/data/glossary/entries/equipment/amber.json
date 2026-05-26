@@ -1,0 +1,20 @@
+{
+  "id": "amber",
+  "title": "Amber",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A watery gold to rich gold gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/amber.json",
+  "markdown": "# Amber\n\nA watery gold to rich gold gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 100
+  }
+}

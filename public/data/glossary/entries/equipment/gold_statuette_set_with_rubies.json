@@ -1,0 +1,20 @@
+{
+  "id": "gold_statuette_set_with_rubies",
+  "title": "Gold statuette set with rubies",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/gold_statuette_set_with_rubies.json",
+  "markdown": "# Gold statuette set with rubies\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 7500
+  }
+}

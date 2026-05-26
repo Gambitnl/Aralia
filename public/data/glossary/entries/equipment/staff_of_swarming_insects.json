@@ -4,11 +4,29 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB This staff has 10 charges.  Insect Cloud While holding the staff , you can take a ...",
+  "excerpt": "This staff has 10 charges.  Insect Cloud While holding the staff , you can take a magic action and expend 1 charge to cause a swarm of harmless flying...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "emanation_area_of_effect",
+    "heavily_obscured Obscured",
+    "gust_of_wind of Wind",
+    "giant_insect Insect",
+    "insect_plague Plague"
+  ],
   "filePath": "/data/glossary/entries/equipment/staff_of_swarming_insects.json",
-  "markdown": "# Staff of Swarming Insects\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nThis staff has 10 charges.\n\n## Insect Cloud\n\nWhile holding the staff , you can take a [[magic]] action and expend 1 charge to cause a swarm of harmless flying insects to fill a 30-foot [[emanation_area_of_effect]] originating from you. The insects remain for 10 minutes, making the area [[heavily_obscured Obscured]] for creatures other than you. A strong wind (like that created by [[gust_of_wind of Wind]]) disperses the swarm and ends the effect.\n\n## Spells\n\nWhile holding the staff, you can cast one of the spells on the following table from it, using your spell save DC and spell attack modifier. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[giant_insect Insect]] | 4 |\n| [[insect_plague Plague]] | 5 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, a swarm of insects consumes and destroys the staff, then disperses."
+  "markdown": "# Staff of Swarming Insects\n\nThis staff has 10 charges.\n\n## Insect Cloud\n\nWhile holding the staff , you can take a [[magic]] action and expend 1 charge to cause a swarm of harmless flying insects to fill a 30-foot [[emanation_area_of_effect]] originating from you. The insects remain for 10 minutes, making the area [[heavily_obscured Obscured]] for creatures other than you. A strong wind (like that created by [[gust_of_wind of Wind]]) disperses the swarm and ends the effect.\n\n## Spells\n\nWhile holding the staff, you can cast one of the spells on the following table from it, using your spell save DC and spell attack modifier. The table indicates how many charges you must expend to cast the spell.\n\n| Spell | Charge Cost |\n| --- | --- |\n| [[giant_insect Insect]] | 4 |\n| [[insect_plague Plague]] | 5 |\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, a swarm of insects consumes and destroys the staff, then disperses.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required by a bard, cleric, druid, sorcerer, warlock, or wizard",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
 }

@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 10 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Write text with impressive flourishes that guard against forgery (DC 1...",
+  "excerpt": "- Ability:: Dexterity - Utilize:: Write text with impressive flourishes that guard against forgery (DC 15) - Craft:: ink, spell_scroll Scroll...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "ink",
+    "spell_scroll Scroll"
+  ],
   "filePath": "/data/glossary/entries/equipment/calligrapher_s_supplies.json",
-  "markdown": "# Calligrapher's Supplies\n\n- **Type**: AT|XPHB\n- **Cost**: 10 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Write text with impressive flourishes that guard against forgery (DC 15)\n- **Craft::** [[ink]], [[spell_scroll Scroll]]"
+  "markdown": "# Calligrapher's Supplies\n\n- **Ability::** Dexterity\n- **Utilize::** Write text with impressive flourishes that guard against forgery (DC 15)\n- **Craft::** [[ink]], [[spell_scroll Scroll]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 5
+  }
 }

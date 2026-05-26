@@ -1,0 +1,19 @@
+{
+  "id": "scroll_of_protection_humanoids",
+  "title": "Scroll of Protection (Humanoids)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Scroll"
+  ],
+  "excerpt": "{itemEntry Scroll of Protection}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scroll_of_protection_humanoids.json",
+  "markdown": "# Scroll of Protection (Humanoids)\n\n{#itemEntry Scroll of Protection}",
+  "itemMetadata": {
+    "type": "Scroll",
+    "rarity": "Rare"
+  }
+}

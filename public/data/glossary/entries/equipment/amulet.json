@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Spellcasting Focus"
   ],
-  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp - Weight: 1 lb. For an Amulet to be an effective Holy Symbol, it must be worn or held....",
+  "excerpt": "For an Amulet to be an effective Holy Symbol, it must be worn or held....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/amulet.json",
-  "markdown": "# Amulet\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n- **Weight**: 1 lb.\n\nFor an Amulet to be an effective Holy Symbol, it must be worn or held."
+  "markdown": "# Amulet\n\nFor an Amulet to be an effective Holy Symbol, it must be worn or held.",
+  "itemMetadata": {
+    "type": "Spellcasting Focus",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 1
+  }
 }

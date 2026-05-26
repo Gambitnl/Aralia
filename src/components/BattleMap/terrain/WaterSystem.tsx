@@ -1,22 +1,24 @@
 /**
  * @file WaterSystem.tsx
- * Animated water plane for water-type tiles with UV distortion, depth transparency,
- * surface waves, and projected caustic patterns.
+ * Animated water plane using MeshStandardMaterial + onBeforeCompile.
  *
- * Creates one merged plane mesh covering all water tiles. A custom shader handles:
- * - Animated UV distortion for flowing water appearance
- * - Depth-based transparency (shallow edges clear, deep center opaque)
- * - Subtle vertex displacement for surface wave motion
- * - Fresnel-based rim lighting for water surface shine
+ * Why onBeforeCompile instead of raw ShaderMaterial:
+ * - PBR lighting, fog, and tone-mapping come for free from MeshStandardMaterial
+ * - We only need to inject: uTime uniform, wave displacement, caustic color,
+ *   and animated normal perturbation
+ * - Much easier to make water look like it belongs in the scene
  *
- * Research references:
- * - Three.js Water Pro: https://threejsroadmap.com/assets/threejs-water-pro
- * - WaterSurface R3F: https://github.com/nhtoby311/WaterSurface
- * - Water caustics: https://medium.com/@martinRenou/real-time-rendering-of-water-caustics-59cda1d74aa
+ * Key visual fixes over previous version:
+ * - Removed fract()-based depth proxy that created visible tile-grid lines
+ * - Replaced with world-position FBM noise → seamless color variation
+ * - Better biome color palettes (more vibrant, less dark/murky)
+ * - Animated normal perturbation for ripple reflections
+ * - Caustic brightening using dual scrolling FBM layers
+ * - Crest brightness via wave displacement feedback
  *
- * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Water System" section
+ * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md — "Water System"
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData } from '../../../types/combat';
@@ -27,135 +29,231 @@ import { BattleMapData } from '../../../types/combat';
 
 const TILE_SIZE = 1.0;
 const ELEVATION_SCALE = 0.3;
-const WATER_SUBDIVISIONS = 8; // Per tile for wave detail
-const WAVE_AMPLITUDE = 0.015;
-const WAVE_SPEED = 0.8;
-const FLOW_SPEED = 0.15;
+/** Subdivisions per tile — 6 gives smooth waves; 8 is overkill for small tiles */
+const WATER_SUBDIVISIONS = 6;
+/** How far above terrain elevation the water surface sits */
+const WATER_SURFACE_OFFSET = 0.04;
 
 // ---------------------------------------------------------------------------
-// Shader code
+// Per-biome water color palettes
 // ---------------------------------------------------------------------------
 
-const waterVertexShader = /* glsl */ `
-  uniform float uTime;
-  uniform float uWaveAmplitude;
-  uniform float uWaveSpeed;
+interface WaterColors {
+  shallow: THREE.Color;
+  deep: THREE.Color;
+  /** Used to tint caustic highlights */
+  causticTint: THREE.Color;
+}
 
-  varying vec3 vWorldPosition;
-  varying vec2 vUv;
-  varying float vWaveHeight;
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
-
-  void main() {
-    vUv = uv;
-
-    vec4 worldPos = modelMatrix * vec4(position, 1.0);
-
-    // Multi-frequency wave displacement
-    float wave1 = sin(worldPos.x * 3.0 + uTime * uWaveSpeed) * uWaveAmplitude;
-    float wave2 = sin(worldPos.z * 2.5 + uTime * uWaveSpeed * 0.7 + 1.3) * uWaveAmplitude * 0.6;
-    float wave3 = sin((worldPos.x + worldPos.z) * 4.0 + uTime * uWaveSpeed * 1.3) * uWaveAmplitude * 0.3;
-
-    worldPos.y += wave1 + wave2 + wave3;
-    vWaveHeight = wave1 + wave2 + wave3;
-    vWorldPosition = worldPos.xyz;
-
-    // Approximate normal from wave derivatives
-    float dx = cos(worldPos.x * 3.0 + uTime * uWaveSpeed) * 3.0 * uWaveAmplitude
-             + cos((worldPos.x + worldPos.z) * 4.0 + uTime * uWaveSpeed * 1.3) * 4.0 * uWaveAmplitude * 0.3;
-    float dz = cos(worldPos.z * 2.5 + uTime * uWaveSpeed * 0.7 + 1.3) * 2.5 * uWaveAmplitude * 0.6
-             + cos((worldPos.x + worldPos.z) * 4.0 + uTime * uWaveSpeed * 1.3) * 4.0 * uWaveAmplitude * 0.3;
-    vNormal = normalize(vec3(-dx, 1.0, -dz));
-
-    // View direction for Fresnel
-    vViewDir = normalize(cameraPosition - worldPos.xyz);
-
-    gl_Position = projectionMatrix * viewMatrix * worldPos;
+function getBiomeWaterColors(biome: string): WaterColors {
+  switch (biome) {
+    case 'swamp':
+      return {
+        shallow:     new THREE.Color(0.12, 0.22, 0.09),
+        deep:        new THREE.Color(0.06, 0.10, 0.04),
+        causticTint: new THREE.Color(0.50, 0.65, 0.20),
+      };
+    case 'cave':
+      return {
+        shallow:     new THREE.Color(0.06, 0.22, 0.38),
+        deep:        new THREE.Color(0.02, 0.08, 0.22),
+        causticTint: new THREE.Color(0.30, 0.60, 1.00),
+      };
+    case 'desert':
+      return {
+        shallow:     new THREE.Color(0.18, 0.50, 0.60),
+        deep:        new THREE.Color(0.06, 0.24, 0.42),
+        causticTint: new THREE.Color(0.70, 0.90, 1.00),
+      };
+    default: // forest, dungeon, unknown
+      return {
+        shallow:     new THREE.Color(0.10, 0.42, 0.58),
+        deep:        new THREE.Color(0.04, 0.16, 0.32),
+        causticTint: new THREE.Color(0.40, 0.80, 1.00),
+      };
   }
+}
+
+// ---------------------------------------------------------------------------
+// GLSL snippets — injected into MeshStandardMaterial's compiled shader
+// ---------------------------------------------------------------------------
+
+/**
+ * Vertex preamble — uniform + varyings needed for wave animation.
+ * Injected after `#include <common>` in the vertex shader.
+ */
+const WATER_VERTEX_PREAMBLE = /* glsl */ `
+  uniform float uWaterTime;
+  varying vec3  vWaterWorldPos;
+  varying float vWaterWaveDisp;
 `;
 
-const waterFragmentShader = /* glsl */ `
-  uniform float uTime;
-  uniform float uFlowSpeed;
-  uniform vec3 uShallowColor;
-  uniform vec3 uDeepColor;
-  uniform float uOpacity;
+/**
+ * Vertex displacement — multi-frequency waves and world-pos passing.
+ * Injected after `#include <begin_vertex>` (where `transformed` is live).
+ */
+const WATER_VERTEX_DISPLACEMENT = /* glsl */ `
+  // World position before displacement — used for stable UV sampling
+  vec4 _preWorld = modelMatrix * vec4(transformed, 1.0);
 
-  varying vec3 vWorldPosition;
-  varying vec2 vUv;
-  varying float vWaveHeight;
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
+  // Three overlapping sine waves at different angles / frequencies
+  float _wA = sin(_preWorld.x * 1.9  + uWaterTime * 0.72) * 0.013;
+  float _wB = sin(_preWorld.z * 2.4  + uWaterTime * 0.55 + 1.57) * 0.009;
+  float _wC = sin((_preWorld.x * 0.7 + _preWorld.z * 1.5) * 2.9 + uWaterTime * 1.05) * 0.006;
+  transformed.y += _wA + _wB + _wC;
+  vWaterWaveDisp = _wA + _wB + _wC;
 
-  // Simple noise for water surface distortion
-  float hash(vec2 p) {
+  // Re-derive world pos after displacement so fragment samples displaced surface
+  vWaterWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+`;
+
+/**
+ * Fragment preamble — uniform + varyings + noise helpers.
+ * Injected after `#include <common>` in the fragment shader.
+ */
+const WATER_FRAGMENT_PREAMBLE = /* glsl */ `
+  uniform float uWaterTime;
+  uniform vec3  uWaterShallow;
+  uniform vec3  uWaterDeep;
+  uniform vec3  uWaterCaustic;
+  varying vec3  vWaterWorldPos;
+  varying float vWaterWaveDisp;
+
+  float wHash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
   }
 
-  float noise(vec2 p) {
+  float wNoise(vec2 p) {
     vec2 i = floor(p);
     vec2 f = fract(p);
     f = f * f * (3.0 - 2.0 * f);
-    float a = hash(i);
-    float b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0));
-    float d = hash(i + vec2(1.0, 1.0));
-    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    return mix(
+      mix(wHash(i), wHash(i + vec2(1.0, 0.0)), f.x),
+      mix(wHash(i + vec2(0.0, 1.0)), wHash(i + vec2(1.0, 1.0)), f.x),
+      f.y
+    );
   }
 
-  // Caustic pattern
-  float caustic(vec2 uv, float time) {
-    float c = 0.0;
-    c += noise(uv * 8.0 + time * 0.3) * 0.5;
-    c += noise(uv * 16.0 - time * 0.2) * 0.25;
-    c += noise(uv * 32.0 + time * 0.1) * 0.125;
-    return c * c * 2.0; // Sharpen for caustic look
-  }
-
-  void main() {
-    // Flowing UV distortion
-    vec2 flowUV = vWorldPosition.xz;
-    flowUV.x += uTime * uFlowSpeed;
-
-    float distortion = noise(flowUV * 3.0 + uTime * 0.15) * 0.03;
-    vec2 distortedUV = vWorldPosition.xz + distortion;
-
-    // Fresnel effect — more reflective at glancing angles
-    float fresnel = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), 3.0);
-    fresnel = clamp(fresnel, 0.1, 0.9);
-
-    // Depth-based color blend (use fractional position within tile as proxy)
-    float frac_x = fract(vWorldPosition.x);
-    float frac_z = fract(vWorldPosition.z);
-    float edgeDist = min(min(frac_x, 1.0 - frac_x), min(frac_z, 1.0 - frac_z));
-    float depthFactor = smoothstep(0.0, 0.4, edgeDist);
-
-    vec3 waterColor = mix(uShallowColor, uDeepColor, depthFactor);
-
-    // Add caustic highlights
-    float causticPattern = caustic(distortedUV, uTime);
-    waterColor += vec3(causticPattern * 0.15);
-
-    // Specular highlight from sun direction
-    vec3 lightDir = normalize(vec3(0.5, 0.8, 0.3));
-    vec3 halfVec = normalize(lightDir + vViewDir);
-    float specular = pow(max(dot(vNormal, halfVec), 0.0), 64.0);
-    waterColor += vec3(1.0, 0.95, 0.85) * specular * 0.6;
-
-    // Fresnel: mix surface color with reflection (sky color approximation)
-    vec3 skyColor = vec3(0.4, 0.5, 0.65);
-    waterColor = mix(waterColor, skyColor, fresnel * 0.5);
-
-    // Wave-based brightness variation
-    waterColor += vWaveHeight * 2.0;
-
-    // Opacity: deeper = more opaque, edges more transparent
-    float alpha = mix(0.5, uOpacity, depthFactor);
-
-    gl_FragColor = vec4(waterColor, alpha);
+  float wFbm(vec2 p) {
+    float v = 0.0, a = 0.5;
+    for (int i = 0; i < 4; i++) {
+      v += a * wNoise(p);
+      p  = p * 2.1 + vec2(1.7, 9.2);
+      a *= 0.5;
+    }
+    return v;
   }
 `;
+
+/**
+ * Fragment color override — replaces `#include <color_fragment>`.
+ * Uses world-position FBM (no tile repeats) for the depth gradient.
+ * Adds caustic brightening via dual-scroll FBM layers.
+ */
+const WATER_FRAGMENT_COLOR = /* glsl */ `
+  vec2 _wxz = vWaterWorldPos.xz;
+
+  // Scrolling noise for base color blend — world-space, no tile seams
+  float _cNoise = wFbm(_wxz * 0.35 + vec2(uWaterTime * 0.040,  uWaterTime * 0.028))
+                * 0.55
+                + wFbm(_wxz * 0.50 - vec2(uWaterTime * 0.025,  uWaterTime * 0.042))
+                * 0.45;
+  vec3 _wCol = mix(uWaterShallow, uWaterDeep, clamp(_cNoise * 0.9 + 0.05, 0.0, 1.0));
+
+  // Caustic overlay — two FBM layers scrolling in opposite directions
+  float _cauA = wFbm(_wxz * 4.8 + vec2( uWaterTime * 0.18,  uWaterTime * 0.13));
+  float _cauB = wFbm(_wxz * 4.8 - vec2( uWaterTime * 0.13,  uWaterTime * 0.18));
+  float _cau  = pow((_cauA + _cauB) * 0.5, 2.4) * 0.40;
+  _wCol += uWaterCaustic * _cau;
+
+  // Wave crest brightening — peaks catch light
+  _wCol += vec3(max(vWaterWaveDisp, 0.0) * 5.0);
+
+  diffuseColor.rgb = _wCol;
+`;
+
+/**
+ * Fragment normal perturbation — animated ripple normals from noise gradient.
+ * Injected after `#include <normal_fragment_maps>` where `normal` is live.
+ */
+const WATER_NORMAL_PERTURBATION = /* glsl */ `
+  vec2  _nxz  = vWaterWorldPos.xz;
+  float _eps  = 0.07;
+  float _nC   = wFbm(_nxz * 2.2 + vec2(uWaterTime * 0.10,  uWaterTime * 0.07));
+  float _nXp  = wFbm((_nxz + vec2(_eps, 0.0)) * 2.2 + vec2(uWaterTime * 0.10, uWaterTime * 0.07));
+  float _nZp  = wFbm((_nxz + vec2(0.0, _eps)) * 2.2 + vec2(uWaterTime * 0.10, uWaterTime * 0.07));
+  vec3 _nPert = normalize(vec3(-(_nXp - _nC) / _eps * 0.45, 1.0, -(_nZp - _nC) / _eps * 0.45));
+  // Blend 50/50: keeps geometric normal contribution so lighting reads correctly
+  normal = normalize(mix(normal, normalize(mat3(viewMatrix) * _nPert), 0.50));
+`;
+
+// ---------------------------------------------------------------------------
+// Material factory
+// ---------------------------------------------------------------------------
+
+interface WaterShaderUniforms {
+  uWaterTime:    { value: number };
+  uWaterShallow: { value: THREE.Color };
+  uWaterDeep:    { value: THREE.Color };
+  uWaterCaustic: { value: THREE.Color };
+}
+
+function createWaterMaterial(colors: WaterColors): {
+  material: THREE.MeshStandardMaterial;
+  uniforms: WaterShaderUniforms;
+} {
+  const uniforms: WaterShaderUniforms = {
+    uWaterTime:    { value: 0 },
+    uWaterShallow: { value: colors.shallow },
+    uWaterDeep:    { value: colors.deep },
+    uWaterCaustic: { value: colors.causticTint },
+  };
+
+  const mat = new THREE.MeshStandardMaterial({
+    color:       colors.shallow,   // base — overridden by shader
+    roughness:   0.08,             // water is highly reflective
+    metalness:   0.0,
+    transparent: true,
+    opacity:     0.88,
+    depthWrite:  false,            // required for correct transparency sort
+    side:        THREE.FrontSide,
+  });
+
+  mat.onBeforeCompile = (shader) => {
+    // Inject our uniforms into the compiled shader
+    Object.assign(shader.uniforms, uniforms);
+
+    // ----- Vertex shader -----
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <common>',
+      `#include <common>\n${WATER_VERTEX_PREAMBLE}`,
+    );
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>\n${WATER_VERTEX_DISPLACEMENT}`,
+    );
+
+    // ----- Fragment shader -----
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <common>',
+      `#include <common>\n${WATER_FRAGMENT_PREAMBLE}`,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <color_fragment>',
+      WATER_FRAGMENT_COLOR,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <normal_fragment_maps>',
+      `#include <normal_fragment_maps>\n${WATER_NORMAL_PERTURBATION}`,
+    );
+  };
+
+  // Cache key prevents shader reuse across different biomes
+  mat.customProgramCacheKey = () =>
+    `water-v3-${colors.shallow.getHex()}-${colors.deep.getHex()}`;
+
+  return { material: mat, uniforms };
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -170,9 +268,11 @@ interface WaterSystemProps {
 // ---------------------------------------------------------------------------
 
 const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const uniformsRef = useRef<WaterShaderUniforms | null>(null);
 
-  const { width, height } = mapData.dimensions;
+  const biome = (mapData as BattleMapData & { biome?: string }).biome
+    ?? mapData.theme
+    ?? 'forest';
 
   // Collect all water tiles
   const waterTiles = useMemo(() => {
@@ -189,11 +289,10 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
     return tiles;
   }, [mapData]);
 
-  // Build merged water geometry from all water tiles
+  // Build merged water geometry — one mesh covering all water tiles
   const geometry = useMemo(() => {
     if (waterTiles.length === 0) return null;
 
-    const mergedGeo = new THREE.BufferGeometry();
     const allPositions: number[] = [];
     const allUVs: number[] = [];
     const allIndices: number[] = [];
@@ -202,19 +301,18 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
     for (const tile of waterTiles) {
       const subX = WATER_SUBDIVISIONS;
       const subZ = WATER_SUBDIVISIONS;
+      const y = tile.elevation * ELEVATION_SCALE + WATER_SURFACE_OFFSET;
 
       for (let iz = 0; iz <= subZ; iz++) {
         for (let ix = 0; ix <= subX; ix++) {
           const x = tile.x * TILE_SIZE + (ix / subX) * TILE_SIZE;
           const z = tile.y * TILE_SIZE + (iz / subZ) * TILE_SIZE;
-          const y = tile.elevation * ELEVATION_SCALE + 0.05; // Slightly above terrain
-
           allPositions.push(x, y, z);
-          allUVs.push(ix / subX, iz / subZ);
+          // UVs in world scale so noise frequencies are consistent across tiles
+          allUVs.push(x, z);
         }
       }
 
-      // Indices for this tile
       for (let iz = 0; iz < subZ; iz++) {
         for (let ix = 0; ix < subX; ix++) {
           const a = vertexOffset + iz * (subX + 1) + ix;
@@ -229,72 +327,42 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
       vertexOffset += (subX + 1) * (subZ + 1);
     }
 
-    mergedGeo.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
-    mergedGeo.setAttribute('uv', new THREE.Float32BufferAttribute(allUVs, 2));
-    mergedGeo.setIndex(allIndices);
-    mergedGeo.computeVertexNormals();
-
-    return mergedGeo;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
+    geo.setAttribute('uv',       new THREE.Float32BufferAttribute(allUVs,       2));
+    geo.setIndex(allIndices);
+    geo.computeVertexNormals();
+    return geo;
   }, [waterTiles]);
 
-  // Determine water colors based on biome
-  const { shallowColor, deepColor } = useMemo(() => {
-    const theme = mapData.theme;
-    switch (theme) {
-      case 'swamp':
-        return {
-          shallowColor: new THREE.Color(0.15, 0.2, 0.08),
-          deepColor: new THREE.Color(0.08, 0.12, 0.05),
-        };
-      case 'cave':
-        return {
-          shallowColor: new THREE.Color(0.05, 0.15, 0.25),
-          deepColor: new THREE.Color(0.02, 0.06, 0.15),
-        };
-      case 'desert':
-        return {
-          shallowColor: new THREE.Color(0.15, 0.35, 0.45),
-          deepColor: new THREE.Color(0.05, 0.18, 0.3),
-        };
-      default: // forest, dungeon
-        return {
-          shallowColor: new THREE.Color(0.08, 0.25, 0.35),
-          deepColor: new THREE.Color(0.03, 0.1, 0.2),
-        };
-    }
-  }, [mapData.theme]);
+  // Material + uniform handle — recreated only when biome changes
+  const { material, uniforms } = useMemo(() => {
+    const colors = getBiomeWaterColors(biome);
+    return createWaterMaterial(colors);
+  }, [biome]);
 
-  // Shader material
-  const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader: waterVertexShader,
-      fragmentShader: waterFragmentShader,
-      uniforms: {
-        uTime: { value: 0 },
-        uWaveAmplitude: { value: WAVE_AMPLITUDE },
-        uWaveSpeed: { value: WAVE_SPEED },
-        uFlowSpeed: { value: FLOW_SPEED },
-        uShallowColor: { value: shallowColor },
-        uDeepColor: { value: deepColor },
-        uOpacity: { value: 0.85 },
-      },
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-  }, [shallowColor, deepColor]);
+  // Store uniforms ref for useFrame access (avoids closure stale-capture)
+  uniformsRef.current = uniforms;
 
-  // Animate
+  // Dispose GPU resources when geometry / material changes or component unmounts
+  useEffect(() => () => { geometry?.dispose(); }, [geometry]);
+  useEffect(() => () => { material.dispose(); }, [material]);
+
+  // Animate — update uWaterTime every frame
   useFrame((state) => {
-    if (shaderMaterial) {
-      shaderMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+    if (uniformsRef.current) {
+      uniformsRef.current.uWaterTime.value = state.clock.elapsedTime;
     }
   });
 
   if (!geometry || waterTiles.length === 0) return null;
 
   return (
-    <mesh geometry={geometry} material={shaderMaterial} renderOrder={2} />
+    <mesh
+      geometry={geometry}
+      material={material}
+      renderOrder={2}
+    />
   );
 };
 

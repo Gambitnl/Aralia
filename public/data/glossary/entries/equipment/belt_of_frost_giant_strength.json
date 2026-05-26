@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater tha...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/belt_of_frost_giant_strength.json",
-  "markdown": "# Belt of Frost Giant Strength\n\nWhile wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater than the belt's score."
+  "markdown": "# Belt of Frost Giant Strength\n\nWhile wearing this belt, your Strength score changes to 23. The item has no effect on you if your Strength without the belt is equal to or greater than the belt's score.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Very rare",
+    "reqAttune": "Required"
+  }
 }

@@ -4,11 +4,31 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 1 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Carve a pattern in wood (DC 10) - Craft:: club, greatclub, quarterstaff...",
+  "excerpt": "- Ability:: Dexterity - Utilize:: Carve a pattern in wood (DC 10) - Craft:: club, greatclub, quarterstaff, Ranged weapons (except pistol, musket, and ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "club",
+    "greatclub",
+    "quarterstaff",
+    "pistol",
+    "musket",
+    "sling",
+    "arcane_focus Focus",
+    "arrows_20",
+    "bolts_20",
+    "druidic_focus Focus",
+    "ink_pen Pen",
+    "needles_50"
+  ],
   "filePath": "/data/glossary/entries/equipment/woodcarver_s_tools.json",
-  "markdown": "# Woodcarver's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 1 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Carve a pattern in wood (DC 10)\n- **Craft::** [[club]], [[greatclub]], [[quarterstaff]], Ranged weapons (except [[pistol]], [[musket]], and [[sling]]), [[arcane_focus Focus]], [[arrows_20]], [[bolts_20]], [[druidic_focus Focus]], [[ink_pen Pen]], [[needles_50]]"
+  "markdown": "# Woodcarver's Tools\n\n- **Ability::** Dexterity\n- **Utilize::** Carve a pattern in wood (DC 10)\n- **Craft::** [[club]], [[greatclub]], [[quarterstaff]], Ranged weapons (except [[pistol]], [[musket]], and [[sling]]), [[arcane_focus Focus]], [[arrows_20]], [[bolts_20]], [[druidic_focus Focus]], [[ink_pen Pen]], [[needles_50]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 5
+  }
 }

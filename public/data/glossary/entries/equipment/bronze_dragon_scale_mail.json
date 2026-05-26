@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Medium Armor"
   ],
-  "excerpt": "- Type: MA|XPHB - Weight: 45 lb. - Armor Class: 14 {itemEntry Dragon Scale Mail}...",
+  "excerpt": "{itemEntry Dragon Scale Mail}...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/bronze_dragon_scale_mail.json",
-  "markdown": "# Bronze Dragon Scale Mail\n\n- **Type**: MA|XPHB\n- **Weight**: 45 lb.\n- **Armor Class**: 14\n\n{#itemEntry Dragon Scale Mail}"
+  "markdown": "# Bronze Dragon Scale Mail\n\n{#itemEntry Dragon Scale Mail}",
+  "itemMetadata": {
+    "type": "Medium Armor",
+    "rarity": "Very rare",
+    "reqAttune": "Required",
+    "weight": 45,
+    "ac": 14
+  }
 }

@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 25 gp - Weight: 2 lb. - Ability:: Intelligence - Utilize:: Discern a gem's value (DC 15) - Craft:: arcane_focus Focus, holy_sy...",
+  "excerpt": "- Ability:: Intelligence - Utilize:: Discern a gem's value (DC 15) - Craft:: arcane_focus Focus, holy_symbol Symbol...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "arcane_focus Focus",
+    "holy_symbol Symbol"
+  ],
   "filePath": "/data/glossary/entries/equipment/jeweler_s_tools.json",
-  "markdown": "# Jeweler's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n\n- **Ability::** Intelligence\n- **Utilize::** Discern a gem's value (DC 15)\n- **Craft::** [[arcane_focus Focus]], [[holy_symbol Symbol]]"
+  "markdown": "# Jeweler's Tools\n\n- **Ability::** Intelligence\n- **Utilize::** Discern a gem's value (DC 15)\n- **Craft::** [[arcane_focus Focus]], [[holy_symbol Symbol]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 2
+  }
 }

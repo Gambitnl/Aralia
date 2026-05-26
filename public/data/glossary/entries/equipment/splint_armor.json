@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Heavy Armor"
   ],
-  "excerpt": "- Type: HA|XPHB - Cost: 200 gp - Weight: 60 lb. - Armor Class: 17...",
+  "excerpt": "HA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/splint_armor.json",
-  "markdown": "# Splint Armor\n\n- **Type**: HA|XPHB\n- **Cost**: 200 gp\n- **Weight**: 60 lb.\n- **Armor Class**: 17\n\n"
+  "markdown": "# Splint Armor\n\n*HA*\n",
+  "itemMetadata": {
+    "type": "Heavy Armor",
+    "rarity": "None",
+    "cost": 200,
+    "weight": 60,
+    "ac": 17
+  }
 }

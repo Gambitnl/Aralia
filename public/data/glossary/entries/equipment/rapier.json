@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 25 gp - Weight: 2 lb. - Damage: 1d8 P - Properties: F|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/rapier.json",
-  "markdown": "# Rapier\n\n- **Type**: M|XPHB\n- **Cost**: 25 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d8 P\n- **Properties**: F|XPHB\n\n"
+  "markdown": "# Rapier\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 2,
+    "damage": "1d8 P",
+    "properties": [
+      "F|XPHB"
+    ]
+  }
 }

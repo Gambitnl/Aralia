@@ -1,0 +1,14 @@
+{
+  "id": "f",
+  "title": "F",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "itemProperty"
+  ],
+  "excerpt": "Finesse When making an attack with a Finesse weapon, use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/f.json",
+  "markdown": "# F\n\n## Finesse\n\nWhen making an attack with a Finesse weapon, use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must use the same modifier for both rolls."
+}

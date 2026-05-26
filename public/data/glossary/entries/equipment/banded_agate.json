@@ -1,0 +1,20 @@
+{
+  "id": "banded_agate",
+  "title": "Banded Agate",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A striped brown, blue, white, or red gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/banded_agate.json",
+  "markdown": "# Banded Agate\n\nA striped brown, blue, white, or red gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

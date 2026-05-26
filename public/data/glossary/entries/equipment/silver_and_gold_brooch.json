@@ -1,0 +1,20 @@
+{
+  "id": "silver_and_gold_brooch",
+  "title": "Silver and gold brooch",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/silver_and_gold_brooch.json",
+  "markdown": "# Silver and gold brooch\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 750
+  }
+}

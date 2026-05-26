@@ -1,0 +1,21 @@
+{
+  "id": "ginger",
+  "title": "Ginger",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ginger.json",
+  "markdown": "# Ginger\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 1
+  }
+}

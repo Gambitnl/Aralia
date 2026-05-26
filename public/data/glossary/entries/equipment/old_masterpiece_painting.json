@@ -1,0 +1,20 @@
+{
+  "id": "old_masterpiece_painting",
+  "title": "Old masterpiece painting",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/old_masterpiece_painting.json",
+  "markdown": "# Old masterpiece painting\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 2500
+  }
+}

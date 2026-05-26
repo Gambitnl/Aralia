@@ -1,5 +1,31 @@
 [
   {
+    "id": "2h",
+    "title": "2H",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Two-Handed A Two-Handed weapon requires two hands when you attack with it....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/2h.json"
+  },
+  {
+    "id": "a",
+    "title": "A",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Ammunition You can use a weapon that has the Ammunition property to make a ranged attack only if you have ammunition to fire from it. The type of ammu...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/a.json"
+  },
+  {
     "id": "ability_check",
     "title": "Ability Check",
     "category": "Rules Glossary",
@@ -186,6 +212,19 @@
     "filePath": "/data/glossary/entries/rules/adventuring_equipment.json"
   },
   {
+    "id": "af",
+    "title": "AF",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Ammunition Firearm Bullets are destroyed upon use in a modern firearm. Futuristic firearms use Energy Cells that become depleted but could possibly be...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/af.json"
+  },
+  {
     "id": "agonizing_blast",
     "title": "Agonizing Blast",
     "category": "Rules Glossary",
@@ -285,7 +324,11 @@
     ],
     "excerpt": "When you make a Dexterity (stealth) check or an initiative roll, you can expend one Superiority Die and add the die to the roll, unless you have the i...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "stealth",
+      "initiative",
+      "incapacitated"
+    ],
     "filePath": "/data/glossary/entries/rules/ambush.json"
   },
   {
@@ -400,7 +443,9 @@
     ],
     "excerpt": "You can cast mage_armor Armor on yourself without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "mage_armor Armor"
+    ],
     "filePath": "/data/glossary/entries/rules/armor_of_shadows.json"
   },
   {
@@ -436,7 +481,9 @@
     ],
     "excerpt": "You can cast levitate on yourself without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "levitate"
+    ],
     "filePath": "/data/glossary/entries/rules/ascendant_step.json"
   },
   {
@@ -554,7 +601,10 @@
     ],
     "excerpt": "When you're within 5 feet of a creature on your turn, you can expend one Superiority Die and switch places with that creature, provided you spend at l...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "incapacitated",
+      "opportunity_attack Attacks"
+    ],
     "filePath": "/data/glossary/entries/rules/bait_and_switch.json"
   },
   {
@@ -566,6 +616,21 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/mounts/barding.json"
+  },
+  {
+    "id": "bf",
+    "title": "BF",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Burst Fire As an action, you can expend 10 pieces of a Burst Fire weapon's ammunition to spray shots in a 10-foot cube_area_of_effect within the weapo...",
+    "aliases": [],
+    "seeAlso": [
+      "cube_area_of_effect"
+    ],
+    "filePath": "/data/glossary/entries/rules/bf.json"
   },
   {
     "id": "blinded",
@@ -606,7 +671,12 @@
     ],
     "excerpt": "If you have Blindsight, you can see within a specific range without relying on physical sight. Within that range, you can see anything that isn't behi...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "cover Cover",
+      "blinded",
+      "darkness",
+      "invisible"
+    ],
     "filePath": "/data/glossary/entries/rules/blindsight.json"
   },
   {
@@ -708,6 +778,21 @@
     "filePath": "/data/glossary/entries/rules/bright_light.json"
   },
   {
+    "id": "brown_mold",
+    "title": "Brown Mold",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Brown mold resembles a furry, light-brown carpet. This fungus feeds on warmth, drawing heat from anything around itself. One patch of brown mold cover...",
+    "aliases": [],
+    "seeAlso": [
+      "immunity"
+    ],
+    "filePath": "/data/glossary/entries/rules/brown_mold.json"
+  },
+  {
     "id": "burning",
     "title": "Burning",
     "category": "Rules Glossary",
@@ -717,7 +802,9 @@
     ],
     "excerpt": "A burning creature or object takes 1d4 Fire damage at the start of each of its turns. As an action, you can extinguish fire on yourself by giving your...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "prone"
+    ],
     "filePath": "/data/glossary/entries/rules/burning.json"
   },
   {
@@ -933,6 +1020,19 @@
     "filePath": "/data/glossary/entries/rules/conditions/charmed_condition.json"
   },
   {
+    "id": "cleave",
+    "title": "Cleave",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If you hit a creature with a melee attack roll using this weapon, you can make a melee attack roll with the weapon against a second creature within 5 ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/cleave.json"
+  },
+  {
     "id": "climb_speed",
     "title": "Climb Speed",
     "category": "Rules Glossary",
@@ -1008,7 +1108,11 @@
     ],
     "excerpt": "When you take the attack action on your turn, you can replace one of your attacks to direct one of your companions to strike. When you do so, choose a...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "attack",
+      "reaction",
+      "unarmed_strike Strike"
+    ],
     "filePath": "/data/glossary/entries/rules/commander_s_strike.json"
   },
   {
@@ -1021,7 +1125,11 @@
     ],
     "excerpt": "When you make a Charisma (intimidation, performance, or persuasion) check, you can expend one Superiority Die and add that die to the roll....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "intimidation",
+      "performance",
+      "persuasion"
+    ],
     "filePath": "/data/glossary/entries/rules/commanding_presence.json"
   },
   {
@@ -1477,7 +1585,11 @@
     ],
     "excerpt": "If you have Darkvision, you can see in dim_light Light within a specified range as if it were bright_light Light and in darkness within that range as ...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "dim_light Light",
+      "bright_light Light",
+      "darkness"
+    ],
     "filePath": "/data/glossary/entries/rules/darkvision.json"
   },
   {
@@ -1527,6 +1639,21 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/dead.json"
+  },
+  {
+    "id": "dead_magic_zone",
+    "title": "Dead Magic Zone",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A dead magic zone is an area where the fabric of magic is torn. The effect is the same as the antimagic_field Field spell, except that it is permanent...",
+    "aliases": [],
+    "seeAlso": [
+      "antimagic_field Field"
+    ],
+    "filePath": "/data/glossary/entries/rules/dead_magic_zone.json"
   },
   {
     "id": "deafened",
@@ -1595,6 +1722,21 @@
     "filePath": "/data/glossary/entries/rules/deep_speech.json"
   },
   {
+    "id": "deep_water",
+    "title": "Deep Water",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Swimming through deep water (more than 100 feet deep) presents additional challenges because of the water's pressure and cold temperature. After each ...",
+    "aliases": [],
+    "seeAlso": [
+      "exhaustion"
+    ],
+    "filePath": "/data/glossary/entries/rules/deep_water.json"
+  },
+  {
     "id": "dehydration",
     "title": "Dehydration",
     "category": "Rules Glossary",
@@ -1604,7 +1746,9 @@
     ],
     "excerpt": "A creature requires an amount of water per day based on its size, as shown in the Water Needs per Day table. A creature that drinks less than half the...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "exhaustion"
+    ],
     "filePath": "/data/glossary/entries/rules/dehydration.json"
   },
   {
@@ -1617,7 +1761,10 @@
     ],
     "excerpt": "You can see normally in dim_light Light and darkness—both magical and nonmagical—within 120 feet of yourself....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "dim_light Light",
+      "darkness"
+    ],
     "filePath": "/data/glossary/entries/rules/devil_s_sight.json"
   },
   {
@@ -1795,7 +1942,9 @@
     ],
     "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to distract the target. Add the Superiority Die roll to the attack's d...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "advantage"
+    ],
     "filePath": "/data/glossary/entries/rules/distracting_strike.json"
   },
   {
@@ -1911,7 +2060,9 @@
     ],
     "excerpt": "You have advantage on Constitution saving throws that you make to maintain Concentration....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "advantage"
+    ],
     "filePath": "/data/glossary/entries/rules/eldritch_mind.json"
   },
   {
@@ -1924,7 +2075,9 @@
     ],
     "excerpt": "Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, p...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "prone"
+    ],
     "filePath": "/data/glossary/entries/rules/eldritch_smite.json"
   },
   {
@@ -2107,7 +2260,10 @@
     ],
     "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the disengage action. You also roll the die and add the number rolled to your AC...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action",
+      "disengage"
+    ],
     "filePath": "/data/glossary/entries/rules/evasive_footwork.json"
   },
   {
@@ -2185,8 +2341,58 @@
     ],
     "excerpt": "When you cast a spell that has a duration of 1 minute or longer, you can spend 1 Sorcery Point to double its duration to a maximum duration of 24 hour...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "advantage"
+    ],
     "filePath": "/data/glossary/entries/rules/extended_spell.json"
+  },
+  {
+    "id": "extreme_cold",
+    "title": "Extreme Cold",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "When the temperature is 0 degrees Fahrenheit or lower, a creature exposed to the extreme cold must succeed on a DC 10 Constitution saving throw at the...",
+    "aliases": [],
+    "seeAlso": [
+      "exhaustion",
+      "resistance",
+      "immunity"
+    ],
+    "filePath": "/data/glossary/entries/rules/extreme_cold.json"
+  },
+  {
+    "id": "extreme_heat",
+    "title": "Extreme Heat",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "When the temperature is 100 degrees Fahrenheit or higher, a creature exposed to the extreme heat and without access to drinkable water must succeed on...",
+    "aliases": [],
+    "seeAlso": [
+      "exhaustion",
+      "disadvantage",
+      "resistance",
+      "immunity"
+    ],
+    "filePath": "/data/glossary/entries/rules/extreme_heat.json"
+  },
+  {
+    "id": "f",
+    "title": "F",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Finesse When making an attack with a Finesse weapon, use your choice of your Strength or Dexterity modifier for the attack and damage rolls. You must ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/f.json"
   },
   {
     "id": "falling",
@@ -2198,7 +2404,12 @@
     ],
     "excerpt": "A creature that falls takes 1d6 Bludgeoning damage at the end of the fall for every 10 feet it fell, to a maximum of 20d6. When the creature lands, it...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "prone",
+      "reaction",
+      "athletics",
+      "acrobatics"
+    ],
     "filePath": "/data/glossary/entries/rules/falling.json"
   },
   {
@@ -2211,7 +2422,10 @@
     ],
     "excerpt": "As a bonus_action Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have advant...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action",
+      "advantage"
+    ],
     "filePath": "/data/glossary/entries/rules/feinting_attack.json"
   },
   {
@@ -2224,7 +2438,10 @@
     ],
     "excerpt": "You can cast false_life Life on yourself without expending a spell slot. When you cast the spell with this feature, you don't roll the die for the tem...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "false_life Life",
+      "temporary_hit_points Hit Points"
+    ],
     "filePath": "/data/glossary/entries/rules/fiendish_vigor.json"
   },
   {
@@ -2246,6 +2463,24 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/finesse.json"
+  },
+  {
+    "id": "fireball_fungus",
+    "title": "Fireball Fungus",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A fireball fungus is a Small, inanimate mushroom that can grow anywhere fungi are found in abundance. Its luminous, orange cap sheds bright_light Ligh...",
+    "aliases": [],
+    "seeAlso": [
+      "bright_light Light",
+      "dim_light Light",
+      "immunity",
+      "fireball"
+    ],
+    "filePath": "/data/glossary/entries/rules/fireball_fungus.json"
   },
   {
     "id": "fly_speed",
@@ -2326,6 +2561,23 @@
     "filePath": "/data/glossary/entries/rules/conditions/frightened_condition.json"
   },
   {
+    "id": "frigid_water",
+    "title": "Frigid Water",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A creature can be immersed in frigid water for a number of minutes equal to its Constitution score before suffering any ill effects. Each additional m...",
+    "aliases": [],
+    "seeAlso": [
+      "exhaustion",
+      "resistance",
+      "immunity"
+    ],
+    "filePath": "/data/glossary/entries/rules/frigid_water.json"
+  },
+  {
     "id": "gaze_of_two_minds",
     "title": "Gaze of Two Minds",
     "category": "Rules Glossary",
@@ -2335,7 +2587,9 @@
     ],
     "excerpt": "You can use a bonus_action Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action"
+    ],
     "filePath": "/data/glossary/entries/rules/gaze_of_two_minds.json"
   },
   {
@@ -2361,7 +2615,12 @@
     ],
     "excerpt": "You can breathe underwater, and you gain a swim_speed Speed equal to your speed. You can also cast water_breathing Breathing once without expending a ...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "swim_speed Speed",
+      "speed",
+      "water_breathing Breathing",
+      "long_rest Rest"
+    ],
     "filePath": "/data/glossary/entries/rules/gift_of_the_depths.json"
   },
   {
@@ -2374,7 +2633,12 @@
     ],
     "excerpt": "A new page appears in your Book of Shadows when you conjure it. With your permission, a creature can take an action to write its name on that page, wh...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "hit_points Points",
+      "hit_points Point",
+      "long_rest Rest",
+      "magic"
+    ],
     "filePath": "/data/glossary/entries/rules/gift_of_the_protectors.json"
   },
   {
@@ -2432,7 +2696,9 @@
     ],
     "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to goad the target into attacking you. Add the Superiority ...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "disadvantage"
+    ],
     "filePath": "/data/glossary/entries/rules/goading_attack.json"
   },
   {
@@ -2489,6 +2755,49 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/grappling.json"
+  },
+  {
+    "id": "graze",
+    "title": "Graze",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If your attack roll with this weapon misses a creature, you can deal damage to that creature equal to the ability modifier you used to make the attack...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/graze.json"
+  },
+  {
+    "id": "green_slime",
+    "title": "Green Slime",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Acidic green slime devours flesh, organic material, and metal on contact. Bright green, wet, and sticky, it clings to walls, floors, and ceilings in p...",
+    "aliases": [],
+    "seeAlso": [
+      "blindsight"
+    ],
+    "filePath": "/data/glossary/entries/rules/green_slime.json"
+  },
+  {
+    "id": "h",
+    "title": "H",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Heavy You have disadvantage on attack rolls with a Heavy weapon if it's a Melee weapon and your Strength score isn't at least 13 or if it's a Ranged w...",
+    "aliases": [],
+    "seeAlso": [
+      "disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/h.json"
   },
   {
     "id": "half_cover",
@@ -2584,6 +2893,23 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/heavy.json"
   },
   {
+    "id": "heavy_precipitation",
+    "title": "Heavy Precipitation",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Everything within an area of heavy rain or heavy snowfall is lightly_obscured Obscured, and creatures in the area have disadvantage on all Wisdom (per...",
+    "aliases": [],
+    "seeAlso": [
+      "lightly_obscured Obscured",
+      "disadvantage",
+      "perception"
+    ],
+    "filePath": "/data/glossary/entries/rules/heavy_precipitation.json"
+  },
+  {
     "id": "heightened_spell",
     "title": "Heightened Spell",
     "category": "Rules Glossary",
@@ -2593,7 +2919,9 @@
     ],
     "excerpt": "When you cast a spell that forces a creature to make a saving throw, you can spend 2 Sorcery Points to give one target of the spell disadvantage on sa...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "disadvantage"
+    ],
     "filePath": "/data/glossary/entries/rules/heightened_spell.json"
   },
   {
@@ -2710,6 +3038,19 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/hiding.json"
+  },
+  {
+    "id": "high_altitude",
+    "title": "High Altitude",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Traveling at altitudes of 10,000 feet or higher above sea level is taxing for most creatures because of the reduced amount of oxygen in the air. Each ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/high_altitude.json"
   },
   {
     "id": "high_jump",
@@ -2836,6 +3177,21 @@
     "filePath": "/data/glossary/entries/rules/immunity.json"
   },
   {
+    "id": "improvised_damage",
+    "title": "Improvised Damage",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "The Improvising Damage table gives guidelines for determining damage on the fly. Improvising Damage | Damage | Examples | | --- | --- | | 1d10 | Burne...",
+    "aliases": [],
+    "seeAlso": [
+      "hit_points Points"
+    ],
+    "filePath": "/data/glossary/entries/rules/improvised_damage.json"
+  },
+  {
     "id": "improvised_weapons",
     "title": "Improvised Weapons",
     "category": "Rules Glossary",
@@ -2918,6 +3274,21 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/infernal.json"
+  },
+  {
+    "id": "inferno",
+    "title": "Inferno",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Whenever an uncontrolled fire spreads, it can create an inferno that quickly engulfs creatures, objects, and vegetation. An inferno consists of at lea...",
+    "aliases": [],
+    "seeAlso": [
+      "cube_area_of_effect"
+    ],
+    "filePath": "/data/glossary/entries/rules/inferno.json"
   },
   {
     "id": "influence",
@@ -3037,7 +3408,15 @@
     ],
     "excerpt": "When you cast find_familiar Familiar, you infuse the summoned familiar with a measure of your eldritch power, granting the creature the following bene...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "find_familiar Familiar",
+      "fly_speed Speed",
+      "swim_speed Speed",
+      "bonus_action Action",
+      "attack",
+      "reaction",
+      "resistance"
+    ],
     "filePath": "/data/glossary/entries/rules/investment_of_the_chain_master.json"
   },
   {
@@ -3106,6 +3485,24 @@
     "filePath": "/data/glossary/entries/rules/knocking_out_a_creature.json"
   },
   {
+    "id": "l",
+    "title": "L",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Light When you take the attack action on your turn and attack with a Light weapon, you can make one extra attack as a bonus_action Action later on the...",
+    "aliases": [],
+    "seeAlso": [
+      "attack",
+      "bonus_action Action",
+      "shortsword",
+      "dagger"
+    ],
+    "filePath": "/data/glossary/entries/rules/l.json"
+  },
+  {
     "id": "large_vehicles",
     "title": "Large Vehicles",
     "category": "Rules Glossary",
@@ -3114,6 +3511,22 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/vehicles/large_vehicles.json"
+  },
+  {
+    "id": "ld",
+    "title": "LD",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Loading You can fire only one piece of ammunition from a Loading weapon when you use an action, a bonus_action Action, or a reaction to fire it, regar...",
+    "aliases": [],
+    "seeAlso": [
+      "bonus_action Action",
+      "reaction"
+    ],
+    "filePath": "/data/glossary/entries/rules/ld.json"
   },
   {
     "id": "leatherworkers_tools",
@@ -3148,7 +3561,11 @@
     ],
     "excerpt": "Once per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creat...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "hit_point_dice Point Dice",
+      "hit_points Points",
+      "hit_points Point"
+    ],
     "filePath": "/data/glossary/entries/rules/lifedrinker.json"
   },
   {
@@ -3315,7 +3732,11 @@
     ],
     "excerpt": "As a bonus_action Action, you can expend one Superiority Die and take the dash action. If you move at least 5 feet in a straight line immediately befo...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action",
+      "dash",
+      "attack"
+    ],
     "filePath": "/data/glossary/entries/rules/lunging_attack.json"
   },
   {
@@ -3386,7 +3807,10 @@
     ],
     "excerpt": "A creature needs an amount of food per day based on its size, as shown in the Food Needs per Day table. A creature that eats but consumes less than ha...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "saving_throw throw",
+      "exhaustion"
+    ],
     "filePath": "/data/glossary/entries/rules/malnutrition.json"
   },
   {
@@ -3399,7 +3823,11 @@
     ],
     "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to maneuver one of your comrades into another position. Add the Superi...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "reaction",
+      "speed",
+      "opportunity_attack Attack"
+    ],
     "filePath": "/data/glossary/entries/rules/maneuvering_attack.json"
   },
   {
@@ -3412,7 +3840,9 @@
     ],
     "excerpt": "You can cast disguise_self Self without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "disguise_self Self"
+    ],
     "filePath": "/data/glossary/entries/rules/mask_of_many_faces.json"
   },
   {
@@ -3435,7 +3865,9 @@
     ],
     "excerpt": "You can cast alter_self Self without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "alter_self Self"
+    ],
     "filePath": "/data/glossary/entries/rules/master_of_myriad_forms.json"
   },
   {
@@ -3471,7 +3903,9 @@
     ],
     "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to frighten the target. Add the Superiority Die to the atta...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "frightened"
+    ],
     "filePath": "/data/glossary/entries/rules/menacing_attack.json"
   },
   {
@@ -3484,7 +3918,9 @@
     ],
     "excerpt": "You can cast silent_image Image without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "silent_image Image"
+    ],
     "filePath": "/data/glossary/entries/rules/misty_visions.json"
   },
   {
@@ -3572,6 +4008,22 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/navigators_tools.json"
+  },
+  {
+    "id": "nick",
+    "title": "Nick",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "When you make the extra attack of the Light property, you can make it as part of the attack action instead of as a bonus_action Action. You can make t...",
+    "aliases": [],
+    "seeAlso": [
+      "attack",
+      "bonus_action Action"
+    ],
+    "filePath": "/data/glossary/entries/rules/nick.json"
   },
   {
     "id": "no_more_than_three_items",
@@ -3671,7 +4123,11 @@
     ],
     "excerpt": "While you're in an area of dim_light Light or darkness, you can cast invisibility on yourself without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "dim_light Light",
+      "darkness",
+      "invisibility"
+    ],
     "filePath": "/data/glossary/entries/rules/one_with_shadows.json"
   },
   {
@@ -3720,7 +4176,9 @@
     ],
     "excerpt": "You can cast jump on yourself without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "jump"
+    ],
     "filePath": "/data/glossary/entries/rules/otherworldly_leap.json"
   },
   {
@@ -3733,7 +4191,10 @@
     ],
     "excerpt": "As a bonus_action Action, you can conjure a pact weapon in your hand—a Simple or Martial Melee weapon of your choice with which you bond—or create a b...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action",
+      "spellcasting_focus Focus"
+    ],
     "filePath": "/data/glossary/entries/rules/pact_of_the_blade.json"
   },
   {
@@ -3746,7 +4207,12 @@
     ],
     "excerpt": "You learn the find_familiar Familiar spell and can cast it as a magic action without expending a spell slot. When you cast the spell, you choose one o...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "find_familiar Familiar",
+      "magic",
+      "attack",
+      "reaction"
+    ],
     "filePath": "/data/glossary/entries/rules/pact_of_the_chain.json"
   },
   {
@@ -3759,7 +4225,12 @@
     ],
     "excerpt": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a short_rest or long_rest Rest. This Book of Shadows (you de...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "short_rest",
+      "long_rest Rest",
+      "ritual",
+      "spellcasting_focus Focus"
+    ],
     "filePath": "/data/glossary/entries/rules/pact_of_the_tome.json"
   },
   {
@@ -3822,7 +4293,9 @@
     ],
     "excerpt": "When another creature damages you with a melee attack roll, you can take a reaction and expend one Superiority Die to reduce the damage by the number ...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "reaction"
+    ],
     "filePath": "/data/glossary/entries/rules/parry.json"
   },
   {
@@ -3931,6 +4404,28 @@
     "filePath": "/data/glossary/entries/rules/conditions/petrified_condition.json"
   },
   {
+    "id": "planar_effects",
+    "title": "Planar Effects",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Certain planes of existence—and areas on the Material Plane affected by them—have supernatural effects on creatures within them. Several examples are ...",
+    "aliases": [],
+    "seeAlso": [
+      "temporary_hit_points Hit Points",
+      "immunity",
+      "frightened",
+      "poisoned",
+      "bless",
+      "lesser_restoration Restoration",
+      "invisible",
+      "exhaustion"
+    ],
+    "filePath": "/data/glossary/entries/rules/planar_effects.json"
+  },
+  {
     "id": "player_character",
     "title": "Player Character",
     "category": "Rules Glossary",
@@ -4002,6 +4497,23 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/poisoners_kit.json"
+  },
+  {
+    "id": "poisonous_gas",
+    "title": "Poisonous Gas",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Poisonous gas is usually encountered in an enclosed space, such as a sewer or sealed tomb. The gas fills as much space as it can, up to a maximum of t...",
+    "aliases": [],
+    "seeAlso": [
+      "cube_area_of_effect",
+      "disadvantage",
+      "death_saving_throw Saving Throws"
+    ],
+    "filePath": "/data/glossary/entries/rules/poisonous_gas.json"
   },
   {
     "id": "poor_lifestyle",
@@ -4188,6 +4700,19 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_properties.json"
   },
   {
+    "id": "push",
+    "title": "Push",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If you hit a creature with this weapon, you can push the creature up to 10 feet straight away from yourself if it is Large or smaller....",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/push.json"
+  },
+  {
     "id": "pushing_attack",
     "title": "Pushing Attack",
     "category": "Rules Glossary",
@@ -4197,7 +4722,9 @@
     ],
     "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to drive the tar...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "unarmed_strike Strike"
+    ],
     "filePath": "/data/glossary/entries/rules/pushing_attack.json"
   },
   {
@@ -4210,8 +4737,42 @@
     ],
     "excerpt": "When you cast a spell that has a casting time of an action, you can spend 2 Sorcery Points to change the casting time to a bonus_action Action for thi...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action"
+    ],
     "filePath": "/data/glossary/entries/rules/quickened_spell.json"
+  },
+  {
+    "id": "quicksand_pit",
+    "title": "Quicksand Pit",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A quicksand pit is 10 feet deep and covers the ground in a 10-foot square. A creature that enters the area sinks 1d4 + 1 feet into the quicksand and h...",
+    "aliases": [],
+    "seeAlso": [
+      "restrained",
+      "athletics",
+      "blinded"
+    ],
+    "filePath": "/data/glossary/entries/rules/quicksand_pit.json"
+  },
+  {
+    "id": "r",
+    "title": "R",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Reach A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for opportunity_attack Attacks with it....",
+    "aliases": [],
+    "seeAlso": [
+      "opportunity_attack Attacks"
+    ],
+    "filePath": "/data/glossary/entries/rules/r.json"
   },
   {
     "id": "rally",
@@ -4223,7 +4784,10 @@
     ],
     "excerpt": "As a bonus_action Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "bonus_action Action",
+      "temporary_hit_points Hit Points"
+    ],
     "filePath": "/data/glossary/entries/rules/rally.json"
   },
   {
@@ -4245,6 +4809,21 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json"
+  },
+  {
+    "id": "razorvine",
+    "title": "Razorvine",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Razorvine is a plant that grows in wild tangles and hedges. It also clings to the sides of buildings and other surfaces as ivy does. A 10-foot-high, 1...",
+    "aliases": [],
+    "seeAlso": [
+      "immunity"
+    ],
+    "filePath": "/data/glossary/entries/rules/razorvine.json"
   },
   {
     "id": "reach",
@@ -4423,7 +5002,10 @@
     ],
     "excerpt": "When a creature misses you with a melee attack roll, you can take a reaction and expend one Superiority Die to make a melee attack roll with a weapon ...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "reaction",
+      "unarmed_strike Strike"
+    ],
     "filePath": "/data/glossary/entries/rules/riposte.json"
   },
   {
@@ -4438,6 +5020,58 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/ritual.json"
+  },
+  {
+    "id": "river_styx",
+    "title": "River Styx",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "The River Styx courses through the Lower Planes. Tasting or touching its waters can shatter a creature's intellect and personality, as well as strip a...",
+    "aliases": [],
+    "seeAlso": [
+      "magic",
+      "greater_restoration Restoration",
+      "heal",
+      "wish"
+    ],
+    "filePath": "/data/glossary/entries/rules/river_styx.json"
+  },
+  {
+    "id": "rld",
+    "title": "RLD",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Reload You can make a limited number of shots with a Reload weapon. You must then reload the weapon as an action or a bonus_action Action....",
+    "aliases": [],
+    "seeAlso": [
+      "bonus_action Action"
+    ],
+    "filePath": "/data/glossary/entries/rules/rld.json"
+  },
+  {
+    "id": "rockslide",
+    "title": "Rockslide",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "When a rockslide occurs, every creature in its path makes a DC 15 Dexterity saving throw. On a failed save, a creature takes 11 (2d10) Bludgeoning dam...",
+    "aliases": [],
+    "seeAlso": [
+      "prone",
+      "difficult_terrain Terrain",
+      "restrained",
+      "athletics",
+      "exhaustion"
+    ],
+    "filePath": "/data/glossary/entries/rules/rockslide.json"
   },
   {
     "id": "advantage_disadvantage_roll_two",
@@ -4481,6 +5115,21 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/mounts/saddles.json"
+  },
+  {
+    "id": "sap",
+    "title": "Sap",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If you hit a creature with this weapon, that creature has disadvantage on its next attack roll before the start of your next turn....",
+    "aliases": [],
+    "seeAlso": [
+      "disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/sap.json"
   },
   {
     "id": "save",
@@ -4723,6 +5372,37 @@
     "filePath": "/data/glossary/entries/rules/sleight_of_hand.json"
   },
   {
+    "id": "slippery_ice",
+    "title": "Slippery Ice",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Slippery ice is difficult_terrain Terrain. A creature that moves onto slippery ice for the first time on a turn or starts its turn there must succeed ...",
+    "aliases": [],
+    "seeAlso": [
+      "difficult_terrain Terrain",
+      "prone"
+    ],
+    "filePath": "/data/glossary/entries/rules/slippery_ice.json"
+  },
+  {
+    "id": "slow",
+    "title": "Slow",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If you hit a creature with this weapon and deal damage to it, you can reduce its speed by 10 feet until the start of your next turn. If the creature i...",
+    "aliases": [],
+    "seeAlso": [
+      "speed"
+    ],
+    "filePath": "/data/glossary/entries/rules/slow.json"
+  },
+  {
     "id": "smiths_tools",
     "title": "Smith's Tools",
     "category": "Rules Glossary",
@@ -4956,6 +5636,22 @@
     "filePath": "/data/glossary/entries/rules/strength.json"
   },
   {
+    "id": "strong_wind",
+    "title": "Strong Wind",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Strong wind imposes disadvantage on ranged attack rolls with weapons. It also extinguishes open flames and disperses fog. A flying creature in a stron...",
+    "aliases": [],
+    "seeAlso": [
+      "disadvantage",
+      "perception"
+    ],
+    "filePath": "/data/glossary/entries/rules/strong_wind.json"
+  },
+  {
     "id": "study",
     "title": "Study",
     "category": "Rules Glossary",
@@ -5044,7 +5740,9 @@
     ],
     "excerpt": "A creature can hold its breath for a number of minutes equal to 1 plus its Constitution modifier (minimum of 30 seconds) before suffocation begins. Wh...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "exhaustion"
+    ],
     "filePath": "/data/glossary/entries/rules/suffocation.json"
   },
   {
@@ -5089,7 +5787,9 @@
     ],
     "excerpt": "When you hit a creature with a melee attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to damage a...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "unarmed_strike Strike"
+    ],
     "filePath": "/data/glossary/entries/rules/sweeping_attack.json"
   },
   {
@@ -5132,6 +5832,19 @@
     "filePath": "/data/glossary/entries/rules/sylvan.json"
   },
   {
+    "id": "t",
+    "title": "T",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Thrown If a weapon has the Thrown property, you can throw the weapon to make a ranged attack, and you can draw that weapon as part of the attack. If t...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/t.json"
+  },
+  {
     "id": "tack_harness_vehicles",
     "title": "Tack, Harness, and Drawn Vehicles",
     "category": "Rules Glossary",
@@ -5151,7 +5864,11 @@
     ],
     "excerpt": "When you make an Intelligence (history or investigation) check or a Wisdom (insight) check, you can expend one Superiority Die and add that die to the...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "history",
+      "investigation",
+      "insight"
+    ],
     "filePath": "/data/glossary/entries/rules/tactical_assessment.json"
   },
   {
@@ -5249,6 +5966,19 @@
     "filePath": "/data/glossary/entries/rules/thieves_cant.json"
   },
   {
+    "id": "thin_ice",
+    "title": "Thin Ice",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Thin ice has a weight tolerance of 3d10 × 10 pounds per 10-foot-square area. Whenever the total weight on an area of thin ice exceeds its tolerance, t...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/thin_ice.json"
+  },
+  {
     "id": "thirsting_blade",
     "title": "Thirsting Blade",
     "category": "Rules Glossary",
@@ -5258,7 +5988,9 @@
     ],
     "excerpt": "You gain the Extra Attack feature for your pact weapon only. With that feature, you can attack twice with the weapon instead of once when you take the...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "attack"
+    ],
     "filePath": "/data/glossary/entries/rules/thirsting_blade.json"
   },
   {
@@ -5341,6 +6073,22 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools.json"
+  },
+  {
+    "id": "topple",
+    "title": "Topple",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make th...",
+    "aliases": [],
+    "seeAlso": [
+      "proficiency Bonus",
+      "prone"
+    ],
+    "filePath": "/data/glossary/entries/rules/topple.json"
   },
   {
     "id": "total_cover",
@@ -5450,7 +6198,10 @@
     ],
     "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die and add the die to the atta...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "unarmed_strike Strike",
+      "prone"
+    ],
     "filePath": "/data/glossary/entries/rules/trip_attack.json"
   },
   {
@@ -5463,7 +6214,11 @@
     ],
     "excerpt": "If you have Truesight, your vision is enhanced within a specified range. Within that range, your vision pierces through the following: - Darkness: You...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "darkness",
+      "invisible",
+      "saving_throw throws"
+    ],
     "filePath": "/data/glossary/entries/rules/truesight.json"
   },
   {
@@ -5476,7 +6231,9 @@
     ],
     "excerpt": "When you cast a spell, such as charm_person Person, that can be cast with a higher-level spell slot to target an additional creature, you can spend 1 ...",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "charm_person Person"
+    ],
     "filePath": "/data/glossary/entries/rules/twinned_spell.json"
   },
   {
@@ -5598,6 +6355,19 @@
     "filePath": "/data/glossary/entries/rules/utilize_action.json"
   },
   {
+    "id": "v",
+    "title": "V",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemProperty"
+    ],
+    "excerpt": "Versatile A Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/v.json"
+  },
+  {
     "id": "vehicles",
     "title": "Vehicles",
     "category": "Rules Glossary",
@@ -5616,6 +6386,39 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/versatile.json"
+  },
+  {
+    "id": "vex",
+    "title": "Vex",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "itemMastery"
+    ],
+    "excerpt": "If you hit a creature with this weapon and deal damage to the creature, you have advantage on your next attack roll against that creature before the e...",
+    "aliases": [],
+    "seeAlso": [
+      "advantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/vex.json"
+  },
+  {
+    "id": "vicious_vine",
+    "title": "Vicious Vine",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Vicious vines are animated by magic. They often cling to doorways, archways, walls, and statuary. Until a vicious vine moves, there's nothing to disti...",
+    "aliases": [],
+    "seeAlso": [
+      "grappled",
+      "influence",
+      "speak_with_plants with Plants",
+      "persuasion"
+    ],
+    "filePath": "/data/glossary/entries/rules/vicious_vine.json"
   },
   {
     "id": "vision",
@@ -5660,7 +6463,9 @@
     ],
     "excerpt": "You can cast arcane_eye Eye without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "arcane_eye Eye"
+    ],
     "filePath": "/data/glossary/entries/rules/visions_of_distant_realms.json"
   },
   {
@@ -5753,6 +6558,25 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/weavers_tools.json"
   },
   {
+    "id": "webs",
+    "title": "Webs",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Giant spiders weave thick, sticky webs across passages and at the bottom of pits to snare prey. These web-filled areas are difficult_terrain Terrain. ...",
+    "aliases": [],
+    "seeAlso": [
+      "difficult_terrain Terrain",
+      "restrained",
+      "athletics",
+      "acrobatics",
+      "cube_area_of_effect"
+    ],
+    "filePath": "/data/glossary/entries/rules/webs.json"
+  },
+  {
     "id": "what_is_an_object",
     "title": "What is an Object?",
     "category": "Rules Glossary",
@@ -5776,8 +6600,23 @@
     ],
     "excerpt": "You can cast speak_with_dead with Dead without expending a spell slot....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "speak_with_dead with Dead"
+    ],
     "filePath": "/data/glossary/entries/rules/whispers_of_the_grave.json"
+  },
+  {
+    "id": "wild_magic_zone",
+    "title": "Wild Magic Zone",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "A past magical disaster or uncontrolled surge of power in a particular place can cause the fabric of magic to unravel, creating a wild magic zone. In ...",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/wild_magic_zone.json"
   },
   {
     "id": "wisdom",
@@ -5809,7 +6648,9 @@
     ],
     "excerpt": "You have truesight with a range of 30 feet....",
     "aliases": [],
-    "seeAlso": [],
+    "seeAlso": [
+      "truesight"
+    ],
     "filePath": "/data/glossary/entries/rules/witch_sight.json"
   },
   {
@@ -5831,5 +6672,21 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/wretched_lifestyle.json"
+  },
+  {
+    "id": "yellow_mold",
+    "title": "Yellow Mold",
+    "category": "Rules Glossary",
+    "tags": [
+      "source:xphb",
+      "hazard"
+    ],
+    "excerpt": "Yellow mold grows in dark places, and one patch covers a 5-foot square. If touched, the mold ejects a cloud of spores that fills a 10-foot cube_area_o...",
+    "aliases": [],
+    "seeAlso": [
+      "cube_area_of_effect",
+      "poisoned"
+    ],
+    "filePath": "/data/glossary/entries/rules/yellow_mold.json"
   }
 ]

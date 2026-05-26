@@ -1,0 +1,19 @@
+{
+  "id": "boots_of_false_tracks",
+  "title": "Boots of False Tracks",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While wearing these boots, you can have them leave tracks like those of any kind of Humanoid of your size....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/boots_of_false_tracks.json",
+  "markdown": "# Boots of False Tracks\n\nWhile wearing these boots, you can have them leave tracks like those of any kind of Humanoid of your size.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

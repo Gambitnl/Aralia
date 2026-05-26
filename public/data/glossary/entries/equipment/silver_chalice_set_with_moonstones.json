@@ -1,0 +1,20 @@
+{
+  "id": "silver_chalice_set_with_moonstones",
+  "title": "Silver chalice set with moonstones",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/silver_chalice_set_with_moonstones.json",
+  "markdown": "# Silver chalice set with moonstones\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 750
+  }
+}

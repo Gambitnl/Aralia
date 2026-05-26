@@ -1,0 +1,27 @@
+{
+  "id": "automatic_rifle",
+  "title": "Automatic Rifle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ranged Weapon"
+  ],
+  "excerpt": "R...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/automatic_rifle.json",
+  "markdown": "# Automatic Rifle\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "weight": 8,
+    "damage": "2d8 P",
+    "properties": [
+      "AF|XDMG",
+      "BF|XDMG",
+      "RLD|XDMG",
+      "2H|XPHB"
+    ]
+  }
+}

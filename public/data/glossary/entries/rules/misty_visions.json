@@ -8,7 +8,9 @@
   ],
   "excerpt": "You can cast silent_image Image without expending a spell slot....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "silent_image Image"
+  ],
   "filePath": "/data/glossary/entries/rules/misty_visions.json",
   "markdown": "# Misty Visions\n\nYou can cast [[silent_image Image]] without expending a spell slot."
 }

@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you can cast the level 3 version of the animal_friendship Friendship spell (save DC 13). ...",
+  "excerpt": "When you drink this potion, you can cast the level 3 version of the animal_friendship Friendship spell (save DC 13). Agitating this potion's muddy liq...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "animal_friendship Friendship"
+  ],
   "filePath": "/data/glossary/entries/equipment/potion_of_animal_friendship.json",
-  "markdown": "# Potion of Animal Friendship\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you can cast the level 3 version of the [[animal_friendship Friendship]] spell (save DC 13).\n\nAgitating this potion's muddy liquid brings little bits into view: a fish scale, a hummingbird feather, a cat claw, or a squirrel hair."
+  "markdown": "# Potion of Animal Friendship\n\nWhen you drink this potion, you can cast the level 3 version of the [[animal_friendship Friendship]] spell (save DC 13).\n\nAgitating this potion's muddy liquid brings little bits into view: a fish scale, a hummingbird feather, a cat claw, or a squirrel hair.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Uncommon",
+    "weight": 0.5
+  }
 }

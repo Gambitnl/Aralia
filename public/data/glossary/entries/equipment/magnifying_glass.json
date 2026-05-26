@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 100 gp A Magnifying Glass grants advantage on any ability check made to appraise or inspect a highly detailed item. Lighting a ...",
+  "excerpt": "A Magnifying Glass grants advantage on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass r...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/equipment/magnifying_glass.json",
-  "markdown": "# Magnifying Glass\n\n- **Type**: G|XPHB\n- **Cost**: 100 gp\n\nA Magnifying Glass grants [[advantage]] on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass requires light as bright as sunlight to focus, tinder to ignite, and about 5 minutes for the fire to ignite."
+  "markdown": "# Magnifying Glass\n\nA Magnifying Glass grants [[advantage]] on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass requires light as bright as sunlight to focus, tinder to ignite, and about 5 minutes for the fire to ignite.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 100
+  }
 }

@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this belt, you gain the following benefits: - Dwarvish: You know Dwarvish. - Friend of Dwarvenkind: You have advantage on Charisma (pers...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "persuasion",
+    "darkvision",
+    "resistance",
+    "poisoned"
+  ],
   "filePath": "/data/glossary/entries/equipment/belt_of_dwarvenkind.json",
-  "markdown": "# Belt of Dwarvenkind\n\nWhile wearing this belt, you gain the following benefits:\n\n- **Dwarvish:** You know Dwarvish.\n- **Friend of Dwarvenkind:** You have [[advantage]] on Charisma ([[persuasion]]) checks made to interact with dwarves and duergar.\n- **Toughness:** Your Constitution increases by 2, to a maximum of 20. In addition, while attuned to the belt, you have a 50 chance each day at dawn of growing a full beard if you can grow one, or a thicker beard if you already have one. If you aren't a dwarf or duergar, you gain the following additional benefits while wearing the belt:\n- **Darkvision:** You have [[darkvision]] with a range of 60 feet.\n- **Resilience:** You have [[resistance]] to Poison damage. You also have [[advantage]] on saving throws you make to avoid or end the [[poisoned]] condition."
+  "markdown": "# Belt of Dwarvenkind\n\nWhile wearing this belt, you gain the following benefits:\n\n- **Dwarvish:** You know Dwarvish.\n- **Friend of Dwarvenkind:** You have [[advantage]] on Charisma ([[persuasion]]) checks made to interact with dwarves and duergar.\n- **Toughness:** Your Constitution increases by 2, to a maximum of 20. In addition, while attuned to the belt, you have a 50% chance each day at dawn of growing a full beard if you can grow one, or a thicker beard if you already have one. If you aren't a dwarf or duergar, you gain the following additional benefits while wearing the belt:\n- **Darkvision:** You have [[darkvision]] with a range of 60 feet.\n- **Resilience:** You have [[resistance]] to Poison damage. You also have [[advantage]] on saving throws you make to avoid or end the [[poisoned]] condition.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

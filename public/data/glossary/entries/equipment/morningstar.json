@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 15 gp - Weight: 4 lb. - Damage: 1d8 P...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/morningstar.json",
-  "markdown": "# Morningstar\n\n- **Type**: M|XPHB\n- **Cost**: 15 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d8 P\n\n"
+  "markdown": "# Morningstar\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 15,
+    "weight": 4,
+    "damage": "1d8 P"
+  }
 }

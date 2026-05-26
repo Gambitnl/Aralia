@@ -1,0 +1,20 @@
+{
+  "id": "alexandrite",
+  "title": "Alexandrite",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A dark green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/alexandrite.json",
+  "markdown": "# Alexandrite\n\nA dark green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 500
+  }
+}

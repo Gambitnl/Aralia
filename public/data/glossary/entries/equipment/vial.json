@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 1 gp A Vial holds up to 4 ounces....",
+  "excerpt": "A Vial holds up to 4 ounces....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/vial.json",
-  "markdown": "# Vial\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n\nA Vial holds up to 4 ounces."
+  "markdown": "# Vial\n\nA Vial holds up to 4 ounces.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1
+  }
 }

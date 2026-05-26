@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ranged Weapon"
   ],
-  "excerpt": "- Type: R|XPHB - Cost: 75 gp - Weight: 3 lb. - Damage: 1d6 P - Properties: A|XPHB, L|XPHB, LD|XPHB...",
+  "excerpt": "R...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/hand_crossbow.json",
-  "markdown": "# Hand Crossbow\n\n- **Type**: R|XPHB\n- **Cost**: 75 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d6 P\n- **Properties**: A|XPHB, L|XPHB, LD|XPHB\n\n"
+  "markdown": "# Hand Crossbow\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "cost": 75,
+    "weight": 3,
+    "damage": "1d6 P",
+    "properties": [
+      "A|XPHB",
+      "L|XPHB",
+      "LD|XPHB"
+    ]
+  }
 }

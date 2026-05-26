@@ -1,0 +1,21 @@
+{
+  "id": "cinnamon",
+  "title": "Cinnamon",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cinnamon.json",
+  "markdown": "# Cinnamon\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 2,
+    "weight": 1
+  }
+}

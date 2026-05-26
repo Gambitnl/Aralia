@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain the \"reduce\" effect of the enlarge_reduce/Reduce spell for 1d4 hours (no Concent...",
+  "excerpt": "When you drink this potion, you gain the \"reduce\" effect of the enlarge_reduce/Reduce spell for 1d4 hours (no Concentration required). The red in the ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "enlarge_reduce/Reduce"
+  ],
   "filePath": "/data/glossary/entries/equipment/potion_of_diminution.json",
-  "markdown": "# Potion of Diminution\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain the \"reduce\" effect of the [[enlarge_reduce/Reduce]] spell for 1d4 hours (no Concentration required).\n\nThe red in the potion's liquid continuously contracts to a tiny bead and then expands to color the clear liquid around it. Shaking the bottle fails to interrupt this process."
+  "markdown": "# Potion of Diminution\n\nWhen you drink this potion, you gain the \"reduce\" effect of the [[enlarge_reduce/Reduce]] spell for 1d4 hours (no Concentration required).\n\nThe red in the potion's liquid continuously contracts to a tiny bead and then expands to color the clear liquid around it. Shaking the bottle fails to interrupt this process.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Rare",
+    "weight": 0.5
+  }
 }

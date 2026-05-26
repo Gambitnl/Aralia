@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 0.5 gp - Weight: 2 lb. - Damage: 1d6 P - Properties: T|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/javelin.json",
-  "markdown": "# Javelin\n\n- **Type**: M|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d6 P\n- **Properties**: T|XPHB\n\n"
+  "markdown": "# Javelin\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 0.5,
+    "weight": 2,
+    "damage": "1d6 P",
+    "properties": [
+      "T|XPHB"
+    ]
+  }
 }

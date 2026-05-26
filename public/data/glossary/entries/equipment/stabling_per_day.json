@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tack and Harness"
   ],
-  "excerpt": "- Type: TAH|XPHB - Cost: 0.05 gp...",
+  "excerpt": "TAH...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/stabling_per_day.json",
-  "markdown": "# Stabling (per day)\n\n- **Type**: TAH|XPHB\n- **Cost**: 0.05 gp\n\n"
+  "markdown": "# Stabling (per day)\n\n*TAH*\n",
+  "itemMetadata": {
+    "type": "Tack and Harness",
+    "rarity": "None",
+    "cost": 0.05
+  }
 }

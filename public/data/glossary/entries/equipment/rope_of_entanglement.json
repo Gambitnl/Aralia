@@ -4,11 +4,26 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "This rope is 30 feet long. While holding one end of the rope, you can take a magic action to command the other end to dart forward and entangle one cr...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "restrained",
+    "bonus_action Action",
+    "athletics",
+    "acrobatics",
+    "reaction",
+    "immunity",
+    "hit_points Point",
+    "hit_points Points"
+  ],
   "filePath": "/data/glossary/entries/equipment/rope_of_entanglement.json",
-  "markdown": "# Rope of Entanglement\n\nThis rope is 30 feet long. While holding one end of the rope, you can take a [[magic]] action to command the other end to dart forward and entangle one creature you can see within 20 feet of yourself. The target must succeed on a DC 15 Dexterity saving throw or have the [[restrained]] condition. You can release the target by letting go of your end of the rope (causing the rope to coil up in the target's space) or by using a [[bonus_action Action]] to repeat the command (causing the rope to coil up in your hand).\n\nA target [[restrained]] by the rope can take an action to make its choice of a DC 15 Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check. On a successful check, the target is no longer [[restrained]] by the rope. If you're still holding onto the rope when a target escapes from it, you can take a [[reaction]] to command the rope to coil up in your hand; otherwise, the rope coils up in the target's space.\n\nThe rope has AC 20, HP 20, and [[immunity]] to Poison and Psychic damage. It regains 1 [[hit_points Point]] every 5 minutes as long as it has at least 1 [[hit_points Point]]. If the rope drops to 0 [[hit_points Points]], it is destroyed."
+  "markdown": "# Rope of Entanglement\n\nThis rope is 30 feet long. While holding one end of the rope, you can take a [[magic]] action to command the other end to dart forward and entangle one creature you can see within 20 feet of yourself. The target must succeed on a DC 15 Dexterity saving throw or have the [[restrained]] condition. You can release the target by letting go of your end of the rope (causing the rope to coil up in the target's space) or by using a [[bonus_action Action]] to repeat the command (causing the rope to coil up in your hand).\n\nA target [[restrained]] by the rope can take an action to make its choice of a DC 15 Strength ([[athletics]]) or Dexterity ([[acrobatics]]) check. On a successful check, the target is no longer [[restrained]] by the rope. If you're still holding onto the rope when a target escapes from it, you can take a [[reaction]] to command the rope to coil up in your hand; otherwise, the rope coils up in the target's space.\n\nThe rope has AC 20, HP 20, and [[immunity]] to Poison and Psychic damage. It regains 1 [[hit_points Point]] every 5 minutes as long as it has at least 1 [[hit_points Point]]. If the rope drops to 0 [[hit_points Points]], it is destroyed.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare"
+  }
 }

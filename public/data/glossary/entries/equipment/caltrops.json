@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 2 lb. As a utilize action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of...",
+  "excerpt": "As a utilize action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize",
+    "speed"
+  ],
   "filePath": "/data/glossary/entries/equipment/caltrops.json",
-  "markdown": "# Caltrops\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 2 lb.\n\nAs a [[utilize]] action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 15 Dexterity saving throw or take 1 Piercing damage and have its [[speed]] reduced to 0 until the start of its next turn. It takes 10 minutes to recover the Caltrops."
+  "markdown": "# Caltrops\n\nAs a [[utilize]] action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 15 Dexterity saving throw or take 1 Piercing damage and have its [[speed]] reduced to 0 until the start of its next turn. It takes 10 minutes to recover the Caltrops.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 2
+  }
 }

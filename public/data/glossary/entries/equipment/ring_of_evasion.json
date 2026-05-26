@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the r...",
+  "excerpt": "This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the ring, you can tak...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "reaction"
+  ],
   "filePath": "/data/glossary/entries/equipment/ring_of_evasion.json",
-  "markdown": "# Ring of Evasion\n\n- **Type**: RG|XDMG\n\nThis ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the ring, you can take a [[reaction]] to expend 1 charge to succeed on that save instead."
+  "markdown": "# Ring of Evasion\n\nThis ring has 3 charges, and it regains 1d3 expended charges daily at dawn. When you fail a Dexterity saving throw while wearing the ring, you can take a [[reaction]] to expend 1 charge to succeed on that save instead.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

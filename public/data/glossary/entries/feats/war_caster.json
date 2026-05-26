@@ -8,7 +8,12 @@
   ],
   "excerpt": "You gain the following benefits.  Concentration You have advantage on Constitution saving throws that you make to maintain Concentration.  Reactive Sp...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "opportunity_attack Attack",
+    "reaction",
+    "shield"
+  ],
   "filePath": "/data/glossary/entries/feats/war_caster.json",
   "markdown": "# War Caster\n\nYou gain the following benefits.\n\n## Concentration\n\nYou have [[advantage]] on Constitution saving throws that you make to maintain Concentration.\n\n## Reactive Spell\n\nWhen a creature provokes an [[opportunity_attack Attack]] from you by leaving your reach, you can take a [[reaction]] to cast a spell at the creature rather than making an [[opportunity_attack Attack]]. The spell must have a casting time of one action and must target only that creature.\n\n## Somatic Components\n\nYou can perform the Somatic components of spells even when you have weapons or a [[shield]] in one or both hands."
 }

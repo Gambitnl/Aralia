@@ -199,65 +199,165 @@ const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
   }
 
   // ---- Per-terrain-type color functions ----
+  //
+  // Each function uses a 3-scale hierarchy so terrain reads as landscape,
+  // not math noise:
+  //   macro  (freq 0.15–0.35): 3–7 tile patches — regional color zones
+  //   mid    (freq 0.6–1.5):   0.7–1.7 tile blending — sub-biome variation
+  //   micro  (freq 5–10):      surface grain — very subtle, ±0.04 at most
+  //
+  // wXZ = vTerrainWorldPos.xz where 1 unit = 1 tile.
 
   vec3 getGrassColor(vec2 wXZ) {
-    float n1 = fbm4(wXZ * 4.0);
-    float n2 = fbm4(wXZ * 5.6 + vec2(5.7, 3.2));
-    float detail = n1 * 0.3 + n2 * 0.15;
-    vec3 c = mix(vec3(0.10, 0.20, 0.05), vec3(0.25, 0.42, 0.16), detail + 0.55);
-    // Dirt patches
-    float dp = smoothstep(0.42, 0.58, fbm4(wXZ * 1.5 + vec2(42.0, 17.0)));
-    c = mix(c, vec3(0.30, 0.24, 0.14), dp * 0.35);
-    // Fine grain
-    c += vnoise(wXZ * 16.0) * 0.08 - 0.04;
-    return c;
+    // Macro: lush vs meadow vs dry-grass zones spanning several tiles
+    float macro = fbm4(wXZ * 0.20 + vec2(1.7, 3.1));
+    // Mid: local density/shade variation
+    float mid   = fbm4(wXZ * 0.85 + vec2(8.3, 2.4));
+    // Fine surface grain
+    float grain = vnoise(wXZ * 8.0);
+
+    vec3 lush  = vec3(0.09, 0.30, 0.07);  // deep forest floor green
+    vec3 field = vec3(0.20, 0.40, 0.13);  // open meadow green
+    vec3 faded = vec3(0.28, 0.38, 0.16);  // dry / sun-bleached
+
+    vec3 c = mix(lush, field, smoothstep(0.25, 0.65, macro));
+    c      = mix(c, faded,   smoothstep(0.58, 0.82, macro) * 0.65);
+
+    // Mid-scale brightening in open patches
+    c += vec3(0.0, 0.03, 0.0) * smoothstep(0.48, 0.72, mid);
+
+    // Dirt bare patches at medium-large scale (not sub-tile)
+    float dp = fbm4(wXZ * 0.42 + vec2(42.7, 17.3));
+    c = mix(c, vec3(0.28, 0.22, 0.12), smoothstep(0.60, 0.76, dp) * 0.42);
+
+    // Subtle grain
+    c += (grain - 0.5) * 0.05;
+    return clamp(c, 0.0, 1.0);
   }
 
   vec3 getRockColor(vec2 wXZ) {
-    float n = fbm4(wXZ * 3.6);
-    float crack = voronoi(wXZ * 4.5);
-    vec3 c = mix(vec3(0.25, 0.24, 0.22), vec3(0.50, 0.48, 0.44),
-                 n * 0.4 + crack * 0.35 + 0.35);
-    c *= 0.7 + 0.3 * smoothstep(0.0, 0.08, crack);
-    c += vec3(0.03, -0.01, -0.02) * fbm4(wXZ * 1.5 + vec2(11.0, 7.0));
-    return c;
+    // Macro: mineral zone variation (light granite vs dark basalt vs ochre)
+    float macro  = fbm4(wXZ * 0.18 + vec2(51.0, 17.3));
+    float mid    = fbm4(wXZ * 0.80 + vec2(7.0, 33.0));
+    // Visible crack structure at 1-tile and 0.3-tile scale
+    float crack  = voronoi(wXZ * 1.1);
+    float fine   = voronoi(wXZ * 3.2);
+
+    vec3 light = vec3(0.58, 0.55, 0.50);
+    vec3 dark  = vec3(0.24, 0.22, 0.20);
+    vec3 ochre = vec3(0.48, 0.38, 0.26);  // iron-oxide mineral stain
+
+    vec3 c = mix(dark, light, macro * 0.45 + 0.38);
+
+    // Crack darkening — large cracks clearly visible at viewing distance
+    c *= 0.55 + 0.45 * smoothstep(0.0, 0.18, crack);
+    // Fine surface cracks
+    c *= 0.88 + 0.12 * smoothstep(0.0, 0.08, fine);
+
+    // Ochre mineral staining in macro patches
+    float stain = smoothstep(0.62, 0.80, fbm4(wXZ * 0.28 + vec2(71.0, 59.0)));
+    c = mix(c, ochre, stain * 0.35);
+
+    c += (mid - 0.5) * 0.06;
+    return clamp(c, 0.0, 1.0);
   }
 
   vec3 getDirtColor(vec2 wXZ) {
-    float n = fbm4(wXZ * 3.15 + vec2(17.0, 23.0));
-    vec3 c = mix(vec3(0.20, 0.14, 0.07), vec3(0.42, 0.34, 0.22), n + 0.45);
-    c += vec3(0.05, 0.04, 0.02) * step(0.7, vnoise(wXZ * 12.0));
-    c += vnoise(wXZ * 20.0) * 0.06 - 0.03;
-    return c;
+    // Macro: wet dark soil vs dry pale earth zones
+    float macro = fbm4(wXZ * 0.22 + vec2(17.0, 23.0));
+    float mid   = fbm4(wXZ * 0.80 + vec2(43.0, 11.0));
+    float grain = vnoise(wXZ * 9.0);
+
+    vec3 wet  = vec3(0.16, 0.10, 0.05);  // dark wet soil
+    vec3 dryr = vec3(0.40, 0.30, 0.18);  // dry earth
+    vec3 clay = vec3(0.50, 0.38, 0.24);  // pale clay
+
+    vec3 c = mix(wet, dryr, smoothstep(0.28, 0.72, macro));
+
+    // Clay patches — mid-scale, not sub-tile
+    float clayPatch = smoothstep(0.58, 0.74, fbm4(wXZ * 0.38 + vec2(29.0, 53.0)));
+    c = mix(c, clay, clayPatch * 0.38);
+
+    // Pebble highlights — sparse bright specks at medium frequency
+    float pebble = step(0.86, vnoise(wXZ * 6.0));
+    c = mix(c, vec3(0.55, 0.50, 0.42), pebble * 0.55);
+
+    c += (grain - 0.5) * 0.04;
+    return clamp(c, 0.0, 1.0);
   }
 
   vec3 getSandColor(vec2 wXZ) {
-    float n = fbm4(wXZ * 1.5 + vec2(33.0, 41.0));
-    float ripple = sin(wXZ.x * 12.0 + wXZ.y * 4.0 + n * 3.0) * 0.5 + 0.5;
-    vec3 c = mix(vec3(0.70, 0.60, 0.38), vec3(0.85, 0.75, 0.52),
-                 n * 0.3 + ripple * 0.2 + 0.4);
-    c += vec3(0.05) * step(0.92, vnoise(wXZ * 30.0));
-    return c;
+    // Dune shape — elongated macro noise along X to simulate wind direction
+    float dune = fbm4(wXZ * vec2(0.14, 0.28) + vec2(33.0, 41.0));
+    float mid  = fbm4(wXZ * 0.55 + vec2(11.0, 7.0));
+    // Ripple: sine wave perpendicular to dune axis
+    float ripple = sin(wXZ.x * 6.0 + wXZ.y * 2.5 + dune * 4.5) * 0.5 + 0.5;
+
+    vec3 pale   = vec3(0.90, 0.82, 0.62);  // pale dune crest
+    vec3 medium = vec3(0.72, 0.60, 0.40);  // mid tone
+    vec3 shadow = vec3(0.54, 0.43, 0.27);  // shadow between dunes
+
+    vec3 c = mix(shadow, pale, smoothstep(0.28, 0.72, dune));
+    // Ripple brightening — visible but subtle
+    c += vec3(0.05, 0.04, 0.02) * ripple * 0.6;
+
+    // Occasional rusty-red iron patches
+    float red = smoothstep(0.64, 0.80, fbm4(wXZ * 0.22 + vec2(91.0, 37.0)));
+    c = mix(c, vec3(0.72, 0.48, 0.26), red * 0.28);
+
+    c += (mid - 0.5) * 0.04;
+    return clamp(c, 0.0, 1.0);
   }
 
   vec3 getWaterBedColor(vec2 wXZ) {
-    float n = fbm4(wXZ * 3.0 + vec2(7.0, 13.0));
-    return mix(vec3(0.08, 0.18, 0.25), vec3(0.12, 0.28, 0.35), n);
+    // Soft silt with pebble texture — mostly obscured by water above
+    float macro  = fbm4(wXZ * 0.45 + vec2(7.0, 13.0));
+    float pebble = voronoi(wXZ * 1.8);
+    vec3 silt = mix(vec3(0.08, 0.18, 0.26), vec3(0.14, 0.28, 0.36),
+                    macro * 0.5 + 0.35);
+    silt *= 0.78 + 0.22 * smoothstep(0.0, 0.14, pebble);
+    return clamp(silt, 0.0, 1.0);
   }
 
   vec3 getWallColor(vec2 wXZ) {
-    float n = fbm4(wXZ * 2.5 + vec2(71.0, 59.0));
-    float crack = voronoi(wXZ * 2.0);
-    return mix(vec3(0.18, 0.17, 0.16), vec3(0.38, 0.36, 0.34),
-               n * 0.35 + crack * 0.3 + 0.35);
+    // Large stone blocks at ~0.8 tile scale with visible mortar lines
+    float block  = voronoi(wXZ * 0.75);  // block cell boundaries
+    float fine   = voronoi(wXZ * 2.8);   // surface cracks within blocks
+    float macro  = fbm4(wXZ * 0.22 + vec2(71.0, 59.0));
+
+    vec3 stone = mix(vec3(0.22, 0.20, 0.18), vec3(0.44, 0.40, 0.36),
+                     macro * 0.45 + 0.40);
+
+    // Mortar lines: dark at block boundaries
+    stone *= 0.40 + 0.60 * smoothstep(0.0, 0.14, block);
+    // Fine crack darkening
+    stone *= 0.88 + 0.12 * smoothstep(0.0, 0.08, fine);
+
+    // Moss/damp staining concentrated at low block edges
+    float mossEdge = smoothstep(0.10, 0.22, 1.0 - block);
+    stone = mix(stone, vec3(0.18, 0.26, 0.16), mossEdge * 0.38);
+
+    return clamp(stone, 0.0, 1.0);
   }
 
   vec3 getFloorColor(vec2 wXZ) {
-    float n = fbm4(wXZ * 3.0 + vec2(51.0, 37.0));
-    float tileLine = step(0.03, fract(wXZ.x)) * step(0.03, fract(wXZ.y));
-    vec3 c = mix(vec3(0.32, 0.28, 0.24), vec3(0.48, 0.44, 0.38), n * 0.4 + 0.45);
-    c *= 0.85 + 0.15 * tileLine;
-    return c;
+    // Dungeon/indoor flagstone: 1-tile slab pattern with wear variation
+    float macro   = fbm4(wXZ * 0.25 + vec2(51.0, 37.0));
+    float mid     = fbm4(wXZ * 0.90 + vec2(13.0, 71.0));
+    // Grout lines between tiles
+    float grout = smoothstep(0.04, 0.09, fract(wXZ.x))
+                * smoothstep(0.04, 0.09, fract(wXZ.y));
+
+    vec3 slab = mix(vec3(0.30, 0.26, 0.22), vec3(0.50, 0.46, 0.40),
+                    macro * 0.45 + 0.40);
+    // Grout lines slightly darker
+    slab *= 0.75 + 0.25 * grout;
+
+    // Wear/scuff patches vary by mid noise
+    float wear = smoothstep(0.55, 0.72, 1.0 - mid);
+    slab = mix(slab, slab * 0.70, wear * 0.35);
+
+    return clamp(slab, 0.0, 1.0);
   }
 
   vec3 getTerrainColor(float idx, vec2 wXZ) {
@@ -381,6 +481,117 @@ function createTerrainMaterial(
 }
 
 // ---------------------------------------------------------------------------
+// Terrain skirt — vertical panels hanging from perimeter edges to hide void
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds a quad-strip geometry that seals the underside of the terrain.
+ *
+ * The main terrain mesh is a subdivided plane with per-vertex elevation. When
+ * you orbit the camera you can see the hollow underside where the mesh rises
+ * from sea level. This skirt hangs vertical panels from the four perimeter
+ * edges down to `SKIRT_BOTTOM_Y`, covering the gap.
+ *
+ * Elevation sampling uses the same bicubicSample + smoothNoise formula as the
+ * main geometry so the top edge of each skirt panel exactly matches the
+ * corresponding terrain vertex.
+ */
+
+const SKIRT_BOTTOM_Y = -1.0;
+
+function buildSkirtGeometry(
+  tileGrid: (BattleMapTile | null)[][],
+  width: number,
+  height: number,
+  seed: number,
+): THREE.BufferGeometry {
+  const getElevation = (tx: number, ty: number): number => {
+    const cx = Math.max(0, Math.min(width - 1, tx));
+    const cy = Math.max(0, Math.min(height - 1, ty));
+    return tileGrid[cy]?.[cx]?.elevation ?? 0;
+  };
+
+  /** Matches the exact Y formula used in the main geometry useMemo. */
+  const getVertexY = (tileX: number, tileZ: number): number => {
+    const smoothElev = bicubicSample(getElevation, tileX, tileZ, width, height);
+    const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
+    return smoothElev * ELEVATION_SCALE + noise * MICRO_NOISE_AMPLITUDE;
+  };
+
+  const segsX = width * SUBDIVISIONS_PER_TILE;
+  const segsZ = height * SUBDIVISIONS_PER_TILE;
+
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  /** Add a quad strip from an ordered list of top-edge points. Each pair of
+   *  adjacent points forms a quad down to SKIRT_BOTTOM_Y. */
+  function addStrip(pts: Array<[number, number, number]>) {
+    const base = positions.length / 3;
+    for (const [x, y, z] of pts) {
+      positions.push(x, y, z);               // top vertex
+      positions.push(x, SKIRT_BOTTOM_Y, z);  // bottom vertex
+    }
+    for (let i = 0; i < pts.length - 1; i++) {
+      const tl = base + i * 2;
+      const bl = base + i * 2 + 1;
+      const tr = base + (i + 1) * 2;
+      const br = base + (i + 1) * 2 + 1;
+      // DoubleSide material — winding order not critical, but keep consistent
+      indices.push(tl, bl, tr);
+      indices.push(bl, br, tr);
+    }
+  }
+
+  // North edge — z = 0, x from west to east
+  const northPts: Array<[number, number, number]> = [];
+  for (let i = 0; i <= segsX; i++) {
+    const tileX = i / SUBDIVISIONS_PER_TILE;
+    northPts.push([tileX * TILE_SIZE, getVertexY(tileX, 0), 0]);
+  }
+  addStrip(northPts);
+
+  // South edge — z = height, x from west to east
+  const southPts: Array<[number, number, number]> = [];
+  for (let i = 0; i <= segsX; i++) {
+    const tileX = i / SUBDIVISIONS_PER_TILE;
+    southPts.push([tileX * TILE_SIZE, getVertexY(tileX, height), height * TILE_SIZE]);
+  }
+  addStrip(southPts);
+
+  // West edge — x = 0, z from north to south
+  const westPts: Array<[number, number, number]> = [];
+  for (let j = 0; j <= segsZ; j++) {
+    const tileZ = j / SUBDIVISIONS_PER_TILE;
+    westPts.push([0, getVertexY(0, tileZ), tileZ * TILE_SIZE]);
+  }
+  addStrip(westPts);
+
+  // East edge — x = width, z from north to south
+  const eastPts: Array<[number, number, number]> = [];
+  for (let j = 0; j <= segsZ; j++) {
+    const tileZ = j / SUBDIVISIONS_PER_TILE;
+    eastPts.push([width * TILE_SIZE, getVertexY(width, tileZ), tileZ * TILE_SIZE]);
+  }
+  addStrip(eastPts);
+
+  // Bottom cap — thin horizontal plane at SKIRT_BOTTOM_Y sealing the base
+  const capBase = positions.length / 3;
+  positions.push(0,                  SKIRT_BOTTOM_Y, 0);
+  positions.push(width * TILE_SIZE,  SKIRT_BOTTOM_Y, 0);
+  positions.push(0,                  SKIRT_BOTTOM_Y, height * TILE_SIZE);
+  positions.push(width * TILE_SIZE,  SKIRT_BOTTOM_Y, height * TILE_SIZE);
+  indices.push(capBase, capBase + 2, capBase + 1);
+  indices.push(capBase + 2, capBase + 3, capBase + 1);
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -475,9 +686,28 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     [terrainTypeTex, width, height, mapData.seed],
   );
 
+  // Skirt geometry — vertical panels sealing terrain perimeter edges
+  const skirtGeometry = useMemo(
+    () => buildSkirtGeometry(tileGrid, width, height, mapData.seed ?? 42),
+    [tileGrid, width, height, mapData.seed],
+  );
+
+  // Skirt material — solid earth/stone, DoubleSide to avoid winding issues
+  const skirtMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({
+      color: 0x2a1e12,
+      roughness: 0.95,
+      metalness: 0.0,
+      side: THREE.DoubleSide,
+    }),
+    [],
+  );
+
   // Dispose GPU resources on change/unmount
   useEffect(() => () => { terrainTypeTex.dispose(); }, [terrainTypeTex]);
   useEffect(() => () => { material.dispose(); }, [material]);
+  useEffect(() => () => { skirtGeometry.dispose(); }, [skirtGeometry]);
+  useEffect(() => () => { skirtMaterial.dispose(); }, [skirtMaterial]);
 
   // Active path set for quick lookup
   const activePathSet = useMemo(() => {
@@ -501,18 +731,22 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   }, [mapData, onTileClick]);
 
   return (
-    <mesh
-      ref={meshRef}
-      geometry={geometry}
-      material={material}
-      receiveShadow
-      onClick={(e: ThreeEvent<MouseEvent>) => {
-        e.stopPropagation();
-        if (e.intersections[0]) {
-          handleClick(e.intersections[0]);
-        }
-      }}
-    />
+    <>
+      <mesh
+        ref={meshRef}
+        geometry={geometry}
+        material={material}
+        receiveShadow
+        onClick={(e: ThreeEvent<MouseEvent>) => {
+          e.stopPropagation();
+          if (e.intersections[0]) {
+            handleClick(e.intersections[0]);
+          }
+        }}
+      />
+      {/* Skirt — seals the underside visible when orbiting around map edges */}
+      <mesh geometry={skirtGeometry} material={skirtMaterial} receiveShadow />
+    </>
   );
 };
 

@@ -50,7 +50,7 @@ import {
   RacialSpellGrant,
 } from '../../types';
 import { RacialFeatureTrait, RacialResourceMechanic } from '../../data/races/racialTraits';
-import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, RACE_TRAIT_LIBRARY } from '../../data/races';
+import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, getRacialTraitLibrary } from '../../data/races';
 import { CLASSES_DATA } from '../../data/classes';
 import { SKILLS_DATA } from '../../data/skills';
 
@@ -185,7 +185,7 @@ export const getRacialSpellGrantsForCharacter = (
   // 2. Gather library grants for all matching IDs
   const libraryGrants: RacialSpellGrant[] = [];
   queryIds.forEach(id => {
-    const grants = RACE_TRAIT_LIBRARY.byRaceId[id];
+    const grants = getRacialTraitLibrary().byRaceId[id];
     if (grants) {
       grants.forEach(grant => {
         if (grant.type === 'spell') {
@@ -748,7 +748,7 @@ const getActiveRacialFeatureTraitsForCharacter = (
 ): RacialFeatureTrait[] => {
   const seen = new Set<string>();
   const traits = getRacialSelectionIdsForCharacter(character).flatMap(
-    id => RACE_TRAIT_LIBRARY.byRaceId[id] ?? []
+    id => getRacialTraitLibrary().byRaceId[id] ?? []
   );
 
   const active = traits.filter((trait): trait is RacialFeatureTrait =>

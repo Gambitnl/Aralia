@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "You have advantage on saving throws against spells while you wear this cloak....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/equipment/mantle_of_spell_resistance.json",
-  "markdown": "# Mantle of Spell Resistance\n\nYou have [[advantage]] on saving throws against spells while you wear this cloak."
+  "markdown": "# Mantle of Spell Resistance\n\nYou have [[advantage]] on saving throws against spells while you wear this cloak.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

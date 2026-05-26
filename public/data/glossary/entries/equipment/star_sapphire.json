@@ -1,0 +1,20 @@
+{
+  "id": "star_sapphire",
+  "title": "Star Sapphire",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A blue sapphire with white star-shaped center gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/star_sapphire.json",
+  "markdown": "# Star Sapphire\n\nA blue sapphire with white star-shaped center gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 1000
+  }
+}

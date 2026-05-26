@@ -1,0 +1,20 @@
+{
+  "id": "blue_quartz",
+  "title": "Blue Quartz",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A pale blue gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/blue_quartz.json",
+  "markdown": "# Blue Quartz\n\nA pale blue gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

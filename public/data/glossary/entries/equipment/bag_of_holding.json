@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
-  "excerpt": "- Weight: 5 lb. This bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. Th...",
+  "excerpt": "This bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. The bag can hold u...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize",
+    "heward_s_handy_haversack's Handy Haversack",
+    "sphere_area_of_effect"
+  ],
   "filePath": "/data/glossary/entries/equipment/bag_of_holding.json",
-  "markdown": "# Bag of Holding\n\n- **Weight**: 5 lb.\n\nThis bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. The bag can hold up to 500 pounds, not exceeding a volume of 64 cubic feet. The bag weighs 5 pounds, regardless of its contents. Retrieving an item from the bag requires a [[utilize]] action.\n\nIf the bag is overloaded, pierced, or torn, it is destroyed, and its contents are scattered in the Astral Plane. If the bag is turned inside out, its contents spill forth unharmed, but the bag must be put right before it can be used again. The bag holds enough air for 10 minutes of breathing, divided by the number of breathing creatures inside.\n\nPlacing a Bag of Holding inside an extradimensional space created by a [[heward_s_handy_haversack's Handy Haversack]], Portable Hole, or similar item instantly destroys both items and opens a gate to the Astral Plane. The gate originates where the one item was placed inside the other. Any creature within a 10-foot-radius [[sphere_area_of_effect]] centered on the gate is sucked through it to a random location on the Astral Plane. The gate then closes. The gate is one-way and can't be reopened."
+  "markdown": "# Bag of Holding\n\nThis bag has an interior space considerably larger than its outside dimensions—roughly 2 feet square and 4 feet deep on the inside. The bag can hold up to 500 pounds, not exceeding a volume of 64 cubic feet. The bag weighs 5 pounds, regardless of its contents. Retrieving an item from the bag requires a [[utilize]] action.\n\nIf the bag is overloaded, pierced, or torn, it is destroyed, and its contents are scattered in the Astral Plane. If the bag is turned inside out, its contents spill forth unharmed, but the bag must be put right before it can be used again. The bag holds enough air for 10 minutes of breathing, divided by the number of breathing creatures inside.\n\nPlacing a Bag of Holding inside an extradimensional space created by a [[heward_s_handy_haversack's Handy Haversack]], Portable Hole, or similar item instantly destroys both items and opens a gate to the Astral Plane. The gate originates where the one item was placed inside the other. Any creature within a 10-foot-radius [[sphere_area_of_effect]] centered on the gate is sucked through it to a random location on the Astral Plane. The gate then closes. The gate is one-way and can't be reopened.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "weight": 5
+  }
 }

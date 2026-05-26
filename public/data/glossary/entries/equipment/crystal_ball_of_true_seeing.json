@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
-  "excerpt": "- Weight: 3 lb. While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you have truesight with a range of 120 feet c...",
+  "excerpt": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you have truesight with a range of 120 feet centered on the s...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "scrying",
+    "truesight"
+  ],
   "filePath": "/data/glossary/entries/equipment/crystal_ball_of_true_seeing.json",
-  "markdown": "# Crystal Ball of True Seeing\n\n- **Weight**: 3 lb.\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you have [[truesight]] with a range of 120 feet centered on the spell's sensor."
+  "markdown": "# Crystal Ball of True Seeing\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you have [[truesight]] with a range of 120 feet centered on the spell's sensor.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Legendary",
+    "reqAttune": "Required",
+    "weight": 3
+  }
 }

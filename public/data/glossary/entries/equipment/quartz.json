@@ -1,0 +1,20 @@
+{
+  "id": "quartz",
+  "title": "Quartz",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A white, smoky gray, or yellow gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/quartz.json",
+  "markdown": "# Quartz\n\nA white, smoky gray, or yellow gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 50
+  }
+}

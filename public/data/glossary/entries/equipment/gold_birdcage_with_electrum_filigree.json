@@ -1,0 +1,20 @@
+{
+  "id": "gold_birdcage_with_electrum_filigree",
+  "title": "Gold birdcage with electrum filigree",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/gold_birdcage_with_electrum_filigree.json",
+  "markdown": "# Gold birdcage with electrum filigree\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 250
+  }
+}

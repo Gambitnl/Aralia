@@ -1,0 +1,20 @@
+{
+  "id": "topaz",
+  "title": "Topaz",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A golden yellow gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/topaz.json",
+  "markdown": "# Topaz\n\nA golden yellow gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 500
+  }
+}

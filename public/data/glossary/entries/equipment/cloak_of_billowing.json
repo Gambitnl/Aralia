@@ -1,0 +1,21 @@
+{
+  "id": "cloak_of_billowing",
+  "title": "Cloak of Billowing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While wearing this cloak, you can take a bonus_action Action to make it billow dramatically for 1 minute....",
+  "aliases": [],
+  "seeAlso": [
+    "bonus_action Action"
+  ],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_billowing.json",
+  "markdown": "# Cloak of Billowing\n\nWhile wearing this cloak, you can take a [[bonus_action Action]] to make it billow dramatically for 1 minute.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

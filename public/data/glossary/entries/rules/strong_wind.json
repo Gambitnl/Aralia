@@ -1,0 +1,17 @@
+{
+  "id": "strong_wind",
+  "title": "Strong Wind",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "Strong wind imposes disadvantage on ranged attack rolls with weapons. It also extinguishes open flames and disperses fog. A flying creature in a stron...",
+  "aliases": [],
+  "seeAlso": [
+    "disadvantage",
+    "perception"
+  ],
+  "filePath": "/data/glossary/entries/rules/strong_wind.json",
+  "markdown": "# Strong Wind\n\nStrong wind imposes [[disadvantage]] on ranged attack rolls with weapons. It also extinguishes open flames and disperses fog. A flying creature in a strong wind must land at the end of its turn or fall.\n\nA strong wind in a desert can create a sandstorm that imposes Disadvantage on Wisdom ([[perception]]) checks."
+}

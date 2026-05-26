@@ -1,0 +1,20 @@
+{
+  "id": "black_opal",
+  "title": "Black Opal",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A dark green with black mottling and golden flecks gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/black_opal.json",
+  "markdown": "# Black Opal\n\nA dark green with black mottling and golden flecks gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 1000
+  }
+}

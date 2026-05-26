@@ -1,0 +1,22 @@
+{
+  "id": "pale_tincture",
+  "title": "Pale Tincture",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Pale Tincture must succeed on a DC 16 Constitution saving throw or take 3 (1d6) Poison damage and have the poisoned condition....",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned"
+  ],
+  "filePath": "/data/glossary/entries/equipment/pale_tincture.json",
+  "markdown": "# Pale Tincture\n\nA creature subjected to Pale Tincture must succeed on a DC 16 Constitution saving throw or take 3 (1d6) Poison damage and have the [[poisoned]] condition. The [[poisoned]] creature repeats the save every 24 hours, taking 3 (1d6) Poison damage on a failed save. The damage the poison deals can't be healed by any means while the creature remains [[poisoned]]. After seven successful saves against the poison, the creature is no longer [[poisoned]].",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 250
+  }
+}

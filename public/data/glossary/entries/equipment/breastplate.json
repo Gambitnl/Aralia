@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Medium Armor"
   ],
-  "excerpt": "- Type: MA|XPHB - Cost: 400 gp - Weight: 20 lb. - Armor Class: 14...",
+  "excerpt": "MA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/breastplate.json",
-  "markdown": "# Breastplate\n\n- **Type**: MA|XPHB\n- **Cost**: 400 gp\n- **Weight**: 20 lb.\n- **Armor Class**: 14\n\n"
+  "markdown": "# Breastplate\n\n*MA*\n",
+  "itemMetadata": {
+    "type": "Medium Armor",
+    "rarity": "None",
+    "cost": 400,
+    "weight": 20,
+    "ac": 14
+  }
 }

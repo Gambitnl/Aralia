@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Heavy Armor"
   ],
-  "excerpt": "- Type: HA|XPHB - Cost: 75 gp - Weight: 55 lb. - Armor Class: 16...",
+  "excerpt": "HA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/chain_mail.json",
-  "markdown": "# Chain Mail\n\n- **Type**: HA|XPHB\n- **Cost**: 75 gp\n- **Weight**: 55 lb.\n- **Armor Class**: 16\n\n"
+  "markdown": "# Chain Mail\n\n*HA*\n",
+  "itemMetadata": {
+    "type": "Heavy Armor",
+    "rarity": "None",
+    "cost": 75,
+    "weight": 55,
+    "ac": 16
+  }
 }

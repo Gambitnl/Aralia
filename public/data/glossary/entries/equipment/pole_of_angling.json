@@ -1,0 +1,21 @@
+{
+  "id": "pole_of_angling",
+  "title": "Pole of Angling",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This item functions as a Pole. While holding it, you can take a magic action to cause it to transform into a fishing pole with a hook, a line, and a r...",
+  "aliases": [],
+  "seeAlso": [
+    "magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/pole_of_angling.json",
+  "markdown": "# Pole of Angling\n\nThis item functions as a Pole. While holding it, you can take a [[magic]] action to cause it to transform into a fishing pole with a hook, a line, and a reel, or have the fishing pole revert to a Pole.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

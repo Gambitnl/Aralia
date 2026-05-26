@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Land)"
   ],
-  "excerpt": "- Type: VEH|XPHB - Cost: 100 gp - Weight: 600 lb....",
+  "excerpt": "VEH...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/carriage.json",
-  "markdown": "# Carriage\n\n- **Type**: VEH|XPHB\n- **Cost**: 100 gp\n- **Weight**: 600 lb.\n\n"
+  "markdown": "# Carriage\n\n*VEH*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Land)",
+    "rarity": "None",
+    "cost": 100,
+    "weight": 600
+  }
 }

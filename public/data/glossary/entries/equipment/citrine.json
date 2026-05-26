@@ -1,0 +1,20 @@
+{
+  "id": "citrine",
+  "title": "Citrine",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A pale yellow brown gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/citrine.json",
+  "markdown": "# Citrine\n\nA pale yellow brown gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 50
+  }
+}

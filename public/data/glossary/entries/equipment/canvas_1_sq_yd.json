@@ -1,0 +1,20 @@
+{
+  "id": "canvas_1_sq_yd",
+  "title": "Canvas (1 sq. yd.)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/canvas_1_sq_yd.json",
+  "markdown": "# Canvas (1 sq. yd.)\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 0.1
+  }
+}

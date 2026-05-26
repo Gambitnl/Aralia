@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Spellcasting Focus"
   ],
-  "excerpt": "- Type: SCF|XPHB - Cost: 20 gp - Weight: 3 lb....",
+  "excerpt": "SCF...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/orb.json",
-  "markdown": "# Orb\n\n- **Type**: SCF|XPHB\n- **Cost**: 20 gp\n- **Weight**: 3 lb.\n\n"
+  "markdown": "# Orb\n\n*SCF*\n",
+  "itemMetadata": {
+    "type": "Spellcasting Focus",
+    "rarity": "None",
+    "cost": 20,
+    "weight": 3
+  }
 }

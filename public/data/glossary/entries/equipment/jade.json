@@ -1,0 +1,20 @@
+{
+  "id": "jade",
+  "title": "Jade",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A light green, deep green, or white gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/jade.json",
+  "markdown": "# Jade\n\nA light green, deep green, or white gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 100
+  }
+}

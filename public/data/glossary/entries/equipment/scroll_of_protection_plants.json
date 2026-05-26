@@ -1,0 +1,19 @@
+{
+  "id": "scroll_of_protection_plants",
+  "title": "Scroll of Protection (Plants)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Scroll"
+  ],
+  "excerpt": "{itemEntry Scroll of Protection}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scroll_of_protection_plants.json",
+  "markdown": "# Scroll of Protection (Plants)\n\n{#itemEntry Scroll of Protection}",
+  "itemMetadata": {
+    "type": "Scroll",
+    "rarity": "Rare"
+  }
+}

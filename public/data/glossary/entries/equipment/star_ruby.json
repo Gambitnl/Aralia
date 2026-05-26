@@ -1,0 +1,20 @@
+{
+  "id": "star_ruby",
+  "title": "Star Ruby",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A ruby with white star-shaped center gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/star_ruby.json",
+  "markdown": "# Star Ruby\n\nA ruby with white star-shaped center gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 1000
+  }
+}

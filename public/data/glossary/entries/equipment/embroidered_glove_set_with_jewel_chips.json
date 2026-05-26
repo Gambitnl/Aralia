@@ -1,0 +1,20 @@
+{
+  "id": "embroidered_glove_set_with_jewel_chips",
+  "title": "Embroidered glove set with jewel chips",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/embroidered_glove_set_with_jewel_chips.json",
+  "markdown": "# Embroidered glove set with jewel chips\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 2500
+  }
+}

@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 10 lb. - Damage: 2d6 B - Properties: H|XPHB, 2H|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/maul.json",
-  "markdown": "# Maul\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 10 lb.\n- **Damage**: 2d6 B\n- **Properties**: H|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Maul\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 10,
+    "damage": "2d6 B",
+    "properties": [
+      "H|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Water)"
   ],
-  "excerpt": "- Type: SHP|XPHB - Cost: 50 gp - Weight: 100 lb....",
+  "excerpt": "SHP...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/rowboat.json",
-  "markdown": "# Rowboat\n\n- **Type**: SHP|XPHB\n- **Cost**: 50 gp\n- **Weight**: 100 lb.\n\n"
+  "markdown": "# Rowboat\n\n*SHP*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Water)",
+    "rarity": "None",
+    "cost": 50,
+    "weight": 100
+  }
 }

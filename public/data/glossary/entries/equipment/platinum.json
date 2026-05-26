@@ -1,0 +1,21 @@
+{
+  "id": "platinum",
+  "title": "Platinum",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/platinum.json",
+  "markdown": "# Platinum\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 500,
+    "weight": 1
+  }
+}

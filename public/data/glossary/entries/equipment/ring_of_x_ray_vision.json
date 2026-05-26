@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG While wearing this ring, you can take a magic action to gain X-ray vision with a range of 30 feet for 1 minute. To you, solid objects ...",
+  "excerpt": "While wearing this ring, you can take a magic action to gain X-ray vision with a range of 30 feet for 1 minute. To you, solid objects within that radi...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "long_rest Rest",
+    "exhaustion"
+  ],
   "filePath": "/data/glossary/entries/equipment/ring_of_x_ray_vision.json",
-  "markdown": "# Ring of X-ray Vision\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you can take a [[magic]] action to gain X-ray vision with a range of 30 feet for 1 minute. To you, solid objects within that radius appear transparent and don't prevent light from passing through them. The vision can penetrate 1 foot of stone, 1 inch of common metal, or up to 3 feet of wood or dirt. Thicker substances or a thin sheet of lead block the vision.\n\nWhenever you use the ring again before taking a [[long_rest Rest]], you must succeed on a DC 15 Constitution saving throw or gain 1 [[exhaustion]] level."
+  "markdown": "# Ring of X-ray Vision\n\nWhile wearing this ring, you can take a [[magic]] action to gain X-ray vision with a range of 30 feet for 1 minute. To you, solid objects within that radius appear transparent and don't prevent light from passing through them. The vision can penetrate 1 foot of stone, 1 inch of common metal, or up to 3 feet of wood or dirt. Thicker substances or a thin sheet of lead block the vision.\n\nWhenever you use the ring again before taking a [[long_rest Rest]], you must succeed on a DC 15 Constitution saving throw or gain 1 [[exhaustion]] level.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

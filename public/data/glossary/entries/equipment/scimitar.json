@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 25 gp - Weight: 3 lb. - Damage: 1d6 S - Properties: F|XPHB, L|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/scimitar.json",
-  "markdown": "# Scimitar\n\n- **Type**: M|XPHB\n- **Cost**: 25 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d6 S\n- **Properties**: F|XPHB, L|XPHB\n\n"
+  "markdown": "# Scimitar\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 3,
+    "damage": "1d6 S",
+    "properties": [
+      "F|XPHB",
+      "L|XPHB"
+    ]
+  }
 }

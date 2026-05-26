@@ -8,7 +8,12 @@
   ],
   "excerpt": "You can breathe underwater, and you gain a swim_speed Speed equal to your speed. You can also cast water_breathing Breathing once without expending a ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "swim_speed Speed",
+    "speed",
+    "water_breathing Breathing",
+    "long_rest Rest"
+  ],
   "filePath": "/data/glossary/entries/rules/gift_of_the_depths.json",
   "markdown": "# Gift of the Depths\n\nYou can breathe underwater, and you gain a [[swim_speed Speed]] equal to your [[speed]].\n\nYou can also cast [[water_breathing Breathing]] once without expending a spell slot. You regain the ability to cast it in this way again when you finish a [[long_rest Rest]]."
 }

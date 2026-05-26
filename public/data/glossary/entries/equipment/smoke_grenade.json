@@ -1,0 +1,25 @@
+{
+  "id": "smoke_grenade",
+  "title": "Smoke Grenade",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Explosive"
+  ],
+  "excerpt": "{itemEntry Grenade} The area of the sphere_area_of_effect is heavily_obscured Obscured by smoke for 1 minute. A strong wind (such as the gust_of_wind ...",
+  "aliases": [],
+  "seeAlso": [
+    "sphere_area_of_effect",
+    "heavily_obscured Obscured",
+    "gust_of_wind of Wind"
+  ],
+  "filePath": "/data/glossary/entries/equipment/smoke_grenade.json",
+  "markdown": "# Smoke Grenade\n\n{#itemEntry Grenade}\n\nThe area of the [[sphere_area_of_effect]] is [[heavily_obscured Obscured]] by smoke for 1 minute. A strong wind (such as the [[gust_of_wind of Wind]] spell) disperses the smoke.",
+  "itemMetadata": {
+    "type": "Explosive",
+    "rarity": "None",
+    "cost": 50,
+    "weight": 2
+  }
+}

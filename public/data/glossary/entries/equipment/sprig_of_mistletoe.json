@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Spellcasting Focus"
   ],
-  "excerpt": "- Type: SCF|XPHB - Cost: 1 gp...",
+  "excerpt": "SCF...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/sprig_of_mistletoe.json",
-  "markdown": "# Sprig of Mistletoe\n\n- **Type**: SCF|XPHB\n- **Cost**: 1 gp\n\n"
+  "markdown": "# Sprig of Mistletoe\n\n*SCF*\n",
+  "itemMetadata": {
+    "type": "Spellcasting Focus",
+    "rarity": "None",
+    "cost": 1
+  }
 }

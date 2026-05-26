@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.02 gp - Weight: 1 lb. A Flask holds up to 1 pint....",
+  "excerpt": "A Flask holds up to 1 pint....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/flask.json",
-  "markdown": "# Flask\n\n- **Type**: G|XPHB\n- **Cost**: 0.02 gp\n- **Weight**: 1 lb.\n\nA Flask holds up to 1 pint."
+  "markdown": "# Flask\n\nA Flask holds up to 1 pint.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.02,
+    "weight": 1
+  }
 }

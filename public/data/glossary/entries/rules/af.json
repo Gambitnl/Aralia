@@ -1,0 +1,14 @@
+{
+  "id": "af",
+  "title": "AF",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "itemProperty"
+  ],
+  "excerpt": "Ammunition Firearm Bullets are destroyed upon use in a modern firearm. Futuristic firearms use Energy Cells that become depleted but could possibly be...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/af.json",
+  "markdown": "# AF\n\n## Ammunition\n\nFirearm Bullets are destroyed upon use in a modern firearm. Futuristic firearms use Energy Cells that become depleted but could possibly be recharged with the proper equipment, at the GM's discretion."
+}

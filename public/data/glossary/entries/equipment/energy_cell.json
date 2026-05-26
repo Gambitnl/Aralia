@@ -1,0 +1,20 @@
+{
+  "id": "energy_cell",
+  "title": "Energy Cell",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ammunition"
+  ],
+  "excerpt": "AF...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/energy_cell.json",
+  "markdown": "# Energy Cell\n\n*AF*\n",
+  "itemMetadata": {
+    "type": "Ammunition",
+    "rarity": "None",
+    "weight": 0.5
+  }
+}

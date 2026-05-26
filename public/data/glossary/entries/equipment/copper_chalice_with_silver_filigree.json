@@ -1,0 +1,20 @@
+{
+  "id": "copper_chalice_with_silver_filigree",
+  "title": "Copper chalice with silver filigree",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/copper_chalice_with_silver_filigree.json",
+  "markdown": "# Copper chalice with silver filigree\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 25
+  }
+}

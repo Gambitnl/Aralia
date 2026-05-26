@@ -8,7 +8,9 @@
   ],
   "excerpt": "You have advantage on Constitution saving throws that you make to maintain Concentration....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/rules/eldritch_mind.json",
   "markdown": "# Eldritch Mind\n\nYou have [[advantage]] on Constitution saving throws that you make to maintain Concentration."
 }

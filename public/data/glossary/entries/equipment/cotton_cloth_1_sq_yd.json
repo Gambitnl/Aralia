@@ -1,0 +1,20 @@
+{
+  "id": "cotton_cloth_1_sq_yd",
+  "title": "Cotton Cloth (1 sq. yd.)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/cotton_cloth_1_sq_yd.json",
+  "markdown": "# Cotton Cloth (1 sq. yd.)\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 0.5
+  }
+}

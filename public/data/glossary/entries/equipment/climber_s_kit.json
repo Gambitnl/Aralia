@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 12 lb. A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a utilize action, you can use the ...",
+  "excerpt": "A Climber's Kit includes boot tips, gloves, pitons, and a harness. As a utilize action, you can use the Climber's Kit to anchor yourself; when you do,...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize",
+    "bonus_action Action"
+  ],
   "filePath": "/data/glossary/entries/equipment/climber_s_kit.json",
-  "markdown": "# Climber's Kit\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 12 lb.\n\nA Climber's Kit includes boot tips, gloves, pitons, and a harness. As a [[utilize]] action, you can use the Climber's Kit to anchor yourself; when you do, you can't fall more than 25 feet from the anchor point, and you can't move more than 25 feet from there without undoing the anchor as a [[bonus_action Action]]."
+  "markdown": "# Climber's Kit\n\nA Climber's Kit includes boot tips, gloves, pitons, and a harness. As a [[utilize]] action, you can use the Climber's Kit to anchor yourself; when you do, you can't fall more than 25 feet from the anchor point, and you can't move more than 25 feet from there without undoing the anchor as a [[bonus_action Action]].",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 12
+  }
 }

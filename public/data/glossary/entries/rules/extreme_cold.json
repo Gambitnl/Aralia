@@ -1,0 +1,18 @@
+{
+  "id": "extreme_cold",
+  "title": "Extreme Cold",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "When the temperature is 0 degrees Fahrenheit or lower, a creature exposed to the extreme cold must succeed on a DC 10 Constitution saving throw at the...",
+  "aliases": [],
+  "seeAlso": [
+    "exhaustion",
+    "resistance",
+    "immunity"
+  ],
+  "filePath": "/data/glossary/entries/rules/extreme_cold.json",
+  "markdown": "# Extreme Cold\n\nWhen the temperature is 0 degrees Fahrenheit or lower, a creature exposed to the extreme cold must succeed on a DC 10 Constitution saving throw at the end of each hour or gain 1 [[exhaustion]] level. Creatures that have [[resistance]] or [[immunity]] to Cold damage automatically succeed on the save."
+}

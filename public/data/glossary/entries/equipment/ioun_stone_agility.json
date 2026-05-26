@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "{itemEntry Ioun Stone} Your Dexterity increases by 2, to a maximum of 20, while this deep-red sphere orbits your head....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/ioun_stone_agility.json",
-  "markdown": "# Ioun Stone, Agility\n\n{#itemEntry Ioun Stone}\n\nYour Dexterity increases by 2, to a maximum of 20, while this deep-red sphere orbits your head."
+  "markdown": "# Ioun Stone, Agility\n\n{#itemEntry Ioun Stone}\n\nYour Dexterity increases by 2, to a maximum of 20, while this deep-red sphere orbits your head.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Very rare",
+    "reqAttune": "Required"
+  }
 }

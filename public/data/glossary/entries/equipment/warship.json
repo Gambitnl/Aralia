@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Water)"
   ],
-  "excerpt": "- Type: SHP|XPHB - Cost: 25000 gp...",
+  "excerpt": "SHP...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/warship.json",
-  "markdown": "# Warship\n\n- **Type**: SHP|XPHB\n- **Cost**: 25000 gp\n\n"
+  "markdown": "# Warship\n\n*SHP*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Water)",
+    "rarity": "None",
+    "cost": 25000
+  }
 }

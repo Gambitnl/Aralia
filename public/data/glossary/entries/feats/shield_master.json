@@ -8,7 +8,13 @@
   ],
   "excerpt": "You gain the following benefits.  Shield Bash If you attack a creature within 5 feet of you as part of the attack action and hit with a Melee weapon, ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "attack",
+    "shield",
+    "proficiency Bonus",
+    "prone",
+    "reaction"
+  ],
   "filePath": "/data/glossary/entries/feats/shield_master.json",
   "markdown": "# Shield Master\n\nYou gain the following benefits.\n\n## Shield Bash\n\nIf you attack a creature within 5 feet of you as part of the [[attack]] action and hit with a Melee weapon, you can immediately bash the target with your [[shield]] if it's equipped, forcing the target to make a Strength saving throw (DC 8 plus your Strength modifier and [[proficiency Bonus]]). On a failed save, you either push the target 5 feet from you or cause it to have the [[prone]] condition (your choice). You can use this benefit only once on each of your turns.\n\n## Interpose Shield\n\nIf you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you can take a [[reaction]] to take no damage if you succeed on the saving throw and are holding a [[shield]]."
 }

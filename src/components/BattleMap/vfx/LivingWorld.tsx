@@ -439,6 +439,159 @@ const WeatherParticles: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
+// Biome atmosphere lights — fixed, themed point lights (not wandering)
+// ---------------------------------------------------------------------------
+//
+// These complement the wandering fireflies by establishing the biome's ground-
+// level mood:
+//   forest  → dappled warm patches at 0.8 m (sunlight through canopy)
+//   dungeon → fixed torch pools at 2.0 m (wall sconces / torches on pillars)
+//   cave    → bioluminescent floor glow (fungi / crystal veins)
+//   desert  → harsh sand-bounce fill light from east (bleached ground)
+//   swamp   → murky greenish pooled reflections at water level
+//
+// Light count is kept low (4–6 lights) so we don't push the scene past Three.js's
+// per-material point-light limit (8 max in MeshStandardMaterial shader).
+
+interface BiomeAtmosLightConfig {
+  count: number;
+  color: number;
+  intensity: number;
+  distance: number;
+  height: number;           // World Y above tile elevation
+  flickerSpeed: number;     // 0 = static, >0 = flickers
+  flickerDepth: number;     // Fraction of intensity that flickers (0–1)
+  driftRadius: number;      // XZ drift radius (0 = static)
+}
+
+const BIOME_ATMOS_LIGHTS: Record<string, BiomeAtmosLightConfig> = {
+  forest: {
+    count: 5,
+    color: 0xffe880,       // warm golden dapple
+    intensity: 0.60,
+    distance: 5.0,
+    height: 0.8,
+    flickerSpeed: 0.6,     // gentle leaf-flutter shimmer
+    flickerDepth: 0.25,
+    driftRadius: 0.15,
+  },
+  dungeon: {
+    count: 5,
+    color: 0xff6820,       // deep torch orange
+    intensity: 1.80,
+    distance: 6.0,
+    height: 2.0,           // at sconce/pillar height
+    flickerSpeed: 4.0,     // fast torch flicker
+    flickerDepth: 0.55,
+    driftRadius: 0.0,
+  },
+  cave: {
+    count: 4,
+    color: 0x44ccff,       // cold bioluminescent blue
+    intensity: 0.70,
+    distance: 4.0,
+    height: 0.3,           // floor-level glow from fungi
+    flickerSpeed: 1.2,
+    flickerDepth: 0.30,
+    driftRadius: 0.0,
+  },
+  desert: {
+    count: 3,
+    color: 0xffe0a0,       // bleached sand bounce
+    intensity: 0.55,
+    distance: 7.0,
+    height: 0.2,           // ground-level bounce
+    flickerSpeed: 0.0,
+    flickerDepth: 0.0,
+    driftRadius: 0.0,
+  },
+  swamp: {
+    count: 4,
+    color: 0x66bb44,       // sickly swamp green
+    intensity: 0.45,
+    distance: 4.5,
+    height: 0.15,          // at water surface
+    flickerSpeed: 0.8,
+    flickerDepth: 0.20,
+    driftRadius: 0.05,
+  },
+};
+
+const BiomeAtmosphereLights: React.FC<{
+  mapWidth: number;
+  mapHeight: number;
+  seed: number;
+  biome: string;
+}> = ({ mapWidth, mapHeight, seed, biome }) => {
+  const cfg = BIOME_ATMOS_LIGHTS[biome] ?? BIOME_ATMOS_LIGHTS.forest;
+  const groupRef = useRef<THREE.Group>(null);
+
+  /** Deterministic placement on a jittered grid within map bounds */
+  const lightPositions = useMemo(() => {
+    const rand = seededRandom(seed + 3131);
+    const worldW = mapWidth * TILE_SIZE;
+    const worldH = mapHeight * TILE_SIZE;
+    const positions: { x: number; z: number; phase: number }[] = [];
+
+    for (let i = 0; i < cfg.count; i++) {
+      // Distribute across the map with 15% padding from edges
+      const padX = worldW * 0.15;
+      const padZ = worldH * 0.15;
+      positions.push({
+        x: padX + rand() * (worldW - 2 * padX),
+        z: padZ + rand() * (worldH - 2 * padZ),
+        phase: rand() * Math.PI * 2,
+      });
+    }
+    return positions;
+  }, [cfg.count, mapWidth, mapHeight, seed]);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.elapsedTime;
+
+    groupRef.current.children.forEach((child, i) => {
+      if (i >= lightPositions.length) return;
+      const pos = lightPositions[i];
+
+      // Gentle XZ drift
+      if (cfg.driftRadius > 0) {
+        child.position.x = pos.x + Math.sin(t * 0.3 + pos.phase) * cfg.driftRadius;
+        child.position.z = pos.z + Math.cos(t * 0.25 + pos.phase * 1.3) * cfg.driftRadius;
+      }
+
+      // Flicker intensity on the point light child
+      if (cfg.flickerSpeed > 0) {
+        const light = child.children[0] as THREE.PointLight | undefined;
+        if (light && 'intensity' in light) {
+          const raw = Math.sin(t * cfg.flickerSpeed + pos.phase)
+                    * Math.cos(t * cfg.flickerSpeed * 0.7 + pos.phase * 1.5);
+          light.intensity = cfg.intensity * (1.0 - cfg.flickerDepth * (raw * 0.5 + 0.5));
+        }
+      }
+    });
+  });
+
+  if (cfg.count === 0) return null;
+
+  return (
+    <group ref={groupRef}>
+      {lightPositions.map((pos, i) => (
+        <group key={i} position={[pos.x, cfg.height, pos.z]}>
+          <pointLight
+            color={cfg.color}
+            intensity={cfg.intensity}
+            distance={cfg.distance}
+            decay={2}
+            castShadow={false}
+          />
+        </group>
+      ))}
+    </group>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Main LivingWorld component
 // ---------------------------------------------------------------------------
 
@@ -448,12 +601,20 @@ interface LivingWorldProps {
 
 const LivingWorld: React.FC<LivingWorldProps> = ({ mapData }) => {
   const { width, height } = mapData.dimensions;
-  const biome = mapData.theme ?? 'forest';
+  const biome = (mapData as BattleMapData & { biome?: string }).biome ?? mapData.theme ?? 'forest';
   const config = BIOME_AMBIENT[biome] ?? BIOME_AMBIENT.forest;
   const seed = mapData.seed ?? 42;
 
   return (
     <group>
+      {/* Fixed biome-themed atmosphere lights (torch pools, dapple, bioluminescence) */}
+      <BiomeAtmosphereLights
+        mapWidth={width}
+        mapHeight={height}
+        seed={seed}
+        biome={biome}
+      />
+
       {/* Ambient particles — pollen, dust, spores */}
       <AmbientParticles
         config={config}

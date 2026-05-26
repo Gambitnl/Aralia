@@ -8,7 +8,9 @@
   ],
   "excerpt": "When you hit a creature with an attack roll, you can expend one Superiority Die to distract the target. Add the Superiority Die roll to the attack's d...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/rules/distracting_strike.json",
   "markdown": "# Distracting Strike\n\nWhen you hit a creature with an attack roll, you can expend one Superiority Die to distract the target. Add the Superiority Die roll to the attack's damage roll. The next attack roll against the target by an attacker other than you has [[advantage]] if the attack is made before the start of your next turn."
 }

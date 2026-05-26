@@ -4,11 +4,27 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B - Properties: V|XPHB This staff has 10 charges. While holding the staff, you can use any of its propert...",
+  "excerpt": "This staff has 10 charges. While holding the staff, you can use any of its properties: - Cast Spell: You can expend 1 of the staff's charges to cast c...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "charm_person Person",
+    "command",
+    "comprehend_languages Languages",
+    "reaction"
+  ],
   "filePath": "/data/glossary/entries/equipment/staff_of_charming.json",
-  "markdown": "# Staff of Charming\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V|XPHB\n\nThis staff has 10 charges. While holding the staff, you can use any of its properties:\n\n- **Cast Spell:** You can expend 1 of the staff's charges to cast [[charm_person Person]], [[command]], or [[comprehend_languages Languages]] from it using your spell save DC.\n- **Reflect Enchantment:** If you succeed on a saving throw against an Enchantment spell that targets only you, you can take a [[reaction]] to expend 1 charge from the staff and turn the spell back on its caster as if you had cast the spell.\n- **Resist Enchantment:** If you fail a saving throw against an Enchantment spell that targets only you, you can turn your failed save into a successful one. You can't use this property of the staff again until the next dawn.\n\n## Regaining Charges\n\nThe staff regains 1d8 + 2 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff crumbles to dust and is destroyed."
+  "markdown": "# Staff of Charming\n\nThis staff has 10 charges. While holding the staff, you can use any of its properties:\n\n- **Cast Spell:** You can expend 1 of the staff's charges to cast [[charm_person Person]], [[command]], or [[comprehend_languages Languages]] from it using your spell save DC.\n- **Reflect Enchantment:** If you succeed on a saving throw against an Enchantment spell that targets only you, you can take a [[reaction]] to expend 1 charge from the staff and turn the spell back on its caster as if you had cast the spell.\n- **Resist Enchantment:** If you fail a saving throw against an Enchantment spell that targets only you, you can turn your failed save into a successful one. You can't use this property of the staff again until the next dawn.\n\n## Regaining Charges\n\nThe staff regains 1d8 + 2 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff crumbles to dust and is destroyed.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required by a bard, cleric, druid, sorcerer, warlock, or wizard",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
 }

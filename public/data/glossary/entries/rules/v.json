@@ -1,0 +1,14 @@
+{
+  "id": "v",
+  "title": "V",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "itemProperty"
+  ],
+  "excerpt": "Versatile A Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/v.json",
+  "markdown": "# V\n\n## Versatile\n\nA Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage when used with two hands to make a melee attack."
+}

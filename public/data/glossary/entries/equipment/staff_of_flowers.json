@@ -1,0 +1,26 @@
+{
+  "id": "staff_of_flowers",
+  "title": "Staff of Flowers",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Melee Weapon"
+  ],
+  "excerpt": "This wooden staff has 10 charges. While holding it, you can take a magic action to expend 1 charge from the staff and cause a flower to sprout from a ...",
+  "aliases": [],
+  "seeAlso": [
+    "magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/staff_of_flowers.json",
+  "markdown": "# Staff of Flowers\n\nThis wooden staff has 10 charges. While holding it, you can take a [[magic]] action to expend 1 charge from the staff and cause a flower to sprout from a patch of earth or soil within 5 feet of yourself, or from the staff itself. Unless you choose a specific kind of flower, the staff creates a mild-scented daisy. The flower is harmless and nonmagical, and it grows or withers as a normal flower would.\n\n## Regaining Charges\n\nThe staff regains 1d6 + 4 expended charges daily at dawn. If you expend the last charge, roll 1d20. On a 1, the staff turns into flower petals and is lost forever.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Common",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
+}

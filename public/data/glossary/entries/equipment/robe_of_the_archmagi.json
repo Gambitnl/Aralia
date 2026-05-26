@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "This elegant garment is made from exquisite cloth and adorned with runes. You gain these benefits while wearing the robe.  Armor If you aren't wearing...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "armor_class Class",
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/equipment/robe_of_the_archmagi.json",
-  "markdown": "# Robe of the Archmagi\n\nThis elegant garment is made from exquisite cloth and adorned with runes.\n\nYou gain these benefits while wearing the robe.\n\n## Armor\n\nIf you aren't wearing armor, your base [[armor_class Class]] is 15 plus your Dexterity modifier.\n\n## Magic Resistance\n\nYou have [[advantage]] on saving throws against spells and other magical effects.\n\n## War Mage\n\nYour spell save DC and spell attack bonus each increase by 2."
+  "markdown": "# Robe of the Archmagi\n\nThis elegant garment is made from exquisite cloth and adorned with runes.\n\nYou gain these benefits while wearing the robe.\n\n## Armor\n\nIf you aren't wearing armor, your base [[armor_class Class]] is 15 plus your Dexterity modifier.\n\n## Magic Resistance\n\nYou have [[advantage]] on saving throws against spells and other magical effects.\n\n## War Mage\n\nYour spell save DC and spell attack bonus each increase by 2.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Legendary",
+    "reqAttune": "Required by a sorcerer, warlock, or wizard"
+  }
 }

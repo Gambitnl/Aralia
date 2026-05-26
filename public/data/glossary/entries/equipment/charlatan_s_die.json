@@ -1,0 +1,20 @@
+{
+  "id": "charlatan_s_die",
+  "title": "Charlatan's Die",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "Whenever you roll this six-sided die, you can control which number it rolls....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/charlatan_s_die.json",
+  "markdown": "# Charlatan's Die\n\nWhenever you roll this six-sided die, you can control which number it rolls.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common",
+    "reqAttune": "Required"
+  }
+}

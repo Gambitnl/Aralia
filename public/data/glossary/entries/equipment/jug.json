@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.02 gp - Weight: 4 lb. A Jug holds up to 1 gallon....",
+  "excerpt": "A Jug holds up to 1 gallon....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/jug.json",
-  "markdown": "# Jug\n\n- **Type**: G|XPHB\n- **Cost**: 0.02 gp\n- **Weight**: 4 lb.\n\nA Jug holds up to 1 gallon."
+  "markdown": "# Jug\n\nA Jug holds up to 1 gallon.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.02,
+    "weight": 4
+  }
 }

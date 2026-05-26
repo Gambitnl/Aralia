@@ -8,7 +8,11 @@
   ],
   "excerpt": "You gain the following benefits.  Concentration Breaker When you damage a creature that is Concentration, it has disadvantage on the saving throw it m...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "disadvantage",
+    "short_rest",
+    "long_rest Rest"
+  ],
   "filePath": "/data/glossary/entries/feats/mage_slayer.json",
   "markdown": "# Mage Slayer\n\nYou gain the following benefits.\n\n## Concentration Breaker\n\nWhen you damage a creature that is Concentration, it has [[disadvantage]] on the saving throw it makes to maintain Concentration.\n\n## Guarded Mind\n\nIf you fail an Intelligence, a Wisdom, or a Charisma saving throw, you can cause yourself to succeed instead. Once you use this benefit, you can't use it again until you finish a [[short_rest]] or [[long_rest Rest]]."
 }

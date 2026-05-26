@@ -1,0 +1,20 @@
+{
+  "id": "eye_agate",
+  "title": "Eye Agate",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A circles of gray, white, brown, blue, or green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/eye_agate.json",
+  "markdown": "# Eye Agate\n\nA circles of gray, white, brown, blue, or green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

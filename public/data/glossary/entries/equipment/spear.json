@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 1 gp - Weight: 3 lb. - Damage: 1d6 P - Properties: T|XPHB, V|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/spear.json",
-  "markdown": "# Spear\n\n- **Type**: M|XPHB\n- **Cost**: 1 gp\n- **Weight**: 3 lb.\n- **Damage**: 1d6 P\n- **Properties**: T|XPHB, V|XPHB\n\n"
+  "markdown": "# Spear\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 3,
+    "damage": "1d6 P",
+    "properties": [
+      "T|XPHB",
+      "V|XPHB"
+    ]
+  }
 }

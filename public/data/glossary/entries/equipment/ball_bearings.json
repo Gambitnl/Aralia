@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 2 lb. As a utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-s...",
+  "excerpt": "As a utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A cre...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize",
+    "prone"
+  ],
   "filePath": "/data/glossary/entries/equipment/ball_bearings.json",
-  "markdown": "# Ball Bearings\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 2 lb.\n\nAs a [[utilize]] action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 10 Dexterity saving throw or have the [[prone]] condition. It takes 10 minutes to recover the Ball Bearings."
+  "markdown": "# Ball Bearings\n\nAs a [[utilize]] action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 10 Dexterity saving throw or have the [[prone]] condition. It takes 10 minutes to recover the Ball Bearings.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 2
+  }
 }

@@ -8,7 +8,9 @@
   ],
   "excerpt": "While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to armor_class Class....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "armor_class Class"
+  ],
   "filePath": "/data/glossary/entries/feats/defense.json",
   "markdown": "# Defense\n\nWhile you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to [[armor_class Class]]."
 }

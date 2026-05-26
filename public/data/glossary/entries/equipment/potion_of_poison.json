@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. This concoction looks, smells, and tastes like a potion_of_healing of Healing or another beneficial potion. However, ...",
+  "excerpt": "This concoction looks, smells, and tastes like a potion_of_healing of Healing or another beneficial potion. However, it is actually poison masked by i...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "potion_of_healing of Healing",
+    "identify",
+    "poisoned"
+  ],
   "filePath": "/data/glossary/entries/equipment/potion_of_poison.json",
-  "markdown": "# Potion of Poison\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nThis concoction looks, smells, and tastes like a [[potion_of_healing of Healing]] or another beneficial potion. However, it is actually poison masked by illusion magic. [[identify]] reveals its true nature.\n\nIf you drink this potion, you take 4d6 Poison damage and must succeed on a DC 13 Constitution saving throw or have the [[poisoned]] condition for 1 hour."
+  "markdown": "# Potion of Poison\n\nThis concoction looks, smells, and tastes like a [[potion_of_healing of Healing]] or another beneficial potion. However, it is actually poison masked by illusion magic. [[identify]] reveals its true nature.\n\nIf you drink this potion, you take 4d6 Poison damage and must succeed on a DC 13 Constitution saving throw or have the [[poisoned]] condition for 1 hour.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Uncommon",
+    "weight": 0.5
+  }
 }

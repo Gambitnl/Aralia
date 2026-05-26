@@ -1,0 +1,19 @@
+{
+  "id": "extreme_heat",
+  "title": "Extreme Heat",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "When the temperature is 100 degrees Fahrenheit or higher, a creature exposed to the extreme heat and without access to drinkable water must succeed on...",
+  "aliases": [],
+  "seeAlso": [
+    "exhaustion",
+    "disadvantage",
+    "resistance",
+    "immunity"
+  ],
+  "filePath": "/data/glossary/entries/rules/extreme_heat.json",
+  "markdown": "# Extreme Heat\n\nWhen the temperature is 100 degrees Fahrenheit or higher, a creature exposed to the extreme heat and without access to drinkable water must succeed on a Constitution saving throw at the end of each hour or gain 1 [[exhaustion]] level. The DC is 5 for the first hour and increases by 1 for each additional hour. Creatures wearing Medium or Heavy armor have [[disadvantage]] on the save. Creatures that have [[resistance]] or [[immunity]] to Fire damage automatically succeed on the save."
+}

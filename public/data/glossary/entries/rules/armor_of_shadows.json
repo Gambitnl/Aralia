@@ -8,7 +8,9 @@
   ],
   "excerpt": "You can cast mage_armor Armor on yourself without expending a spell slot....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "mage_armor Armor"
+  ],
   "filePath": "/data/glossary/entries/rules/armor_of_shadows.json",
   "markdown": "# Armor of Shadows\n\nYou can cast [[mage_armor Armor]] on yourself without expending a spell slot."
 }

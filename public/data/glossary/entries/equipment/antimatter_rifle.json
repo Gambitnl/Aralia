@@ -1,0 +1,26 @@
+{
+  "id": "antimatter_rifle",
+  "title": "Antimatter Rifle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ranged Weapon"
+  ],
+  "excerpt": "R...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/antimatter_rifle.json",
+  "markdown": "# Antimatter Rifle\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "weight": 10,
+    "damage": "6d8 N",
+    "properties": [
+      "AF|XDMG",
+      "RLD|XDMG",
+      "2H|XPHB"
+    ]
+  }
+}

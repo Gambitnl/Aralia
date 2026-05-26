@@ -1,0 +1,21 @@
+{
+  "id": "ear_horn_of_hearing",
+  "title": "Ear Horn of Hearing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While held up to your ear, this horn suppresses the effects of the deafened condition on you....",
+  "aliases": [],
+  "seeAlso": [
+    "deafened"
+  ],
+  "filePath": "/data/glossary/entries/equipment/ear_horn_of_hearing.json",
+  "markdown": "# Ear Horn of Hearing\n\nWhile held up to your ear, this horn suppresses the effects of the [[deafened]] condition on you.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

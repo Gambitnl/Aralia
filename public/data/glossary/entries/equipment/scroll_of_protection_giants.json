@@ -1,0 +1,19 @@
+{
+  "id": "scroll_of_protection_giants",
+  "title": "Scroll of Protection (Giants)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Scroll"
+  ],
+  "excerpt": "{itemEntry Scroll of Protection}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scroll_of_protection_giants.json",
+  "markdown": "# Scroll of Protection (Giants)\n\n{#itemEntry Scroll of Protection}",
+  "itemMetadata": {
+    "type": "Scroll",
+    "rarity": "Rare"
+  }
+}

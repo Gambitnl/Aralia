@@ -4,11 +4,31 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 5 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Add a design to a leather item (DC 10) - Craft:: sling, whip, hide_armo...",
+  "excerpt": "- Ability:: Dexterity - Utilize:: Add a design to a leather item (DC 10) - Craft:: sling, whip, hide_armor Armor, leather_armor Armor, studded_leather...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "sling",
+    "whip",
+    "hide_armor Armor",
+    "leather_armor Armor",
+    "studded_leather_armor Leather Armor",
+    "backpack",
+    "crossbow_bolt_case Bolt Case",
+    "map_or_scroll_case or Scroll Case",
+    "parchment",
+    "pouch",
+    "quiver",
+    "waterskin"
+  ],
   "filePath": "/data/glossary/entries/equipment/leatherworker_s_tools.json",
-  "markdown": "# Leatherworker's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 5 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Add a design to a leather item (DC 10)\n- **Craft::** [[sling]], [[whip]], [[hide_armor Armor]], [[leather_armor Armor]], [[studded_leather_armor Leather Armor]], [[backpack]], [[crossbow_bolt_case Bolt Case]], [[map_or_scroll_case or Scroll Case]], [[parchment]], [[pouch]], [[quiver]], [[waterskin]]"
+  "markdown": "# Leatherworker's Tools\n\n- **Ability::** Dexterity\n- **Utilize::** Add a design to a leather item (DC 10)\n- **Craft::** [[sling]], [[whip]], [[hide_armor Armor]], [[leather_armor Armor]], [[studded_leather_armor Leather Armor]], [[backpack]], [[crossbow_bolt_case Bolt Case]], [[map_or_scroll_case or Scroll Case]], [[parchment]], [[pouch]], [[quiver]], [[waterskin]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 5
+  }
 }

@@ -8,7 +8,11 @@
   ],
   "excerpt": "If you have Truesight, your vision is enhanced within a specified range. Within that range, your vision pierces through the following: - Darkness: You...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "darkness",
+    "invisible",
+    "saving_throw throws"
+  ],
   "filePath": "/data/glossary/entries/rules/truesight.json",
   "markdown": "# Truesight\n\nIf you have Truesight, your vision is enhanced within a specified range. Within that range, your vision pierces through the following:\n\n- **Darkness:** You can see in normal and magical [[darkness]].\n- **Invisibility:** You see creatures and objects that have the [[invisible]] condition.\n- **Visual Illusions:** Visual illusions appear transparent to you, and you automatically succeed on [[saving_throw throws]] against them.\n- **Transformations:** You discern the true form of any creature or object you see that has been transformed by magic.\n- **Ethereal Plane:** You see into the Ethereal Plane."
 }

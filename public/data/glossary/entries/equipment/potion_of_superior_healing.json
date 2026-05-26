@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. You regain 8d4 + 8 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
+  "excerpt": "You regain 8d4 + 8 hit_points Points when you drink this potion. The potion's red liquid glimmers when agitated....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "hit_points Points"
+  ],
   "filePath": "/data/glossary/entries/equipment/potion_of_superior_healing.json",
-  "markdown": "# Potion of Superior Healing\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nYou regain 8d4 + 8 [[hit_points Points]] when you drink this potion. The potion's red liquid glimmers when agitated."
+  "markdown": "# Potion of Superior Healing\n\nYou regain 8d4 + 8 [[hit_points Points]] when you drink this potion. The potion's red liquid glimmers when agitated.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Rare",
+    "weight": 0.5
+  }
 }

@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Water)"
   ],
-  "excerpt": "- Type: SHP|XPHB - Cost: 10000 gp...",
+  "excerpt": "SHP...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/sailing_ship.json",
-  "markdown": "# Sailing Ship\n\n- **Type**: SHP|XPHB\n- **Cost**: 10000 gp\n\n"
+  "markdown": "# Sailing Ship\n\n*SHP*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Water)",
+    "rarity": "None",
+    "cost": 10000
+  }
 }

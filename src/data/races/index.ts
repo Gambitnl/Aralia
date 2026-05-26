@@ -30,14 +30,39 @@
  * 3. That's it! The race will be automatically included.
  */
 import { Race } from '../../types/index.js';
-import { buildRacialTraitLibrary, setRacialTraitLibraryInstance } from './racialTraits.js';
-export {
+import {
   buildRacialTraitLibrary,
-  getRacialChoiceRequirementsForRace,
-  getRacialSpellCastingAbilityChoiceForRace,
-  getRacialSpellCastingAbilityChoicesForRace,
-  hasRacialSpellCastingAbilityChoiceForRace,
+  setRacialTraitLibraryInstance,
+  RacialTraitLibrary,
+  getRacialChoiceRequirementsForRace as internal_getRacialChoiceRequirementsForRace,
+  getRacialSpellCastingAbilityChoiceForRace as internal_getRacialSpellCastingAbilityChoiceForRace,
+  getRacialSpellCastingAbilityChoicesForRace as internal_getRacialSpellCastingAbilityChoicesForRace,
+  hasRacialSpellCastingAbilityChoiceForRace as internal_hasRacialSpellCastingAbilityChoiceForRace,
 } from './racialTraits.js';
+
+export { buildRacialTraitLibrary };
+
+export { type RacialTraitLibrary };
+
+export const getRacialChoiceRequirementsForRace = (raceId: string) => {
+  getRacialTraitLibrary();
+  return internal_getRacialChoiceRequirementsForRace(raceId);
+};
+
+export const getRacialSpellCastingAbilityChoiceForRace = (raceId: string) => {
+  getRacialTraitLibrary();
+  return internal_getRacialSpellCastingAbilityChoiceForRace(raceId);
+};
+
+export const getRacialSpellCastingAbilityChoicesForRace = (raceId: string) => {
+  getRacialTraitLibrary();
+  return internal_getRacialSpellCastingAbilityChoicesForRace(raceId);
+};
+
+export const hasRacialSpellCastingAbilityChoiceForRace = (raceId: string) => {
+  getRacialTraitLibrary();
+  return internal_hasRacialSpellCastingAbilityChoiceForRace(raceId);
+};
 
 // Auto-import all race files using Vite's import.meta.glob
 // This scans for all .ts files in the current directory, excluding index.ts and raceGroups.ts
@@ -89,8 +114,14 @@ export const RACE_DATA_BUNDLE = {
   gnomeSubraces: [] as any[], // Deprecated - will be removed
 };
 
-export const RACE_TRAIT_LIBRARY = buildRacialTraitLibrary(ALL_RACES_DATA);
-setRacialTraitLibraryInstance(RACE_TRAIT_LIBRARY);
+let _traitLibraryCache: RacialTraitLibrary | null = null;
+export const getRacialTraitLibrary = (): RacialTraitLibrary => {
+  if (!_traitLibraryCache) {
+    _traitLibraryCache = buildRacialTraitLibrary(ALL_RACES_DATA);
+    setRacialTraitLibraryInstance(_traitLibraryCache);
+  }
+  return _traitLibraryCache;
+};
 
 // Array for iteration (e.g., character creator list)
 // Updated to filter out legacy or helper entries if needed

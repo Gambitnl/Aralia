@@ -1,0 +1,24 @@
+{
+  "id": "instrument_of_scribing",
+  "title": "Instrument of Scribing",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This musical_instrument instrument has 3 charges and regains all expended charges daily at dawn. While you are playing it, you can take a magic action...",
+  "aliases": [],
+  "seeAlso": [
+    "musical_instrument instrument",
+    "magic",
+    "darkness",
+    "dispel_magic Magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/instrument_of_scribing.json",
+  "markdown": "# Instrument of Scribing\n\nThis [[musical_instrument instrument]] has 3 charges and regains all expended charges daily at dawn. While you are playing it, you can take a [[magic]] action to expend 1 charge and write a magical message on a nonmagical object or surface that you can see within 30 feet of yourself. The message can be up to six words long and is written in a language you know. If you are a Bard, you can scribe an additional seven words and make the message glow faintly, allowing it to be seen in nonmagical [[darkness]]. Casting the [[dispel_magic Magic]] spell on the message erases it. Otherwise, the message fades away after 24 hours.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

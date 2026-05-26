@@ -1,0 +1,20 @@
+{
+  "id": "turquoise",
+  "title": "Turquoise",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A light blue green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/turquoise.json",
+  "markdown": "# Turquoise\n\nA light blue green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

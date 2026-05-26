@@ -8,7 +8,12 @@
   ],
   "excerpt": "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a short_rest or long_rest Rest. This Book of Shadows (you de...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "short_rest",
+    "long_rest Rest",
+    "ritual",
+    "spellcasting_focus Focus"
+  ],
   "filePath": "/data/glossary/entries/rules/pact_of_the_tome.json",
   "markdown": "# Pact of the Tome\n\nStitching together strands of shadow, you conjure forth a book in your hand at the end of a [[short_rest]] or [[long_rest Rest]]. This Book of Shadows (you determine its appearance) contains eldritch magic that only you can access, granting you the benefits below. The book disappears if you conjure another book with this feature or if you die.\n\n### Cantrips and Rituals\n\nWhen the book appears, choose three cantrips, and choose two level 1 spells that have the [[ritual]] tag. The spells can be from any class's spell list, and they must be spells you don't already have prepared. While the book is on your person, you have the chosen spells prepared, and they function as Warlock spells for you.\n\n### Spellcasting Focus\n\nYou can use the book as a [[spellcasting_focus Focus]]."
 }

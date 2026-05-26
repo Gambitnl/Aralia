@@ -4,11 +4,25 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 50 gp - Weight: 8 lb. - Ability:: Intelligence - Utilize:: Identify a substance (DC 15), or start a fire (DC 15) - Craft:: aci...",
+  "excerpt": "- Ability:: Intelligence - Utilize:: Identify a substance (DC 15), or start a fire (DC 15) - Craft:: acid, alchemist_s_fire's Fire, component_pouch Po...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "acid",
+    "alchemist_s_fire's Fire",
+    "component_pouch Pouch",
+    "oil",
+    "paper",
+    "perfume"
+  ],
   "filePath": "/data/glossary/entries/equipment/alchemist_s_supplies.json",
-  "markdown": "# Alchemist's Supplies\n\n- **Type**: AT|XPHB\n- **Cost**: 50 gp\n- **Weight**: 8 lb.\n\n- **Ability::** Intelligence\n- **Utilize::** Identify a substance (DC 15), or start a fire (DC 15)\n- **Craft::** [[acid]], [[alchemist_s_fire's Fire]], [[component_pouch Pouch]], [[oil]], [[paper]], [[perfume]]"
+  "markdown": "# Alchemist's Supplies\n\n- **Ability::** Intelligence\n- **Utilize::** Identify a substance (DC 15), or start a fire (DC 15)\n- **Craft::** [[acid]], [[alchemist_s_fire's Fire]], [[component_pouch Pouch]], [[oil]], [[paper]], [[perfume]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 50,
+    "weight": 8
+  }
 }

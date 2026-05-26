@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 18 lb. - Damage: 1d10 P - Properties: H|XPHB, R|XPHB, 2H|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/pike.json",
-  "markdown": "# Pike\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 18 lb.\n- **Damage**: 1d10 P\n- **Properties**: H|XPHB, R|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Pike\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 18,
+    "damage": "1d10 P",
+    "properties": [
+      "H|XPHB",
+      "R|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

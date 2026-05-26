@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "Found in a small container, this powder resembles dust_of_disappearance of Disappearance, and identify reveals it to be such. There is enough of it fo...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "dust_of_disappearance of Disappearance",
+    "identify",
+    "utilize",
+    "emanation_area_of_effect",
+    "incapacitated",
+    "lesser_restoration Restoration"
+  ],
   "filePath": "/data/glossary/entries/equipment/dust_of_sneezing_and_choking.json",
-  "markdown": "# Dust of Sneezing and Choking\n\nFound in a small container, this powder resembles [[dust_of_disappearance of Disappearance]], and [[identify]] reveals it to be such. There is enough of it for one use.\n\nAs a [[utilize]] action, you can throw the dust into the air, forcing yourself and every creature in a 30-foot [[emanation_area_of_effect]] originating from you to make a DC 15 Constitution saving throw. Constructs, Elementals, Oozes, Plants, and Undead succeed on the save automatically.\n\nOn a failed save, a creature begins sneezing uncontrollably; it has the [[incapacitated]] condition and is suffocating. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success. The effect also ends on any creature targeted by a [[lesser_restoration Restoration]] spell."
+  "markdown": "# Dust of Sneezing and Choking\n\nFound in a small container, this powder resembles [[dust_of_disappearance of Disappearance]], and [[identify]] reveals it to be such. There is enough of it for one use.\n\nAs a [[utilize]] action, you can throw the dust into the air, forcing yourself and every creature in a 30-foot [[emanation_area_of_effect]] originating from you to make a DC 15 Constitution saving throw. Constructs, Elementals, Oozes, Plants, and Undead succeed on the save automatically.\n\nOn a failed save, a creature begins sneezing uncontrollably; it has the [[incapacitated]] condition and is suffocating. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success. The effect also ends on any creature targeted by a [[lesser_restoration Restoration]] spell.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
 }

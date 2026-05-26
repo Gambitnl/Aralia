@@ -1,0 +1,29 @@
+{
+  "id": "instrument_of_the_bards_doss_lute",
+  "title": "Instrument of the Bards, Doss Lute",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Instrument"
+  ],
+  "excerpt": "An Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college...",
+  "aliases": [],
+  "seeAlso": [
+    "lute",
+    "fly",
+    "invisibility",
+    "levitate",
+    "protection_from_evil_and_good from Evil and Good",
+    "animal_friendship Friendship",
+    "protection_from_energy from Energy",
+    "protection_from_poison from Poison"
+  ],
+  "filePath": "/data/glossary/entries/equipment/instrument_of_the_bards_doss_lute.json",
+  "markdown": "# Instrument of the Bards, Doss Lute\n\nAn Instrument of the Bards is superior to an ordinary instrument in every way. Seven types of these instruments exist, each named after a bard college. A creature that attempts to play the instrument without being attuned to it must succeed on a DC 15 Wisdom saving throw or take 2d4 Psychic damage.\n\nYou can play the Doss [[lute]] to cast one of the following spells: [[fly]], [[invisibility]], [[levitate]], [[protection_from_evil_and_good from Evil and Good]], [[animal_friendship Friendship]], [[protection_from_energy from Energy]] (Fire damage only), and [[protection_from_poison from Poison]]. Once the Doss [[lute]] has been used to cast a spell, it can't be used to cast that spell again until the next dawn. The spells use your spellcasting ability and spell save DC.",
+  "itemMetadata": {
+    "type": "Instrument",
+    "rarity": "Uncommon",
+    "reqAttune": "Required by a bard"
+  }
+}

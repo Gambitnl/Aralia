@@ -1,0 +1,19 @@
+{
+  "id": "scroll_of_protection_constructs",
+  "title": "Scroll of Protection (Constructs)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Scroll"
+  ],
+  "excerpt": "{itemEntry Scroll of Protection}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scroll_of_protection_constructs.json",
+  "markdown": "# Scroll of Protection (Constructs)\n\n{#itemEntry Scroll of Protection}",
+  "itemMetadata": {
+    "type": "Scroll",
+    "rarity": "Rare"
+  }
+}

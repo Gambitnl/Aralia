@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "{itemEntry Ioun Stone} While this dark-blue rhomboid orbits your head, you have advantage on initiative rolls and Wisdom (perception) checks....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "initiative",
+    "perception"
+  ],
   "filePath": "/data/glossary/entries/equipment/ioun_stone_awareness.json",
-  "markdown": "# Ioun Stone, Awareness\n\n{#itemEntry Ioun Stone}\n\nWhile this dark-blue rhomboid orbits your head, you have [[advantage]] on [[initiative]] rolls and Wisdom ([[perception]]) checks."
+  "markdown": "# Ioun Stone, Awareness\n\n{#itemEntry Ioun Stone}\n\nWhile this dark-blue rhomboid orbits your head, you have [[advantage]] on [[initiative]] rolls and Wisdom ([[perception]]) checks.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

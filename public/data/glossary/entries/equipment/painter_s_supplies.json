@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 10 gp - Weight: 5 lb. - Ability:: Wisdom - Utilize:: Paint a recognizable image of something you've seen (DC 10) - Craft:: dru...",
+  "excerpt": "- Ability:: Wisdom - Utilize:: Paint a recognizable image of something you've seen (DC 10) - Craft:: druidic_focus Focus, holy_symbol Symbol...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "druidic_focus Focus",
+    "holy_symbol Symbol"
+  ],
   "filePath": "/data/glossary/entries/equipment/painter_s_supplies.json",
-  "markdown": "# Painter's Supplies\n\n- **Type**: AT|XPHB\n- **Cost**: 10 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Wisdom\n- **Utilize::** Paint a recognizable image of something you've seen (DC 10)\n- **Craft::** [[druidic_focus Focus]], [[holy_symbol Symbol]]"
+  "markdown": "# Painter's Supplies\n\n- **Ability::** Wisdom\n- **Utilize::** Paint a recognizable image of something you've seen (DC 10)\n- **Craft::** [[druidic_focus Focus]], [[holy_symbol Symbol]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 5
+  }
 }

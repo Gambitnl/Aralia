@@ -8,7 +8,16 @@
   ],
   "excerpt": "- Ability Scores:: Strength, Dexterity, Charisma - Feat:: musician - Skill Proficiencies:: acrobatics, performance - Tool Proficiency:: Choose one kin...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "musician",
+    "acrobatics",
+    "performance",
+    "musical_instrument Instrument",
+    "costume Costumes",
+    "mirror",
+    "perfume",
+    "traveler_s_clothes's Clothes"
+  ],
   "filePath": "/data/glossary/entries/backgrounds/entertainer.json",
   "markdown": "# Entertainer\n\n- **Ability Scores::** Strength, Dexterity, Charisma\n- **Feat::** [[musician]]\n- **Skill Proficiencies::** [[acrobatics]], [[performance]]\n- **Tool Proficiency::** Choose one kind of [[musical_instrument Instrument]]\n- **Equipment::** Choose A or B: (A) [[musical_instrument Instrument]] (same as above), [[costume Costumes]], [[mirror]], [[perfume]], [[traveler_s_clothes's Clothes]], 11 GP; or (B) 50 GP"
 }

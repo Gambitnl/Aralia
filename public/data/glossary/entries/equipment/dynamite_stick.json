@@ -1,0 +1,22 @@
+{
+  "id": "dynamite_stick",
+  "title": "Dynamite Stick",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Explosive"
+  ],
+  "excerpt": "An an action, you can light a Dynamite Stick and throw it at a point up to 60 feet away, where it explodes. Each creature in a 5-foot-radius sphere_ar...",
+  "aliases": [],
+  "seeAlso": [
+    "sphere_area_of_effect"
+  ],
+  "filePath": "/data/glossary/entries/equipment/dynamite_stick.json",
+  "markdown": "# Dynamite Stick\n\nAn an action, you can light a Dynamite Stick and throw it at a point up to 60 feet away, where it explodes. Each creature in a 5-foot-radius [[sphere_area_of_effect]] centered on that point makes a DC 12 Dexterity saving throw, taking 3d6 Force damage on a failed save or half as much damage on a successful one.\n\nIt takes 1 minute to bind two or more Dynamite Sticks together so they explode at the same time. Each stick after the first increases the damage by 1d6 (to a maximum of 10d6) and the effect's radius by 5 feet (to a maximum of 20 feet).\n\nIt takes 1 minute to rig dynamite with a longer fuse so it explodes after a longer period of time, such as 1 minute or 10 minutes.",
+  "itemMetadata": {
+    "type": "Explosive",
+    "rarity": "None",
+    "weight": 1
+  }
+}

@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG While wearing this ring, you cast water_walk Walk from it, targeting only yourself....",
+  "excerpt": "While wearing this ring, you cast water_walk Walk from it, targeting only yourself....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "water_walk Walk"
+  ],
   "filePath": "/data/glossary/entries/equipment/ring_of_water_walking.json",
-  "markdown": "# Ring of Water Walking\n\n- **Type**: RG|XDMG\n\nWhile wearing this ring, you cast [[water_walk Walk]] from it, targeting only yourself."
+  "markdown": "# Ring of Water Walking\n\nWhile wearing this ring, you cast [[water_walk Walk]] from it, targeting only yourself.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Uncommon"
+  }
 }

@@ -4,11 +4,31 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 1 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10) - Craft::...",
+  "excerpt": "- Ability:: Dexterity - Utilize:: Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10) - Craft:: padded_armor Armor, basket, bedroll, blanket...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "padded_armor Armor",
+    "basket",
+    "bedroll",
+    "blanket",
+    "fine_clothes Clothes",
+    "net",
+    "robe",
+    "rope",
+    "sack",
+    "string",
+    "tent",
+    "traveler_s_clothes's Clothes"
+  ],
   "filePath": "/data/glossary/entries/equipment/weaver_s_tools.json",
-  "markdown": "# Weaver's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 1 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10)\n- **Craft::** [[padded_armor Armor]], [[basket]], [[bedroll]], [[blanket]], [[fine_clothes Clothes]], [[net]], [[robe]], [[rope]], [[sack]], [[string]], [[tent]], [[traveler_s_clothes's Clothes]]"
+  "markdown": "# Weaver's Tools\n\n- **Ability::** Dexterity\n- **Utilize::** Mend a tear in clothing (DC 10), or sew a Tiny design (DC 10)\n- **Craft::** [[padded_armor Armor]], [[basket]], [[bedroll]], [[blanket]], [[fine_clothes Clothes]], [[net]], [[robe]], [[rope]], [[sack]], [[string]], [[tent]], [[traveler_s_clothes's Clothes]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 5
+  }
 }

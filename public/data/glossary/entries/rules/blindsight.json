@@ -8,7 +8,12 @@
   ],
   "excerpt": "If you have Blindsight, you can see within a specific range without relying on physical sight. Within that range, you can see anything that isn't behi...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "cover Cover",
+    "blinded",
+    "darkness",
+    "invisible"
+  ],
   "filePath": "/data/glossary/entries/rules/blindsight.json",
   "markdown": "# Blindsight\n\nIf you have Blindsight, you can see within a specific range without relying on physical sight. Within that range, you can see anything that isn't behind [[cover Cover]] even if you have the [[blinded]] condition or are in [[darkness]]. Moreover, in that range, you can see something that has the [[invisible]] condition."
 }

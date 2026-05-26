@@ -47,6 +47,22 @@ export interface GlossaryEntry {
   characteristics?: { label: string; value: string }[];
   traits?: { name: string; icon: string; description: string }[];
   spellsOfTheMark?: { minLevel: number; spells: string[] }[];
+  
+  /** 
+   * Used for visually rendering premium item stat blocks and adapting
+   * glossary items into mechanical engine items.
+   */
+  itemMetadata?: {
+    type?: string;
+    cost?: number; // In gp
+    weight?: number; // In lb.
+    damage?: string;
+    properties?: string[];
+    ac?: number;
+    rarity?: string;
+    tier?: string;
+    reqAttune?: string;
+  };
 }
 
 export interface SeededFeatureConfig {

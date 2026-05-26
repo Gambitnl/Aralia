@@ -1,0 +1,20 @@
+{
+  "id": "well_made_tapestry_that_is_10_feet_by_10_feet",
+  "title": "Well-made tapestry that is 10 feet by 10 feet",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/well_made_tapestry_that_is_10_feet_by_10_feet.json",
+  "markdown": "# Well-made tapestry that is 10 feet by 10 feet\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 250
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "embroidered_silk_and_velvet_mantle_set_with_numerous_moonstones",
+  "title": "Embroidered silk and velvet mantle set with numerous moonstones",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/embroidered_silk_and_velvet_mantle_set_with_numerous_moonstones.json",
+  "markdown": "# Embroidered silk and velvet mantle set with numerous moonstones\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 2500
+  }
+}

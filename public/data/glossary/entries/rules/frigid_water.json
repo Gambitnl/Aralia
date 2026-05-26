@@ -1,0 +1,18 @@
+{
+  "id": "frigid_water",
+  "title": "Frigid Water",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "A creature can be immersed in frigid water for a number of minutes equal to its Constitution score before suffering any ill effects. Each additional m...",
+  "aliases": [],
+  "seeAlso": [
+    "exhaustion",
+    "resistance",
+    "immunity"
+  ],
+  "filePath": "/data/glossary/entries/rules/frigid_water.json",
+  "markdown": "# Frigid Water\n\nA creature can be immersed in frigid water for a number of minutes equal to its Constitution score before suffering any ill effects. Each additional minute spent in frigid water requires the creature to succeed on a DC 10 Constitution saving throw or gain 1 [[exhaustion]] level. Creatures with [[resistance]] or [[immunity]] to Cold damage automatically succeed on the save, as do creatures that are naturally adapted to living in ice-cold water."
+}

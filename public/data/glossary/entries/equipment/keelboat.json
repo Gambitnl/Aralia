@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Water)"
   ],
-  "excerpt": "- Type: SHP|XPHB - Cost: 3000 gp...",
+  "excerpt": "SHP...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/keelboat.json",
-  "markdown": "# Keelboat\n\n- **Type**: SHP|XPHB\n- **Cost**: 3000 gp\n\n"
+  "markdown": "# Keelboat\n\n*SHP*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Water)",
+    "rarity": "None",
+    "cost": 3000
+  }
 }

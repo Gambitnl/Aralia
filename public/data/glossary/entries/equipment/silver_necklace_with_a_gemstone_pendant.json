@@ -1,0 +1,20 @@
+{
+  "id": "silver_necklace_with_a_gemstone_pendant",
+  "title": "Silver necklace with a gemstone pendant",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/silver_necklace_with_a_gemstone_pendant.json",
+  "markdown": "# Silver necklace with a gemstone pendant\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 250
+  }
+}

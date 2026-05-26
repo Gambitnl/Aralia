@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
-  "excerpt": "- Weight: 5 lb. This book contains coordination and balance exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 ...",
+  "excerpt": "This book contains coordination and balance exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer st...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/manual_of_quickness_of_action.json",
-  "markdown": "# Manual of Quickness of Action\n\n- **Weight**: 5 lb.\n\nThis book contains coordination and balance exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book's contents and practicing its guidelines, your Dexterity increases by 2, to a maximum of 30. The manual then loses its magic, but regains it in a century."
+  "markdown": "# Manual of Quickness of Action\n\nThis book contains coordination and balance exercises, and its words are charged with magic. If you spend 48 hours over a period of 6 days or fewer studying the book's contents and practicing its guidelines, your Dexterity increases by 2, to a maximum of 30. The manual then loses its magic, but regains it in a century.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Very rare",
+    "weight": 5
+  }
 }

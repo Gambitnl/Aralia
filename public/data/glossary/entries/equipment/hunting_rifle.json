@@ -1,0 +1,26 @@
+{
+  "id": "hunting_rifle",
+  "title": "Hunting Rifle",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ranged Weapon"
+  ],
+  "excerpt": "R...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/hunting_rifle.json",
+  "markdown": "# Hunting Rifle\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "weight": 8,
+    "damage": "2d10 P",
+    "properties": [
+      "AF|XDMG",
+      "RLD|XDMG",
+      "2H|XPHB"
+    ]
+  }
+}

@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.1 gp String is 10 feet long. You can tie a knot in it as a utilize action....",
+  "excerpt": "String is 10 feet long. You can tie a knot in it as a utilize action....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize"
+  ],
   "filePath": "/data/glossary/entries/equipment/string.json",
-  "markdown": "# String\n\n- **Type**: G|XPHB\n- **Cost**: 0.1 gp\n\nString is 10 feet long. You can tie a knot in it as a [[utilize]] action."
+  "markdown": "# String\n\nString is 10 feet long. You can tie a knot in it as a [[utilize]] action.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.1
+  }
 }

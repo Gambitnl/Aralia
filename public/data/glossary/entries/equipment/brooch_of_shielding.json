@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this brooch, you have resistance to Force damage, and you have immunity to damage from the magic_missile Missile spell....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "resistance",
+    "immunity",
+    "magic_missile Missile"
+  ],
   "filePath": "/data/glossary/entries/equipment/brooch_of_shielding.json",
-  "markdown": "# Brooch of Shielding\n\nWhile wearing this brooch, you have [[resistance]] to Force damage, and you have [[immunity]] to damage from the [[magic_missile Missile]] spell."
+  "markdown": "# Brooch of Shielding\n\nWhile wearing this brooch, you have [[resistance]] to Force damage, and you have [[immunity]] to damage from the [[magic_missile Missile]] spell.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

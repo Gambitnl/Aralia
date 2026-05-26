@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 5 gp - Weight: 4 lb. While wearing a Costume, you have advantage on any ability check you make to impersonate the person or typ...",
+  "excerpt": "While wearing a Costume, you have advantage on any ability check you make to impersonate the person or type of person it represents....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/equipment/costume.json",
-  "markdown": "# Costume\n\n- **Type**: G|XPHB\n- **Cost**: 5 gp\n- **Weight**: 4 lb.\n\nWhile wearing a Costume, you have [[advantage]] on any ability check you make to impersonate the person or type of person it represents."
+  "markdown": "# Costume\n\nWhile wearing a Costume, you have [[advantage]] on any ability check you make to impersonate the person or type of person it represents.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 4
+  }
 }

@@ -1,0 +1,23 @@
+{
+  "id": "keoghtom_s_ointment",
+  "title": "Keoghtom's Ointment",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This glass jar, 3 inches in diameter, contains 1d4 + 1 doses of a thick mixture that smells faintly of aloe. The jar and its contents weigh 1/2 pound....",
+  "aliases": [],
+  "seeAlso": [
+    "utilize",
+    "hit_points Points",
+    "poisoned"
+  ],
+  "filePath": "/data/glossary/entries/equipment/keoghtom_s_ointment.json",
+  "markdown": "# Keoghtom's Ointment\n\nThis glass jar, 3 inches in diameter, contains 1d4 + 1 doses of a thick mixture that smells faintly of aloe. The jar and its contents weigh 1/2 pound.\n\nAs a [[utilize]] action, you can swallow one dose of the ointment or apply it to a creature within 5 feet of yourself. The creature that receives it regains 2d8 + 2 [[hit_points Points]] and ceases to have the [[poisoned]] condition.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
+}

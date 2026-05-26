@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Mount"
   ],
-  "excerpt": "- Type: MNT|XPHB - Cost: 50 gp...",
+  "excerpt": "MNT...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/draft_horse.json",
-  "markdown": "# Draft Horse\n\n- **Type**: MNT|XPHB\n- **Cost**: 50 gp\n\n"
+  "markdown": "# Draft Horse\n\n*MNT*\n",
+  "itemMetadata": {
+    "type": "Mount",
+    "rarity": "None",
+    "cost": 50
+  }
 }

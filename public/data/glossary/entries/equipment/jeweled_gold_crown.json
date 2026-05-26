@@ -1,0 +1,20 @@
+{
+  "id": "jeweled_gold_crown",
+  "title": "Jeweled gold crown",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/jeweled_gold_crown.json",
+  "markdown": "# Jeweled gold crown\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 7500
+  }
+}

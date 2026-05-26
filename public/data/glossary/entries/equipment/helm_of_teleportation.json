@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "This helm has 3 charges. While wearing it, you can expend 1 charge to cast teleport from it. The helm regains 1d3 expended charges daily at dawn....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "teleport"
+  ],
   "filePath": "/data/glossary/entries/equipment/helm_of_teleportation.json",
-  "markdown": "# Helm of Teleportation\n\nThis helm has 3 charges. While wearing it, you can expend 1 charge to cast [[teleport]] from it. The helm regains 1d3 expended charges daily at dawn."
+  "markdown": "# Helm of Teleportation\n\nThis helm has 3 charges. While wearing it, you can expend 1 charge to cast [[teleport]] from it. The helm regains 1d3 expended charges daily at dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

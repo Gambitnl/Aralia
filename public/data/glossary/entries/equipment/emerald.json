@@ -1,0 +1,20 @@
+{
+  "id": "emerald",
+  "title": "Emerald",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A deep bright green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/emerald.json",
+  "markdown": "# Emerald\n\nA deep bright green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 1000
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "1_wraps_of_unarmed_power",
+  "title": "+1 Wraps of Unarmed Power",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Forc...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/1_wraps_of_unarmed_power.json",
+  "markdown": "# +1 Wraps of Unarmed Power\n\nWhile wearing these wraps, you have a +1 bonus to attack rolls and damage rolls made with your Unarmed Strikes. Those strikes deal your choice of Force damage or their normal damage type.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
+}

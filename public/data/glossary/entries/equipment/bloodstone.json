@@ -1,0 +1,20 @@
+{
+  "id": "bloodstone",
+  "title": "Bloodstone",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A dark gray with red flecks gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bloodstone.json",
+  "markdown": "# Bloodstone\n\nA dark gray with red flecks gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 50
+  }
+}

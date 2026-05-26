@@ -1,0 +1,20 @@
+{
+  "id": "spinel",
+  "title": "Spinel",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A red, red brown, or deep green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/spinel.json",
+  "markdown": "# Spinel\n\nA red, red brown, or deep green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 100
+  }
+}

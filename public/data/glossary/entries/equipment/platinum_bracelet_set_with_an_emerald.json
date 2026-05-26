@@ -1,0 +1,20 @@
+{
+  "id": "platinum_bracelet_set_with_an_emerald",
+  "title": "Platinum bracelet set with an emerald",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/platinum_bracelet_set_with_an_emerald.json",
+  "markdown": "# Platinum bracelet set with an emerald\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 2500
+  }
+}

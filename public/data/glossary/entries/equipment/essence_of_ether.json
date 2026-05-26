@@ -1,0 +1,23 @@
+{
+  "id": "essence_of_ether",
+  "title": "Essence of Ether",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the poisoned condition for 8 hours. The creature al...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned",
+    "unconscious"
+  ],
+  "filePath": "/data/glossary/entries/equipment/essence_of_ether.json",
+  "markdown": "# Essence of Ether\n\nA creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the [[poisoned]] condition for 8 hours. The creature also has the [[unconscious]] condition while [[poisoned]] in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 300
+  }
+}

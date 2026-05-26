@@ -8,7 +8,9 @@
   ],
   "excerpt": "You have truesight with a range of 30 feet....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "truesight"
+  ],
   "filePath": "/data/glossary/entries/rules/witch_sight.json",
   "markdown": "# Witch Sight\n\nYou have [[truesight]] with a range of 30 feet."
 }

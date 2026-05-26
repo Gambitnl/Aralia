@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tack and Harness"
   ],
-  "excerpt": "- Type: TAH|XPHB - Cost: 10 gp - Weight: 25 lb. A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle....",
+  "excerpt": "A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/riding_saddle.json",
-  "markdown": "# Riding Saddle\n\n- **Type**: TAH|XPHB\n- **Cost**: 10 gp\n- **Weight**: 25 lb.\n\nA saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle."
+  "markdown": "# Riding Saddle\n\nA saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle.",
+  "itemMetadata": {
+    "type": "Tack and Harness",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 25
+  }
 }

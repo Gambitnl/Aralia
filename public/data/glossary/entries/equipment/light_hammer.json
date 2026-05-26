@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 2 gp - Weight: 2 lb. - Damage: 1d4 B - Properties: L|XPHB, T|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/light_hammer.json",
-  "markdown": "# Light Hammer\n\n- **Type**: M|XPHB\n- **Cost**: 2 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d4 B\n- **Properties**: L|XPHB, T|XPHB\n\n"
+  "markdown": "# Light Hammer\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 2,
+    "weight": 2,
+    "damage": "1d4 B",
+    "properties": [
+      "L|XPHB",
+      "T|XPHB"
+    ]
+  }
 }

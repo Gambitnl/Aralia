@@ -1,0 +1,23 @@
+{
+  "id": "lolth_s_sting",
+  "title": "Lolth's Sting",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 1 hour. If the creature fai...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned",
+    "unconscious"
+  ],
+  "filePath": "/data/glossary/entries/equipment/lolth_s_sting.json",
+  "markdown": "# Lolth's Sting\n\nA creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the [[poisoned]] condition for 1 hour. If the creature fails the save by 5 or more, the creature also has the [[unconscious]] condition while [[poisoned]] in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 200
+  }
+}

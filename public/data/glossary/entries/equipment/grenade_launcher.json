@@ -1,0 +1,20 @@
+{
+  "id": "grenade_launcher",
+  "title": "Grenade Launcher",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "{itemEntry Grenade}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/grenade_launcher.json",
+  "markdown": "# Grenade Launcher\n\n{#itemEntry Grenade}",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "weight": 7
+  }
+}

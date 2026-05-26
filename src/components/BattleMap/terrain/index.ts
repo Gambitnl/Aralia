@@ -8,3 +8,4 @@ export { default as GrassLayer } from './GrassLayer';
 export { default as WaterSystem } from './WaterSystem';
 export { default as DecorationProps } from './DecorationProps';
 export { default as GroundScatter } from './GroundScatter';
+export { default as EzTreeLayer } from './EzTreeLayer';

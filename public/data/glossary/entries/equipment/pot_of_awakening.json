@@ -1,0 +1,21 @@
+{
+  "id": "pot_of_awakening",
+  "title": "Pot of Awakening",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "If you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end...",
+  "aliases": [],
+  "seeAlso": [
+    "friendly_attitude"
+  ],
+  "filePath": "/data/glossary/entries/equipment/pot_of_awakening.json",
+  "markdown": "# Pot of Awakening\n\nIf you plant an ordinary shrub in this 10-pound clay pot and let it grow for 30 days, the shrub magically transforms into an Awakened Shrub at the end of that time. When the shrub awakens, its roots break the pot, destroying it.\n\nThe awakened shrub is [[friendly_attitude]] toward you and obeys your commands. Absent commands from you, it does nothing.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

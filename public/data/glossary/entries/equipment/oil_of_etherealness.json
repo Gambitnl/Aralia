@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (on...",
+  "excerpt": "One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "etherealness"
+  ],
   "filePath": "/data/glossary/entries/equipment/oil_of_etherealness.json",
-  "markdown": "# Oil of Etherealness\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nOne vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for each size category above Medium). Applying the oil takes 10 minutes. The affected creature then gains the effect of the [[etherealness]] spell for 1 hour.\n\nBeads of this cloudy, gray oil form on the outside of its container and quickly evaporate."
+  "markdown": "# Oil of Etherealness\n\nOne vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for each size category above Medium). Applying the oil takes 10 minutes. The affected creature then gains the effect of the [[etherealness]] spell for 1 hour.\n\nBeads of this cloudy, gray oil form on the outside of its container and quickly evaporate.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Rare",
+    "weight": 0.5
+  }
 }

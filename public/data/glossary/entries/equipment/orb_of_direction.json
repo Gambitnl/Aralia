@@ -1,0 +1,22 @@
+{
+  "id": "orb_of_direction",
+  "title": "Orb of Direction",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This orb can be used as an Arcane Focus. While holding this orb, you can take a magic action to determine which way is magnetic north. Nothing happens...",
+  "aliases": [],
+  "seeAlso": [
+    "magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/orb_of_direction.json",
+  "markdown": "# Orb of Direction\n\nThis orb can be used as an Arcane Focus.\n\nWhile holding this orb, you can take a [[magic]] action to determine which way is magnetic north. Nothing happens if the orb is used in a location that has no magnetic north.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common",
+    "weight": 3
+  }
+}

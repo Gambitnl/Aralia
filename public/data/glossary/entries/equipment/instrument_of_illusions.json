@@ -1,0 +1,23 @@
+{
+  "id": "instrument_of_illusions",
+  "title": "Instrument of Illusions",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While you are playing this musical_instrument instrument, you can take a magic action to create harmless, illusory visual effects within a 5-foot eman...",
+  "aliases": [],
+  "seeAlso": [
+    "musical_instrument instrument",
+    "magic",
+    "emanation_area_of_effect"
+  ],
+  "filePath": "/data/glossary/entries/equipment/instrument_of_illusions.json",
+  "markdown": "# Instrument of Illusions\n\nWhile you are playing this [[musical_instrument instrument]], you can take a [[magic]] action to create harmless, illusory visual effects within a 5-foot [[emanation_area_of_effect]] originating from the instrument. If you are a Bard, the size of the [[emanation_area_of_effect]] increases to 15 feet. Sample visual effects include luminous musical notes, a spectral dancer, butterflies, and gently falling snow. The magical effects have neither substance nor sound, and they are obviously illusory. The effects end when you stop playing.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

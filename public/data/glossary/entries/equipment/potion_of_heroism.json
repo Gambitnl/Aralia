@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Potion"
   ],
-  "excerpt": "- Type: P|XPHB - Weight: 0.5 lb. When you drink this potion, you gain 10 temporary_hit_points Hit Points that last for 1 hour. For the same duration, ...",
+  "excerpt": "When you drink this potion, you gain 10 temporary_hit_points Hit Points that last for 1 hour. For the same duration, you are under the effect of the b...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "temporary_hit_points Hit Points",
+    "bless"
+  ],
   "filePath": "/data/glossary/entries/equipment/potion_of_heroism.json",
-  "markdown": "# Potion of Heroism\n\n- **Type**: P|XPHB\n- **Weight**: 0.5 lb.\n\nWhen you drink this potion, you gain 10 [[temporary_hit_points Hit Points]] that last for 1 hour. For the same duration, you are under the effect of the [[bless]] spell (no Concentration required).\n\nThis potion's blue liquid bubbles and steams as if boiling."
+  "markdown": "# Potion of Heroism\n\nWhen you drink this potion, you gain 10 [[temporary_hit_points Hit Points]] that last for 1 hour. For the same duration, you are under the effect of the [[bless]] spell (no Concentration required).\n\nThis potion's blue liquid bubbles and steams as if boiling.",
+  "itemMetadata": {
+    "type": "Potion",
+    "rarity": "Rare",
+    "weight": 0.5
+  }
 }

@@ -1,0 +1,28 @@
+{
+  "id": "cube_of_summoning",
+  "title": "Cube of Summoning",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This Tiny cube looks like a jack-in-the-box. When you wind its crank as a magic action, a merry tune emits from the box, the lid pops open, a creature...",
+  "aliases": [],
+  "seeAlso": [
+    "magic",
+    "cube_of_summoning of Summoning",
+    "summon_aberration Aberration",
+    "summon_beast Beast",
+    "summon_construct Construct",
+    "summon_dragon Dragon",
+    "summon_elemental Elemental",
+    "summon_fey Fey"
+  ],
+  "filePath": "/data/glossary/entries/equipment/cube_of_summoning.json",
+  "markdown": "# Cube of Summoning\n\nThis Tiny cube looks like a jack-in-the-box. When you wind its crank as a [[magic]] action, a merry tune emits from the box, the lid pops open, a creature appears in the nearest unoccupied space, and the lid closes. The lid can't otherwise be opened.\n\nRoll on the [[cube_of_summoning of Summoning]] table to determine which spell the cube casts to summon the creature. The spell is cast at level 5 (save DC 17, +9 attack bonus) and doesn't require Concentration, but you otherwise function as the spell's caster.\n\nOnce the cube summons a creature, the cube can't do so again until the next dawn.\n\n**Cube of Summoning**\n\n| 1d6 | Spell |\n| --- | --- |\n| 1 | [[summon_aberration Aberration]] |\n| 2 | [[summon_beast Beast]] |\n| 3 | [[summon_construct Construct]] |\n| 4 | [[summon_dragon Dragon]] |\n| 5 | [[summon_elemental Elemental]] |\n| 6 | [[summon_fey Fey]] |",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare"
+  }
+}

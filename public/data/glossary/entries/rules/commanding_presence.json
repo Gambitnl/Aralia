@@ -8,7 +8,11 @@
   ],
   "excerpt": "When you make a Charisma (intimidation, performance, or persuasion) check, you can expend one Superiority Die and add that die to the roll....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "intimidation",
+    "performance",
+    "persuasion"
+  ],
   "filePath": "/data/glossary/entries/rules/commanding_presence.json",
   "markdown": "# Commanding Presence\n\nWhen you make a Charisma ([[intimidation]], [[performance]], or [[persuasion]]) check, you can expend one Superiority Die and add that die to the roll."
 }

@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG You gain a +1 bonus to armor_class Class and saving throws while wearing this ring....",
+  "excerpt": "You gain a +1 bonus to armor_class Class and saving throws while wearing this ring....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "armor_class Class"
+  ],
   "filePath": "/data/glossary/entries/equipment/ring_of_protection.json",
-  "markdown": "# Ring of Protection\n\n- **Type**: RG|XDMG\n\nYou gain a +1 bonus to [[armor_class Class]] and saving throws while wearing this ring."
+  "markdown": "# Ring of Protection\n\nYou gain a +1 bonus to [[armor_class Class]] and saving throws while wearing this ring.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

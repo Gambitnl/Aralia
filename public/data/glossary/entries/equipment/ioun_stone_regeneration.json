@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "{itemEntry Ioun Stone} You regain 15 hit_points Points at the end of each hour this pearly white spindle orbits your head if you have at least 1 hit_p...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "hit_points Points",
+    "hit_points Point"
+  ],
   "filePath": "/data/glossary/entries/equipment/ioun_stone_regeneration.json",
-  "markdown": "# Ioun Stone, Regeneration\n\n{#itemEntry Ioun Stone}\n\nYou regain 15 [[hit_points Points]] at the end of each hour this pearly white spindle orbits your head if you have at least 1 [[hit_points Point]]."
+  "markdown": "# Ioun Stone, Regeneration\n\n{#itemEntry Ioun Stone}\n\nYou regain 15 [[hit_points Points]] at the end of each hour this pearly white spindle orbits your head if you have at least 1 [[hit_points Point]].",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Legendary",
+    "reqAttune": "Required"
+  }
 }

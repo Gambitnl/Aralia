@@ -1,0 +1,20 @@
+{
+  "id": "bottle_stopper_cork_embossed_with_gold_leaf_and_set_with_amethysts",
+  "title": "Bottle stopper cork embossed with gold leaf and set with amethysts",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/bottle_stopper_cork_embossed_with_gold_leaf_and_set_with_amethysts.json",
+  "markdown": "# Bottle stopper cork embossed with gold leaf and set with amethysts\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 750
+  }
+}

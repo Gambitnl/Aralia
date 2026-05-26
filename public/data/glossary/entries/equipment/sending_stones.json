@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "Sending Stones come in pairs, with each stone carved to match the other so the pairing is easily recognized. While you touch one stone, you can cast s...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "sending"
+  ],
   "filePath": "/data/glossary/entries/equipment/sending_stones.json",
-  "markdown": "# Sending Stones\n\nSending Stones come in pairs, with each stone carved to match the other so the pairing is easily recognized. While you touch one stone, you can cast [[sending]] from it. The target is the bearer of the other stone. If no creature bears the other stone, you know that fact as soon as you use the stone, and you don't cast the spell.\n\nOnce Sending is cast using either stone, the stones can't be used again until the next dawn. If one of the stones in a pair is destroyed, the other one becomes nonmagical."
+  "markdown": "# Sending Stones\n\nSending Stones come in pairs, with each stone carved to match the other so the pairing is easily recognized. While you touch one stone, you can cast [[sending]] from it. The target is the bearer of the other stone. If no creature bears the other stone, you know that fact as soon as you use the stone, and you don't cast the spell.\n\nOnce Sending is cast using either stone, the stones can't be used again until the next dawn. If one of the stones in a pair is destroyed, the other one becomes nonmagical.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
 }

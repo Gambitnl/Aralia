@@ -1,0 +1,14 @@
+{
+  "id": "wild_magic_zone",
+  "title": "Wild Magic Zone",
+  "category": "Rules Glossary",
+  "tags": [
+    "source:xphb",
+    "hazard"
+  ],
+  "excerpt": "A past magical disaster or uncontrolled surge of power in a particular place can cause the fabric of magic to unravel, creating a wild magic zone. In ...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/wild_magic_zone.json",
+  "markdown": "# Wild Magic Zone\n\nA past magical disaster or uncontrolled surge of power in a particular place can cause the fabric of magic to unravel, creating a wild magic zone. In such an area, which is typically no more than 300 feet in diameter, magic behaves unpredictably.\n\nWhenever a creature expends a spell slot to cast a spell in a wild magic zone, roll 1d20. If you roll a 20 on the die, roll on the Wild Magic Surge table in the Player's Handbook to create a magical effect."
+}

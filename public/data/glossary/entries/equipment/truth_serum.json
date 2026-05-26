@@ -1,0 +1,22 @@
+{
+  "id": "truth_serum",
+  "title": "Truth Serum",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the poisoned condition for 1 hour. The poisoned creature...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned"
+  ],
+  "filePath": "/data/glossary/entries/equipment/truth_serum.json",
+  "markdown": "# Truth Serum\n\nA creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the [[poisoned]] condition for 1 hour. The [[poisoned]] creature can't knowingly communicate a lie.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 150
+  }
+}

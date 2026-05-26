@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
-  "excerpt": "- Weight: 1 lb. While holding or wearing this talisman, you have advantage on any Intelligence (arcana) check you make to control a sphere_of_annihila...",
+  "excerpt": "While holding or wearing this talisman, you have advantage on any Intelligence (arcana) check you make to control a sphere_of_annihilation of Annihila...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "arcana",
+    "sphere_of_annihilation of Annihilation",
+    "magic"
+  ],
   "filePath": "/data/glossary/entries/equipment/talisman_of_the_sphere.json",
-  "markdown": "# Talisman of the Sphere\n\n- **Weight**: 1 lb.\n\nWhile holding or wearing this talisman, you have [[advantage]] on any Intelligence ([[arcana]]) check you make to control a [[sphere_of_annihilation of Annihilation]]. In addition, when you start your turn in control of a [[sphere_of_annihilation of Annihilation]], you can take a [[magic]] action to move it 10 feet plus a number of additional feet equal to 10 times your Intelligence modifier. This movement doesn't have to be in a straight line."
+  "markdown": "# Talisman of the Sphere\n\nWhile holding or wearing this talisman, you have [[advantage]] on any Intelligence ([[arcana]]) check you make to control a [[sphere_of_annihilation of Annihilation]]. In addition, when you start your turn in control of a [[sphere_of_annihilation of Annihilation]], you can take a [[magic]] action to move it 10 feet plus a number of additional feet equal to 10 times your Intelligence modifier. This movement doesn't have to be in a straight line.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Legendary",
+    "reqAttune": "Required",
+    "weight": 1
+  }
 }

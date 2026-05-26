@@ -1,0 +1,20 @@
+{
+  "id": "ceremonial_gold_armor_with_black_pearls",
+  "title": "Ceremonial gold armor with black pearls",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/ceremonial_gold_armor_with_black_pearls.json",
+  "markdown": "# Ceremonial gold armor with black pearls\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 7500
+  }
+}

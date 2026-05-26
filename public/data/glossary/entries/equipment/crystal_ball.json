@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
-  "excerpt": "- Weight: 3 lb. The typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the scrying spell (save DC ...",
+  "excerpt": "The typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the scrying spell (save DC 17) with it....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "scrying"
+  ],
   "filePath": "/data/glossary/entries/equipment/crystal_ball.json",
-  "markdown": "# Crystal Ball\n\n- **Weight**: 3 lb.\n\nThe typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the [[scrying]] spell (save DC 17) with it."
+  "markdown": "# Crystal Ball\n\nThe typical crystal ball, a very rare item, is about 6 inches in diameter. While touching it, you can cast the [[scrying]] spell (save DC 17) with it.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Very rare",
+    "reqAttune": "Required",
+    "weight": 3
+  }
 }

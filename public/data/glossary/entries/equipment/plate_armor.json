@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Heavy Armor"
   ],
-  "excerpt": "- Type: HA|XPHB - Cost: 1500 gp - Weight: 65 lb. - Armor Class: 18...",
+  "excerpt": "HA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/plate_armor.json",
-  "markdown": "# Plate Armor\n\n- **Type**: HA|XPHB\n- **Cost**: 1500 gp\n- **Weight**: 65 lb.\n- **Armor Class**: 18\n\n"
+  "markdown": "# Plate Armor\n\n*HA*\n",
+  "itemMetadata": {
+    "type": "Heavy Armor",
+    "rarity": "None",
+    "cost": 1500,
+    "weight": 65,
+    "ac": 18
+  }
 }

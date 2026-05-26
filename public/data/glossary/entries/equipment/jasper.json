@@ -1,0 +1,20 @@
+{
+  "id": "jasper",
+  "title": "Jasper",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A blue, black, or brown gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/jasper.json",
+  "markdown": "# Jasper\n\nA blue, black, or brown gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 50
+  }
+}

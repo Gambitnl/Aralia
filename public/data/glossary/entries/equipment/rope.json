@@ -4,11 +4,26 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 5 lb. As a utilize action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity (sleight_of_hand of ...",
+  "excerpt": "As a utilize action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity (sleight_of_hand of Hand) check. The Rope can be burst with a su...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize",
+    "sleight_of_hand of Hand",
+    "athletics",
+    "grappled",
+    "incapacitated",
+    "restrained",
+    "acrobatics"
+  ],
   "filePath": "/data/glossary/entries/equipment/rope.json",
-  "markdown": "# Rope\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 5 lb.\n\nAs a [[utilize]] action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity ([[sleight_of_hand of Hand]]) check. The Rope can be burst with a successful DC 20 Strength ([[athletics]]) check.\n\nYou can bind an unwilling creature with the Rope only if the creature has the [[grappled]], [[incapacitated]], or [[restrained]] condition. If the creature's legs are bound, the creature has the [[restrained]] condition until it escapes. Escaping the Rope requires the creature to make a successful DC 15 Dexterity ([[acrobatics]]) check as an action."
+  "markdown": "# Rope\n\nAs a [[utilize]] action, you can tie a knot with Rope if you succeed on a DC 10 Dexterity ([[sleight_of_hand of Hand]]) check. The Rope can be burst with a successful DC 20 Strength ([[athletics]]) check.\n\nYou can bind an unwilling creature with the Rope only if the creature has the [[grappled]], [[incapacitated]], or [[restrained]] condition. If the creature's legs are bound, the creature has the [[restrained]] condition until it escapes. Escaping the Rope requires the creature to make a successful DC 15 Dexterity ([[acrobatics]]) check as an action.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 5
+  }
 }

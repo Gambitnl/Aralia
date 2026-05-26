@@ -1,0 +1,21 @@
+{
+  "id": "saffron",
+  "title": "Saffron",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Good"
+  ],
+  "excerpt": "TG...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/saffron.json",
+  "markdown": "# Saffron\n\n*TG*\n",
+  "itemMetadata": {
+    "type": "Trade Good",
+    "rarity": "None",
+    "cost": 15,
+    "weight": 1
+  }
+}

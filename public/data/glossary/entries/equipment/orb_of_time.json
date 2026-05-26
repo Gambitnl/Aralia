@@ -1,0 +1,22 @@
+{
+  "id": "orb_of_time",
+  "title": "Orb of Time",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This orb can be used as an Arcane Focus. While holding the orb, you can take a magic action to determine whether it is morning, afternoon, evening, or...",
+  "aliases": [],
+  "seeAlso": [
+    "magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/orb_of_time.json",
+  "markdown": "# Orb of Time\n\nThis orb can be used as an Arcane Focus.\n\nWhile holding the orb, you can take a [[magic]] action to determine whether it is morning, afternoon, evening, or nighttime. This property functions only on the Material Plane.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common",
+    "weight": 3
+  }
+}

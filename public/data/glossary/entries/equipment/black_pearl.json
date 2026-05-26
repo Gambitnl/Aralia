@@ -1,0 +1,20 @@
+{
+  "id": "black_pearl",
+  "title": "Black Pearl",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A pure black gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/black_pearl.json",
+  "markdown": "# Black Pearl\n\nA pure black gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 500
+  }
+}

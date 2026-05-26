@@ -1,0 +1,20 @@
+{
+  "id": "detailed_life_sized_dragonborn_skull_cast_in_electrum",
+  "title": "Detailed, life-sized dragonborn skull cast in electrum",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/detailed_life_sized_dragonborn_skull_cast_in_electrum.json",
+  "markdown": "# Detailed, life-sized dragonborn skull cast in electrum\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 750
+  }
+}

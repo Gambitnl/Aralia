@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tack and Harness"
   ],
-  "excerpt": "- Type: TAH|XPHB - Cost: 20 gp - Weight: 30 lb. A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. A Milita...",
+  "excerpt": "A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. A Military Saddle gives advantage on any ability check y...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage"
+  ],
   "filePath": "/data/glossary/entries/equipment/military_saddle.json",
-  "markdown": "# Military Saddle\n\n- **Type**: TAH|XPHB\n- **Cost**: 20 gp\n- **Weight**: 30 lb.\n\nA saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. A Military Saddle gives [[advantage]] on any ability check you make to remain mounted."
+  "markdown": "# Military Saddle\n\nA saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. A Military Saddle gives [[advantage]] on any ability check you make to remain mounted.",
+  "itemMetadata": {
+    "type": "Tack and Harness",
+    "rarity": "None",
+    "cost": 20,
+    "weight": 30
+  }
 }

@@ -1,0 +1,20 @@
+{
+  "id": "moonstone",
+  "title": "Moonstone",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A white with pale-blue glow gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/moonstone.json",
+  "markdown": "# Moonstone\n\nA white with pale-blue glow gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 50
+  }
+}

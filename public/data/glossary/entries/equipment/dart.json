@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ranged Weapon"
   ],
-  "excerpt": "- Type: R|XPHB - Cost: 0.05 gp - Weight: 0.25 lb. - Damage: 1d4 P - Properties: F|XPHB, T|XPHB...",
+  "excerpt": "R...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/dart.json",
-  "markdown": "# Dart\n\n- **Type**: R|XPHB\n- **Cost**: 0.05 gp\n- **Weight**: 0.25 lb.\n- **Damage**: 1d4 P\n- **Properties**: F|XPHB, T|XPHB\n\n"
+  "markdown": "# Dart\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "cost": 0.05,
+    "weight": 0.25,
+    "damage": "1d4 P",
+    "properties": [
+      "F|XPHB",
+      "T|XPHB"
+    ]
+  }
 }

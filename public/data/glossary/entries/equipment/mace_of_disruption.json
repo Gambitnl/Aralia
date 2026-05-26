@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 4 lb. - Damage: 1d6 B When you hit a Fiend or an Undead with this magic weapon, that creature takes an extra 2d6 Radiant dama...",
+  "excerpt": "When you hit a Fiend or an Undead with this magic weapon, that creature takes an extra 2d6 Radiant damage. If the target has 25 hit_points Points or f...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "hit_points Points",
+    "frightened",
+    "bright_light Light",
+    "dim_light Light"
+  ],
   "filePath": "/data/glossary/entries/equipment/mace_of_disruption.json",
-  "markdown": "# Mace of Disruption\n\n- **Type**: M|XPHB\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n\nWhen you hit a Fiend or an Undead with this magic weapon, that creature takes an extra 2d6 Radiant damage. If the target has 25 [[hit_points Points]] or fewer after taking this damage, it must succeed on a DC 15 Wisdom saving throw or be destroyed. On a successful save, the creature has the [[frightened]] condition until the end of your next turn.\n\n## Light\n\nWhile you hold this weapon, it sheds [[bright_light Light]] in a 20-foot radius and [[dim_light Light]] for an additional 20 feet."
+  "markdown": "# Mace of Disruption\n\nWhen you hit a Fiend or an Undead with this magic weapon, that creature takes an extra 2d6 Radiant damage. If the target has 25 [[hit_points Points]] or fewer after taking this damage, it must succeed on a DC 15 Wisdom saving throw or be destroyed. On a successful save, the creature has the [[frightened]] condition until the end of your next turn.\n\n## Light\n\nWhile you hold this weapon, it sheds [[bright_light Light]] in a 20-foot radius and [[dim_light Light]] for an additional 20 feet.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required",
+    "weight": 4,
+    "damage": "1d6 B"
+  }
 }

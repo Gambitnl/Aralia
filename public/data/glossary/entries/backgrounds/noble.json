@@ -8,7 +8,14 @@
   ],
   "excerpt": "- Ability Scores:: Strength, Intelligence, Charisma - Feat:: skilled - Skill Proficiencies:: history, persuasion - Tool Proficiency:: Choose one kind ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "skilled",
+    "history",
+    "persuasion",
+    "gaming_set Set",
+    "fine_clothes Clothes",
+    "perfume"
+  ],
   "filePath": "/data/glossary/entries/backgrounds/noble.json",
   "markdown": "# Noble\n\n- **Ability Scores::** Strength, Intelligence, Charisma\n- **Feat::** [[skilled]]\n- **Skill Proficiencies::** [[history]], [[persuasion]]\n- **Tool Proficiency::** Choose one kind of [[gaming_set Set]]\n- **Equipment::** Choose A or B: (A) [[gaming_set Set]] (same as above), [[fine_clothes Clothes]], [[perfume]], 29 GP; or (B) 50 GP"
 }

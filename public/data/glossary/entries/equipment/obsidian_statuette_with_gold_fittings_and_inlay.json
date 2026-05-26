@@ -1,0 +1,20 @@
+{
+  "id": "obsidian_statuette_with_gold_fittings_and_inlay",
+  "title": "Obsidian statuette with gold fittings and inlay",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/obsidian_statuette_with_gold_fittings_and_inlay.json",
+  "markdown": "# Obsidian statuette with gold fittings and inlay\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 750
+  }
+}

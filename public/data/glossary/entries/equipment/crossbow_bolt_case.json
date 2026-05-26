@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 1 gp - Weight: 1 lb. A crossbow_bolt_case Bolt Case holds up to 20 Bolts....",
+  "excerpt": "A crossbow_bolt_case Bolt Case holds up to 20 Bolts....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "crossbow_bolt_case Bolt Case"
+  ],
   "filePath": "/data/glossary/entries/equipment/crossbow_bolt_case.json",
-  "markdown": "# Crossbow Bolt Case\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n- **Weight**: 1 lb.\n\nA [[crossbow_bolt_case Bolt Case]] holds up to 20 Bolts."
+  "markdown": "# Crossbow Bolt Case\n\nA [[crossbow_bolt_case Bolt Case]] holds up to 20 Bolts.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1,
+    "weight": 1
+  }
 }

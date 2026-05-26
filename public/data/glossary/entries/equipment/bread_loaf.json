@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Food and Drink"
   ],
-  "excerpt": "- Type: FD|XPHB - Cost: 0.02 gp...",
+  "excerpt": "FD...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/bread_loaf.json",
-  "markdown": "# Bread (loaf)\n\n- **Type**: FD|XPHB\n- **Cost**: 0.02 gp\n\n"
+  "markdown": "# Bread (loaf)\n\n*FD*\n",
+  "itemMetadata": {
+    "type": "Food and Drink",
+    "rarity": "None",
+    "cost": 0.02
+  }
 }

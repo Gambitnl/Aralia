@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 4 lb. - Damage: 1d8 P - Properties: T|XPHB, V|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/trident.json",
-  "markdown": "# Trident\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d8 P\n- **Properties**: T|XPHB, V|XPHB\n\n"
+  "markdown": "# Trident\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 4,
+    "damage": "1d8 P",
+    "properties": [
+      "T|XPHB",
+      "V|XPHB"
+    ]
+  }
 }

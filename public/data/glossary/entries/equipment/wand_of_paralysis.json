@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wand"
   ],
-  "excerpt": "- Type: WD|XDMG - Weight: 1 lb. This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge to cause a thin blue ray to ...",
+  "excerpt": "This wand has 7 charges. While holding it, you can take a magic action to expend 1 charge to cause a thin blue ray to streak from the tip toward a cre...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "paralyzed"
+  ],
   "filePath": "/data/glossary/entries/equipment/wand_of_paralysis.json",
-  "markdown": "# Wand of Paralysis\n\n- **Type**: WD|XDMG\n- **Weight**: 1 lb.\n\nThis wand has 7 charges. While holding it, you can take a [[magic]] action to expend 1 charge to cause a thin blue ray to streak from the tip toward a creature you can see within 60 feet of yourself. The target must succeed on a DC 15 Constitution saving throw or have the [[paralyzed]] condition for 1 minute. At the end of each of the target's turns, it repeats the save, ending the effect on itself on a success.\n\n## Regaining Charges\n\nThe wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+  "markdown": "# Wand of Paralysis\n\nThis wand has 7 charges. While holding it, you can take a [[magic]] action to expend 1 charge to cause a thin blue ray to streak from the tip toward a creature you can see within 60 feet of yourself. The target must succeed on a DC 15 Constitution saving throw or have the [[paralyzed]] condition for 1 minute. At the end of each of the target's turns, it repeats the save, ending the effect on itself on a success.\n\n## Regaining Charges\n\nThe wand regains 1d6 + 1 expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed.",
+  "itemMetadata": {
+    "type": "Wand",
+    "rarity": "Rare",
+    "reqAttune": "Required by a spellcaster",
+    "weight": 1
+  }
 }

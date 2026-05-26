@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tack and Harness"
   ],
-  "excerpt": "- Type: TAH|XPHB - Cost: 60 gp - Weight: 40 lb. A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. An Exoti...",
+  "excerpt": "A saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. An Exotic Saddle is required for riding an aquatic or a ...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/exotic_saddle.json",
-  "markdown": "# Exotic Saddle\n\n- **Type**: TAH|XPHB\n- **Cost**: 60 gp\n- **Weight**: 40 lb.\n\nA saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. An Exotic Saddle is required for riding an aquatic or a flying mount."
+  "markdown": "# Exotic Saddle\n\nA saddle comes with a bit, a bridle, reins, and any other equipment needed to use the saddle. An Exotic Saddle is required for riding an aquatic or a flying mount.",
+  "itemMetadata": {
+    "type": "Tack and Harness",
+    "rarity": "None",
+    "cost": 60,
+    "weight": 40
+  }
 }

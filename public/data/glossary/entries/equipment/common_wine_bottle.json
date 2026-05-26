@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Food and Drink"
   ],
-  "excerpt": "- Type: FD|XPHB - Cost: 0.2 gp...",
+  "excerpt": "FD...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/common_wine_bottle.json",
-  "markdown": "# Common Wine (bottle)\n\n- **Type**: FD|XPHB\n- **Cost**: 0.2 gp\n\n"
+  "markdown": "# Common Wine (bottle)\n\n*FD*\n",
+  "itemMetadata": {
+    "type": "Food and Drink",
+    "rarity": "None",
+    "cost": 0.2
+  }
 }

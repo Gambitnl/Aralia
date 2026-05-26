@@ -1,0 +1,20 @@
+{
+  "id": "garnet",
+  "title": "Garnet",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A red, brown green, or violet gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/garnet.json",
+  "markdown": "# Garnet\n\nA red, brown green, or violet gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 100
+  }
+}

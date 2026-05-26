@@ -1,0 +1,20 @@
+{
+  "id": "chrysoberyl",
+  "title": "Chrysoberyl",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A yellow green to pale green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/chrysoberyl.json",
+  "markdown": "# Chrysoberyl\n\nA yellow green to pale green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 100
+  }
+}

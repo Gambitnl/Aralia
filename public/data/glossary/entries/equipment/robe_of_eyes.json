@@ -4,11 +4,25 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "This robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits: - All-Around Vision: The robe gives you advantag...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "perception",
+    "darkvision",
+    "truesight",
+    "light",
+    "daylight",
+    "blinded"
+  ],
   "filePath": "/data/glossary/entries/equipment/robe_of_eyes.json",
-  "markdown": "# Robe of Eyes\n\nThis robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits:\n\n- **All-Around Vision:** The robe gives you [[advantage]] on Wisdom ([[perception]]) checks that rely on sight.\n- **Special Senses:** You have [[darkvision]] and [[truesight]], both with a range of 120 feet.\n\n## Drawbacks\n\nA [[light]] spell cast on the robe or a [[daylight]] spell cast within 5 feet of the robe gives you the [[blinded]] condition for 1 minute. At the end of each of your turns, you make a Constitution saving throw (DC 11 for Light or DC 15 for Daylight), ending the condition on yourself on a success."
+  "markdown": "# Robe of Eyes\n\nThis robe is adorned with eyelike patterns. While you wear the robe, you gain the following benefits:\n\n- **All-Around Vision:** The robe gives you [[advantage]] on Wisdom ([[perception]]) checks that rely on sight.\n- **Special Senses:** You have [[darkvision]] and [[truesight]], both with a range of 120 feet.\n\n## Drawbacks\n\nA [[light]] spell cast on the robe or a [[daylight]] spell cast within 5 feet of the robe gives you the [[blinded]] condition for 1 minute. At the end of each of your turns, you make a Constitution saving throw (DC 11 for Light or DC 15 for Daylight), ending the condition on yourself on a success.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

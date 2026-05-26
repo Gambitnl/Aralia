@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Rod"
   ],
-  "excerpt": "- Type: RD|XDMG - Weight: 2 lb. The rod has 5 charges. While you hold it, you can cast one of the following spells from it: heal (expends 1 charge) or...",
+  "excerpt": "The rod has 5 charges. While you hold it, you can cast one of the following spells from it: heal (expends 1 charge) or resurrection (expends 5 charges...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "heal",
+    "resurrection"
+  ],
   "filePath": "/data/glossary/entries/equipment/rod_of_resurrection.json",
-  "markdown": "# Rod of Resurrection\n\n- **Type**: RD|XDMG\n- **Weight**: 2 lb.\n\nThe rod has 5 charges. While you hold it, you can cast one of the following spells from it: [[heal]] (expends 1 charge) or [[resurrection]] (expends 5 charges).\n\nThe rod regains 1 expended charge daily at dawn. If you expend the last charge, roll 1d20. On a 1, the rod disappears in a harmless burst of radiance."
+  "markdown": "# Rod of Resurrection\n\nThe rod has 5 charges. While you hold it, you can cast one of the following spells from it: [[heal]] (expends 1 charge) or [[resurrection]] (expends 5 charges).\n\nThe rod regains 1 expended charge daily at dawn. If you expend the last charge, roll 1d20. On a 1, the rod disappears in a harmless burst of radiance.",
+  "itemMetadata": {
+    "type": "Rod",
+    "rarity": "Legendary",
+    "reqAttune": "Required by a cleric, druid, or paladin",
+    "weight": 2
+  }
 }

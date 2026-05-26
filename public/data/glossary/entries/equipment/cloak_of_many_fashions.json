@@ -1,0 +1,21 @@
+{
+  "id": "cloak_of_many_fashions",
+  "title": "Cloak of Many Fashions",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "While wearing this cloak, you can take a bonus_action Action to change the style, color, and apparent quality of the garment. The cloak's weight doesn...",
+  "aliases": [],
+  "seeAlso": [
+    "bonus_action Action"
+  ],
+  "filePath": "/data/glossary/entries/equipment/cloak_of_many_fashions.json",
+  "markdown": "# Cloak of Many Fashions\n\nWhile wearing this cloak, you can take a [[bonus_action Action]] to change the style, color, and apparent quality of the garment. The cloak's weight doesn't change. Regardless of its appearance, the cloak can't be anything but a cloak. Although it can duplicate the appearance of other magic cloaks, it doesn't gain their magical properties.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

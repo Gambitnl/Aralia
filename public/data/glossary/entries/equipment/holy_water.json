@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 25 gp - Weight: 1 lb. When you take the attack action, you can replace one of your attacks with throwing a flask of Holy Water....",
+  "excerpt": "When you take the attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 fe...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "attack",
+    "proficiency Bonus"
+  ],
   "filePath": "/data/glossary/entries/equipment/holy_water.json",
-  "markdown": "# Holy Water\n\n- **Type**: G|XPHB\n- **Cost**: 25 gp\n- **Weight**: 1 lb.\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency Bonus]]) or take 2d8 Radiant damage if it is a Fiend or an Undead."
+  "markdown": "# Holy Water\n\nWhen you take the [[attack]] action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and [[proficiency Bonus]]) or take 2d8 Radiant damage if it is a Fiend or an Undead.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 1
+  }
 }

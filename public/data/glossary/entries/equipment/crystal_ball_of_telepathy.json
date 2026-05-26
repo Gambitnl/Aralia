@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
-  "excerpt": "- Weight: 3 lb. While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can communicate telepathically with creat...",
+  "excerpt": "While touching this crystal orb, you can cast scrying (save DC 17) with it. In addition, you can communicate telepathically with creatures you can see...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "scrying",
+    "suggestion"
+  ],
   "filePath": "/data/glossary/entries/equipment/crystal_ball_of_telepathy.json",
-  "markdown": "# Crystal Ball of Telepathy\n\n- **Weight**: 3 lb.\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you can communicate telepathically with creatures you can see within 30 feet of the spell's sensor. You can also cast [[suggestion]] (save DC 17) through the sensor on one of those creatures. You don't need to concentrate on this [[suggestion]] to maintain it during its duration, but it ends if [[scrying]] ends. You can't cast [[suggestion]] in this way again until the next dawn."
+  "markdown": "# Crystal Ball of Telepathy\n\nWhile touching this crystal orb, you can cast [[scrying]] (save DC 17) with it. In addition, you can communicate telepathically with creatures you can see within 30 feet of the spell's sensor. You can also cast [[suggestion]] (save DC 17) through the sensor on one of those creatures. You don't need to concentrate on this [[suggestion]] to maintain it during its duration, but it ends if [[scrying]] ends. You can't cast [[suggestion]] in this way again until the next dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Legendary",
+    "reqAttune": "Required",
+    "weight": 3
+  }
 }

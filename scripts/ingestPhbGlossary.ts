@@ -22,6 +22,12 @@ function stripMarkup(text: any): string {
     .replace(/\{@actSaveFail\}/g, 'On a failed save,')
     .replace(/\{@actSaveSuccess\}/g, 'On a success,')
     .replace(/\{@actSaveSuccessOrFail\}/g, 'Regardless of the save,')
+    .replace(/\{@dice\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
+    .replace(/\{@damage\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1')
+    .replace(/\{@hit\s+([^|}]+)(?:\|[^}]+)?\}/gi, '+$1')
+    .replace(/\{@chance\s+([^|}]+)(?:\|[^}]+)?\}/gi, '$1%')
+    .replace(/\{@recharge\s+([^|}]+)(?:\|[^}]+)?\}/gi, '(Recharge $1-6)')
+    .replace(/\{@recharge\}/gi, '(Recharge 6)')
     .replace(/\{@(action|variantrule|condition|disease|sense|skill|feat|background|item|spell|language)\s+([^|}]+)(?:\|([^|}]*))?(?:\|([^|}]+))?\}/gi, (_, tag, target, source, display) => {
       const linkText = display || target;
       const termId = slugify(target);
@@ -106,14 +112,21 @@ function processSourceFiles() {
     { file: 'feats.json', key: 'feat', category: 'Feats', outSubDir: 'feats' },
     { file: 'backgrounds.json', key: 'background', category: 'Character Backgrounds', outSubDir: 'backgrounds' },
     { file: 'items.json', key: 'item', category: 'Equipment', outSubDir: 'equipment' },
-    { file: 'items.json', key: 'itemGroup', category: 'Equipment', outSubDir: 'equipment' },
     { file: 'items-base.json', key: 'baseitem', category: 'Equipment', outSubDir: 'equipment' },
-    { file: 'items-base.json', key: 'itemProperty', category: 'Equipment', outSubDir: 'equipment' },
-    { file: 'items-base.json', key: 'itemType', category: 'Equipment', outSubDir: 'equipment' },
-    { file: 'items-base.json', key: 'itemMastery', category: 'Equipment', outSubDir: 'equipment' },
+    { file: 'items-base.json', key: 'itemProperty', category: 'Rules Glossary', outSubDir: 'rules' },
+    { file: 'items-base.json', key: 'itemMastery', category: 'Rules Glossary', outSubDir: 'rules' },
   ];
 
   let count = 0;
+  
+  // Build Item Type Map
+  const typeMap: Record<string, string> = {};
+  try {
+      const baseItemsData = JSON.parse(fs.readFileSync(path.join(VENDOR_DATA_DIR, 'items-base.json'), 'utf8'));
+      for (const t of baseItemsData.itemType || []) {
+          typeMap[t.abbreviation] = t.name;
+      }
+  } catch(e) {}
 
   for (const source of sources) {
     const fullPath = path.join(VENDOR_DATA_DIR, source.file);
@@ -129,26 +142,60 @@ function processSourceFiles() {
     const items = rawData[source.key] || [];
 
     for (const item of items) {
-      if (item.source === 'XPHB' || item.basicRules2024 === true) {
+      if (item.source === 'XPHB' || item.source === 'XDMG' || item.basicRules2024 === true) {
         const name = item.name || item.abbreviation || item.id || item.type;
         if (!name) continue;
         const id = slugify(name);
         
         let mdBody = '';
+        const itemTags = [`source:xphb`, source.key];
         
+        let itemMetadata: any = null;
+
         // --- GAP RESOLUTION: Parse Item Metadata ---
         if (source.category === 'Equipment') {
-            const meta = [];
-            if (item.type) meta.push(`- **Type**: ${item.type}`);
-            if (item.value) meta.push(`- **Cost**: ${item.value / 100} gp`); // value is typically in cp
-            if (item.weight) meta.push(`- **Weight**: ${item.weight} lb.`);
-            if (item.dmg1) meta.push(`- **Damage**: ${item.dmg1} ${item.dmgType || ''}`);
-            if (item.property && item.property.length > 0) meta.push(`- **Properties**: ${item.property.join(', ')}`);
-            if (item.ac) meta.push(`- **Armor Class**: ${item.ac}`);
-            
-            if (meta.length > 0) {
-                mdBody += meta.join('\n') + '\n\n';
+            itemMetadata = {};
+            if (item.type) {
+                const typeAbbr = item.type.split('|')[0];
+                const typeName = typeMap[typeAbbr] || typeAbbr;
+                itemMetadata.type = typeName;
+                itemTags.push(`itemType:${typeName}`);
+            } else {
+                if (item.wondrous) {
+                    itemMetadata.type = 'Wondrous Item';
+                    itemTags.push(`itemType:Wondrous Items`);
+                } else if (item.potion) {
+                    itemMetadata.type = 'Potion';
+                    itemTags.push(`itemType:Potions`);
+                } else if (item.ring) {
+                    itemMetadata.type = 'Ring';
+                    itemTags.push(`itemType:Rings`);
+                } else if (item.rod) {
+                    itemMetadata.type = 'Rod';
+                    itemTags.push(`itemType:Rods`);
+                } else if (item.scroll) {
+                    itemMetadata.type = 'Scroll';
+                    itemTags.push(`itemType:Scrolls`);
+                } else if (item.staff) {
+                    itemMetadata.type = 'Staff';
+                    itemTags.push(`itemType:Staves`);
+                } else if (item.wand) {
+                    itemMetadata.type = 'Wand';
+                    itemTags.push(`itemType:Wands`);
+                }
             }
+            if (item.rarity) itemMetadata.rarity = item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1);
+            if (item.tier) itemMetadata.tier = item.tier.charAt(0).toUpperCase() + item.tier.slice(1);
+            if (item.reqAttune) {
+                if (item.reqAttune === true) itemMetadata.reqAttune = 'Required';
+                else itemMetadata.reqAttune = `Required ${item.reqAttune}`;
+            }
+            if (item.value) itemMetadata.cost = item.value; // Keep in cp or whatever base, we can handle conversion in UI. Wait, let's normalize to gp.
+            if (item.value) itemMetadata.cost = item.value / 100; 
+            if (item.weight) itemMetadata.weight = item.weight;
+            if (item.dmg1) itemMetadata.damage = `${item.dmg1} ${item.dmgType || ''}`.trim();
+            if (item.property && item.property.length > 0) itemMetadata.properties = item.property;
+            if (item.ac) itemMetadata.ac = item.ac;
         }
         
         mdBody += entriesToMarkdown(item.entries || []).trim();
@@ -161,17 +208,31 @@ function processSourceFiles() {
         const plainText = mdBody.replace(/[#*[\]`>]/g, '').replace(/\n+/g, ' ').trim();
         const excerpt = plainText ? plainText.substring(0, 150) + '...' : 'No description available.';
 
-        const glossaryEntry = {
+        // Parse seeAlso from markdown links [[termId|display]]
+        const seeAlsoSet = new Set<string>();
+        const linkRegex = /\[\[([^|\]]+)(?:\|[^\]]+)?\]\]/g;
+        let match;
+        while ((match = linkRegex.exec(mdBody)) !== null) {
+            if (match[1] !== id) {
+                seeAlsoSet.add(match[1]);
+            }
+        }
+        
+        const glossaryEntry: any = {
           id,
           title: name,
           category: source.category,
-          tags: [`source:xphb`, source.key],
+          tags: itemTags,
           excerpt,
           aliases: [],
-          seeAlso: [],
+          seeAlso: Array.from(seeAlsoSet),
           filePath: `/data/glossary/entries/${source.outSubDir}/${id}.json`,
           markdown: `# ${name}\n\n${mdBody}`
         };
+        
+        if (itemMetadata) {
+            glossaryEntry.itemMetadata = itemMetadata;
+        }
 
         const outPath = path.join(outDir, `${id}.json`);
         

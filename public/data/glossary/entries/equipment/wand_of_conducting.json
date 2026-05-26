@@ -1,0 +1,22 @@
+{
+  "id": "wand_of_conducting",
+  "title": "Wand of Conducting",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wand"
+  ],
+  "excerpt": "This wand has 3 charges. While holding it, you can take a magic action to expend 1 charge and create orchestral music by waving it around. The music c...",
+  "aliases": [],
+  "seeAlso": [
+    "magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/wand_of_conducting.json",
+  "markdown": "# Wand of Conducting\n\nThis wand has 3 charges. While holding it, you can take a [[magic]] action to expend 1 charge and create orchestral music by waving it around. The music can be heard out to 120 feet and ends when you stop waving the wand.\n\n## Regaining Charges\n\nThe wand regains all expended charges daily at dawn. If you expend the wand's last charge, roll 1d20. On a 1, a sad tuba sound plays as the wand crumbles into dust and is destroyed.",
+  "itemMetadata": {
+    "type": "Wand",
+    "rarity": "Common",
+    "weight": 1
+  }
+}

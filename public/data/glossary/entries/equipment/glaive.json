@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 20 gp - Weight: 6 lb. - Damage: 1d10 S - Properties: H|XPHB, R|XPHB, 2H|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/glaive.json",
-  "markdown": "# Glaive\n\n- **Type**: M|XPHB\n- **Cost**: 20 gp\n- **Weight**: 6 lb.\n- **Damage**: 1d10 S\n- **Properties**: H|XPHB, R|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Glaive\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 20,
+    "weight": 6,
+    "damage": "1d10 S",
+    "properties": [
+      "H|XPHB",
+      "R|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

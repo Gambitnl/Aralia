@@ -1,0 +1,26 @@
+{
+  "id": "shotgun",
+  "title": "Shotgun",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ranged Weapon"
+  ],
+  "excerpt": "R...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/shotgun.json",
+  "markdown": "# Shotgun\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "weight": 7,
+    "damage": "2d8 P",
+    "properties": [
+      "AF|XDMG",
+      "RLD|XDMG",
+      "2H|XPHB"
+    ]
+  }
+}

@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 50 gp As a bonus_action Action, you can drink a vial of Antitoxin to gain advantage on saving throws to avoid or end the poison...",
+  "excerpt": "As a bonus_action Action, you can drink a vial of Antitoxin to gain advantage on saving throws to avoid or end the poisoned condition for 1 hour....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "bonus_action Action",
+    "advantage",
+    "poisoned"
+  ],
   "filePath": "/data/glossary/entries/equipment/antitoxin.json",
-  "markdown": "# Antitoxin\n\n- **Type**: G|XPHB\n- **Cost**: 50 gp\n\nAs a [[bonus_action Action]], you can drink a vial of Antitoxin to gain [[advantage]] on saving throws to avoid or end the [[poisoned]] condition for 1 hour."
+  "markdown": "# Antitoxin\n\nAs a [[bonus_action Action]], you can drink a vial of Antitoxin to gain [[advantage]] on saving throws to avoid or end the [[poisoned]] condition for 1 hour.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 50
+  }
 }

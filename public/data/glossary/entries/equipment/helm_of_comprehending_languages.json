@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this helm, you can cast comprehend_languages Languages from it....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "comprehend_languages Languages"
+  ],
   "filePath": "/data/glossary/entries/equipment/helm_of_comprehending_languages.json",
-  "markdown": "# Helm of Comprehending Languages\n\nWhile wearing this helm, you can cast [[comprehend_languages Languages]] from it."
+  "markdown": "# Helm of Comprehending Languages\n\nWhile wearing this helm, you can cast [[comprehend_languages Languages]] from it.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
 }

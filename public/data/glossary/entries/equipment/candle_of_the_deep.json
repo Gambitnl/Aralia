@@ -1,0 +1,19 @@
+{
+  "id": "candle_of_the_deep",
+  "title": "Candle of the Deep",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "The flame of this candle isn't extinguished when immersed in water. It gives off light and heat like a normal candle....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/candle_of_the_deep.json",
+  "markdown": "# Candle of the Deep\n\nThe flame of this candle isn't extinguished when immersed in water. It gives off light and heat like a normal candle.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

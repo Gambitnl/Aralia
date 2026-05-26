@@ -8,7 +8,18 @@
   ],
   "excerpt": "- Ability Scores:: Strength, Dexterity, Constitution - Feat:: savage_attacker Attacker - Skill Proficiencies:: athletics, intimidation - Tool Proficie...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "savage_attacker Attacker",
+    "athletics",
+    "intimidation",
+    "gaming_set Set",
+    "spear",
+    "shortbow",
+    "arrow Arrows",
+    "healer_s_kit's Kit",
+    "quiver",
+    "traveler_s_clothes's Clothes"
+  ],
   "filePath": "/data/glossary/entries/backgrounds/soldier.json",
   "markdown": "# Soldier\n\n- **Ability Scores::** Strength, Dexterity, Constitution\n- **Feat::** [[savage_attacker Attacker]]\n- **Skill Proficiencies::** [[athletics]], [[intimidation]]\n- **Tool Proficiency::** Choose one kind of [[gaming_set Set]]\n- **Equipment::** Choose A or B: (A) [[spear]], [[shortbow]], [[arrow Arrows]], [[gaming_set Set]] (same as above), [[healer_s_kit's Kit]], [[quiver]], [[traveler_s_clothes's Clothes]], 14 GP; or (B) 50 GP"
 }

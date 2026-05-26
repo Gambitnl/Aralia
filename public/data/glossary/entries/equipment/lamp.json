@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.5 gp - Weight: 1 lb. A Lamp burns oil as fuel to cast bright_light Light in a 15-foot radius and dim_light Light for an addit...",
+  "excerpt": "A Lamp burns oil as fuel to cast bright_light Light in a 15-foot radius and dim_light Light for an additional 30 feet....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "oil",
+    "bright_light Light",
+    "dim_light Light"
+  ],
   "filePath": "/data/glossary/entries/equipment/lamp.json",
-  "markdown": "# Lamp\n\n- **Type**: G|XPHB\n- **Cost**: 0.5 gp\n- **Weight**: 1 lb.\n\nA Lamp burns [[oil]] as fuel to cast [[bright_light Light]] in a 15-foot radius and [[dim_light Light]] for an additional 30 feet."
+  "markdown": "# Lamp\n\nA Lamp burns [[oil]] as fuel to cast [[bright_light Light]] in a 15-foot radius and [[dim_light Light]] for an additional 30 feet.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.5,
+    "weight": 1
+  }
 }

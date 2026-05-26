@@ -4,11 +4,28 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 3 lb. - Damage: 1d8 R - Properties: F|XPHB, V|XPHB This item appears to be a sword hilt.  Blade of Radiance While grasping th...",
+  "excerpt": "This item appears to be a sword hilt.  Blade of Radiance While grasping the hilt, you can take a bonus_action Action to cause a blade of pure radiance...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "bonus_action Action",
+    "bright_light Light",
+    "dim_light Light",
+    "magic"
+  ],
   "filePath": "/data/glossary/entries/equipment/sun_blade.json",
-  "markdown": "# Sun Blade\n\n- **Type**: M|XPHB\n- **Weight**: 3 lb.\n- **Damage**: 1d8 R\n- **Properties**: F|XPHB, V|XPHB\n\nThis item appears to be a sword hilt.\n\n## Blade of Radiance\n\nWhile grasping the hilt, you can take a [[bonus_action Action]] to cause a blade of pure radiance to spring into existence or make the blade disappear. While the blade exists, this magic weapon functions as a Longsword with F. If you are proficient with Longswords or Shortswords, you are proficient with the Sun Blade.\n\nYou gain a +2 bonus to attack rolls and damage rolls made with this weapon, which deals Radiant damage instead of Slashing damage. When you hit an Undead with it, that target takes an extra 1d8 Radiant damage.\n\n## Sunlight\n\nThe sword's luminous blade emits [[bright_light Light]] in a 15-foot radius and [[dim_light Light]] for an additional 15 feet. The light is sunlight. While the blade persists, you can take a [[magic]] action to expand or reduce its radius of [[bright_light Light]] and [[dim_light Light]] by 5 feet each, to a maximum of 30 feet each or a minimum of 10 feet each."
+  "markdown": "# Sun Blade\n\nThis item appears to be a sword hilt.\n\n## Blade of Radiance\n\nWhile grasping the hilt, you can take a [[bonus_action Action]] to cause a blade of pure radiance to spring into existence or make the blade disappear. While the blade exists, this magic weapon functions as a Longsword with F. If you are proficient with Longswords or Shortswords, you are proficient with the Sun Blade.\n\nYou gain a +2 bonus to attack rolls and damage rolls made with this weapon, which deals Radiant damage instead of Slashing damage. When you hit an Undead with it, that target takes an extra 1d8 Radiant damage.\n\n## Sunlight\n\nThe sword's luminous blade emits [[bright_light Light]] in a 15-foot radius and [[dim_light Light]] for an additional 15 feet. The light is sunlight. While the blade persists, you can take a [[magic]] action to expand or reduce its radius of [[bright_light Light]] and [[dim_light Light]] by 5 feet each, to a maximum of 30 feet each or a minimum of 10 feet each.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required",
+    "weight": 3,
+    "damage": "1d8 R",
+    "properties": [
+      "F|XPHB",
+      "V|XPHB"
+    ]
+  }
 }

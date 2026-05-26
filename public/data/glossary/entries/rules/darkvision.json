@@ -8,7 +8,11 @@
   ],
   "excerpt": "If you have Darkvision, you can see in dim_light Light within a specified range as if it were bright_light Light and in darkness within that range as ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "dim_light Light",
+    "bright_light Light",
+    "darkness"
+  ],
   "filePath": "/data/glossary/entries/rules/darkvision.json",
   "markdown": "# Darkvision\n\nIf you have Darkvision, you can see in [[dim_light Light]] within a specified range as if it were [[bright_light Light]] and in [[darkness]] within that range as if it were [[dim_light Light]]. You discern colors in that [[darkness]] only as shades of gray."
 }

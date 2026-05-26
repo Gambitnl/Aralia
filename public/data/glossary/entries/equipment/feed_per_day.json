@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tack and Harness"
   ],
-  "excerpt": "- Type: TAH|XPHB - Cost: 0.05 gp - Weight: 10 lb....",
+  "excerpt": "TAH...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/feed_per_day.json",
-  "markdown": "# Feed (per day)\n\n- **Type**: TAH|XPHB\n- **Cost**: 0.05 gp\n- **Weight**: 10 lb.\n\n"
+  "markdown": "# Feed (per day)\n\n*TAH*\n",
+  "itemMetadata": {
+    "type": "Tack and Harness",
+    "rarity": "None",
+    "cost": 0.05,
+    "weight": 10
+  }
 }

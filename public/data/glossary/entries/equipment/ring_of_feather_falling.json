@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG When you fall while wearing this ring, you descend 60 feet per round and take no damage from falling....",
+  "excerpt": "When you fall while wearing this ring, you descend 60 feet per round and take no damage from falling....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/ring_of_feather_falling.json",
-  "markdown": "# Ring of Feather Falling\n\n- **Type**: RG|XDMG\n\nWhen you fall while wearing this ring, you descend 60 feet per round and take no damage from falling."
+  "markdown": "# Ring of Feather Falling\n\nWhen you fall while wearing this ring, you descend 60 feet per round and take no damage from falling.",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

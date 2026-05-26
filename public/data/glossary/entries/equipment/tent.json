@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 2 gp - Weight: 20 lb. A Tent sleeps up to two Small or Medium creatures....",
+  "excerpt": "A Tent sleeps up to two Small or Medium creatures....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/tent.json",
-  "markdown": "# Tent\n\n- **Type**: G|XPHB\n- **Cost**: 2 gp\n- **Weight**: 20 lb.\n\nA Tent sleeps up to two Small or Medium creatures."
+  "markdown": "# Tent\n\nA Tent sleeps up to two Small or Medium creatures.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 2,
+    "weight": 20
+  }
 }

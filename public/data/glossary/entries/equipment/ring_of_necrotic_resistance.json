@@ -4,11 +4,16 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Ring"
   ],
-  "excerpt": "- Type: RG|XDMG {itemEntry Ring of Resistance}...",
+  "excerpt": "{itemEntry Ring of Resistance}...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/ring_of_necrotic_resistance.json",
-  "markdown": "# Ring of Necrotic Resistance\n\n- **Type**: RG|XDMG\n\n{#itemEntry Ring of Resistance}"
+  "markdown": "# Ring of Necrotic Resistance\n\n{#itemEntry Ring of Resistance}",
+  "itemMetadata": {
+    "type": "Ring",
+    "rarity": "Rare"
+  }
 }

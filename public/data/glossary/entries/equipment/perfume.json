@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 5 gp Perfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have advantage on Charisma (persuasion...",
+  "excerpt": "Perfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have advantage on Charisma (persuasion) checks made to influence a...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "persuasion"
+  ],
   "filePath": "/data/glossary/entries/equipment/perfume.json",
-  "markdown": "# Perfume\n\n- **Type**: G|XPHB\n- **Cost**: 5 gp\n\nPerfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have [[advantage]] on Charisma ([[persuasion]]) checks made to influence an Indifferent Humanoid within 5 feet of yourself."
+  "markdown": "# Perfume\n\nPerfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have [[advantage]] on Charisma ([[persuasion]]) checks made to influence an Indifferent Humanoid within 5 feet of yourself.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 5
+  }
 }

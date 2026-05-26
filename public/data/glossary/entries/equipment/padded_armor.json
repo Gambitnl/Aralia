@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Light Armor"
   ],
-  "excerpt": "- Type: LA|XPHB - Cost: 5 gp - Weight: 8 lb. - Armor Class: 11...",
+  "excerpt": "LA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/padded_armor.json",
-  "markdown": "# Padded Armor\n\n- **Type**: LA|XPHB\n- **Cost**: 5 gp\n- **Weight**: 8 lb.\n- **Armor Class**: 11\n\n"
+  "markdown": "# Padded Armor\n\n*LA*\n",
+  "itemMetadata": {
+    "type": "Light Armor",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 8,
+    "ac": 11
+  }
 }

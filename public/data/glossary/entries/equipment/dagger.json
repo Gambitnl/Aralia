@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 2 gp - Weight: 1 lb. - Damage: 1d4 P - Properties: F|XPHB, L|XPHB, T|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/dagger.json",
-  "markdown": "# Dagger\n\n- **Type**: M|XPHB\n- **Cost**: 2 gp\n- **Weight**: 1 lb.\n- **Damage**: 1d4 P\n- **Properties**: F|XPHB, L|XPHB, T|XPHB\n\n"
+  "markdown": "# Dagger\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 2,
+    "weight": 1,
+    "damage": "1d4 P",
+    "properties": [
+      "F|XPHB",
+      "L|XPHB",
+      "T|XPHB"
+    ]
+  }
 }

@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Mount"
   ],
-  "excerpt": "- Type: MNT|XPHB - Cost: 400 gp...",
+  "excerpt": "MNT...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/warhorse.json",
-  "markdown": "# Warhorse\n\n- **Type**: MNT|XPHB\n- **Cost**: 400 gp\n\n"
+  "markdown": "# Warhorse\n\n*MNT*\n",
+  "itemMetadata": {
+    "type": "Mount",
+    "rarity": "None",
+    "cost": 400
+  }
 }

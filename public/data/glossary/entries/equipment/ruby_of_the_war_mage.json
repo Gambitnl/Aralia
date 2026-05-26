@@ -1,0 +1,24 @@
+{
+  "id": "ruby_of_the_war_mage",
+  "title": "Ruby of the War Mage",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Spellcasting Focus"
+  ],
+  "excerpt": "Etched with eldritch runes, this 1-inch-diameter ruby allows you to use a Simple or Martial weapon as a spellcasting_focus Focus for your spells. For ...",
+  "aliases": [],
+  "seeAlso": [
+    "spellcasting_focus Focus",
+    "magic",
+    "attunement"
+  ],
+  "filePath": "/data/glossary/entries/equipment/ruby_of_the_war_mage.json",
+  "markdown": "# Ruby of the War Mage\n\nEtched with eldritch runes, this 1-inch-diameter ruby allows you to use a Simple or Martial weapon as a [[spellcasting_focus Focus]] for your spells. For this property to work, you must attach the ruby to the weapon by pressing the ruby against it for at least 10 minutes. Thereafter, the ruby can't be removed unless you detach it as a [[magic]] action, the weapon is destroyed, or your [[attunement]] to the ruby ends.",
+  "itemMetadata": {
+    "type": "Spellcasting Focus",
+    "rarity": "Common",
+    "reqAttune": "Required by a spellcaster"
+  }
+}

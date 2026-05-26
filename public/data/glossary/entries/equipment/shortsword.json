@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 10 gp - Weight: 2 lb. - Damage: 1d6 P - Properties: F|XPHB, L|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/shortsword.json",
-  "markdown": "# Shortsword\n\n- **Type**: M|XPHB\n- **Cost**: 10 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d6 P\n- **Properties**: F|XPHB, L|XPHB\n\n"
+  "markdown": "# Shortsword\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 2,
+    "damage": "1d6 P",
+    "properties": [
+      "F|XPHB",
+      "L|XPHB"
+    ]
+  }
 }

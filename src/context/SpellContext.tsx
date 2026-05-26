@@ -22,90 +22,33 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     const fetchAllSpells = async () => {
       try {
-        // TODO(lint-intent): The any on this value hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const manifest = await fetchWithTimeout<Record<string, unknown>>(
-          assetUrl('data/spells_manifest.json'),
+        const bundledSpells = await fetchWithTimeout<SpellDataRecord>(
+          assetUrl('data/spells_bundle.json'),
           { timeoutMs: 15000 }
         );
 
-        // Why: The Vite dev server can be overwhelmed by hundreds of concurrent fetch requests.
-        // We use a concurrency limit (e.g., 50) to prevent this.
-        // Previously we used strict batching, but that caused head-of-line blocking.
-        // Now we use a sliding window (pool) for faster total load times.
-        const concurrencyLimit = 50;
-        // TODO: Validate manifest shape before Object.entries; if missing/invalid, surface a clear error instead of throwing.
-        const spellEntries = Object.entries(manifest);
         const collectedIssues: string[] = [];
-        // TODO(lint-intent): The any on this value hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const fetchSpell = async ([id, info]: [string, unknown]) => {
-          try {
-            // Ensure spell asset requests respect the configured base path
-            const pathValue = (info as { path?: string } | undefined)?.path;
-            const normalizedPath = assetUrl(String(pathValue || ''));
-            // Explicitly request JSON to prevent Vite from returning the index.html fallback for SPAs
-            const spellJson = await fetchWithTimeout<Spell>(normalizedPath, {
-              headers: { 'Accept': 'application/json' },
-              timeoutMs: 10000
-            });
 
-            return { id, spell: spellJson };
-          } catch (e) {
-            const msg = `Error processing spell file for ${id}: ${String(e)}`;
-            console.error(msg);
-            collectedIssues.push(msg);
-            return null;
-          }
-        };
-
-        const allSpellResults = await fetchWithConcurrency(
-          spellEntries,
-          concurrencyLimit,
-          fetchSpell,
-          (completed, total) => setLoadingProgress((completed / total) * 100)
-        );
-
-        const spellResults = allSpellResults.filter(Boolean);
-
-        const spells: SpellDataRecord = {};
-        spellResults.forEach(result => {
-          if (result) {
-            spells[result.id] = result.spell;
-          }
-        });
-
-        if (collectedIssues.length > 0) {
-          console.warn(`SpellContext loaded with ${collectedIssues.length} issues. First issue: ${collectedIssues[0]}`);
-          setIssues(collectedIssues);
-        } else {
-          setIssues([]);
-        }
-        if (Object.keys(spells).length === 0) {
+        if (Object.keys(bundledSpells).length === 0) {
           const msg = 'SpellContext: no spells loaded; spell selections will be empty. Check manifest paths and network.';
           console.warn(msg);
-          setIssues(prev => prev.length ? prev : [msg]);
+          collectedIssues.push(msg);
         }
 
-        setSpellData(spells);
+        setIssues(collectedIssues);
+        setSpellData(bundledSpells);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error("Failed to load spell data:", errorMessage);
         setError(errorMessage);
-        // TODO: Fail closed on spell load errors (leave spellData null) so downstream UIs can block rather than operating on an empty map.
-        setSpellData({}); // Provide empty object on error
-        setIssues(prev => prev.length ? prev : [`SpellContext fatal error: ${errorMessage}`]);
+        // Provide empty object on error so downstream UIs can operate (or block gracefully) rather than crashing on null.
+        setSpellData({});
+        setIssues([`SpellContext fatal error: ${errorMessage}`]);
       }
     };
 
     fetchAllSpells();
   }, []);
-
-  if (spellData === null) {
-    return <LoadingSpinner message={`Loading ancient spellbooks... ${Math.round(loadingProgress)}%`} />;
-  }
 
   if (error) {
     return <ErrorOverlay message={error} />;
@@ -134,38 +77,3 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 };
 
 export default SpellContext;
-
-/**
- * Helper function to run async tasks with a concurrency limit.
- * Efficiently processes a list of items using a pool of workers.
- */
-async function fetchWithConcurrency<T, R>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<R>,
-  onProgress?: (completed: number, total: number) => void
-): Promise<R[]> {
-  const results: R[] = [];
-  const total = items.length;
-  let completed = 0;
-
-  const iterator = items.entries();
-
-  const worker = async () => {
-    for (const [_, item] of iterator) {
-      // No try-catch here; we expect fn to handle errors or bubble them up
-      // if the caller wants to fail fast. In SpellContext, we handle errors inside fetchSpell.
-      const res = await fn(item);
-      results.push(res);
-      completed++;
-      if (onProgress) onProgress(completed, total);
-    }
-  };
-
-  // Start up to 'concurrency' workers
-  const workerCount = Math.min(concurrency, total);
-  const workers = Array.from({ length: workerCount }, () => worker());
-
-  await Promise.all(workers);
-  return results;
-}

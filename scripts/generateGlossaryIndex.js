@@ -482,6 +482,43 @@ function buildIndex() {
     }
   }
 
+  if (entriesByCategory["Equipment"]) {
+    try {
+      const equipmentEntries = entriesByCategory["Equipment"];
+      const equipmentGroups = new Map();
+      const otherEntries = [];
+
+      equipmentEntries.forEach((entry) => {
+        const typeTag = entry.tags?.find((t) => t.startsWith("itemType:"));
+        if (typeTag) {
+          const groupName = typeTag.substring(9);
+          if (!equipmentGroups.has(groupName)) {
+            equipmentGroups.set(groupName, {
+              id: `equipment_${groupName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+              title: groupName,
+              category: "Equipment",
+              excerpt: `${groupName} equipment items.`,
+              filePath: null,
+              subEntries: [],
+            });
+          }
+          equipmentGroups.get(groupName).subEntries.push(entry);
+        } else {
+          otherEntries.push(entry);
+        }
+      });
+
+      equipmentGroups.forEach((group) => {
+        group.subEntries.sort((a, b) => a.title.localeCompare(b.title));
+      });
+
+      const groupedCombined = [...equipmentGroups.values()].sort((a, b) => a.title.localeCompare(b.title));
+      entriesByCategory["Equipment"] = [...groupedCombined, ...otherEntries.sort((a, b) => a.title.localeCompare(b.title))];
+    } catch (e) {
+      console.error("Failed to organize equipment index:", e?.message || e);
+    }
+  }
+
   if (!fs.existsSync(OUT_INDEX_DIR)) {
     fs.mkdirSync(OUT_INDEX_DIR, { recursive: true });
   }

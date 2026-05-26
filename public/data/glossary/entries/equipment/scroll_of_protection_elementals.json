@@ -1,0 +1,19 @@
+{
+  "id": "scroll_of_protection_elementals",
+  "title": "Scroll of Protection (Elementals)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Scroll"
+  ],
+  "excerpt": "{itemEntry Scroll of Protection}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scroll_of_protection_elementals.json",
+  "markdown": "# Scroll of Protection (Elementals)\n\n{#itemEntry Scroll of Protection}",
+  "itemMetadata": {
+    "type": "Scroll",
+    "rarity": "Rare"
+  }
+}

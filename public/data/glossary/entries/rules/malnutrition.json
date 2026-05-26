@@ -8,7 +8,10 @@
   ],
   "excerpt": "A creature needs an amount of food per day based on its size, as shown in the Food Needs per Day table. A creature that eats but consumes less than ha...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "saving_throw throw",
+    "exhaustion"
+  ],
   "filePath": "/data/glossary/entries/rules/malnutrition.json",
   "markdown": "# Malnutrition\n\nA creature needs an amount of food per day based on its size, as shown in the Food Needs per Day table. A creature that eats but consumes less than half the required food for a day must succeed on a DC 10 Constitution [[saving_throw throw]] or gain 1 [[exhaustion]] level at the day's end. A creature that eats nothing for 5 days automatically gains 1 [[exhaustion]] level at the end of the fifth day as well as an additional level at the end of each subsequent day without food.\n\n[[exhaustion]] caused by malnutrition can't be removed until the creature eats the full amount of food required for a day.\n\n**Food Needs per Day**\n\n| Size | Food |\n| --- | --- |\n| Tiny | 1/4 pound |\n| Small | 1 pound |\n| Medium | 1 pound |\n| Large | 4 pounds |\n| Huge | 16 pounds |\n| Gargantuan | 64 pounds |"
 }

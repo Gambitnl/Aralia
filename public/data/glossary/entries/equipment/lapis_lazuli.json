@@ -1,0 +1,20 @@
+{
+  "id": "lapis_lazuli",
+  "title": "Lapis Lazuli",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A light and dark blue with yellow flecks gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/lapis_lazuli.json",
+  "markdown": "# Lapis Lazuli\n\nA light and dark blue with yellow flecks gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

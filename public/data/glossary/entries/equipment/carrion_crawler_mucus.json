@@ -1,0 +1,23 @@
+{
+  "id": "carrion_crawler_mucus",
+  "title": "Carrion Crawler Mucus",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the poisoned condition for 1 minute. The creat...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned",
+    "paralyzed"
+  ],
+  "filePath": "/data/glossary/entries/equipment/carrion_crawler_mucus.json",
+  "markdown": "# Carrion Crawler Mucus\n\nA creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the [[poisoned]] condition for 1 minute. The creature also has the [[paralyzed]] condition while [[poisoned]] in this way. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 200
+  }
+}

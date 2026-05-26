@@ -8,7 +8,16 @@
   ],
   "excerpt": "- Ability Scores:: Dexterity, Intelligence, Wisdom - Feat:: skilled - Skill Proficiencies:: investigation, perception - Tool Proficiency:: calligraphe...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "skilled",
+    "investigation",
+    "perception",
+    "calligrapher_s_supplies's Supplies",
+    "fine_clothes Clothes",
+    "lamp",
+    "oil",
+    "parchment"
+  ],
   "filePath": "/data/glossary/entries/backgrounds/scribe.json",
   "markdown": "# Scribe\n\n- **Ability Scores::** Dexterity, Intelligence, Wisdom\n- **Feat::** [[skilled]]\n- **Skill Proficiencies::** [[investigation]], [[perception]]\n- **Tool Proficiency::** [[calligrapher_s_supplies's Supplies]]\n- **Equipment::** Choose A or B: (A) [[calligrapher_s_supplies's Supplies]], [[fine_clothes Clothes]], [[lamp]], [[oil]] (3 flasks), [[parchment]] (12 sheets), 23 GP; or (B) 50 GP"
 }

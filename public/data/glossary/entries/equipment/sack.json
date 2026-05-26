@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 0.01 gp - Weight: 0.5 lb. A Sack holds up to 30 pounds within 1 cubic foot....",
+  "excerpt": "A Sack holds up to 30 pounds within 1 cubic foot....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/sack.json",
-  "markdown": "# Sack\n\n- **Type**: G|XPHB\n- **Cost**: 0.01 gp\n- **Weight**: 0.5 lb.\n\nA Sack holds up to 30 pounds within 1 cubic foot."
+  "markdown": "# Sack\n\nA Sack holds up to 30 pounds within 1 cubic foot.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 0.01,
+    "weight": 0.5
+  }
 }

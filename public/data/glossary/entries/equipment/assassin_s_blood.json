@@ -1,0 +1,22 @@
+{
+  "id": "assassin_s_blood",
+  "title": "Assassin's Blood",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Adventuring Gear"
+  ],
+  "excerpt": "A creature subjected to Assassin's Blood makes a DC 10 Constitution saving throw. On a failed save, the creature takes 6 (1d12) Poison damage and has ...",
+  "aliases": [],
+  "seeAlso": [
+    "poisoned"
+  ],
+  "filePath": "/data/glossary/entries/equipment/assassin_s_blood.json",
+  "markdown": "# Assassin's Blood\n\nA creature subjected to Assassin's Blood makes a DC 10 Constitution saving throw. On a failed save, the creature takes 6 (1d12) Poison damage and has the [[poisoned]] condition for 24 hours. On a successful save, the creature takes half as much damage only.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 150
+  }
+}

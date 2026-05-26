@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this cloak, you can breathe underwater, and you have a swim_speed Speed of 60 feet....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "swim_speed Speed"
+  ],
   "filePath": "/data/glossary/entries/equipment/cloak_of_the_manta_ray.json",
-  "markdown": "# Cloak of the Manta Ray\n\nWhile wearing this cloak, you can breathe underwater, and you have a [[swim_speed Speed]] of 60 feet."
+  "markdown": "# Cloak of the Manta Ray\n\nWhile wearing this cloak, you can breathe underwater, and you have a [[swim_speed Speed]] of 60 feet.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

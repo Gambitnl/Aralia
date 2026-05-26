@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Weight: 2 lb. - Damage: 1d6 P - Properties: T|XPHB Each time you make an attack roll with this magic weapon and hit, you can have it ...",
+  "excerpt": "Each time you make an attack roll with this magic weapon and hit, you can have it deal Lightning damage instead of Piercing damage.  Lightning Bolt Wh...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "line_area_of_effect"
+  ],
   "filePath": "/data/glossary/entries/equipment/javelin_of_lightning.json",
-  "markdown": "# Javelin of Lightning\n\n- **Type**: M|XPHB\n- **Weight**: 2 lb.\n- **Damage**: 1d6 P\n- **Properties**: T|XPHB\n\nEach time you make an attack roll with this magic weapon and hit, you can have it deal Lightning damage instead of Piercing damage.\n\n## Lightning Bolt\n\nWhen you throw this weapon at a target no farther than 120 feet from you, you can forgo making a ranged attack roll and instead turn the weapon into a bolt of lightning. This bolt forms a 5-foot-wide [[line_area_of_effect]] between you and the target. The target and each other creature in the [[line_area_of_effect]] (excluding you) makes a DC 13 Dexterity saving throw, taking 4d6 Lightning damage on a failed save or half as much damage on a successful one. Immediately after dealing this damage, the weapon reappears in your hand. This property can't be used again until the next dawn."
+  "markdown": "# Javelin of Lightning\n\nEach time you make an attack roll with this magic weapon and hit, you can have it deal Lightning damage instead of Piercing damage.\n\n## Lightning Bolt\n\nWhen you throw this weapon at a target no farther than 120 feet from you, you can forgo making a ranged attack roll and instead turn the weapon into a bolt of lightning. This bolt forms a 5-foot-wide [[line_area_of_effect]] between you and the target. The target and each other creature in the [[line_area_of_effect]] (excluding you) makes a DC 13 Dexterity saving throw, taking 4d6 Lightning damage on a failed save or half as much damage on a successful one. Immediately after dealing this damage, the weapon reappears in your hand. This property can't be used again until the next dawn.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Uncommon",
+    "weight": 2,
+    "damage": "1d6 P",
+    "properties": [
+      "T|XPHB"
+    ]
+  }
 }

@@ -4,11 +4,26 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Shield"
   ],
-  "excerpt": "- Type: S|XPHB - Weight: 6 lb. - Armor Class: 2 While holding this Shield, you have a +2 bonus to armor_class Class. This bonus is in addition to the ...",
+  "excerpt": "While holding this Shield, you have a +2 bonus to armor_class Class. This bonus is in addition to the Shield's normal bonus to AC. The Shield has the ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "armor_class Class",
+    "attack",
+    "proficiency Bonus",
+    "prone",
+    "reaction",
+    "emanation_area_of_effect"
+  ],
   "filePath": "/data/glossary/entries/equipment/shield_of_the_cavalier.json",
-  "markdown": "# Shield of the Cavalier\n\n- **Type**: S|XPHB\n- **Weight**: 6 lb.\n- **Armor Class**: 2\n\nWhile holding this Shield, you have a +2 bonus to [[armor_class Class]]. This bonus is in addition to the Shield's normal bonus to AC.\n\nThe Shield has the following additional properties that you can use while holding it.\n\n## Forceful Bash\n\nWhen you take the [[attack]] action, you can make one of the attack rolls using the Shield against a target within 5 feet of yourself. Apply your [[proficiency Bonus]] and Strength modifier to the attack roll. On a hit, the Shield deals Force damage to the target equal to 2d6 + 2 plus your Strength modifier, and if the target is a creature, you can push it up to 10 feet directly away from yourself. If the creature is your size or smaller, you can also knock it down, giving it the [[prone]] condition.\n\n## Protective Field\n\nAs a [[reaction]], when you or an ally you can see within 5 feet of you is targeted by an attack or makes a saving throw against an area of effect, you can use the Shield to create an immobile 5-foot [[emanation_area_of_effect]] originating from you. When the [[emanation_area_of_effect]] appears, any creatures or objects not fully contained within it are pushed into the nearest unoccupied spaces outside it. The attack or area of effect that triggered the [[reaction]] has no effect on creatures and objects inside the [[emanation_area_of_effect]], which lasts as long as you maintain Concentration, up to 1 minute. Nothing can pass into or out of the [[emanation_area_of_effect]]. A creature or object inside the [[emanation_area_of_effect]] can't be damaged by attacks or effects originating from outside, nor can a creature inside the [[emanation_area_of_effect]] damage anything outside it. Once this property is used, it can't be used again until the next dawn."
+  "markdown": "# Shield of the Cavalier\n\nWhile holding this Shield, you have a +2 bonus to [[armor_class Class]]. This bonus is in addition to the Shield's normal bonus to AC.\n\nThe Shield has the following additional properties that you can use while holding it.\n\n## Forceful Bash\n\nWhen you take the [[attack]] action, you can make one of the attack rolls using the Shield against a target within 5 feet of yourself. Apply your [[proficiency Bonus]] and Strength modifier to the attack roll. On a hit, the Shield deals Force damage to the target equal to 2d6 + 2 plus your Strength modifier, and if the target is a creature, you can push it up to 10 feet directly away from yourself. If the creature is your size or smaller, you can also knock it down, giving it the [[prone]] condition.\n\n## Protective Field\n\nAs a [[reaction]], when you or an ally you can see within 5 feet of you is targeted by an attack or makes a saving throw against an area of effect, you can use the Shield to create an immobile 5-foot [[emanation_area_of_effect]] originating from you. When the [[emanation_area_of_effect]] appears, any creatures or objects not fully contained within it are pushed into the nearest unoccupied spaces outside it. The attack or area of effect that triggered the [[reaction]] has no effect on creatures and objects inside the [[emanation_area_of_effect]], which lasts as long as you maintain Concentration, up to 1 minute. Nothing can pass into or out of the [[emanation_area_of_effect]]. A creature or object inside the [[emanation_area_of_effect]] can't be damaged by attacks or effects originating from outside, nor can a creature inside the [[emanation_area_of_effect]] damage anything outside it. Once this property is used, it can't be used again until the next dawn.",
+  "itemMetadata": {
+    "type": "Shield",
+    "rarity": "Very rare",
+    "reqAttune": "Required",
+    "weight": 6,
+    "ac": 2
+  }
 }

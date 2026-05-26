@@ -1,0 +1,19 @@
+{
+  "id": "scroll_of_protection_fiends",
+  "title": "Scroll of Protection (Fiends)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Scroll"
+  ],
+  "excerpt": "{itemEntry Scroll of Protection}...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/scroll_of_protection_fiends.json",
+  "markdown": "# Scroll of Protection (Fiends)\n\n{#itemEntry Scroll of Protection}",
+  "itemMetadata": {
+    "type": "Scroll",
+    "rarity": "Rare"
+  }
+}

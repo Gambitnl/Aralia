@@ -1,0 +1,25 @@
+{
+  "id": "semiautomatic_pistol",
+  "title": "Semiautomatic Pistol",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ranged Weapon"
+  ],
+  "excerpt": "R...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/semiautomatic_pistol.json",
+  "markdown": "# Semiautomatic Pistol\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "weight": 3,
+    "damage": "2d6 P",
+    "properties": [
+      "AF|XDMG",
+      "RLD|XDMG"
+    ]
+  }
+}

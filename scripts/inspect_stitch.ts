@@ -23,6 +23,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import * as fs from "fs";
+import "dotenv/config";
 
 const TOOLS_MODE = process.argv.includes("--list-tools");
 const CALL_TOOL = process.argv.find(a => a.startsWith("--call="))?.split("=")[1];
@@ -50,7 +51,7 @@ function getModelTestPrompt(modelId: string): string {
 }
 
 async function createClient(cloudProjectId: string) {
-    const configPath = process.env.CLOUDSDK_CONFIG || "C:\\Users\\gambi\\.stitch-mcp\\config";
+    const configPath = process.env.CLOUDSDK_CONFIG || "C:\\Users\\Gambit\\.stitch-mcp\\config";
 
     console.error(`[Bridge] Proxy using Cloud Project: ${cloudProjectId}`);
     console.error(`[Bridge] Proxy using Config Path: ${configPath}`);
@@ -58,7 +59,7 @@ async function createClient(cloudProjectId: string) {
     const transport = new StdioClientTransport({
         command: "C:\\Program Files\\nodejs\\node.exe",
         args: [
-            "C:\\Users\\gambi\\AppData\\Roaming\\npm\\node_modules\\@_davideast\\stitch-mcp\\dist\\cli.js",
+            "C:\\Users\\Gambit\\AppData\\Roaming\\npm\\node_modules\\@_davideast\\stitch-mcp\\dist\\cli.js",
             "proxy",
             "--transport",
             "stdio"

@@ -8,7 +8,9 @@
   ],
   "excerpt": "A creature requires an amount of water per day based on its size, as shown in the Water Needs per Day table. A creature that drinks less than half the...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "exhaustion"
+  ],
   "filePath": "/data/glossary/entries/rules/dehydration.json",
   "markdown": "# Dehydration\n\nA creature requires an amount of water per day based on its size, as shown in the Water Needs per Day table. A creature that drinks less than half the required water for a day gains 1 [[exhaustion]] level at the day's end. [[exhaustion]] caused by dehydration can't be removed until the creature drinks the full amount of water required for a day.\n\n**Water Needs per Day**\n\n| Size | Water |\n| --- | --- |\n| Tiny | 1/4 gallon |\n| Small | 1 gallon |\n| Medium | 1 gallon |\n| Large | 4 gallons |\n| Huge | 16 gallons |\n| Gargantuan | 64 gallons |"
 }

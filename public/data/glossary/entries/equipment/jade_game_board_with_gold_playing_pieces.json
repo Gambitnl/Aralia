@@ -1,0 +1,20 @@
+{
+  "id": "jade_game_board_with_gold_playing_pieces",
+  "title": "Jade game board with gold playing pieces",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/jade_game_board_with_gold_playing_pieces.json",
+  "markdown": "# Jade game board with gold playing pieces\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 7500
+  }
+}

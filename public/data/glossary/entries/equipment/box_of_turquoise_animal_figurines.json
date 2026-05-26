@@ -1,0 +1,20 @@
+{
+  "id": "box_of_turquoise_animal_figurines",
+  "title": "Box of turquoise animal figurines",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/box_of_turquoise_animal_figurines.json",
+  "markdown": "# Box of turquoise animal figurines\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 250
+  }
+}

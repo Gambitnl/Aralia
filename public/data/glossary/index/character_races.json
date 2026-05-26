@@ -516,27 +516,6 @@
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/bronze.json"
       },
       {
-        "id": "copper_dragonborn",
-        "title": "Copper Dragonborn",
-        "category": "Character Races",
-        "tags": [
-          "dragonborn",
-          "ancestry",
-          "copper",
-          "acid"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "copper ancestry"
-        ],
-        "seeAlso": [
-          "dragonborn",
-          "acid_damage",
-          "breath_weapon"
-        ],
-        "filePath": "/data/glossary/entries/races/dragonborn_ancestries/copper.json"
-      },
-      {
         "id": "draconblood_dragonborn",
         "title": "Draconblood Dragonborn",
         "category": "Character Races",
@@ -557,27 +536,6 @@
           "detect_magic"
         ],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/draconblood.json"
-      },
-      {
-        "id": "gold_dragonborn",
-        "title": "Gold Dragonborn",
-        "category": "Character Races",
-        "tags": [
-          "dragonborn",
-          "ancestry",
-          "gold",
-          "fire"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "gold ancestry"
-        ],
-        "seeAlso": [
-          "dragonborn",
-          "fire_damage",
-          "breath_weapon"
-        ],
-        "filePath": "/data/glossary/entries/races/dragonborn_ancestries/gold.json"
       },
       {
         "id": "green_dragonborn",
@@ -661,27 +619,6 @@
           "breath_weapon"
         ],
         "filePath": "/data/glossary/entries/races/dragonborn_ancestries/red.json"
-      },
-      {
-        "id": "silver_dragonborn",
-        "title": "Silver Dragonborn",
-        "category": "Character Races",
-        "tags": [
-          "dragonborn",
-          "ancestry",
-          "silver",
-          "cold"
-        ],
-        "excerpt": "No excerpt available.",
-        "aliases": [
-          "silver ancestry"
-        ],
-        "seeAlso": [
-          "dragonborn",
-          "cold_damage",
-          "breath_weapon"
-        ],
-        "filePath": "/data/glossary/entries/races/dragonborn_ancestries/silver.json"
       },
       {
         "id": "white_dragonborn",

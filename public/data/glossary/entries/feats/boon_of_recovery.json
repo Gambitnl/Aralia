@@ -8,7 +8,12 @@
   ],
   "excerpt": "You gain the following benefits.  Last Stand When you would be reduced to 0 hit_points Points, you can drop to 1 hit_points Point instead and regain a...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "hit_points Points",
+    "hit_points Point",
+    "long_rest Rest",
+    "bonus_action Action"
+  ],
   "filePath": "/data/glossary/entries/feats/boon_of_recovery.json",
   "markdown": "# Boon of Recovery\n\nYou gain the following benefits.\n\n## Last Stand\n\nWhen you would be reduced to 0 [[hit_points Points]], you can drop to 1 [[hit_points Point]] instead and regain a number of [[hit_points Points]] equal to half your [[hit_points Point]] maximum. Once you use this benefit, you can't use it again until you finish a [[long_rest Rest]].\n\n## Recover Vitality\n\nYou have a pool of ten d10s. As a [[bonus_action Action]], you can expend dice from the pool, roll those dice, and regain a number of [[hit_points Points]] equal to the roll's total. You regain all the expended dice when you finish a [[long_rest Rest]]."
 }

@@ -8,7 +8,9 @@
   ],
   "excerpt": "You can cast arcane_eye Eye without expending a spell slot....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "arcane_eye Eye"
+  ],
   "filePath": "/data/glossary/entries/rules/visions_of_distant_realms.json",
   "markdown": "# Visions of Distant Realms\n\nYou can cast [[arcane_eye Eye]] without expending a spell slot."
 }

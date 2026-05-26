@@ -1,0 +1,25 @@
+{
+  "id": "laser_pistol",
+  "title": "Laser Pistol",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "baseitem",
+    "itemType:Ranged Weapon"
+  ],
+  "excerpt": "R...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/laser_pistol.json",
+  "markdown": "# Laser Pistol\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "weight": 2,
+    "damage": "3d6 R",
+    "properties": [
+      "AF|XDMG",
+      "RLD|XDMG"
+    ]
+  }
+}

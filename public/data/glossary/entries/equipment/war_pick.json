@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 5 gp - Weight: 2 lb. - Damage: 1d8 P - Properties: V|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/war_pick.json",
-  "markdown": "# War Pick\n\n- **Type**: M|XPHB\n- **Cost**: 5 gp\n- **Weight**: 2 lb.\n- **Damage**: 1d8 P\n- **Properties**: V|XPHB\n\n"
+  "markdown": "# War Pick\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 2,
+    "damage": "1d8 P",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
 }

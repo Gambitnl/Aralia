@@ -8,7 +8,10 @@
   ],
   "excerpt": "When a creature misses you with a melee attack roll, you can take a reaction and expend one Superiority Die to make a melee attack roll with a weapon ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "reaction",
+    "unarmed_strike Strike"
+  ],
   "filePath": "/data/glossary/entries/rules/riposte.json",
   "markdown": "# Riposte\n\nWhen a creature misses you with a melee attack roll, you can take a [[reaction]] and expend one Superiority Die to make a melee attack roll with a weapon or an [[unarmed_strike Strike]] against the creature. If you hit, add the Superiority Die to the attack's damage."
 }

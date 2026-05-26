@@ -8,7 +8,9 @@
   ],
   "excerpt": "When you hit a creature with an attack roll using a weapon or an unarmed_strike Strike, you can expend one Superiority Die to attempt to drive the tar...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "unarmed_strike Strike"
+  ],
   "filePath": "/data/glossary/entries/rules/pushing_attack.json",
   "markdown": "# Pushing Attack\n\nWhen you hit a creature with an attack roll using a weapon or an [[unarmed_strike Strike]], you can expend one Superiority Die to attempt to drive the target back. Add the Superiority Die to the attack's damage roll. If the target is Large or smaller, it must succeed on a Strength saving throw or be pushed up to 15 feet directly away from you."
 }

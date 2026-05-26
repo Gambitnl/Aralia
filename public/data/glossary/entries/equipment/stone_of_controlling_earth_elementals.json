@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While touching this 5-pound stone to the ground, you can take a magic action to summon an Earth Elemental. The elemental appears in an unoccupied spac...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "magic",
+    "initiative",
+    "bonus_action Action"
+  ],
   "filePath": "/data/glossary/entries/equipment/stone_of_controlling_earth_elementals.json",
-  "markdown": "# Stone of Controlling Earth Elementals\n\nWhile touching this 5-pound stone to the ground, you can take a [[magic]] action to summon an Earth Elemental. The elemental appears in an unoccupied space you choose within 30 feet of yourself, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a [[bonus_action Action]]. The stone can't be used this way again until the next dawn."
+  "markdown": "# Stone of Controlling Earth Elementals\n\nWhile touching this 5-pound stone to the ground, you can take a [[magic]] action to summon an Earth Elemental. The elemental appears in an unoccupied space you choose within 30 feet of yourself, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 1 hour, when it dies, or when you dismiss it as a [[bonus_action Action]]. The stone can't be used this way again until the next dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare"
+  }
 }

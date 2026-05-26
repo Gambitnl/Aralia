@@ -17,10 +17,10 @@ continue.
 ## Copyable Prompt
 
 ```md
-I want to start a project using a living project task protocol.
+Help me start a new project using a living project task protocol.
 
-Use this protocol as the project architecture:
-1. Create a concise north-star document written to future agents.
+Use the following system as the project architecture:
+1. Create a concise north-star document written for future agents.
 2. Create a living operational tracker.
 3. Split supporting detail into focused files instead of one monolithic doc.
 4. Keep clear pointers between the north-star, tracker, task docs, gap records,
@@ -33,9 +33,10 @@ Use this protocol as the project architecture:
    process exhaust external, ignored, or summarized.
 
 Primary objective:
-Bootstrap the project structure first, then begin the first bounded task inside
-that structure. Do not shrink success to whatever is easiest to finish, and do
-not let documentation work become a substitute for progressing the project.
+Your first job is to bootstrap the project structure, then begin the first
+bounded task inside that structure. Do not shrink success to whatever is easiest
+to finish, and do not let documentation work become a substitute for progressing
+the project.
 
 Cold-start setup:
 1. Ask only for missing information that blocks creating the initial project
@@ -146,9 +147,9 @@ Confirm:
    useful.
 
 Final report:
-Name the created/updated project docs, the first active task, verification
-performed, gaps recorded, assumptions made, and anything intentionally left out
-of scope.
+Report the created/updated project docs, the first active task, verification
+performed, gaps recorded, assumptions you made, and anything intentionally left
+out of scope.
 ```
 
 ## Cold-Start Outputs

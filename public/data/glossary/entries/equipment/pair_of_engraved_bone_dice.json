@@ -1,0 +1,20 @@
+{
+  "id": "pair_of_engraved_bone_dice",
+  "title": "Pair of engraved bone dice",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/pair_of_engraved_bone_dice.json",
+  "markdown": "# Pair of engraved bone dice\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 25
+  }
+}

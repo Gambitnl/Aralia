@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M - Damage: 1d6 Y - Properties: F|XPHB, T|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/psychic_blade.json",
-  "markdown": "# Psychic Blade\n\n- **Type**: M\n- **Damage**: 1d6 Y\n- **Properties**: F|XPHB, T|XPHB\n\n"
+  "markdown": "# Psychic Blade\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "damage": "1d6 Y",
+    "properties": [
+      "F|XPHB",
+      "T|XPHB"
+    ]
+  }
 }

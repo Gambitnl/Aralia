@@ -1,0 +1,21 @@
+{
+  "id": "silver_bar_5_pound",
+  "title": "Silver Bar (5-pound)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Trade Bar"
+  ],
+  "excerpt": "TB...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/silver_bar_5_pound.json",
+  "markdown": "# Silver Bar (5-pound)\n\n*TB*\n",
+  "itemMetadata": {
+    "type": "Trade Bar",
+    "rarity": "None",
+    "cost": 25,
+    "weight": 5
+  }
+}

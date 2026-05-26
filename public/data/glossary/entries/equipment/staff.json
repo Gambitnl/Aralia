@@ -4,11 +4,22 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Spellcasting Focus"
   ],
-  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp - Weight: 4 lb. - Damage: 1d6 B - Properties: V...",
+  "excerpt": "SCF...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/staff.json",
-  "markdown": "# Staff\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n- **Weight**: 4 lb.\n- **Damage**: 1d6 B\n- **Properties**: V\n\n"
+  "markdown": "# Staff\n\n*SCF*\n",
+  "itemMetadata": {
+    "type": "Spellcasting Focus",
+    "rarity": "None",
+    "cost": 5,
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V"
+    ]
+  }
 }

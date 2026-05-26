@@ -4,11 +4,28 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Artisan's Tools"
   ],
-  "excerpt": "- Type: AT|XPHB - Cost: 8 gp - Weight: 6 lb. - Ability:: Strength - Utilize:: Seal or pry open a door or container (DC 20) - Craft:: club, greatclub, ...",
+  "excerpt": "- Ability:: Strength - Utilize:: Seal or pry open a door or container (DC 20) - Craft:: club, greatclub, quarterstaff, barrel, chest, ladder, pole, po...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "club",
+    "greatclub",
+    "quarterstaff",
+    "barrel",
+    "chest",
+    "ladder",
+    "pole",
+    "portable_ram Ram",
+    "torch"
+  ],
   "filePath": "/data/glossary/entries/equipment/carpenter_s_tools.json",
-  "markdown": "# Carpenter's Tools\n\n- **Type**: AT|XPHB\n- **Cost**: 8 gp\n- **Weight**: 6 lb.\n\n- **Ability::** Strength\n- **Utilize::** Seal or pry open a door or container (DC 20)\n- **Craft::** [[club]], [[greatclub]], [[quarterstaff]], [[barrel]], [[chest]], [[ladder]], [[pole]], [[portable_ram Ram]], [[torch]]"
+  "markdown": "# Carpenter's Tools\n\n- **Ability::** Strength\n- **Utilize::** Seal or pry open a door or container (DC 20)\n- **Craft::** [[club]], [[greatclub]], [[quarterstaff]], [[barrel]], [[chest]], [[ladder]], [[pole]], [[portable_ram Ram]], [[torch]]",
+  "itemMetadata": {
+    "type": "Artisan's Tools",
+    "rarity": "None",
+    "cost": 8,
+    "weight": 6
+  }
 }

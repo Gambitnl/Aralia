@@ -1,0 +1,20 @@
+{
+  "id": "moss_agate",
+  "title": "Moss Agate",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A pink or yellow white with mossy gray or green markings gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/moss_agate.json",
+  "markdown": "# Moss Agate\n\nA pink or yellow white with mossy gray or green markings gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

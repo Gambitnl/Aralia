@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing these bracers, you have proficiency with the longbow and shortbow, and you gain a +2 bonus to damage rolls made with such weapons....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "longbow",
+    "shortbow"
+  ],
   "filePath": "/data/glossary/entries/equipment/bracers_of_archery.json",
-  "markdown": "# Bracers of Archery\n\nWhile wearing these bracers, you have proficiency with the [[longbow]] and [[shortbow]], and you gain a +2 bonus to damage rolls made with such weapons."
+  "markdown": "# Bracers of Archery\n\nWhile wearing these bracers, you have proficiency with the [[longbow]] and [[shortbow]], and you gain a +2 bonus to damage rolls made with such weapons.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "itemType"
+    "baseitem",
+    "itemType:Shield"
   ],
-  "excerpt": "No description available.",
+  "excerpt": "S...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/shield.json",
-  "markdown": "# Shield\n\n"
+  "markdown": "# Shield\n\n*S*\n",
+  "itemMetadata": {
+    "type": "Shield",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 6,
+    "ac": 2
+  }
 }

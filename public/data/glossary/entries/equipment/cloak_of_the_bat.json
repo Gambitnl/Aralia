@@ -4,11 +4,24 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this cloak, you have advantage on Dexterity (stealth) checks. In an area of dim_light Light or darkness, you can grip the edges of the c...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "advantage",
+    "stealth",
+    "dim_light Light",
+    "darkness",
+    "fly_speed Speed",
+    "polymorph"
+  ],
   "filePath": "/data/glossary/entries/equipment/cloak_of_the_bat.json",
-  "markdown": "# Cloak of the Bat\n\nWhile wearing this cloak, you have [[advantage]] on Dexterity ([[stealth]]) checks. In an area of [[dim_light Light]] or [[darkness]], you can grip the edges of the cloak and use it to gain a [[fly_speed Speed]] of 40 feet. If you ever fail to grip the cloak's edges while flying in this way, or if you are no longer in [[dim_light Light]] or [[darkness]], you lose this [[fly_speed Speed]].\n\nWhile wearing the cloak in an area of [[dim_light Light]] or [[darkness]], you can cast [[polymorph]] on yourself, shape-shifting into a Bat. While in that form, you retain your Intelligence, Wisdom, and Charisma scores. The cloak can't be used this way again until the next dawn."
+  "markdown": "# Cloak of the Bat\n\nWhile wearing this cloak, you have [[advantage]] on Dexterity ([[stealth]]) checks. In an area of [[dim_light Light]] or [[darkness]], you can grip the edges of the cloak and use it to gain a [[fly_speed Speed]] of 40 feet. If you ever fail to grip the cloak's edges while flying in this way, or if you are no longer in [[dim_light Light]] or [[darkness]], you lose this [[fly_speed Speed]].\n\nWhile wearing the cloak in an area of [[dim_light Light]] or [[darkness]], you can cast [[polymorph]] on yourself, shape-shifting into a Bat. While in that form, you retain your Intelligence, Wisdom, and Charisma scores. The cloak can't be used this way again until the next dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

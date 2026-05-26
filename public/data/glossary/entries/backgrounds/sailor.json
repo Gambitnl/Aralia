@@ -8,7 +8,15 @@
   ],
   "excerpt": "- Ability Scores:: Strength, Dexterity, Wisdom - Feat:: tavern_brawler Brawler - Skill Proficiencies:: acrobatics, perception - Tool Proficiency:: nav...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "tavern_brawler Brawler",
+    "acrobatics",
+    "perception",
+    "navigator_s_tools's Tools",
+    "dagger",
+    "rope",
+    "traveler_s_clothes's Clothes"
+  ],
   "filePath": "/data/glossary/entries/backgrounds/sailor.json",
   "markdown": "# Sailor\n\n- **Ability Scores::** Strength, Dexterity, Wisdom\n- **Feat::** [[tavern_brawler Brawler]]\n- **Skill Proficiencies::** [[acrobatics]], [[perception]]\n- **Tool Proficiency::** [[navigator_s_tools's Tools]]\n- **Equipment::** Choose A or B: (A) [[dagger]], [[navigator_s_tools's Tools]], [[rope]], [[traveler_s_clothes's Clothes]], 20 GP; or (B) 50 GP"
 }

@@ -4,11 +4,21 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 10 gp - Weight: 1 lb. A Lock comes with a key. Without the key, a creature can use thieves_tools' Tools to pick this Lock with ...",
+  "excerpt": "A Lock comes with a key. Without the key, a creature can use thieves_tools' Tools to pick this Lock with a successful DC 15 Dexterity (sleight_of_hand...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "thieves_tools' Tools",
+    "sleight_of_hand of Hand"
+  ],
   "filePath": "/data/glossary/entries/equipment/lock.json",
-  "markdown": "# Lock\n\n- **Type**: G|XPHB\n- **Cost**: 10 gp\n- **Weight**: 1 lb.\n\nA Lock comes with a key. Without the key, a creature can use [[thieves_tools' Tools]] to pick this Lock with a successful DC 15 Dexterity ([[sleight_of_hand of Hand]]) check."
+  "markdown": "# Lock\n\nA Lock comes with a key. Without the key, a creature can use [[thieves_tools' Tools]] to pick this Lock with a successful DC 15 Dexterity ([[sleight_of_hand of Hand]]) check.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 10,
+    "weight": 1
+  }
 }

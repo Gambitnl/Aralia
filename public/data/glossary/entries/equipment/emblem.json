@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Spellcasting Focus"
   ],
-  "excerpt": "- Type: SCF|XPHB - Cost: 5 gp For an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a shield....",
+  "excerpt": "For an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a shield....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "shield"
+  ],
   "filePath": "/data/glossary/entries/equipment/emblem.json",
-  "markdown": "# Emblem\n\n- **Type**: SCF|XPHB\n- **Cost**: 5 gp\n\nFor an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a [[shield]]."
+  "markdown": "# Emblem\n\nFor an Emblem to be an effective Holy Symbol, it must be borne on fabric (such as a tabard or banner) or a [[shield]].",
+  "itemMetadata": {
+    "type": "Spellcasting Focus",
+    "rarity": "None",
+    "cost": 5
+  }
 }

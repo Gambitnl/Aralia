@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Air)"
   ],
-  "excerpt": "- Type: AIR|XPHB - Cost: 40000 gp...",
+  "excerpt": "AIR...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/airship.json",
-  "markdown": "# Airship\n\n- **Type**: AIR|XPHB\n- **Cost**: 40000 gp\n\n"
+  "markdown": "# Airship\n\n*AIR*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Air)",
+    "rarity": "None",
+    "cost": 40000
+  }
 }

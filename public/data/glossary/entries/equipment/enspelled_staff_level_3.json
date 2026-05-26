@@ -1,0 +1,27 @@
+{
+  "id": "enspelled_staff_level_3",
+  "title": "Enspelled Staff (Level 3)",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Melee Weapon"
+  ],
+  "excerpt": "Bound into this staff is a level 3 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges...",
+  "aliases": [],
+  "seeAlso": [
+    "quarterstaff"
+  ],
+  "filePath": "/data/glossary/entries/equipment/enspelled_staff_level_3.json",
+  "markdown": "# Enspelled Staff (Level 3)\n\nBound into this staff is a level 3 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges daily at dawn. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical [[quarterstaff]].\n\nThe spell's saving throw DC is 15, and its attack bonus is +7.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Rare",
+    "reqAttune": "Required by a Spellcaster",
+    "weight": 4,
+    "damage": "1d6 B",
+    "properties": [
+      "V|XPHB"
+    ]
+  }
+}

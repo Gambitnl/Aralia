@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Medium Armor"
   ],
-  "excerpt": "- Type: MA|XPHB - Cost: 750 gp - Weight: 40 lb. - Armor Class: 15...",
+  "excerpt": "MA...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/half_plate_armor.json",
-  "markdown": "# Half Plate Armor\n\n- **Type**: MA|XPHB\n- **Cost**: 750 gp\n- **Weight**: 40 lb.\n- **Armor Class**: 15\n\n"
+  "markdown": "# Half Plate Armor\n\n*MA*\n",
+  "itemMetadata": {
+    "type": "Medium Armor",
+    "rarity": "None",
+    "cost": 750,
+    "weight": 40,
+    "ac": 15
+  }
 }

@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Land)"
   ],
-  "excerpt": "- Type: VEH|XPHB - Cost: 15 gp - Weight: 200 lb....",
+  "excerpt": "VEH...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/cart.json",
-  "markdown": "# Cart\n\n- **Type**: VEH|XPHB\n- **Cost**: 15 gp\n- **Weight**: 200 lb.\n\n"
+  "markdown": "# Cart\n\n*VEH*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Land)",
+    "rarity": "None",
+    "cost": 15,
+    "weight": 200
+  }
 }

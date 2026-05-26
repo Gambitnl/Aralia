@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Adventuring Gear"
   ],
-  "excerpt": "- Type: G|XPHB - Cost: 1 gp When rung as a utilize action, a Bell produces a sound that can be heard up to 60 feet away....",
+  "excerpt": "When rung as a utilize action, a Bell produces a sound that can be heard up to 60 feet away....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "utilize"
+  ],
   "filePath": "/data/glossary/entries/equipment/bell.json",
-  "markdown": "# Bell\n\n- **Type**: G|XPHB\n- **Cost**: 1 gp\n\nWhen rung as a [[utilize]] action, a Bell produces a sound that can be heard up to 60 feet away."
+  "markdown": "# Bell\n\nWhen rung as a [[utilize]] action, a Bell produces a sound that can be heard up to 60 feet away.",
+  "itemMetadata": {
+    "type": "Adventuring Gear",
+    "rarity": "None",
+    "cost": 1
+  }
 }

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "clean": "rimraf dist",
-    "build": "rimraf dist && vite build",
+    "build:data": "tsx scripts/bundle-static-data.ts",
+    "build": "npm run build:data && rimraf dist && vite build",
     "preview": "vite preview",
     "validate:charset": "tsx scripts/check-non-ascii.ts",
     "validate:spells": "tsx scripts/validateSpellJsons.ts",
@@ -110,7 +111,6 @@
     "glob": "^13.0.0",
     "globals": "^16.5.0",
     "jsdom": "^27.2.0",
-    "mcp-cli": "github:philschmid/mcp-cli",
     "playwright": "^1.57.0",
     "postcss": "^8.5.14",
     "rimraf": "^6.1.2",

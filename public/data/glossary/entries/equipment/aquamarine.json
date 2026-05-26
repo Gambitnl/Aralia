@@ -1,0 +1,20 @@
+{
+  "id": "aquamarine",
+  "title": "Aquamarine",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A pale blue green gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/aquamarine.json",
+  "markdown": "# Aquamarine\n\nA pale blue green gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 500
+  }
+}

@@ -4,11 +4,23 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Melee Weapon"
   ],
-  "excerpt": "- Type: M|XPHB - Cost: 50 gp - Weight: 6 lb. - Damage: 2d6 S - Properties: H|XPHB, 2H|XPHB...",
+  "excerpt": "M...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/greatsword.json",
-  "markdown": "# Greatsword\n\n- **Type**: M|XPHB\n- **Cost**: 50 gp\n- **Weight**: 6 lb.\n- **Damage**: 2d6 S\n- **Properties**: H|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Greatsword\n\n*M*\n",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "None",
+    "cost": 50,
+    "weight": 6,
+    "damage": "2d6 S",
+    "properties": [
+      "H|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

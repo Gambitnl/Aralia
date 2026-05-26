@@ -4,11 +4,17 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Vehicle (Water)"
   ],
-  "excerpt": "- Type: SHP|XPHB - Cost: 30000 gp...",
+  "excerpt": "SHP...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/galley.json",
-  "markdown": "# Galley\n\n- **Type**: SHP|XPHB\n- **Cost**: 30000 gp\n\n"
+  "markdown": "# Galley\n\n*SHP*\n",
+  "itemMetadata": {
+    "type": "Vehicle (Water)",
+    "rarity": "None",
+    "cost": 30000
+  }
 }

@@ -8,7 +8,16 @@
   ],
   "excerpt": "You gain the following benefits.  Lore Knowledge Choose one of the following skills: arcana, history, investigation, nature, or religion. If you lack ...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "arcana",
+    "history",
+    "investigation",
+    "nature",
+    "religion",
+    "expertise",
+    "study",
+    "bonus_action Action"
+  ],
   "filePath": "/data/glossary/entries/feats/keen_mind.json",
   "markdown": "# Keen Mind\n\nYou gain the following benefits.\n\n## Lore Knowledge\n\nChoose one of the following skills: [[arcana]], [[history]], [[investigation]], [[nature]], or [[religion]]. If you lack proficiency in the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain [[expertise]] in it.\n\n## Quick Study\n\nYou can take the [[study]] action as a [[bonus_action Action]]."
 }

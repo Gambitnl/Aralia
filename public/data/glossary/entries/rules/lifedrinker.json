@@ -8,7 +8,11 @@
   ],
   "excerpt": "Once per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creat...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "hit_point_dice Point Dice",
+    "hit_points Points",
+    "hit_points Point"
+  ],
   "filePath": "/data/glossary/entries/rules/lifedrinker.json",
   "markdown": "# Lifedrinker\n\nOnce per turn when you hit a creature with your pact weapon, you can deal an extra 1d6 Necrotic, Psychic, or Radiant damage (your choice) to the creature, and you can expend one of your [[hit_point_dice Point Dice]] to roll it and regain a number of [[hit_points Points]] equal to the roll plus your Constitution modifier (minimum of 1 [[hit_points Point]])."
 }

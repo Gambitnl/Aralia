@@ -4,11 +4,20 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing this helm, you have telepathy with a range of 30 feet, and you can cast detect_thoughts Thoughts or suggestion (save DC 13) from the hel...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "detect_thoughts Thoughts",
+    "suggestion"
+  ],
   "filePath": "/data/glossary/entries/equipment/helm_of_telepathy.json",
-  "markdown": "# Helm of Telepathy\n\nWhile wearing this helm, you have telepathy with a range of 30 feet, and you can cast [[detect_thoughts Thoughts]] or [[suggestion]] (save DC 13) from the helm. Once either spell is cast from the helm, that spell can't be cast from it again until the next dawn."
+  "markdown": "# Helm of Telepathy\n\nWhile wearing this helm, you have telepathy with a range of 30 feet, and you can cast [[detect_thoughts Thoughts]] or [[suggestion]] (save DC 13) from the helm. Once either spell is cast from the helm, that spell can't be cast from it again until the next dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon",
+    "reqAttune": "Required"
+  }
 }

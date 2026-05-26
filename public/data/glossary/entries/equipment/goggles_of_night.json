@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "While wearing these dark lenses, you have darkvision out to 60 feet. If you already have darkvision, wearing the goggles increases its range by 60 fee...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "darkvision"
+  ],
   "filePath": "/data/glossary/entries/equipment/goggles_of_night.json",
-  "markdown": "# Goggles of Night\n\nWhile wearing these dark lenses, you have [[darkvision]] out to 60 feet. If you already have [[darkvision]], wearing the goggles increases its range by 60 feet."
+  "markdown": "# Goggles of Night\n\nWhile wearing these dark lenses, you have [[darkvision]] out to 60 feet. If you already have [[darkvision]], wearing the goggles increases its range by 60 feet.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Uncommon"
+  }
 }

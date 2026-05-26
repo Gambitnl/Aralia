@@ -1,0 +1,20 @@
+{
+  "id": "diamond",
+  "title": "Diamond",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A blue white, canary, pink, brown, or blue gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/diamond.json",
+  "markdown": "# Diamond\n\nA blue white, canary, pink, brown, or blue gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 5000
+  }
+}

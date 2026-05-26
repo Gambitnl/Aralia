@@ -1,0 +1,20 @@
+{
+  "id": "black_sapphire",
+  "title": "Black Sapphire",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A lustrous black with glowing highlights gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/black_sapphire.json",
+  "markdown": "# Black Sapphire\n\nA lustrous black with glowing highlights gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 5000
+  }
+}

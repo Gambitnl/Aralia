@@ -1,0 +1,37 @@
+{
+  "id": "axe_of_the_dwarvish_lords",
+  "title": "Axe of the Dwarvish Lords",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Melee Weapon"
+  ],
+  "excerpt": "A young dwarf prince set out to forge a weapon that would be regarded as a symbol of unity among his people. Venturing deep under the mountains, deepe...",
+  "aliases": [],
+  "seeAlso": [
+    "darkvision",
+    "brewer_s_supplies's Supplies",
+    "mason_s_tools's Tools",
+    "smith_s_tools's Tools",
+    "immunity",
+    "resistance",
+    "magic",
+    "initiative",
+    "bonus_action Action",
+    "teleport"
+  ],
+  "filePath": "/data/glossary/entries/equipment/axe_of_the_dwarvish_lords.json",
+  "markdown": "# Axe of the Dwarvish Lords\n\nA young dwarf prince set out to forge a weapon that would be regarded as a symbol of unity among his people. Venturing deep under the mountains, deeper than any dwarf had ever delved, the prince came to the blazing heart of a great volcano. With the aid of Moradin, a god of creation, he first crafted four mighty tools: the Starmetal Pick, the Earthheart Forge, the Anvil of Songs, and the Shaping Hammer. With these tools, he forged the Axe of the Dwarvish Lords.\n\nArmed with the Artifact, the prince brought peace to the dwarf clans, ending grudges and answering slights. The clans became allies, and they threw back their enemies and enjoyed an era of prosperity. This young dwarf is remembered as the First King. When he became old, he passed the weapon, which had become his badge of office, to his heir. The rightful inheritors passed the axe on for many generations.\n\nLater, in an era marked by treachery and wickedness, the axe was lost in a bloody civil war fomented by greed for its power and the status it bestowed. Centuries later, the dwarves still search for the axe, and many adventurers have made careers of chasing after rumors and plundering old vaults to find it.\n\n## Magic Weapon\n\nThe Axe of the Dwarvish Lords is a magic weapon that grants a +3 bonus to attack rolls and damage rolls made with it.\n\nWhen you attack a creature with the axe and roll a 20 on the d20 for the attack roll, the axe deals an extra 20 Slashing damage.\n\nThe axe has T with a normal range of 20 feet and a long range of 60 feet. When you hit with a ranged attack using this weapon, it deals an extra 1d8 Force damage, or an extra 2d8 Force damage if the target is a creature of the Giant type. Immediately after hitting or missing, the weapon flies back to your hand.\n\n## Blessings of Moradin\n\nWhile attuned to the axe, you gain the following benefits:\n\n- **Darkvision:** You gain [[darkvision]] with a range of 60 feet. If you already have [[darkvision]], its range increases by 60 feet.\n- **Fortitude of Stone:** Your Constitution increases by 2, to a maximum of 20.\n- **Gifts of the Creator:** You have proficiency with [[brewer_s_supplies's Supplies]], [[mason_s_tools's Tools]], and [[smith_s_tools's Tools]].\n- **One with the Forge:** You have [[immunity]] to Poison damage and [[resistance]] to Fire damage.\n- **Sunder:** When you hit an object with the axe, the object takes the maximum amount of damage possible.\n\n## Conjure Earth Elemental\n\nWhile holding the axe, you can take a [[magic]] action to summon an Earth Elemental. It appears in an unoccupied space you choose within 30 feet of yourself, understands your languages, obeys your commands, and takes its turn immediately after you on your [[initiative]] count. The elemental disappears after 24 hours, when it dies, or when you dismiss it as a [[bonus_action Action]]. You can't use this property again until the next dawn.\n\n## Random Properties\n\nThe axe has the following random properties:\n\n- 2 Artifact Properties; Minor Beneficial Properties properties\n- 1 Artifact Properties; Major Beneficial Properties property\n- 2 Artifact Properties; Minor Detrimental Properties properties\n\n## Travel the Depths\n\nYou can take a [[magic]] action to touch the axe to a fixed piece of dwarven stonework and cast [[teleport]] from the axe. If your intended destination is underground, there is no chance of a mishap or arriving somewhere unexpected. You can't use this property again until 3 days have passed.\n\n## Destroying the Axe\n\nThe only way to destroy the axe is to melt it down in the Earthheart Forge, where it was created. It must remain in the burning forge for 50 years before it finally succumbs to the fire and is consumed.",
+  "itemMetadata": {
+    "type": "Melee Weapon",
+    "rarity": "Artifact",
+    "reqAttune": "Required",
+    "weight": 4,
+    "damage": "1d8 S",
+    "properties": [
+      "T|XPHB",
+      "V|XPHB"
+    ]
+  }
+}

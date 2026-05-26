@@ -8,7 +8,12 @@
   ],
   "excerpt": "You learn the find_familiar Familiar spell and can cast it as a magic action without expending a spell slot. When you cast the spell, you choose one o...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "find_familiar Familiar",
+    "magic",
+    "attack",
+    "reaction"
+  ],
   "filePath": "/data/glossary/entries/rules/pact_of_the_chain.json",
   "markdown": "# Pact of the Chain\n\nYou learn the [[find_familiar Familiar]] spell and can cast it as a [[magic]] action without expending a spell slot.\n\nWhen you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: Imp, Pseudodragon, Quasit, Skeleton, Slaad Tadpole, Sphinx of Wonder, Sprite, or Venomous Snake (see appendix B for the familiar's stat block).\n\nAdditionally, when you take the [[attack]] action, you can forgo one of your own attacks to allow your familiar to make one attack of its own with its [[reaction]]."
 }

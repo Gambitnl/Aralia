@@ -4,11 +4,25 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ranged Weapon"
   ],
-  "excerpt": "- Type: R|XPHB - Cost: 50 gp - Weight: 18 lb. - Damage: 1d10 P - Properties: A|XPHB, H|XPHB, LD|XPHB, 2H|XPHB...",
+  "excerpt": "R...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/heavy_crossbow.json",
-  "markdown": "# Heavy Crossbow\n\n- **Type**: R|XPHB\n- **Cost**: 50 gp\n- **Weight**: 18 lb.\n- **Damage**: 1d10 P\n- **Properties**: A|XPHB, H|XPHB, LD|XPHB, 2H|XPHB\n\n"
+  "markdown": "# Heavy Crossbow\n\n*R*\n",
+  "itemMetadata": {
+    "type": "Ranged Weapon",
+    "rarity": "None",
+    "cost": 50,
+    "weight": 18,
+    "damage": "1d10 P",
+    "properties": [
+      "A|XPHB",
+      "H|XPHB",
+      "LD|XPHB",
+      "2H|XPHB"
+    ]
+  }
 }

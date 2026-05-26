@@ -8,7 +8,9 @@
   ],
   "excerpt": "You gain the following benefits.  Puncture Once per turn, when you hit a creature with an attack that deals Piercing damage, you can reroll one of the...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "critical_hit Hit"
+  ],
   "filePath": "/data/glossary/entries/feats/piercer.json",
   "markdown": "# Piercer\n\nYou gain the following benefits.\n\n## Puncture\n\nOnce per turn, when you hit a creature with an attack that deals Piercing damage, you can reroll one of the attack's damage dice, and you must use the new roll.\n\n## Enhanced Critical\n\nWhen you score a [[critical_hit Hit]] that deals Piercing damage to a creature, you can roll one additional damage die when determining the extra Piercing damage the target takes."
 }

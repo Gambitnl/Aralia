@@ -1,0 +1,20 @@
+{
+  "id": "tiger_eye",
+  "title": "Tiger Eye",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A brown with golden center gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/tiger_eye.json",
+  "markdown": "# Tiger Eye\n\nA brown with golden center gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 10
+  }
+}

@@ -8,7 +8,14 @@
   ],
   "excerpt": "You gain the following benefits.  Merge with Shadows While within dim_light Light or darkness, you can give yourself the invisible condition as a bonu...",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "dim_light Light",
+    "darkness",
+    "invisible",
+    "bonus_action Action",
+    "reaction",
+    "resistance"
+  ],
   "filePath": "/data/glossary/entries/feats/boon_of_the_night_spirit.json",
   "markdown": "# Boon of the Night Spirit\n\nYou gain the following benefits.\n\n## Merge with Shadows\n\nWhile within [[dim_light Light]] or [[darkness]], you can give yourself the [[invisible]] condition as a [[bonus_action Action]]. The condition ends on you immediately after you take an action, a [[bonus_action Action]], or a [[reaction]].\n\n## Shadowy Form\n\nWhile within [[dim_light Light]] or [[darkness]], you have [[resistance]] to all damage except Psychic and Radiant."
 }

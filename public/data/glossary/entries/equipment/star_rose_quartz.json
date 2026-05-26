@@ -1,0 +1,20 @@
+{
+  "id": "star_rose_quartz",
+  "title": "Star rose quartz",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Gemstone)"
+  ],
+  "excerpt": "A rosy stone with white star-shaped center gemstone....",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/star_rose_quartz.json",
+  "markdown": "# Star rose quartz\n\nA rosy stone with white star-shaped center gemstone.",
+  "itemMetadata": {
+    "type": "Treasure (Gemstone)",
+    "rarity": "None",
+    "cost": 50
+  }
+}

@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "baseitem"
+    "baseitem",
+    "itemType:Ammunition"
   ],
-  "excerpt": "- Type: A|XPHB - Cost: 3 gp - Weight: 2 lb. Firearm Bullets are destroyed upon use in a modern firearm....",
+  "excerpt": "Firearm Bullets are destroyed upon use in a modern firearm....",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/firearm_bullets_10.json",
-  "markdown": "# Firearm Bullets (10)\n\n- **Type**: A|XPHB\n- **Cost**: 3 gp\n- **Weight**: 2 lb.\n\nFirearm Bullets are destroyed upon use in a modern firearm."
+  "markdown": "# Firearm Bullets (10)\n\nFirearm Bullets are destroyed upon use in a modern firearm.",
+  "itemMetadata": {
+    "type": "Ammunition",
+    "rarity": "None",
+    "cost": 3,
+    "weight": 2
+  }
 }

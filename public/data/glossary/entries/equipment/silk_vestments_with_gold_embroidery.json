@@ -1,0 +1,20 @@
+{
+  "id": "silk_vestments_with_gold_embroidery",
+  "title": "Silk vestments with gold embroidery",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Treasure (Art Object)"
+  ],
+  "excerpt": "$A...",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/equipment/silk_vestments_with_gold_embroidery.json",
+  "markdown": "# Silk vestments with gold embroidery\n\n*$A*\n",
+  "itemMetadata": {
+    "type": "Treasure (Art Object)",
+    "rarity": "None",
+    "cost": 250
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "bomb",
+  "title": "Bomb",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Explosive"
+  ],
+  "excerpt": "As an action, you can light a Bomb and throw it at a point up to 60 feet away, where it explodes. Each creature in a 5-foot-radius sphere_area_of_effe...",
+  "aliases": [],
+  "seeAlso": [
+    "sphere_area_of_effect"
+  ],
+  "filePath": "/data/glossary/entries/equipment/bomb.json",
+  "markdown": "# Bomb\n\nAs an action, you can light a Bomb and throw it at a point up to 60 feet away, where it explodes. Each creature in a 5-foot-radius [[sphere_area_of_effect]] centered on that point makes a DC 12 Dexterity saving throw, taking 3d6 Fire damage on a failed save or half as much damage on a successful one.",
+  "itemMetadata": {
+    "type": "Explosive",
+    "rarity": "None",
+    "cost": 100,
+    "weight": 1
+  }
+}

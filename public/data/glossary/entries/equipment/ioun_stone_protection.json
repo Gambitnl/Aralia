@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "{itemEntry Ioun Stone} You gain a +1 bonus to armor_class Class while this dusty-rose prism orbits your head....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "armor_class Class"
+  ],
   "filePath": "/data/glossary/entries/equipment/ioun_stone_protection.json",
-  "markdown": "# Ioun Stone, Protection\n\n{#itemEntry Ioun Stone}\n\nYou gain a +1 bonus to [[armor_class Class]] while this dusty-rose prism orbits your head."
+  "markdown": "# Ioun Stone, Protection\n\n{#itemEntry Ioun Stone}\n\nYou gain a +1 bonus to [[armor_class Class]] while this dusty-rose prism orbits your head.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Rare",
+    "reqAttune": "Required"
+  }
 }

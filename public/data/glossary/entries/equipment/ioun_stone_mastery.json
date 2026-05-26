@@ -4,11 +4,19 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Wondrous Items"
   ],
   "excerpt": "{itemEntry Ioun Stone} Your proficiency Bonus increases by 1 while this pale green prism orbits your head....",
   "aliases": [],
-  "seeAlso": [],
+  "seeAlso": [
+    "proficiency Bonus"
+  ],
   "filePath": "/data/glossary/entries/equipment/ioun_stone_mastery.json",
-  "markdown": "# Ioun Stone, Mastery\n\n{#itemEntry Ioun Stone}\n\nYour [[proficiency Bonus]] increases by 1 while this pale green prism orbits your head."
+  "markdown": "# Ioun Stone, Mastery\n\n{#itemEntry Ioun Stone}\n\nYour [[proficiency Bonus]] increases by 1 while this pale green prism orbits your head.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Legendary",
+    "reqAttune": "Required"
+  }
 }

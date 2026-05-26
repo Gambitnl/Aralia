@@ -1,0 +1,21 @@
+{
+  "id": "heward_s_handy_spice_pouch",
+  "title": "Heward's Handy Spice Pouch",
+  "category": "Equipment",
+  "tags": [
+    "source:xphb",
+    "item",
+    "itemType:Wondrous Items"
+  ],
+  "excerpt": "This belt pouch appears empty and has 10 charges. While holding the pouch, you can take a magic action to expend 1 charge, name any nonmagical food se...",
+  "aliases": [],
+  "seeAlso": [
+    "magic"
+  ],
+  "filePath": "/data/glossary/entries/equipment/heward_s_handy_spice_pouch.json",
+  "markdown": "# Heward's Handy Spice Pouch\n\nThis belt pouch appears empty and has 10 charges. While holding the pouch, you can take a [[magic]] action to expend 1 charge, name any nonmagical food seasoning (such as salt, pepper, saffron, or cilantro), and remove a pinch of the desired seasoning from the pouch. A pinch is enough to season a single meal. The pouch regains 1d6 + 4 expended charges daily at dawn.",
+  "itemMetadata": {
+    "type": "Wondrous Item",
+    "rarity": "Common"
+  }
+}

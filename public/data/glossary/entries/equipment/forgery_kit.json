@@ -4,11 +4,18 @@
   "category": "Equipment",
   "tags": [
     "source:xphb",
-    "item"
+    "item",
+    "itemType:Tool"
   ],
-  "excerpt": "- Type: T|XPHB - Cost: 15 gp - Weight: 5 lb. - Ability:: Dexterity - Utilize:: Mimic 10 or fewer words of someone else's handwriting (DC 15), or dupli...",
+  "excerpt": "- Ability:: Dexterity - Utilize:: Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)...",
   "aliases": [],
   "seeAlso": [],
   "filePath": "/data/glossary/entries/equipment/forgery_kit.json",
-  "markdown": "# Forgery Kit\n\n- **Type**: T|XPHB\n- **Cost**: 15 gp\n- **Weight**: 5 lb.\n\n- **Ability::** Dexterity\n- **Utilize::** Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)"
+  "markdown": "# Forgery Kit\n\n- **Ability::** Dexterity\n- **Utilize::** Mimic 10 or fewer words of someone else's handwriting (DC 15), or duplicate a wax seal (DC 20)",
+  "itemMetadata": {
+    "type": "Tool",
+    "rarity": "None",
+    "cost": 15,
+    "weight": 5
+  }
 }
