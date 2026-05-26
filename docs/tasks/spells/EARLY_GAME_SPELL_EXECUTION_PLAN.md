@@ -853,19 +853,17 @@ Packages 9, 10, 11, 12, and 13 plus the `G93` post-launch Jules update-boundary
 repair are complete on `master`. The older post-Package 6 consolidation
 boundary, `G48`, `G49`, and Package 10/11/12 candidate notes are historical.
 
-Next slice: Package 14 is selected as `vision_light_sound`, because Package 13
-is now merged and the priority queue points to the vision/light/sound bucket.
-The package should keep the Package 13 value lesson: batch the largest coherent
-safe subset when the work is repetitive, testable, and covered by existing
-schema/runtime/test patterns.
+Current slice: Package 14 is active as `vision_light_sound`. Codex launched it
+through the visible Symphony dashboard as Linear `ARA-23`, handoff
+`handoff-1779763287600-th7aze`, and Jules session `16016352181102771214` from
+clean `origin/master @ a164a420f4c9289c8a5214bf7e3498515d41ce92`.
 
 Immediate action:
 
-1. Land `PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md`,
-   `PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md`, and the matching tracker
-   refresh from current `origin/master`.
-2. Confirm the visible Symphony dashboard exposes a Package 14 draft path. If
-   not, record the UI blocker and repair the dashboard path instead of using a
-   hidden draft shortcut.
-3. Dispatch through the visible Symphony dashboard only after the task packet
-   and tracker state agree.
+1. Visually recheck Jules session `16016352181102771214` for a plan approval
+   gate, PR URL, explicit blocker, or unchanged queued/loading state.
+2. If Jules is still queued/loading/working with no new choice, record only a
+   compact wait-state row.
+3. If a plan appears, review it against the Package 14 packet before approving:
+   it must classify the named early-game rows first and implement the largest
+   coherent safe subset covered by existing schema/runtime/test patterns.
