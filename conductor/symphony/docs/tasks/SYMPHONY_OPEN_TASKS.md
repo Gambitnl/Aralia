@@ -42,17 +42,19 @@ For the active proving-ground Spell Phase 1 track:
   bucket counts to Open `61`, Closed `185`, Deferred flavor `7`, added
   interpretability comments to the new focused test/type mirror, force-pushed
   the clean head with lease, and merged after local and GitHub verification.
-- Package 15 `summon_or_controlled_entity` is now the active next package in
-  prep. PR #1114 landed the durable Aralia-facing packet/prompt and visible
-  dashboard shortcut. Codex used that visible `Create Package 15 Draft` control
-  to create draft `draft-1779771507621-vox90j` from current `origin/master`.
+- Package 15 `summon_or_controlled_entity` is now the active Jules package.
+  PR #1114 landed the durable Aralia-facing packet/prompt and visible dashboard
+  shortcut. Codex used that visible `Create Package 15 Draft` control to create
+  draft `draft-1779771507621-vox90j`, linked Linear `ARA-24`, prepared handoff
+  `handoff-1779774561087-k9184e`, staged the ignored `.jules` manifest, and
+  launched Jules session `5400768066928394476`.
 - Package 15 carries the compact decision/wait-state rule directly. The next
   Jules run should record full decisions only for real forks such as plan
   approval/rejection, repair requests, branch-hygiene repair, replacement
   handoff, scope expansion, and merge/closeout. Routine implementation choices,
   repeated unchanged waits, file lists, and verification output should stay in
   compact wait rows, task receipts, PR summaries, or completion reports.
-- Current next proof target: repair and prove the queue-focus rule exposed
+- Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
   still preferred older stale handoff bookkeeping over the new Package 15
@@ -63,9 +65,11 @@ For the active proving-ground Spell Phase 1 track:
   closed Package 9 PR #1030 feedback and Package 14's completed middleman
   receipts still borrowed the current path. The current repair adds a separate
   `Prepare Handoff` middleman stage and suppresses closed/superseded history
-  from the global queue when a newer draft owns the path. After the extended
-  verifier and visual/API proof pass, continue through handoff, manifest, and
-  Jules launch using the visible dashboard path.
+  from the global queue when a newer draft owns the path. PR #1117 merged that
+  repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
+  and Codex continued through visible handoff prep, manifest staging, and Jules
+  launch. Current next proof target: monitor the visible Jules session for plan
+  approval, a question, PR creation, setup blocker, or unchanged wait state.
 
 ---
 
