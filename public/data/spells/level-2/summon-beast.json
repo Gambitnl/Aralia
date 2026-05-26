@@ -84,7 +84,7 @@
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "SUMMONING",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -133,42 +133,11 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
       "description": "You call forth a bestial spirit. It manifests in an unoccupied space that you can see within range and uses the Bestial Spirit stat block. When you cast the spell, choose an environment: Air, Land, or Water. The creature resembles an animal of your choice that is native to the chosen environment, which determines certain details in its stat block. The creature is an ally to you and your companions. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
         "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
       },
       "conditionalEndings": [
         {
@@ -176,7 +145,54 @@
           "scope": "effect",
           "description": "The bestial spirit disappears when it drops to 0 Hit Points."
         }
-      ]
+      ],
+      "summon": {
+        "entityType": "creature",
+        "persistent": false,
+        "count": 1,
+        "commandCost": "none",
+        "initiative": "shared",
+        "statBlock": {
+          "name": "Bestial Spirit",
+          "type": "Beast",
+          "size": "Small",
+          "hp": 20,
+          "ac": 13,
+          "speed": 30,
+          "flySpeed": 60,
+          "climbSpeed": 30,
+          "swimSpeed": 30,
+          "abilities": {
+            "str": 18,
+            "dex": 11,
+            "con": 16,
+            "int": 4,
+            "wis": 14,
+            "cha": 5
+          },
+          "senses": [
+            "Darkvision 60 ft.",
+            "Passive Perception 12"
+          ],
+          "cr": "None"
+        },
+        "formOptions": [
+          "Air",
+          "Land",
+          "Water"
+        ],
+        "specialActions": [
+          {
+            "name": "Rend",
+            "description": "Melee spell attack, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. The spirit makes a number of Rend attacks equal to half the spell's level, rounded down.",
+            "cost": "action",
+            "damage": {
+              "dice": "1d8 + 4 + spell_level",
+              "type": "piercing"
+            }
+          }
+        ]
+      }
     }
   ],
   "arbitrationType": "mechanical",

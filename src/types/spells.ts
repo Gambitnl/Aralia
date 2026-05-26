@@ -776,14 +776,77 @@ export interface MovementEffect extends BaseEffect {
 }
 
 /** An effect that summons creatures or objects. */
+
+/** Structured statistics for a summoned entity. */
+export interface SummonedEntityStatBlock {
+  name?: string;
+  type?: string;
+  size?: "Tiny" | "Small" | "Medium" | "Large" | "Huge" | "Gargantuan";
+  ac?: number;
+  hp?: number;
+  speed?: number;
+  flySpeed?: number;
+  climbSpeed?: number;
+  swimSpeed?: number;
+  abilities?: {
+    str: number;
+    dex: number;
+    con: number;
+    int: number;
+    wis: number;
+    cha: number;
+  };
+  senses?: string[];
+  skills?: Record<string, number>;
+  attacks?: Array<{
+    name: string;
+    type: "melee" | "ranged";
+    reach?: number;
+    range?: { normal: number; long?: number };
+    bonus: string | number; // "spell_attack" or flat bonus
+    damage: string; // e.g. "1d6 + spell_level"
+    damageType: string;
+  }>;
+}
+
 export interface SummoningEffect extends BaseEffect {
   type: "SUMMONING";
-  summonType: "creature" | "object";
+  // Legacy flat fields for backward compatibility during transition
+  summonType?: "creature" | "object";
   creatureId?: string; // ID from a creature database
   objectDescription?: string; // Description for summoned objects
-  count: number; // How many creatures/objects are summoned
-  duration: EffectDuration;
+  count?: number; // How many creatures/objects are summoned
   familiarContract?: FamiliarContract;
+
+  // Modern nested structure aligned with spellValidator
+  summon?: {
+    entityType: "familiar" | "servant" | "construct" | "creature" | "undead" | "mount" | "object";
+    persistent?: boolean;
+    dismissAction?: "action" | "bonus_action" | "free" | "none";
+    count?: number;
+    countByCR?: Record<string, number>;
+    formOptions?: string[];
+    statBlock?: SummonedEntityStatBlock;
+    objectDescription?: string;
+    commandCost?: "action" | "bonus_action" | "free" | "none";
+    commandsPerTurn?: number;
+    initiative?: "immediate" | "rolled" | "shared";
+    followDistance?: number;
+    hoverHeight?: number;
+    telepathyRange?: number;
+    sharedSenses?: boolean;
+    sharedSensesCost?: "action" | "bonus_action" | "free" | "none";
+    specialActions?: Array<{
+      name: string;
+      description: string;
+      cost: "action" | "bonus_action" | "reaction" | "free";
+      damage?: {
+        dice: string;
+        type: string;
+      };
+    }>;
+  };
+  duration: EffectDuration;
 }
 
 /** Structured terrain manipulation for spells like Mold Earth */
