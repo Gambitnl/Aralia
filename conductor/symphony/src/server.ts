@@ -329,7 +329,7 @@ type ScoutCoreReadinessPacket = {
 };
 
 type MiddlemanPathStage = {
-  id: 'git_sync' | 'linear_issue' | 'jules_manifest' | 'jules_launch' | 'jules_session' | 'github_pr' | 'scout_core' | 'local_sync';
+  id: 'git_sync' | 'linear_issue' | 'jules_handoff' | 'jules_manifest' | 'jules_launch' | 'jules_session' | 'github_pr' | 'scout_core' | 'local_sync';
   label: string;
   status: 'complete' | 'ready' | 'waiting' | 'blocked' | 'active' | 'observed';
   sourceId: string | null;
@@ -3214,13 +3214,26 @@ export class HttpServer {
   ): MiddlemanPathPacket {
     const latestDraft = drafts[0] ?? null;
     const latestHandoff = handoffs[0] ?? null;
-    const dashboardHandoff = handoffs.find(handoff => handoff.status !== 'observed_pr') ?? null;
+    const latestDraftTime = latestDraft ? new Date(latestDraft.createdAt ?? latestDraft.updatedAt ?? 0).getTime() : 0;
+    const rawDashboardHandoff = handoffs.find(handoff => handoff.status !== 'observed_pr') ?? null;
+    const latestDraftHandoff = latestDraft
+      ? handoffs.find(handoff => handoff.status !== 'observed_pr' && handoff.draftId === latestDraft.id) ?? null
+      : null;
+    const rawDashboardHandoffTime = rawDashboardHandoff
+      ? new Date(rawDashboardHandoff.createdAt ?? rawDashboardHandoff.updatedAt ?? 0).getTime()
+      : 0;
+    // A fresh draft with its own Linear receipt owns the next package path until
+    // Symphony prepares that draft's handoff. Older handoff receipts remain on
+    // their cards, but they must not make Package 15 look like Package 14's
+    // manifest, PR, or local-sync proof already exists.
+    const freshDraftNeedsHandoff = Boolean(latestDraft && !latestDraftHandoff && latestDraftTime > rawDashboardHandoffTime);
+    const dashboardHandoff = latestDraftHandoff ?? (freshDraftNeedsHandoff ? null : rawDashboardHandoff);
     // Keep the PR lane attached to the active dashboard handoff first.
     // Without this, an older merged Package 2 PR can leak into a Package 3
     // no-PR completion boundary and make the dashboard look like the wrong
     // implementation slice is ready for review.
     const observedPrHandoff = handoffs.find(handoff => handoff.status === 'observed_pr' && Boolean(handoff.githubPullRequestUrl)) ?? null;
-    const prHandoff = dashboardHandoff ?? observedPrHandoff ?? latestHandoff;
+    const prHandoff = dashboardHandoff ?? (freshDraftNeedsHandoff ? null : observedPrHandoff ?? latestHandoff);
     const gitBlocked = !snapshot.preflight.ok;
     // A new draft starts a new workflow boundary. Do not borrow an older
     // package's Linear receipt just because that handoff is still in the local
@@ -3230,6 +3243,7 @@ export class HttpServer {
       ? Boolean(latestDraft.linearIssueIdentifier || latestDraft.linearIssueUrl)
       : Boolean(latestHandoff?.linearIssueIdentifier || latestHandoff?.linearIssueUrl);
     const manifestHandoff = dashboardHandoff;
+    const canPrepareHandoff = Boolean(latestDraft && hasLinearReceipt && !gitBlocked && !latestDraftHandoff);
     const hasManifest = Boolean(manifestHandoff?.manifestPath);
     const hasSession = Boolean(manifestHandoff?.julesSessionId || manifestHandoff?.julesSessionUrl || manifestHandoff?.julesState);
     const hasDashboardPr = Boolean(dashboardHandoff?.githubPullRequestUrl);
@@ -3237,7 +3251,7 @@ export class HttpServer {
     // currently owning the workflow. Once a Package 3 handoff exists, older
     // observed Package 2 PRs must stay historical rather than becoming the
     // active PR boundary.
-    const hasObservedPr = Boolean(!dashboardHandoff && observedPrHandoff?.githubPullRequestUrl);
+    const hasObservedPr = Boolean(!freshDraftNeedsHandoff && !dashboardHandoff && observedPrHandoff?.githubPullRequestUrl);
     const hasPr = hasDashboardPr || hasObservedPr;
     const completedWithoutPr = Boolean(manifestHandoff?.julesState === 'COMPLETED' && !hasDashboardPr);
     const prState = prHandoff?.githubPullRequestState ?? null;
@@ -3320,14 +3334,45 @@ export class HttpServer {
         receipt: latestDraft?.linearIssueIdentifier ?? latestHandoff?.linearIssueIdentifier ?? null,
       },
       {
+        id: 'jules_handoff',
+        label: 'Prepare Handoff',
+        status: dashboardHandoff ? 'complete' : canPrepareHandoff ? 'ready' : gitBlocked || !hasLinearReceipt ? 'waiting' : 'blocked',
+        sourceId: dashboardHandoff?.id ?? latestDraft?.id ?? null,
+        sourceTitle: dashboardHandoff?.title ?? latestDraft?.title ?? null,
+        detail: dashboardHandoff
+          ? 'A Jules handoff exists for the current draft.'
+          : canPrepareHandoff
+            ? 'The current draft has Linear tracking and can be promoted into a Jules handoff.'
+            : gitBlocked
+              ? 'Waiting for GitHub sync before preparing the Jules handoff.'
+              : !hasLinearReceipt
+                ? 'Waiting for a Linear receipt before preparing the Jules handoff.'
+                : 'The current draft cannot be prepared into a Jules handoff yet.',
+        endpoint: latestDraft && !latestDraftHandoff ? `${baseUrl}/api/v1/task-drafts/${encodeURIComponent(latestDraft.id)}/promote` : null,
+        method: latestDraft && !latestDraftHandoff ? 'POST' : 'NONE',
+        canRunNow: canPrepareHandoff,
+        mutatesGitIfRun: false,
+        mutatesExternalSystemsIfRun: false,
+        mutatesLocalFilesIfRun: canPrepareHandoff,
+        blockedBy: dashboardHandoff ? [] : [
+          ...(gitBlocked ? ['GitHub sync preflight is blocked.'] : []),
+          ...(!hasLinearReceipt ? ['Linear issue receipt is missing.'] : []),
+          ...(!latestDraft ? ['No dashboard draft exists yet.'] : []),
+        ],
+        expectedProof: 'Prepared Jules handoff id, prompt scope, write scope, and verification commands.',
+        receipt: dashboardHandoff?.id ?? null,
+      },
+      {
         id: 'jules_manifest',
         label: 'Jules manifest',
-        status: hasManifest ? 'complete' : gitBlocked || !hasLinearReceipt ? 'waiting' : 'ready',
+        status: hasManifest ? 'complete' : !manifestHandoff || gitBlocked || !hasLinearReceipt ? 'waiting' : 'ready',
         sourceId: manifestHandoff?.id ?? latestDraft?.id ?? null,
         sourceTitle: manifestHandoff?.title ?? latestDraft?.title ?? null,
         detail: hasManifest
           ? 'A staged `.jules/orchestrator` manifest exists.'
-          : 'Waiting for Git sync and Linear receipt before staging the Jules manifest.',
+          : manifestHandoff
+            ? 'Waiting for Git sync and Linear receipt before staging the Jules manifest.'
+            : 'Prepare the current draft into a Jules handoff before staging the manifest.',
         endpoint: manifestHandoff ? `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(manifestHandoff.id)}/stage-manifest` : null,
         method: manifestHandoff ? 'POST' : 'NONE',
         canRunNow: Boolean(!hasManifest && !gitBlocked && hasLinearReceipt && manifestHandoff),
@@ -3682,6 +3727,7 @@ export class HttpServer {
     // or local Git boundaries without treating the mutation endpoint itself as
     // the evidence source.
     if (stage.id === 'linear_issue') return stage.endpoint.replace(/\/create-linear$/, '/linear-preview');
+    if (stage.id === 'jules_handoff') return stage.endpoint.replace(/\/promote$/, '/handoff-readiness');
     if (stage.id === 'jules_launch') return stage.endpoint.replace(/\/launch$/, '/launch-readiness');
     if (stage.id === 'local_sync') return stage.endpoint.replace(/\/sync-local$/, '/refresh-local-sync');
 
@@ -4049,8 +4095,10 @@ export class HttpServer {
         const isCompletedNoPrDriftHistory = actionCode === 'record_post_launch_update_path'
           && handoff.julesState === 'COMPLETED'
           && !handoff.githubPullRequestUrl;
+        const isClosedPrHistory = handoff.githubPullRequestState === 'CLOSED'
+          && Boolean(handoff.githubPullRequestUrl);
 
-        return !((isUnlaunchedStaleHandoff || isCompletedNoPrDriftHistory) && newestDraftTime > handoffTime);
+        return !((isUnlaunchedStaleHandoff || isCompletedNoPrDriftHistory || isClosedPrHistory) && newestDraftTime > handoffTime);
       })
       .map((handoff, index) => ({
         handoff,

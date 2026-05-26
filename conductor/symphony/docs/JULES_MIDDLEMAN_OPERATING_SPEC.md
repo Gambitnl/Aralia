@@ -74,13 +74,14 @@ The intended path is:
 2. Prove GitHub is ready for cloud work.
 3. Let a Codex foreman clarify the task into a plain-language plan.
 4. Create or connect the Linear tracking issue.
-5. Stage a Jules manifest through the existing `.jules/orchestrator`.
-6. Launch or refresh Jules.
-7. Watch the GitHub PR.
-8. Route Scout/Core review.
-9. Verify GitHub Pages deployment after merge when the application publishes
+5. Prepare the current draft into its own Jules handoff.
+6. Stage a Jules manifest through the existing `.jules/orchestrator`.
+7. Launch or refresh Jules.
+8. Watch the GitHub PR.
+9. Route Scout/Core review.
+10. Verify GitHub Pages deployment after merge when the application publishes
    there.
-10. Sync local master only after merge and deployment proof.
+11. Sync local master only after merge and deployment proof.
 
 See [Workflow Phases](#workflow-phases) for the owner, evidence, mutation
 boundary, worker mode, and completion receipt for each phase.
@@ -403,6 +404,7 @@ receipt events inside these phases.
 | **workflow_setup** | Symphony / local project tooling | Prove or repair the local/Jules/GitHub setup needed before judging task implementation quality | Environment setup packet, failed-check classification, setup repair draft/readiness, verifier output | Local setup repair, workflow config, dependency/action update, or setup waiver | `local_careful` for bounded setup repair; `operator_only` for external mutation or waiver | Setup snapshot, setup repair receipt, or explicit setup blocker |
 | **git_sync** | Local repository / Symphony | Prove the local branch can safely feed cloud work | Git preflight, disposition review, resolution packet, sync plan | Human-owned local Git sync, commit, push, or disposition decision | `operator_only` while blocked; `observe_wait` for read-only checks | Clean preflight or Git sync execution receipt |
 | **linear_issue** | Linear / Symphony | Create or connect human-readable tracking | Linear issue preview, existing issue lookup, handoff readiness packet | Create/update Linear issue or status comment | `operator_only` at mutation; `observe_wait` for preview | Linear issue receipt or linked issue id |
+| **jules_handoff** | Symphony / task intake | Promote the current draft and Linear receipt into the bounded handoff that owns later Jules stages | Handoff readiness packet, draft body, Linear receipt, write scope, verification commands | Local handoff creation for the current draft | `operator_only` at mutation; `local_careful` for local dashboard repair | Handoff id attached to the current draft |
 | **jules_manifest** | Symphony / `.jules/orchestrator` | Stage the bounded Jules handoff | Manifest preview with write scope and verification commands | Write/update `.jules/orchestrator` handoff material | `operator_only` at mutation; `local_careful` for local setup repair drafts | Manifest/staging receipt |
 | **jules_launch** | Jules / Symphony | Start cloud implementation from the staged handoff | Launch readiness packet, safety checklist, Linear/Git receipt, base commit | Launch Jules session | `operator_only` at mutation | Jules launch/session receipt with immutable session base |
 | **jules_session** | Jules / Symphony | Track plan, execution, messages, PR output, base drift, and reconciliation | Jules API/browser state, visible Jules-page check, `julesStateReconciliation`, prompt/dialogue packets, current `origin/master` comparison | Approve plan, send Jules message, or otherwise direct Jules | `observe_wait` for reads; `operator_only` for plan/message actions | Plan approval, message, session refresh, visible Jules-page check, base-drift note, or PR-discovery receipt |
@@ -492,13 +494,20 @@ PRs into a pointer to the Symphony audit/open-task docs.
 
 ### Jules Handoff Staging
 
-1. Manifest staging uses the existing `.jules/orchestrator` path.
-2. Manifest staging is blocked when GitHub sync fails.
-3. Manifest records expected files, verification commands, base branch, base
+1. A draft linked to Linear must first become its own Jules handoff before old
+   manifest, session, PR, or local-sync receipts can count for the current
+   path.
+2. Closed PRs, completed/local-current handoffs, old unlaunched stale handoffs,
+   and completed/no-PR handoffs superseded by replacement package paths may
+   stay visible as history, but they must not own the global next action for a
+   newer ready draft.
+3. Manifest staging uses the existing `.jules/orchestrator` path.
+4. Manifest staging is blocked when GitHub sync fails.
+5. Manifest records expected files, verification commands, base branch, base
    commit, and Linear issue context.
-4. Staged handoff can be inspected before launch.
-5. Staging never invents a second cloud-task storage path.
-6. While GitHub sync or Linear tracking is still blocked, the dashboard/API can
+6. Staged handoff can be inspected before launch.
+7. Staging never invents a second cloud-task storage path.
+8. While GitHub sync or Linear tracking is still blocked, the dashboard/API can
    preview the `.jules/orchestrator` manifest packet in memory, including run
    id, source, starting branch/commit, write scopes, forbidden files,
    verification, and a `mutatesLocalFiles: false` safety marker.

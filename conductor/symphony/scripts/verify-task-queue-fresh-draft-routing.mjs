@@ -55,6 +55,15 @@ const freshPackage15Draft = {
   linearIssueCreatedAt: null,
 };
 
+const linkedPackage15Draft = {
+  ...freshPackage15Draft,
+  updatedAt: '2026-05-26T05:18:00.000Z',
+  linearIssueId: 'linear-package-15',
+  linearIssueIdentifier: 'ARA-24',
+  linearIssueUrl: 'https://linear.app/aralia/issue/ARA-24/package-15',
+  linearIssueCreatedAt: '2026-05-26T05:18:00.000Z',
+};
+
 const completedPackage14Handoff = {
   id: 'handoff-package-14',
   draftId: 'draft-package-14',
@@ -212,12 +221,42 @@ const completedNoPrDriftHandoff = {
   },
 };
 
+const closedPrAwaitingFeedbackHandoff = {
+  ...completedPackage14Handoff,
+  id: 'handoff-closed-pr-awaiting-feedback',
+  draftId: 'draft-closed-pr-awaiting-feedback',
+  title: 'Spell Phase 1 Package 9 superseded closed PR handoff',
+  createdAt: '2026-05-25T09:21:00.000Z',
+  updatedAt: '2026-05-26T04:30:00.000Z',
+  runId: 'run-closed-pr-awaiting-feedback',
+  manifestPath: '.jules/runs/run-closed-pr-awaiting-feedback/manifest.json',
+  launchedAt: '2026-05-25T09:25:00.000Z',
+  julesSessionId: 'session-closed-pr-awaiting-feedback',
+  julesSessionUrl: 'https://jules.google.com/session/session-closed-pr-awaiting-feedback',
+  julesState: 'AWAITING_USER_FEEDBACK',
+  linearIssueId: 'linear-package-9',
+  linearIssueIdentifier: 'ARA-16',
+  linearIssueUrl: 'https://linear.app/aralia/issue/ARA-16/package-9',
+  githubPullRequestUrl: 'https://github.com/Gambitnl/Aralia/pull/1030',
+  githubPullRequestState: 'CLOSED',
+  githubPullRequestNextAction: {
+    code: 'send_jules_feedback',
+    tone: 'ready',
+    label: 'Send Jules Feedback',
+    summary: 'Historical closed PR feedback should not steal the fresh Package 15 queue.',
+    steps: ['This action is stale after the replacement package path closed the PR.'],
+  },
+  localSyncStatus: null,
+};
+
+let activePackage15Draft = freshPackage15Draft;
+
 const server = new HttpServer(8218, orchestrator, logger);
 server.taskIntake = {
   async snapshot() {
     return {
-      drafts: [freshPackage15Draft],
-      handoffs: [completedPackage14Handoff, completedNoPrDriftHandoff, staleDuplicateHandoff],
+      drafts: [activePackage15Draft],
+      handoffs: [completedPackage14Handoff, completedNoPrDriftHandoff, closedPrAwaitingFeedbackHandoff, staleDuplicateHandoff],
       preflight: {
         ok: true,
         checkedAt: generatedAt,
@@ -259,7 +298,7 @@ server.taskIntake = {
 try {
   await server.start();
 
-  const queue = await getJson(`${BASE_URL}/api/v1/task-drafts`);
+  let queue = await getJson(`${BASE_URL}/api/v1/task-drafts`);
 
   assert.equal(queue.next_action.code, 'create_linear_issue');
   assert.equal(queue.next_action.source_type, 'draft');
@@ -270,6 +309,17 @@ try {
   const completedHandoff = queue.handoffs.find(item => item.id === 'handoff-package-14');
   assert.equal(completedHandoff.next_action.code, 'complete');
   assert.equal(completedHandoff.next_action.label, 'Local Checkout Current');
+
+  activePackage15Draft = linkedPackage15Draft;
+  queue = await getJson(`${BASE_URL}/api/v1/task-drafts`);
+
+  assert.equal(queue.next_action.code, 'prepare_handoff');
+  assert.equal(queue.next_action.source_type, 'draft');
+  assert.equal(queue.next_action.source_id, 'draft-package-15');
+  assert.equal(queue.middleman_path.currentBoundary, 'jules_handoff');
+  assert.equal(queue.middleman_path.foremanAction.label, 'Run Prepare Handoff');
+  assert.equal(queue.middleman_path.foremanAction.evidenceEndpoint, `${BASE_URL}/api/v1/task-drafts/draft-package-15/handoff-readiness`);
+  assert.equal(queue.middleman_path.stages.find(stage => stage.id === 'jules_manifest').status, 'waiting');
 } finally {
   await server.stop();
 }
