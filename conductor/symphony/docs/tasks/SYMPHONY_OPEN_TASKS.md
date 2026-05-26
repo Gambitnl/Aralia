@@ -29,13 +29,19 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1 through 13 have been used to exercise the Symphony/Jules path; use
+- Packages 1 through 14 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
-- Package 14 `vision_light_sound` is selected and in handoff preparation. Its
-  task packet and Jules prompt carry the compact decision/wait-state rule
-  directly so the next Jules run should record full decisions only for real
-  forks, not every ordinary wait or visual check.
+- Package 14 `vision_light_sound` launched through the visible dashboard/Jules
+  path as Linear `ARA-23`, draft `draft-1779763218951-adiujn`, handoff
+  `handoff-1779763287600-th7aze`, and Jules session
+  `16016352181102771214`. Its task packet and Jules prompt carry the compact
+  decision/wait-state rule directly, so ordinary queued/loading/working
+  rechecks should stay compact unless a real decision fork appears.
+- Package 14 launch exposed two dashboard UI blockers after the durable packet
+  landed: completed Package 13 closeout did not reveal next-package intake, and
+  the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
+  #1101 repaired those dashboard-first blockers before Jules launch.
 - Package 13 `terrain_or_surface` is complete. It launched to Jules as Linear
   `ARA-22`, handoff `handoff-1779754985825-4yijzn`, and Jules session
   `4325471518148676473`, then merged through PR #1096 as
