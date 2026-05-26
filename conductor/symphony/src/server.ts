@@ -3222,12 +3222,13 @@ export class HttpServer {
     const observedPrHandoff = handoffs.find(handoff => handoff.status === 'observed_pr' && Boolean(handoff.githubPullRequestUrl)) ?? null;
     const prHandoff = dashboardHandoff ?? observedPrHandoff ?? latestHandoff;
     const gitBlocked = !snapshot.preflight.ok;
-    const hasLinearReceipt = Boolean(
-      latestHandoff?.linearIssueIdentifier
-      || latestHandoff?.linearIssueUrl
-      || latestDraft?.linearIssueIdentifier
-      || latestDraft?.linearIssueUrl
-    );
+    // A new draft starts a new workflow boundary. Do not borrow an older
+    // package's Linear receipt just because that handoff is still in the local
+    // history; the operator needs to see that the fresh draft still requires
+    // its own tracking issue.
+    const hasLinearReceipt = latestDraft
+      ? Boolean(latestDraft.linearIssueIdentifier || latestDraft.linearIssueUrl)
+      : Boolean(latestHandoff?.linearIssueIdentifier || latestHandoff?.linearIssueUrl);
     const manifestHandoff = dashboardHandoff;
     const hasManifest = Boolean(manifestHandoff?.manifestPath);
     const hasSession = Boolean(manifestHandoff?.julesSessionId || manifestHandoff?.julesSessionUrl || manifestHandoff?.julesState);
@@ -3316,7 +3317,7 @@ export class HttpServer {
         mutatesLocalFilesIfRun: false,
         blockedBy: hasLinearReceipt ? [] : latestDraft?.linear_issue_preview?.blockers ?? (latestDraft ? [] : ['No dashboard draft exists yet.']),
         expectedProof: 'Linear issue identifier and URL attached to the draft or handoff.',
-        receipt: latestHandoff?.linearIssueIdentifier ?? latestDraft?.linearIssueIdentifier ?? null,
+        receipt: latestDraft?.linearIssueIdentifier ?? latestHandoff?.linearIssueIdentifier ?? null,
       },
       {
         id: 'jules_manifest',
@@ -3958,7 +3959,8 @@ export class HttpServer {
       );
     }
 
-    const firstHandoff = this.pickQueueHandoff(handoffs);
+    const firstDraft = drafts[0] ?? null;
+    const firstHandoff = this.pickQueueHandoff(handoffs, firstDraft);
     const waitForPostedFeedbackHandoff = conflictWatch.status === 'attention'
       ? handoffs.find(handoff => {
           const actionCode = this.readStringField(handoff.next_action, 'code');
@@ -3984,7 +3986,6 @@ export class HttpServer {
       return attachSource(firstHandoff.next_action, 'handoff', firstHandoff.id);
     }
 
-    const firstDraft = drafts[0];
     if (firstDraft?.next_action) {
       // Once a handoff exists, Symphony is already babysitting Jules/GitHub
       // return work. Service that before encouraging new draft intake, because
@@ -4027,9 +4028,25 @@ export class HttpServer {
 
   private pickQueueHandoff(
     handoffs: Array<TaskDraftSnapshot['handoffs'][number] & { next_action: Record<string, unknown> }>,
+    newestDraft: (TaskDraftSnapshot['drafts'][number] & { next_action: Record<string, unknown> }) | null,
   ): (TaskDraftSnapshot['handoffs'][number] & { next_action: Record<string, unknown> }) | null {
+    const newestDraftTime = newestDraft ? new Date(newestDraft.updatedAt ?? newestDraft.createdAt ?? 0).getTime() : 0;
     const scored = handoffs
-      .filter(handoff => handoff.next_action)
+      .filter(handoff => {
+        if (!handoff.next_action) return false;
+
+        // An unlaunched stale handoff is local bookkeeping, not live cloud work.
+        // When the operator has already created a newer draft, the queue should
+        // surface that draft instead of pulling the foreman back to an old
+        // duplicate "re-stage manifest" lane.
+        const handoffTime = new Date(handoff.updatedAt ?? handoff.createdAt ?? 0).getTime();
+        const isUnlaunchedStaleHandoff = handoff.status === 'base_commit_stale'
+          && !handoff.julesSessionId
+          && !handoff.julesState
+          && !handoff.githubPullRequestUrl;
+
+        return !(isUnlaunchedStaleHandoff && newestDraftTime > handoffTime);
+      })
       .map((handoff, index) => ({
         handoff,
         index,
@@ -4041,7 +4058,7 @@ export class HttpServer {
     // GitHub. A completed handoff can stay visible on its card, but the
     // queue-level "what now?" should first surface plan approvals, PR blockers,
     // Scout/Core review, and local sync work that can stall the pipeline.
-    return scored[0]?.handoff ?? null;
+    return scored[0] && scored[0].score > 0 ? scored[0].handoff : null;
   }
 
   private queueHandoffActionScore(action: Record<string, unknown>): number {
@@ -4518,6 +4535,15 @@ export class HttpServer {
         pullRequestContext);
     }
 
+    if (pullRequestMerged && handoff.localSyncStatus?.upToDate) {
+      return action('complete', 'ready', 'Local Checkout Current',
+        handoff.localSyncStatus.summary || 'The merged Jules work is already present on local master.',
+        null,
+        null,
+        ['Review the local sync check time.', 'Use the dashboard to draft the next bounded Jules task.'],
+        pullRequestContext);
+    }
+
     if (handoff.githubPullRequestNextAction) {
       const prAction = handoff.githubPullRequestNextAction;
       return action(prAction.code, prAction.tone, prAction.label,
@@ -4567,6 +4593,15 @@ export class HttpServer {
         pullRequestContext);
     }
 
+    if (handoff.localSyncStatus.upToDate) {
+      return action('complete', 'ready', 'Local Checkout Current',
+        handoff.localSyncStatus.summary || 'The merged Jules work is already present on local master.',
+        null,
+        null,
+        ['Review the local sync check time.', 'Use the dashboard to draft the next bounded Jules task.'],
+        pullRequestContext);
+    }
+
     if (handoff.localSyncStatus.nextAction) {
       const localAction = handoff.localSyncStatus.nextAction;
       const localActionUrl = localAction.code === 'sync_local_master'
@@ -4598,15 +4633,6 @@ export class HttpServer {
         links.syncLocal,
         'POST',
         ['Sync local master.', 'Confirm the pull or fast-forward succeeded.', 'Start the next Jules task only after local master is current.'],
-        pullRequestContext);
-    }
-
-    if (handoff.localSyncStatus.upToDate) {
-      return action('complete', 'ready', 'Local Checkout Current',
-        handoff.localSyncStatus.summary || 'The merged Jules work is already present on local master.',
-        null,
-        null,
-        ['Review the local sync check time.', 'Use the dashboard to draft the next bounded Jules task.'],
         pullRequestContext);
     }
 

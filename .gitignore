@@ -41,6 +41,7 @@ conductor/symphony/scripts/*
 !conductor/symphony/scripts/verify-jules-post-launch-base-drift.mjs
 !conductor/symphony/scripts/verify-jules-environment-setup-packet.mjs
 !conductor/symphony/scripts/verify-task-dashboard-navigator.mjs
+!conductor/symphony/scripts/verify-task-queue-fresh-draft-routing.mjs
 !conductor/symphony/scripts/verify-task-detail-api.mjs
 !conductor/symphony/scripts/verify-task-detail-page.mjs
 !conductor/symphony/scripts/verify-task-message-api.mjs
