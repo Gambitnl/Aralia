@@ -35,6 +35,10 @@ For the active proving-ground Spell Phase 1 track:
 - The next prepared package is Package 13 `terrain_or_surface`, with compact
   wait-state logging carried directly in the Jules task/prompt so repeated
   observations do not create another oversized decision ledger.
+- Visible dashboard use then exposed that the Package Packet Drafts section had
+  no Package 13 button. The active repair is to render packet shortcuts from a
+  shared registry and add Package 13 there, rather than adding another one-off
+  click handler.
 
 ---
 

@@ -163,6 +163,84 @@ const PACKAGE_12_CONDITIONAL_ENDING_DRAFT = {
     'npx vitest run <focused test file> --reporter=verbose',
   ].join('\n'),
 };
+const PACKAGE_13_TERRAIN_SURFACE_DRAFT = {
+  title: 'Spell Phase 1 Package 13 terrain and surface mechanics',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_TASK.md and docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make the largest coherent safe subset of early-game terrain_or_surface rows mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: first classify the named cantrip/level 1-3 open rows as implement_now, already_represented_after_proof, defer_broader_system, or not_really_terrain_surface. Then implement the largest coherent safe subset covered by existing TerrainEffect, TerrainManipulation, movement, targeting, status, and focused test patterns.',
+    '',
+    'Likely candidates include mold-earth, spider-climb, spike-growth, web, erupting-earth, plant-growth, and sleet-storm, but verify current JSON/runtime state before selecting the exact batch.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, combat rider-icon UI, levels 4-9, broad AI arbitration policy, broad wall engine, glyph/trap authoring, summon/control, illusion/social arbitration, object-animation, building/structure systems, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+    '',
+    'Decision-log note: repeated unchanged waits should be compact wait-state rows. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_13_TERRAIN_SURFACE_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/terrain_or_surface.md',
+    'public/data/spells/level-0/*.json',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/commands/effects/TerrainCommand.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+    'npx tsc --noEmit --pretty false',
+    'npm run build',
+  ].join('\n'),
+};
+// Package packet shortcuts are still declared in this dashboard file, but the
+// rendering and click handling now read from one registry. That keeps each new
+// packet from needing a separate button, handler branch, and duplicate function.
+// TODO(next-agent): Move this registry behind a small metadata endpoint once the
+// package packets carry enough structured frontmatter for the dashboard to
+// discover them without touching dashboard source.
+const PACKAGE_PACKET_DRAFTS = [
+  {
+    action: 'create-package6-choice-mode-draft',
+    label: 'Create Package 6 Draft',
+    packageId: 'Package 6',
+    draft: PACKAGE_6_CHOICE_MODE_DRAFT,
+  },
+  {
+    action: 'create-package10-target-filter-draft',
+    label: 'Create Package 10 Draft',
+    packageId: 'Package 10',
+    draft: PACKAGE_10_TARGET_FILTER_DRAFT,
+  },
+  {
+    action: 'create-package11-status-state-draft',
+    label: 'Create Package 11 Draft',
+    packageId: 'Package 11',
+    draft: PACKAGE_11_STATUS_STATE_DRAFT,
+  },
+  {
+    action: 'create-package12-conditional-ending-draft',
+    label: 'Create Package 12 Draft',
+    packageId: 'Package 12',
+    draft: PACKAGE_12_CONDITIONAL_ENDING_DRAFT,
+  },
+  {
+    action: 'create-package13-terrain-surface-draft',
+    label: 'Create Package 13 Draft',
+    packageId: 'Package 13',
+    draft: PACKAGE_13_TERRAIN_SURFACE_DRAFT,
+  },
+];
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
 let taskIntakeInteractionHoldUntil = 0;
 
@@ -243,20 +321,9 @@ taskIntakeRoot?.addEventListener('click', async event => {
     await recordTaskMessage(button);
   }
 
-  if (action === 'create-package6-choice-mode-draft') {
-    await createPackage6ChoiceModeDraft(button);
-  }
-
-  if (action === 'create-package10-target-filter-draft') {
-    await createPackage10TargetFilterDraft(button);
-  }
-
-  if (action === 'create-package11-status-state-draft') {
-    await createPackage11StatusStateDraft(button);
-  }
-
-  if (action === 'create-package12-conditional-ending-draft') {
-    await createPackage12ConditionalEndingDraft(button);
+  const packetDraft = PACKAGE_PACKET_DRAFTS.find(entry => entry.action === action);
+  if (packetDraft) {
+    await createPackagePacketDraft(button, packetDraft);
   }
 
   if (action === 'record-operator-preferences') {
@@ -735,79 +802,19 @@ async function createTaskDraft(form) {
   }
 }
 
-async function createPackage6ChoiceModeDraft(button) {
-  // This visible button exists because Browser Use cannot currently enter long
-  // text into the dashboard form when its virtual clipboard is missing. Keeping
-  // the packet creation behind an explicit dashboard button preserves the
-  // human workflow surface instead of forcing operators to call the raw API.
-  button.disabled = true;
-  setStatus('Creating Package 6 Jules task draft from the committed packet.');
-
-  try {
-    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_6_CHOICE_MODE_DRAFT);
-    renderTaskIntake(snapshot);
-    setStatus('Created Package 6 task draft from the visible packet button.');
-  } catch (err) {
-    setStatus(`Package 6 packet draft failed: ${err.message}`);
-    await refreshTaskIntake();
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function createPackage10TargetFilterDraft(button) {
-  // This mirrors the Package 6 packet shortcut for the same reason: the visible
-  // dashboard is the required operator surface, but long text entry through the
-  // in-app browser can fail when its virtual clipboard is unavailable. The
-  // button still creates an ordinary local draft through the dashboard API.
-  button.disabled = true;
-  setStatus('Creating Package 10 Jules task draft from the committed packet.');
-
-  try {
-    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_10_TARGET_FILTER_DRAFT);
-    renderTaskIntake(snapshot);
-    setStatus('Created Package 10 task draft from the visible packet button.');
-  } catch (err) {
-    setStatus(`Package 10 packet draft failed: ${err.message}`);
-    await refreshTaskIntake();
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function createPackage11StatusStateDraft(button) {
+async function createPackagePacketDraft(button, packetDraft) {
   // Package shortcuts are intentionally visible controls, not hidden backend
   // calls. They let the operator create a long Jules draft from a committed
   // packet when the browser cannot reliably type into the large form fields.
   button.disabled = true;
-  setStatus('Creating Package 11 Jules task draft from the committed packet.');
+  setStatus(`Creating ${packetDraft.packageId} Jules task draft from the committed packet.`);
 
   try {
-    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_11_STATUS_STATE_DRAFT);
+    const snapshot = await postJson('/api/v1/task-drafts', packetDraft.draft);
     renderTaskIntake(snapshot);
-    setStatus('Created Package 11 task draft from the visible packet button.');
+    setStatus(`Created ${packetDraft.packageId} task draft from the visible packet button.`);
   } catch (err) {
-    setStatus(`Package 11 packet draft failed: ${err.message}`);
-    await refreshTaskIntake();
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function createPackage12ConditionalEndingDraft(button) {
-  // This keeps the Package 12 launch inside the visible dashboard path. It is
-  // intentionally a normal draft creation button, so the operator can see and
-  // audit the action even when the manual long-form draft fields are awkward to
-  // fill through browser automation.
-  button.disabled = true;
-  setStatus('Creating Package 12 Jules task draft from the committed packet.');
-
-  try {
-    const snapshot = await postJson('/api/v1/task-drafts', PACKAGE_12_CONDITIONAL_ENDING_DRAFT);
-    renderTaskIntake(snapshot);
-    setStatus('Created Package 12 task draft from the visible packet button.');
-  } catch (err) {
-    setStatus(`Package 12 packet draft failed: ${err.message}`);
+    setStatus(`${packetDraft.packageId} packet draft failed: ${err.message}`);
     await refreshTaskIntake();
   } finally {
     button.disabled = false;
@@ -1567,10 +1574,7 @@ function renderTaskIntake(snapshot) {
       <section class="task-form packet-draft-card" aria-label="Package packet shortcuts">
         <h3>Package Packet Drafts</h3>
         <p class="usage-summary">Create known Jules drafts from committed task packets when text entry is blocked by browser tooling.</p>
-        <button type="button" data-task-action="create-package6-choice-mode-draft">Create Package 6 Draft</button>
-        <button type="button" data-task-action="create-package10-target-filter-draft">Create Package 10 Draft</button>
-        <button type="button" data-task-action="create-package11-status-state-draft">Create Package 11 Draft</button>
-        <button type="button" data-task-action="create-package12-conditional-ending-draft">Create Package 12 Draft</button>
+        ${renderPackagePacketDraftButtons()}
       </section>
 
       <form id="task-draft-form" class="task-form">
@@ -1701,6 +1705,15 @@ function renderTaskIntake(snapshot) {
   if (taskIntakeRoot.innerHTML === nextHtml) return;
 
   taskIntakeRoot.innerHTML = nextHtml;
+}
+
+function renderPackagePacketDraftButtons() {
+  // The shortcut list comes from the packet registry near the top of this file
+  // so adding the next package no longer requires editing the HTML template and
+  // click handler separately.
+  return PACKAGE_PACKET_DRAFTS
+    .map(entry => `<button type="button" data-task-action="${escapeAttribute(entry.action)}">${escapeHtml(entry.label)}</button>`)
+    .join('');
 }
 
 function renderDashboardFocusStrip({ drafts, handoffs, operatorPlan, path, pendingHumanInputCount, preflight, queueNextAction, taskRouting }) {
