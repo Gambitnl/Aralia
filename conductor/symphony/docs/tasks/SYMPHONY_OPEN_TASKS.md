@@ -80,6 +80,13 @@ For the active proving-ground Spell Phase 1 track:
   needs to either carry the supported stat-block facts or narrow its claim.
   Codex posted bounded PR feedback at
   `https://github.com/Gambitnl/Aralia/pull/1122#issuecomment-4541506297`.
+  A later GitHub refresh still showed original head
+  `197021520769bf9303db7dc331972a85f805605d`, and a visual Jules inspection
+  still showed `Ready for review` with the raw `.jules/worklogs/worklog_scribe.md`
+  diff visible. Codex posted one explicit `@jules` repair nudge at
+  `https://github.com/Gambitnl/Aralia/pull/1122#issuecomment-4549145355`.
+  Jules reacted with eyes to that nudge, but GitHub still showed the same PR
+  head at the time this status was recorded.
 - Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
@@ -95,10 +102,13 @@ For the active proving-ground Spell Phase 1 track:
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
   launch. PR #1119 then proved the plan-revision routing repair. Current next
-  proof target: wait for a new Package 15 PR #1122 head from Jules, then compare
-  that head with the bounded repair request before accepting. Green checks alone
-  are not enough while the raw `.jules` file, stale bucket counts, or partial
-  stat-block claim remain unresolved.
+  proof target: wait for a new Package 15 PR #1122 head or Jules reply after the
+  explicit nudge, then compare that head with the bounded repair request before
+  accepting. Green checks alone are not enough while the raw `.jules` file,
+  stale bucket counts, or partial stat-block claim remain unresolved. If the
+  PR head remains unchanged after the explicit nudge/acknowledgement, the next
+  real fork is a bounded current-master branch-hygiene repair, a replacement
+  handoff from current `origin/master`, or filing the Jules session as stale.
 
 ---
 
