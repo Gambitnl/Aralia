@@ -5797,3 +5797,54 @@ Copy this block for each decision.
   explicit documented counting rule. If the head remains unchanged after
   repeated visible Jules checks, record the stale repair wait before choosing a
   foreman branch repair or replacement handoff.
+
+### Decision 133: Send Package 14 PR #1110 Unchanged-Head Repair Nudge
+
+- Date/time: 2026-05-26 06:12 +02:00
+- Phase: `package_14_pr_repair_wait_escalation`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: After Decision 132, PR #1110 still pointed at the same head
+  commit, `2c7cb414c16433eae8c6291f31b2cf47c5730703`, and the remote Jules
+  branch had not published a count repair. The PR comment showed Jules had
+  reacted with eyes to the repair request. A visible Jules-page check showed
+  the Package 14 session on `.github/workflows/gemini-review.yml`, but GitHub
+  still showed no workflow file in PR #1110's submitted diff.
+- Options considered:
+  - Keep waiting silently.
+  - Treat the unchanged head as enough reason for immediate foreman branch
+    repair.
+  - Send one bounded nudge asking for the count repair or an explicit blocker,
+    while restating that workflow edits are out of scope.
+- Decision made by agent: Send one bounded PR nudge before taking over locally.
+- Model routing: Jules remains implementation worker for one more repair wait.
+  Codex remains foreman for PR review, scope guardrails, branch hygiene, and
+  merge readiness.
+- Rationale/evidence:
+  - The requested repair is small and exact, and Jules has at least acknowledged
+    the feedback.
+  - The visible workflow-file view is suspicious because Package 14 does not own
+    workflow files, but the authoritative GitHub PR diff does not currently
+    include `.github/workflows/gemini-review.yml`.
+  - A nudge preserves the Jules-first path while making the next fork explicit:
+    new PR head, explicit blocker, foreman branch repair, or replacement
+    handoff.
+- Mutation performed or skipped:
+  - Performed: posted PR feedback asking Jules to push the count-only
+    `vision_light_sound.md` header repair or reply with the exact blocker /
+    alternate counting rule.
+  - Performed: restated that workflow edits are outside Package 14 and must not
+    be added to PR #1110.
+  - Skipped: local implementation, hidden endpoint update, replacement handoff,
+    PR branch repair, and PR merge.
+- Scope guardrails:
+  - Keep PR #1110 inside selected spell JSON, `src/types/spells.ts`, tracked
+    `src/types/spells.d.ts`, focused `SensoryMechanics.test.ts`, and
+    `vision_light_sound.md`.
+  - Reject or branch-repair any later head that adds workflow edits, helper
+    scripts, scratch files, broad visibility/silence systems, combat HUD rider
+    icons, or levels 4-9.
+- Result: Package 14 remains Jules-owned for one more repair wait.
+- Next expected proof: new PR #1110 head with the bucket count repair, an
+  explicit Jules blocker/counting-rule reply, or one more unchanged visible
+  check that justifies selecting foreman branch repair or replacement handoff.
