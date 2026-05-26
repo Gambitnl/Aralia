@@ -181,6 +181,86 @@ describe('SummoningCommand', () => {
         expect(summoned?.maxHP).toBe(10) // Fallback HP
     })
 
+    it('should support modern nested summon.formOptions', () => {
+        const effect: SummoningEffect = {
+            type: 'SUMMONING',
+            summon: {
+                entityType: 'familiar',
+                formOptions: ['Owl']
+            },
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            count: 1 // fallback req
+        }
+
+        const command = new SummoningCommand(effect, mockContext)
+        const newState = command.execute(initialState)
+
+        const summoned = newState.characters.find(c => c.id.startsWith('summon_owl_'))
+        expect(summoned).toBeDefined()
+        expect(summoned?.name).toBe('Owl 1')
+        expect(summoned?.stats.speed).toBe(5) // Uses Owl template
+    })
+
+    it('should support modern nested summon.statBlock', () => {
+        const effect: SummoningEffect = {
+            type: 'SUMMONING',
+            summon: {
+                entityType: 'mount',
+                statBlock: {
+                    name: 'Phantom Steed',
+                    hp: 55,
+                    speed: 100,
+                    abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+                }
+            },
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            count: 1 // fallback req
+        }
+
+        const command = new SummoningCommand(effect, mockContext)
+        const newState = command.execute(initialState)
+
+        const summoned = newState.characters.find(c => c.name.startsWith('Phantom Steed'))
+        expect(summoned).toBeDefined()
+        expect(summoned?.maxHP).toBe(55)
+        expect(summoned?.stats.speed).toBe(100)
+    })
+
+    it('should preserve explicit zero values from modern nested summon.statBlock', () => {
+        // This guards the Package 15 bridge against treating stored zero values
+        // as missing data. Future summon schemas may use zero to mean immobile,
+        // defeated, or intentionally unavailable, so the command must not
+        // silently replace those values with generic defaults.
+        const effect: SummoningEffect = {
+            type: 'SUMMONING',
+            summon: {
+                entityType: 'object',
+                statBlock: {
+                    name: 'Immobile Test Object',
+                    hp: 0,
+                    speed: 0,
+                    abilities: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }
+                }
+            },
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' },
+            count: 1
+        }
+
+        const command = new SummoningCommand(effect, mockContext)
+        const newState = command.execute(initialState)
+
+        const summoned = newState.characters.find(c => c.name.startsWith('Immobile Test Object'))
+        expect(summoned).toBeDefined()
+        expect(summoned?.maxHP).toBe(0)
+        expect(summoned?.stats.speed).toBe(0)
+    })
+
     describe('SummoningCommand - Boundary Checks', () => {
         // Reuse mockCaster and helper functions adjusted for the existing describe block context if needed
         const createMockContext = (mapData?: SummoningMapData): CommandContext => ({

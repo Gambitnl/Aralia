@@ -4,6 +4,20 @@ import { SummoningEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, CharacterStats } from '@/types/combat'
 import { MONSTERS_DATA, CLASSES_DATA } from '@/constants'
 import { generateId } from '../../utils/combatUtils'
+import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
+
+/**
+ * This command creates temporary combat characters for spells that summon a creature,
+ * object, mount, or familiar onto the battle map.
+ *
+ * The spell data can still arrive in two shapes: older flat fields such as
+ * `summonType` and newer nested `summon` fields used by the spell validator. This
+ * command bridges both shapes so older spell data keeps working while Package 15
+ * begins moving summon spells toward structured stat blocks.
+ *
+ * Called by: SpellCommandFactory when a spell effect has type `SUMMONING`.
+ * Depends on: combat state placement rules, monster constants, and summon templates.
+ */
 
 export class SummoningCommand extends BaseEffectCommand {
     constructor(
@@ -17,7 +31,10 @@ export class SummoningCommand extends BaseEffectCommand {
         const effect = this.effect as SummoningEffect
         const caster = this.getCaster(state)
         let newState = state
-        const count = effect.count || 1
+
+        // Use nullish fallback so intentionally stored zero-like values are not
+        // overwritten while the summon schema is still evolving.
+        const count = effect.summon?.count ?? effect.count ?? 1
 
         for (let i = 0; i < count; i++) {
             const spawnPosition = this.findSpawnPosition(newState, caster.position)
@@ -26,7 +43,7 @@ export class SummoningCommand extends BaseEffectCommand {
                 // If no space is available, log failure and stop spawning
                 newState = this.addLogEntry(newState, {
                     type: 'action',
-                    message: `${caster.name} fails to summon ${effect.summonType}: No space available`,
+                    message: `${caster.name} fails to summon ${effect.summon?.entityType ?? effect.summonType ?? 'entity'}: No space available`,
                     characterId: caster.id
                 })
                 break
@@ -113,21 +130,64 @@ export class SummoningCommand extends BaseEffectCommand {
         position: Position,
         index: number
     ): CombatCharacter {
-        const creatureId = effect.creatureId || 'generic_summon'
+        // Fallback or explicit creature ID
+        let creatureId = effect.creatureId ?? 'generic_summon'
+        let templateData: SummonTemplate | undefined
+
+        // If the nested spell data offers several forms, choose the first form
+        // until the combat UI has a player-facing form picker.
+        if (effect.summon?.formOptions && effect.summon.formOptions.length > 0) {
+            const chosenForm = effect.summon.formOptions[0] // Default to first form for now
+            templateData = getSummonTemplate(chosenForm)
+            if (templateData) {
+                creatureId = chosenForm.toLowerCase().replace(/\s+/g, '_')
+            }
+        }
+
         const monsterData = MONSTERS_DATA?.[creatureId] // Optional chaining in case generic_summon missing
         const uniqueId = `summon_${creatureId}_${generateId()}`
 
-        // Fallback stats if monster data is missing
+        // Fallback stats
         const fallbackStats: CharacterStats = {
             strength: 10, dexterity: 10, constitution: 10,
             intelligence: 10, wisdom: 10, charisma: 10,
             baseInitiative: 0, speed: 30, cr: '0'
         }
 
-        const name = monsterData ? monsterData.name : (effect.objectDescription || 'Summoned Creature')
-        const stats = monsterData ? monsterData.baseStats : fallbackStats
-        const maxHP = monsterData ? monsterData.maxHP : 10
-        const abilities = monsterData ? monsterData.abilities : []
+        let name = 'Summoned Creature'
+        let stats = fallbackStats
+        let maxHP = 10
+        let abilities: CombatCharacter['abilities'] = []
+
+        // Prefer the spell's inline stat block, then reusable summon templates,
+        // then monster data. This keeps Package 15 spell JSON testable before
+        // every summon has a full monster registry entry.
+        if (effect.summon?.statBlock) {
+            name = effect.summon.statBlock.name ?? effect.summon.objectDescription ?? effect.objectDescription ?? effect.summon.entityType ?? name
+            const inlineStats = effect.summon.statBlock.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+            stats = {
+                strength: inlineStats.str, dexterity: inlineStats.dex, constitution: inlineStats.con,
+                intelligence: inlineStats.int, wisdom: inlineStats.wis, charisma: inlineStats.cha,
+                baseInitiative: 0, speed: effect.summon.statBlock.speed ?? 30, cr: '0'
+            }
+            maxHP = effect.summon.statBlock.hp ?? 10
+        } else if (templateData) {
+            name = templateData.name ?? name
+            const tStats = templateData.abilities || { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }
+            stats = {
+                strength: tStats.str, dexterity: tStats.dex, constitution: tStats.con,
+                intelligence: tStats.int, wisdom: tStats.wis, charisma: tStats.cha,
+                baseInitiative: 0, speed: templateData.speed ?? 30, cr: '0'
+            }
+            maxHP = templateData.hp ?? 10
+        } else if (monsterData) {
+            name = monsterData.name
+            stats = monsterData.baseStats
+            maxHP = monsterData.maxHP
+            abilities = monsterData.abilities || []
+        } else if (effect.summon?.objectDescription || effect.objectDescription) {
+            name = effect.summon?.objectDescription ?? effect.objectDescription ?? effect.summon?.entityType ?? effect.summonType ?? 'Object'
+        }
 
         return {
             id: uniqueId,
@@ -157,6 +217,8 @@ export class SummoningCommand extends BaseEffectCommand {
 
     get description(): string {
         const effect = this.effect as SummoningEffect
-        return `${this.context.caster.name} summons ${effect.count || 1} ${effect.summonType}(s)`
+        const count = effect.summon?.count ?? effect.count ?? 1
+        const type = effect.summon?.entityType ?? effect.summonType ?? 'entity'
+        return `${this.context.caster.name} summons ${count} ${type}(s)`
     }
 }
