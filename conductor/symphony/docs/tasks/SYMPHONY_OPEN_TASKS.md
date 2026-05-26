@@ -75,6 +75,16 @@ For the active proving-ground Spell Phase 1 track:
   helper after the broader patch-helper correction. Codex sent a shorter
   visible reminder that `patch_alarm.js` is also temporary and every
   `patch_*.js` / `patch_*.cjs` helper must be removed before PR submission.
+- Jules opened PR #1110 for Package 14 with a helper-clean durable file list
+  and green core GitHub checks. Codex's local merge-result review passed the
+  focused spell validation, Atlas bucket audit, sensory mechanics Vitest, and
+  TypeScript proof, but found one bounded stale-count issue in
+  `vision_light_sound.md`: the table rows now count `closed: 185`,
+  `open/actionable_open: 61`, and `deferred_flavor: 7`, while the header still
+  showed the old `76` open and `170` closed summary. Codex posted bounded PR
+  feedback, Jules reacted with eyes, and a visible Jules-page check confirmed
+  the active Package 14 session/branch. Current next action is to wait for a
+  new PR #1110 head, then verify the count repair before acceptance.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
