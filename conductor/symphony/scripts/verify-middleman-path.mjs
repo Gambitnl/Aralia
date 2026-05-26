@@ -245,7 +245,7 @@ try {
   assert.equal(snapshot.middleman_path.status, 'blocked');
   assert.equal(snapshot.middleman_path.currentBoundary, 'git_sync');
   assert.equal(snapshot.middleman_path.nextExpectedProof, 'Human-owned Git disposition and a passing GitHub sync preflight.');
-  assert.equal(snapshot.middleman_path.stages.length, 8);
+  assert.equal(snapshot.middleman_path.stages.length, 9);
   assert.equal(snapshot.middleman_path.foremanAction.boundary, 'git_sync');
   assert.equal(snapshot.middleman_path.foremanAction.label, 'Resolve Git disposition before Linear/Jules');
   assert.equal(snapshot.middleman_path.foremanAction.method, 'NONE');
@@ -271,10 +271,16 @@ try {
   assert.equal(linearStage.method, 'POST');
   assert.equal(linearStage.endpoint, 'http://127.0.0.1:8203/api/v1/task-drafts/draft-middleman/create-linear');
 
+  const handoffStage = snapshot.middleman_path.stages.find(stage => stage.id === 'jules_handoff');
+  assert.equal(handoffStage.status, 'waiting');
+  assert.equal(handoffStage.sourceId, 'draft-middleman');
+  assert.equal(handoffStage.endpoint, 'http://127.0.0.1:8203/api/v1/task-drafts/draft-middleman/promote');
+  assert.equal(handoffStage.canRunNow, false);
+
   const observedPrStage = snapshot.middleman_path.stages.find(stage => stage.id === 'github_pr');
-  assert.equal(observedPrStage.status, 'observed');
-  assert.equal(observedPrStage.sourceId, 'observed-pr-middleman');
-  assert.equal(observedPrStage.receipt, 'https://github.com/Gambitnl/Aralia/pull/900');
+  assert.equal(observedPrStage.status, 'waiting');
+  assert.equal(observedPrStage.sourceId, null);
+  assert.equal(observedPrStage.receipt, null);
   assert.equal(observedPrStage.mutatesExternalSystemsIfRun, false);
 
   const localSyncStage = snapshot.middleman_path.stages.find(stage => stage.id === 'local_sync');

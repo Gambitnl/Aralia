@@ -59,9 +59,13 @@ For the active proving-ground Spell Phase 1 track:
   `Create Linear Issue` boundary. PR #1115 repaired that first stale-history
   path and Codex created Linear `ARA-24`; the follow-up live check then exposed
   an older completed/no-PR Package 10 post-launch update record stealing focus
-  from Package 15 `Prepare Handoff`. After the extended verifier and visual/API
-  proof pass, continue through handoff, manifest, and Jules launch using the
-  visible dashboard path.
+  from Package 15 `Prepare Handoff`. A later check exposed the same class again:
+  closed Package 9 PR #1030 feedback and Package 14's completed middleman
+  receipts still borrowed the current path. The current repair adds a separate
+  `Prepare Handoff` middleman stage and suppresses closed/superseded history
+  from the global queue when a newer draft owns the path. After the extended
+  verifier and visual/API proof pass, continue through handoff, manifest, and
+  Jules launch using the visible dashboard path.
 
 ---
 
