@@ -5273,3 +5273,53 @@ Copy this block for each decision.
 - Next expected proof: tracker, open-task, and decision-trends closeout should
   record Package 12 as merged and point the next foreman to the tracker-defined
   next package boundary rather than continuing the Package 12 repair loop.
+
+### Decision 123: Approve Package 13 Terrain/Surface Jules Plan
+
+- Date/time: 2026-05-26 02:40 +02:00
+- Phase: `package_13_plan_approval`
+- Active slice: Package 13 terrain/surface mechanics for cantrips and levels
+  1-3.
+- Decision point: The visible Jules session `4325471518148676473` presented a
+  seven-step plan after the Package 13 handoff launched from
+  `origin/master @ d7728a4ee0251ffba08f5b6259d1aa987953f3af`. Codex had to
+  approve, reject, or request revision before Jules could proceed.
+- Options considered:
+  - Approve the plan and keep Jules as implementation worker.
+  - Reject the plan for being too narrow or too broad.
+  - Request a revised plan with a different terrain/surface subset.
+- Decision made by agent: Approve the visible Jules plan.
+- Model routing: Jules remains the implementation-heavy worker. Codex remains
+  foreman for visible monitoring, PR review, repair decisions, tracker truth,
+  and final verification.
+- Rationale/evidence:
+  - The plan starts with classification of all named cantrip/level 1-3 open
+    terrain/surface rows before bucket closure.
+  - The implementation subset is coherent and higher value than a one-row
+    package: narrow `TerrainCommand` difficult-terrain recognition repair,
+    terrain facts for `web`, `spike-growth`, `sleet-storm`, and
+    `plant-growth`, focused `TerrainCommand` proof for those rows plus
+    existing/proven `erupting-earth` and `mold-earth`, and bucket-doc updates.
+  - The named code path stays inside the Package 13 allowed scope:
+    selected spell JSON, `TerrainCommand`, focused tests, and
+    `terrain_or_surface.md`.
+  - The plan does not broaden into wall engines, glyph/trap authoring,
+    summon/control, illusion/social arbitration, combat HUD rider icons,
+    levels 4-9, Symphony runtime/source files, or GitHub workflow files.
+- Mutation performed or skipped:
+  - Performed: clicked the visible `Approve plan?` control in Jules; the page
+    changed to `Plan approved`.
+  - Skipped: local implementation, hidden API updates, replacement handoff,
+    and any PR merge.
+- Scope guardrails:
+  - Jules must not mark unproven terrain/surface rows closed.
+  - Any residual rows requiring broad wall, trap/glyph, summon/control,
+    illusion/social, object-animation, combat HUD, or levels 4-9 work should
+    stay deferred with reasons in the bucket docs or tracker.
+  - Repeated future queued/working observations should be compact wait states;
+    only plan approval/rejection, repair, stale-session replacement,
+    branch-hygiene repair, or merge should create another full decision.
+- Result: Package 13 moved from plan gate to approved Jules implementation
+  state.
+- Next expected proof: visible Jules working state, PR URL, exact blocker, or
+  repair request.
