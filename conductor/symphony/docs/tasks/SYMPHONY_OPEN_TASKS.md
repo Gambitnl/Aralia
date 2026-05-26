@@ -29,9 +29,13 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1 through 12 have been used to exercise the Symphony/Jules path; use
+- Packages 1 through 13 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
+- Package 14 `vision_light_sound` is selected and in handoff preparation. Its
+  task packet and Jules prompt carry the compact decision/wait-state rule
+  directly so the next Jules run should record full decisions only for real
+  forks, not every ordinary wait or visual check.
 - Package 13 `terrain_or_surface` is complete. It launched to Jules as Linear
   `ARA-22`, handoff `handoff-1779754985825-4yijzn`, and Jules session
   `4325471518148676473`, then merged through PR #1096 as
@@ -103,10 +107,10 @@ the audit, or in the proving-ground tracker with the next proof target.
   expanding scope. Repeated observations that preserve the same state should use
   a compact wait-state row in the tracker, task receipt, or this queue instead
   of another full decision entry.
-- Package 13 is the first launched spell package that carries this compact rule
-  in the Jules task/prompt before launch. If Jules still writes full decision
-  entries for plain queued/working refreshes, treat that as a workflow-template
-  gap to repair, not as evidence that every wait needs another decision.
+- Package 14 is the next spell package that carries this compact rule in the
+  Jules task/prompt before launch. If Jules still writes full decision entries
+  for plain queued/working refreshes, treat that as a workflow-template gap to
+  repair, not as evidence that every wait needs another decision.
 - If an assumed approval or boundary decision exposes workflow/doc friction,
   the same decision entry should point to the repair proof or the owning gap
   entry so the decision report is not the only durable record.

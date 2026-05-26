@@ -18,8 +18,10 @@ Current live boundary: Packages 1 through 13 have merged history and receipts,
 including the Package 9 higher-level caster fixture coverage, the `G93` Jules
 post-launch update-boundary repair, Package 10 target-filter/eligibility,
 Package 11 status/state-change, Package 12 conditional-ending, and Package 13
-terrain/surface slices. Treat the task tracker below as the spell-project
-source of truth while the next Jules handoff is selected and prepared.
+terrain/surface slices. Package 14 is now selected as the
+`vision_light_sound` mechanics slice and is in handoff preparation. Treat the
+task tracker below as the spell-project source of truth while the Package 14
+Jules handoff is landed and dispatched through the visible dashboard path.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -851,18 +853,19 @@ Packages 9, 10, 11, 12, and 13 plus the `G93` post-launch Jules update-boundary
 repair are complete on `master`. The older post-Package 6 consolidation
 boundary, `G48`, `G49`, and Package 10/11/12 candidate notes are historical.
 
-Next slice: select the next tracker-defined mechanics bucket after
-`terrain_or_surface`, because Package 13 is now merged. The next package should
-keep the Package 13 value lesson: batch the largest coherent safe subset when
-the work is repetitive, testable, and covered by existing schema/runtime/test
-patterns.
+Next slice: Package 14 is selected as `vision_light_sound`, because Package 13
+is now merged and the priority queue points to the vision/light/sound bucket.
+The package should keep the Package 13 value lesson: batch the largest coherent
+safe subset when the work is repetitive, testable, and covered by existing
+schema/runtime/test patterns.
 
 Immediate action:
 
-1. Use `SPELL_PHASE_1_TASK_TRACKER.md` and the mechanics bucket files to pick
-   the next high-value Package 14 boundary.
-2. Confirm the selected bucket has enough repetitive/testable rows to justify
-   a Jules handoff.
-3. Prepare the Package 14 task and prompt from current `origin/master`.
-4. Dispatch through the visible Symphony dashboard only after the task packet
+1. Land `PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md`,
+   `PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md`, and the matching tracker
+   refresh from current `origin/master`.
+2. Confirm the visible Symphony dashboard exposes a Package 14 draft path. If
+   not, record the UI blocker and repair the dashboard path instead of using a
+   hidden draft shortcut.
+3. Dispatch through the visible Symphony dashboard only after the task packet
    and tracker state agree.
