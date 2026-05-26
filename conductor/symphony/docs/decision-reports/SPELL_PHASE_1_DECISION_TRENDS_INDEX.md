@@ -123,7 +123,11 @@ session showed `.github/workflows/gemini-review.yml`; because GitHub did not
 show that file in the PR diff, the correct classification was "session-drift
 warning plus bounded nudge," not "submitted workflow drift." If a later head
 does add workflow files, treat that as branch noise and repair or reject it
-outside the spell product acceptance path.
+outside the spell product acceptance path. Jules then did add that workflow
+change without fixing the requested count issue, so Codex used a clean
+current-master acceptance branch, preserved only the useful Package 14
+product/test/bucket files, corrected the bucket counts, force-pushed with
+lease, and merged after focused local and GitHub verification.
 
 ## 4. Active Operating Rules
 
@@ -169,7 +173,7 @@ outside the spell product acceptance path.
 | Larger packages still need explicit classification gates | Package 14's first plan named plausible vision/light/sound work but did not explicitly classify every named early-game row before selecting the subset, and it risked closing fog/darkness rows too broadly. | Require revised plans to separate full row classification, `implement_now` selection, and residual/deferred rows before approval. |
 | Helper artifacts recur during useful Jules work | Package 13 showed patch/orig helpers at PR review. Package 14 showed `classify*` helpers, then later `patch_*` helpers, during active implementation before PR submission. | Include explicit "no helper artifacts in final PR" language in package prompts, send visible cleanup corrections as soon as helper drift appears, and reject final PRs that still contain scratch scripts or caches. |
 | PR review can expose small acceptance repairs after helper cleanup succeeds | Package 14 PR #1110 removed helper artifacts and passed core checks, but `vision_light_sound.md` kept pre-PR header counts after row status changes. | Send bounded PR feedback for the exact acceptance repair, record `wait_for_jules_repair_commit`, and verify the new head before accepting. Do not convert every repair wait into a full local takeover. |
-| Visible Jules session may drift into out-of-scope files not yet in the PR | After Package 14 PR #1110 repair feedback, the visible Jules page showed `.github/workflows/gemini-review.yml`, while GitHub still showed the PR diff was helper-clean and had no workflow file. | Classify this as a session-drift warning until GitHub evidence proves a submitted diff change. Send one bounded nudge forbidding workflow edits in the package PR; if a new head adds them, treat them as branch noise. |
+| Visible Jules session may drift into out-of-scope files not yet in the PR | After Package 14 PR #1110 repair feedback, the visible Jules page showed `.github/workflows/gemini-review.yml`, while GitHub initially showed the PR diff was helper-clean and had no workflow file. Jules later pushed that workflow file without the requested count repair. | Classify visible-only drift as a warning until GitHub proves a submitted diff change. If a new head adds the out-of-scope file, treat it as branch noise and use bounded branch hygiene when the product work is otherwise verified. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
 | Active work after nudge needs a named state | Package 12 showed post-nudge test/doc updates and `Jules is working`, but still no PR/branch. | Treat this as monitored wait with an explicit next proof target, not as a blocker and not as permission for local takeover. |

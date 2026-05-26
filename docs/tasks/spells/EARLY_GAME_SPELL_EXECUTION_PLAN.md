@@ -849,40 +849,30 @@ Outputs:
 
 ## Next Action
 
-Packages 9, 10, 11, 12, and 13 plus the `G93` post-launch Jules update-boundary
-repair are complete on `master`. The older post-Package 6 consolidation
-boundary, `G48`, `G49`, and Package 10/11/12 candidate notes are historical.
+Packages 9, 10, 11, 12, 13, and 14 plus the `G93` post-launch Jules
+update-boundary repair are complete on `master`. The older post-Package 6
+consolidation boundary, `G48`, `G49`, and Package 10/11/12 candidate notes are
+historical.
 
-Current slice: Package 14 is active as `vision_light_sound`. Codex launched it
-through the visible Symphony dashboard as Linear `ARA-23`, handoff
-`handoff-1779763287600-th7aze`, and Jules session `16016352181102771214` from
-clean `origin/master @ a164a420f4c9289c8a5214bf7e3498515d41ce92`.
-The latest visual Jules recheck showed repository setup in progress and Jules
-reading `public/data/spells/level-1/alarm.json`, with no plan gate, PR,
-blocker, or question visible yet.
-Jules later presented a plan gate; Codex requested a revised plan because the
-first plan did not explicitly classify every named row before selecting the
-implementation subset.
-Codex approved the revised plan after it added the full classification step and
-separated the likely implementation subset from residual/deferred rows.
-After approval, Codex sent one early scope correction because Jules' visible
-work showed `classify.js` / `classify.cjs` helper scripts; those should be
-temporary only and not part of the final PR.
-Codex later sent a second visible scope correction when Jules' active file
-activity showed `patch_types.js`, `patch_types.cjs`, `patch_json.cjs`, and
-`patch_markdown.cjs`; those patch helpers should also be temporary only. A
-tracked `src/types/spells.d.ts` mirror may remain only if the final PR explains
-and verifies why it must stay aligned with `src/types/spells.ts`.
-Codex then sent a shorter follow-up reminder when `patch_alarm.js` appeared
-after the broader cleanup correction; it is covered by the same no-helper-files
-boundary.
+Latest completed slice: Package 14 `vision_light_sound` launched through the
+visible Symphony/Jules path as Linear `ARA-23`, handoff
+`handoff-1779763287600-th7aze`, Jules session `16016352181102771214`, and PR
+#1110. Jules produced useful sound, sensory manifestation, illusion, and light
+metadata for selected early-game spells plus a `SoundEmission` type bridge and
+focused `SensoryMechanics` proof. Codex accepted the product work through a
+bounded branch-hygiene repair because Jules' post-review head added an
+out-of-scope `.github/workflows/gemini-review.yml` quota-bypass edit and did
+not fix stale `vision_light_sound.md` header counts. The accepted head
+preserved only Package 14 product/test/bucket files, corrected the bucket counts
+to Open `61`, Closed `185`, Deferred flavor `7`, and merged as
+`3fdf4cb174d42f15f38353adf69890015ec33ff6` after local and GitHub proof.
 
 Immediate action:
 
-1. Visually recheck Jules session `16016352181102771214` for working progress,
-   PR URL, explicit blocker, question, or continued implementation state.
-2. If Jules is working with no new choice,
-   record only a compact wait-state row.
+1. Select Package 15 from the priority list before launching another Jules
+   task; the next listed bucket is likely `summon_or_controlled_entity`.
+2. Before dispatch, map the cantrip/level 1-3 affected rows and decide whether
+   the package is large enough to justify the Jules handoff overhead.
 3. If a PR appears, review it against the approved plan before accepting:
    it must classify every named early-game row, close only proven rows, keep
    broad visibility/silence systems out of scope, exclude helper scripts and
