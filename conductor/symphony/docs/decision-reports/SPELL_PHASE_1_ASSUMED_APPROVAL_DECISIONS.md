@@ -5975,3 +5975,68 @@ Copy this block for each decision.
   `node scripts\verify-task-detail-page.mjs`, rendered dashboard check showing
   the handoff routes to `Refresh Jules Status` after the revision note, then a
   visual Jules recheck for the revised plan or next state.
+
+### Decision 136: Approve Revised Package 15 Plan, Then Reconcile Stale Completion
+
+- Date/time: 2026-05-26 08:35 +02:00
+- Phase: `package_15_revised_plan_approval_and_completion_reconciliation`
+- Active slice: Package 15 summon/control mechanics for cantrips and levels
+  1-3.
+- Decision point: Visible Jules session `5400768066928394476` showed a revised
+  plan after the bounded revision request. The revised plan began with
+  `Classify Rows (Markdown update)`, then moved through type, runtime, safe spell
+  migration, focused tests, pre-commit checks, and submit. This corrected the
+  original ordering defect. After Codex approved the revised plan visibly,
+  Symphony/local Jules records reported `COMPLETED` with no PR URL or completion
+  result, while visible Jules still showed `Plan approved`, a `Pause session`
+  control, no completion report, and no PR link.
+- Options considered:
+  - Reject the revised plan again because the collapsed plan labels did not show
+    every detail.
+  - Approve the revised plan because it fixed the classification-first gate and
+    stayed inside the Package 15 write scope.
+  - Treat the later local `COMPLETED` record as true completion and close or
+    supersede Package 15.
+  - Treat the local `COMPLETED` record as stale until visible Jules/GitHub proof
+    confirms a PR, failure, or no-PR completion.
+- Decision made by agent: Approve the revised plan, then classify the later
+  `COMPLETED`/no-PR state as a reconciliation gap rather than Package 15
+  closeout.
+- Model routing: Strong foreman reasoning, because this decides whether a live
+  Jules handoff may proceed and whether local status can override visible
+  operator evidence.
+- Rationale/evidence:
+  - The revised plan's first step was row classification, satisfying the main
+    Package 15 gate that caused the first rejection.
+  - The revised plan stayed inside declared Package 15 surfaces:
+    summon/control bucket docs, spell type/runtime bridge, safe spell JSON,
+    focused tests, and verification.
+  - The visible Jules page after approval showed `Plan approved` and a pause
+    control, not a completion report.
+  - GitHub open-PR search found no current Package 15/Jules PR.
+  - Symphony task detail reported `COMPLETED` without PR URL, branch, or
+    completion text, which is insufficient proof of product completion.
+- Mutation performed or skipped:
+  - Performed: approved the revised Jules plan through the visible Jules page.
+  - Performed: refreshed the dashboard, which exposed the local `COMPLETED`
+    mismatch.
+  - Performed: inspected visible Jules and GitHub PR state before accepting the
+    local completion record.
+  - Skipped: relaunching Package 15, local Package 15 implementation, package
+    closeout, and no-PR stale filing.
+  - Attempted but blocked: recording a local dashboard task note through the
+    visible note field. Browser text entry failed on the known virtual-clipboard
+    blocker, so this durable decision entry and tracker row carry the proof.
+- Scope guardrails:
+  - Keep waiting/reconciliation compact unless a real new fork appears: PR URL,
+    failed/blocked Jules output, repeated visible unchanged state, or a
+    confirmed no-PR completion.
+  - Do not let local `COMPLETED` state alone override visible Jules/GitHub
+    evidence.
+- Result: Package 15 remains active and Jules-owned. The active issue is now a
+  Symphony/Jules reconciliation gap: local records say `COMPLETED`, visible
+  Jules does not prove completion, and GitHub has no PR.
+- Next expected proof: visible Jules recheck plus GitHub PR search. If visible
+  Jules later shows a PR, move to PR review. If it remains plan-approved/working
+  with no PR, record a compact wait. If the mismatch repeats, repair Symphony's
+  completion reconciliation before filing the handoff as no-PR/stale.

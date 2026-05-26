@@ -564,6 +564,12 @@ PRs into a pointer to the Symphony audit/open-task docs.
    says `COMPLETED` and no PR is captured, it should say
    `needs_browser_reconciliation` and point the foreman at Codex app browser or
    Jules API proof before claiming the boundary is complete.
+11. A stored `COMPLETED` state is not final proof when the visible Jules page
+   still shows an active post-approval surface such as `Plan approved`, a pause
+   control, no completion report, and no PR link. In that mismatch, the operator
+   path stays on visible Jules/GitHub reconciliation or a workflow repair; it
+   must not close the package or file no-PR completion from the local record
+   alone.
 
 ### GitHub PR Monitoring
 
