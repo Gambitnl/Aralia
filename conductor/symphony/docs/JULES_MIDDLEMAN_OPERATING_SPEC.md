@@ -118,10 +118,26 @@ wait cadences.
 
 Not every change should go to Jules. Symphony should consider task size, risk,
 write scope, expected wait time, and whether cloud context is useful before it
-routes work. Small local edits, dashboard wiring, verifier updates, and
-operator-facing documentation can be assigned to a local Codex agent when that
-is lower overhead; bounded implementation work that benefits from isolated cloud
-execution can go to Jules.
+routes work. Small local edits, dashboard wiring, verifier updates,
+operator-facing documentation, count/header repairs, raw-artifact cleanup, and
+branch-hygiene acceptance repairs should normally stay with local Codex because
+the Jules handoff/plan/PR/review loop costs more than the work.
+
+Use Jules only when the task clears an implementation-value floor. As a rule of
+thumb, a Jules package should include at least one of these:
+
+- a coherent mechanics bucket or sub-bucket with several related spell rows;
+- a runtime/schema/test slice where the same pattern is reused across multiple
+  data files;
+- a product change large enough that isolated cloud implementation saves more
+  foreman time than the launch, monitoring, repair, and merge overhead costs;
+- a deliberate workflow proof where the goal is to exercise Jules/Symphony,
+  even if the implementation itself is small.
+
+If a proposed Jules task is only a one-file documentation fix, a stale count
+repair, helper-artifact removal, a PR-body adjustment, or a narrow cleanup after
+foreman review, route it to local Codex unless the operator explicitly wants to
+test that orchestration boundary.
 
 ### Live Browser Inspection
 
