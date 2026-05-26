@@ -70,6 +70,11 @@ For the active proving-ground Spell Phase 1 track:
   submission, while the tracked `src/types/spells.d.ts` mirror may remain only
   if Jules explains and verifies the repo convention that keeps it aligned with
   `src/types/spells.ts`.
+- Visual check on 2026-05-26 05:49 +02:00 showed Jules still in `Running code
+  review ...`, no open Package 14 PR on GitHub, and a new `patch_alarm.js`
+  helper after the broader patch-helper correction. Codex sent a shorter
+  visible reminder that `patch_alarm.js` is also temporary and every
+  `patch_*.js` / `patch_*.cjs` helper must be removed before PR submission.
 - Package 14 launch exposed two dashboard UI blockers after the durable packet
   landed: completed Package 13 closeout did not reveal next-package intake, and
   the open intake drawer still auto-refreshed during clicks. PR #1100 and PR
