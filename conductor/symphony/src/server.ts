@@ -4480,6 +4480,9 @@ export class HttpServer {
 
     const latestPlanApproval = Array.isArray(handoff.planApprovals) ? handoff.planApprovals[0] : null;
     const planAlreadyApproved = latestPlanApproval?.status === 'approved';
+    const latestSentOperatorMessage = Array.isArray(handoff.operatorMessages)
+      ? handoff.operatorMessages.find(message => message?.status === 'sent')
+      : null;
 
     if (handoff.julesState === 'AWAITING_PLAN_APPROVAL' && planAlreadyApproved) {
       return action('refresh_jules_status', 'ready', 'Refresh Jules Status',
@@ -4498,6 +4501,23 @@ export class HttpServer {
         });
     }
 
+    if (handoff.julesState === 'AWAITING_PLAN_APPROVAL' && latestSentOperatorMessage) {
+      return action('refresh_jules_status', 'ready', 'Refresh Jules Status',
+        'Operator feedback was sent while Jules was waiting on plan approval. Refresh the session before approving so a stale plan is not accepted after a revision request.',
+        links.refreshStatus,
+        'POST',
+        ['Refresh Jules status.', 'Confirm whether Jules produced a revised plan, moved back to work, or still waits on the same stale plan.', 'Do not approve the old plan until the visible session shows the revision request has been handled.'],
+        {
+          // A plan revision request is the plan-gate counterpart to ordinary
+          // Jules feedback. Once the operator has asked for a revision, the next
+          // safe dashboard action is state reconciliation, not approving the
+          // stale plan that prompted the feedback.
+          jules_session_id: handoff.julesSessionId,
+          jules_session_url: handoff.julesSessionUrl,
+          latest_operator_message: latestSentOperatorMessage,
+        });
+    }
+
     if (handoff.julesState === 'AWAITING_PLAN_APPROVAL') {
       return action('approve_jules_plan', 'ready', 'Approve Jules Plan',
         'Jules is waiting for the operator to approve its proposed plan before it continues.',
@@ -4512,10 +4532,6 @@ export class HttpServer {
           jules_session_url: handoff.julesSessionUrl,
         });
     }
-
-    const latestSentOperatorMessage = Array.isArray(handoff.operatorMessages)
-      ? handoff.operatorMessages.find(message => message?.status === 'sent')
-      : null;
 
     if (handoff.julesState === 'AWAITING_USER_FEEDBACK' && latestSentOperatorMessage) {
       return action('refresh_jules_status', 'ready', 'Refresh Jules Status',

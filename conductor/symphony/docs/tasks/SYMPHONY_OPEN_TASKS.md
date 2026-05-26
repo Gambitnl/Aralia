@@ -54,6 +54,13 @@ For the active proving-ground Spell Phase 1 track:
   handoff, scope expansion, and merge/closeout. Routine implementation choices,
   repeated unchanged waits, file lists, and verification output should stay in
   compact wait rows, task receipts, PR summaries, or completion reports.
+- Latest Package 15 live fork: visible Jules inspection showed a plan approval
+  gate, but the plan ordered implementation before the required full row
+  classification. Codex sent a bounded dashboard/Jules revision request instead
+  of approving it. Symphony must now route that state to `Refresh Jules Status`
+  until Jules responds with a revised plan, starts work, opens a PR, or exposes
+  a blocker; stale `Approve Jules Plan` should not remain the next action after
+  an operator revision note has been sent.
 - Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
@@ -68,8 +75,9 @@ For the active proving-ground Spell Phase 1 track:
   from the global queue when a newer draft owns the path. PR #1117 merged that
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
-  launch. Current next proof target: monitor the visible Jules session for plan
-  approval, a question, PR creation, setup blocker, or unchanged wait state.
+  launch. Current next proof target: prove the plan-revision routing repair,
+  then monitor the visible Jules session for a revised plan, question, PR
+  creation, setup blocker, or unchanged wait state.
 
 ---
 
@@ -103,7 +111,7 @@ the audit, or in the proving-ground tracker with the next proof target.
   approval gate, PR, blocker, or Jules question appears. It becomes a full
   decision only when the foreman must choose between materially different next
   actions.
-- Package 14 is the next spell package that carries this compact rule in the
+- Package 15 is the current spell package carrying this compact rule in the
   Jules task/prompt before launch. If Jules still writes full decision entries
   for plain queued/working refreshes, treat that as a workflow-template gap to
   repair, not as evidence that every wait needs another decision.
