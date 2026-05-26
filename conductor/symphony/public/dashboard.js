@@ -1830,6 +1830,7 @@ function renderForemanConsole(parts) {
     gitSafety,
     path: parts.path,
   });
+  const taskIntakeNeedsAttention = shouldOpenTaskIntakeGroup(parts.path);
 
   return `<div class="foreman-console">
     ${renderForemanCurrentBoundary(parts.path, parts.queueNextAction, parts.taskRouting)}
@@ -1837,7 +1838,7 @@ function renderForemanConsole(parts) {
       ${renderForemanDetailGroup('Git Safety', 'Preflight, disposition, sync plan, and the global path evidence.', gitSafety, gitSafetyNeedsAttention)}
       ${renderForemanDetailGroup('Jules Lifecycle', 'Kickoff, launch/session preparation, and timed nudge receipts.', julesLifecycle)}
       ${renderForemanDetailGroup('PR Review And Local Return', 'Handoff board, Scout/Core conflict watch, PR review, and local-return context.', prAndReturn)}
-      ${renderForemanDetailGroup('Task Intake And Records', 'Draft new work, watch existing PRs, and review stored drafts/handoffs.', `${parts.taskForms}${parts.records}`)}
+      ${renderForemanDetailGroup('Task Intake And Records', 'Draft new work, watch existing PRs, and review stored drafts/handoffs.', `${parts.taskForms}${parts.records}`, taskIntakeNeedsAttention)}
     </div>
   </div>`;
 }
@@ -1856,6 +1857,15 @@ function shouldOpenGitSafetyGroup({ gitSafety, path }) {
   ].filter(Boolean).join(' ');
   const safetyText = String(gitSafety || '');
   return /GitHub sync|Check GitHub Sync|Git disposition|Sync Decision Board|Guarded Git sync plan|blocked_by_disposition/i.test(`${boundaryText} ${safetyText}`);
+}
+
+function shouldOpenTaskIntakeGroup(path) {
+  // When the old Jules handoff has fully closed, the next useful operator move
+  // is usually drafting or launching the next package. Opening this drawer by
+  // default keeps the Package 14 shortcut visible instead of hiding it behind a
+  // collapsed evidence panel while the completed Local sync receipt dominates
+  // the page.
+  return path?.status === 'complete';
 }
 
 function renderBrowserFollowAlongGuidance() {

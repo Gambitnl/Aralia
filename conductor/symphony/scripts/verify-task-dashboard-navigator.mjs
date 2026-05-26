@@ -138,6 +138,46 @@ assert.doesNotMatch(needsInputNavigatorHtml, /Setup repair draft/);
 assert.doesNotMatch(needsInputNavigatorHtml, /Merged dashboard-started proof/);
 assert.doesNotMatch(needsInputNavigatorHtml, /Promoted draft record/);
 
+const completedPathRoot = {
+  html: '',
+  addEventListener() {},
+  set innerHTML(value) {
+    this.html = value;
+  },
+  get innerHTML() {
+    return this.html;
+  },
+  firstChild: { nodeValue: '' },
+};
+const completedPathSandbox = buildSandbox(null, completedPathRoot);
+vm.runInNewContext(executableSource, completedPathSandbox, { filename: 'dashboard.js' });
+const completedPathSnapshot = buildSnapshot();
+completedPathSnapshot.middleman_path = {
+  ...completedPathSnapshot.middleman_path,
+  status: 'complete',
+  currentBoundary: 'local_sync',
+  currentBoundaryLabel: 'Local sync',
+  summary: 'Merged PR is already present locally.',
+  nextExpectedProof: 'Next package draft or handoff receipt.',
+  foremanAction: {
+    boundary: 'local_sync',
+    boundaryLabel: 'Local sync',
+    label: 'Wait for Local sync',
+    status: 'complete',
+    safety: 'operator_only',
+    canRunNow: false,
+    method: 'NONE',
+    instruction: 'The prior handoff is complete; use task intake for the next package.',
+  },
+};
+completedPathSandbox.renderTaskIntake(completedPathSnapshot);
+
+// Completed handoff paths should reveal next-work controls. This protects the
+// dashboard-first workflow from leaving the Package 14 shortcut hidden behind a
+// collapsed drawer after the old package has already been locally reconciled.
+assert.match(completedPathRoot.innerHTML, /<details class="foreman-detail-group" open>\s*<summary>\s*<span>Task Intake And Records<\/span>/);
+assert.match(completedPathRoot.innerHTML, /Create Package 14 Draft/);
+
 const completedRoot = {
   html: '',
   addEventListener() {},
