@@ -61,6 +61,14 @@ For the active proving-ground Spell Phase 1 track:
   until Jules responds with a revised plan, starts work, opens a PR, or exposes
   a blocker; stale `Approve Jules Plan` should not remain the next action after
   an operator revision note has been sent.
+- Current Package 15 live gap: Jules produced a revised plan that begins with
+  row classification and Codex approved it visibly. A later dashboard refresh
+  recorded Jules `COMPLETED` with no PR URL, no completion result, and no branch,
+  while visible Jules still showed `Plan approved` plus a `Pause session`
+  control. GitHub open-PR search found no current Package 15 PR. Treat this as
+  stale completion reconciliation, not package closeout. The next proof target is
+  a visible Jules/GitHub recheck, or a workflow repair if local `COMPLETED` keeps
+  outranking visible session evidence.
 - Latest proof target closed: repair and prove the queue-focus rule exposed
   after Package 15 draft creation. A visible `Refresh All Jules` run reconciled
   Package 14 to completed/merged/local-current, but the dashboard top action
@@ -75,9 +83,10 @@ For the active proving-ground Spell Phase 1 track:
   from the global queue when a newer draft owns the path. PR #1117 merged that
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
-  launch. Current next proof target: prove the plan-revision routing repair,
-  then monitor the visible Jules session for a revised plan, question, PR
-  creation, setup blocker, or unchanged wait state.
+  launch. PR #1119 then proved the plan-revision routing repair. Current next
+  proof target: reconcile the Package 15 post-approval local `COMPLETED` state
+  against visible Jules/GitHub evidence before treating the handoff as complete
+  or stale.
 
 ---
 
