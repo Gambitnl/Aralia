@@ -813,6 +813,7 @@ function shouldHoldTaskIntakeAutoRefresh() {
   // for a moving target, so the task panel waits for an explicit click or manual
   // refresh before replacing that button or evidence link.
   return isTaskIntakeInteractionActive()
+    || Boolean(taskIntakeRoot?.querySelector?.('[data-foreman-group="Task Intake And Records"][open]'))
     || Boolean(taskIntakeRoot?.querySelector?.('[data-current-foreman-action="true"]'));
 }
 
@@ -1994,7 +1995,7 @@ function renderForemanDetailGroup(title, summary, body, open = false) {
   // Detail groups keep the existing safety surfaces available without making
   // all of them fight for first-screen priority. The current boundary above is
   // the primary decision surface; these groups are the supporting evidence.
-  return `<details class="foreman-detail-group" ${open ? 'open' : ''}>
+  return `<details class="foreman-detail-group" data-foreman-group="${escapeAttribute(title)}" ${open ? 'open' : ''}>
     <summary>
       <span>${escapeHtml(title)}</span>
       <small>${escapeHtml(summary)}</small>
