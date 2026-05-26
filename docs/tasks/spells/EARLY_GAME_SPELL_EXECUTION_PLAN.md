@@ -869,10 +869,10 @@ After approval, Codex sent one early scope correction because Jules' visible
 work showed `classify.js` / `classify.cjs` helper scripts; those should be
 temporary only and not part of the final PR.
 Codex later sent a second visible scope correction when Jules' active file
-activity showed `patch_types.js`, `patch_types.cjs`, and `patch_json.cjs`;
-those patch helpers should also be temporary only. A tracked
-`src/types/spells.d.ts` mirror may remain only if the final PR explains and
-verifies why it must stay aligned with `src/types/spells.ts`.
+activity showed `patch_types.js`, `patch_types.cjs`, `patch_json.cjs`, and
+`patch_markdown.cjs`; those patch helpers should also be temporary only. A
+tracked `src/types/spells.d.ts` mirror may remain only if the final PR explains
+and verifies why it must stay aligned with `src/types/spells.ts`.
 
 Immediate action:
 
