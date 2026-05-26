@@ -118,7 +118,7 @@ orchestration loop.
 | Gap | Current evidence | Desired repair |
 |---|---|---|
 | Decision report is too large to navigate | The assumed-approval report is over 4,000 lines and mixes audit entries with trend discovery. | Keep this trends index current when a repeated pattern appears or closes. |
-| Packet shortcuts are hardcoded | Package 11 and Package 12 both needed dashboard source edits before visible draft creation. | Replace hardcoded packet buttons with a small registry or metadata-derived list. |
+| Packet shortcuts are hardcoded | Package 11, Package 12, and Package 13 all exposed that the visible draft path lags behind new committed package packets. | Active Package 13 repair moves rendering/click handling to a small packet registry; the later target is metadata-derived discovery from committed packet files. |
 | Wait states are verbose | Multiple decisions record similar "Jules acknowledged, no new head yet" states. | Use compact wait-state rows for repeated refreshes, reserving full decisions for real forks; include that rule in the next Jules packet/prompt before launch. |
 | Package value check is implicit | Package 12 exposed a too-small plan at the approval gate. | Add a minimum-value/candidate-classification section to future Jules packet templates. |
 | Verify-without-handoff state is underspecified | Package 12 reached visible `Verify`, but repeated GitHub and remote-branch checks still showed no PR or Jules branch. | Add an operator rule: after repeated unchanged `Verify` state, send one bounded visible Jules status nudge; if still unchanged, record a stale-session or replacement-handoff decision instead of waiting silently. |
