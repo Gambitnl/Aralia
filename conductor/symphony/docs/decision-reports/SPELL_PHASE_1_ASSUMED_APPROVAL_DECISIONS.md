@@ -5848,3 +5848,70 @@ Copy this block for each decision.
 - Next expected proof: new PR #1110 head with the bucket count repair, an
   explicit Jules blocker/counting-rule reply, or one more unchanged visible
   check that justifies selecting foreman branch repair or replacement handoff.
+
+### Decision 134: Repair And Merge Package 14 PR #1110 From Current Master
+
+- Date/time: 2026-05-26 06:28 +02:00
+- Phase: `package_14_branch_hygiene_repair_and_merge`
+- Active slice: Package 14 vision/light/sound mechanics for cantrips and
+  levels 1-3.
+- Decision point: After Decision 133, Jules pushed new PR #1110 head
+  `9623d6c679c1c5d0a81d30a1373cdf48ca9ab496`. The new commit changed only
+  `.github/workflows/gemini-review.yml` to work around review quota and did not
+  fix the requested `vision_light_sound.md` header counts. The useful Package
+  14 product work was already locally verified and the remaining repair was
+  exact.
+- Options considered:
+  - Request another Jules repair.
+  - Close/relaunch Package 14 from current `origin/master`.
+  - Perform a bounded foreman branch-hygiene repair from current `origin/master`
+    and preserve only accepted Package 14 product/test/bucket files.
+- Decision made by agent: Perform the bounded foreman branch-hygiene repair and
+  merge after verification.
+- Model routing: Codex took over PR-branch hygiene, not product discovery. Jules'
+  accepted contribution remains the spell JSON/type/test/bucket implementation
+  direction.
+- Rationale/evidence:
+  - The out-of-scope workflow edit repeated the Package 13 quota-bypass pattern
+    and directly contradicted the Package 14 repair nudge.
+  - The requested count repair was deterministic: the accepted bucket table
+    counts were Open `61`, Closed `185`, Deferred flavor `7`.
+  - Starting from current `origin/master` preserved tracker truth and avoided
+    stale-base documentation rewinds.
+- Mutation performed or skipped:
+  - Performed: created clean branch `codex/accept-package14-pr1110` from current
+    `origin/master`.
+  - Performed: restored only selected Package 14 spell JSON,
+    `src/types/spells.ts`, tracked `src/types/spells.d.ts`,
+    `src/commands/__tests__/SensoryMechanics.test.ts`, and
+    `vision_light_sound.md` from the Jules branch.
+  - Performed: fixed `vision_light_sound.md` header counts to Open `61`,
+    Closed `185`, Deferred flavor `7`.
+  - Performed: added interpretability comments to the new focused test and
+    `.d.ts` sound mirror.
+  - Performed: force-pushed clean head
+    `9d37cc1bc0618088b04687acc485eb15c444ed2f` with lease to PR #1110 and
+    posted a foreman-repair PR comment.
+  - Performed: merged PR #1110 after local verification and green GitHub checks.
+  - Skipped: preserving `.github/workflows/gemini-review.yml`, another Jules
+    repair loop, and a replacement handoff.
+- Scope guardrails:
+  - Accepted files stayed inside selected spell JSON, spell type bridge,
+    focused sensory test, and bucket documentation.
+  - Workflow/model routing changes, helper scripts, scratch files, broad
+    visibility/silence engines, combat HUD rider icons, and levels 4-9 stayed
+    out of scope.
+- Verification:
+  - Local: `npm run validate:spells`; `node scripts\auditAtlasBuckets.mjs`;
+    `npx vitest run src\commands\__tests__\SensoryMechanics.test.ts
+    --reporter=verbose`; `npx tsc --noEmit --pretty false`; `git diff
+    --check`.
+  - Required but unavailable: dependency visualizer sync for `src/types/spells.ts`
+    because `misc/dev_hub/codebase-visualizer/server/index.ts` is missing.
+  - GitHub: Build, Lint, Tests, Quality, Poison, Analyze, and CodeQL passed on
+    the repaired PR head.
+- Result: Package 14 merged as
+  `3fdf4cb174d42f15f38353adf69890015ec33ff6`.
+- Next expected proof: Package 15 selection from the execution plan, likely the
+  `summon_or_controlled_entity` bucket, with affected-row mapping before Jules
+  dispatch.
