@@ -203,6 +203,48 @@ const PACKAGE_13_TERRAIN_SURFACE_DRAFT = {
     'npm run build',
   ].join('\n'),
 };
+const PACKAGE_14_VISION_LIGHT_SOUND_DRAFT = {
+  title: 'Spell Phase 1 Package 14 vision, light, and sound mechanics',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md and docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make the largest coherent safe subset of early-game vision_light_sound rows mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: first classify the named cantrip/level 1-3 open rows as implement_now, already_represented_after_proof, defer_broader_system, or not_really_vision_light_sound. Then implement the largest coherent safe subset covered by existing light, sound, sensory, status, terrain-obscurement, targeting, and focused test patterns.',
+    '',
+    'Likely candidates include alarm, thaumaturgy, daylight, silent-image, major-image, and narrow proof for fog-cloud, darkness, or silence, but verify current JSON/runtime state before selecting the exact batch.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, combat rider-icon UI, levels 4-9, broad AI arbitration policy, broad line-of-sight, magical-darkness, one-way-visibility, remote-sensor, silence-propagation, glyph/trap authoring, summon/control, illusion/social arbitration, object-animation, building/structure systems, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+    '',
+    'Decision-log note: repeated unchanged waits should be compact wait-state rows. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/vision_light_sound.md',
+    'public/data/spells/level-0/*.json',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/systems/spells/validation/spellValidator.ts',
+    'src/commands/effects/UtilityCommand.ts',
+    'src/commands/effects/StatusConditionCommand.ts',
+    'src/commands/effects/TerrainCommand.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+    'npx tsc --noEmit --pretty false',
+  ].join('\n'),
+};
 // Package packet shortcuts are still declared in this dashboard file, but the
 // rendering and click handling now read from one registry. That keeps each new
 // packet from needing a separate button, handler branch, and duplicate function.
@@ -239,6 +281,12 @@ const PACKAGE_PACKET_DRAFTS = [
     label: 'Create Package 13 Draft',
     packageId: 'Package 13',
     draft: PACKAGE_13_TERRAIN_SURFACE_DRAFT,
+  },
+  {
+    action: 'create-package14-vision-light-sound-draft',
+    label: 'Create Package 14 Draft',
+    packageId: 'Package 14',
+    draft: PACKAGE_14_VISION_LIGHT_SOUND_DRAFT,
   },
 ];
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
