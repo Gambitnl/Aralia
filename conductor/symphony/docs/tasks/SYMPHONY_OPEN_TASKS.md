@@ -32,13 +32,14 @@ For the active proving-ground Spell Phase 1 track:
 - Packages 1 through 12 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
-- Package 13 `terrain_or_surface` has been prepared, exposed through the
-  dashboard, and launched to Jules as Linear `ARA-22`, handoff
-  `handoff-1779754985825-4yijzn`, and Jules session `4325471518148676473`.
-- Package 13 carries compact wait-state logging directly in the Jules
-  task/prompt. The next check should prove whether Jules follows that newer
-  flow; repeated queued/working observations should not become another
-  oversized full-decision ledger.
+- Package 13 `terrain_or_surface` is complete. It launched to Jules as Linear
+  `ARA-22`, handoff `handoff-1779754985825-4yijzn`, and Jules session
+  `4325471518148676473`, then merged through PR #1096 as
+  `0cd0af47f348b21f331644e7d1bdb502400d3f3a`.
+- Package 13 proved the compact wait-state rule and also exposed the remaining
+  high-friction pattern: useful Jules product work can still need a bounded
+  foreman clean-acceptance repair when the PR branch is stale or carries
+  out-of-scope workflow edits.
 - Visual recheck on 2026-05-26 02:31 +02:00 showed the Package 13 Jules page
   still displaying the task content and pause-session control, with no plan
   approval, PR, blocker, or question visible yet. That is a compact wait state,
@@ -62,6 +63,14 @@ For the active proving-ground Spell Phase 1 track:
   mapping into `TerrainCommand.ts`, and kept focused `TerrainCommand` tests.
   The session was running code review with no PR URL yet, so the next state is
   compact wait for PR or exact blocker.
+- Jules then opened PR #1096. Codex reviewed the visible Jules page and GitHub
+  PR state, found a later out-of-scope `.github/workflows/gemini-review.yml`
+  quota-bypass edit plus stale tracker/process-doc risk, and force-pushed a
+  clean current-master acceptance branch with lease. The accepted head kept
+  only the Package 13 product/test/bucket/completion-note files and recorded
+  Plant Growth's exact 4:1 movement multiplier as a residual gap.
+- PR #1096 passed local verification and GitHub Build, Lint, Tests, Quality,
+  Poison, Analyze, and CodeQL checks, then merged on 2026-05-26.
 - Visible dashboard use exposed that the Package Packet Drafts section had no
   Package 13 button. PR #1090 repaired that blocker by rendering package
   shortcuts from a shared registry and adding Package 13 there, rather than

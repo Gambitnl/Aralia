@@ -1,6 +1,6 @@
 # Early-Game Spell Execution Plan
 
-Last Updated: 2026-05-25
+Last Updated: 2026-05-26
 
 ## Purpose
 
@@ -14,14 +14,12 @@ This plan also makes the early-game spell project the next live production trial
 for Symphony. Symphony refinement and finalization should happen inside this
 work, but only when the spell flow exposes a concrete workflow need.
 
-Current live boundary: Packages 1 through 12 have merged history and receipts,
+Current live boundary: Packages 1 through 13 have merged history and receipts,
 including the Package 9 higher-level caster fixture coverage, the `G93` Jules
 post-launch update-boundary repair, Package 10 target-filter/eligibility,
-Package 11 status/state-change, and Package 12 conditional-ending slices. The
-active product boundary is Package 13 `terrain_or_surface`, prepared from the
-tracker-defined mechanics priority after Package 12. Treat the task tracker
-below as the spell-project source of truth while the next Jules handoff is
-prepared.
+Package 11 status/state-change, Package 12 conditional-ending, and Package 13
+terrain/surface slices. Treat the task tracker below as the spell-project
+source of truth while the next Jules handoff is selected and prepared.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -849,21 +847,22 @@ Outputs:
 
 ## Next Action
 
-Packages 9, 10, 11, and 12 plus the `G93` post-launch Jules update-boundary
+Packages 9, 10, 11, 12, and 13 plus the `G93` post-launch Jules update-boundary
 repair are complete on `master`. The older post-Package 6 consolidation
 boundary, `G48`, `G49`, and Package 10/11/12 candidate notes are historical.
 
-Next slice: Package 13, `terrain_or_surface`, because the plan priority places
-it after completed representative `choice_or_mode`, `attack_or_save_modifier`,
-`target_filter_or_eligibility`, `status_or_state_change`, and
-`conditional_ending` mechanics slices.
+Next slice: select the next tracker-defined mechanics bucket after
+`terrain_or_surface`, because Package 13 is now merged. The next package should
+keep the Package 13 value lesson: batch the largest coherent safe subset when
+the work is repetitive, testable, and covered by existing schema/runtime/test
+patterns.
 
 Immediate action:
 
-1. Land the Package 13 task, prompt, and tracker refresh.
-2. Start visible Symphony dashboard dispatch from clean `origin/master`.
-3. Require Jules to classify all named early-game terrain/surface open rows,
-   then implement the largest coherent safe subset covered by existing
-   terrain, movement, targeting, status, and focused test patterns.
-4. After Jules returns, update Atlas/gate evidence and tracker residuals before
-   selecting the next bucket.
+1. Use `SPELL_PHASE_1_TASK_TRACKER.md` and the mechanics bucket files to pick
+   the next high-value Package 14 boundary.
+2. Confirm the selected bucket has enough repetitive/testable rows to justify
+   a Jules handoff.
+3. Prepare the Package 14 task and prompt from current `origin/master`.
+4. Dispatch through the visible Symphony dashboard only after the task packet
+   and tracker state agree.
