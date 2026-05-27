@@ -1,18 +1,2 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bloodGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#8e0000"/>
-      <stop offset="60%" stop-color="#c0392b"/>
-      <stop offset="100%" stop-color="#e74c3c"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" fill="#1a1a1a" rx="100"/>
-  <path d="M 220 100 L 292 100 L 322 350 C 322 410 190 410 190 350 Z" fill="rgba(255,255,255,0.1)" stroke="#7f8c8d" stroke-width="6"/>
-  <path d="M 200 250 L 312 250 L 316 350 C 316 400 196 400 196 350 Z" fill="url(#bloodGrad)"/>
-  <rect x="236" y="70" width="40" height="40" fill="#34495e" rx="4"/>
-  <path d="M 256 120 L 256 200 M 236 160 L 276 160" stroke="#e74c3c" stroke-width="4"/>
-  <circle cx="270" cy="320" r="8" fill="#fff" opacity="0.6"/>
-  <circle cx="230" cy="360" r="12" fill="#fff" opacity="0.6"/>
-  <!-- Skull decal -->
-  <path d="M 240 280 Q 256 260 272 280 Q 272 300 264 300 L 264 310 L 248 310 L 248 300 Q 240 300 240 280 Z" fill="#2c3e50"/>
-</svg>
+<!-- Source: game-icons:assassin-pocket; License: CC BY 3.0; https://game-icons.net -->
+<svg color="#151515" fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512"><path fill="currentColor" d="m233.56 16.225l-15.535 54.302l-79.183-12.79l-2.98 18.45L212.85 88.62l-14.92 52.163l17.968 5.14l11.028-38.546c92.558 14.84 177.404 26.687 273.004 16.824c-78.98-39.333-166.495-51.603-258.832-66.368l10.43-36.467l-17.97-5.14zm-68.695 120.443l-13.482 12.953l69.644 72.493l-59.63 34.428l9.347 16.19l44.098-25.46c83.234 86.485 160.743 164.186 267.683 231.242c-48.682-97.16-128.987-177.16-212.025-263.375l40.176-23.198l-9.346-16.19l-63.625 36.734l-72.84-75.816zm-87.11 13.424l-17.82 5.646l20.942 66.094l-53.99 13.613l4.57 18.125l38.824-9.79c25.36 79.632 50.276 151.825 99.097 222.02c2.31-80.818-23.148-155.34-48.488-234.78l37.794-9.528l-4.57-18.125l-55.08 13.887l-21.28-67.162z"/></svg>
