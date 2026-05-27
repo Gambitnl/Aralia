@@ -43,9 +43,12 @@ Statuses:
 - Decision summaries:
   record Aralia-relevant decisions in this tracker or the active package packet;
   keep detailed Symphony-local decision logs external unless a short excerpt is
-  intentionally copied into Aralia docs.
-- Symphony decision history:
+  intentionally copied into Aralia docs. Use the decision lesson matrix for
+  reusable workflow rules instead of adding every lesson to this tracker.
+- Symphony decision record:
   `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+- Decision lessons:
+  `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md`
 
 ## Durable PR And Handoff Index
 

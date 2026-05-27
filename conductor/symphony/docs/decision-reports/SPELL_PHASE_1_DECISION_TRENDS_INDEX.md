@@ -1,12 +1,14 @@
 # Spell Phase 1 Decision Trends Index
 
-Purpose: summarize recurring patterns from
-`SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` so future foremen can understand
-the workflow without reading the full audit ledger first.
+Purpose: summarize recurring patterns from the archived full decision ledger so
+future foremen can understand the workflow without reading the full audit
+history first.
 
-This file is an index, not the authority for individual decisions. Use the
-decision report for exact timestamps, options, and proof. Use this file to spot
-repeated decision types, active operating rules, and package-sizing lessons.
+This file is an index, not the authority for individual historical decisions.
+Use `archive/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS_FULL_LEDGER_2026-05-25.md`
+for exact timestamps, options, and proof. Use
+`SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` to see whether each extracted
+lesson is implemented, still an active gap, being monitored, or retired.
 
 ## Table Of Contents
 
@@ -15,6 +17,14 @@ repeated decision types, active operating rules, and package-sizing lessons.
 - [3. Implementation Value Lessons](#3-implementation-value-lessons)
 - [4. Active Operating Rules](#4-active-operating-rules)
 - [5. Open Trend-Level Gaps](#5-open-trend-level-gaps)
+
+## Related Files
+
+| File | Role |
+|---|---|
+| `SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` | Short entry point and logging policy. |
+| `SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` | Extracted lessons with resolution state and owning live surface. |
+| `archive/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS_FULL_LEDGER_2026-05-25.md` | Full chronological audit archive. |
 
 ## 1. Current Trend Summary
 
@@ -176,7 +186,7 @@ lease, and merged after focused local and GitHub verification.
 
 | Gap | Current evidence | Desired repair |
 |---|---|---|
-| Decision report is too large to navigate | The assumed-approval report is over 4,000 lines and mixes audit entries with trend discovery. | Keep this trends index current when a repeated pattern appears or closes. |
+| Decision report was too large to navigate | The assumed-approval report grew past 4,000 lines and mixed audit entries with trend discovery. | Resolved by modularization: the old full ledger now lives under `archive/`, the original path is a short entry point, this trend index is the operator summary, and `SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` tracks extracted lessons and remaining gaps. Keep these smaller surfaces current instead of reviving the full ledger as the active log. |
 | Packet shortcuts are hardcoded | Package 11, Package 12, and Package 13 all exposed that the visible draft path lags behind new committed package packets. PR #1090 moved Package 13 shortcut rendering/click handling to a small packet registry. | Next target is metadata-derived discovery from committed packet files so a new package packet does not require another dashboard source edit. |
 | Fresh draft can lose queue focus to stale handoff history | Package 15 proved the visible draft shortcut by creating `draft-1779771507621-vox90j`, and a visible refresh reconciled Package 14 to merged/local-current. The queue still surfaced an older unlaunched stale Package 11 handoff as the top action before the new draft's Linear boundary. After PR #1115 and Linear `ARA-24`, an older Package 10 completed/no-PR post-launch update record repeated the same focus problem before Package 15 handoff prep. A later live check showed closed Package 9 PR #1030 feedback and Package 14 completed middleman-path receipts could still hide Package 15 `Prepare Handoff`; PR #1117 repaired that path and visual proof then reached Package 15 Jules launch. | Completed/local-current handoffs, old unlaunched stale handoffs, completed/no-PR handoffs already superseded by replacement package paths, and closed-PR feedback history may stay visible as history, but the global next action should prefer the newest ready draft when no live Jules/PR boundary needs operator action. A draft linked to Linear needs its own `Prepare Handoff` stage before old manifest/session/PR/local-sync receipts can count for the current path. |
 | Merged handoff can remain the active dashboard boundary | After Package 13 and Package 14 prep merged, visual dashboard use still kept the old Package 13 handoff on the active Scout/Core review boundary because historical conflict-prone file evidence outlived the merged PR and local-current proof. | Merged PRs should complete the Scout/Core lane, local-current proof should complete the local-sync lane, and the dashboard should surface the next package draft path instead of stale review. |

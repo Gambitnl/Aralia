@@ -27,7 +27,7 @@ The safe default is:
 | Class | Examples | Default action after slice completion |
 |---|---|---|
 | Canonical plan | `EARLY_GAME_SPELL_EXECUTION_PLAN.md`, live package order, completion definition | Keep and update in place. |
-| Decision report | `SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` | Keep. Append decisions; do not rewrite history except for explicit correction notes. |
+| Decision report | `SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`, `SPELL_PHASE_1_DECISION_TRENDS_INDEX.md`, `SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md`, archived full ledger | Keep the short entry point, trend index, lesson-resolution matrix, and archived history. Do not append routine waits or raw receipts to the archived ledger. Add new full decision entries only for real forks, and resolve reusable lessons into the lesson matrix. |
 | Package task packet | `PACKAGE_2_PREMADE_PARTY_GEAR_JULES_TASK.md`, `PACKAGE_3_SPELL_SELECTION_AND_SPELLBOOK_VISIBILITY.md`, `PACKAGE_4_DETERMINISTIC_COMBAT_SIMULATOR_PILOT.md`, prompt packet, dispatch checklist | Keep while active. After completion, mark completed/superseded and link the final product PR and any concise acceptance summary. Archive later only if the summary remains reachable from the plan and still helps future Aralia contributors. |
 | Receipt summaries | environment snapshot, git sync, PR/deployment/local-sync, ROI, foreman review, task communication | Keep only when the summary explains a durable Aralia decision, boundary, blocker, or acceptance result. Treat raw Symphony handoff payloads, click receipts, draft ids, local task-store churn, support-PR lists, and run-state dumps as external or ignored unless a short excerpt is intentionally summarized into a packet or migration note. |
 | Proof screenshots | `docs/tasks/spells/evidence/*.png` | Keep while referenced by a receipt. If superseded, archive or mark superseded; delete only when no durable doc references it. |
@@ -59,12 +59,14 @@ Deletion is allowed only when at least one is true:
 - the file is a duplicate and the retained replacement is linked from the plan;
 - the file contains local machine settings, credentials, or operator-only state
   that should never have been committed;
-- the decision report records why the context is no longer needed.
+- the decision-report entry point or lesson-resolution matrix records why the
+  context is no longer needed.
 
 Do not delete:
 
 - canonical plans;
-- decision reports;
+- decision-report entry points, trend indexes, lesson-resolution matrices, and
+  archived full ledgers;
 - concise receipt summaries that prove a live Aralia package boundary or
   acceptance result;
 - proof images still referenced by durable summaries;
