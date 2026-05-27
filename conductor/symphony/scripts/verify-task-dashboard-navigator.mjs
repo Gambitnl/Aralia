@@ -110,6 +110,8 @@ assert.match(html, /Create Package 14 Draft/);
 assert.match(html, /data-task-action="create-package14-vision-light-sound-draft"/);
 assert.match(html, /Create Package 15 Draft/);
 assert.match(html, /data-task-action="create-package15-summon-controlled-entity-draft"/);
+assert.match(html, /Create Package 16 Draft/);
+assert.match(html, /data-task-action="create-package16-sustain-recast-action-draft"/);
 assert.match(navigatorHtml, /Current boundary/);
 assert.match(navigatorHtml, /Answer repair decision/);
 assert.match(navigatorHtml, /Jules session/);
