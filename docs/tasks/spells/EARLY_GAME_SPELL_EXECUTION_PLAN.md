@@ -18,22 +18,23 @@ Current live boundary: Packages 1 through 14 have merged history and receipts,
 including the Package 9 higher-level caster fixture coverage, the `G93` Jules
 post-launch update-boundary repair, Package 10 target-filter/eligibility,
 Package 11 status/state-change, Package 12 conditional-ending, and Package 13
-terrain/surface, and Package 14 vision/light/sound slices. Package 15 is now
-selected as the `summon_or_controlled_entity` mechanics slice and is in handoff
-preparation. Treat the task tracker below as the spell-project source of truth
-while the Package 15 Jules handoff is landed and dispatched through the visible
-dashboard path.
+terrain/surface, Package 14 vision/light/sound, and Package 15
+`summon_or_controlled_entity` slices. Treat the task tracker below as the
+spell-project source of truth while the next package boundary is selected.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
 project file for package status, discovered tasks, detailed subtask links, and
 adjacent out-of-scope gaps.
 
-Decision points for the assumed-approval Symphony/Jules test flow are recorded
-in
+Decision policy for the assumed-approval Symphony/Jules test flow starts at
 `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
-Use that report with the tracker when reconstructing why an agent approved,
-waited, repaired locally, sent Jules feedback, or merged a PR.
+Use that entry point with the tracker when reconstructing why an agent approved,
+waited, repaired locally, sent Jules feedback, or merged a PR. Reusable lessons
+belong in
+`conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md`;
+exact old chronological entries live in the archived full ledger linked from
+the entry point.
 
 Dashboard-first workflow constraint: use the Symphony dashboard in the Codex
 in-app browser as the primary path for this test flow. Visible dashboard task
@@ -222,8 +223,9 @@ following are true:
    - `public/data/spell_gate_report.json` is regenerated at the required gates
    - mechanics-discovery buckets for cantrips and level 1-3 are reduced,
      explicitly accepted, or routed into future tasks
-   - Symphony/Jules decision reports record the phase decisions and the agent's
-     assumed-approval choices for this test flow
+   - Symphony/Jules decision reporting records real phase forks, compact wait
+     states, and the agent's assumed-approval choices without turning the
+     archive ledger back into a raw receipt log
 7. Symphony finalization checks pass:
    - Jules environment setup is run or deliberately deferred with proof
    - each implementation slice uses a documented branch/worktree strategy
@@ -491,10 +493,11 @@ Use stronger models for:
 - deciding whether to merge, reroute, or split a failed Jules slice
 - writing the final slice summary and next-slice recommendation
 
-The model choice itself should be recorded when it affects the workflow. A
-decision report entry does not need to mention every cheap scan, but it should
-record when Symphony deliberately used an efficient model for a bounded chore or
-a stronger model for an architecture/policy decision.
+The model choice itself should be recorded when it affects the workflow. A full
+decision entry does not need to mention every cheap scan, but the tracker,
+receipt, or lesson-resolution matrix should record when Symphony deliberately
+used an efficient model for a bounded chore or a stronger model for an
+architecture/policy decision.
 
 ## Sequential Operating Model
 
@@ -870,18 +873,18 @@ to Open `61`, Closed `185`, Deferred flavor `7`, and merged as
 
 Immediate action:
 
-1. Land Package 15 prep for `summon_or_controlled_entity` from current
-   `origin/master`: package task, Jules prompt, tracker row, and visible
-   dashboard draft shortcut.
-2. Before dispatch, confirm the cantrip/level 1-3 affected rows are mapped and
-   that the package remains large enough to justify the Jules handoff overhead.
+1. Select the next package boundary from the live tracker and this execution
+   plan after Package 15.
+2. Before dispatch, write a concrete `Jules value: ...` line that explains why
+   the package is large enough for a Jules handoff instead of local Codex work.
 3. Use the visible Symphony dashboard path for draft, Linear, handoff,
    manifest, Jules launch, and visual Jules-page inspection.
 4. If a PR appears, review it against the approved plan before accepting:
    it must classify every named early-game row, close only proven rows, keep
-   broad summon/control systems out of scope, exclude helper scripts and
-   scratch artifacts including `classify*` and `patch_*` files, and include
-   the requested focused verification.
+   broad out-of-scope systems out of scope, exclude helper scripts and scratch
+   artifacts including `classify*` and `patch_*` files, and include the
+   requested focused verification.
 5. Keep decision logging compact in the next run: full decision entries only
    for real forks, compact wait rows for repeated unchanged Jules/GitHub states,
-   and routine implementation details in the completion report.
+   reusable lessons in the lesson-resolution matrix, and routine implementation
+   details in the completion report.

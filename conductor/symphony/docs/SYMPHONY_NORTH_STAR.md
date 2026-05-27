@@ -37,7 +37,9 @@ order:
 6. `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` - the proving-ground task
    tracker and gap log.
 7. `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` - the
-   proving-ground decision history.
+   proving-ground decision entry point and logging policy.
+8. `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` - the
+   extracted decision lessons, resolution states, and remaining workflow gaps.
 
 After that, use the linked living docs for the exact latest status. This north
 star is the map; the audit, task queue, and trackers are the live state.
@@ -161,8 +163,10 @@ the live source of truth instead of keeping it here:
 - Symphony workflow gaps belong in `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`
   or `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`
 - Spell Phase 1 gaps belong in `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
-- Spell decision history belongs in
-  `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+- Spell decision history starts at
+  `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
+  Exact historical entries live in that file's linked archive; reusable lessons
+  belong in `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md`.
 
 ## What Still Needs To Be Done
 
@@ -224,7 +228,11 @@ packet, audit, or open queue.
 - `docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` - Spell Phase 1
   artifact retention and runtime-state policy
 - `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` -
-  the durable decision report for the Spell Phase 1 flow
+  the short decision-report entry point for the Spell Phase 1 flow
+- `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_TRENDS_INDEX.md` -
+  the operator-facing trend index for repeated decision patterns
+- `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` -
+  the extracted lesson matrix with implementation status and remaining gaps
 
 ## Proving-Ground Project: Spell Phase 1
 
@@ -251,6 +259,8 @@ Jules/Linear/GitHub/dashboard handoff flow.
 ### Progress Reports
 
 - `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`
+- `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_TRENDS_INDEX.md`
+- `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md`
 - package closeout sections inside the P3/P4 packet docs
 - linked PRs and verification receipts referenced by the tracker
 

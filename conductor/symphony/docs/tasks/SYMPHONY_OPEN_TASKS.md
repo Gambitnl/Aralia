@@ -104,10 +104,12 @@ the audit, or in the proving-ground tracker with the next proof target.
 - The canonical approval-boundary table is `../JULES_MIDDLEMAN_OPERATING_SPEC.md#approval-boundaries`.
 - The canonical workflow-phase table is `../JULES_MIDDLEMAN_OPERATING_SPEC.md#workflow-phases`.
 - For the active spell Phase 1 track, the operator has allowed assumed approvals at each phase boundary.
-- Every assumed approval must be logged in
+- Every assumed approval must follow the logging policy in
   [`SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`](../decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md)
-  listing the decision point, options, decision made by the agent, rationale,
-  and mutation performed or skipped.
+  and reusable lessons must be resolved in
+  [`SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md`](../decision-reports/SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md).
+  The archived full ledger is for exact historical audit, not the active place
+  to append routine waits.
 - Decision logging should stay proportional. Use a full assumed-approval
   decision only when the foreman chooses between materially different paths,
   such as approving or rejecting a plan, sending bounded repair feedback,
@@ -126,8 +128,8 @@ the audit, or in the proving-ground tracker with the next proof target.
   workflow-template gap to repair, not as evidence that every wait needs
   another decision.
 - If an assumed approval or boundary decision exposes workflow/doc friction,
-  the same decision entry should point to the repair proof or the owning gap
-  entry so the decision report is not the only durable record.
+  update the owning gap entry or lesson-resolution row in the same pass so the
+  short decision entry point is not the only durable record.
 
 ### 2. Git & Verification Discipline
 - Do not gitignore contract verifiers.
