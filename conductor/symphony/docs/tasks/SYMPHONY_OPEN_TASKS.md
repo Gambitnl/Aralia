@@ -94,9 +94,12 @@ For the active proving-ground Spell Phase 1 track:
   `modify_buckets.js` / `modify_buckets.cjs` helper drift. Codex posted a
   visible Jules scope-correction message asking for helper scripts, scratch
   files, caches, and orchestration artifacts to be removed from the final diff.
-  The current proof target is a helper-clean Package 16 PR, a Jules
-  reply/blocker, or a changed plan requiring revision. Do not let the older
-  launch base rewind tracker or decision-doc updates that landed after launch.
+  A later visible Jules check showed helper cleanup and pre-commit checks
+  passed, then moved to `Running code review ...` with no GitHub PR visible yet.
+  The current proof target is a helper-clean Package 16 PR, a Jules review
+  failure/blocker, or stale/no-PR completion reconciliation if the session stops
+  advancing. Do not let the older launch base rewind tracker or decision-doc
+  updates that landed after launch.
 
 ---
 
