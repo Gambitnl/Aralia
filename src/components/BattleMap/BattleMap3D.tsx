@@ -382,6 +382,7 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
               isTargetable={isTargetable}
               targetingMode={abilitySystem.targetingMode}
               onClick={handleCharacterClick}
+              activeCharacterId={turnState.currentCharacterId}
             />
           );
         })}

@@ -22,6 +22,7 @@ import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { CombatCharacter } from '../../../types/combat';
+import { getDistance } from '../../../utils/combat/combatUtils';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -68,6 +69,7 @@ interface CharacterActorProps {
   isTargetable: boolean;
   targetingMode: boolean;
   onClick: (character: CombatCharacter) => void;
+  activeCharacterId?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -509,6 +511,24 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   const teamColors = TEAM_COLORS[teamKey];
   const archetype = useMemo(() => getArchetype(character.class?.name ?? ''), [character.class?.name]);
 
+  const activeCharacter = useMemo(() => {
+    if (!activeCharacterId) return undefined;
+    return allCharacters.find(c => c.id === activeCharacterId);
+  }, [allCharacters, activeCharacterId]);
+
+  const distanceToActive = useMemo(() => {
+    if (
+      hovered &&
+      activeCharacter &&
+      activeCharacter.team === 'player' &&
+      character.team === 'enemy' &&
+      activeCharacter.id !== character.id
+    ) {
+      return getDistance(character.position, activeCharacter.position) * 5; // 5 ft per tile
+    }
+    return null;
+  }, [activeCharacter, character.position, character.team, character.id, hovered]);
+
   // Compute facing direction — face toward nearest enemy (or seeded random fallback)
   const facingRotation = useMemo(() => {
     const enemies = allCharacters.filter(c =>
@@ -711,6 +731,11 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
             <div style={{ fontSize: '8px', color: '#9ca3af', marginTop: '1px' }}>
               {character.currentHP}/{character.maxHP}
             </div>
+            {distanceToActive !== null && (
+              <div style={{ fontSize: '9px', color: '#facc15', marginTop: '2px', fontWeight: 'bold' }}>
+                Distance: {distanceToActive} ft
+              </div>
+            )}
           </div>
         </Html>
       )}
