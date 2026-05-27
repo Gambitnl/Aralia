@@ -1,0 +1,22 @@
+A premium, glassmorphic Glossary Stat Block for a Magic Item in a dark-themed D&D web application.
+The UI should be built in React with Tailwind CSS.
+
+Layout and Features:
+Design a single, wide "Item Card" or "Glossary Entry" component that presents an item's details elegantly.
+1. Top Section (Header):
+   - Item Name (e.g., "Holy Avenger") in a large, cinematic serif or display font.
+   - Below it, the Item Type (e.g., "Martial Weapon") and Rarity (e.g., "Legendary").
+   - An Attunement requirement tag (e.g., "Requires Attunement by a Paladin").
+2. Middle Section (Stats Grid):
+   - A clean, semi-transparent grid showing: Cost (e.g., "100,000 gp"), Weight (e.g., "3 lb."), Armor Class (if applicable), and Damage (e.g., "1d8 Slashing + 2d10 Radiant").
+3. Properties Pills:
+   - A row of sleek, pill-shaped tags for item properties like "Finesse", "Versatile (1d10)", and "Magic".
+4. Bottom Section (Description):
+   - A large text area for the item's lore and mechanical description. Format it nicely with paragraph spacing.
+
+Design Aesthetics (CRITICAL):
+- Use a stunning dark mode palette (deep slate/obsidian backgrounds, vibrant accents).
+- Implement Glassmorphism: the main card should have a semi-transparent background with backdrop blur, subtle colored borders matching the item's rarity (e.g., orange/gold for Legendary), and soft glowing drop shadows.
+- Typography should be highly readable: Inter or Roboto for stats, and a stylish font for the Title.
+- Use elegant divider lines (gradients fading to transparent) between sections.
+- Make it feel extremely premium, like a next-generation RPG digital encyclopedia.

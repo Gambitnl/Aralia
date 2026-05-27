@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "clean": "rimraf dist",
-    "build:data": "tsx scripts/bundle-static-data.ts",
+    "build:data": "tsx scripts/generateItemRegistry.ts && tsx scripts/bundle-static-data.ts",
     "build": "npm run build:data && rimraf dist && vite build",
     "preview": "vite preview",
     "validate:charset": "tsx scripts/check-non-ascii.ts",

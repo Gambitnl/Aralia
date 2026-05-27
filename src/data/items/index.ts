@@ -166,10 +166,13 @@ export const ITEMS: Record<string, Item> = {
 
 // Import gatherable items and merge them
 import { GATHERABLE_ITEMS } from '../gatherableItems.js';
+import { GENERATED_GLOSSARY_ITEMS } from './generatedGlossaryItems.js';
 
 // Combined ITEMS export including all gatherable ingredients
+// GENERATED_GLOSSARY_ITEMS is spread last so that ingested PHB items override legacy hardcoded ones.
 export const ALL_ITEMS: Record<string, Item> = {
   ...ITEMS,
   ...WEAPONS_DATA,
-  ...GATHERABLE_ITEMS
+  ...GATHERABLE_ITEMS,
+  ...GENERATED_GLOSSARY_ITEMS
 };

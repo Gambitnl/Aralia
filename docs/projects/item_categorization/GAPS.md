@@ -2,8 +2,8 @@
 
 ## 1. Glossary Ingestion & 5etools Parsing Gaps
 1. **[~~Missing `itemType`~~]**: (Resolved - Fallbacks added to `ingestPhbGlossary.ts`)
-2. **[Missing Rarity/Tier]**: The markdown generation ignores the `rarity` and `tier` attributes for magic items.
-3. **[Missing Attunement]**: The markdown ignores the `reqAttune` property (e.g., "by a spellcaster") on items.
+2. **[~~Missing Rarity/Tier~~]**: (Resolved - Extracted mechanically via generateItemRegistry)
+3. **[~~Missing Attunement~~]**: (Resolved - Mapped to magicProperties.attunement via generateItemRegistry)
 4. **[Missing ItemGroup]**: The script completely ignores `itemGroup` which could bundle "Arcane Focus" or "Artisan's Tools".
 5. **[Missing `entriesHigherLevel`]**: Spells/features with `entriesHigherLevel` array lose their upcast effects because it is not processed.
 6. **[Missing Feat Prerequisites]**: Feat prerequisites are not extracted and injected into the markdown.

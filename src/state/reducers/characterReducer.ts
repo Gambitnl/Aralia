@@ -58,6 +58,7 @@ import {
 } from '../../utils/characterUtils';
 import { getMaxPreparedSpells } from '../../utils/character/getMaxPreparedSpells';
 import { isWeaponProficient } from '../../utils/weaponUtils';
+import { rollDice } from '../../utils/combat/combatUtils';
 // TODO(lint-intent): 'LOCATIONS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -334,7 +335,11 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             } else {
                 // Handle new structured ItemEffect
                 if (itemToUse.effect.type === 'heal') {
-                    playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + itemToUse.effect.value);
+                    let healAmount = itemToUse.effect.value;
+                    if (itemToUse.effect.dice) {
+                        healAmount += rollDice(itemToUse.effect.dice);
+                    }
+                    playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + healAmount);
                 }
                 // Add logic for other effect types (buffs, etc.) here in the future
             }

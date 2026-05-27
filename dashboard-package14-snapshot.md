@@ -1,0 +1,470 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Symphony Dashboard" [level=1] [ref=e5]
+      - paragraph [ref=e6]: Live from Symphony. Updated 04:00:29 AM. Updated details only.
+    - generic "Dashboard controls" [ref=e7]:
+      - button "Dispatch paused" [ref=e8] [cursor=pointer]
+      - button "Light mode" [pressed] [ref=e9] [cursor=pointer]
+      - button "Refresh" [ref=e10] [cursor=pointer]
+  - region "Run totals" [ref=e11]:
+    - generic [ref=e595]:
+      - generic [ref=e596]: Running
+      - generic [ref=e597]: "0"
+    - generic [ref=e598]:
+      - generic [ref=e599]: Retrying
+      - generic [ref=e600]: "0"
+    - generic [ref=e601]:
+      - generic [ref=e602]: Completed Since Start
+      - generic [ref=e603]: "0"
+    - generic [ref=e604]:
+      - generic [ref=e605]: Total Tokens
+      - generic [ref=e606]: "0"
+    - generic [ref=e607]:
+      - generic [ref=e608]: Total Runtime
+      - generic [ref=e609]: 0s
+    - group [ref=e610]:
+      - generic "Control surface" [ref=e611] [cursor=pointer]
+  - region "Jules task intake" [ref=e29]:
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - heading "Symphony Workflow" [level=2] [ref=e52]
+        - paragraph [ref=e53]: Use this page as the human operating surface for Jules handoffs, PR review, and local-return evidence.
+      - generic [ref=e54]:
+        - button "Check GitHub Sync" [ref=e55] [cursor=pointer]
+        - button "Refresh All Jules" [ref=e56] [cursor=pointer]
+    - region "Current dashboard focus" [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]: active
+        - generic [ref=e60]:
+          - strong [ref=e61]: Jules session
+          - generic [ref=e62]: Refresh Jules Status
+      - generic [ref=e63]:
+        - generic [ref=e64]: Next proof
+        - strong [ref=e65]: Refreshed Jules state, plan approval state, or PR/session boundary.
+        - button "Refresh Jules Status" [ref=e67] [cursor=pointer]
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - term [ref=e70]: Git
+          - definition [ref=e71]: Git sync blocked
+        - generic [ref=e72]:
+          - term [ref=e73]: Drafts
+          - definition [ref=e74]: "7"
+        - generic [ref=e75]:
+          - term [ref=e76]: PRs
+          - definition [ref=e77]: 3/12
+        - generic [ref=e78]:
+          - term [ref=e79]: Input
+          - definition [ref=e80]: "0"
+        - generic [ref=e81]:
+          - term [ref=e82]: Active
+          - definition [ref=e83]: "10"
+    - region "Task navigator" [ref=e84]:
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - heading "Task navigator" [level=3] [ref=e87]
+          - paragraph [ref=e88]: Jump to the task record that needs attention before reading the full receipt stack.
+        - generic [ref=e89]:
+          - generic [ref=e90]: "All tasks: 19"
+          - generic [ref=e91]: "Needs input: 0"
+          - generic [ref=e92]: "Open: 10"
+          - generic [ref=e93]: "Completed: 1"
+          - generic [ref=e94]: "Archived: 8"
+      - toolbar "Task navigator filters" [ref=e95]:
+        - button "All tasks (19)" [ref=e96] [cursor=pointer]
+        - button "Needs input (0)" [ref=e97] [cursor=pointer]
+        - button "Open (10)" [pressed] [ref=e98] [cursor=pointer]
+        - button "Completed (1)" [ref=e99] [cursor=pointer]
+        - button "Archived (8)" [ref=e100] [cursor=pointer]
+      - paragraph [ref=e101]: "Filter: Open"
+      - group "Task detail" [ref=e102]:
+        - generic "Record Post-Launch Jules Update Path Task detail Closed to keep the dashboard scan-first." [ref=e103] [cursor=pointer]:
+          - generic [ref=e104]:
+            - generic [ref=e105]: Record Post-Launch Jules Update Path
+            - strong [ref=e106]: Task detail
+          - generic [ref=e107]: Closed to keep the dashboard scan-first.
+        - option "Operator" [selected]
+        - option "Codex foreman"
+      - list [ref=e108]:
+        - listitem [ref=e109]:
+          - link "Spell Phase 1 Package 13 terrain and surface mechanics" [ref=e110] [cursor=pointer]:
+            - /url: "#task-handoff-handoff-1779754985825-4yijzn"
+          - generic [ref=e111]: Record Post-Launch Jules Update Path
+          - generic [ref=e112]: Handoff · 02:24:29 AM
+          - paragraph [ref=e113]: origin/master moved from d7728a4ee025 to 08dab66ee542 after Jules launched; the running Jules clone will not receive later tracker or workflow edits automatically.
+        - listitem [ref=e114]:
+          - link "Spell Phase 1 Package 12 conditional endings" [ref=e115] [cursor=pointer]:
+            - /url: "#task-handoff-handoff-1779744252464-e065rv"
+          - generic [ref=e116]: Record Post-Launch Jules Update Path
+          - generic [ref=e117]: Handoff · 11:27:47 PM
+          - paragraph [ref=e118]: origin/master moved from 0d57838e6d59 to 08dab66ee542 after Jules launched; the running Jules clone will not receive later tracker or workflow edits automatically.
+        - listitem [ref=e119]:
+          - link "Spell Phase 1 Package 11 status and state changes" [ref=e120] [cursor=pointer]:
+            - /url: "#task-handoff-handoff-1779735529994-aq60x6"
+          - generic [ref=e121]: Record Post-Launch Jules Update Path
+          - generic [ref=e122]: Handoff · 09:01:27 PM
+          - paragraph [ref=e123]: origin/master moved from b810744ea132 to 08dab66ee542 after Jules launched; the running Jules clone will not receive later tracker or workflow edits automatically.
+        - listitem [ref=e124]:
+          - link "Spell Phase 1 Package 11 status and state changes" [ref=e125] [cursor=pointer]:
+            - /url: "#task-handoff-handoff-1779735447555-z4a0fu"
+          - generic [ref=e126]: Check GitHub Sync
+          - generic [ref=e127]: Handoff · 08:57:27 PM
+          - paragraph [ref=e128]: "Ready: codex/spell-phase1-package11-launch matches origin/master and the working tree is clean."
+        - listitem [ref=e129]:
+          - link "Spell Phase 1 Package 10 target filters and eligibility" [ref=e130] [cursor=pointer]:
+            - /url: "#task-handoff-handoff-1779725875825-gybpb1"
+          - generic [ref=e131]: Wait for Jules Repair
+          - generic [ref=e132]: Handoff · 07:40:06 PM
+          - paragraph [ref=e133]: Scout feedback is already posted on the PR; wait for Jules to push a repair or for the PR to change.
+        - listitem [ref=e134]:
+          - link "Spell Phase 1 Package 10 target filters and eligibility" [ref=e135] [cursor=pointer]:
+            - /url: "#task-handoff-handoff-1779722482455-4913b2"
+          - generic [ref=e136]: Record Post-Launch Jules Update Path
+          - generic [ref=e137]: Handoff · 05:42:21 PM
+          - paragraph [ref=e138]: origin/master moved from 5790a654a202 to 08dab66ee542 after Jules launched; the running Jules clone will not receive later tracker or workflow edits automatically.
+        - listitem [ref=e139]:
+          - 'link "Package 9 Replacement: higher-level caster fixture coverage" [ref=e140] [cursor=pointer]':
+            - /url: "#task-handoff-handoff-1779710904016-a313i6"
+          - generic [ref=e141]: Check GitHub Sync
+          - generic [ref=e142]: Handoff · 02:08:24 PM
+          - paragraph [ref=e143]: "Ready: detached HEAD matches origin/master and the working tree is clean."
+        - listitem [ref=e144]:
+          - 'link "Package 9 Replacement: higher-level caster fixture coverage" [ref=e145] [cursor=pointer]':
+            - /url: "#task-handoff-handoff-1779710835900-un78e9"
+          - generic [ref=e146]: Check GitHub Sync
+          - generic [ref=e147]: Handoff · 02:07:15 PM
+          - paragraph [ref=e148]: "Ready: detached HEAD matches origin/master and the working tree is clean."
+        - listitem [ref=e149]:
+          - 'link "Package 9 Replacement: higher-level caster fixture coverage" [ref=e150] [cursor=pointer]':
+            - /url: "#task-handoff-handoff-1779710792958-v64cyb"
+          - generic [ref=e151]: Check GitHub Sync
+          - generic [ref=e152]: Handoff · 02:06:32 PM
+          - paragraph [ref=e153]: "Ready: detached HEAD matches origin/master and the working tree is clean."
+        - listitem [ref=e154]:
+          - 'link "Package 9 Replacement: higher-level caster fixture coverage" [ref=e155] [cursor=pointer]':
+            - /url: "#task-handoff-handoff-1779710759581-2cjjo5"
+          - generic [ref=e156]: Check GitHub Sync
+          - generic [ref=e157]: Handoff · 02:05:59 PM
+          - paragraph [ref=e158]: "Ready: detached HEAD matches origin/master and the working tree is clean."
+    - group [ref=e159]:
+      - generic "Operator Preferences" [ref=e160]
+    - generic [ref=e161]:
+      - region "Current Foreman Boundary" [ref=e162]:
+        - generic [ref=e163]:
+          - generic [ref=e164]: active
+          - generic [ref=e165]: What needs attention now
+        - heading "Jules session" [level=3] [ref=e166]
+        - generic [ref=e167]:
+          - generic [ref=e168]:
+            - text: Action
+            - strong [ref=e169]: Refresh Jules Status
+          - paragraph [ref=e170]: Use the dashboard refresh control for this Jules session, then record whether Jules needs plan approval, feedback, a PR review, or more waiting.
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - term [ref=e173]: Safety
+            - definition [ref=e174]: external_read
+          - generic [ref=e175]:
+            - term [ref=e176]: Method
+            - definition [ref=e177]: POST
+          - generic [ref=e178]:
+            - term [ref=e179]: Run state
+            - definition [ref=e180]: Ready
+          - generic [ref=e181]:
+            - term [ref=e182]: Next proof
+            - definition [ref=e183]: Refreshed Jules state, plan approval state, or PR/session boundary.
+        - paragraph [ref=e184]:
+          - link "Evidence" [ref=e185] [cursor=pointer]:
+            - /url: http://127.0.0.1:8139/api/v1/jules-handoffs/handoff-1779754985825-4yijzn/refresh-status
+          - button "Refresh Jules Status" [ref=e186] [cursor=pointer]
+      - generic [ref=e187]:
+        - group [ref=e188]:
+          - generic "Git Safety Preflight, disposition, sync plan, and the global path evidence." [ref=e189] [cursor=pointer]:
+            - generic [ref=e190]: Git Safety
+            - generic [ref=e191]: Preflight, disposition, sync plan, and the global path evidence.
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - generic [ref=e194]:
+                - generic [ref=e195]: blocked
+                - strong [ref=e196]: GitHub Sync Gate
+              - paragraph [ref=e197]: "Blocked: Could not fetch origin."
+              - generic [ref=e198]:
+                - generic [ref=e199]
+                - generic [ref=e202]
+                - generic [ref=e205]
+                - generic [ref=e208]
+                - generic [ref=e211]
+                - generic [ref=e214]
+              - list [ref=e217]:
+                - listitem [ref=e218]: Could not fetch origin.
+                - listitem [ref=e219]: Current branch codex/package14-selection is behind origin/master by 1 commit(s).
+              - region "Git sync decision board" [ref=e220]:
+                - generic [ref=e221]
+                - article [ref=e226]
+              - generic [ref=e241]:
+                - generic [ref=e242]
+                - paragraph [ref=e247]
+                - list [ref=e250]
+                - article [ref=e253]
+                - generic [ref=e262]: This review packet does not run Git, pull, push, stash, clean, or change files. It only shows evidence and records operator disposition intent through the linked endpoint.
+              - region "Guarded Git sync plan" [ref=e263]:
+                - generic [ref=e264]
+                - paragraph [ref=e267]: 1 Git disposition categories still need decisions before Symphony can present a human sync execution plan.
+                - paragraph [ref=e268]
+                - list [ref=e271]
+                - list [ref=e273]
+                - generic [ref=e279]: "Read-only plan: yes. Mutating commands remain human-operated outside this panel."
+                - generic [ref=e280]
+              - group [ref=e337]:
+                - generic "Git resolution packet" [ref=e338] [cursor=pointer]
+                - paragraph [ref=e339]: 0 local-only commits, 1 remote-only commit, 0 tracked changes, 0 untracked files, need disposition before Jules can start from a trustworthy GitHub base.
+                - generic [ref=e340]
+                - list [ref=e358]
+                - generic [ref=e360]
+                - text: "Generated 04:00:11 AM. Read-only: yes."
+              - group [ref=e369]:
+                - generic "How to unblock Jules" [ref=e370] [cursor=pointer]
+                - generic [ref=e371]
+                - list [ref=e380]
+                - generic [ref=e385]
+              - text: Checked 04:00:11 AM.
+            - generic [ref=e410]:
+              - generic [ref=e411]:
+                - generic [ref=e412]: blocked
+                - strong [ref=e413]: Sync GitHub before Jules starts
+              - paragraph [ref=e414]: "Blocked: Could not fetch origin."
+              - list [ref=e415]:
+                - listitem [ref=e416]: Commit or intentionally set aside local changes that should not go to Jules.
+                - listitem [ref=e417]: Push intended local commits to GitHub.
+                - listitem [ref=e418]: Return to local master and re-run the GitHub sync check.
+            - region "Task routing and nudge plan" [ref=e419]:
+              - generic [ref=e420]:
+                - generic [ref=e421]: blocked
+                - strong [ref=e422]: Task routing and nudge plan
+                - generic [ref=e423]: Spell Phase 1 Package 13 terrain and surface mechanics
+              - paragraph [ref=e424]: GitHub sync gate is blocked, so Symphony should wait instead of assigning Jules or a local Codex agent.
+              - generic [ref=e425]:
+                - strong [ref=e426]: Wait for Git disposition
+                - generic [ref=e427]: Resolve the Git sync gate, then re-run routing before dispatching any worker.
+                - generic [ref=e428]: No automatic wait required.
+                - button "Record task nudge" [ref=e429] [cursor=pointer]
+              - generic "Worker mode recommendation" [ref=e430]:
+                - generic [ref=e431]
+                - generic [ref=e435]
+                - generic [ref=e445]
+                - list [ref=e458]
+                - paragraph [ref=e462]: Automatic mode/model/reasoning is advisory. Explicit codex.model or codex.reasoning_effort in WORKFLOW.md remains the launch-time override.
+              - list [ref=e463]:
+                - listitem [ref=e464]: "Blocked: Could not fetch origin."
+                - listitem [ref=e465]: "Blocked: Current branch codex/package14-selection is behind origin/master by 1 commit(s)."
+              - generic "Task nudge ledger" [ref=e466]:
+                - generic [ref=e467]
+                - region "Nudge scheduler" [ref=e470]
+                - paragraph [ref=e477]: No nudge records yet.
+              - group [ref=e478]:
+                - generic "Routing candidates" [ref=e479] [cursor=pointer]
+            - region "Middleman path" [ref=e480]:
+              - generic [ref=e481]:
+                - generic [ref=e482]: active
+                - strong [ref=e483]: Middleman Path
+                - generic [ref=e484]: "Current boundary: Jules session"
+              - paragraph [ref=e485]: "Jules session: Jules state is QUEUED."
+              - paragraph [ref=e486]: "Next expected proof: Refreshed Jules state, plan approval state, or PR/session boundary."
+              - generic [ref=e487]:
+                - strong [ref=e488]: "Foreman action: Refresh Jules Status"
+                - generic [ref=e489]: Use the dashboard refresh control for this Jules session, then record whether Jules needs plan approval, feedback, a PR review, or more waiting.
+                - generic [ref=e490]: "Safety: external_read · POST · can run now"
+                - code [ref=e491]: http://127.0.0.1:8139/api/v1/jules-handoffs/handoff-1779754985825-4yijzn/refresh-status
+                - code [ref=e492]: "Evidence: http://127.0.0.1:8139/api/v1/jules-handoffs/handoff-1779754985825-4yijzn/refresh-status"
+              - list [ref=e493]:
+                - listitem [ref=e494]
+                - listitem [ref=e504]
+                - listitem [ref=e512]
+                - listitem [ref=e520]
+                - listitem [ref=e530]
+                - listitem [ref=e538]
+                - listitem [ref=e545]
+                - listitem [ref=e553]
+              - paragraph [ref=e559]: "Read-only path packet: this response does not mutate Git, Linear, Jules, GitHub, Scout/Core, local files, or worker state."
+        - group [ref=e560]:
+          - generic "Jules Lifecycle Kickoff, launch/session preparation, and timed nudge receipts." [ref=e561] [cursor=pointer]:
+            - generic [ref=e562]: Jules Lifecycle
+            - generic [ref=e563]: Kickoff, launch/session preparation, and timed nudge receipts.
+        - group [ref=e564]:
+          - generic "PR Review And Local Return Handoff board, Scout/Core conflict watch, PR review, and local-return context." [ref=e565] [cursor=pointer]:
+            - generic [ref=e566]: PR Review And Local Return
+            - generic [ref=e567]: Handoff board, Scout/Core conflict watch, PR review, and local-return context.
+        - group [ref=e568]:
+          - generic "Task Intake And Records Draft new work, watch existing PRs, and review stored drafts/handoffs." [ref=e569] [cursor=pointer]:
+            - generic [ref=e570]: Task Intake And Records
+            - generic [ref=e571]: Draft new work, watch existing PRs, and review stored drafts/handoffs.
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+          - option "Passed" [selected]
+          - option "Failed"
+          - option "Waived by operator"
+          - option "GitHub Pages latest build" [selected]
+          - option "GitHub deployment status"
+          - option "Operator waiver"
+          - option "Manual Codex receipt" [selected]
+          - option "Codex goal context"
+          - option "Other measured source"
+          - option "Low" [selected]
+          - option "Medium"
+          - option "High"
+  - region "Codex usage tracker" [ref=e30]:
+    - group [ref=e612]:
+      - 'generic "Usage Tracker Total runtime tokens: 0 no live limits yet" [ref=e613] [cursor=pointer]':
+        - generic [ref=e614]:
+          - strong [ref=e615]: Usage Tracker
+          - generic [ref=e616]: "Total runtime tokens: 0"
+        - generic [ref=e617]: no live limits yet
+  - region "Pending approvals" [ref=e578]:
+    - group [ref=e618]:
+      - generic "Routine Approval Rules No pending approvals. approval policy" [ref=e619] [cursor=pointer]:
+        - generic [ref=e620]:
+          - strong [ref=e621]: Routine Approval Rules
+          - generic [ref=e622]: No pending approvals.
+        - generic [ref=e623]: approval policy
+  - region "Running issues" [ref=e31]:
+    - group [ref=e624]:
+      - generic "Running Issues No running issues." [ref=e625] [cursor=pointer]:
+        - generic [ref=e626]:
+          - strong [ref=e627]: Running Issues
+          - generic [ref=e628]: No running issues.
+  - region "Retrying issues" [ref=e32]:
+    - group [ref=e629]:
+      - generic "Retrying Issues No issues in retry queue." [ref=e630] [cursor=pointer]:
+        - generic [ref=e631]:
+          - strong [ref=e632]: Retrying Issues
+          - generic [ref=e633]: No issues in retry queue.
+  - region "Worker activity"
