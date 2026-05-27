@@ -8,16 +8,22 @@ That made the workflow auditable, but it also made the file too large to use as
 an operator surface. The detailed history is now archived, and this file is the
 stable map for where each kind of decision information belongs.
 
+If a running Jules session still shows the old giant version of this file, treat
+that as session-base drift. Jules is reading the repository snapshot it was
+launched with; it will not automatically receive the modularized decision-report
+layout from PR #1128. Use a visible Jules message, PR feedback, branch repair, or
+replacement handoff if the running task needs the new rule.
+
 ## Where To Read
 
 | Need | File |
 |---|---|
-| Current operating lessons and repeated patterns | `SPELL_PHASE_1_DECISION_TRENDS_INDEX.md` |
-| Lesson resolution status and remaining implementation gaps | `SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` |
-| Exact historical decision entries, timestamps, options, and proof | `archive/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS_FULL_LEDGER_2026-05-25.md` |
-| Active package state and next spell work | `../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` |
-| Symphony workflow queue and dashboard gaps | `../tasks/SYMPHONY_OPEN_TASKS.md` |
-| Durable artifact rules | `../../../docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md` |
+| Current operating lessons and repeated patterns | [SPELL_PHASE_1_DECISION_TRENDS_INDEX.md](./SPELL_PHASE_1_DECISION_TRENDS_INDEX.md) |
+| Lesson resolution status and remaining implementation gaps | [SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md](./SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md) |
+| Exact historical decision entries, timestamps, options, and proof | [archive/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS_FULL_LEDGER_2026-05-25.md](./archive/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS_FULL_LEDGER_2026-05-25.md) |
+| Active package state and next spell work | [SPELL_PHASE_1_TASK_TRACKER.md](../../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md) |
+| Symphony workflow queue and dashboard gaps | [SYMPHONY_OPEN_TASKS.md](../tasks/SYMPHONY_OPEN_TASKS.md) |
+| Durable artifact rules | [SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md](../../../../docs/tasks/spells/SPELL_PHASE_1_ARTIFACT_LIFECYCLE_POLICY.md) |
 
 ## What Belongs Here Now
 
@@ -70,3 +76,11 @@ If a new decision exposes a new reusable lesson, update
 `SPELL_PHASE_1_DECISION_LESSONS_RESOLUTION.md` and the owning live doc in the
 same pass. The archived ledger should not become active again unless the user
 explicitly asks for raw chronological detail.
+
+The expected maintenance path is:
+
+1. Put exact historical proof in the archive only when raw audit detail is
+   explicitly needed.
+2. Put repeated patterns in the trend index.
+3. Put each reusable lesson in the lesson-resolution matrix, with either a live
+   rule, a monitor target, or a concrete source/dashboard follow-up.
