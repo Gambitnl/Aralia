@@ -4,7 +4,7 @@ import { test } from '@playwright/test';
 test('Verify standard terminology for Hit Points and Armor Class', async ({ page }) => {
   // 1. Navigate to the app (using the dev tool skip if possible, but we need to see the main menu or character creator)
   // Let's go to the main menu first.
-  await page.goto('http://localhost:3000/Aralia/');
+  await page.goto('/');
 
   // Handle any modal dialogs that might block interactions (like Ollama modal)
   const modalDialog = page.locator('div[role="dialog"]');
