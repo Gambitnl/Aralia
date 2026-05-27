@@ -18,11 +18,10 @@ Current live boundary: Packages 1 through 15 have merged history and receipts,
 including the Package 9 higher-level caster fixture coverage, the `G93` Jules
 post-launch update-boundary repair, Package 10 target-filter/eligibility,
 Package 11 status/state-change, Package 12 conditional-ending, Package 13
-terrain/surface, Package 14 vision/light/sound, and Package 15
-`summon_or_controlled_entity` slices. Package 16 is selected as the
-`sustain_or_recast_action` slice, but it has not been launched yet. Treat the
-task tracker below as the spell-project source of truth for the packet, launch,
-PR, and closeout state.
+terrain/surface, Package 14 vision/light/sound, Package 15
+`summon_or_controlled_entity`, and Package 16 `sustain_or_recast_action`
+slices. Treat the task tracker below as the spell-project source of truth for
+the exact packet, launch, PR, closeout, and next-package state.
 
 The live task collection and status tracker is
 `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Treat it as the guiding
@@ -354,13 +353,12 @@ Priority bucket families for levels 0-3:
 The order can change when a concrete player-facing test path proves that another
 bucket blocks more spells.
 
-Current Package 16 selection: `sustain_or_recast_action` is the next Jules-sized
-mechanics package after Package 15. It has 34 open findings across 32 distinct
-spells, including 20 cantrip/level 1-3 findings. The package must classify the
-named early-game rows first, then implement the largest coherent safe subset
-that fits existing sustain cost, trigger, action type, granted action,
-utility-option, active-effect, validation, command, and focused-test patterns.
-The next `reaction_or_opportunity_restriction` bucket remains queued behind it.
+Package 16 `sustain_or_recast_action` closed the safe granted-action subset
+through PR #1135. The next queued mechanics bucket is
+`reaction_or_opportunity_restriction`; before dispatch, scope it into a
+Jules-sized package with a concrete `Jules value: ...` line, a safe multi-row
+subset, and explicit deferrals for summon-control, AI arbitration, or broader
+reaction-engine work.
 
 Each bucket slice should produce:
 
@@ -883,8 +881,8 @@ to Open `61`, Closed `185`, Deferred flavor `7`, and merged as
 
 Immediate action:
 
-1. Select the next package boundary from the live tracker and this execution
-   plan after Package 15.
+1. Select and scope Package 17 from `reaction_or_opportunity_restriction` now
+   that Package 16 has merged.
 2. Before dispatch, write a concrete `Jules value: ...` line that explains why
    the package is large enough for a Jules handoff instead of local Codex work.
 3. Use the visible Symphony dashboard path for draft, Linear, handoff,
