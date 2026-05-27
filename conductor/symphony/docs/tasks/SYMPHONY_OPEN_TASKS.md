@@ -29,7 +29,7 @@ For details on each task, including the specific proof logs, timing diaries, and
 ## Active Proving-Ground: Spell Phase 1
 
 For the active proving-ground Spell Phase 1 track:
-- Packages 1 through 15 have been used to exercise the Symphony/Jules path; use
+- Packages 1 through 16 have been used to exercise the Symphony/Jules path; use
   the spell tracker for the exact latest package boundary and adjacent gaps.
 - The detailed checklist and adjacent gap log for early-game spells live in [SPELL_PHASE_1_TASK_TRACKER.md](../../../docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md).
 - Package 14 is now complete on `master` through PR #1110,
@@ -55,7 +55,7 @@ For the active proving-ground Spell Phase 1 track:
   preserved only the accepted Package 15 product/test/bucket files, removed
   tracked raw `.jules` worklog noise, force-pushed clean head `409561db` with
   lease, and merged PR #1122 after local and GitHub verification.
-- Package 15 carries the compact decision/wait-state rule directly. The next
+- Package 16 carries the compact decision/wait-state rule directly. This
   Jules run should record full decisions only for real forks such as plan
   approval/rejection, repair requests, branch-hygiene repair, replacement
   handoff, scope expansion, and merge/closeout. Routine implementation choices,
@@ -83,10 +83,16 @@ For the active proving-ground Spell Phase 1 track:
   repair; after restart, visual/API proof showed Package 15 `Prepare Handoff`,
   and Codex continued through visible handoff prep, manifest staging, and Jules
   launch. PR #1119 then proved the plan-revision routing repair. The Package 15
-  product PR #1122 has now merged, so the next proof target is choosing the
-  Package 16 spell boundary from the tracker/execution plan with the stricter
-  Jules package-size gate. Do not launch Jules for a tiny count/doc/closeout
-  repair merely because Jules was the previous package owner.
+  product PR #1122 has now merged. PR #1129 selected Package 16's
+  `sustain_or_recast_action` boundary, PR #1130 repaired the missing visible
+  Package 16 dashboard shortcut, and Codex used the visible dashboard/Jules path
+  to launch Jules session `11565543977884436282` from
+  `origin/master @ 935b8063e0765e32b21bcaa4c927a2bf296b6f1c`. A visible Jules
+  check showed the session at `Approve plan?`; Codex approved the
+  classification-first, multi-row plan. The current proof target is monitoring
+  that session for a Package 16 PR, blocker, or repair request. Do not let the
+  older launch base rewind tracker or decision-doc updates that landed after
+  launch.
 
 ---
 
