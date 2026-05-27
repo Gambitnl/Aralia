@@ -73,6 +73,10 @@ export type GlossaryIconName =
     | 'book_mdi'
     | 'feather_mdi'
     | 'claw_mdi'
+    | 'flask_mdi'
+    | 'ring'
+    | 'hammer'
+    | 'package'
     // MDI Weapons
     | 'bow_arrow' | 'axe_battle' | 'pickaxe' | 'fencing' | 'spear'
     // MDI Shields
@@ -600,6 +604,26 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
                 <path d="M12,1L3,5V11C3,16.5 6.8,21.7 12,23C17.2,21.7 21,16.5 21,11V5L12,1M16,10H13V18H11V10H8V8H11V5H13V8H16V10Z" />
             </svg>
         ),
+        flask_mdi: (
+            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+                <path d="M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L16.53,14.47L14,17L8.93,11.93L5.18,18.43C5.07,18.59 5,18.79 5,19M13,10A1,1 0 0,0 12,11A1,1 0 0,0 13,12A1,1 0 0,0 14,11A1,1 0 0,0 13,10Z" />
+            </svg>
+        ),
+        ring: (
+            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+                <path d="M12,10L8,4.4L9.6,2H14.4L16,4.4L12,10M15.5,6.8L14.3,8.5C16.5,9.4 18,11.5 18,14A6,6 0 0,1 12,20A6,6 0 0,1 6,14C6,11.5 7.5,9.4 9.7,8.5L8.5,6.8C5.8,8.1 4,10.8 4,14A8,8 0 0,0 12,22A8,8 0 0,0 20,14C20,10.8 18.2,8.1 15.5,6.8Z" />
+            </svg>
+        ),
+        hammer: (
+            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+                <path d="M2 19.63L13.43 8.2L12.72 7.5L14.14 6.07L12 3.89C13.2 2.7 15.09 2.7 16.27 3.89L19.87 7.5L18.45 8.91H21.29L22 9.62L18.45 13.21L17.74 12.5V9.62L16.27 11.04L15.56 10.33L4.13 21.76L2 19.63Z" />
+            </svg>
+        ),
+        package: (
+            <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+                <path d="M2,10.96C1.5,10.68 1.35,10.07 1.63,9.59L3.13,7C3.24,6.8 3.41,6.66 3.6,6.58L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.66,6.72 20.82,6.88 20.91,7.08L22.36,9.6C22.64,10.08 22.47,10.69 22,10.96L21,11.54V16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V10.96C2.7,11.13 2.32,11.14 2,10.96M12,4.15V4.15L12,10.85V10.85L17.96,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91M19,15.91V12.69L14,15.59C13.67,15.77 13.3,15.76 13,15.6V19.29L19,15.91M13.85,13.36L20.13,9.73L19.55,8.72L13.27,12.35L13.85,13.36Z" />
+            </svg>
+        ),
         shield_cross_outline: (
             <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
                 <path d="M21,11C21,16.5 17.2,21.7 12,23C6.8,21.7 3,16.5 3,11V5L12,1L21,5V11M12,21C15.8,20 19,15.5 19,11.2V6.3L12,3.2L5,6.3V11.2C5,15.5 8.3,20 12,21M16,9H13V6H11V9H8V11H11V19H13V11H16V9Z" />
@@ -959,6 +983,10 @@ export const GlossaryIcon: React.FC<GlossaryIconProps> = ({ name, className = "w
             </svg>
         ),
     };
+
+    if (typeof name === 'string' && name.endsWith('.svg')) {
+        return <img src={name} className={className} alt="" />;
+    }
 
     return icons[name] || (
         // Fallback to Material Symbols Outlined font for icons not in SVG registry
