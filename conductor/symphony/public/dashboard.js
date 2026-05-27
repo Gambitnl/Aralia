@@ -289,6 +289,47 @@ const PACKAGE_15_SUMMON_CONTROLLED_ENTITY_DRAFT = {
     'npx tsc --noEmit --pretty false',
   ].join('\n'),
 };
+const PACKAGE_16_SUSTAIN_RECAST_ACTION_DRAFT = {
+  title: 'Spell Phase 1 Package 16 sustain, move, and recast actions',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_TASK.md and docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make the largest coherent safe subset of early-game sustain_or_recast_action rows mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: first classify the named cantrip/level 1-3 open rows as implement_now, already_represented_after_proof, defer_broader_system, or belongs_to_other_bucket. Then implement the largest coherent safe subset covered by existing sustainCost, trigger, actionType, grantedActions, utility-option, active-effect, validation, command, and focused-test patterns.',
+    '',
+    'Likely candidates include dancing-lights, mold-earth, shape-water, expeditious-retreat, flaming-sphere, gust-of-wind, spiritual-weapon, call-lightning, and melfs-minute-meteors, but verify current JSON/runtime state before selecting the exact batch.',
+    '',
+    'Classify or defer find-familiar, unseen-servant, animate-dead, tiny-servant, phantasmal-force, flame-blade, clairvoyance, and hex unless current source already has a narrow safe path for this package.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, combat rider-icon UI, levels 4-9, broad summon/control engines, broad AI arbitration policy, broad illusion/social arbitration, broad persistent-object or sensor systems, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+    '',
+    'Decision-log note: repeated queued/setup/working/verifying observations should be compact wait-state rows when no new choice appears. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout. Routine implementation choices and verification output belong in the completion report.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/sustain_or_recast_action.md',
+    'public/data/spells/level-0/*.json',
+    'public/data/spells/level-1/*.json',
+    'public/data/spells/level-2/*.json',
+    'public/data/spells/level-3/*.json',
+    'src/types/spells.ts',
+    'src/commands/factory/SpellCommandFactory.ts',
+    'src/utils/character/spellAbilityFactory.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+    'npx tsc --noEmit --pretty false',
+  ].join('\n'),
+};
 // Package packet shortcuts are still declared in this dashboard file, but the
 // rendering and click handling now read from one registry. That keeps each new
 // packet from needing a separate button, handler branch, and duplicate function.
@@ -337,6 +378,12 @@ const PACKAGE_PACKET_DRAFTS = [
     label: 'Create Package 15 Draft',
     packageId: 'Package 15',
     draft: PACKAGE_15_SUMMON_CONTROLLED_ENTITY_DRAFT,
+  },
+  {
+    action: 'create-package16-sustain-recast-action-draft',
+    label: 'Create Package 16 Draft',
+    packageId: 'Package 16',
+    draft: PACKAGE_16_SUSTAIN_RECAST_ACTION_DRAFT,
   },
 ];
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();

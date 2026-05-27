@@ -317,6 +317,13 @@ the audit, or in the proving-ground tracker with the next proof target.
   13 button to create draft `draft-1779754729582-hqen06`, Linear `ARA-22`,
   handoff `handoff-1779754985825-4yijzn`, stage the ignored Jules manifest, and
   launch Jules session `4325471518148676473`.
+- **Package 16 repeat proof**: after PR #1129 landed the durable Package 16
+  sustain/recast packet on `origin/master`, the visible dashboard still did not
+  show any Package 16 or sustain/recast draft control. Codex treated that as a
+  dashboard workflow blocker, not as permission to POST a hidden task draft, and
+  added Package 16 to the shared packet shortcut registry. The durable repair is
+  still metadata-derived packet discovery, because each hardcoded package button
+  creates the same lag again when the next packet lands.
 
 ### 9. Active Workflow Gap: Low-Value Jules Package Sizing
 - **Status**: observed during Packages 12 and 15; stricter routing gate added,
