@@ -341,6 +341,11 @@ the audit, or in the proving-ground tracker with the next proof target.
   added Package 16 to the shared packet shortcut registry. The durable repair is
   still metadata-derived packet discovery, because each hardcoded package button
   creates the same lag again when the next packet lands.
+- **Package 17 repeat proof**: after PR #1138 landed the durable Package 17
+  reaction/opportunity packet on `origin/master`, the visible dashboard again
+  had no Package 17 draft control. Codex treated the missing button as the next
+  workflow blocker and added a Package 17 registry entry rather than bypassing
+  the UI through a hidden draft API call.
 
 ### 9. Active Workflow Gap: Low-Value Jules Package Sizing
 - **Status**: observed during Packages 12 and 15; stricter routing gate added,

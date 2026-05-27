@@ -84,7 +84,8 @@ These are not unextracted learnings. They are the source/dashboard/template
 repairs that still remain after the lessons were extracted from the ledger:
 
 1. Replace hardcoded package shortcut entries with metadata-derived packet
-   discovery so the Package 16 shortcut drift does not repeat for Package 17.
+   discovery. Package 17 repeated the Package 16 drift and required another
+   registry entry before the visible dashboard path could continue.
 2. Keep visible controls stable during interaction and extend the open-drawer
    stability rule to future dashboard controls.
 3. Correct task-page mutation labels for external boundary actions.

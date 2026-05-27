@@ -330,6 +330,55 @@ const PACKAGE_16_SUSTAIN_RECAST_ACTION_DRAFT = {
     'npx tsc --noEmit --pretty false',
   ].join('\n'),
 };
+// Package 17 needs a visible shortcut because the operator flow intentionally
+// starts from the dashboard. Without this entry, agents would be tempted to
+// create the draft through hidden API calls even though the packet is committed.
+const PACKAGE_17_REACTION_OPPORTUNITY_DRAFT = {
+  title: 'Spell Phase 1 Package 17 reaction and opportunity restrictions',
+  body: [
+    'Use docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md and docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md as the durable scope packet.',
+    '',
+    'Goal: make the largest coherent safe subset of early-game reaction_or_opportunity_restriction rows mechanically visible and testable instead of leaving those rules in prose only.',
+    '',
+    'Required slice: first classify the named cantrip/level 1-3 open rows as implement_now, already_represented_after_proof, defer_broader_system, or belongs_to_other_bucket. Then implement the largest coherent safe subset covered by existing castingTime, reactionCondition, combatCost, forcedMovement, status-condition, opportunity-attack, validation, command, and focused-test patterns.',
+    '',
+    'Likely safe candidates include shocking-grasp, arms-of-hadar, slow, confusion, dissonant-whispers, enemies-abound, and counterspell, but verify current JSON/runtime state before selecting the exact batch.',
+    '',
+    'Classify or defer find-familiar, summon-beast, shining-smite, and blinding-smite unless current source already has a narrow safe path for this package.',
+    '',
+    'Do not edit Symphony files, .jules or .symphony runtime state, GitHub workflows, premade roster semantics, character creator UI, spellbook UI, combat rider-icon UI, levels 4-9, broad optional-reaction prompt UI, broad summon/control engines, broad AI arbitration policy, broad illusion/social arbitration, or generated report timestamps.',
+    '',
+    'Workflow note: once Jules starts, later local tracker edits or merged GitHub task-doc PRs will not automatically reach the isolated Jules clone. Use explicit Jules message, bounded PR feedback, PR-branch repair/rebase, or replacement handoff for post-launch task adjustments.',
+    '',
+    'Decision-log note: repeated queued/setup/working/verifying observations should be compact wait-state rows when no new choice appears. Full decision entries are for real forks such as plan approval/rejection, repair requests, branch-hygiene repair, replacement handoff, scope expansion, and merge/closeout. Routine implementation choices and verification output belong in the completion report.',
+  ].join('\n'),
+  expectedFiles: [
+    'docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md',
+    'docs/tasks/spells/PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md',
+    'docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md',
+    'docs/tasks/spells/mechanics-discovery/ACTIONABLE_SCHEMA_BUCKETS.md',
+    'docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md',
+    'public/data/spells/level-0/shocking-grasp.json',
+    'public/data/spells/level-1/arms-of-hadar.json',
+    'public/data/spells/level-1/dissonant-whispers.json',
+    'public/data/spells/level-3/counterspell.json',
+    'public/data/spells/level-3/enemies-abound.json',
+    'public/data/spells/level-3/slow.json',
+    'src/types/spells.ts',
+    'src/systems/spells/validation/spellValidator.ts',
+    'src/systems/spells/schema/spell.schema.json',
+    'src/systems/spells/schema/parts/20-effect-payloads.json',
+    'src/systems/combat/reactions/OpportunityAttackSystem.ts',
+    'src/hooks/combat/useActionExecutor.ts',
+    'src/**/__tests__/*',
+  ].join('\n'),
+  verificationCommands: [
+    'npm run validate:spells',
+    'node scripts\\auditAtlasBuckets.mjs',
+    'npx vitest run <focused test file> --reporter=verbose',
+    'npx tsc --noEmit --pretty false',
+  ].join('\n'),
+};
 // Package packet shortcuts are still declared in this dashboard file, but the
 // rendering and click handling now read from one registry. That keeps each new
 // packet from needing a separate button, handler branch, and duplicate function.
@@ -384,6 +433,12 @@ const PACKAGE_PACKET_DRAFTS = [
     label: 'Create Package 16 Draft',
     packageId: 'Package 16',
     draft: PACKAGE_16_SUSTAIN_RECAST_ACTION_DRAFT,
+  },
+  {
+    action: 'create-package17-reaction-opportunity-draft',
+    label: 'Create Package 17 Draft',
+    packageId: 'Package 17',
+    draft: PACKAGE_17_REACTION_OPPORTUNITY_DRAFT,
   },
 ];
 let taskNavigatorFilter = readStoredTaskNavigatorFilter();
