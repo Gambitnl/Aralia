@@ -89,10 +89,14 @@ For the active proving-ground Spell Phase 1 track:
   to launch Jules session `11565543977884436282` from
   `origin/master @ 935b8063e0765e32b21bcaa4c927a2bf296b6f1c`. A visible Jules
   check showed the session at `Approve plan?`; Codex approved the
-  classification-first, multi-row plan. The current proof target is monitoring
-  that session for a Package 16 PR, blocker, or repair request. Do not let the
-  older launch base rewind tracker or decision-doc updates that landed after
-  launch.
+  classification-first, multi-row plan. A later visible Jules check showed
+  active implementation progress, no GitHub PR yet, and temporary
+  `modify_buckets.js` / `modify_buckets.cjs` helper drift. Codex posted a
+  visible Jules scope-correction message asking for helper scripts, scratch
+  files, caches, and orchestration artifacts to be removed from the final diff.
+  The current proof target is a helper-clean Package 16 PR, a Jules
+  reply/blocker, or a changed plan requiring revision. Do not let the older
+  launch base rewind tracker or decision-doc updates that landed after launch.
 
 ---
 
