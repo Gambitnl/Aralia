@@ -224,7 +224,17 @@
       },
       "dispersedByStrongWind": false,
       "description": "",
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Dismiss",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "Dismiss an active non-instantaneous effect."
+        }
+      ]
     },
     {
       "type": "TERRAIN",
@@ -314,7 +324,17 @@
       },
       "dispersedByStrongWind": false,
       "description": "",
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Dismiss",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "Dismiss an active non-instantaneous effect."
+        }
+      ]
     },
     {
       "type": "TERRAIN",
@@ -404,7 +424,17 @@
       },
       "dispersedByStrongWind": false,
       "description": "",
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Dismiss",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "Dismiss an active non-instantaneous effect."
+        }
+      ]
     },
     {
       "type": "TERRAIN",
@@ -494,7 +524,17 @@
       },
       "dispersedByStrongWind": false,
       "description": "",
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Dismiss",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "Dismiss an active non-instantaneous effect."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",

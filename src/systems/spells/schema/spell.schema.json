@@ -1870,6 +1870,12 @@
         "sustainRequirement": {
           "$ref": "#/definitions/SustainRequirement"
         },
+        "grantedActions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GrantedAction"
+          }
+        },
         "linkedDamage": {
           "type": "object",
           "properties": {

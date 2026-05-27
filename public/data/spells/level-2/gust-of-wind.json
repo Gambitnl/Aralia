@@ -224,7 +224,16 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "grantedActions": [
+        {
+          "type": "bonus_action",
+          "action": "Change Direction",
+          "frequency": "each_turn",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "Change the direction in which the Line blasts from you."
+        }
+      ],
       "attackAugments": [],
       "controlOptions": [],
       "taunt": {

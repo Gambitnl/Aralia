@@ -203,7 +203,16 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "grantedActions": [
+        {
+          "type": "action",
+          "action": "Dismiss",
+          "frequency": "while_active",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "Dismiss an active non-instantaneous effect."
+        }
+      ],
       "attackAugments": [],
       "controlOptions": [
         {

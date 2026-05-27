@@ -187,7 +187,17 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "grantedActions": [
+        {
+          "type": "bonus_action",
+          "action": "Move",
+          "frequency": "each_turn",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "rangeLimit": 60,
+          "notes": "Move the lights up to 60 feet to a space within range."
+        }
+      ],
       "attackAugments": [],
       "controlOptions": [],
       "taunt": {

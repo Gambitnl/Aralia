@@ -234,3 +234,9 @@ Repeated unchanged waits should be compact wait-state rows that name observed
 state, what is being waited for, and the next recheck condition. Routine
 implementation choices, files changed, and verification results belong in the
 completion note or PR summary, not in the assumed-approval decision ledger.
+
+## Package 16 Completion Note
+- Classified `dancing-lights`, `mold-earth`, `shape-water`, `expeditious-retreat`, `flaming-sphere`, `gust-of-wind`, `spiritual-weapon`, `call-lightning`, and `melfs-minute-meteors` as `implement_now` and added explicit `grantedActions` payloads inside their `UTILITY` effects.
+- Classified `find-familiar`, `unseen-servant`, `animate-dead`, `tiny-servant`, `phantasmal-force`, `flame-blade`, `clairvoyance`, and `hex` as deferred to `sustain_or_recast_action.md` (e.g. illusion, summon lifecycle, persistent-weapon boundaries).
+- Created a focused test `SpellCommandFactoryGrantedAction.test.ts` to prove `grantedActions` survives command instantiation without breaking existing combat structure.
+- Validated all spell JSONs and verified Atlas audits remain green. No arbitrary environment configurations were altered.

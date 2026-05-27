@@ -742,7 +742,6 @@ const UtilityEffect = BaseEffect.extend({
   type: z.literal("UTILITY"),
   utilityType: z.enum(["light", "communication", "creation", "information", "control", "sensory", "other"]),
   description: z.string(),
-  grantedActions: z.array(GrantedAction).optional(),
   attackAugments: z.array(AttackAugment).optional(),
   abilityCheckModifier: AbilityCheckModifier.optional(),
   controlledEntity: ControlledEntity.optional(),
