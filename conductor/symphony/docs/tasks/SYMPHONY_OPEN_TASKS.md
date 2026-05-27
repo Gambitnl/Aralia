@@ -96,10 +96,14 @@ For the active proving-ground Spell Phase 1 track:
   files, caches, and orchestration artifacts to be removed from the final diff.
   A later visible Jules check showed helper cleanup and pre-commit checks
   passed, then moved to `Running code review ...` with no GitHub PR visible yet.
-  The current proof target is a helper-clean Package 16 PR, a Jules review
-  failure/blocker, or stale/no-PR completion reconciliation if the session stops
-  advancing. Do not let the older launch base rewind tracker or decision-doc
-  updates that landed after launch.
+  After repeated unchanged visible checks and no GitHub PR, Codex sent one
+  bounded visible status nudge asking Jules to publish the PR if code review
+  passed, or report the exact failing command/check and smallest repair if
+  blocked. The current proof target is a helper-clean Package 16 PR, a Jules
+  blocker reply, or stale/no-PR completion reconciliation if the session stops
+  advancing. Do not send duplicate nudges before new evidence appears, and do
+  not let the older launch base rewind tracker or decision-doc updates that
+  landed after launch.
 
 ---
 
