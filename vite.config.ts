@@ -1510,7 +1510,9 @@ const devHubApiManager = () => ({
               `category: "${metadata.category || 'other'}"`,
               `status: "${metadata.status || 'not started'}"`,
               `lastReviewed: "${metadata.lastReviewed || ''}"`,
-              `notes: "${(metadata.notes || '').replace(/\"/g, '\\"')}"`,
+              `notes: "${(metadata.notes || '')
+                .replace(/\\/g, '\\\\')
+                .replace(/\"/g, '\\"')}"`,
               '---',
               ''
             ];
@@ -1522,7 +1524,7 @@ const devHubApiManager = () => ({
               const ledgerPath = path.resolve(process.cwd(), 'docs/registry/@DOC-REVIEW-LEDGER.md');
               if (fs.existsSync(ledgerPath)) {
                 let ledgerContent = fs.readFileSync(ledgerPath, 'utf-8');
-                const escapedPath = relPath.replace(/\//g, '/');
+                const escapedPath = relPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const rowRegex = new RegExp(`\\|\\s*\`?${escapedPath}\`?\\s*\\|`, 'i');
                 if (rowRegex.test(ledgerContent)) {
                   const lines = ledgerContent.split(/\r?\n/);
@@ -1576,7 +1578,7 @@ const devHubApiManager = () => ({
               const ledgerPath = path.resolve(process.cwd(), 'docs/registry/@DOC-REVIEW-LEDGER.md');
               if (fs.existsSync(ledgerPath)) {
                 let ledgerContent = fs.readFileSync(ledgerPath, 'utf-8');
-                const escapedPath = relPath.replace(/\//g, '/');
+                const escapedPath = relPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const rowRegex = new RegExp(`\\|\\s*\`?${escapedPath}\`?\\s*\\|`, 'i');
                 const disp = action === 'retire' ? 'retire' : 'delete';
                 if (rowRegex.test(ledgerContent)) {

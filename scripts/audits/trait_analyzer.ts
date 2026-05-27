@@ -133,7 +133,13 @@ async function main() {
         mechanism = 'Darkvision range parser';
         evidence = 'calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string.';
       }
-      // 5. Is it a spell trait?
+      // 5. Is it a defense trait?
+      else if (/(resistance|resistant|immunity|immune|vulnerability|vulnerable)\s+(?:to|against)\s+/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Damage-type defense materializer';
+        evidence = 'Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state.';
+      }
+      // 6. Is it a spell trait?
       else {
         // Check if there's an associated spell
         const hasSpell = race.knownSpells?.some((ks: any) => {
@@ -229,7 +235,10 @@ async function main() {
     md += `| Trait Name | Status | Mechanism | Evidence / Detail |\n`;
     md += `| --- | --- | --- | --- |\n`;
     race.traits.forEach((t: any) => {
-      const escapedDesc = t.description.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+      const escapedDesc = t.description
+        .replace(/\\/g, '\\\\')
+        .replace(/\|/g, '\\|')
+        .replace(/\n/g, ' ');
       md += `| **${t.name}** | \`${t.status}\` | ${t.mechanism || 'N/A'} | ${t.evidence || escapedDesc} |\n`;
     });
     md += `\n---\n\n`;

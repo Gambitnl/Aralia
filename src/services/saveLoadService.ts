@@ -3,7 +3,18 @@
  * Licensed under the MIT License.
  *
  * @file saveLoadService.ts
- * This service handles saving and loading game state to/from Local Storage.
+ * This service handles saving and loading game state.
+ *
+ * Save payloads are stored in IndexedDB (which has 50MB-2GB+ of space) instead
+ * of localStorage (which has a 5-10MB limit). This prevents quota errors as game
+ * saves grow with party members, map data, message history, and AI interaction logs.
+ *
+ * Slot metadata (the small index of save summaries) stays in localStorage for
+ * fast synchronous reads — the Load/Save UI needs this instantly without awaiting.
+ *
+ * If IndexedDB is unavailable (incognito mode, old browser), the service falls
+ * back to localStorage-only mode so nothing breaks.
+ *
  * All user feedback has been routed through the global NotificationSystem (via
  * an optional callback) instead of relying on intrusive `alert()` calls.
  */
@@ -14,6 +25,7 @@ import { SafeStorage, SafeSession } from '../utils/storageUtils';
 import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
+import * as IDBStorage from './indexedDBStorageService';
 
 //
 // Save slot configuration
@@ -28,6 +40,7 @@ export interface SaveSlotSummary {
   slotName: string;
   lastSaved: number;
   isAutoSave?: boolean;
+  isCheckpoint?: boolean;
   thumbnail?: string;
   locationName?: string;
   partyLevel?: number;
@@ -64,6 +77,41 @@ const SLOT_INDEX_KEY = 'aralia_rpg_save_slots_index';
 const SLOT_PREFIX = 'aralia_rpg_slot_';
 const SESSION_CACHE_KEY = 'aralia_rpg_slot_cache';
 
+// Key used in localStorage to track whether saves have been migrated from
+// localStorage to IndexedDB. Once set, migration won't re-run.
+const MIGRATION_FLAG_KEY = 'aralia_rpg_migrated_to_idb';
+
+// Key for emergency saves written synchronously to localStorage during
+// beforeunload when IndexedDB (which is async) can't complete in time.
+const EMERGENCY_SAVE_KEY = 'aralia_rpg_emergency_save';
+
+// ============================================================================
+// Checkpoint Tier Configuration
+// ============================================================================
+// Each checkpoint periodically copies the rapid autosave to its own slot.
+// This gives players multiple recovery points at different ages.
+// The tiers are: 1 minute, 5 minutes, 15 minutes, 30 minutes, 1 hour.
+// The rapid autosave (AUTO_SAVE_SLOT) is tier 0 and isn't listed here.
+// ============================================================================
+
+export interface CheckpointTierConfig {
+  id: string;
+  slotKey: string;
+  intervalSeconds: number;
+  displayLabel: string;
+}
+
+export const CHECKPOINT_TIERS: CheckpointTierConfig[] = [
+  { id: 'checkpoint_1min',  slotKey: 'aralia_rpg_checkpoint_1min',  intervalSeconds: 60,   displayLabel: '1 Minute Checkpoint' },
+  { id: 'checkpoint_5min',  slotKey: 'aralia_rpg_checkpoint_5min',  intervalSeconds: 300,  displayLabel: '5 Minute Checkpoint' },
+  { id: 'checkpoint_15min', slotKey: 'aralia_rpg_checkpoint_15min', intervalSeconds: 900,  displayLabel: '15 Minute Checkpoint' },
+  { id: 'checkpoint_30min', slotKey: 'aralia_rpg_checkpoint_30min', intervalSeconds: 1800, displayLabel: '30 Minute Checkpoint' },
+  { id: 'checkpoint_1hr',   slotKey: 'aralia_rpg_checkpoint_1hr',   intervalSeconds: 3600, displayLabel: '1 Hour Checkpoint' },
+];
+
+// Prefix for checkpoint slot keys — used to identify them in the slot index.
+const CHECKPOINT_PREFIX = 'aralia_rpg_checkpoint_';
+
 // Local in-memory cache of slot metadata to avoid repeated JSON parses and
 // Local Storage scans on every call to getSaveSlots(). This improves menu
 // responsiveness because the slot selector and load modal call into this
@@ -74,6 +122,12 @@ let slotIndexCache: SaveSlotSummary[] | null = null;
 // metadata cache instead of showing stale previews.
 let slotIndexRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 let detachStorageSyncListener: (() => void) | null = null;
+
+// Tracks whether IndexedDB is available for save payloads. Set once during
+// initialization. When false, the service falls back to localStorage-only mode.
+let idbAvailable = false;
+// Tracks whether the one-time localStorage→IndexedDB migration has completed.
+let migrationDone = false;
 
 // Tracks when the current play session last started or resumed so we can
 // measure incremental playtime in real-world seconds instead of relying on
@@ -105,9 +159,8 @@ export async function saveGame(
   options?: SaveGameOptions,
 ): Promise<SaveLoadResult> {
   try {
-    // RALPH: Data Persistence Layer.
-    // 1. Sanitization: We create a "stateToSave" copy where transient flags (isLoading, isError) are reset.
-    //    We don't want to load into a broken state.
+    // Sanitization: create a clean copy where transient flags (isLoading, isError)
+    // are reset. We don't want to load into a broken state.
     const stateToSave: GameState = {
       ...gameState,
       saveVersion: SAVE_GAME_VERSION,
@@ -134,18 +187,19 @@ export async function saveGame(
     const slotLabel = (options?.displayName ?? slotName).trim() || slotName;
     const existingSlotSummary = getSaveSlots().find(slot => slot.slotId === storageKey);
     const playtimeSeconds = calculatePlaytimeSeconds(existingSlotSummary);
-    // Calculate checksum of the state to save for integrity check
-    // RALPH: Data Integrity.
-    // We hash the serialized JSON. On load, we re-hash and compare.
-    // This detects if localStorage was manually tampered with or corrupted.
+    // Data Integrity: hash the serialized JSON. On load, we re-hash and compare.
+    // This detects if storage was manually tampered with or corrupted.
     const serializedStateForHash = JSON.stringify(stateToSave);
     const checksum = simpleHash(serializedStateForHash);
+
+    // Mark checkpoint slots so the UI can distinguish them from manual saves.
+    const isCheckpoint = storageKey.startsWith(CHECKPOINT_PREFIX);
 
     const payload: StoredSavePayload = {
       version: SAVE_GAME_VERSION,
       slotId: storageKey,
       slotName: slotLabel,
-      isAutoSave: options?.isAutoSave || storageKey === AUTO_SAVE_SLOT,
+      isAutoSave: options?.isAutoSave || storageKey === AUTO_SAVE_SLOT || isCheckpoint,
       thumbnail: options?.thumbnail,
       preview: extractPreview(stateToSave, playtimeSeconds),
       state: stateToSave,
@@ -153,12 +207,22 @@ export async function saveGame(
     };
 
     const serializedPayload = JSON.stringify(payload);
-    SafeStorage.setItem(storageKey, serializedPayload);
+
+    // Write the payload to IndexedDB if available, otherwise fall back to localStorage.
+    if (idbAvailable) {
+      await IDBStorage.putSave(storageKey, serializedPayload);
+    } else {
+      SafeStorage.setItem(storageKey, serializedPayload);
+    }
+
+    // Slot metadata always goes to localStorage for fast synchronous reads.
+    // The Load/Save UI reads metadata on render and can't await IndexedDB.
     upsertSlotMetadata({
       slotId: storageKey,
       slotName: slotLabel,
       lastSaved: stateToSave.saveTimestamp!,
       isAutoSave: payload.isAutoSave,
+      isCheckpoint,
       thumbnail: payload.thumbnail,
       locationName: payload.preview?.locationName,
       partyLevel: payload.preview?.partyLevel,
@@ -171,6 +235,7 @@ export async function saveGame(
 
     logger.info("Game saved", {
       slotId: storageKey,
+      storage: idbAvailable ? 'IndexedDB' : 'localStorage',
       timestamp: new Date(stateToSave.saveTimestamp!).toISOString()
     });
 
@@ -180,9 +245,9 @@ export async function saveGame(
   } catch (error) {
     logger.error("Error saving game", { error, slotName });
 
-    // Handle potential errors like Local Storage being full
+    // Handle potential errors like storage being full
     if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
-      const failure = { success: false, message: "Failed to save: Local storage is full." } as const;
+      const failure = { success: false, message: "Failed to save: Storage is full." } as const;
       notify?.({ message: failure.message, type: 'error' });
       return failure;
     } else {
@@ -201,7 +266,20 @@ export async function saveGame(
 export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: NotifyFn): Promise<SaveLoadResult> {
   try {
     const storageKey = resolveSlotKey(slotName);
-    const serializedState = SafeStorage.getItem(storageKey);
+
+    // Try IndexedDB first, then fall back to localStorage.
+    // This handles both the normal case (saves in IndexedDB) and the legacy/
+    // fallback case (saves still in localStorage or emergency saves).
+    let serializedState: string | null = null;
+    if (idbAvailable) {
+      serializedState = await IDBStorage.getSave(storageKey);
+    }
+    if (!serializedState) {
+      // Check localStorage as fallback (pre-migration saves, emergency saves,
+      // or IndexedDB-unavailable mode).
+      serializedState = SafeStorage.getItem(storageKey);
+    }
+
     if (!serializedState) {
       logger.info("No save game found", { slotId: storageKey });
       const result = { success: false, message: "No save game found." } as const;
@@ -291,6 +369,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       slotName: (parsedData as StoredSavePayload).slotName || storageKey,
       lastSaved: loadedState.saveTimestamp || Date.now(),
       isAutoSave: (parsedData as StoredSavePayload).isAutoSave,
+      isCheckpoint: storageKey.startsWith(CHECKPOINT_PREFIX),
       thumbnail: (parsedData as StoredSavePayload).thumbnail,
       locationName: (parsedData as StoredSavePayload).preview?.locationName,
       partyLevel: (parsedData as StoredSavePayload).preview?.partyLevel,
@@ -299,6 +378,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
 
     logger.info("Game loaded", {
       slotId: storageKey,
+      storage: idbAvailable ? 'IndexedDB' : 'localStorage',
       timestamp: new Date(loadedState.saveTimestamp!).toISOString()
     });
 
@@ -358,9 +438,14 @@ export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): nu
  * Deletes a save game from the specified slot.
  * @param {string} [slotName=DEFAULT_SAVE_SLOT] - The name of the save slot to delete.
  */
-export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
+export async function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): Promise<void> {
   try {
     const storageKey = resolveSlotKey(slotName);
+    // Delete from both IndexedDB and localStorage to cover all cases
+    // (migrated saves, emergency saves, fallback-mode saves).
+    if (idbAvailable) {
+      await IDBStorage.deleteSave(storageKey);
+    }
     SafeStorage.removeItem(storageKey);
     removeSlotMetadata(storageKey);
     logger.info("Save game deleted", { slotId: storageKey });
@@ -372,15 +457,25 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
 /**
  * Deletes ALL save games and clears the metadata index.
  */
-export function clearAllSaves(): void {
+export async function clearAllSaves(): Promise<void> {
   try {
     const slots = getSaveSlots();
     for (const slot of slots) {
       SafeStorage.removeItem(slot.slotId);
     }
-    // Also ensure legacy slots are cleared
+    // Also ensure legacy slots are cleared from localStorage
     SafeStorage.removeItem(DEFAULT_SAVE_SLOT);
     SafeStorage.removeItem(AUTO_SAVE_SLOT);
+    SafeStorage.removeItem(EMERGENCY_SAVE_KEY);
+    // Clear checkpoint slots from localStorage too
+    for (const tier of CHECKPOINT_TIERS) {
+      SafeStorage.removeItem(tier.slotKey);
+    }
+
+    // Wipe all saves from IndexedDB
+    if (idbAvailable) {
+      await IDBStorage.clearAllSaves();
+    }
     
     SafeStorage.removeItem(SLOT_INDEX_KEY);
     SafeSession.removeItem(SESSION_CACHE_KEY);
@@ -476,6 +571,175 @@ export function teardownSlotIndexStorageSync() {
 // setupSlotIndexStorageSync ensures we play nicely with SSR and repeated imports.
 setupSlotIndexStorageSync();
 
+// ============================================================================
+// IndexedDB Initialization and Migration
+// ============================================================================
+// On module load, we check if IndexedDB is available and migrate any existing
+// localStorage saves. This runs once per page load. If IndexedDB is not
+// available, the service silently stays in localStorage-only mode.
+// ============================================================================
+
+/**
+ * Initializes IndexedDB and migrates existing localStorage saves if needed.
+ * Called once on app startup (from useGameInitialization or similar).
+ * Safe to call multiple times — it short-circuits after the first run.
+ */
+export async function initializeStorage(): Promise<void> {
+  // Check if IndexedDB is available in this browser environment.
+  idbAvailable = await IDBStorage.isAvailable();
+  logger.info('Save storage initialized', { indexedDB: idbAvailable });
+
+  if (!idbAvailable) return;
+
+  // Check if we've already migrated saves from localStorage.
+  if (SafeStorage.getItem(MIGRATION_FLAG_KEY) === 'true') {
+    migrationDone = true;
+  }
+
+  // Recover any emergency save that was written synchronously during a
+  // previous beforeunload event. Move it into IndexedDB where it belongs.
+  await recoverEmergencySave();
+
+  // If there are localStorage saves that haven't been migrated, move them now.
+  if (!migrationDone) {
+    await migrateLocalStorageToIndexedDB();
+  }
+}
+
+/**
+ * Migrates all save payloads from localStorage to IndexedDB.
+ * After successful migration, removes the payload from localStorage but
+ * keeps the metadata index (which is small and used for fast sync reads).
+ */
+async function migrateLocalStorageToIndexedDB(): Promise<void> {
+  try {
+    const allKeys = SafeStorage.getAllKeys();
+    // Find all localStorage keys that look like save payloads.
+    const saveKeys = allKeys.filter(key =>
+      key === DEFAULT_SAVE_SLOT ||
+      key === AUTO_SAVE_SLOT ||
+      key.startsWith(SLOT_PREFIX) ||
+      key.startsWith(CHECKPOINT_PREFIX)
+    );
+
+    if (saveKeys.length === 0) {
+      // No saves to migrate — mark as done and return.
+      SafeStorage.trySetItem(MIGRATION_FLAG_KEY, 'true');
+      migrationDone = true;
+      logger.info('No localStorage saves to migrate');
+      return;
+    }
+
+    let migratedCount = 0;
+    for (const key of saveKeys) {
+      const payload = SafeStorage.getItem(key);
+      if (!payload) continue;
+
+      // Write to IndexedDB, then remove from localStorage.
+      await IDBStorage.putSave(key, payload);
+      SafeStorage.removeItem(key);
+      migratedCount++;
+    }
+
+    // Mark migration as complete so it doesn't re-run.
+    SafeStorage.trySetItem(MIGRATION_FLAG_KEY, 'true');
+    migrationDone = true;
+    logger.info('Migrated saves from localStorage to IndexedDB', { count: migratedCount });
+  } catch (error) {
+    // If migration fails, we leave saves in localStorage. They'll still work
+    // fine through the fallback path in loadGame/saveGame.
+    logger.error('Failed to migrate saves to IndexedDB', { error });
+  }
+}
+
+/**
+ * Recovers an emergency save that was written synchronously to localStorage
+ * during a beforeunload event (when IndexedDB couldn't complete in time).
+ * Moves the emergency save into IndexedDB and removes it from localStorage.
+ */
+async function recoverEmergencySave(): Promise<void> {
+  try {
+    const emergencyData = SafeStorage.getItem(EMERGENCY_SAVE_KEY);
+    if (!emergencyData) return;
+
+    // The emergency save is a full StoredSavePayload JSON string.
+    // Parse it just enough to get the slotId so we know where to put it.
+    const parsed = safeJSONParse<{ slotId?: string }>(emergencyData);
+    const slotId = parsed?.slotId || AUTO_SAVE_SLOT;
+
+    // Write to IndexedDB and clean up localStorage.
+    await IDBStorage.putSave(slotId, emergencyData);
+    SafeStorage.removeItem(EMERGENCY_SAVE_KEY);
+    logger.info('Recovered emergency save from localStorage', { slotId });
+  } catch (error) {
+    logger.error('Failed to recover emergency save', { error });
+  }
+}
+
+/**
+ * Writes a save synchronously to localStorage for use during beforeunload.
+ * This is a best-effort fallback when IndexedDB (which is async) can't
+ * complete before the browser kills the page. On next load, the emergency
+ * save is moved to IndexedDB via recoverEmergencySave().
+ */
+export function emergencySaveSync(gameState: GameState): void {
+  try {
+    const stateToSave: GameState = {
+      ...gameState,
+      saveVersion: SAVE_GAME_VERSION,
+      saveTimestamp: Date.now(),
+      isLoading: false,
+      isImageLoading: false,
+      error: null,
+      isMapVisible: false,
+      isSubmapVisible: false,
+      geminiGeneratedActions: null,
+      isDiscoveryLogVisible: false,
+      isDevMenuVisible: false,
+      isGeminiLogViewerVisible: false,
+      characterSheetModal: { isOpen: false, character: null },
+      notifications: [],
+    };
+
+    const serializedStateForHash = JSON.stringify(stateToSave);
+    const checksum = simpleHash(serializedStateForHash);
+    const existingSlotSummary = getSaveSlots().find(slot => slot.slotId === AUTO_SAVE_SLOT);
+    const playtimeSeconds = calculatePlaytimeSeconds(existingSlotSummary);
+
+    const payload: StoredSavePayload = {
+      version: SAVE_GAME_VERSION,
+      slotId: AUTO_SAVE_SLOT,
+      slotName: 'Auto-Save',
+      isAutoSave: true,
+      preview: extractPreview(stateToSave, playtimeSeconds),
+      state: stateToSave,
+      checksum,
+    };
+
+    // Write synchronously to localStorage — this is the only way to guarantee
+    // the write completes during beforeunload.
+    SafeStorage.setItem(EMERGENCY_SAVE_KEY, JSON.stringify(payload));
+  } catch (error) {
+    // Best-effort — if this fails, there's nothing more we can do.
+    logger.error('Emergency save failed', { error });
+  }
+}
+
+/**
+ * Returns whether IndexedDB is being used for save storage.
+ * Useful for the UI to show storage status or debug info.
+ */
+export function isUsingIndexedDB(): boolean {
+  return idbAvailable;
+}
+
+/**
+ * Returns whether a given slot key belongs to a checkpoint tier.
+ */
+export function isCheckpointSlot(slotId: string): boolean {
+  return slotId.startsWith(CHECKPOINT_PREFIX);
+}
+
 // -----------------
 // Helper functions
 // -----------------
@@ -486,6 +750,8 @@ setupSlotIndexStorageSync();
 function resolveSlotKey(slotName: string, isAutoSave?: boolean): string {
   if (slotName === DEFAULT_SAVE_SLOT) return DEFAULT_SAVE_SLOT;
   if (slotName === AUTO_SAVE_SLOT || isAutoSave) return AUTO_SAVE_SLOT;
+  // Checkpoint slot keys are already fully qualified (e.g., aralia_rpg_checkpoint_1min)
+  if (slotName.startsWith(CHECKPOINT_PREFIX)) return slotName;
   if (slotName.startsWith(SLOT_PREFIX)) return slotName;
   return `${SLOT_PREFIX}${slotName}`;
 }

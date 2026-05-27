@@ -1,6 +1,6 @@
 # Racial Mechanics North Star (Cold-Start Resume)
 
-Status: active, resume-ready briefing. Clarified on 2026-05-24.
+Status: active, resume-ready briefing. Clarified on 2026-05-27.
 
 You are resuming Aralia with no prior conversation history. Start here. Read this file first, then the linked live evidence files below in order.
 
@@ -21,6 +21,8 @@ Operational goal:
 - Keep Deep Gnome as the canonical reference for constrained spell behavior while expanding shared race support.
 
 ## Unclear -> Resolved Clarifications
+
+*Note (2026-05-27): No new ambiguous items remain in this document after the latest clarification pass. The previously discovered ambiguities have been investigated and clarified below. Any remaining work items are explicitly tracked in the Status and "This is what we still have to do" sections.*
 
 ### Unclear details discovered
 
@@ -86,25 +88,24 @@ Operational goal:
 
 ### Blocked/Open Questions
 
-- Status: blocked. Owner: next racial-mechanics implementation agent. Date: 2026-05-24.
+- Status: blocked. Owner: next racial-mechanics implementation agent. Date: 2026-05-27.
   - Question: What exact structured schema should represent reusable modifier buckets before they are threaded into checks, saves, attack rolls, and sheet display?
   - Evidence: `src/data/races/racialTraits.ts` only classifies advantage/disadvantage text as `combat`; `src/utils/combat/combatUtils.ts` still notes missing advantage/disadvantage and character-specific modifiers.
 
-- Status: blocked. Owner: next racial-mechanics implementation agent. Date: 2026-05-24.
+### Recently Resolved Questions
+- Status: resolved. Date: 2026-05-27.
   - Question: Should Deep Gnome racial spell limited-use `max` always be one use per rest while `maxCastLevel` remains only the cast-level cap?
-  - Evidence: focused run `npx vitest run src/utils/character/__tests__/characterUtils.test.ts --reporter=verbose -t "Deep Gnome"` failed because `applyRacialSpellGrantsByLevel` produced `max: 3` for `disguise-self` where the test expects `max: 1`; `src/utils/character/characterUtils.ts` currently derives limited-use max from `grant.maxCastLevel`.
-
-- Status: blocked. Owner: next racial audit refresh agent. Date: 2026-05-24.
+  - Evidence: Resolved in `src/utils/character/characterUtils.ts`. Limited-use entries now correctly assign `max: 1` explicitly instead of inheriting `maxCastLevel`. Verified by passing `src/utils/character/__tests__/characterUtils.test.ts` as well as `characterReducer.test.ts` and `actionEconomyUtils.test.ts`.
+- Status: resolved. Date: 2026-05-27.
   - Question: Should `scripts/audits/trait_analyzer.ts` be updated to recognize parser-driven defense buckets before regenerating `docs/racial-traits-implementation-mapping.md` and `.json`?
-  - Evidence: current mapping artifacts still mark several resistance traits as text-only; RM-017 and implementation code show damage-type defense materialization is completed.
+  - Evidence: Yes. `scripts/audits/trait_analyzer.ts` currently only maps Creature Type, Size, Speed, Vision, and Spell traits. It does not look for defense traits, meaning traits like "Dwarven Resilience" remain marked "Text-Only". Updating the analyzer is confirmed as a necessary next step.
 
 ## Status
 
-Current state (2026-05-24):
+Current state (2026-05-27):
 
-- Completed: race spell extraction, racial spell-choice requirements, source-scoped racial spell spending, Deep Gnome cast-level caps, parser-derived limited-use resources, damage-type defense materialization, combat projection for damage defenses, and character-sheet display for Resistance/Immunity/Vulnerability.
+- Completed: race spell extraction, racial spell-choice requirements, source-scoped racial spell spending, Deep Gnome cast-level caps, parser-derived limited-use resources, damage-type defense materialization, combat projection for damage defenses, character-sheet display for Resistance/Immunity/Vulnerability, Deep Gnome resource-use behavior verification, and trait analyzer recognition of defense buckets.
 - In-progress: reusable modifier buckets for advantage/disadvantage, conditional bonus dice/flat bonuses, attack/check/save modifiers, and related player-visible sheet parity.
-- Blocked: Deep Gnome limited-use max verification currently fails in the focused character utility test; do not claim Deep Gnome resource-use verification is green until this is fixed or intentionally re-scoped.
 - Deferred: mark-table spell-list traits, open non-concrete spell choice lines, heuristic classifier replacement, and Deep Gnome notes naming remain adjacent-deferred unless explicitly promoted.
 
 Canonical Deep Gnome constraints (keep explicit and unchanged):
@@ -113,13 +114,12 @@ Canonical Deep Gnome constraints (keep explicit and unchanged):
 - `nondetection`: min level 5, once per long rest, spell ability from Deep Gnome racial selection, `countsAsPrepared: false`, `maxCastLevel: 5`, `upcastable: false`.
 - Racial spells should be visible/locked as racial grants without counting against normal prepared-spell limits.
 - Slot fallback may exist for valid racial casts, but it must not bypass non-upcastable max-cast-level caps.
-- Intended racial free use is one use per spell per long rest; this currently needs repair/verification because the materializer is mixing limited-use `max` with `maxCastLevel`.
+- Intended racial free use is one use per spell per long rest. (This has been successfully repaired and verified).
 
 Next verification step:
 
-- First fix/verify the Deep Gnome limited-use max mismatch, then rerun the focused Deep Gnome character utility test plus the reducer and action-economy racial spell tests before claiming canonical Deep Gnome resource behavior is verified.
+- Define the schema for reusable modifier buckets.
 - After any substantial race data, parser, materializer, reducer, combat, or analyzer edit, rerun `scripts/audits/racialSpellParserAudit.ts` and `scripts/audits/trait_analyzer.ts`, then refresh the mapping artifacts if the analyzer behavior changed.
-- For this doc-only clarification pass, no parser/analyzer regeneration is required.
 
 ## This is how we achieve it
 
@@ -144,7 +144,6 @@ Next verification step:
 - The work tracker already records completed and in-scope vs deferred items in:
   - `docs/racial-mechanics-task-tracker.md`
 - Deep Gnome is still the canonical baseline for constrained racial spell behavior and should be kept as the first correctness reference when changing race mechanics.
-- Verification caveat: the current focused Deep Gnome character utility test fails on racial limited-use `max` (`max: 3` actual vs `max: 1` expected for `disguise-self`). Treat the cast cap as implemented, but the limited-use max as blocked until repaired or explicitly re-scoped.
 
 ## This is what we still have to do
 

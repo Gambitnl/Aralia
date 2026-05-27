@@ -2918,7 +2918,9 @@ export class HttpServer {
       return command;
     }
 
-    const escapedPath = worktreePath.includes(' ') ? `"${worktreePath.replace(/"/g, '\\"')}"` : worktreePath;
+    const escapedPath = worktreePath.includes(' ')
+      ? `"${worktreePath.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+      : worktreePath;
     return `git -C ${escapedPath} ${command.slice('git '.length)}`;
   }
 

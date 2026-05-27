@@ -103,9 +103,9 @@
         "rawText": "Abyssal Resistance: You have resistance to poison damage.",
         "name": "Abyssal Resistance",
         "description": "You have resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Abyssal Magic: You know the Poison Spray cantrip. Starting at 3rd level, you can cast Ray of Sickness once per long rest. Starting at 5th level, you can cast Hold Person once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
@@ -158,9 +158,9 @@
         "rawText": "Lightning Resistance: You have Resistance to Lightning damage.",
         "name": "Lightning Resistance",
         "description": "You have Resistance to Lightning damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Mingle with the Wind: You know the Shocking Grasp cantrip. You can cast Levitate (level 3) once per Long Rest without components.",
@@ -229,9 +229,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Astral Fire: You know one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this race).",
@@ -316,9 +316,9 @@
         "rawText": "Mechanical Nature: You have resistance to poison, immunity to disease, and advantage on saves against being paralyzed or poisoned. You don’t need to eat, drink, or breathe.",
         "name": "Mechanical Nature",
         "description": "You have resistance to poison, immunity to disease, and advantage on saves against being paralyzed or poisoned. You don’t need to eat, drink, or breathe.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Sentry's Rest: You spend 6 hours in an inactive, motionless state instead of sleeping; you remain conscious during that time.",
@@ -395,9 +395,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Fey Step (Autumn): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, up to two creatures of your choice that you can see within 10 feet of you must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be charmed by you for 1 minute, or until you or your companions deal any damage to the target.",
@@ -468,7 +468,7 @@
         "description": "You gain an Origin feat of your choice.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"<td className=\"px-4 py-3 text-sm text-gray-400\">Versatile (1d10)</td>\"; src\\components\\DesignPreview\\steps\\PreviewWeaponMastery.tsx: \"{ id: 'longsword', name: 'Longsword', mastery: 'Sap', desc: 'Versatile (1d10). Mastery: Sap - Disadvantage on next attack.', icon: '🗡️' },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"Versatile\"\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
       },
       {
         "rawText": "Wild Intuition: When you make a Wisdom (Animal Handling) or Intelligence (Nature) check, you can roll a d4 and add the number rolled to the ability check.",
@@ -608,9 +608,9 @@
         "rawText": "Damage Resistance: You have resistance to acid damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to acid damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -679,9 +679,9 @@
         "rawText": "Damage Resistance: You have resistance to lightning damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to lightning damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -750,9 +750,9 @@
         "rawText": "Damage Resistance: You have resistance to fire damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to fire damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -821,9 +821,9 @@
         "rawText": "Damage Resistance: You have resistance to lightning damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to lightning damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -957,7 +957,7 @@
         "description": "If you move at least 30 feet straight toward a target and then hit it with a melee weapon attack on the same turn, you can immediately follow that attack with a bonus action, making one attack against the target with your hooves.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\craftedItems.ts: \"description: 'Explodes when ignited (5ft radius). DC 13 Dex save or 3d6 bludgeoning damage. Charges can be combined.',\"; src\\data\\feats\\featsData.ts: \"name: 'Charger',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Charge\",\"; src\\hooks\\useBattleMap.ts: \"// Charge movement with the same feet-based path cost used by the range\"; src\\types\\magicItems.d.ts: \"export interface ItemCharges {\"; src\\types\\magicItems.ts: \"export interface ItemCharges {\""
+        "evidence": "Referenced in: src\\data\\craftedItems.ts: \"description: 'Explodes when ignited (5ft radius). DC 13 Dex save or 3d6 bludgeoning damage. Charges can be combined.',\"; src\\data\\feats\\featsData.ts: \"name: 'Charger',\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"description\": \"This wand has 7 charges. While holding it, you can expend 1 charge to cast polymorph (save DC 15) from it.  Regaining Charges The wand regains 1d6 + 1...\",\"; src\\data\\monsters.generated.ts: \"\"name\": \"Charge\",\"; src\\hooks\\useBattleMap.ts: \"// Charge movement with the same feet-based path cost used by the range\"; src\\types\\magicItems.d.ts: \"export interface ItemCharges {\"; src\\types\\magicItems.ts: \"export interface ItemCharges {\""
       },
       {
         "rawText": "Equine Build: You count as one size larger when determining your carrying capacity and the weight you can push or drag. In addition, any climb that requires hands and feet is especially difficult for you because of your equine legs. When you make such a climb, each foot of movement costs you 4 extra feet instead of the normal 1 extra foot.",
@@ -1081,9 +1081,9 @@
         "rawText": "Chthonic Resistance: You have resistance to necrotic damage.",
         "name": "Chthonic Resistance",
         "description": "You have resistance to necrotic damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Chthonic Magic: You know the Chill Touch cantrip. Starting at 3rd level, you can cast False Life once per long rest. Starting at 5th level, you can cast Ray of Enfeeblement once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
@@ -1199,9 +1199,9 @@
         "rawText": "Damage Resistance: You have resistance to acid damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to acid damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -1380,9 +1380,9 @@
         "rawText": "Damage Resistance: You have resistance to the damage type associated with your Draconic Ancestry.",
         "name": "Damage Resistance",
         "description": "You have resistance to the damage type associated with your Draconic Ancestry.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -1459,9 +1459,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Sunlight Sensitivity: You have disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight when you, the target of your attack, or whatever you are trying to perceive is in direct sunlight.",
@@ -1530,9 +1530,9 @@
         "rawText": "Dwarven Resilience: You have advantage on saving throws you make to avoid or end the poisoned condition on yourself. You also have resistance to poison damage.",
         "name": "Dwarven Resilience",
         "description": "You have advantage on saving throws you make to avoid or end the poisoned condition on yourself. You also have resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Psionic Fortitude: You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself.",
@@ -1655,9 +1655,9 @@
         "rawText": "Trance: You don’t need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don’t have, each one with a weapon or a tool of your choice.",
         "name": "Trance",
         "description": "You don’t need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don’t have, each one with a weapon or a tool of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       }
     ]
   },
@@ -1725,9 +1725,9 @@
         "rawText": "Trance: You don’t need to sleep and can’t be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don’t need to sleep and can’t be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       }
     ]
   },
@@ -1819,17 +1819,17 @@
         "rawText": "Celestial Resistance: You have resistance to necrotic damage and radiant damage.",
         "name": "Celestial Resistance",
         "description": "You have resistance to necrotic damage and radiant damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Healing Hands: As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Healing Hands",
         "description": "As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']\""
       },
       {
         "rawText": "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
@@ -1946,8 +1946,8 @@
         "name": "Fire Resistance",
         "description": "You have Resistance to Fire damage.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Confer Fire Resistance\",\""
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Reach to the Blaze: You know the Produce Flame cantrip. Starting at 3rd level, you can cast Burning Hands once per long rest. Starting at 5th level, you can cast Flame Blade once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level.",
@@ -2128,7 +2128,7 @@
         "description": "You gain an Origin feat of your choice.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"<td className=\"px-4 py-3 text-sm text-gray-400\">Versatile (1d10)</td>\"; src\\components\\DesignPreview\\steps\\PreviewWeaponMastery.tsx: \"{ id: 'longsword', name: 'Longsword', mastery: 'Sap', desc: 'Versatile (1d10). Mastery: Sap - Disadvantage on next attack.', icon: '🗡️' },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"Versatile\"\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
       },
       {
         "rawText": "Artisan's Intuition: When you make an Arcana check or an ability check involving artisan's tools, you can roll a d4 and add the number rolled to the ability check.",
@@ -2323,9 +2323,9 @@
         "rawText": "Psychic Resilience: You have resistance to psychic damage.",
         "name": "Psychic Resilience",
         "description": "You have resistance to psychic damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       }
     ]
   },
@@ -2378,9 +2378,9 @@
         "rawText": "Psychic Resilience: You have resistance to psychic damage.",
         "name": "Psychic Resilience",
         "description": "You have resistance to psychic damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       }
     ]
   },
@@ -2496,9 +2496,9 @@
         "rawText": "Damage Resistance: You have resistance to fire damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to fire damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -2621,9 +2621,9 @@
         "rawText": "Damage Resistance: You have resistance to poison damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -2694,7 +2694,7 @@
         "description": "You gain an Origin feat of your choice.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"<td className=\"px-4 py-3 text-sm text-gray-400\">Versatile (1d10)</td>\"; src\\components\\DesignPreview\\steps\\PreviewWeaponMastery.tsx: \"{ id: 'longsword', name: 'Longsword', mastery: 'Sap', desc: 'Versatile (1d10). Mastery: Sap - Disadvantage on next attack.', icon: '🗡️' },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"Versatile\"\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
       },
       {
         "rawText": "Sentinel's Intuition: When you make a Wisdom (Insight) or Wisdom (Perception) check, you can roll a d4 and add the number rolled to the ability check.",
@@ -3032,7 +3032,7 @@
         "description": "You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\BattleMap\\AbilityButton.tsx: \"{ability.spell.school} {ability.spell.level === 0 ? 'Cantrip' : `Level ${ability.spell.level} Spell`}\"; src\\components\\CharacterCreator\\Class\\ArtificerFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\BardFeatureSelection.tsx: \"* Bards must select their initial Cantrips and Level 1 spells.\"; src\\components\\CharacterCreator\\Class\\ClericFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\DruidFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\SorcererFeatureSelection.tsx: \"* the Class, Sorcerers must immediately pick their Cantrips and Level 1\"; src\\components\\CharacterCreator\\Class\\WarlockFeatureSelection.tsx: \"* This component manages the 'Warlock Feature' selection (Cantrips and\"; src\\components\\CharacterCreator\\Class\\WizardFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"if (state.selectedClass.spellcasting) return state.selectedCantrips.length > 0 || state.selectedSpellsL1.length > 0;\"; src\\components\\CharacterCreator\\FeatSelection.tsx: \"const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';\"; src\\components\\CharacterCreator\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\components\\CharacterCreator\\NameAndReview.tsx: \"const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);\"; src\\components\\CharacterCreator\\Race\\GnomeSubraceSelection.tsx: \"(selectedSubraceDetails.grantedCantrip || selectedSubraceDetails.grantedSpell)\"; src\\components\\CharacterCreator\\Race\\RaceDetailModal.tsx: \"// Extract Cantrip\"; src\\components\\CharacterCreator\\Race\\TieflingLegacySelection.tsx: \"<span className=\"text-amber-400\">❶</span> {allSpells[legacy.level1Benefit.cantripId]?.name || 'Cantrip'}\"; src\\components\\CharacterCreator\\shared\\CharacterCreatorTraitsTable.tsx: \"spells.push({ level: '1st', name: cantripMatch[1].trim(), usage: 'Cantrip' });\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"selectedCantrips?: string[];\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookOverlay.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookTab.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellDetailPane.tsx: \"? `${spell.school} Cantrip`\"; src\\components\\Glossary\\SpellCardTemplate.tsx: \"* Helper to format the level display (Cantrip vs 1st, 2nd, etc.)\"; src\\data\\classes\\index.ts: \"// Cantrips\"; src\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\hooks\\useMissingChoice.ts: \"secondaryValue: extraData as { choices?: import('../types').LevelUpChoices; xpGained?: number; isCantrip?: boolean } | undefined,\"; src\\services\\characterGenerator.ts: \".slice(0, charClass.spellcasting.knownCantrips);\"; src\\state\\actionTypes.d.ts: \"isCantrip?: boolean;\"; src\\state\\actionTypes.ts: \"| { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean } } }\"; src\\state\\reducers\\characterReducer.ts: \"const parsedSecondary = (secondaryValue ?? {}) as { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean };\"; src\\state\\reducers\\__tests__\\characterReducer.test.ts: \"knownCantrips: 3,\"; src\\systems\\spells\\mechanics\\ScalingEngine.ts: \"* ### 2. Character-Level Scaling (Cantrips)\"; src\\types\\character.d.ts: \"canSwapCantrip?: boolean;\"; src\\types\\character.ts: \"canSwapCantrip?: boolean;\"; src\\types\\spells.ts: \"level: number; // 0 for Cantrip\"; src\\utils\\character\\characterUtils.ts: \"selectedCantrips?: string[];\"; src\\utils\\character\\characterValidation.ts: \"const knownCantrips = new Set(spellbook?.cantrips || []);\"; src\\utils\\character\\spellFilterUtils.ts: \"if (level === 0) return 'Cantrip';\"; src\\utils\\character\\spellUtils.ts: \"const finalCantrips = Array.from(cantripSet).sort((a, b) => a.name.localeCompare(b.name));\"; src\\utils\\character\\__tests__\\characterUtils.test.ts: \"knownCantrips: 4,\"; src\\utils\\character\\__tests__\\characterValidation.test.ts: \"label: 'Missing Spell: Cantrip',\"; src\\utils\\core\\factories.ts: \"knownCantrips: 0,\"; src\\utils\\sandbox\\quickCharacterGenerator.ts: \"cantrips: charClass.spellcasting.spellList?.slice(0, charClass.spellcasting.knownCantrips) || [],\""
+        "evidence": "Referenced in: src\\commands\\__tests__\\combat-pilot\\CombatDeterministicSpells.test.ts: \"describe('fire-bolt (Cantrip Damage)', () => {\"; src\\components\\BattleMap\\AbilityButton.tsx: \"{ability.spell.school} {ability.spell.level === 0 ? 'Cantrip' : `Level ${ability.spell.level} Spell`}\"; src\\components\\CharacterCreator\\Class\\ArtificerFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\BardFeatureSelection.tsx: \"* Bards must select their initial Cantrips and Level 1 spells.\"; src\\components\\CharacterCreator\\Class\\ClericFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\DruidFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\SorcererFeatureSelection.tsx: \"* the Class, Sorcerers must immediately pick their Cantrips and Level 1\"; src\\components\\CharacterCreator\\Class\\WarlockFeatureSelection.tsx: \"* This component manages the 'Warlock Feature' selection (Cantrips and\"; src\\components\\CharacterCreator\\Class\\WizardFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\__tests__\\WizardFeatureSelection.test.tsx: \"knownCantrips: 2,\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"if (state.selectedClass.spellcasting) return state.selectedCantrips.length > 0 || state.selectedSpellsL1.length > 0;\"; src\\components\\CharacterCreator\\FeatSelection.tsx: \"const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';\"; src\\components\\CharacterCreator\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\components\\CharacterCreator\\hooks\\__tests__\\useCharacterAssembly.test.tsx: \"selectedCantrips: [fireBolt, mageHand, minorIllusion] as Spell[],\"; src\\components\\CharacterCreator\\NameAndReview.tsx: \"const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);\"; src\\components\\CharacterCreator\\Race\\GnomeSubraceSelection.tsx: \"(selectedSubraceDetails.grantedCantrip || selectedSubraceDetails.grantedSpell)\"; src\\components\\CharacterCreator\\Race\\RaceDetailModal.tsx: \"// Extract Cantrip\"; src\\components\\CharacterCreator\\Race\\TieflingLegacySelection.tsx: \"<span className=\"text-amber-400\">❶</span> {allSpells[legacy.level1Benefit.cantripId]?.name || 'Cantrip'}\"; src\\components\\CharacterCreator\\shared\\CharacterCreatorTraitsTable.tsx: \"spells.push({ level: '1st', name: cantripMatch[1].trim(), usage: 'Cantrip' });\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"selectedCantrips?: string[];\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookOverlay.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookTab.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellDetailPane.tsx: \"? `${spell.school} Cantrip`\"; src\\components\\CharacterSheet\\Spellbook\\__tests__\\SpellbookTab.test.tsx: \"expect(screen.getByRole('button', { name: 'Cantrips' })).toBeInTheDocument();\"; src\\components\\CharacterSheet\\__tests__\\SpellbookTab.test.tsx: \"id: 'cantrip-1', name: 'Test Cantrip', level: 0, school: SpellSchool.Evocation,\"; src\\components\\DesignPreview\\steps\\PreviewCombatSandbox.tsx: \"knownCantrips: 3,\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"{ level: '1st', name: 'Light', usage: 'Cantrip' },\"; src\\components\\Glossary\\SpellCardTemplate.tsx: \"* Helper to format the level display (Cantrip vs 1st, 2nd, etc.)\"; src\\data\\classes\\index.ts: \"// Cantrips\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Enspelled Staff (Cantrip)\",\"; src\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\hooks\\useMissingChoice.ts: \"secondaryValue: extraData as { choices?: import('../types').LevelUpChoices; xpGained?: number; isCantrip?: boolean } | undefined,\"; src\\hooks\\__tests__\\useAbilitySystem.package4.test.tsx: \"name: 'Cantrip Target',\"; src\\services\\characterGenerator.ts: \".slice(0, charClass.spellcasting.knownCantrips);\"; src\\state\\actionTypes.d.ts: \"isCantrip?: boolean;\"; src\\state\\actionTypes.ts: \"| { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean } } }\"; src\\state\\reducers\\characterReducer.ts: \"const parsedSecondary = (secondaryValue ?? {}) as { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean };\"; src\\state\\reducers\\__tests__\\characterReducer.test.ts: \"knownCantrips: 3,\"; src\\systems\\spells\\mechanics\\ScalingEngine.ts: \"* ### 2. Character-Level Scaling (Cantrips)\"; src\\types\\character.d.ts: \"canSwapCantrip?: boolean;\"; src\\types\\character.ts: \"canSwapCantrip?: boolean;\"; src\\types\\spells.ts: \"level: number; // 0 for Cantrip\"; src\\utils\\character\\characterUtils.ts: \"selectedCantrips?: string[];\"; src\\utils\\character\\characterValidation.ts: \"const knownCantrips = new Set(spellbook?.cantrips || []);\"; src\\utils\\character\\spellFilterUtils.ts: \"if (level === 0) return 'Cantrip';\"; src\\utils\\character\\spellUtils.ts: \"const finalCantrips = Array.from(cantripSet).sort((a, b) => a.name.localeCompare(b.name));\"; src\\utils\\character\\__tests__\\characterUtils.test.ts: \"knownCantrips: 4,\"; src\\utils\\character\\__tests__\\characterValidation.test.ts: \"label: 'Missing Spell: Cantrip',\"; src\\utils\\combat\\__tests__\\actionEconomyUtils.test.ts: \"const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });\"; src\\utils\\core\\factories.ts: \"knownCantrips: 0,\"; src\\utils\\sandbox\\quickCharacterGenerator.ts: \"cantrips: charClass.spellcasting.spellList?.slice(0, charClass.spellcasting.knownCantrips) || [],\""
       }
     ]
   },
@@ -3196,15 +3196,15 @@
         "description": "You have Advantage on saving throws you make to avoid or end the Frightened condition.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can’t stop in the same space.",
         "name": "Halfling Nimbleness",
         "description": "You can move through the space of any creature that is a size larger than you, but you can’t stop in the same space.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Halfling Nimbleness',\""
       },
       {
         "rawText": "Luck: When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
@@ -3212,7 +3212,7 @@
         "description": "When you roll a 1 on the d20 of a D20 Test, you can reroll the die, and you must use the new roll. (Note: Mechanical implementation of reroll not yet in place).",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\Glossary\\IconRegistry.tsx: \"// MDI Luck & Conditions\"; src\\data\\deities\\index.ts: \"titles: ['The Changebringer', 'Lady of Luck'],\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\DesignPreview\\steps\\PreviewIcons.tsx: \"'Luck & Games': [\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Lucky',\"; src\\components\\Glossary\\IconRegistry.tsx: \"// MDI Luck & Conditions\"; src\\data\\deities\\index.ts: \"titles: ['The Changebringer', 'Lady of Luck'],\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Stone of Good Luck\",\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
       },
       {
         "rawText": "Naturally Stealthy: You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced).",
@@ -3322,7 +3322,7 @@
         "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Lucky',\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
       },
       {
         "rawText": "Brave: You have Advantage on saving throws against being frightened.",
@@ -3330,15 +3330,15 @@
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
         "name": "Halfling Nimbleness",
         "description": "You can move through the space of any creature that is of a size larger than yours.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Halfling Nimbleness',\""
       },
       {
         "rawText": "Ever Hospitable: When you make a Charisma (Persuasion) check or an ability check involving brewer's supplies or cook's utensils, you can roll a d4 and add the number rolled to the ability check.",
@@ -3423,9 +3423,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "High Elf Cantrip: You know the Prestidigitation cantrip (or another Wizard cantrip of your choice). You can replace it with a different Wizard cantrip after finishing a Long Rest. Intelligence is your spellcasting ability for it.",
@@ -3486,9 +3486,9 @@
         "rawText": "Dwarven Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
         "name": "Dwarven Resilience",
         "description": "You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Dwarven Combat Training: You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
@@ -3692,7 +3692,7 @@
         "description": "You gain an Origin feat of your choice.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"<td className=\"px-4 py-3 text-sm text-gray-400\">Versatile (1d10)</td>\"; src\\components\\DesignPreview\\steps\\PreviewWeaponMastery.tsx: \"{ id: 'longsword', name: 'Longsword', mastery: 'Sap', desc: 'Versatile (1d10). Mastery: Sap - Disadvantage on next attack.', icon: '🗡️' },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"Versatile\"\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
       }
     ]
   },
@@ -3745,9 +3745,9 @@
         "rawText": "Infernal Resistance: You have resistance to fire damage.",
         "name": "Infernal Resistance",
         "description": "You have resistance to fire damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Infernal Magic: You know the Fire Bolt cantrip. Starting at 3rd level, you can cast Hellish Rebuke once per long rest. Starting at 5th level, you can cast Darkness once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
@@ -3800,9 +3800,9 @@
         "rawText": "Mental Discipline: You have resistance to psychic damage.",
         "name": "Mental Discipline",
         "description": "You have resistance to psychic damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Mind Link: You can speak telepathically to any creature you can see within 10 times your level; you can grant one creature the ability to reply telepathically for 1 hour.",
@@ -3816,9 +3816,9 @@
         "rawText": "Severed from Dreams: You are immune to effects that require you to dream, but magic that merely sleeps you still works.",
         "name": "Severed from Dreams",
         "description": "You are immune to effects that require you to dream, but magic that merely sleeps you still works.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       }
     ]
   },
@@ -4077,7 +4077,7 @@
         "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Lucky',\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
       },
       {
         "rawText": "Brave: You have Advantage on saving throws against being frightened.",
@@ -4085,15 +4085,15 @@
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
         "name": "Halfling Nimbleness",
         "description": "You can move through the space of any creature that is of a size larger than yours.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Halfling Nimbleness',\""
       },
       {
         "rawText": "Naturally Stealthy: You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you.",
@@ -4258,7 +4258,7 @@
         "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Lucky',\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
       },
       {
         "rawText": "Brave: You have Advantage on saving throws against being frightened.",
@@ -4266,15 +4266,15 @@
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
         "name": "Halfling Nimbleness",
         "description": "You can move through the space of any creature that is of a size larger than yours.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Halfling Nimbleness',\""
       },
       {
         "rawText": "Child of the Wood: You know the Druidcraft cantrip. When you reach 3rd level, you can cast the Entangle spell once with this trait and regain the ability to do so when you finish a Long Rest. When you reach 5th level, you can cast the Spike Growth spell once with this trait and regain the ability to do so when you finish a Long Rest. Casting these spells with this trait doesn't require material components. Wisdom is your spellcasting ability for these spells.",
@@ -4345,7 +4345,7 @@
         "description": "Your trunk can lift objects, open doors, or act as a snorkel with a 5-foot reach and five times your Strength in pounds.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\Submap\\painters\\SubmapDoodadPainter.ts: \"// Trunk\"; src\\components\\Submap\\painters\\SubmapFeaturePainter.ts: \"// Trunk\"; src\\data\\landmarks.ts: \"nameTemplate: ['Hidden Cache', 'Smuggler\\'s Den', 'Hollowed Tree Trunk'],\""
+        "evidence": "Referenced in: src\\components\\BattleMap\\terrain\\DecorationProps.tsx: \"// Trunk — thick, tall, visible at tactical zoom\"; src\\components\\Submap\\painters\\SubmapDoodadPainter.ts: \"// Trunk\"; src\\components\\Submap\\painters\\SubmapFeaturePainter.ts: \"// Trunk\"; src\\data\\landmarks.ts: \"nameTemplate: ['Hidden Cache', 'Smuggler\\'s Den', 'Hollowed Tree Trunk'],\""
       },
       {
         "rawText": "Keen Smell: You have advantage on Wisdom (Perception and Survival) checks that rely on scent.",
@@ -4392,7 +4392,7 @@
         "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Lucky',\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
       },
       {
         "rawText": "Brave: You have Advantage on saving throws against being frightened.",
@@ -4400,15 +4400,15 @@
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
         "name": "Halfling Nimbleness",
         "description": "You can move through the space of any creature that is of a size larger than yours.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Halfling Nimbleness',\""
       },
       {
         "rawText": "Medical Intuition: When you make a Wisdom (Medicine) check or an ability check using an herbalism kit, you can roll a d4 and add the number rolled to the ability check.",
@@ -4532,9 +4532,9 @@
         "rawText": "Dwarven Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
         "name": "Dwarven Resilience",
         "description": "You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Dwarven Combat Training: You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
@@ -4682,9 +4682,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Incisive Sense: You have advantage on Intelligence (Investigation) and Wisdom (Insight) checks.",
@@ -4840,9 +4840,9 @@
         "rawText": "Natural Resilience: You have resistance to acid and poison damage and advantage on saving throws against poison.",
         "name": "Natural Resilience",
         "description": "You have resistance to acid and poison damage and advantage on saving throws against poison.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Shape Self: As an action, you can reshape your body or revert it to its default form.",
@@ -4895,17 +4895,17 @@
         "rawText": "Celestial Resistance: You have resistance to necrotic damage and radiant damage.",
         "name": "Celestial Resistance",
         "description": "You have resistance to necrotic damage and radiant damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Healing Hands: As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Healing Hands",
         "description": "As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']\""
       },
       {
         "rawText": "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
@@ -5029,9 +5029,9 @@
         "rawText": "Damage Resistance: You have resistance to fire damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to fire damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -5110,7 +5110,7 @@
         "description": "You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: Clockwork Toy (a clockwork animal, monster, or person that moves 5 feet across solid ground when touched), Fire Starter (produces a miniature flame for lighting candles, torches, or campfires), or Music Box (plays a single song at a moderate volume when opened).",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\classes\\index.ts: \"{ id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },\"; src\\data\\monsters.generated.ts: \"\"sourceName\": \"Tinker's Magic\",\"; src\\hooks\\useCharacterProficiencies.ts: \"toolProfs.add(\"Tinker's Tools\");\"; src\\systems\\spells\\validation\\spellValidator.ts: \"// access. Mending is the pilot case: Artificers receive it from Tinker's Magic,\""
+        "evidence": "Referenced in: src\\data\\classes\\index.ts: \"{ id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Tinker's Tools\",\"; src\\data\\monsters.generated.ts: \"\"sourceName\": \"Tinker's Magic\",\"; src\\hooks\\useCharacterProficiencies.ts: \"toolProfs.add(\"Tinker's Tools\");\"; src\\systems\\spells\\validation\\spellValidator.ts: \"// access. Mending is the pilot case: Artificers receive it from Tinker's Magic,\""
       }
     ]
   },
@@ -5155,9 +5155,9 @@
         "rawText": "Dwarven Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
         "name": "Dwarven Resilience",
         "description": "You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
@@ -5236,7 +5236,7 @@
         "description": "You can make unarmed strikes with your horns dealing 1d6 + Strength modifier bludgeoning damage.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"description\": \"The chimera makes one Ram attack, one Bite attack, and one Claw attack. It can replace the Claw attack with a use of Fire Breath if available.\",\"; src\\data\\navalManeuvers.ts: \"name: 'Ramming Speed',\"; src\\services\\__tests__\\legacyService.test.ts: \"legacy.heirs.push({ id: 'heir-3', name: 'Ramsay', relation: 'Bastard', age: 18, isDesignatedHeir: true });\"; src\\systems\\economy\\BusinessManagement.ts: \"// --- New Business Ramp-Up ---\"; src\\types\\naval.d.ts: \"type: 'Ballista' | 'Cannon' | 'Mangonel' | 'Ram';\"; src\\types\\naval.ts: \"type: 'Ballista' | 'Cannon' | 'Mangonel' | 'Ram';\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Brynden', 'Jon', 'Robin', 'Yohn', 'Nestor', 'Lyn', 'Walder', 'Roose', 'Ramsay',\""
+        "evidence": "Referenced in: src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Portable Ram\",\"; src\\data\\monsters.generated.ts: \"\"description\": \"The chimera makes one Ram attack, one Bite attack, and one Claw attack. It can replace the Claw attack with a use of Fire Breath if available.\",\"; src\\data\\navalManeuvers.ts: \"name: 'Ramming Speed',\"; src\\services\\__tests__\\legacyService.test.ts: \"legacy.heirs.push({ id: 'heir-3', name: 'Ramsay', relation: 'Bastard', age: 18, isDesignatedHeir: true });\"; src\\systems\\economy\\BusinessManagement.ts: \"// --- New Business Ramp-Up ---\"; src\\types\\naval.d.ts: \"type: 'Ballista' | 'Cannon' | 'Mangonel' | 'Ram';\"; src\\types\\naval.ts: \"type: 'Ballista' | 'Cannon' | 'Mangonel' | 'Ram';\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Brynden', 'Jon', 'Robin', 'Yohn', 'Nestor', 'Lyn', 'Walder', 'Roose', 'Ramsay',\""
       },
       {
         "rawText": "Magic Resistance: You have advantage on saving throws against spells.",
@@ -5305,17 +5305,17 @@
         "rawText": "Celestial Resistance: You have resistance to necrotic damage and radiant damage.",
         "name": "Celestial Resistance",
         "description": "You have resistance to necrotic damage and radiant damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Healing Hands: As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Healing Hands",
         "description": "As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']\""
       },
       {
         "rawText": "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
@@ -5392,9 +5392,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Child of the Sea: You can breathe air and water, and you have a swimming speed equal to your walking speed.",
@@ -5542,25 +5542,25 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Blessing of the Raven Queen: As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Starting at 3rd level, you also gain resistance to all damage when you teleport using this trait. The resistance lasts until the start of your next turn. During that time, you appear ghostly and translucent.",
         "name": "Blessing of the Raven Queen",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Starting at 3rd level, you also gain resistance to all damage when you teleport using this trait. The resistance lasts until the start of your next turn. During that time, you appear ghostly and translucent.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Necrotic Resistance: You have resistance to necrotic damage.",
         "name": "Necrotic Resistance",
         "description": "You have resistance to necrotic damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       }
     ]
   },
@@ -5621,9 +5621,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Cunning Intuition: When you make a Charisma (Performance) or Dexterity (Stealth) check, you can roll a d4 and add the number rolled to the ability check.",
@@ -5700,9 +5700,9 @@
         "rawText": "Damage Resistance: You have resistance to cold damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to cold damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -5834,9 +5834,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Fey Step (Spring): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, you can also touch one willing creature within 5 feet of you. That creature then teleports instead of you, appearing in an unoccupied space of your choice within 30 feet of you.",
@@ -6023,9 +6023,9 @@
         "rawText": "Storm's Boon: You have resistance to lightning damage.",
         "name": "Storm's Boon",
         "description": "You have resistance to lightning damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Headwinds: You know the Gust cantrip. Starting at 3rd level, you can cast the Gust of Wind spell once with this trait, and you regain the ability to cast it when you finish a Long Rest. Charisma is your spellcasting ability for these spells.",
@@ -6080,7 +6080,7 @@
         "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\FeatSelection.tsx: \"*   like Proficiency-scaled Initiative and Lucky points.\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Lucky',\"; src\\data\\feats\\featsData.ts: \"name: 'Lucky',\"; src\\systems\\crafting\\craftingAchievements.ts: \"name: 'Lucky',\"; src\\systems\\economy\\BusinessManagement.ts: \"{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },\"; src\\systems\\economy\\NpcBusinessManager.ts: \"'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'\"; src\\types\\character.d.ts: \"/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */\"; src\\types\\character.ts: \"// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.).\"; src\\utils\\character\\characterUtils.ts: \"* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =\""
       },
       {
         "rawText": "Brave: You have Advantage on saving throws against being frightened.",
@@ -6088,23 +6088,23 @@
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
         "name": "Halfling Nimbleness",
         "description": "You can move through the space of any creature that is of a size larger than yours.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Halfling Nimbleness',\""
       },
       {
         "rawText": "Stout Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
         "name": "Stout Resilience",
         "description": "You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       }
     ]
   },
@@ -6165,9 +6165,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Fey Step (Summer): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, each creature of your choice that you can see within 5 feet of you takes fire damage equal to your Proficiency Bonus.",
@@ -6558,9 +6558,9 @@
         "rawText": "Guardian of the Depths: Adapted to the frigid ocean depths, you have resistance to cold damage.",
         "name": "Guardian of the Depths",
         "description": "Adapted to the frigid ocean depths, you have resistance to cold damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       }
     ]
   },
@@ -6623,7 +6623,7 @@
         "description": "You gain proficiency in Investigation and double your proficiency bonus on Intelligence (Investigation) checks that allow proficiency.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Intellect Devourer\",\"; src\\systems\\spells\\validation\\targetingSchemas.ts: \"// Intellect Fortress-style scaling lets a spell affect more targets only\""
+        "evidence": "Referenced in: src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Headband of Intellect\",\"; src\\data\\monsters.generated.ts: \"\"name\": \"Intellect Devourer\",\"; src\\systems\\spells\\validation\\targetingSchemas.ts: \"// Intellect Fortress-style scaling lets a spell affect more targets only\""
       }
     ]
   },
@@ -6723,9 +6723,9 @@
         "rawText": "Constructed Resilience: You were created to have remarkable fortitude, represented by the following benefits: You have advantage on saving throws against being poisoned, and you have resistance to poison damage. You don't need to eat, drink, or breathe. You are immune to disease. You don't need to sleep, and magic can't put you to sleep.",
         "name": "Constructed Resilience",
         "description": "You were created to have remarkable fortitude, represented by the following benefits: You have advantage on saving throws against being poisoned, and you have resistance to poison damage. You don't need to eat, drink, or breathe. You are immune to disease. You don't need to sleep, and magic can't put you to sleep.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Sentry's Rest: When you take a long rest, you must spend at least six hours in an inactive, motionless state, rather than sleeping. In this state, you appear inert, but it doesn't render you unconscious, and you can see and hear as normal.",
@@ -6794,9 +6794,9 @@
         "rawText": "Acid Resistance: You have Resistance to Acid damage.",
         "name": "Acid Resistance",
         "description": "You have Resistance to Acid damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Call to the Wave: You know the Acid Splash cantrip. Starting at 3rd level, you can cast Create or Destroy Water once per long rest. Starting at 5th level, you can cast Water Walk once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level.",
@@ -6859,7 +6859,7 @@
         "description": "You gain an Origin feat of your choice.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\AbilityScoreAllocation.test.tsx: \"description: 'Versatile and ambitious.',\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"label: 'Versatile Skill',\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"// Humans get the Versatile trait which grants access to feat selection at level 1\"; src\\components\\CharacterCreator\\WeaponMasterySelection.tsx: \"'Versatile': [],\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"<td className=\"px-4 py-3 text-sm text-gray-400\">Versatile (1d10)</td>\"; src\\components\\DesignPreview\\steps\\PreviewWeaponMastery.tsx: \"{ id: 'longsword', name: 'Longsword', mastery: 'Sap', desc: 'Versatile (1d10). Mastery: Sap - Disadvantage on next attack.', icon: '🗡️' },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"Versatile\"\"; src\\data\\items\\index.ts: \"'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },\"; src\\data\\item_templates\\index.ts: \"properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },\"; src\\hooks\\__tests__\\useAbilitySystem.test.ts: \"properties: ['Versatile'],\"; src\\utils\\core\\factories.ts: \"description: 'Versatile and adaptable.',\""
       },
       {
         "rawText": "Courier's Speed: Your base walking speed is 35 feet.",
@@ -6944,9 +6944,9 @@
         "rawText": "Damage Resistance: You have resistance to cold damage.",
         "name": "Damage Resistance",
         "description": "You have resistance to cold damage.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -7078,9 +7078,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Fey Step (Winter): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, one creature of your choice that you can see within 5 feet of you before you teleport must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be frightened of you until the end of your next turn.",
@@ -7157,9 +7157,9 @@
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
         "name": "Trance",
         "description": "You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewComponents.tsx: \"<TableCell className=\"font-bold text-sky-300\">Trance</TableCell>\""
       },
       {
         "rawText": "Fleet of Foot: Your base walking speed increases to 35 feet.",
@@ -7307,9 +7307,9 @@
         "rawText": "Poison Resilience: You have resistance to poison damage, and you have advantage on saving throws you make to avoid or end the poisoned condition.",
         "name": "Poison Resilience",
         "description": "You have resistance to poison damage, and you have advantage on saving throws you make to avoid or end the poisoned condition.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Damage-type defense materializer",
+        "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
         "rawText": "Serpentine Casting: You know the Poison Spray cantrip. Starting at 3rd level, you can cast Animal Friendship (snakes only) without expending a spell slot. Starting at 5th level, you can also cast Suggestion with this trait. Once you cast any of these spells with this trait, you canâ€™t cast it again until you finish a long rest. Intelligence is your spellcasting ability for these spells.",

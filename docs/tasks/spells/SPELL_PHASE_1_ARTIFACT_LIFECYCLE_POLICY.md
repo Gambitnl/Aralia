@@ -33,8 +33,29 @@ The safe default is:
 | Proof screenshots | `docs/tasks/spells/evidence/*.png` | Keep while referenced by a receipt. If superseded, archive or mark superseded; delete only when no durable doc references it. |
 | Generated reports | spell gate report, spell audits, mechanics reports | Keep canonical generated outputs that the app or reports consume. For review-only generated reports, regenerate at checkpoints and archive/delete stale copies only when the source command and replacement output are documented. |
 | Runtime state | `.symphony/`, `conductor/symphony/.symphony/`, `.jules/runs/`, `.jules/feedback/`, `.jules/verification/`, `.jules/dashboard/`, `.jules/orchestrator/`, `.playwright-*`, generated manifests, local dashboard state, draft ids, click receipts, retry state, local sync receipts | Ignore or delete as local runtime artifacts. Do not commit unless a specific packet or migration note intentionally captures a small durable excerpt. |
+| Symphony operator/process docs | `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`, local dashboard backlog notes, workflow scratchpads, draft inventories, task-store explanations, repeated wait-state ledgers | Local or separate-Symphony-home by default. Do not commit with Aralia product/spell PRs. If the task is explicitly a Symphony workflow/source repair, a concise update may be committed with that repair; otherwise copy only the Aralia-facing lesson into this tracker, a package packet, or a migration note. |
 | Local app/operator settings | `.codex/config.toml`, local credentials, tokens, machine preferences | Ignore. Never commit. |
 | Setup branch artifacts | setup PR docs, setup verifier changes, concise setup summaries | Keep until the setup PR is merged and Package 2 dispatch has been proven from `master`. Then mark final state; do not preserve raw branch receipts unless later slices need the exact handoff boundary. |
+
+## Symphony Boundary Rule
+
+Symphony is the local orchestration layer around Aralia work. Its source code,
+operator docs, and runtime receipts are not all the same kind of artifact.
+
+Use this classification before syncing any Symphony-related file to GitHub:
+
+| Category | Examples | GitHub policy |
+|---|---|---|
+| Aralia-facing handoff material | package task packet, Jules prompt, acceptance criteria, final PR link, concise blocker or repair summary | Track when it helps Jules or future Aralia contributors understand product work. |
+| Symphony source/spec material | dashboard source, API/source files, operating spec, architecture map, verifier that proves a dashboard/workflow contract | Track only when the active task is explicitly a Symphony workflow/source repair. Do not bundle with ordinary spell implementation unless the repair is required to continue the visible flow. |
+| Local operator/process state | `SYMPHONY_OPEN_TASKS.md`, dashboard backlog notes, draft inventories, click-path notes, repeated wait-state ledgers, local process TODOs | Keep local, ignored, or move to a separate Symphony home. Summarize only the durable lesson into Aralia-facing docs. |
+| Runtime artifacts | `.symphony/`, `.jules/`, generated manifests, dashboard caches, raw receipts, task-store churn | Ignore/delete unless a small excerpt is intentionally copied into a durable packet or migration note. |
+
+This rule supersedes older Symphony proving-ground habits where every workflow
+note was committed to the Aralia repo for continuity. If a file already exists
+in Git, do not delete it casually; first classify it and either keep it as a
+true Symphony source/spec artifact, migrate it to the right home, or replace it
+with a concise Aralia-facing summary.
 
 ## Slice Closeout Checklist
 

@@ -23,6 +23,10 @@ receipts, local dashboard state, generated manifests, click logs, local
 task-store churn, and `.symphony`/`.jules` run output are local by default.
 Promote only a concise summary when it explains a real Aralia package decision;
 do not send Jules or the spell tracker a list of every Symphony support PR.
+Historical tracked Symphony process files are not a precedent for new task
+material. Local queues, dashboard backlog notes, draft inventories, wait-state
+ledgers, and workflow scratchpads should stay local or move to a separate
+Symphony home unless the task is explicitly a Symphony source/workflow repair.
 
 The canonical operating spec is
 `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`. Use it for the full task and blocker

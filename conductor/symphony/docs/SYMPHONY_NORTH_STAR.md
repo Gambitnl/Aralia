@@ -32,8 +32,9 @@ order:
    ownership map.
 4. `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md` - the current evidence ledger
    and remaining gaps.
-5. `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md` - the current live
-   Symphony queue and proof order.
+5. `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md` - historical Symphony
+   queue context until it is retired, moved local, or replaced by a narrower
+   tracked summary.
 6. `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` - the proving-ground task
    tracker and gap log.
 7. `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md` - the
@@ -42,7 +43,7 @@ order:
    extracted decision lessons, resolution states, and remaining workflow gaps.
 
 After that, use the linked living docs for the exact latest status. This north
-star is the map; the audit, task queue, and trackers are the live state.
+star is the map; the audit and Aralia-facing trackers are the live state.
 
 ## Top-Level Objective
 
@@ -158,10 +159,17 @@ When you register a gap, make it immediately usable by the next agent:
 | Missing specifics to continue | The exact x/y/z details that are still unclear even after reading the north star | This is the right place for a resume-blocking project gap before moving to the living trackers | Add a row here with the exact missing context and then route to the live docs below | write here |
 
 If the gap is really about active work rather than project framing, move it to
-the live source of truth instead of keeping it here:
+the right live source of truth instead of keeping it here. Do not assume the
+right home is GitHub just because the note is useful to the local operator:
 
-- Symphony workflow gaps belong in `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`
-  or `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`
+- Symphony source/spec gaps belong in `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`
+  or the operating/architecture docs only when the task is explicitly repairing
+  Symphony itself.
+- Symphony operator/process gaps such as dashboard backlog notes, local open
+  queues, draft inventories, repeated wait-state ledgers, and click-path
+  receipts should be kept local or moved to a separate Symphony home by
+  default. If they matter to Aralia, copy only the concise lesson into an
+  Aralia-facing packet, tracker, or migration note.
 - Spell Phase 1 gaps belong in `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`
 - Spell decision history starts at
   `conductor/symphony/docs/decision-reports/SPELL_PHASE_1_ASSUMED_APPROVAL_DECISIONS.md`.
@@ -173,7 +181,8 @@ the live source of truth instead of keeping it here:
 Your remaining work is not to invent a second workflow. It is to keep proving
 and hardening the existing one:
 
-- finish or retire the remaining entries in the Symphony open-task queue
+- finish, retire, or migrate the remaining entries in the Symphony open-task
+  queue instead of treating the whole queue as Aralia-facing GitHub material
 - keep the operating spec, architecture map, audit, and task queue synchronized
   as the workflow changes
 - continue using bounded tasks to prove the orchestration model beyond the
@@ -188,13 +197,28 @@ and hardening the existing one:
 ## Where The Files Live
 
 Much of Symphony's operational byproduct is intentionally not tracked in Git.
-The tracked parts are the source files, docs, and verifiers that define and
-prove the workflow. The untracked parts are the runtime state, generated
-manifests, click receipts, raw local receipts, local dashboard state, and other
-scratch artifacts that would only distract future contributors if they were
-committed as if they were durable design intent. If a receipt matters to future
-Aralia work, promote only the useful summary into the package tracker, package
-packet, audit, or open queue.
+The tracked parts should be limited to source/spec material that defines the
+workflow and Aralia-facing summaries that future contributors actually need.
+The untracked parts are the runtime state, generated manifests, click receipts,
+raw local receipts, local dashboard state, local process queues, draft
+inventories, repeated wait ledgers, and other scratch artifacts that would only
+distract future contributors if they were committed as if they were durable
+design intent. If a receipt matters to future Aralia work, promote only the
+useful summary into the package tracker, package packet, audit, or migration
+note.
+
+Older Symphony proving-ground docs may still be tracked because the workflow was
+originally being built inside this repo. Do not use that history as precedent
+for new files. Classify every Symphony file before syncing it:
+
+1. Aralia-facing handoff material: track when it helps Jules or future Aralia
+   contributors understand a product package.
+2. Symphony source/spec material: track only when the active task is explicitly
+   a Symphony workflow/source repair.
+3. Local operator/process state: keep local/ignored or move to a separate
+   Symphony home.
+4. Runtime artifacts: keep ignored or delete after extracting any concise
+   durable lesson.
 
 ### Project Symphony Code And Runtime
 
@@ -211,13 +235,17 @@ packet, audit, or open queue.
 
 ### Project Symphony Docs
 
-- `conductor/symphony/docs/` - architecture, operating spec, task queue, and
-  proof docs
+- `conductor/symphony/docs/` - architecture, operating spec, selected proof
+  docs, and any still-tracked historical process docs. New local process docs
+  should not be added here by default.
 - `conductor/symphony/README.md` - operator-facing quick start and repo entry
 - `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md` - evidence-based progress
   ledger and remaining gaps
 - `conductor/symphony/docs/SYMPHONY_NORTH_STAR.md` - this entry point and
   your cold-start resume guide
+- `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md` - historical/local
+  Symphony workflow queue. Treat this as a migration candidate, not as a normal
+  Aralia product task doc to keep syncing with spell work.
 
 ### Proving-Ground Project Docs
 
@@ -267,8 +295,9 @@ Jules/Linear/GitHub/dashboard handoff flow.
 ## Symphony Progress
 
 The Symphony progress track is the workflow project itself: the dashboard,
-operating spec, task queue, architecture, audit, and proof documents that keep
-the orchestration system honest.
+operating spec, architecture, audit, selected proof documents, and historical
+queue material that keep the orchestration system honest without treating local
+process state as routine GitHub content.
 
 ### Docs
 
@@ -276,9 +305,11 @@ the orchestration system honest.
 - `conductor/symphony/docs/SYMPHONY_MIDDLEMAN_ARCHITECTURE.md`
 - `conductor/symphony/README.md`
 
-### Task Tracker
+### Historical Local Queue
 
-- `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`
+- `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md` - migration candidate;
+  use only as historical context until the queue is retired, moved local, or
+  replaced by a narrower tracked summary.
 
 ### Progress Reports
 
@@ -303,8 +334,8 @@ the orchestration system honest.
   contract.
 - Use `SYMPHONY_MIDDLEMAN_ARCHITECTURE.md` when you need file ownership and
   component layout.
-- Use `SYMPHONY_OPEN_TASKS.md` when you need the live Symphony queue and proof
-  order.
+- Use `SYMPHONY_OPEN_TASKS.md` only as historical queue context until it is
+  retired, moved local, or replaced by a narrower tracked summary.
 - Use `JULES_MIDDLEMAN_AUDIT.md` when you need the current evidence status and
   remaining gaps.
 - Use the Spell Phase 1 tracker and packets when you need the proving-ground

@@ -494,6 +494,11 @@ Do not track or send to Jules by default:
 - raw Symphony runtime state, generated manifests, dashboard caches, click
   receipts, local task-store JSON, local sync logs, browser/session artifacts,
   or `.symphony`/`.jules` run output;
+- Symphony operator/process docs such as `SYMPHONY_OPEN_TASKS.md`, dashboard
+  backlog notes, draft inventories, repeated wait-state ledgers, click-path
+  notes, or workflow scratchpads, unless the active task is explicitly a
+  Symphony source/workflow repair and the file is the smallest durable place to
+  record that repair;
 - lists of every Symphony dashboard, setup, routing, or receipt PR when the live
   task only needs to know the current spell/package boundary;
 - local-only receipts that merely prove an operator clicked, refreshed, waited,
@@ -503,7 +508,25 @@ If a raw receipt answers a future "what happened to this Aralia package?"
 question, summarize the answer into the package tracker or package packet and
 leave the raw receipt external or ignored. Spell trackers should list product
 package PRs and material handoff identifiers, then collapse Symphony support
-PRs into a pointer to the Symphony audit/open-task docs.
+PRs into a pointer to the Symphony audit or an explicitly tracked migration
+note.
+
+Before adding, committing, or handing a Symphony document to Jules, classify it:
+
+- Aralia-facing handoff material: package task packets, Jules prompts,
+  acceptance criteria, package trackers, final product PR links, and concise
+  blocker or repair summaries. These can be tracked when they help Jules or a
+  future Aralia contributor understand the product work.
+- Symphony source/spec material: dashboard source, API/source files, operating
+  specs, architecture maps, and focused workflow verifiers. These can be tracked
+  when the active task is explicitly repairing Symphony itself.
+- Local operator/process state: open queues, backlog notes, draft inventories,
+  repeated wait ledgers, click-path notes, and process TODOs. Keep these local
+  or move them to a separate Symphony home by default; copy only the durable
+  Aralia-facing lesson into a task packet, tracker, or migration note.
+- Runtime artifacts: `.symphony/`, `.jules/`, generated manifests, dashboard
+  caches, raw receipts, and task-store churn. Ignore or delete these unless a
+  short excerpt is copied into a durable explanation.
 
 ## Task Scenarios To Cover
 

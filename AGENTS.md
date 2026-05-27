@@ -24,6 +24,18 @@ generated manifests, click logs, local task-store churn, and `.symphony` /
 `.jules` runtime output ignored or external unless one concise excerpt is needed
 to explain a real Aralia package decision.
 
+Do not treat every Symphony planning or operator file as Aralia-facing just
+because it lives under `conductor/symphony/`. Files such as Symphony open-task
+queues, dashboard backlog notes, local workflow receipts, draft inventories,
+and operator-process ledgers are local or Symphony-owned by default. Sync them
+to GitHub only when the current task is explicitly a Symphony source/workflow
+repair, or when a short excerpt is copied into an Aralia task packet, tracker,
+or migration note to explain a real package decision. Before adding a new
+Symphony doc to Git, classify it as one of: Aralia-facing handoff material,
+Symphony source/spec material, local operator/process state, or runtime
+artifact. Only the first two categories should normally be tracked in this
+repo.
+
 Under uncertainty, the safer failure is usually temporary duplication, not premature pruning.
 
 ## User Calibration

@@ -2180,7 +2180,9 @@ function normalizeRepairPushReadiness(
 
 function qualifyGitCommandForWorktree(command: string, worktreePath: string): string {
   if (!command.startsWith('git push ')) return command;
-  const escapedPath = worktreePath.includes(' ') ? `"${worktreePath.replace(/"/g, '\\"')}"` : worktreePath;
+  const escapedPath = worktreePath.includes(' ')
+    ? `"${worktreePath.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+    : worktreePath;
   return `git -C ${escapedPath} ${command.slice('git '.length)}`;
 }
 
