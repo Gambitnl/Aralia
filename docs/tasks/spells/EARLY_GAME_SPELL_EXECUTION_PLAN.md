@@ -881,9 +881,9 @@ to Open `61`, Closed `185`, Deferred flavor `7`, and merged as
 
 Immediate action:
 
-1. Select and scope Package 17 from `reaction_or_opportunity_restriction` now
-   that Package 16 has merged.
-2. Before dispatch, write a concrete `Jules value: ...` line that explains why
+1. Land the Package 17 `reaction_or_opportunity_restriction` packet/prompt and
+   continue from the live tracker for visible Symphony/Jules launch state.
+2. Before dispatch, preserve a concrete `Jules value: ...` line that explains why
    the package is large enough for a Jules handoff instead of local Codex work.
 3. Use the visible Symphony dashboard path for draft, Linear, handoff,
    manifest, Jules launch, and visual Jules-page inspection.
