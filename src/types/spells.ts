@@ -603,6 +603,8 @@ export interface BaseEffect {
   endCleanup?: EffectEndCleanup[];
   /** Ongoing action costs required to keep a spell or effect active after casting. */
   sustainRequirement?: SustainRequirement;
+  /** Actions granted by this effect to the caster, target, or other actor. */
+  grantedActions?: GrantedAction[];
   /** Damage mirrored from one linked participant to another. */
   linkedDamage?: LinkedDamage;
   /** Temporary removal of a target's resistance to one or more damage types. */
@@ -893,7 +895,6 @@ export interface UtilityEffect extends BaseEffect {
   | "sensory"
   | "other";
   description: string;
-  grantedActions?: GrantedAction[];
   attackAugments?: AttackAugment[];
   abilityCheckModifier?: AbilityCheckModifier;
   controlledEntity?: ControlledEntity;

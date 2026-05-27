@@ -140,7 +140,16 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "grantedActions": [],
+      "grantedActions": [
+        {
+          "type": "bonus_action",
+          "action": "Dash",
+          "frequency": "each_turn",
+          "actor": "caster",
+          "actionKind": "standard_action",
+          "notes": "You can take the Dash action as a Bonus Action."
+        }
+      ],
       "attackAugments": [],
       "controlOptions": [],
       "taunt": {
