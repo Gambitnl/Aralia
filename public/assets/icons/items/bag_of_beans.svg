@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2c3e50" rx="100"/>
+  <!-- Bag -->
+  <path d="M 180 380 C 100 380 120 200 200 200 C 230 150 282 150 312 200 C 392 200 412 380 332 380 Z" fill="#8e44ad" stroke="#2c3e50" stroke-width="8"/>
+  <path d="M 210 200 Q 256 250 300 200" stroke="#f1c40f" stroke-width="6" fill="none"/>
+  <path d="M 190 180 L 180 140 M 322 180 L 332 140" stroke="#8e44ad" stroke-width="12" stroke-linecap="round"/>
+  <!-- Beans -->
+  <ellipse cx="230" cy="320" rx="15" ry="25" fill="#2ecc71" transform="rotate(30 230 320)"/>
+  <ellipse cx="280" cy="300" rx="15" ry="25" fill="#e74c3c" transform="rotate(-20 280 300)"/>
+  <ellipse cx="260" cy="350" rx="15" ry="25" fill="#f1c40f" transform="rotate(70 260 350)"/>
+  <!-- Magic aura -->
+  <circle cx="256" cy="280" r="120" stroke="#2ecc71" stroke-width="4" fill="none" stroke-dasharray="10 10" opacity="0.5"/>
+</svg>

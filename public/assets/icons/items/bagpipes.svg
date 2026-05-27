@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2c3e50" rx="100"/>
+  <!-- Bag -->
+  <ellipse cx="256" cy="300" rx="120" ry="80" fill="#c0392b" stroke="#7f8c8d" stroke-width="8"/>
+  <!-- Drones -->
+  <line x1="180" y1="250" x2="100" y2="100" stroke="#e67e22" stroke-width="16" stroke-linecap="round"/>
+  <line x1="220" y1="230" x2="180" y2="80" stroke="#e67e22" stroke-width="12" stroke-linecap="round"/>
+  <line x1="280" y1="230" x2="300" y2="100" stroke="#e67e22" stroke-width="12" stroke-linecap="round"/>
+  <!-- Chanter -->
+  <line x1="330" y1="350" x2="420" y2="420" stroke="#d35400" stroke-width="14" stroke-linecap="round"/>
+  <!-- Finger holes -->
+  <circle cx="360" cy="375" r="4" fill="#2c3e50"/>
+  <circle cx="380" cy="390" r="4" fill="#2c3e50"/>
+  <circle cx="400" cy="405" r="4" fill="#2c3e50"/>
+  <!-- Blowpipe -->
+  <line x1="330" y1="250" x2="400" y2="150" stroke="#bdc3c7" stroke-width="10" stroke-linecap="round"/>
+  <path d="M 150 250 Q 256 380 350 250" stroke="#c0392b" stroke-width="2" fill="none" opacity="0.3"/>
+</svg>

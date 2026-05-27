@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2c3e50" rx="100"/>
+  <rect x="100" y="240" width="280" height="40" fill="#34495e" rx="4"/>
+  <rect x="120" y="280" width="40" height="60" fill="#1a252f" rx="4"/>
+  <rect x="240" y="280" width="30" height="80" fill="#7f8c8d" rx="4"/>
+  <path d="M 380 250 L 450 250 L 450 260 L 380 260 Z" fill="#bdc3c7"/>
+  <rect x="160" y="220" width="80" height="20" fill="#95a5a6"/>
+  <path d="M 120 280 L 160 280 L 160 320 Z" fill="#1a252f"/>
+  <circle cx="390" cy="255" r="5" fill="#e74c3c"/>
+  <!-- Muzzle flash -->
+  <path d="M 450 255 L 480 230 L 470 255 L 480 280 Z" fill="#f1c40f"/>
+</svg>

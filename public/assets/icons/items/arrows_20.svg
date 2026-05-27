@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2c3e50" rx="100"/>
+  <!-- Quiver -->
+  <path d="M 180 380 L 150 150 C 150 120 230 100 270 150 L 300 380 Z" fill="#8e44ad" stroke="#9b59b6" stroke-width="8"/>
+  <path d="M 180 380 Q 240 420 300 380" fill="#8e44ad" stroke="#9b59b6" stroke-width="8"/>
+  <!-- Arrows -->
+  <line x1="180" y1="200" x2="120" y2="80" stroke="#d35400" stroke-width="6"/>
+  <polygon points="115,70 120,60 125,70" fill="#bdc3c7"/>
+  <line x1="210" y1="200" x2="180" y2="60" stroke="#d35400" stroke-width="6"/>
+  <polygon points="175,55 180,45 185,55" fill="#bdc3c7"/>
+  <line x1="240" y1="200" x2="240" y2="50" stroke="#d35400" stroke-width="6"/>
+  <polygon points="235,45 240,35 245,45" fill="#bdc3c7"/>
+  <line x1="270" y1="200" x2="300" y2="70" stroke="#d35400" stroke-width="6"/>
+  <polygon points="305,75 305,65 295,70" fill="#bdc3c7"/>
+  <line x1="290" y1="220" x2="350" y2="100" stroke="#d35400" stroke-width="6"/>
+  <polygon points="355,105 360,95 345,100" fill="#bdc3c7"/>
+  <!-- Strap -->
+  <path d="M 130 250 L 330 250" stroke="#f1c40f" stroke-width="12" fill="none"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2c3e50" rx="100"/>
+  <line x1="380" y1="100" x2="220" y2="300" stroke="#8e44ad" stroke-width="16" stroke-linecap="round"/>
+  <path d="M 230 280 Q 250 280 200 420 Q 150 420 180 320 Z" fill="#d35400" stroke="#e67e22" stroke-width="4"/>
+  <path d="M 180 320 L 150 430 M 190 320 L 180 430 M 200 310 L 210 420 M 210 300 L 230 410" stroke="#e67e22" stroke-width="6"/>
+  <path d="M 160 350 C 200 330 220 370 250 340" stroke="#f1c40f" stroke-width="6" fill="none"/>
+  <!-- Magic sparkles -->
+  <circle cx="350" cy="150" r="5" fill="#f1c40f"/>
+  <circle cx="400" cy="180" r="8" fill="#f1c40f"/>
+  <circle cx="280" cy="180" r="4" fill="#f1c40f"/>
+  <circle cx="120" cy="380" r="6" fill="#9b59b6"/>
+</svg>
