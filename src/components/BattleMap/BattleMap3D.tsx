@@ -21,7 +21,7 @@ import React, { useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
 import { ContactShadows } from '@react-three/drei';
-import { EffectComposer, SSAO, Bloom, Vignette } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 import { BattleMapData, CombatCharacter } from '../../types/combat';
@@ -207,16 +207,18 @@ const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
   );
 };
 
-/** Postprocessing stack — SSAO + Bloom + Vignette for BG3 atmosphere */
+/**
+ * Postprocessing stack — Bloom + Vignette for BG3 atmosphere.
+ *
+ * SSAO + enableNormalPass were removed: under WebGL2 with three r170 +
+ * @react-three/postprocessing 3.x, that combination caused glBlitFramebuffer
+ * to fire `GL_INVALID_OPERATION: Read and write depth stencil attachments
+ * cannot be the same image` on every rendered frame, eventually exhausting
+ * the WebGL context. ContactShadows (mounted in the main scene) provides
+ * the soft ground darkening SSAO used to give.
+ */
 const PostProcessingStack: React.FC = () => (
-  <EffectComposer enableNormalPass>
-    <SSAO
-      blendFunction={BlendFunction.MULTIPLY}
-      samples={30}
-      rings={4}
-      radius={0.5}
-      intensity={1.5}
-    />
+  <EffectComposer>
     <Bloom
       luminanceThreshold={0.8}
       luminanceSmoothing={0.3}
