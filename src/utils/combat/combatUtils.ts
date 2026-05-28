@@ -91,10 +91,19 @@ export function canTakeReaction(character: CombatCharacter): boolean {
   // 2. Must have reaction available in action economy
   if (character.actionEconomy.reaction.used) return false;
 
-  // 3. Must not be incapacitated
-  // Conditions that prevent reactions: Incapacitated, Paralyzed, Petrified, Stunned, Unconscious
+  // 3. Must not be incapacitated or have a condition explicitly preventing reactions
+  // Conditions that prevent reactions: Incapacitated, Paralyzed, Petrified, Stunned, Unconscious, Slowed, Confused, Reactions Suppressed
   // Note: Sleep (Unconscious) and Hypnotic Pattern (Incapacitated) are covered here.
-  const incapacitatedConditions: string[] = ['Incapacitated', 'Paralyzed', 'Petrified', 'Stunned', 'Unconscious'];
+  const incapacitatedConditions: string[] = [
+    'Incapacitated',
+    'Paralyzed',
+    'Petrified',
+    'Stunned',
+    'Unconscious',
+    'Slowed',
+    'Confused',
+    'Reactions Suppressed'
+  ];
 
   // Check legacy statusEffects
   const hasIncapacitatingEffect = character.statusEffects.some(effect => {

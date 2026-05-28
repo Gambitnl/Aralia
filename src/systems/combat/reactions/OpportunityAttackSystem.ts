@@ -59,6 +59,10 @@ export class OpportunityAttackSystem {
       // Check if attacker can physically take a reaction (Alive, Conscious, Not Incapacitated/Stunned/Paralyzed)
       if (!canTakeReaction(attacker)) continue;
 
+      // Check if attacker has Opportunity Attacks Suppressed
+      const hasOASuppressed = attacker.statusEffects.some(e => e.id === 'opportunity_attacks_suppressed' || e.name === 'Opportunity Attacks Suppressed');
+      if (hasOASuppressed) continue;
+
       // Check Visibility (Line of Sight)
       if (mapData) {
         // We check LoS from attacker to the 'fromPos' (where the provoke happens)
@@ -84,11 +88,14 @@ export class OpportunityAttackSystem {
 
       if (wasInReach && isLeavingReach) {
           // Valid Trigger
+          const isEnemiesAbound = attacker.statusEffects.some(e => e.id === 'enemies_abound' || e.name === 'Enemies Abound');
+
           results.push({
             canAttack: true,
             attackerId: attacker.id,
             targetId: mover.id,
-            triggerPosition: fromPos
+            triggerPosition: fromPos,
+            reason: isEnemiesAbound ? 'enemies_abound_must_attack' : undefined
           });
       }
     }
