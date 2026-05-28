@@ -106,3 +106,5 @@
  export type { AppAction } from '../state/actionTypes';
  
 export * from './materials';
+
+export type { WorldData, River, Road, Site, BiomeZone, Polygon, Vec2 } from '../services/worldSim/types';
