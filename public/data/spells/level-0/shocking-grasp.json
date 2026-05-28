@@ -202,16 +202,6 @@
           "value": 1
         },
         "level": 0,
-        "escapeCheck": {
-          "dc": 0,
-          "actionCost": "action"
-        },
-        "repeatSave": {
-          "timing": "turn_end",
-          "saveType": "Wisdom",
-          "successEnds": true,
-          "useOriginalDC": true
-        }
       },
       "scaling": {
         "type": "slot_level",

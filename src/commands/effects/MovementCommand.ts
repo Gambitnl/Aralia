@@ -286,9 +286,17 @@ export class MovementCommand extends BaseEffectCommand {
         // Treat stop as either a forced-movement instruction or a speed clamp.
         if (effect.forcedMovement) {
             const caster = this.getCaster(state)
+            let nextState = state
+            let nextTarget = target
 
             if (effect.forcedMovement.usesReaction) {
-                target.actionEconomy.reaction.used = true;
+                nextState = this.updateCharacter(state, target.id, {
+                    actionEconomy: {
+                        ...target.actionEconomy,
+                        reaction: { ...target.actionEconomy.reaction, used: true }
+                    }
+                })
+                nextTarget = nextState.characters[target.id]
             }
 
             // TODO: path via a safest-route pathfinder (respecting obstacles/terrain) instead of straight-line stepping.
@@ -317,7 +325,7 @@ export class MovementCommand extends BaseEffectCommand {
 
             const magnitude = Math.sqrt(dx * dx + dy * dy)
             if (magnitude === 0 || tiles === 0) {
-                return this.addLogEntry(state, {
+                return this.addLogEntry(nextState, {
                     type: 'action',
                     message: `${target.name} is forced to move but cannot determine direction.`,
                     characterId: target.id
@@ -332,7 +340,7 @@ export class MovementCommand extends BaseEffectCommand {
                 const nextX = target.position.x + Math.round((dx / magnitude) * i)
                 const nextY = target.position.y + Math.round((dy / magnitude) * i)
 
-                if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
+                if (this.validatePosition(nextState, { x: nextX, y: nextY }, target.id)) {
                     bestX = nextX
                     bestY = nextY
                 } else {
@@ -341,14 +349,14 @@ export class MovementCommand extends BaseEffectCommand {
             }
 
             if (bestX === target.position.x && bestY === target.position.y) {
-                 return this.addLogEntry(state, {
+                return this.addLogEntry(nextState, {
                     type: 'action',
                     message: `${target.name} is forced to move but is blocked`,
                     characterId: target.id
                 })
             }
 
-            const updatedState = this.updateCharacter(state, target.id, {
+            const updatedState = this.updateCharacter(nextState, nextTarget.id, {
                 position: { x: bestX, y: bestY }
             })
 
