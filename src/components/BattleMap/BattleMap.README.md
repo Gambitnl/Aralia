@@ -1,7 +1,7 @@
 
 # Battle Map Feature
 
-For a detailed history of changes to this feature, see the [Battle Map Changelog](../../../docs/changelogs/BATTLEMAP_CHANGELOG.md).
+For a detailed history of changes to this feature, see the [Battle Map Changelog](./CHANGELOG.md). For the broader engine and generation stack, see [`docs/architecture/COMBAT_MAP_ENGINE.md`](../../../docs/architecture/COMBAT_MAP_ENGINE.md).
 
 ## Purpose
 

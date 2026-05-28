@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-21
 **Branch:** `worktree-feature+3d-combat-map`
-**Status:** Design approved, implementation pending
+**Status:** Implemented. This document is now a design rationale and reference — for the current state of the engine, generator, and rendering stack see [`docs/architecture/COMBAT_MAP_ENGINE.md`](../../architecture/COMBAT_MAP_ENGINE.md). Implementation lives under `src/components/BattleMap/` (BattleMap3D.tsx, terrain/, camera/, characters/, vfx/) and `src/services/battleMapGenerator.ts`.
 
 ---
 

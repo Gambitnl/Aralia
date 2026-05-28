@@ -4,10 +4,13 @@
 
 The Battle Map domain covers the tactical grid-rendering layer used during combat, including tiles, tokens, overlays, initiative-adjacent UI, targeting presentation, and battle-map generation helpers.
 
+> Cross-reference: for the full rendering stack (engine, 2D / 3D parity, generation algorithm, adjacent map systems), see `docs/architecture/COMBAT_MAP_ENGINE.md`. This domain doc records boundary and ownership; the engine doc records implementation.
+
 ## Verified Current Entry Points
 
 High-signal current entry points verified in this pass:
-- src/components/BattleMap/BattleMap.tsx
+- src/components/BattleMap/BattleMap.tsx              (2D renderer)
+- src/components/BattleMap/BattleMap3D.tsx            (3D R3F renderer)
 - src/components/BattleMap/BattleMapDemo.tsx
 - src/hooks/useBattleMap.ts
 - src/hooks/useBattleMapGeneration.ts
@@ -18,13 +21,24 @@ High-signal current entry points verified in this pass:
 
 The live battle-map domain is not just a standalone map widget.
 The current split is:
-- BattleMap.tsx renders tiles, character tokens, overlays, and turn-action controls.
+- BattleMap.tsx renders tiles, character tokens, overlays, and turn-action controls (2D HTML/CSS grid).
+- BattleMap3D.tsx is the parallel 3D renderer (react-three-fiber `<Canvas>`) consuming the same data and the same hooks. Its subtree lives under `src/components/BattleMap/terrain/`, `camera/`, `characters/`, and `vfx/`.
 - useBattleMap.ts owns selection, path, move, and click orchestration.
 - useBattleMapGeneration.ts now exports stateless battle-setup generation logic even though its name still looks hook-like.
-- CombatView.tsx is the main live combat surface that imports BattleMap and related battle-map UI pieces.
+- CombatView.tsx is the main live combat surface that imports BattleMap and related battle-map UI pieces, including the 2D / 3D render-mode toggle.
 - BattleMapDemo.tsx still exists as a narrower demo/testing lane.
 
 The verified BattleMap subtree already includes more surrounding UI than the older doc called out, including ActionEconomyBar, InitiativeTracker, CombatLog, PartyDisplay, DamageNumberOverlay, AbilityPalette, and AISpellInputModal.
+
+### 3D rendering subtree
+
+BattleMap3D.tsx composes the following pieces, all driven by the shared hook outputs (no independent game logic):
+- terrain/: TerrainMesh (heightfield), GridOverlay, GrassLayer, WaterSystem, DecorationProps, EzTreeLayer, GroundScatter
+- camera/: CameraController (BG3-style orbit with snap-to-character and cinematic cam)
+- characters/: CharacterActor (glTF SkinnedMesh + AnimationMixer per CombatCharacter)
+- vfx/: VFXSystem (spell zones, weapon trails, damage numbers, AoE preview), LivingWorld (ambient particles)
+
+This subtree is a rendering layer only. Adding rules to it is a domain violation — rules belong in the shared hooks.
 
 ## Historical Drift Corrected
 
@@ -45,7 +59,8 @@ That older explanation should not be treated as the current implementation guide
 ## What Is Materially Implemented
 
 This pass verified that the battle-map domain already has:
-- a live BattleMap renderer used by CombatView
+- a live BattleMap (2D) renderer used by CombatView
+- a live BattleMap3D (R3F) renderer with terrain, camera, character actor, and VFX subtrees, toggleable from CombatView
 - a separate BattleMapDemo surface
 - a useBattleMap orchestration hook
 - a battle-setup generation utility and generator service
