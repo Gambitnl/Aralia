@@ -61,3 +61,4 @@ export * from './environment';
 export * from './journal';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 export type { AppAction } from '../state/actionTypes';
+export type { WorldData, River, Road, Site, BiomeZone, Polygon, Vec2 } from '../services/worldSim/types';

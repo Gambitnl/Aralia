@@ -17,9 +17,18 @@ export interface River {
   id: string;
   /** Polyline vertices, ordered source → mouth, in grid coords. */
   points: Vec2[];
-  /** Width per segment (length = points.length, last entry mirrors second-to-last). */
+  /**
+   * Width at each polyline point (length === points.length).
+   * The value at index i is the river width at points[i]; the last
+   * entry duplicates the second-to-last because no segment starts at
+   * the mouth.
+   */
   width: number[];
-  /** Flow volume per segment, for water shader strength + audio gating. */
+  /**
+   * Flow volume at each polyline point (length === points.length).
+   * Same indexing convention as `width`. Used by water shader strength
+   * and audio gating.
+   */
   discharge: number[];
   /** Parent river id if this is a tributary. */
   parentId?: string;

@@ -4,6 +4,7 @@ import type { Position as CombatPosition } from './combat.js';
 import type { NPCMemory } from './memory.js';
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
+import type { WorldData } from '../services/worldSim/types';
 export type Position = CombatPosition;
 export interface FamilyMember {
     id: string;
@@ -214,7 +215,10 @@ export interface MapData {
         cols: number;
     };
     tiles: MapTile[][];
+    /** @deprecated Use `worldData` instead. Kept for one release for migration. */
     azgaarWorld?: AzgaarWorldRenderData;
+    /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
+    worldData?: WorldData;
 }
 export interface PointOfInterest {
     /** Unique ID to reference this POI within UI elements. */
