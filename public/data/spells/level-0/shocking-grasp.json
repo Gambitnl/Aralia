@@ -196,7 +196,7 @@
         "saveOutcomeOverrides": []
       },
       "statusCondition": {
-        "name": "Reactions Suppressed",
+        "name": "Opportunity Attacks Suppressed",
         "duration": {
           "type": "rounds",
           "value": 1

@@ -287,7 +287,11 @@ export class MovementCommand extends BaseEffectCommand {
         if (effect.forcedMovement) {
             const caster = this.getCaster(state)
 
-            // TODO: When usesReaction is set, spend/track the target's reaction and path via a safest-route pathfinder (respecting obstacles/terrain) instead of straight-line stepping.
+            if (effect.forcedMovement.usesReaction) {
+                target.actionEconomy.reaction.used = true;
+            }
+
+            // TODO: path via a safest-route pathfinder (respecting obstacles/terrain) instead of straight-line stepping.
             const distanceFeet = effect.forcedMovement.maxDistance === 'target_speed'
                 ? target.stats.speed
                 : effect.forcedMovement.maxDistance
