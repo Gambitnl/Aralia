@@ -24,6 +24,7 @@ and live task status; this spec defines what the system must handle.
   - 1.11 [Approval Scope](#approval-scope)
   - 1.12 [Approval Boundaries](#approval-boundaries)
   - 1.13 [Workflow Phases](#workflow-phases)
+  - 1.14 [Spark Subagent Delegation](#spark-subagent-delegation)
 - 2. [System Boundaries](#system-boundaries)
   - 2.1 [Git Tracking And Jules Handoff Boundary](#git-tracking-and-jules-handoff-boundary)
 - 3. [Task Scenarios To Cover](#task-scenarios-to-cover)
@@ -459,6 +460,43 @@ receipt events inside these phases.
 | **deployment** | GitHub Pages/deployment system / Symphony | Prove published-app health before local sync when relevant | `deployment_readiness`, Pages build/deployment/status inspection commands | Deployment repair, rerun, or deployment-proof waiver | `observe_wait` for inspection; `operator_only` for waiver/repair | `deploymentEvidence` receipt |
 | **local_sync** | Local repository / Symphony | Bring local master/worktree up to the merged, deployed state | `local_sync_readiness`, dirty/ahead/behind/fast-forward checks | `git pull --ff-only`, merge, rebase, or other local sync | `operator_only` at mutation | Local sync execution receipt |
 
+### Spark Subagent Delegation
+
+Symphony should use `gpt-5.3-codex-spark` subagents for bounded low-level work
+that can be checked independently while the main Codex foreman keeps the
+workflow boundary, user-facing decisions, and final synthesis. Spark delegation
+is a throughput tool, not a replacement for foreman ownership.
+
+Use Spark when the subtask has a narrow input set, a predictable output shape,
+and no external mutation boundary. The subagent prompt must name the source
+files or state to inspect, state whether edits are allowed, and require a short
+result that the foreman can review before using it.
+
+| Task type | Spark input | Spark output | Delegation rule |
+|---|---|---|---|
+| Workflow task inventory or doc scan | Named Symphony/Spell docs and the question to answer | Categorized findings with file references | Good fit |
+| Draft normalization and package-value framing | Raw task text, expected files, verification commands, current blocker context | Clean draft summary, suggested boundaries, and missing-input list | Good fit; foreman approves final handoff |
+| Artifact classification | Changed-file list plus this Git tracking boundary | Keep/local/migration-note recommendation with rationale | Good fit; foreman decides final inclusion |
+| Tracker, checklist, receipt, or ROI maintenance | Current package state, PR/session ids, verification results, and target doc | Proposed row/checklist/receipt updates | Good fit for mechanical updates; foreman reviews before commit |
+| Decision-report pruning or lesson extraction | Decision report section, tracker context, lifecycle policy | Trend summary, reusable lesson list, archive/prune recommendation | Conditional; foreman owns final wording and consequences |
+| Git sync, CI, PR, or Jules-state triage | Read-only evidence from Git/GitHub/Jules/checks | Blocker classification and proposed next action | Conditional; Spark may prepare, foreman chooses mutation |
+| New package packet/prompt draft | Execution plan, bucket tracker, active package row, write-scope guardrails | Draft package task/prompt and open questions | Conditional; foreman confirms package-value floor |
+
+Keep these with the main orchestrator:
+
+- Linear issue creation or mutation.
+- Jules launch, visible plan approval, and Jules messaging.
+- GitHub PR comments, branch pushes, check reruns, merges, deployment waivers,
+  and local sync execution.
+- Approval-boundary decisions, user-facing scope choices, product-scope
+  arbitration, and final acceptance of Jules work.
+- Any cross-boundary decision about whether Symphony-local material belongs in
+  Aralia history.
+
+When a Spark subagent contributes to a package or workflow update, the foreman
+final report should name the subagent, what it inspected, which findings were
+used, and which decisions stayed with the main orchestrator.
+
 ## System Boundaries
 
 - Symphony owns local dashboard state, default-off dispatch control, worker
@@ -484,8 +522,8 @@ Track or send to Jules:
   needed for the delegated task;
 - package tracker updates, final product PR links, current blockers, and short
   status summaries that explain the active Aralia work;
-- focused verifier contracts, source changes, and docs that define or prove the
-  Symphony workflow itself;
+- concise Aralia-facing migration notes when older Symphony material or workflow
+  repair history must be explained for package continuity;
 - short excerpts from a receipt or decision only when they are the durable
   acceptance trail for Aralia work.
 
@@ -496,9 +534,11 @@ Do not track or send to Jules by default:
   or `.symphony`/`.jules` run output;
 - Symphony operator/process docs such as `SYMPHONY_OPEN_TASKS.md`, dashboard
   backlog notes, draft inventories, repeated wait-state ledgers, click-path
-  notes, or workflow scratchpads, unless the active task is explicitly a
-  Symphony source/workflow repair and the file is the smallest durable place to
-  record that repair;
+  notes, or workflow scratchpads;
+- Symphony implementation/repair artifacts such as dashboard source edits,
+  API/source changes, verifier scripts, local repair branches, operating-spec
+  drafts, architecture-map drafts, or workflow experiments, unless a tiny
+  Aralia-facing excerpt is needed to explain product package history;
 - lists of every Symphony dashboard, setup, routing, or receipt PR when the live
   task only needs to know the current spell/package boundary;
 - local-only receipts that merely prove an operator clicked, refreshed, waited,
@@ -517,9 +557,11 @@ Before adding, committing, or handing a Symphony document to Jules, classify it:
   acceptance criteria, package trackers, final product PR links, and concise
   blocker or repair summaries. These can be tracked when they help Jules or a
   future Aralia contributor understand the product work.
-- Symphony source/spec material: dashboard source, API/source files, operating
-  specs, architecture maps, and focused workflow verifiers. These can be tracked
-  when the active task is explicitly repairing Symphony itself.
+- Symphony implementation/spec repair material: dashboard source, API/source
+  files, operating-spec drafts, architecture-map drafts, focused workflow
+  verifiers, and local repair branches. Keep these local or move them to a
+  separate Symphony home by default; track only a tiny Aralia-facing migration
+  note or excerpt when needed for package history.
 - Local operator/process state: open queues, backlog notes, draft inventories,
   repeated wait ledgers, click-path notes, and process TODOs. Keep these local
   or move them to a separate Symphony home by default; copy only the durable

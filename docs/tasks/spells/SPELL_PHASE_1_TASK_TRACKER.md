@@ -20,10 +20,16 @@ should not quietly expand the active slice.
 5. Do not delete completed task history unless the artifact lifecycle policy
    says the context has been preserved elsewhere.
 6. When Symphony/Jules workflow friction appears while working a spell package,
-   record only the Aralia-facing summary here or link to the Symphony audit/open
-   queue in the same pass. Do not turn this tracker into a list of every
+   record only the Aralia-facing summary here or link to the Symphony audit or
+   an explicit migration note in the same pass. Do not turn this tracker into a list of every
    Symphony support PR, raw receipt, dashboard state change, or decision report
    entry.
+7. Use `gpt-5.3-codex-spark` subagents for bounded tracker chores such as
+   package row sync, checklist/receipt refreshes, artifact classification,
+   cleanup recommendations, and decision-lesson extraction. The Codex foreman
+   must review the result and keep plan approval, Jules/GitHub mutations,
+   branch-hygiene choices, product-scope arbitration, and final acceptance
+   decisions out of the subagent lane.
 
 Statuses:
 

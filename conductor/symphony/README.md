@@ -17,16 +17,24 @@ bounded task forward while also fixing or logging any dashboard, documentation,
 proof, or decision-boundary friction that the task reveals.
 
 Keep the GitHub boundary narrow. Aralia-facing task packets, prompts,
-acceptance criteria, package tracker updates, final product PR links, focused
-workflow verifiers, and short blocker summaries are durable. Raw Symphony
-receipts, local dashboard state, generated manifests, click logs, local
-task-store churn, and `.symphony`/`.jules` run output are local by default.
-Promote only a concise summary when it explains a real Aralia package decision;
-do not send Jules or the spell tracker a list of every Symphony support PR.
+acceptance criteria, package tracker updates, final product PR links, and short
+blocker summaries are durable. Symphony implementation repairs, local workflow
+verifiers, raw receipts, local dashboard state, generated manifests, click logs,
+local task-store churn, and `.symphony`/`.jules` run output are local by
+default. Promote only a concise summary when it explains a real Aralia package
+decision; do not send Jules or the spell tracker a list of every Symphony
+support PR.
 Historical tracked Symphony process files are not a precedent for new task
 material. Local queues, dashboard backlog notes, draft inventories, wait-state
 ledgers, and workflow scratchpads should stay local or move to a separate
-Symphony home unless the task is explicitly a Symphony source/workflow repair.
+Symphony home. Symphony repair/source artifacts should also stay local or move
+to that separate home unless a tiny Aralia-facing migration note is needed.
+
+Use `gpt-5.3-codex-spark` subagents for bounded local chores: doc scans,
+artifact classification, tracker/checklist/receipt maintenance, ROI summaries,
+decision-lesson extraction, and draft package prep. Keep external mutations and
+final arbitration with the main Codex foreman. The canonical task matrix is in
+`docs/JULES_MIDDLEMAN_OPERATING_SPEC.md#spark-subagent-delegation`.
 
 The canonical operating spec is
 `docs/JULES_MIDDLEMAN_OPERATING_SPEC.md`. Use it for the full task and blocker

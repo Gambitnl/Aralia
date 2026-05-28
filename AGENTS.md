@@ -18,23 +18,31 @@ task packet or temporary migration note.
 
 For Symphony/Jules work, preserve Aralia-facing intent and proof rather than
 raw process exhaust. Track task packets, prompts, acceptance criteria, package
-tracker updates, focused workflow verifiers, final product PR links, and short
-blocker or repair summaries. Keep raw Symphony receipts, dashboard caches,
-generated manifests, click logs, local task-store churn, and `.symphony` /
-`.jules` runtime output ignored or external unless one concise excerpt is needed
-to explain a real Aralia package decision.
+tracker updates, final product PR links, and short blocker or repair summaries.
+Keep Symphony implementation repairs, local workflow verifiers, raw Symphony
+receipts, dashboard caches, generated manifests, click logs, local task-store
+churn, and `.symphony` / `.jules` runtime output ignored or external unless one
+concise excerpt is needed to explain a real Aralia package decision.
 
 Do not treat every Symphony planning or operator file as Aralia-facing just
 because it lives under `conductor/symphony/`. Files such as Symphony open-task
 queues, dashboard backlog notes, local workflow receipts, draft inventories,
 and operator-process ledgers are local or Symphony-owned by default. Sync them
-to GitHub only when the current task is explicitly a Symphony source/workflow
-repair, or when a short excerpt is copied into an Aralia task packet, tracker,
-or migration note to explain a real package decision. Before adding a new
-Symphony doc to Git, classify it as one of: Aralia-facing handoff material,
-Symphony source/spec material, local operator/process state, or runtime
-artifact. Only the first two categories should normally be tracked in this
-repo.
+to GitHub only when a short excerpt is copied into an Aralia task packet,
+tracker, or migration note to explain a real package decision. Before adding a
+new Symphony doc to Git, classify it as one of: Aralia-facing handoff material,
+Symphony implementation/spec repair material, local operator/process state, or
+runtime artifact. Only Aralia-facing handoff material should normally be tracked
+in this repo.
+
+For local orchestration chores, prefer bounded `gpt-5.3-codex-spark`
+subagents when the work is a low-level scan, classification, checklist/tracker
+maintenance pass, receipt/ROI summary, artifact cleanup recommendation, or
+decision-lesson extraction. The main Codex foreman still owns final synthesis,
+user-facing scope choices, approval-boundary decisions, external mutations,
+Jules launch/plan/messaging, GitHub PR actions, merge/deployment/local-sync
+decisions, and any final decision about whether Symphony-local material belongs
+in Aralia history.
 
 Under uncertainty, the safer failure is usually temporary duplication, not premature pruning.
 

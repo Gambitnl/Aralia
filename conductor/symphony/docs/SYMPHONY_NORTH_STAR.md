@@ -56,6 +56,10 @@ You are building a system where:
 
 - Codex acts as the foreman and orchestrator, not as the default bulk
   implementer.
+- `gpt-5.3-codex-spark` subagents handle bounded local chores such as doc
+  scans, artifact classification, tracker/checklist/receipt maintenance, ROI
+  summaries, decision-lesson extraction, and draft package prep when those
+  chores can run independently.
 - Symphony is the operator-facing dashboard, task tracker, and evidence layer.
 - Jules receives bounded, visible handoffs for implementation work that is
   cheaper or safer to offload.
@@ -88,8 +92,8 @@ You get there by moving through a staged workflow:
 This is a dual responsibility, not a later cleanup phase: progress the bounded
 task and keep the workflow/docs true while doing it. If fixing a workflow issue
 would cross an external boundary or derail the active task, log the gap with an
-owner, location, and next proof target in the audit, open queue, or proving
-ground tracker.
+owner, location, and next proof target in the audit, an explicit migration note,
+or the proving-ground tracker.
 
 You are validating that approach with the spell execution project as the
 proving ground. The spell work is not the product goal by itself; it is the
@@ -162,9 +166,9 @@ If the gap is really about active work rather than project framing, move it to
 the right live source of truth instead of keeping it here. Do not assume the
 right home is GitHub just because the note is useful to the local operator:
 
-- Symphony source/spec gaps belong in `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`
-  or the operating/architecture docs only when the task is explicitly repairing
-  Symphony itself.
+- Symphony implementation/spec repair gaps should stay local or move to a
+  separate Symphony home by default. Record only a concise Aralia-facing summary
+  in this repo when the repair explains a package decision or migration.
 - Symphony operator/process gaps such as dashboard backlog notes, local open
   queues, draft inventories, repeated wait-state ledgers, and click-path
   receipts should be kept local or moved to a separate Symphony home by
@@ -192,15 +196,18 @@ and hardening the existing one:
   next proof target when repair would derail the task or cross a guarded
   boundary
 - keep separating durable documentation from transient Symphony runtime state
+- use Spark subagents for low-level local discovery and maintenance while
+  keeping final arbitration with the Codex foreman
 - keep the north-star, audit, and task trackers current as the system evolves
 
 ## Where The Files Live
 
 Much of Symphony's operational byproduct is intentionally not tracked in Git.
-The tracked parts should be limited to source/spec material that defines the
-workflow and Aralia-facing summaries that future contributors actually need.
-The untracked parts are the runtime state, generated manifests, click receipts,
-raw local receipts, local dashboard state, local process queues, draft
+The tracked parts should be limited to Aralia-facing summaries that future
+contributors actually need and temporary migration notes that explain why older
+Symphony material exists here. The untracked parts are Symphony implementation
+repairs, local workflow verifiers, runtime state, generated manifests, click
+receipts, raw local receipts, local dashboard state, local process queues, draft
 inventories, repeated wait ledgers, and other scratch artifacts that would only
 distract future contributors if they were committed as if they were durable
 design intent. If a receipt matters to future Aralia work, promote only the
@@ -213,8 +220,9 @@ for new files. Classify every Symphony file before syncing it:
 
 1. Aralia-facing handoff material: track when it helps Jules or future Aralia
    contributors understand a product package.
-2. Symphony source/spec material: track only when the active task is explicitly
-   a Symphony workflow/source repair.
+2. Symphony implementation/spec repair material: keep local or move to a
+   separate Symphony home by default. Track only a tiny Aralia-facing migration
+   note or excerpt when package history needs it.
 3. Local operator/process state: keep local/ignored or move to a separate
    Symphony home.
 4. Runtime artifacts: keep ignored or delete after extracting any concise
