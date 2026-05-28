@@ -4,7 +4,14 @@
  *
  * The field is sampled at integer cell coords. A cell is "inside" if field(x,y) >= threshold.
  * Returns one polygon per connected region of inside cells; each polygon is a closed loop
- * (first vertex repeated implied) traced along cell boundaries.
+ * traced along cell boundaries.
+ *
+ * Connectivity convention: 4-neighbor (cells touching only at a diagonal corner are NOT
+ * considered connected — they each get their own polygon, EXCEPT when the corner is a
+ * shared boundary vertex, in which case the tracer may merge them into a figure-8.
+ * For Aralia's use (coastlines bounded by ocean flood-fill, biome zones over contiguous
+ * grids) this case is rare; if it becomes a problem, switch the next-edge selection in
+ * the chain loop to prefer the right-hand-turn candidate by winding angle.
  */
 
 import type { Polygon, Vec2 } from './types';
@@ -62,8 +69,13 @@ export function extractPolygons(field: Field, cols: number, rows: number, thresh
       if (!next) break;
       current = next;
     }
-    if (loop.length >= 4) {
-      polygons.push(simplifyClosed(loop));
+    // Only accept properly closed loops — discard open chains caused by
+    // degenerate input (e.g., isolated vertices with no edge-adjacent
+    // inside neighbors).
+    const closed = loop.length >= 4 && KEY(loop[loop.length - 1]) === KEY(seed.a);
+    if (closed) {
+      const simplified = simplifyClosed(loop);
+      if (simplified.length >= 3) polygons.push(simplified);
     }
   }
 
