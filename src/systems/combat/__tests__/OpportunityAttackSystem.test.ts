@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { OpportunityAttackSystem } from '../reactions/OpportunityAttackSystem';
-import { createMockCombatCharacter } from '@/utils/factories';
+import { createMockCombatCharacter, createMockItem } from '@/utils/factories';
 import { canTakeReaction } from '@/utils/combatUtils';
 
 describe('OpportunityAttackSystem and Reaction Rules', () => {
@@ -52,7 +52,12 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
     // Attacker has a melee weapon (reach 1) and the OA suppressed condition.
     const attacker = createMockCombatCharacter({ id: 'attacker', position: { x: 0, y: 0 }, team: 'player' });
     attacker.abilities.push({
-      id: 'melee_attack', name: 'Melee', type: 'attack', range: 1, weapon: true, isProficient: true,
+      id: 'melee_attack', name: 'Melee', type: 'attack', range: 1, weapon: createMockItem({
+        id: 'melee_weapon',
+        name: 'Melee Weapon',
+        description: 'A simple melee weapon',
+        type: 'weapon'
+      }), isProficient: true,
       cost: { type: 'action' }
     });
     attacker.statusEffects.push({
@@ -78,7 +83,12 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
 
     const attacker = createMockCombatCharacter({ id: 'attacker', position: { x: 0, y: 0 }, team: 'player' });
     attacker.abilities.push({
-      id: 'melee_attack', name: 'Melee', type: 'attack', range: 1, weapon: true, isProficient: true,
+      id: 'melee_attack', name: 'Melee', type: 'attack', range: 1, weapon: createMockItem({
+        id: 'melee_weapon',
+        name: 'Melee Weapon',
+        description: 'A simple melee weapon',
+        type: 'weapon'
+      }), isProficient: true,
       cost: { type: 'action' }
     });
     attacker.statusEffects.push({

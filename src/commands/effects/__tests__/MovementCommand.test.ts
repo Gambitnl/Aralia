@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { MovementCommand } from '../MovementCommand';
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
 import { MovementEffect } from '@/types/spells';
 import { CommandContext } from '../../base/SpellCommand';
 
@@ -8,20 +8,19 @@ describe('MovementCommand - Reaction Usage', () => {
   it('consumes reaction if usesReaction is true', () => {
     const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster', position: { x: 0, y: 0 } });
     const target = createMockCombatCharacter({ id: 'target', name: 'Target', position: { x: 1, y: 1 } });
-    const state = createMockGameState({
+    const state = createMockCombatState({
       characters: [caster, target],
-      activeCharacterId: 'caster'
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: 'caster', phase: 'planning', actionsThisTurn: [] }
     });
-
-    // Ensure combatLog exists in the mock state
-    if (!state.combatLog) {
-      state.combatLog = [];
-    }
 
     const effect: MovementEffect = {
       type: 'MOVEMENT',
       movementType: 'stop', // Using stop since that's where applyStop is called
       distance: 0,
+      duration: {
+        type: 'rounds',
+        value: 1
+      },
       forcedMovement: {
         usesReaction: true,
         direction: 'away_from_caster',
@@ -34,9 +33,10 @@ describe('MovementCommand - Reaction Usage', () => {
     const context: CommandContext = {
       spellId: 'test_spell',
       spellName: 'Test Spell',
+      castAtLevel: 1,
       caster,
       targets: [target],
-      level: 1
+      gameState: createMockGameState()
     };
 
     const command = new MovementCommand(effect, context);

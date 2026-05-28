@@ -497,6 +497,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   isTargetable,
   targetingMode,
   onClick,
+  activeCharacterId
 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [animState, setAnimState] = useState<AnimationState>('idle');

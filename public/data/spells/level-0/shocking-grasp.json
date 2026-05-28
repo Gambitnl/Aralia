@@ -200,8 +200,7 @@
         "duration": {
           "type": "rounds",
           "value": 1
-        },
-        "level": 0,
+        }
       },
       "scaling": {
         "type": "slot_level",

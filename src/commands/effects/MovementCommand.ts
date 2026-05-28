@@ -296,7 +296,8 @@ export class MovementCommand extends BaseEffectCommand {
                         reaction: { ...target.actionEconomy.reaction, used: true }
                     }
                 })
-                nextTarget = nextState.characters[target.id]
+                const lookup = nextState.characters.find(c => c.id === target.id)
+                nextTarget = lookup ?? target
             }
 
             // TODO: path via a safest-route pathfinder (respecting obstacles/terrain) instead of straight-line stepping.
