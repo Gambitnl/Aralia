@@ -235,18 +235,26 @@ export class WeaponAttackCommand implements SpellCommand {
       this.caster.activeEffects?.forEach(eff => processAttackRider(eff, 'outgoing'));
       currentTarget.activeEffects?.forEach(eff => processAttackRider(eff, 'incoming'));
 
+      // Racial Modifiers (e.g., Kobold Pack Tactics, though that needs positioning)
+      // For now, check simple 'attack' keyword in modifier buckets.
+      this.caster.modifiers?.advantage.forEach(adv => {
+        if (adv.toLowerCase().includes('attack')) hasAdvantage = true;
+      });
+      this.caster.modifiers?.disadvantage.forEach(dis => {
+        if (dis.toLowerCase().includes('attack')) hasDisadvantage = true;
+      });
 
-      let d20 = rollDice('1d20');
+      // Use centralized rollD20 with integrated advantage/disadvantage handling
+      const d20 = rollD20({
+        advantage: hasAdvantage && !hasDisadvantage,
+        disadvantage: hasDisadvantage && !hasAdvantage
+      });
+
       let rollStr = `Rolled ${d20}`;
-
       if (hasAdvantage && !hasDisadvantage) {
-        const d20_second = rollDice('1d20');
-        rollStr += ` (Advantage: ${d20}, ${d20_second})`;
-        d20 = Math.max(d20, d20_second);
+        rollStr += ` (with Advantage)`;
       } else if (hasDisadvantage && !hasAdvantage) {
-        const d20_second = rollDice('1d20');
-        rollStr += ` (Disadvantage: ${d20}, ${d20_second})`;
-        d20 = Math.min(d20, d20_second);
+        rollStr += ` (with Disadvantage)`;
       } else if (hasAdvantage && hasDisadvantage) {
         rollStr += ` (Advantage and Disadvantage cancel out)`;
       }

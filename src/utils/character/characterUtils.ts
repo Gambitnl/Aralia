@@ -824,7 +824,11 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     )
   );
 
-  if (racialGrants.length === 0 && racialResourceTraits.length === 0 && racialDefenseTraits.length === 0) {
+  const racialModifierTraits = racialFeatureTraits.filter((trait): trait is RacialFeatureTrait & { modifierBuckets: RacialModifierBuckets } =>
+    !!trait.modifierBuckets
+  );
+
+  if (racialGrants.length === 0 && racialResourceTraits.length === 0 && racialDefenseTraits.length === 0 && racialModifierTraits.length === 0) {
     return character;
   }
 
@@ -834,6 +838,17 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     resistances: [...(character.resistances || [])],
     immunities: [...(character.immunities || [])],
     vulnerabilities: [...(character.vulnerabilities || [])],
+    modifiers: character.modifiers ? {
+      advantage: [...character.modifiers.advantage],
+      disadvantage: [...character.modifiers.disadvantage],
+      bonuses: [...character.modifiers.bonuses],
+      baseArmorClass: character.modifiers.baseArmorClass,
+      acBonus: character.modifiers.acBonus,
+      reachBonus: character.modifiers.reachBonus,
+      powerfulBuild: character.modifiers.powerfulBuild,
+      unendingBreath: character.modifiers.unendingBreath,
+      languages: character.modifiers.languages ? [...character.modifiers.languages] : undefined,
+    } : { advantage: [], disadvantage: [], bonuses: [] },
     spellbook: character.spellbook ? {
       cantrips: [...(character.spellbook?.cantrips || [])],
       knownSpells: [...(character.spellbook?.knownSpells || [])],
@@ -894,6 +909,32 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     appendDamageTypes(next.resistances || [], trait.defensiveTraits.resistances);
     appendDamageTypes(next.immunities || [], trait.defensiveTraits.immunities);
     appendDamageTypes(next.vulnerabilities || [], trait.defensiveTraits.vulnerabilities);
+  });
+
+  racialModifierTraits.forEach((trait) => {
+    if (!trait.modifierBuckets) return;
+    next.modifiers!.advantage.push(...trait.modifierBuckets.advantage);
+    next.modifiers!.disadvantage.push(...trait.modifierBuckets.disadvantage);
+    next.modifiers!.bonuses.push(...trait.modifierBuckets.bonuses);
+
+    if (trait.modifierBuckets.baseArmorClass !== undefined) {
+      next.modifiers!.baseArmorClass = Math.max(next.modifiers!.baseArmorClass || 0, trait.modifierBuckets.baseArmorClass);
+    }
+    if (trait.modifierBuckets.acBonus !== undefined) {
+      next.modifiers!.acBonus = (next.modifiers!.acBonus || 0) + trait.modifierBuckets.acBonus;
+    }
+    if (trait.modifierBuckets.reachBonus !== undefined) {
+      next.modifiers!.reachBonus = (next.modifiers!.reachBonus || 0) + trait.modifierBuckets.reachBonus;
+    }
+    if (trait.modifierBuckets.powerfulBuild) {
+      next.modifiers!.powerfulBuild = true;
+    }
+    if (trait.modifierBuckets.unendingBreath) {
+      next.modifiers!.unendingBreath = true;
+    }
+    if (trait.modifierBuckets.languages) {
+      next.modifiers!.languages = Array.from(new Set([...(next.modifiers!.languages || []), ...trait.modifierBuckets.languages]));
+    }
   });
 
   racialResourceTraits.forEach((trait) => {

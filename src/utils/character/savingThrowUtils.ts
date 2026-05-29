@@ -97,8 +97,32 @@ export function rollSavingThrow(
     dc: number,
     modifiers?: SavingThrowModifier[]
 ): SavingThrowResult {
+    // Step 0: Check for Advantage/Disadvantage (Racial Modifiers, etc.)
+    let hasAdvantage = false;
+    let hasDisadvantage = false;
+
+    target.modifiers?.advantage.forEach(adv => {
+        const text = adv.toLowerCase();
+        if (text.includes('saving throw') || text.includes(ability.toLowerCase())) {
+            hasAdvantage = true;
+        }
+    });
+    target.modifiers?.disadvantage.forEach(dis => {
+        const text = dis.toLowerCase();
+        if (text.includes('saving throw') || text.includes(ability.toLowerCase())) {
+            hasDisadvantage = true;
+        }
+    });
+
     // Step 1: Roll the d20
-    const roll = rollDice('1d20');
+    let roll = rollDice('1d20');
+    if (hasAdvantage && !hasDisadvantage) {
+        const roll2 = rollDice('1d20');
+        roll = Math.max(roll, roll2);
+    } else if (hasDisadvantage && !hasAdvantage) {
+        const roll2 = rollDice('1d20');
+        roll = Math.min(roll, roll2);
+    }
 
     // Step 2: Calculate ability modifier from the relevant stat
     // E.g., for a Dexterity save, look up target.stats.dexterity

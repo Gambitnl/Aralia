@@ -87,6 +87,7 @@ export interface RacialFeatureTrait extends RacialTraitBase {
   minLevel: number;
   maxLevel?: number;
   defensiveTraits?: RacialDefenseBuckets;
+  modifierBuckets?: RacialModifierBuckets;
   metadata?: {
     source?: string;
     note?: string;
@@ -155,6 +156,18 @@ const INVALID_RACIAL_SPELL_TOKENS = new Set([
 ]);
 
 type ParsedDefenseType = 'resistances' | 'immunities' | 'vulnerabilities';
+
+export interface RacialModifierBuckets {
+  advantage: string[];
+  disadvantage: string[];
+  bonuses: string[];
+  baseArmorClass?: number;
+  acBonus?: number;
+  reachBonus?: number;
+  powerfulBuild?: boolean;
+  unendingBreath?: boolean;
+  languages?: string[];
+}
 
 export interface RacialDefenseBuckets {
   resistances: string[];
@@ -245,6 +258,72 @@ const extractDefenseBuckets = (text: string): RacialDefenseBuckets => {
 
 export const getRacialDefenseBucketsFromTraitText = (traitText: string): RacialDefenseBuckets =>
   extractDefenseBuckets(traitText);
+
+const extractModifierBuckets = (text: string): RacialModifierBuckets => {
+  const buckets: RacialModifierBuckets = {
+    advantage: [],
+    disadvantage: [],
+    bonuses: [],
+  };
+
+  const advMatch = text.match(/advantage on ([^.;]+)/gi);
+  if (advMatch) {
+    advMatch.forEach(match => buckets.advantage.push(match.replace(/advantage on /i, '').trim()));
+  }
+  
+  const disMatch = text.match(/disadvantage on ([^.;]+)/gi);
+  if (disMatch) {
+    disMatch.forEach(match => buckets.disadvantage.push(match.replace(/disadvantage on /i, '').trim()));
+  }
+
+  // Match AC bonuses: "+1 bonus to your Armor Class", "bonus to your AC is 13"
+  const baseACMatch = text.match(/base\s+Armor\s+Class\s+is\s+(\d+)/i);
+  if (baseACMatch) {
+    buckets.baseArmorClass = parseInt(baseACMatch[1], 10);
+  }
+
+  const acBonusMatch = text.match(/(\+\d+)\s+bonus\s+to\s+your\s+Armor\s+Class/i) || text.match(/bonus\s+to\s+your\s+AC\s+of\s+(\d+)/i);
+  if (acBonusMatch) {
+    buckets.acBonus = parseInt(acBonusMatch[1].replace('+', ''), 10);
+  }
+
+  // Reach
+  const reachMatch = text.match(/reach\s+for\s+it\s+is\s+(\d+)\s+feet\s+greater/i);
+  if (reachMatch) {
+    buckets.reachBonus = parseInt(reachMatch[1], 10);
+  }
+
+  // Powerful Build
+  if (/count\s+as\s+one\s+size\s+larger/i.test(text)) {
+    buckets.powerfulBuild = true;
+  }
+
+  // Unending Breath
+  if (/hold\s+your\s+breath\s+indefinitely/i.test(text)) {
+    buckets.unendingBreath = true;
+  }
+
+  // Languages
+  const langMatch = text.match(/speak,\s+read,\s+and\s+write\s+([A-Z][a-z]+)/g);
+  if (langMatch) {
+    buckets.languages = langMatch.map(m => m.replace(/speak,\s+read,\s+and\s+write\s+/i, '').trim());
+  }
+
+  // Refined bonus parsing: "add a d4 to", "roll a d4... to", "gain a +2 bonus to"
+  const bonusRegex = /(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+.*?(?:to|on|for)\s+([^.;]+)/gi;
+  let match;
+  while ((match = bonusRegex.exec(text)) !== null) {
+    const diceOrFlat = match[1];
+    let target = match[2].trim();
+    target = target.replace(/the number rolled to\s+/i, '');
+    buckets.bonuses.push(`${diceOrFlat} to ${target}`);
+  }
+
+  return buckets;
+};
+
+export const getRacialModifierBucketsFromTraitText = (traitText: string): RacialModifierBuckets =>
+  extractModifierBuckets(traitText);
 
 const isSpellTokenAcceptable = (rawSpellId: string): boolean => {
   const token = normalizeSpellToken(rawSpellId);
@@ -597,10 +676,11 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
   const featureNameMatch = trait.match(/^([^:]+):\s*(.*)$/);
   const traitName = featureNameMatch ? featureNameMatch[1].trim() : `${race.name} racial trait`;
   const traitDescription = featureNameMatch ? featureNameMatch[2].trim() : trait;
-  const hasMechanicHint = /(starting at|you can|you have|once per|advantage|disadvantage|resistance|immunity|speed|darkvision)/i.test(trait);
+  const hasMechanicHint = /(starting at|you can|you have|once per|advantage|disadvantage|resistance|immunity|speed|darkvision|add a d\d+|roll a d\d+)/i.test(trait);
   const resources = parseTraitResourceMechanics(race.id, traitName, trait);
   const featureType = resources.length > 0 ? 'resource' : inferRacialFeatureType(trait);
   const defensiveTraits = getRacialDefenseBucketsFromTraitText(trait);
+  const modifierBuckets = getRacialModifierBucketsFromTraitText(trait);
 
   return {
     type: hasMechanicHint && featureType === 'feature' ? 'combat' : featureType,
@@ -614,6 +694,17 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
       resistances: [...defensiveTraits.resistances],
       immunities: [...defensiveTraits.immunities],
       vulnerabilities: [...defensiveTraits.vulnerabilities],
+    },
+    modifierBuckets: {
+      advantage: [...modifierBuckets.advantage],
+      disadvantage: [...modifierBuckets.disadvantage],
+      bonuses: [...modifierBuckets.bonuses],
+      baseArmorClass: modifierBuckets.baseArmorClass,
+      acBonus: modifierBuckets.acBonus,
+      reachBonus: modifierBuckets.reachBonus,
+      powerfulBuild: modifierBuckets.powerfulBuild,
+      unendingBreath: modifierBuckets.unendingBreath,
+      languages: modifierBuckets.languages ? [...modifierBuckets.languages] : undefined,
     },
     featureGroup: hasMechanicHint ? 'mechanical' : 'informational',
     resources,
@@ -799,6 +890,23 @@ export const getRacialSpellCastingAbilityChoiceForRace = (
 
 export const hasRacialSpellCastingAbilityChoiceForRace = (raceId: string): boolean =>
   getRacialSpellCastingAbilityChoicesForRace(raceId).length > 0;
+
+/**
+ * RACIAL TRAIT SUMMARIZATION & ACCESSORS:
+ * 
+ * These helper functions provide high-level, flattened accessors to the active
+ * racial trait library instance, shielding consumer components from manual checks
+ * against the global RACE_TRAIT_LIBRARY_INSTANCE singleton.
+ * 
+ * PRESERVED LOGIC:
+ * - Direct lookup in the cached raceTraitSummaries map.
+ * - Flat summaries retrieval for all traits in the system.
+ * - Grouped lookup by level-based activation windows.
+ * 
+ * FIX HISTORY:
+ * - Removed an accidental duplicate copy-paste block at the end of this file 
+ *   that was introducing duplicate exports and syntax errors (broken trailing expression).
+ */
 
 export const getRacialTraitSummariesByRace = (raceId: string): RacialTraitSummary[] =>
   RACE_TRAIT_LIBRARY_INSTANCE?.raceTraitSummaries[raceId] ?? [];

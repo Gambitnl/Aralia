@@ -257,6 +257,25 @@ export function rollDice(diceString: string): number {
 }
 
 /**
+ * Rolls a d20, optionally with advantage or disadvantage.
+ */
+export function rollD20(options?: { advantage?: boolean; disadvantage?: boolean }): number {
+  const roll1 = Math.floor(Math.random() * 20) + 1;
+  if (!options) return roll1;
+
+  const { advantage, disadvantage } = options;
+  if (advantage && !disadvantage) {
+    const roll2 = Math.floor(Math.random() * 20) + 1;
+    return Math.max(roll1, roll2);
+  }
+  if (disadvantage && !advantage) {
+    const roll2 = Math.floor(Math.random() * 20) + 1;
+    return Math.min(roll1, roll2);
+  }
+  return roll1;
+}
+
+/**
  * Rolls damage, optionally doubling the dice for a critical hit.
  *
  * Safety:
@@ -851,6 +870,17 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     resistances: player.resistances ?? (player.race as any).resistance, // TODO(lint-intent): Align Race.resistances shape with DamageType[]
     immunities: player.immunities,
     vulnerabilities: player.vulnerabilities,
+    modifiers: player.modifiers ? {
+      advantage: [...player.modifiers.advantage],
+      disadvantage: [...player.modifiers.disadvantage],
+      bonuses: [...player.modifiers.bonuses],
+      baseArmorClass: player.modifiers.baseArmorClass,
+      acBonus: player.modifiers.acBonus,
+      reachBonus: player.modifiers.reachBonus,
+      powerfulBuild: player.modifiers.powerfulBuild,
+      unendingBreath: player.modifiers.unendingBreath,
+      languages: player.modifiers.languages ? [...player.modifiers.languages] : undefined,
+    } : undefined,
   };
 
   // Basic Darkvision inference

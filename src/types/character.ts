@@ -480,6 +480,17 @@ export interface PlayerCharacter {
   proficiencyBonus?: number;
   race: Race;
   class: Class;
+  modifiers?: {
+    advantage: string[];
+    disadvantage: string[];
+    bonuses: string[];
+    baseArmorClass?: number;
+    acBonus?: number;
+    reachBonus?: number;
+    powerfulBuild?: boolean;
+    unendingBreath?: boolean;
+    languages?: string[];
+  };
   /**
    * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
    * TODO(lint-preserve): Migrate those systems to the primary `class` field and remove this fallback.

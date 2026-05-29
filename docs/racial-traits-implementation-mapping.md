@@ -6,8 +6,8 @@ This document lists every trait for all 111 races and indicates whether they are
 
 - **Total Races Scanned**: 111
 - **Total Unique Traits Scanned**: 819
-- **Mechanically Implemented Traits**: 627 (77%)
-- **Text-Only / Flavor Traits**: 192 (23%)
+- **Mechanically Implemented Traits**: 700 (85%)
+- **Text-Only / Flavor Traits**: 119 (15%)
 
 ## Core Engine Mechanics
 
@@ -60,7 +60,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Unending Breath** | `Text-Only` | N/A | You can hold your breath indefinitely while you are not Incapacitated. |
+| **Unending Breath** | `Implemented` | Racial modifier materializer | Unending breath traits are extracted and applied to character state. |
 | **Lightning Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Mingle with the Wind** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
 
@@ -76,11 +76,11 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 | **Astral Fire** | `Text-Only` | N/A | You know one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this race). |
-| **Starlight Step** | `Text-Only` | N/A | As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. |
+| **Starlight Step** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Astral Trance** | `Text-Only` | N/A | When you take a Long Rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player's Handbook. These proficiencies last until the end of your next Long Rest. |
 
 ---
@@ -94,8 +94,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Armored Casing** | `Text-Only` | N/A | While you are not wearing armor, your base Armor Class is 13 + your Dexterity modifier. |
-| **Built for Success** | `Text-Only` | N/A | You can add a d4 to one attack roll, ability check, or saving throw after you see the d20 roll; you can do so a number of times equal to your Proficiency Bonus per long rest. |
+| **Armored Casing** | `Implemented` | Racial modifier materializer | AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText. |
+| **Built for Success** | `Implemented` | Racial modifier materializer | Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Healing Machine** | `Text-Only` | N/A | If someone casts mending on you, you can spend a Hit Die, roll it, and regain hit points equal to the roll plus your Constitution modifier; cure wounds, healing word, mass cure wounds, mass healing word, and spare the dying treat you as valid targets. |
 | **Mechanical Nature** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Sentry's Rest** | `Text-Only` | N/A | You spend 6 hours in an inactive, motionless state instead of sleeping; you remain conscious during that time. |
@@ -113,10 +113,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Fey Step (Autumn)** | `Text-Only` | N/A | As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, up to two creatures of your choice that you can see within 10 feet of you must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be charmed by you for 1 minute, or until you or your companions deal any damage to the target. |
+| **Fey Step (Autumn)** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Season Association** | `Text-Only` | N/A | Autumn represents peace and goodwill, with a desire to share and give. You can change your season during a long rest, which changes your Fey Step effect. |
 
 ---
@@ -150,8 +150,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Shifting** | `Implemented` | Custom system logic | Referenced in: src\data\biomes.ts: "{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 }," |
-| **Bestial Durability** | `Text-Only` | N/A | Whenever you shift, you gain 1d6 additional temporary hit points. While shifted, you also have a +1 bonus to your Armor Class. |
+| **Shifting** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
+| **Bestial Durability** | `Implemented` | Racial modifier materializer | AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -168,7 +168,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -185,7 +185,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -202,7 +202,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -219,7 +219,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -233,9 +233,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
-| **Long-Limbed** | `Text-Only` | N/A | When you make a melee attack on your turn, your reach for it is 5 feet greater than normal. |
-| **Powerful Build** | `Text-Only` | N/A | You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Long-Limbed** | `Implemented` | Racial modifier materializer | Reach bonuses are extracted and applied to character state. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Powerful build traits are extracted and applied to character state. |
 | **Sneaky** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[BUGBEAR_AUTO_SKILL_ID] = { granted: true, source: "Bugbear 'Sneaky' trait" };"; src\components\CharacterCreator\utils\__tests__\skillSelectionUtils.test.ts: "expect(grants.stealth).toEqual({ granted: true, source: "Bugbear 'Sneaky' trait" });" |
 | **Surprise Attack** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Surprise Attack"," |
 
@@ -251,7 +251,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Charge** | `Implemented` | Custom system logic | Referenced in: src\data\craftedItems.ts: "description: 'Explodes when ignited (5ft radius). DC 13 Dex save or 3d6 bludgeoning damage. Charges can be combined.',"; src\data\feats\featsData.ts: "name: 'Charger',"; src\data\items\generatedGlossaryItems.ts: ""description": "This wand has 7 charges. While holding it, you can expend 1 charge to cast polymorph (save DC 15) from it.  Regaining Charges The wand regains 1d6 + 1...","; src\data\monsters.generated.ts: ""name": "Charge","; src\hooks\useBattleMap.ts: "// Charge movement with the same feet-based path cost used by the range"; src\types\magicItems.d.ts: "export interface ItemCharges {"; src\types\magicItems.ts: "export interface ItemCharges {" |
-| **Equine Build** | `Text-Only` | N/A | You count as one size larger when determining your carrying capacity and the weight you can push or drag. In addition, any climb that requires hands and feet is especially difficult for you because of your equine legs. When you make such a climb, each foot of movement costs you 4 extra feet instead of the normal 1 extra foot. |
+| **Equine Build** | `Implemented` | Racial modifier materializer | Powerful build traits are extracted and applied to character state. |
 | **Hooves** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Hooves"," |
 | **Natural Affinity** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\CentaurNaturalAffinitySkillSelection.tsx: "* It allows the player to choose their Natural Affinity skill proficiency."; src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Centaur - Natural Affinity (pick 1 of 4) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Natural Affinity skill first'"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[centaurSkillId] = { granted: true, source: "Centaur 'Natural Affinity' trait" };"; src\components\CharacterCreator\utils\__tests__\skillSelectionUtils.test.ts: "expect(grants.survival).toEqual({ granted: true, source: "Centaur 'Natural Affinity' trait" });" |
 
@@ -296,9 +296,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Powerful Build** | `Text-Only` | N/A | You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Large Form** | `Text-Only` | N/A | Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. |
-| **Cloud's Jaunt** | `Text-Only` | N/A | As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Cloud's Jaunt** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -315,7 +315,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -329,8 +329,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Gnome Cunning** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Gnome Cunning"," |
-| **Stone Camouflage** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Stone Camouflage"," |
+| **Gnome Cunning** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Stone Camouflage** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Gift of the Svirfneblin** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
 
 ---
@@ -345,9 +345,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Forceful Presence** | `Text-Only` | N/A | You can use your understanding of creative diplomacy or intimidation to guide a conversation in your favor. When you make a Charisma (Intimidation or Persuasion) check, you can do so with advantage. Once you use this trait, you can't do so again until you finish a short or long rest. |
+| **Forceful Presence** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Draconic Ancestral Legacy** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -376,10 +376,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Sunlight Sensitivity** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Sunlight Sensitivity"," |
+| **Sunlight Sensitivity** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Drow Magic** | `Implemented` | Custom system logic | Referenced in: src\utils\character\__tests__\characterValidation.test.ts: "label: 'Missing Spell: Drow Magic'," |
 
 ---
@@ -396,7 +396,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
 | **Duergar Magic** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
 | **Dwarven Resilience** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
-| **Psionic Fortitude** | `Text-Only` | N/A | You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself. |
+| **Psionic Fortitude** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -410,7 +410,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Earth Walk** | `Text-Only` | N/A | You can move across Difficult Terrain without expending extra movement if you are walking on the ground or a floor. |
-| **Merge with Stone** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
+| **Merge with Stone** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -422,8 +422,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
-| **Fey Step** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Fey Step** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 
@@ -438,7 +438,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
 | **Elven Lineage** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\NameAndReview.tsx: "<span className="text-amber-500/80 font-semibold mr-2">Elven Lineage:</span> {elvenLineageDetails.name}"; src\components\CharacterCreator\Race\ElvenLineageSelection.tsx: "* It allows the player to choose their Elven Lineage (Drow, High Elf, or Wood Elf)"; src\utils\character\characterValidation.ts: "label: 'Elven Lineage'," |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 
@@ -469,9 +469,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
 | **Celestial Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
-| **Healing Hands** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']" |
+| **Healing Hands** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Light Bearer** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Necrotic Shroud** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
+| **Necrotic Shroud** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -485,9 +485,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Firbolg Magic** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Hidden Step** | `Text-Only` | N/A | As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. |
-| **Powerful Build** | `Text-Only` | N/A | You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Speech of Beast and Leaf** | `Text-Only` | N/A | You have the ability to communicate in a limited manner with Beasts, Plants, and vegetation. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them. |
+| **Hidden Step** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Powerful build traits are extracted and applied to character state. |
+| **Speech of Beast and Leaf** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -514,9 +514,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Powerful Build** | `Text-Only` | N/A | You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Large Form** | `Text-Only` | N/A | Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. |
-| **Fire's Burn** | `Text-Only` | N/A | When you hit a target with an attack roll, you can deal an extra 1d10 fire damage. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Fire's Burn** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -530,7 +530,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Gnome Cunning** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Gnome Cunning"," |
+| **Gnome Cunning** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Natural Illusionist** | `Text-Only` | N/A | You know the Minor Illusion cantrip. Intelligence is your spellcasting ability for it. |
 | **Speak with Small Beasts** | `Text-Only` | N/A | Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts. Forest gnomes love animals and often keep squirrels, badgers, rabbits, moles, woodpeckers, and other creatures as beloved pets. |
 
@@ -564,9 +564,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Powerful Build** | `Text-Only` | N/A | You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Large Form** | `Text-Only` | N/A | Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. |
-| **Frost's Chill** | `Text-Only` | N/A | When you hit a target with an attack roll, you can deal an extra 1d6 cold damage and reduce the target's speed by 10 feet until the start of your next turn. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Frost's Chill** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -579,9 +579,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Astral Spark** | `Text-Only` | N/A | When you make an attack roll, saving throw, or ability check, you can add your Proficiency Bonus after you see the d20 roll; you can do so a number of times equal to your Proficiency Bonus per long rest. |
+| **Astral Spark** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Firearms Mastery** | `Text-Only` | N/A | You are proficient with all firearms, ignore the loading property, and firing at long range does not impose disadvantage when using firearms. |
-| **Hippo Build** | `Text-Only` | N/A | You have advantage on Strength checks and saving throws, and you count as one size larger for your carrying capacity and push/drag/lift limits. |
+| **Hippo Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -610,7 +610,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Githzerai Psionics** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Mental Discipline** | `Text-Only` | N/A | You have advantage on saving throws you make to avoid or end the charmed and frightened conditions on yourself. |
+| **Mental Discipline** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Psychic Resilience** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 
 ---
@@ -625,8 +625,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
-| **Fury of the Small** | `Text-Only` | N/A | When you damage a creature with an attack or a spell and the creature’s size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your proficiency bonus. You can use this trait a number of times equal to your proficiency bonus, regaining all expended uses when you finish a long rest. |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Fury of the Small** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Nimble Escape** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Nimble Escape"," |
 
 ---
@@ -644,7 +644,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -655,9 +655,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Giant Ancestry** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\GiantAncestrySelection.tsx: "* It allows the player to choose their Giant Ancestry benefit."; src\utils\character\characterUtils.ts: "// GIANT_ANCESTRIES has 'id' like 'Fire', 'Stone', and 'name' like 'Fire Giant Ancestry'"; src\utils\character\characterValidation.ts: "// Goliath: Giant Ancestry" |
-| **Large Form** | `Text-Only` | N/A | Starting at character level 5, you can change your size to Large as a Bonus Action if you’re in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can’t use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now). |
-| **Powerful Build** | `Text-Only` | N/A | You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity. |
+| **Giant Ancestry** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -674,7 +674,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 poison damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -692,7 +692,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Versatile** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\AbilityScoreAllocation.test.tsx: "description: 'Versatile and ambitious.',"; src\components\CharacterCreator\config\sidebarSteps.ts: "label: 'Versatile Skill',"; src\components\CharacterCreator\state\characterCreatorState.ts: "// Humans get the Versatile trait which grants access to feat selection at level 1"; src\components\CharacterCreator\WeaponMasterySelection.tsx: "'Versatile': [],"; src\components\DesignPreview\steps\PreviewTables.tsx: "<td className="px-4 py-3 text-sm text-gray-400">Versatile (1d10)</td>"; src\components\DesignPreview\steps\PreviewWeaponMastery.tsx: "{ id: 'longsword', name: 'Longsword', mastery: 'Sap', desc: 'Versatile (1d10). Mastery: Sap - Disadvantage on next attack.', icon: '🗡️' },"; src\data\items\generatedGlossaryItems.ts: ""Versatile""; src\data\items\index.ts: "'quarterstaff': { id: 'quarterstaff', name: 'Quarterstaff', icon: ' Staff', description: 'A long staff of wood.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Bludgeoning', properties: ['Versatile'], weight: 4, cost: '2 SP', mastery: 'Topple', ...weaponIcon('baton.svg') },"; src\data\item_templates\index.ts: "properties: { type: 'array', items: { type: 'string' }, enum: ['Finesse', 'Light', 'Two-Handed', 'Versatile', 'Thrown', 'Ammunition', 'Reach'], description: 'An array of weapon properties.' },"; src\hooks\__tests__\useAbilitySystem.test.ts: "properties: ['Versatile'],"; src\utils\core\factories.ts: "description: 'Versatile and adaptable.'," |
 | **Sentinel's Intuition** | `Text-Only` | N/A | When you make a Wisdom (Insight) or Wisdom (Perception) check, you can roll a d4 and add the number rolled to the ability check. |
 | **Guardian's Shield** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Vigilant Guardian** | `Text-Only` | N/A | When a creature you can see within 5 feet of you is hit by an attack roll, you can use your reaction to swap places with that creature, and you are hit by the attack instead. Once you use this trait, you can't do so again until you finish a Long Rest. |
+| **Vigilant Guardian** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Spells of the Mark** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
 
 ---
@@ -720,7 +720,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Skill Versatility** | `Text-Only` | N/A | You gain proficiency in two skills of your choice. |
 
 ---
@@ -736,7 +736,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Swim Speed** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""description": "(3 slots) You touch a willing creature. For the duration, the target's movement is unaffected by Difficult Terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed. In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it.\n\nAt Higher Levels: You can target one additional creature for each spell slot level above 4."," |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Skill Versatility** | `Text-Only` | N/A | You gain proficiency in one skill of your choice. |
 | **Swim Speed** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""description": "(3 slots) You touch a willing creature. For the duration, the target's movement is unaffected by Difficult Terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed. In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it.\n\nAt Higher Levels: You can target one additional creature for each spell slot level above 4."," |
 
@@ -752,7 +752,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Skill Versatility** | `Text-Only` | N/A | You gain proficiency in one skill of your choice. |
 | **Drow Magic** | `Implemented` | Custom system logic | Referenced in: src\utils\character\__tests__\characterValidation.test.ts: "label: 'Missing Spell: Drow Magic'," |
 
@@ -768,7 +768,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Skill Versatility** | `Text-Only` | N/A | You gain proficiency in one skill of your choice. |
 | **Cantrip** | `Implemented` | Custom system logic | Referenced in: src\commands\__tests__\combat-pilot\CombatDeterministicSpells.test.ts: "describe('fire-bolt (Cantrip Damage)', () => {"; src\components\BattleMap\AbilityButton.tsx: "{ability.spell.school} {ability.spell.level === 0 ? 'Cantrip' : `Level ${ability.spell.level} Spell`}"; src\components\CharacterCreator\Class\ArtificerFeatureSelection.tsx: "const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());"; src\components\CharacterCreator\Class\BardFeatureSelection.tsx: "* Bards must select their initial Cantrips and Level 1 spells."; src\components\CharacterCreator\Class\ClericFeatureSelection.tsx: "* Cantrips, and Level 1 Spells)."; src\components\CharacterCreator\Class\DruidFeatureSelection.tsx: "* Cantrips, and Level 1 Spells)."; src\components\CharacterCreator\Class\SorcererFeatureSelection.tsx: "* the Class, Sorcerers must immediately pick their Cantrips and Level 1"; src\components\CharacterCreator\Class\WarlockFeatureSelection.tsx: "* This component manages the 'Warlock Feature' selection (Cantrips and"; src\components\CharacterCreator\Class\WizardFeatureSelection.tsx: "const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());"; src\components\CharacterCreator\Class\__tests__\WizardFeatureSelection.test.tsx: "knownCantrips: 2,"; src\components\CharacterCreator\config\sidebarSteps.ts: "if (state.selectedClass.spellcasting) return state.selectedCantrips.length > 0 || state.selectedSpellsL1.length > 0;"; src\components\CharacterCreator\FeatSelection.tsx: "const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';"; src\components\CharacterCreator\hooks\useCharacterAssembly.ts: "if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;"; src\components\CharacterCreator\hooks\__tests__\useCharacterAssembly.test.tsx: "selectedCantrips: [fireBolt, mageHand, minorIllusion] as Spell[],"; src\components\CharacterCreator\NameAndReview.tsx: "const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);"; src\components\CharacterCreator\Race\GnomeSubraceSelection.tsx: "(selectedSubraceDetails.grantedCantrip || selectedSubraceDetails.grantedSpell)"; src\components\CharacterCreator\Race\RaceDetailModal.tsx: "// Extract Cantrip"; src\components\CharacterCreator\Race\TieflingLegacySelection.tsx: "<span className="text-amber-400">❶</span> {allSpells[legacy.level1Benefit.cantripId]?.name || 'Cantrip'}"; src\components\CharacterCreator\shared\CharacterCreatorTraitsTable.tsx: "spells.push({ level: '1st', name: cantripMatch[1].trim(), usage: 'Cantrip' });"; src\components\CharacterCreator\state\characterCreatorState.ts: "selectedCantrips?: string[];"; src\components\CharacterSheet\Spellbook\SpellbookOverlay.tsx: "const pageTitle = currentLevel === 0 ? "Cantrips" : `Level ${currentLevel} Spells`;"; src\components\CharacterSheet\Spellbook\SpellbookTab.tsx: "const pageTitle = currentLevel === 0 ? "Cantrips" : `Level ${currentLevel} Spells`;"; src\components\CharacterSheet\Spellbook\SpellDetailPane.tsx: "? `${spell.school} Cantrip`"; src\components\CharacterSheet\Spellbook\__tests__\SpellbookTab.test.tsx: "expect(screen.getByRole('button', { name: 'Cantrips' })).toBeInTheDocument();"; src\components\CharacterSheet\__tests__\SpellbookTab.test.tsx: "id: 'cantrip-1', name: 'Test Cantrip', level: 0, school: SpellSchool.Evocation,"; src\components\DesignPreview\steps\PreviewCombatSandbox.tsx: "knownCantrips: 3,"; src\components\DesignPreview\steps\PreviewTables.tsx: "{ level: '1st', name: 'Light', usage: 'Cantrip' },"; src\components\Glossary\SpellCardTemplate.tsx: "* Helper to format the level display (Cantrip vs 1st, 2nd, etc.)"; src\data\classes\index.ts: "// Cantrips"; src\data\items\generatedGlossaryItems.ts: ""name": "Enspelled Staff (Cantrip)","; src\hooks\useCharacterAssembly.ts: "if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;"; src\hooks\useMissingChoice.ts: "secondaryValue: extraData as { choices?: import('../types').LevelUpChoices; xpGained?: number; isCantrip?: boolean } | undefined,"; src\hooks\__tests__\useAbilitySystem.package4.test.tsx: "name: 'Cantrip Target',"; src\services\characterGenerator.ts: ".slice(0, charClass.spellcasting.knownCantrips);"; src\state\actionTypes.d.ts: "isCantrip?: boolean;"; src\state\actionTypes.ts: "| { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean } } }"; src\state\reducers\characterReducer.ts: "const parsedSecondary = (secondaryValue ?? {}) as { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean };"; src\state\reducers\__tests__\characterReducer.test.ts: "knownCantrips: 3,"; src\systems\spells\mechanics\ScalingEngine.ts: "* ### 2. Character-Level Scaling (Cantrips)"; src\types\character.d.ts: "canSwapCantrip?: boolean;"; src\types\character.ts: "canSwapCantrip?: boolean;"; src\types\spells.ts: "level: number; // 0 for Cantrip"; src\utils\character\characterUtils.ts: "selectedCantrips?: string[];"; src\utils\character\characterValidation.ts: "const knownCantrips = new Set(spellbook?.cantrips || []);"; src\utils\character\spellFilterUtils.ts: "if (level === 0) return 'Cantrip';"; src\utils\character\spellUtils.ts: "const finalCantrips = Array.from(cantripSet).sort((a, b) => a.name.localeCompare(b.name));"; src\utils\character\__tests__\characterUtils.test.ts: "knownCantrips: 4,"; src\utils\character\__tests__\characterValidation.test.ts: "label: 'Missing Spell: Cantrip',"; src\utils\combat\__tests__\actionEconomyUtils.test.ts: "const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });"; src\utils\core\factories.ts: "knownCantrips: 0,"; src\utils\sandbox\quickCharacterGenerator.ts: "cantrips: charClass.spellcasting.spellList?.slice(0, charClass.spellcasting.knownCantrips) || []," |
 
@@ -784,7 +784,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Skill Versatility** | `Text-Only` | N/A | You gain proficiency in one skill of your choice. |
 | **Fleet of Foot** | `Text-Only` | N/A | Your base walking speed increases to 35 feet. |
 | **Mask of the Wild (Alternative)** | `Text-Only` | N/A | You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena. This option can replace Fleet of Foot. |
@@ -801,7 +801,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Relentless Endurance** | `Text-Only` | N/A | When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. Once you use this trait, you canâ€™t do so again until you finish a long rest. |
+| **Relentless Endurance** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Savage Attacks** | `Text-Only` | N/A | When you score a critical hit with a melee weapon attack, you can roll one of the weaponâ€™s damage dice one additional time and add it to the extra damage of the critical hit. |
 
 ---
@@ -813,7 +813,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Brave** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Brave',"; src\data\monsters.generated.ts: ""name": "Aura of Bravery","; src\data\naval\crewTraits.ts: "'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },"; src\utils\world\nobleHouseGenerator.ts: "'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull'," |
+| **Brave** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Halfling Nimbleness** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Halfling Nimbleness'," |
 | **Luck** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\FeatSelection.tsx: "*   like Proficiency-scaled Initiative and Lucky points."; src\components\DesignPreview\steps\PreviewIcons.tsx: "'Luck & Games': ["; src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Lucky',"; src\components\Glossary\IconRegistry.tsx: "// MDI Luck & Conditions"; src\data\deities\index.ts: "titles: ['The Changebringer', 'Lady of Luck'],"; src\data\feats\featsData.ts: "name: 'Lucky',"; src\data\items\generatedGlossaryItems.ts: ""name": "Stone of Good Luck","; src\systems\crafting\craftingAchievements.ts: "name: 'Lucky',"; src\systems\economy\BusinessManagement.ts: "{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },"; src\systems\economy\NpcBusinessManager.ts: "'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'"; src\types\character.d.ts: "/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */"; src\types\character.ts: "// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.)."; src\utils\character\characterUtils.ts: "* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =" |
 | **Naturally Stealthy** | `Text-Only` | N/A | You can take the Hide action even when you are obscured only by a creature that is at least one size larger than you. (Note: Specific conditions for Hide action not yet fully mechanically enforced). |
@@ -846,7 +846,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Lucky** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\FeatSelection.tsx: "*   like Proficiency-scaled Initiative and Lucky points."; src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Lucky',"; src\data\feats\featsData.ts: "name: 'Lucky',"; src\systems\crafting\craftingAchievements.ts: "name: 'Lucky',"; src\systems\economy\BusinessManagement.ts: "{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },"; src\systems\economy\NpcBusinessManager.ts: "'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'"; src\types\character.d.ts: "/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */"; src\types\character.ts: "// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.)."; src\utils\character\characterUtils.ts: "* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =" |
-| **Brave** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Brave',"; src\data\monsters.generated.ts: ""name": "Aura of Bravery","; src\data\naval\crewTraits.ts: "'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },"; src\utils\world\nobleHouseGenerator.ts: "'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull'," |
+| **Brave** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Halfling Nimbleness** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Halfling Nimbleness'," |
 | **Ever Hospitable** | `Text-Only` | N/A | When you make a Charisma (Persuasion) check or an ability check involving brewer's supplies or cook's utensils, you can roll a d4 and add the number rolled to the ability check. |
 | **Innkeeper's Magic** | `Text-Only` | N/A | You know the Prestidigitation cantrip. You can also cast the Purify Food and Drink and Unseen Servant spells with this trait. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Long Rest. Charisma is your spellcasting ability for these spells. |
@@ -864,7 +864,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 | **High Elf Cantrip** | `Text-Only` | N/A | You know the Prestidigitation cantrip (or another Wizard cantrip of your choice). You can replace it with a different Wizard cantrip after finishing a Long Rest. Intelligence is your spellcasting ability for it. |
@@ -899,9 +899,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Powerful Build** | `Text-Only` | N/A | You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Large Form** | `Text-Only` | N/A | Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. |
-| **Hill's Tumble** | `Text-Only` | N/A | When you hit a Large or smaller creature with an attack roll, you can knock the target prone. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Hill's Tumble** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -915,8 +915,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
-| **Fey Gift** | `Text-Only` | N/A | You can take the Help action as a bonus action a number of times equal to your Proficiency Bonus per long rest. |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Fey Gift** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Fortune from the Many** | `Text-Only` | N/A | When you miss with an attack roll or fail an ability check or saving throw, you can reroll and use the bonus equal to your Proficiency Bonus. |
 
 ---
@@ -959,7 +959,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Dual Mind** | `Text-Only` | N/A | You have advantage on all Wisdom saving throws. |
+| **Dual Mind** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Mental Discipline** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Mind Link** | `Text-Only` | N/A | You can speak telepathically to any creature you can see within 10 times your level; you can grant one creature the ability to reply telepathically for 1 hour. |
 | **Severed from Dreams** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
@@ -975,7 +975,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Fearless** | `Text-Only` | N/A | You have advantage on saving throws to avoid or end the frightened condition, and you can reroll failed saves once per rest. |
+| **Fearless** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Kender Curiosity** | `Text-Only` | N/A | You gain proficiency in one skill of your choice from Insight, Investigation, or Sleight of Hand. |
 | **Taunt** | `Implemented` | Custom system logic | Referenced in: src\commands\effects\UtilityCommand.ts: "newState = this.applyTaunt(newState, target, effect)"; src\commands\__tests__\UtilityCommand.test.ts: "describe('Taunt Mechanics', () => {"; src\config\statusIcons.ts: "'Taunted': '🤬',"; src\systems\spells\validation\spellValidator.ts: "const TauntEffect = z.object({"; src\types\spells.d.ts: "taunt?: TauntEffect;"; src\types\spells.ts: "taunt?: TauntEffect;"; src\types\visuals.ts: "taunted: { id: 'taunted', label: 'Taunted', icon: '🤬', color: '#7F1D1D', description: 'Must attack the taunter.' }, // red-900" |
 
@@ -990,8 +990,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Expert Duplication** | `Text-Only` | N/A | When you copy writing or craftwork produced by yourself or someone else, you have advantage on any ability checks you make to produce an exact duplicate. |
-| **Kenku Recall** | `Text-Only` | N/A | Thanks to your supernaturally good memory, you have proficiency in two skills of your choice from the following list: Acrobatics, Deception, History, Investigation, Nature, Perception, Sleight of Hand, Stealth, and Survival. Moreover, when you make an ability check using any skill in which you have proficiency, you can give yourself advantage on the check before rolling the d20. You can use this advantage a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. |
+| **Expert Duplication** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Kenku Recall** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Mimicry** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Mimicry"," |
 
 ---
@@ -1005,8 +1005,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Draconic Cry** | `Text-Only` | N/A | As a bonus action, you can let out a cry that grants you and allies within 10 feet temporary advantage on attacks until the end of your turn. |
-| **Kobold Legacy** | `Text-Only` | N/A | You possess a draconic legacy that grants you either Craftiness (skill proficiency), Defiance (advantage on saving throws vs. fear), or another legacy benefit determined by DM. |
+| **Draconic Cry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Kobold Legacy** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -1036,7 +1036,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Lucky** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\FeatSelection.tsx: "*   like Proficiency-scaled Initiative and Lucky points."; src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Lucky',"; src\data\feats\featsData.ts: "name: 'Lucky',"; src\systems\crafting\craftingAchievements.ts: "name: 'Lucky',"; src\systems\economy\BusinessManagement.ts: "{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },"; src\systems\economy\NpcBusinessManager.ts: "'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'"; src\types\character.d.ts: "/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */"; src\types\character.ts: "// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.)."; src\utils\character\characterUtils.ts: "* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =" |
-| **Brave** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Brave',"; src\data\monsters.generated.ts: ""name": "Aura of Bravery","; src\data\naval\crewTraits.ts: "'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },"; src\utils\world\nobleHouseGenerator.ts: "'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull'," |
+| **Brave** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Halfling Nimbleness** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Halfling Nimbleness'," |
 | **Naturally Stealthy** | `Text-Only` | N/A | You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you. |
 
@@ -1054,7 +1054,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Bite** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Bite"," |
 | **Hold Breath** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Hold Breath"," |
 | **Hungry Jaws** | `Text-Only` | N/A | As a bonus action, you can make a special bite attack that grants temporary hit points equal to your Constitution modifier on a hit. |
-| **Natural Armor** | `Implemented` | Custom system logic | Referenced in: src\types\ui.ts: "/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */" |
+| **Natural Armor** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterSheet\Overview\CharacterOverview.tsx: "{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className="font-semibold text-amber-300">{character.modifiers.baseArmorClass} + Dex</span></p>}"; src\types\ui.ts: "/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */" |
 
 ---
 
@@ -1068,7 +1068,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Shifting** | `Implemented` | Custom system logic | Referenced in: src\data\biomes.ts: "{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 }," |
+| **Shifting** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Fangs** | `Text-Only` | N/A | While shifted, you can use your elongated fangs to make an unarmed strike as a Bonus Action. If you hit with your fangs, you deal piercing damage equal to 1d6 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike. |
 
 ---
@@ -1083,7 +1083,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Lucky** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\FeatSelection.tsx: "*   like Proficiency-scaled Initiative and Lucky points."; src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Lucky',"; src\data\feats\featsData.ts: "name: 'Lucky',"; src\systems\crafting\craftingAchievements.ts: "name: 'Lucky',"; src\systems\economy\BusinessManagement.ts: "{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },"; src\systems\economy\NpcBusinessManager.ts: "'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'"; src\types\character.d.ts: "/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */"; src\types\character.ts: "// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.)."; src\utils\character\characterUtils.ts: "* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =" |
-| **Brave** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Brave',"; src\data\monsters.generated.ts: ""name": "Aura of Bravery","; src\data\naval\crewTraits.ts: "'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },"; src\utils\world\nobleHouseGenerator.ts: "'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull'," |
+| **Brave** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Halfling Nimbleness** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Halfling Nimbleness'," |
 | **Child of the Wood** | `Text-Only` | N/A | You know the Druidcraft cantrip. When you reach 3rd level, you can cast the Entangle spell once with this trait and regain the ability to do so when you finish a Long Rest. When you reach 5th level, you can cast the Spike Growth spell once with this trait and regain the ability to do so when you finish a Long Rest. Casting these spells with this trait doesn't require material components. Wisdom is your spellcasting ability for these spells. |
 | **Timberwalk** | `Text-Only` | N/A | Ability checks made to track you have Disadvantage, and you can move across difficult terrain made of nonmagical plants and undergrowth without expending extra movement. |
@@ -1099,10 +1099,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Loxodon Serenity** | `Text-Only` | N/A | You have advantage on saving throws against being charmed or frightened. |
-| **Natural Armor** | `Implemented` | Custom system logic | Referenced in: src\types\ui.ts: "/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */" |
+| **Loxodon Serenity** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Natural Armor** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterSheet\Overview\CharacterOverview.tsx: "{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className="font-semibold text-amber-300">{character.modifiers.baseArmorClass} + Dex</span></p>}"; src\types\ui.ts: "/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */" |
 | **Trunk** | `Implemented` | Custom system logic | Referenced in: src\components\BattleMap\terrain\DecorationProps.tsx: "// Trunk — thick, tall, visible at tactical zoom"; src\components\Submap\painters\SubmapDoodadPainter.ts: "// Trunk"; src\components\Submap\painters\SubmapFeaturePainter.ts: "// Trunk"; src\data\landmarks.ts: "nameTemplate: ['Hidden Cache', 'Smuggler\'s Den', 'Hollowed Tree Trunk']," |
-| **Keen Smell** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Keen Smell"," |
+| **Keen Smell** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -1116,7 +1116,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Lucky** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\FeatSelection.tsx: "*   like Proficiency-scaled Initiative and Lucky points."; src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Lucky',"; src\data\feats\featsData.ts: "name: 'Lucky',"; src\systems\crafting\craftingAchievements.ts: "name: 'Lucky',"; src\systems\economy\BusinessManagement.ts: "{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },"; src\systems\economy\NpcBusinessManager.ts: "'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'"; src\types\character.d.ts: "/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */"; src\types\character.ts: "// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.)."; src\utils\character\characterUtils.ts: "* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =" |
-| **Brave** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Brave',"; src\data\monsters.generated.ts: ""name": "Aura of Bravery","; src\data\naval\crewTraits.ts: "'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },"; src\utils\world\nobleHouseGenerator.ts: "'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull'," |
+| **Brave** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Halfling Nimbleness** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Halfling Nimbleness'," |
 | **Medical Intuition** | `Text-Only` | N/A | When you make a Wisdom (Medicine) check or an ability check using an herbalism kit, you can roll a d4 and add the number rolled to the ability check. |
 | **Healing Touch** | `Text-Only` | N/A | You can cast the Cure Wounds spell with this trait. Starting at 3rd level, you can also cast Lesser Restoration with it. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Long Rest. Wisdom is your spellcasting ability for these spells. |
@@ -1166,9 +1166,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Adrenaline Rush** | `Text-Only` | N/A | You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest. (Note: Mechanical effects like THP gain, usage tracking, and bonus action not yet fully implemented). |
+| **Adrenaline Rush** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Darkvision (120ft)** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Relentless Endurance** | `Text-Only` | N/A | When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place). |
+| **Relentless Endurance** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -1182,10 +1182,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Incisive Sense** | `Text-Only` | N/A | You have advantage on Intelligence (Investigation) and Wisdom (Insight) checks. |
+| **Incisive Sense** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Blessing of the Moon Weaver** | `Text-Only` | N/A | You know the Light cantrip. When you reach 3rd level, you can cast the Sleep spell once with this trait and regain the ability to do so when you finish a Long Rest. When you reach 5th level, you can cast the Invisibility spell (targeting yourself only) once with this trait and regain the ability to do so when you finish a Long Rest. Casting these spells with this trait doesn't require material components. Wisdom is your spellcasting ability for these spells. |
 
 ---
@@ -1200,8 +1200,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Adrenaline Rush** | `Text-Only` | N/A | You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. |
-| **Relentless Endurance** | `Text-Only` | N/A | When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. |
+| **Adrenaline Rush** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
+| **Relentless Endurance** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Hunter's Intuition** | `Text-Only` | N/A | When you make a Wisdom (Perception) or Wisdom (Survival) check, you can roll a d4 and add the number rolled to the ability check. |
 | **Finder's Magic** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
 | **Spells of the Mark** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
@@ -1218,7 +1218,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Amorphous** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Amorphous","; src\services\RaceSpriteConfig.ts: "plasmoid: 'changeling', // Amorphous → shapeshifter" |
+| **Amorphous** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Hold Breath** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Hold Breath"," |
 | **Natural Resilience** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Shape Self** | `Text-Only` | N/A | As an action, you can reshape your body or revert it to its default form. |
@@ -1236,9 +1236,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
 | **Celestial Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
-| **Healing Hands** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']" |
+| **Healing Hands** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Light Bearer** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Radiant Soul** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
+| **Radiant Soul** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -1252,8 +1252,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Vengeful Assault** | `Text-Only` | N/A | When you take damage from a creature in range of a weapon you are wielding, you can use your reaction to make an attack with the weapon against that creature. Once you use this trait, you can't do so again until you finish a short or long rest. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Vengeful Assault** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -1270,7 +1270,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -1284,7 +1284,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Gnome Cunning** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Gnome Cunning"," |
+| **Gnome Cunning** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Artificer's Lore** | `Text-Only` | N/A | Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply. |
 | **Tinker** | `Implemented` | Custom system logic | Referenced in: src\data\classes\index.ts: "{ id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },"; src\data\items\generatedGlossaryItems.ts: ""name": "Tinker's Tools","; src\data\monsters.generated.ts: ""sourceName": "Tinker's Magic","; src\hooks\useCharacterProficiencies.ts: "toolProfs.add("Tinker's Tools");"; src\systems\spells\validation\spellValidator.ts: "// access. Mending is the pilot case: Artificers receive it from Tinker's Magic," |
 
@@ -1319,7 +1319,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Ram** | `Implemented` | Custom system logic | Referenced in: src\data\items\generatedGlossaryItems.ts: ""name": "Portable Ram","; src\data\monsters.generated.ts: ""description": "The chimera makes one Ram attack, one Bite attack, and one Claw attack. It can replace the Claw attack with a use of Fire Breath if available.","; src\data\navalManeuvers.ts: "name: 'Ramming Speed',"; src\services\__tests__\legacyService.test.ts: "legacy.heirs.push({ id: 'heir-3', name: 'Ramsay', relation: 'Bastard', age: 18, isDesignatedHeir: true });"; src\systems\economy\BusinessManagement.ts: "// --- New Business Ramp-Up ---"; src\types\naval.d.ts: "type: 'Ballista' | 'Cannon' | 'Mangonel' | 'Ram';"; src\types\naval.ts: "type: 'Ballista' | 'Cannon' | 'Mangonel' | 'Ram';"; src\utils\world\nobleHouseGenerator.ts: "'Brynden', 'Jon', 'Robin', 'Yohn', 'Nestor', 'Lyn', 'Walder', 'Roose', 'Ramsay'," |
-| **Magic Resistance** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Magic Resistance"," |
+| **Magic Resistance** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Mirthful Leaps** | `Text-Only` | N/A | When you make a long or high jump, you can roll a d8 and add it to the distance. |
 | **Reveler** | `Text-Only` | N/A | You are proficient in Performance and Persuasion. |
 
@@ -1336,9 +1336,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
 | **Celestial Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
-| **Healing Hands** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']" |
+| **Healing Hands** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Light Bearer** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
-| **Radiant Consumption** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
+| **Radiant Consumption** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -1352,7 +1352,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 | **Child of the Sea** | `Text-Only` | N/A | You can breathe air and water, and you have a swimming speed equal to your walking speed. |
@@ -1370,7 +1370,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Deductive Intuition** | `Text-Only` | N/A | When you make an Intelligence (Investigation) or Wisdom (Insight) check, you can roll a d4 and add the number rolled to the ability check. |
 | **Magical Detection** | `Text-Only` | N/A | You can cast the Detect Magic and Detect Poison and Disease spells with this trait. Starting at 3rd level, you can also cast the See Invisibility spell with it. Once you cast any of these spells with this trait, you can't cast that spell with it again until you finish a Long Rest. Intelligence is your spellcasting ability for these spells, and you don't require material components for them. |
 | **Spells of the Mark** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\shared\CharacterCreatorTraitsTable.tsx: "{trait.name === 'Spells of the Mark' && spellsOfTheMark ? ("; src\components\Glossary\GlossarySpellsOfTheMarkTable.tsx: "<h4 className="text-sm font-bold text-amber-300">Spells of the Mark</h4>" |
@@ -1387,7 +1387,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 | **Blessing of the Raven Queen** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
@@ -1405,7 +1405,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 | **Cunning Intuition** | `Text-Only` | N/A | When you make a Charisma (Performance) or Dexterity (Stealth) check, you can roll a d4 and add the number rolled to the ability check. |
@@ -1427,7 +1427,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -1456,10 +1456,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Fey Step (Spring)** | `Text-Only` | N/A | As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, you can also touch one willing creature within 5 feet of you. That creature then teleports instead of you, appearing in an unoccupied space of your choice within 30 feet of you. |
+| **Fey Step (Spring)** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Season Association** | `Text-Only` | N/A | Spring represents cheerfulness and celebration, marked by merriment and hope. You can change your season during a long rest, which changes your Fey Step effect. |
 
 ---
@@ -1473,9 +1473,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Powerful Build** | `Text-Only` | N/A | You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Large Form** | `Text-Only` | N/A | Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. |
-| **Stone's Endurance** | `Text-Only` | N/A | When you take damage, you can use your Reaction to roll a d12. Add your Constitution modifier to the number rolled and reduce the damage by that total. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Stone's Endurance** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -1488,9 +1488,9 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Powerful Build** | `Text-Only` | N/A | You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift. |
-| **Large Form** | `Text-Only` | N/A | Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest. |
-| **Storm's Thunder** | `Text-Only` | N/A | When you take damage from a creature within 60 feet of you, you can use your Reaction to cause that creature to take 1d8 thunder damage. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. |
+| **Powerful Build** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Large Form** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
+| **Storm's Thunder** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 
 ---
 
@@ -1504,7 +1504,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Windwright's Intuition** | `Text-Only` | N/A | When you make a Dexterity (Acrobatics) check or any ability check involving navigator's tools, you can roll a d4 and add the number rolled to the ability check. |
 | **Storm's Boon** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Headwinds** | `Text-Only` | N/A | You know the Gust cantrip. Starting at 3rd level, you can cast the Gust of Wind spell once with this trait, and you regain the ability to cast it when you finish a Long Rest. Charisma is your spellcasting ability for these spells. |
@@ -1522,7 +1522,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Lucky** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\FeatSelection.tsx: "*   like Proficiency-scaled Initiative and Lucky points."; src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Lucky',"; src\data\feats\featsData.ts: "name: 'Lucky',"; src\systems\crafting\craftingAchievements.ts: "name: 'Lucky',"; src\systems\economy\BusinessManagement.ts: "{ name: 'Lucky Shipment', description: 'A supplier delivered extra goods at no charge — a gesture of good faith.', reputationChange: 2, goldChange: 0, customerSatisfactionChange: 5 },"; src\systems\economy\NpcBusinessManager.ts: "'Laughing', 'Weary', 'Burning', 'Frozen', 'Lucky', 'Crimson', 'Howling'"; src\types\character.d.ts: "/** Lucky (2024): Creates a Luck Points pool = Proficiency Bonus, resets on Long Rest. */"; src\types\character.ts: "// WHAT CHANGED: Added several proficiency-scaling flags (Lucky, Alert, etc.)."; src\utils\character\characterUtils.ts: "* Alert (Initiative = Proficiency Bonus) and Lucky (Luck Points pool =" |
-| **Brave** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Brave',"; src\data\monsters.generated.ts: ""name": "Aura of Bravery","; src\data\naval\crewTraits.ts: "'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },"; src\utils\world\nobleHouseGenerator.ts: "'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull'," |
+| **Brave** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Halfling Nimbleness** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewTables.tsx: "name: 'Halfling Nimbleness'," |
 | **Stout Resilience** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 
@@ -1538,10 +1538,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Fey Step (Summer)** | `Text-Only` | N/A | As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, each creature of your choice that you can see within 5 feet of you takes fire damage equal to your Proficiency Bonus. |
+| **Fey Step (Summer)** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Season Association** | `Text-Only` | N/A | Summer represents boldness and aggression, a filtered fury of the burning sun. You can change your season during a long rest, which changes your Fey Step effect. |
 
 ---
@@ -1556,7 +1556,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Shifting** | `Implemented` | Custom system logic | Referenced in: src\data\biomes.ts: "{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 }," |
+| **Shifting** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Swift Stride** | `Text-Only` | N/A | While shifted, your walking speed increases by 10 feet. Additionally, you can move up to 10 feet as a reaction when a creature ends its turn within 5 feet of you. This reactive movement doesn't provoke opportunity attacks. |
 
 ---
@@ -1587,7 +1587,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Chameleon Carapace** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Chameleon Carapace"," |
+| **Chameleon Carapace** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Secondary Arms** | `Text-Only` | N/A | You possess two smaller arms that let you manipulate objects, open doors, or hold tools. |
 | **Sleepless** | `Text-Only` | N/A | You do not require sleep during a long rest, though you must remain still to gain its benefits. |
 | **Thri-kreen Telepathy** | `Text-Only` | N/A | You can communicate telepathically with any creature within 120 feet that understands a language and can see you. |
@@ -1619,7 +1619,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Claws** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Claws"," |
 | **Hold Breath** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Hold Breath"," |
 | **Natural Armor (Tortle)** | `Text-Only` | N/A | Your shell grants you a base AC of 17; you can still gain the benefit of a shield but not wear armor. |
-| **Shell Defense** | `Text-Only` | N/A | As an action, you can withdraw into your shell to gain +4 bonus to AC and advantage on Strength and Constitution saves until you emerge. |
+| **Shell Defense** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -1649,7 +1649,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Creature Type** | `Implemented` | Creature type classification | Creature Type tags are mapped dynamically for immunities/targeting (e.g. humanoid, construct, undead). |
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
-| **Vedalken Dispassion** | `Text-Only` | N/A | You have advantage on saving throws to avoid or end the charmed condition, and magic can’t put you to sleep. |
+| **Vedalken Dispassion** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Tireless Precision** | `Text-Only` | N/A | Once per short rest, you can reroll an Intelligence or Wisdom ability check and must use the new roll. |
 | **Partially Amphibious** | `Text-Only` | N/A | You can hold your breath for 10 minutes and can breathe both air and water. |
 | **Intellect** | `Implemented` | Custom system logic | Referenced in: src\data\items\generatedGlossaryItems.ts: ""name": "Headband of Intellect","; src\data\monsters.generated.ts: ""name": "Intellect Devourer","; src\systems\spells\validation\targetingSchemas.ts: "// Intellect Fortress-style scaling lets a spell affect more targets only" |
@@ -1668,7 +1668,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Black Blood Healing** | `Text-Only` | N/A | When you roll a 1 or 2 on a Hit Die at the end of a Short Rest, you can reroll the die and must use the new roll. |
 | **Limited Telepathy** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Limited Telepathy"," |
 | **Persuasive** | `Text-Only` | N/A | You gain proficiency in the Persuasion skill. |
-| **Telepathic Insight** | `Text-Only` | N/A | You have advantage on Wisdom and Charisma saving throws. |
+| **Telepathic Insight** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -1735,7 +1735,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Breath Weapon** | `Text-Only` | N/A | You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest. |
 | **Damage Resistance** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Draconic Language** | `Text-Only` | N/A | You can speak, read, and write Draconic. |
+| **Draconic Language** | `Implemented` | Racial modifier materializer | Racial languages are extracted and applied to character state. |
 
 ---
 
@@ -1749,8 +1749,8 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Shifting** | `Implemented` | Custom system logic | Referenced in: src\data\biomes.ts: "{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 }," |
-| **Mark the Scent** | `Text-Only` | N/A | While shifted, you have advantage on Wisdom checks, and no creature within 30 feet of you can make an attack roll with advantage against you unless you're incapacitated. |
+| **Shifting** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
+| **Mark the Scent** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 
 ---
 
@@ -1764,10 +1764,10 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Fey Step (Winter)** | `Text-Only` | N/A | As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, one creature of your choice that you can see within 5 feet of you before you teleport must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be frightened of you until the end of your next turn. |
+| **Fey Step (Winter)** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Season Association** | `Text-Only` | N/A | Winter represents contemplation and dolor, introspection and grief. You can change your season during a long rest, which changes your Fey Step effect. |
 
 ---
@@ -1782,7 +1782,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Fey Ancestry** | `Implemented` | Custom system logic | Referenced in: src\systems\planar\FeywildMechanics.ts: "// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm." |
+| **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\Race\RaceDetailPane.tsx: "/** Elf - Keen Senses (pick 1 of 3) */"; src\components\CharacterCreator\Race\RaceSelection.tsx: "? 'Please select a Keen Senses skill first'"; src\components\CharacterCreator\SkillSelection.tsx: "// Prepare options for Elf Keen Senses racial feature"; src\components\CharacterCreator\utils\skillSelectionUtils.ts: "grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };" |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
 | **Fleet of Foot** | `Text-Only` | N/A | Your base walking speed increases to 35 feet. |
@@ -1801,7 +1801,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Gnome Cunning** | `Implemented` | Custom system logic | Referenced in: src\data\monsters.generated.ts: ""name": "Gnome Cunning"," |
+| **Gnome Cunning** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Gifted Scribe** | `Text-Only` | N/A | When you make an Intelligence (History) check or an ability check using calligrapher's supplies, you can roll a d4 and add the number rolled to the ability check. |
 | **Scribe's Insight** | `Text-Only` | N/A | You know the Message cantrip. You can also cast Comprehend Languages once with this trait, and you regain the ability to cast it when you finish a Long Rest. Starting at 3rd level, you can cast the Magic Mouth spell with this trait, and you regain the ability to cast it when you finish a Long Rest. Intelligence is your spellcasting ability for these spells. |
 | **Spells of the Mark** | `Implemented` | Custom system logic | Referenced in: src\components\CharacterCreator\shared\CharacterCreatorTraitsTable.tsx: "{trait.name === 'Spells of the Mark' && spellsOfTheMark ? ("; src\components\Glossary\GlossarySpellsOfTheMarkTable.tsx: "<h4 className="text-sm font-bold text-amber-300">Spells of the Mark</h4>" |
@@ -1818,7 +1818,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Size** | `Implemented` | Size class category mapping | Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts). |
 | **Speed** | `Implemented` | Movement speed parser | calculateCharacterSpeedFromRace parses numeric value from the Speed trait string. |
 | **Vision** | `Implemented` | Darkvision range parser | calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string. |
-| **Magic Resistance** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
+| **Magic Resistance** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Poison Resilience** | `Implemented` | Damage-type defense materializer | Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state. |
 | **Serpentine Casting** | `Implemented` | Racial Spellcasting Engine | Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter. |
 

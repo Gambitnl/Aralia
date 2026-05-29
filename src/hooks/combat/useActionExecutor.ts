@@ -35,6 +35,7 @@ import {
   generateId,
   getActionMessage,
   rollDice,
+  rollD20,
   getOccupiedTiles,
   getCharacterSizeMultiplier
 } from '../../utils/combatUtils';
@@ -313,7 +314,19 @@ export const useActionExecutor = ({
         }
       });
 
-      const d20 = rollDice('1d20');
+      let hasAdvantage = false;
+      let hasDisadvantage = false;
+      attacker.modifiers?.advantage.forEach(adv => {
+        if (adv.toLowerCase().includes('attack')) hasAdvantage = true;
+      });
+      attacker.modifiers?.disadvantage.forEach(dis => {
+        if (dis.toLowerCase().includes('attack')) hasDisadvantage = true;
+      });
+
+      const d20 = rollD20({
+        advantage: hasAdvantage && !hasDisadvantage,
+        disadvantage: hasDisadvantage && !hasAdvantage
+      });
 
       // Dynamic modifier: Finesse → Dex, ranged → Dex, otherwise Str
       let abilityScore = attacker.stats.strength;

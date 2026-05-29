@@ -248,6 +248,17 @@ export interface CombatCharacter {
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
   savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
+  modifiers?: {
+    advantage: string[];
+    disadvantage: string[];
+    bonuses: string[];
+    baseArmorClass?: number;
+    acBonus?: number;
+    reachBonus?: number;
+    powerfulBuild?: boolean;
+    unendingBreath?: boolean;
+    languages?: string[];
+  };
   /** Tracks which feat effects have been used this turn (e.g., 'slasher_slow' for once-per-turn limit) */
   featUsageThisTurn?: string[];
   // Optional bookkeeping for analytics/logs; these were used in factories/tests.

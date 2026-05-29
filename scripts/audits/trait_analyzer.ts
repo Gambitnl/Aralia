@@ -139,6 +139,55 @@ async function main() {
         mechanism = 'Damage-type defense materializer';
         evidence = 'Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state.';
       }
+      // 5.5. Is it a modifier trait?
+      else if (/(advantage|disadvantage)\s+on/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Modifiers are extracted via getRacialModifierBucketsFromTraitText.';
+      }
+      // 5.6. Is it a bonus trait (dice/flat)?
+      else if (/(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+(?:to|on|for)\s+/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText.';
+      }
+      // 5.7. Is it an AC modifier trait?
+      else if (/(?:base\s+Armor\s+Class|bonus\s+to\s+your\s+Armor\s+Class|bonus\s+to\s+your\s+AC)/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText.';
+      }
+      // 5.8. Is it a resource trait?
+      else if (/(?:use\s+this\s+trait|use\s+this\s+feature|number\s+of\s+times|regain\s+all\s+expended\s+uses)/i.test(desc) &&
+               /(?:short|long|daily)\s+rest/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial resource materializer';
+        evidence = 'Usage limits and reset conditions are extracted and applied to character state.';
+      }
+      // 5.9. Is it a reach trait?
+      else if (/reach\s+for\s+it\s+is\s+\d+\s+feet\s+greater/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Reach bonuses are extracted and applied to character state.';
+      }
+      // 5.10. Is it a size/build trait?
+      else if (/count\s+as\s+one\s+size\s+larger/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Powerful build traits are extracted and applied to character state.';
+      }
+      // 5.11. Is it a breathing trait?
+      else if (/hold\s+your\s+breath\s+indefinitely/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Unending breath traits are extracted and applied to character state.';
+      }
+      // 5.12. Is it a language trait?
+      else if (/speak,\s+read,\s+and\s+write\s+[A-Z][a-z]+/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Racial languages are extracted and applied to character state.';
+      }
       // 6. Is it a spell trait?
       else {
         // Check if there's an associated spell

@@ -150,9 +150,9 @@
         "rawText": "Unending Breath: You can hold your breath indefinitely while you are not Incapacitated.",
         "name": "Unending Breath",
         "description": "You can hold your breath indefinitely while you are not Incapacitated.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Unending breath traits are extracted and applied to character state."
       },
       {
         "rawText": "Lightning Resistance: You have Resistance to Lightning damage.",
@@ -214,8 +214,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -245,9 +245,9 @@
         "rawText": "Starlight Step: As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
         "name": "Starlight Step",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Astral Trance: When you take a Long Rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player's Handbook. These proficiencies last until the end of your next Long Rest.",
@@ -292,17 +292,17 @@
         "rawText": "Armored Casing: While you are not wearing armor, your base Armor Class is 13 + your Dexterity modifier.",
         "name": "Armored Casing",
         "description": "While you are not wearing armor, your base Armor Class is 13 + your Dexterity modifier.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Built for Success: You can add a d4 to one attack roll, ability check, or saving throw after you see the d20 roll; you can do so a number of times equal to your Proficiency Bonus per long rest.",
         "name": "Built for Success",
         "description": "You can add a d4 to one attack roll, ability check, or saving throw after you see the d20 roll; you can do so a number of times equal to your Proficiency Bonus per long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Healing Machine: If someone casts mending on you, you can spend a Hit Die, roll it, and regain hit points equal to the roll plus your Constitution modifier; cure wounds, healing word, mass cure wounds, mass healing word, and spare the dying treat you as valid targets.",
@@ -380,8 +380,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -403,9 +403,9 @@
         "rawText": "Fey Step (Autumn): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, up to two creatures of your choice that you can see within 10 feet of you must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be charmed by you for 1 minute, or until you or your companions deal any damage to the target.",
         "name": "Fey Step (Autumn)",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, up to two creatures of your choice that you can see within 10 feet of you must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be charmed by you for 1 minute, or until you or your companions deal any damage to the target.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Season Association: Autumn represents peace and goodwill, with a desire to share and give. You can change your season during a long rest, which changes your Fey Step effect.",
@@ -546,16 +546,16 @@
         "name": "Shifting",
         "description": "As a Bonus Action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your Proficiency Bonus. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Whenever you shift, you also gain an additional benefit based on your subrace (see Bestial Durability).",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\biomes.ts: \"{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 },\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Bestial Durability: Whenever you shift, you gain 1d6 additional temporary hit points. While shifted, you also have a +1 bonus to your Armor Class.",
         "name": "Bestial Durability",
         "description": "Whenever you shift, you gain 1d6 additional temporary hit points. While shifted, you also have a +1 bonus to your Armor Class.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -624,9 +624,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -695,9 +695,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -766,9 +766,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -837,9 +837,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -885,24 +885,24 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Long-Limbed: When you make a melee attack on your turn, your reach for it is 5 feet greater than normal.",
         "name": "Long-Limbed",
         "description": "When you make a melee attack on your turn, your reach for it is 5 feet greater than normal.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Reach bonuses are extracted and applied to character state."
       },
       {
         "rawText": "Powerful Build: You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Powerful build traits are extracted and applied to character state."
       },
       {
         "rawText": "Sneaky: You are proficient in the Stealth skill. In addition, without squeezing, you can move through and stop in a space large enough for a Small creature.",
@@ -963,9 +963,9 @@
         "rawText": "Equine Build: You count as one size larger when determining your carrying capacity and the weight you can push or drag. In addition, any climb that requires hands and feet is especially difficult for you because of your equine legs. When you make such a climb, each foot of movement costs you 4 extra feet instead of the normal 1 extra foot.",
         "name": "Equine Build",
         "description": "You count as one size larger when determining your carrying capacity and the weight you can push or drag. In addition, any climb that requires hands and feet is especially difficult for you because of your equine legs. When you make such a climb, each foot of movement costs you 4 extra feet instead of the normal 1 extra foot.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Powerful build traits are extracted and applied to character state."
       },
       {
         "rawText": "Hooves: You have hooves that you can use to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier bludgeoning damage, instead of the bludgeoning damage normal for an unarmed strike.",
@@ -1128,25 +1128,25 @@
         "rawText": "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Large Form",
         "description": "Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Cloud's Jaunt: As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
         "name": "Cloud's Jaunt",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -1215,9 +1215,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -1263,16 +1263,16 @@
         "name": "Gnome Cunning",
         "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Gnome Cunning\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Stone Camouflage: You have Advantage on Dexterity (Stealth) checks to hide in rocky terrain. You can use this trait a number of times equal to your proficiency bonus. After you use this trait, you must finish a long rest before you can use it again.",
         "name": "Stone Camouflage",
         "description": "You have Advantage on Dexterity (Stealth) checks to hide in rocky terrain. You can use this trait a number of times equal to your proficiency bonus. After you use this trait, you must finish a long rest before you can use it again.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Stone Camouflage\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Gift of the Svirfneblin: Starting at 3rd level, you can cast the Disguise Self spell with this trait. Starting at 5th level, you can also cast the Nondetection spell with it, without requiring a material component. Once you cast either of these spells with this trait, you can't cast that spell with it again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).",
@@ -1325,9 +1325,9 @@
         "rawText": "Forceful Presence: You can use your understanding of creative diplomacy or intimidation to guide a conversation in your favor. When you make a Charisma (Intimidation or Persuasion) check, you can do so with advantage. Once you use this trait, you can't do so again until you finish a short or long rest.",
         "name": "Forceful Presence",
         "description": "You can use your understanding of creative diplomacy or intimidation to guide a conversation in your favor. When you make a Charisma (Intimidation or Persuasion) check, you can do so with advantage. Once you use this trait, you can't do so again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Draconic Ancestral Legacy: You inherit the might of your dragon ancestors. You know the Thaumaturgy cantrip. You can cast Comprehend Languages once with this trait, and you regain the ability to do so when you finish a long rest. At 5th level, you can cast Detect Magic once with this trait, and you regain the ability to do so when you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
@@ -1341,9 +1341,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -1444,8 +1444,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -1468,8 +1468,8 @@
         "name": "Sunlight Sensitivity",
         "description": "You have disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight when you, the target of your attack, or whatever you are trying to perceive is in direct sunlight.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Sunlight Sensitivity\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Drow Magic: You know the Dancing Lights cantrip. At 3rd level, you learn the Faerie Fire spell. At 5th level, you learn the Darkness spell. You can cast each spell once without expending a spell slot, and you regain the ability to do so when you finish a Long Rest. Charisma is your spellcasting ability for these spells.",
@@ -1538,9 +1538,9 @@
         "rawText": "Psionic Fortitude: You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself.",
         "name": "Psionic Fortitude",
         "description": "You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -1586,8 +1586,8 @@
         "name": "Merge with Stone",
         "description": "You know the Blade Ward cantrip. You can cast it as a Bonus Action a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. Starting at 5th level, you can cast Pass without Trace once per long rest without components.",
         "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter."
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -1632,16 +1632,16 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Fey Step: As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).",
         "name": "Fey Step",
         "description": "As a bonus action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest. When you reach 3rd level, your Fey Step gains an additional effect based on your season (Autumn, Winter, Spring, or Summer). The save DC for these effects is 8 + your proficiency bonus + your chosen spellcasting modifier (Intelligence, Wisdom, or Charisma).",
         "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter."
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -1710,8 +1710,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
@@ -1828,8 +1828,8 @@
         "name": "Healing Hands",
         "description": "As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
@@ -1844,8 +1844,8 @@
         "name": "Necrotic Shroud",
         "description": "Starting at 3rd level, you can use a Bonus Action to unleash the divine energy within yourself, causing your eyes to turn into pools of darkness and two skeletal, ghostly, flightless wings to sprout from your back. The instant you transform, other creatures within 10 feet of you that can see you must succeed on a Charisma saving throw (DC 8 + your Proficiency Bonus + your Charisma modifier) or become frightened of you until the end of your next turn. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, once on each of your turns, you can deal extra necrotic damage to one target when you deal damage to it with an attack or a spell. The extra necrotic damage equals your Proficiency Bonus. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter."
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -1890,25 +1890,25 @@
         "rawText": "Hidden Step: As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.",
         "name": "Hidden Step",
         "description": "As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Powerful Build: You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Powerful build traits are extracted and applied to character state."
       },
       {
         "rawText": "Speech of Beast and Leaf: You have the ability to communicate in a limited manner with Beasts, Plants, and vegetation. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them.",
         "name": "Speech of Beast and Leaf",
         "description": "You have the ability to communicate in a limited manner with Beasts, Plants, and vegetation. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -1992,25 +1992,25 @@
         "rawText": "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Large Form",
         "description": "Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Fire's Burn: When you hit a target with an attack roll, you can deal an extra 1d10 fire damage. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
         "name": "Fire's Burn",
         "description": "When you hit a target with an attack roll, you can deal an extra 1d10 fire damage. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -2056,8 +2056,8 @@
         "name": "Gnome Cunning",
         "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Gnome Cunning\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Natural Illusionist: You know the Minor Illusion cantrip. Intelligence is your spellcasting ability for it.",
@@ -2197,25 +2197,25 @@
         "rawText": "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Large Form",
         "description": "Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Frost's Chill: When you hit a target with an attack roll, you can deal an extra 1d6 cold damage and reduce the target's speed by 10 feet until the start of your next turn. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
         "name": "Frost's Chill",
         "description": "When you hit a target with an attack roll, you can deal an extra 1d6 cold damage and reduce the target's speed by 10 feet until the start of your next turn. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -2252,9 +2252,9 @@
         "rawText": "Astral Spark: When you make an attack roll, saving throw, or ability check, you can add your Proficiency Bonus after you see the d20 roll; you can do so a number of times equal to your Proficiency Bonus per long rest.",
         "name": "Astral Spark",
         "description": "When you make an attack roll, saving throw, or ability check, you can add your Proficiency Bonus after you see the d20 roll; you can do so a number of times equal to your Proficiency Bonus per long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Firearms Mastery: You are proficient with all firearms, ignore the loading property, and firing at long range does not impose disadvantage when using firearms.",
@@ -2268,9 +2268,9 @@
         "rawText": "Hippo Build: You have advantage on Strength checks and saving throws, and you count as one size larger for your carrying capacity and push/drag/lift limits.",
         "name": "Hippo Build",
         "description": "You have advantage on Strength checks and saving throws, and you count as one size larger for your carrying capacity and push/drag/lift limits.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -2370,9 +2370,9 @@
         "rawText": "Mental Discipline: You have advantage on saving throws you make to avoid or end the charmed and frightened conditions on yourself.",
         "name": "Mental Discipline",
         "description": "You have advantage on saving throws you make to avoid or end the charmed and frightened conditions on yourself.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Psychic Resilience: You have resistance to psychic damage.",
@@ -2426,16 +2426,16 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Fury of the Small: When you damage a creature with an attack or a spell and the creature’s size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your proficiency bonus. You can use this trait a number of times equal to your proficiency bonus, regaining all expended uses when you finish a long rest.",
         "name": "Fury of the Small",
         "description": "When you damage a creature with an attack or a spell and the creature’s size is larger than yours, you can cause the attack or spell to deal extra damage to the creature. The extra damage equals your proficiency bonus. You can use this trait a number of times equal to your proficiency bonus, regaining all expended uses when you finish a long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Nimble Escape: You can take the Disengage or Hide action as a bonus action on each of your turns.",
@@ -2512,9 +2512,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -2551,24 +2551,24 @@
         "name": "Giant Ancestry",
         "description": "You are descended from Giants. Choose one supernatural boon from your ancestry (Cloud’s Jaunt, Fire’s Burn, Frost’s Chill, Hill’s Tumble, Stone’s Endurance, or Storm’s Thunder). You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\GiantAncestrySelection.tsx: \"* It allows the player to choose their Giant Ancestry benefit.\"; src\\utils\\character\\characterUtils.ts: \"// GIANT_ANCESTRIES has 'id' like 'Fire', 'Stone', and 'name' like 'Fire Giant Ancestry'\"; src\\utils\\character\\characterValidation.ts: \"// Goliath: Giant Ancestry\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Large Form: Starting at character level 5, you can change your size to Large as a Bonus Action if you’re in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can’t use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
         "name": "Large Form",
         "description": "Starting at character level 5, you can change your size to Large as a Bonus Action if you’re in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10 feet. Once you use this trait, you can’t use it again until you finish a Long Rest. (Note: Level-based features are descriptive for now).",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Powerful Build: You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
         "name": "Powerful Build",
         "description": "You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -2637,9 +2637,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -2716,9 +2716,9 @@
         "rawText": "Vigilant Guardian: When a creature you can see within 5 feet of you is hit by an attack roll, you can use your reaction to swap places with that creature, and you are hit by the attack instead. Once you use this trait, you can't do so again until you finish a Long Rest.",
         "name": "Vigilant Guardian",
         "description": "When a creature you can see within 5 feet of you is hit by an attack roll, you can use your reaction to swap places with that creature, and you are hit by the attack instead. Once you use this trait, you can't do so again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Spells of the Mark: If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Sentinel Spells table are added to the spell list of your spellcasting class.",
@@ -2826,8 +2826,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Skill Versatility: You gain proficiency in two skills of your choice.",
@@ -2889,8 +2889,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
@@ -2952,8 +2952,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
@@ -3015,8 +3015,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
@@ -3078,8 +3078,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
@@ -3148,9 +3148,9 @@
         "rawText": "Relentless Endurance: When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. Once you use this trait, you canâ€™t do so again until you finish a long rest.",
         "name": "Relentless Endurance",
         "description": "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. Once you use this trait, you canâ€™t do so again until you finish a long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Savage Attacks: When you score a critical hit with a melee weapon attack, you can roll one of the weaponâ€™s damage dice one additional time and add it to the extra damage of the critical hit.",
@@ -3195,8 +3195,8 @@
         "name": "Brave",
         "description": "You have Advantage on saving throws you make to avoid or end the Frightened condition.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is a size larger than you, but you can’t stop in the same space.",
@@ -3329,8 +3329,8 @@
         "name": "Brave",
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
@@ -3408,8 +3408,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -3557,25 +3557,25 @@
         "rawText": "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Large Form",
         "description": "Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Hill's Tumble: When you hit a Large or smaller creature with an attack roll, you can knock the target prone. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
         "name": "Hill's Tumble",
         "description": "When you hit a Large or smaller creature with an attack roll, you can knock the target prone. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -3621,16 +3621,16 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws to avoid or end the charmed condition.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Fey Gift: You can take the Help action as a bonus action a number of times equal to your Proficiency Bonus per long rest.",
         "name": "Fey Gift",
         "description": "You can take the Help action as a bonus action a number of times equal to your Proficiency Bonus per long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Fortune from the Many: When you miss with an attack roll or fail an ability check or saving throw, you can reroll and use the bonus equal to your Proficiency Bonus.",
@@ -3792,9 +3792,9 @@
         "rawText": "Dual Mind: You have advantage on all Wisdom saving throws.",
         "name": "Dual Mind",
         "description": "You have advantage on all Wisdom saving throws.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Mental Discipline: You have resistance to psychic damage.",
@@ -3855,9 +3855,9 @@
         "rawText": "Fearless: You have advantage on saving throws to avoid or end the frightened condition, and you can reroll failed saves once per rest.",
         "name": "Fearless",
         "description": "You have advantage on saving throws to avoid or end the frightened condition, and you can reroll failed saves once per rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Kender Curiosity: You gain proficiency in one skill of your choice from Insight, Investigation, or Sleight of Hand.",
@@ -3910,17 +3910,17 @@
         "rawText": "Expert Duplication: When you copy writing or craftwork produced by yourself or someone else, you have advantage on any ability checks you make to produce an exact duplicate.",
         "name": "Expert Duplication",
         "description": "When you copy writing or craftwork produced by yourself or someone else, you have advantage on any ability checks you make to produce an exact duplicate.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Kenku Recall: Thanks to your supernaturally good memory, you have proficiency in two skills of your choice from the following list: Acrobatics, Deception, History, Investigation, Nature, Perception, Sleight of Hand, Stealth, and Survival. Moreover, when you make an ability check using any skill in which you have proficiency, you can give yourself advantage on the check before rolling the d20. You can use this advantage a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.",
         "name": "Kenku Recall",
         "description": "Thanks to your supernaturally good memory, you have proficiency in two skills of your choice from the following list: Acrobatics, Deception, History, Investigation, Nature, Perception, Sleight of Hand, Stealth, and Survival. Moreover, when you make an ability check using any skill in which you have proficiency, you can give yourself advantage on the check before rolling the d20. You can use this advantage a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Mimicry: You can mimic sounds you have heard, including voices. A creature that hears the sounds you make can tell they are imitations with a successful Wisdom (Insight) check opposed by your Charisma (Deception) check.",
@@ -3965,17 +3965,17 @@
         "rawText": "Draconic Cry: As a bonus action, you can let out a cry that grants you and allies within 10 feet temporary advantage on attacks until the end of your turn.",
         "name": "Draconic Cry",
         "description": "As a bonus action, you can let out a cry that grants you and allies within 10 feet temporary advantage on attacks until the end of your turn.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Kobold Legacy: You possess a draconic legacy that grants you either Craftiness (skill proficiency), Defiance (advantage on saving throws vs. fear), or another legacy benefit determined by DM.",
         "name": "Kobold Legacy",
         "description": "You possess a draconic legacy that grants you either Craftiness (skill proficiency), Defiance (advantage on saving throws vs. fear), or another legacy benefit determined by DM.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -4084,8 +4084,8 @@
         "name": "Brave",
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
@@ -4164,7 +4164,7 @@
         "description": "While not wearing armor, your AC is 13 + your Dexterity modifier, and you can use it in place of armor when determining AC.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\""
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\""
       }
     ]
   },
@@ -4210,8 +4210,8 @@
         "name": "Shifting",
         "description": "As a Bonus Action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your Proficiency Bonus. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Whenever you shift, you also gain an additional benefit based on your subrace (see Fangs).",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\biomes.ts: \"{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 },\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Fangs: While shifted, you can use your elongated fangs to make an unarmed strike as a Bonus Action. If you hit with your fangs, you deal piercing damage equal to 1d6 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike.",
@@ -4265,8 +4265,8 @@
         "name": "Brave",
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
@@ -4327,9 +4327,9 @@
         "rawText": "Loxodon Serenity: You have advantage on saving throws against being charmed or frightened.",
         "name": "Loxodon Serenity",
         "description": "You have advantage on saving throws against being charmed or frightened.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Natural Armor: While not wearing armor, your Armor Class is 12 + your Constitution modifier. You can benefit from a shield.",
@@ -4337,7 +4337,7 @@
         "description": "While not wearing armor, your Armor Class is 12 + your Constitution modifier. You can benefit from a shield.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\""
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\""
       },
       {
         "rawText": "Trunk: Your trunk can lift objects, open doors, or act as a snorkel with a 5-foot reach and five times your Strength in pounds.",
@@ -4352,8 +4352,8 @@
         "name": "Keen Smell",
         "description": "You have advantage on Wisdom (Perception and Survival) checks that rely on scent.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Keen Smell\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -4399,8 +4399,8 @@
         "name": "Brave",
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
@@ -4603,9 +4603,9 @@
         "rawText": "Adrenaline Rush: You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest. (Note: Mechanical effects like THP gain, usage tracking, and bonus action not yet fully implemented).",
         "name": "Adrenaline Rush",
         "description": "You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest. (Note: Mechanical effects like THP gain, usage tracking, and bonus action not yet fully implemented).",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Darkvision (120ft)",
@@ -4619,9 +4619,9 @@
         "rawText": "Relentless Endurance: When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place).",
         "name": "Relentless Endurance",
         "description": "When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place).",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -4667,8 +4667,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -4690,9 +4690,9 @@
         "rawText": "Incisive Sense: You have advantage on Intelligence (Investigation) and Wisdom (Insight) checks.",
         "name": "Incisive Sense",
         "description": "You have advantage on Intelligence (Investigation) and Wisdom (Insight) checks.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Blessing of the Moon Weaver: You know the Light cantrip. When you reach 3rd level, you can cast the Sleep spell once with this trait and regain the ability to do so when you finish a Long Rest. When you reach 5th level, you can cast the Invisibility spell (targeting yourself only) once with this trait and regain the ability to do so when you finish a Long Rest. Casting these spells with this trait doesn't require material components. Wisdom is your spellcasting ability for these spells.",
@@ -4745,17 +4745,17 @@
         "rawText": "Adrenaline Rush: You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
         "name": "Adrenaline Rush",
         "description": "You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Relentless Endurance: When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest.",
         "name": "Relentless Endurance",
         "description": "When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Hunter's Intuition: When you make a Wisdom (Perception) or Wisdom (Survival) check, you can roll a d4 and add the number rolled to the ability check.",
@@ -4825,8 +4825,8 @@
         "name": "Amorphous",
         "description": "You can squeeze through spaces as narrow as 1 inch wide when unencumbered and have advantage on checks to escape grapples.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Amorphous\",\"; src\\services\\RaceSpriteConfig.ts: \"plasmoid: 'changeling', // Amorphous → shapeshifter\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Hold Breath: You can hold your breath for up to 1 hour.",
@@ -4904,8 +4904,8 @@
         "name": "Healing Hands",
         "description": "As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
@@ -4920,8 +4920,8 @@
         "name": "Radiant Soul",
         "description": "Starting at 3rd level, you can use a Bonus Action to unleash the divine energy within yourself, causing your eyes to glimmer and two luminous, incorporeal wings to sprout from your back. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you have a flying speed equal to your walking speed, and once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your Proficiency Bonus. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter."
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -4966,17 +4966,17 @@
         "rawText": "Vengeful Assault: When you take damage from a creature in range of a weapon you are wielding, you can use your reaction to make an attack with the weapon against that creature. Once you use this trait, you can't do so again until you finish a short or long rest.",
         "name": "Vengeful Assault",
         "description": "When you take damage from a creature in range of a weapon you are wielding, you can use your reaction to make an attack with the weapon against that creature. Once you use this trait, you can't do so again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -5045,9 +5045,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -5093,8 +5093,8 @@
         "name": "Gnome Cunning",
         "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Gnome Cunning\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Artificer's Lore: Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.",
@@ -5243,8 +5243,8 @@
         "name": "Magic Resistance",
         "description": "You have advantage on saving throws against spells.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Magic Resistance\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Mirthful Leaps: When you make a long or high jump, you can roll a d8 and add it to the distance.",
@@ -5314,8 +5314,8 @@
         "name": "Healing Hands",
         "description": "As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"keyTraits: ['Darkvision', 'Celestial Resistance', 'Healing Hands', 'Light Bearer', 'Radiant Soul']\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
@@ -5330,8 +5330,8 @@
         "name": "Radiant Consumption",
         "description": "Starting at 3rd level, you can use a Bonus Action to unleash the divine energy within yourself, causing searing light to radiate from you, pour out of your eyes and mouth, and threaten to char you. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you shed bright light in a 10-foot radius and dim light for an additional 10 feet, and at the end of each of your turns, each creature within 10 feet of you takes radiant damage equal to your Proficiency Bonus. Until the transformation ends, once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your Proficiency Bonus. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter."
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -5377,8 +5377,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -5456,8 +5456,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Deductive Intuition: When you make an Intelligence (Investigation) or Wisdom (Insight) check, you can roll a d4 and add the number rolled to the ability check.",
@@ -5527,8 +5527,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -5606,8 +5606,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -5716,9 +5716,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -5819,8 +5819,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -5842,9 +5842,9 @@
         "rawText": "Fey Step (Spring): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, you can also touch one willing creature within 5 feet of you. That creature then teleports instead of you, appearing in an unoccupied space of your choice within 30 feet of you.",
         "name": "Fey Step (Spring)",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, you can also touch one willing creature within 5 feet of you. That creature then teleports instead of you, appearing in an unoccupied space of your choice within 30 feet of you.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Season Association: Spring represents cheerfulness and celebration, marked by merriment and hope. You can change your season during a long rest, which changes your Fey Step effect.",
@@ -5889,25 +5889,25 @@
         "rawText": "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Large Form",
         "description": "Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Stone's Endurance: When you take damage, you can use your Reaction to roll a d12. Add your Constitution modifier to the number rolled and reduce the damage by that total. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
         "name": "Stone's Endurance",
         "description": "When you take damage, you can use your Reaction to roll a d12. Add your Constitution modifier to the number rolled and reduce the damage by that total. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -5944,25 +5944,25 @@
         "rawText": "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "name": "Powerful Build",
         "description": "You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
         "name": "Large Form",
         "description": "Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Storm's Thunder: When you take damage from a creature within 60 feet of you, you can use your Reaction to cause that creature to take 1d8 thunder damage. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
         "name": "Storm's Thunder",
         "description": "When you take damage from a creature within 60 feet of you, you can use your Reaction to cause that creature to take 1d8 thunder damage. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       }
     ]
   },
@@ -6008,8 +6008,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Windwright's Intuition: When you make a Dexterity (Acrobatics) check or any ability check involving navigator's tools, you can roll a d4 and add the number rolled to the ability check.",
@@ -6087,8 +6087,8 @@
         "name": "Brave",
         "description": "You have Advantage on saving throws against being frightened.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"name: 'Brave',\"; src\\data\\monsters.generated.ts: \"\"name\": \"Aura of Bravery\",\"; src\\data\\naval\\crewTraits.ts: \"'Brave': { effect: 'Bonus in combat', moraleModifier: 15 },\"; src\\utils\\world\\nobleHouseGenerator.ts: \"'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
@@ -6150,8 +6150,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -6173,9 +6173,9 @@
         "rawText": "Fey Step (Summer): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, each creature of your choice that you can see within 5 feet of you takes fire damage equal to your Proficiency Bonus.",
         "name": "Fey Step (Summer)",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Immediately after you teleport, each creature of your choice that you can see within 5 feet of you takes fire damage equal to your Proficiency Bonus.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Season Association: Summer represents boldness and aggression, a filtered fury of the burning sun. You can change your season during a long rest, which changes your Fey Step effect.",
@@ -6229,8 +6229,8 @@
         "name": "Shifting",
         "description": "As a Bonus Action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your Proficiency Bonus. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Whenever you shift, you also gain an additional benefit based on your subrace (see Swift Stride).",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\biomes.ts: \"{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 },\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Swift Stride: While shifted, your walking speed increases by 10 feet. Additionally, you can move up to 10 feet as a reaction when a creature ends its turn within 5 feet of you. This reactive movement doesn't provoke opportunity attacks.",
@@ -6347,8 +6347,8 @@
         "name": "Chameleon Carapace",
         "description": "While unarmored, your base AC is 13 + your Dexterity modifier, and you can change color to gain advantage on Stealth checks once per rest.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Chameleon Carapace\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Secondary Arms: You possess two smaller arms that let you manipulate objects, open doors, or hold tools.",
@@ -6487,9 +6487,9 @@
         "rawText": "Shell Defense: As an action, you can withdraw into your shell to gain +4 bonus to AC and advantage on Strength and Constitution saves until you emerge.",
         "name": "Shell Defense",
         "description": "As an action, you can withdraw into your shell to gain +4 bonus to AC and advantage on Strength and Constitution saves until you emerge.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -6597,9 +6597,9 @@
         "rawText": "Vedalken Dispassion: You have advantage on saving throws to avoid or end the charmed condition, and magic can’t put you to sleep.",
         "name": "Vedalken Dispassion",
         "description": "You have advantage on saving throws to avoid or end the charmed condition, and magic can’t put you to sleep.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Tireless Precision: Once per short rest, you can reroll an Intelligence or Wisdom ability check and must use the new roll.",
@@ -6684,9 +6684,9 @@
         "rawText": "Telepathic Insight: You have advantage on Wisdom and Charisma saving throws.",
         "name": "Telepathic Insight",
         "description": "You have advantage on Wisdom and Charisma saving throws.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -6960,9 +6960,9 @@
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
         "name": "Draconic Language",
         "description": "You can speak, read, and write Draconic.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Racial languages are extracted and applied to character state."
       }
     ]
   },
@@ -7008,16 +7008,16 @@
         "name": "Shifting",
         "description": "As a Bonus Action, you can assume a more bestial appearance. This transformation lasts for 1 minute, until you die, or until you revert to your normal appearance as a bonus action. When you shift, you gain temporary hit points equal to 2 x your Proficiency Bonus. You can shift a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. Whenever you shift, you also gain an additional benefit based on your subrace (see Mark the Scent).",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\biomes.ts: \"{ id: 'desert_dune', name: 'Dune Sea', variant: 'dune', color: 'bg-amber-300', rgbaColor: 'rgba(242, 202, 129, 0.7)', description: 'Shifting dunes and scarce shade.', spawnWeight: 2 },\""
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Mark the Scent: While shifted, you have advantage on Wisdom checks, and no creature within 30 feet of you can make an attack roll with advantage against you unless you're incapacitated.",
         "name": "Mark the Scent",
         "description": "While shifted, you have advantage on Wisdom checks, and no creature within 30 feet of you can make an attack roll with advantage against you unless you're incapacitated.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -7063,8 +7063,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -7086,9 +7086,9 @@
         "rawText": "Fey Step (Winter): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, one creature of your choice that you can see within 5 feet of you before you teleport must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be frightened of you until the end of your next turn.",
         "name": "Fey Step (Winter)",
         "description": "As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, one creature of your choice that you can see within 5 feet of you before you teleport must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be frightened of you until the end of your next turn.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial resource materializer",
+        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
         "rawText": "Season Association: Winter represents contemplation and dolor, introspection and grief. You can change your season during a long rest, which changes your Fey Step effect.",
@@ -7142,8 +7142,8 @@
         "name": "Fey Ancestry",
         "description": "You have advantage on saving throws you make to avoid or end the Charmed condition on yourself.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\systems\\planar\\FeywildMechanics.ts: \"// Elves (Fey Ancestry) typically have advantage against charm, but Memory Loss isn't strictly charm.\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Keen Senses: You have proficiency in the Perception skill.",
@@ -7229,8 +7229,8 @@
         "name": "Gnome Cunning",
         "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\monsters.generated.ts: \"\"name\": \"Gnome Cunning\",\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Gifted Scribe: When you make an Intelligence (History) check or an ability check using calligrapher's supplies, you can roll a d4 and add the number rolled to the ability check.",
@@ -7300,8 +7300,8 @@
         "name": "Magic Resistance",
         "description": "You have advantage on saving throws against spells.",
         "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter."
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Poison Resilience: You have resistance to poison damage, and you have advantage on saving throws you make to avoid or end the poisoned condition.",
