@@ -31,6 +31,7 @@ function aStar(
   if (!isPassable(sx, sy) || !isPassable(gx, gy)) return null;
 
   const open = new Set<number>();
+  const closed = new Set<number>();
   const gScore = new Map<number, number>();
   const cameFrom = new Map<number, number>();
   const fScore = new Map<number, number>();
@@ -65,6 +66,7 @@ function aStar(
       return { cost: gScore.get(current) ?? 0, points };
     }
     open.delete(current);
+    closed.add(current);
     for (const [dx, dy] of [
       [1, 0], [-1, 0], [0, 1], [0, -1],
       [1, 1], [-1, 1], [1, -1], [-1, -1],
@@ -73,6 +75,7 @@ function aStar(
       const ny = cy + dy;
       if (!isPassable(nx, ny)) continue;
       const nid = idx(nx, ny);
+      if (closed.has(nid)) continue;
       const stepCost =
         Math.hypot(dx, dy) * (1 + Math.abs(heights[idx(nx, ny)] - heights[current]) * 0.05);
       const tentative = (gScore.get(current) ?? Infinity) + stepCost;
@@ -95,7 +98,6 @@ interface Edge {
 }
 
 function mst(edges: Edge[], nodes: number): Edge[] {
-  edges.sort((u, v) => u.cost - v.cost);
   const parent = Array.from({ length: nodes }, (_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const union = (i: number, j: number): boolean => {
@@ -135,6 +137,8 @@ export function generateRoads(heights: number[], cols: number, rows: number, sit
     }
   }
 
+  // Sort once, used by both MST and redundancy edge selection below.
+  edges.sort((a, b) => a.cost - b.cost);
   const tree = mst(edges, towns.length);
 
   const extras = Math.floor(tree.length * 0.2);
