@@ -31,3 +31,4 @@ export * from './companionFactories';
 export * from './characterValidation';
 export * from './concentrationUtils';
 export * from './identityUtils';
+export * from './checkUtils';

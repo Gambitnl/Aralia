@@ -697,7 +697,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     intelligence: player.finalAbilityScores.Intelligence,
     wisdom: player.finalAbilityScores.Wisdom,
     charisma: player.finalAbilityScores.Charisma,
-    baseInitiative: getAbilityModifierValue(player.finalAbilityScores.Dexterity),
+    baseInitiative: getAbilityModifierValue(player.finalAbilityScores.Dexterity) + (player.initiativeBonus || 0) + (player.initiativeProficiency ? (player.proficiencyBonus || 2) : 0),
     speed: player.speed,
     cr: 'N/A',
     senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 },
@@ -880,8 +880,53 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       powerfulBuild: player.modifiers.powerfulBuild,
       unendingBreath: player.modifiers.unendingBreath,
       languages: player.modifiers.languages ? [...player.modifiers.languages] : undefined,
+      skillProficiencies: player.modifiers.skillProficiencies ? [...player.modifiers.skillProficiencies] : [],
+      weaponProficiencies: player.modifiers.weaponProficiencies ? [...player.modifiers.weaponProficiencies] : [],
+      armorProficiencies: player.modifiers.armorProficiencies ? [...player.modifiers.armorProficiencies] : [],
+      initiativeBonus: player.modifiers.initiativeBonus,
+      initiativeProficiency: player.modifiers.initiativeProficiency,
+      ignoreDifficultTerrain: player.modifiers.ignoreDifficultTerrain,
+      breathWeapon: player.modifiers.breathWeapon ? { ...player.modifiers.breathWeapon } : undefined,
     } : undefined,
+    initiativeBonus: player.initiativeBonus,
+    initiativeProficiency: player.initiativeProficiency,
+    ignoreDifficultTerrain: player.ignoreDifficultTerrain,
   };
+
+  // Add Breath Weapon as a Combat Ability
+  if (player.modifiers?.breathWeapon) {
+    const bw = player.modifiers.breathWeapon;
+    let damageDice = bw.damageDice;
+    bw.scaling.forEach(s => {
+      if (player.level && player.level >= s.level) {
+        damageDice = s.dice;
+      }
+    });
+
+    const resourceKey = `racial_feature_${player.race.id}__breath_weapon__resource`;
+    const limitedUse = player.limitedUses?.[resourceKey];
+
+    combatChar.abilities.push({
+      id: 'racial_breath_weapon',
+      name: 'Breath Weapon',
+      description: `Exhale destructive energy in a ${bw.areaSize}-foot ${bw.areaShape}.`,
+      type: 'attack',
+      targeting: 'area',
+      range: bw.areaSize,
+      areaShape: bw.areaShape,
+      areaSize: bw.areaSize / 5, // Convert feet to grid tiles
+      cost: { type: 'action' },
+      saveDC: 8 + (player.proficiencyBonus || 2) + getAbilityModifierValue(player.finalAbilityScores.Constitution),
+      saveAbility: bw.saveAbility,
+      effects: [{
+        type: 'damage',
+        dice: damageDice,
+        damageType: bw.damageType as any,
+      }],
+      usesRemaining: limitedUse?.current,
+      maxUses: typeof limitedUse?.max === 'number' ? limitedUse.max : (player.proficiencyBonus || 2),
+    });
+  }
 
   // Basic Darkvision inference
   // TODO(Depthcrawler): Replace with robust feature mapping from Race traits

@@ -230,15 +230,29 @@ export const calculateArmorClass = (character: PlayerCharacter, activeEffects: A
     ? shield.armorClassBonus
     : 0;
 
+  // 2.5 Racial Modifiers
+  const racialBaseAC = character.modifiers?.baseArmorClass || 10;
+  const racialACBonus = character.modifiers?.acBonus || 0;
+
+  // If not wearing armor, use the best base (Standard 10 vs Racial Natural Armor)
+  if (!armor || armor.type !== 'armor') {
+    baseAC = Math.max(baseAC, racialBaseAC);
+  }
+
   // 3. Delegate to core calculator
   // Filter Mage Armor if wearing armor? 
   // Standard rule: Mage Armor ends if you don armor.
   // But if effect is present, `calculateFinalAC` will compare values.
   // However, Mage Armor calculation (13+Dex) vs Armor (12+Dex) might favor Mage Armor incorrectly if we don't suppress it while armored.
   // The 'set_base_ac' effects should strictly NOT apply if wearing armor.
-  let validEffects = activeEffects;
+  let validEffects = [...activeEffects];
   if (armor && armor.type === 'armor') {
     validEffects = activeEffects.filter(e => e.type !== 'set_base_ac');
+  }
+
+  // Add racial AC bonus as a virtual effect
+  if (racialACBonus > 0) {
+    validEffects.push({ type: 'ac_bonus', value: racialACBonus });
   }
 
   const components: ACComponents = {

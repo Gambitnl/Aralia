@@ -9,8 +9,7 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { getAbilityModifierValue } from '../../utils/statUtils';
-import { rollDice } from '../../utils/combatUtils';
+import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import {
   Mechanism,
   MechanismState,
@@ -80,58 +79,14 @@ export function operateMechanism(
 
   // 3. Perform Ability Check (if required)
   if (mechanism.requiresCheck && mechanism.checkAbility && mechanism.checkDC) {
-    // Map AbilityScoreName to property on character.stats (CharacterStats via PlayerCharacter.abilityScores)
-    // Wait, PlayerCharacter has 'abilityScores' (from core.ts) AND 'finalAbilityScores'
-    // but often we access character.stats in other systems. Let's check the type passed.
-    // The import says `PlayerCharacter` from `../../types/character`.
-    // In character.ts:
-    // export interface PlayerCharacter { ... abilityScores: AbilityScores; finalAbilityScores: AbilityScores; ... }
-    // There is NO 'stats' property on PlayerCharacter in the file I just read.
-    // However, existing code in lockSystem.ts used `character.stats`.
-    // Let me check lockSystem.ts again to see how it accesses stats.
+    const abilityName = mechanism.checkAbility; 
+    const result = rollAbilityCheck(character, abilityName);
 
-    // Assuming we should use `finalAbilityScores` which represents the actual current stats.
-    // The keys in AbilityScores are TitleCase (Strength, Dexterity, etc.) based on core.ts.
-
-    const abilityName = mechanism.checkAbility; // e.g., 'Strength'
-    // We need to access it from finalAbilityScores.
-    // If the object structure is { Strength: 10, ... }
-
-    // However, if the codebase generally uses a `stats` alias or property, I should use that.
-    // Let's rely on `finalAbilityScores` which is definitely in the interface.
-
-    // But wait, `lockSystem.ts` used `character.stats.dexterity`.
-    // If `PlayerCharacter` interface doesn't have `stats`, then `lockSystem.ts` might be relying on a different type definition
-    // or I missed something.
-    // Let's assume `finalAbilityScores` is the safe, typed way to access it.
-
-    // Also, note that `AbilityScores` keys are capitalized ('Strength'), but `lockSystem.ts` accessed `.dexterity` (lowercase).
-    // This implies `AbilityScores` might be defined with lowercase keys in `core.ts`.
-    // Let me double check core.ts output from previous turn.
-
-    // core.ts:
-    // export interface AbilityScores {
-    //   Strength: number;
-    //   Dexterity: number;
-    //   ...
-    // }
-    // Keys ARE capitalized.
-
-    // So if lockSystem.ts uses `character.stats.dexterity`, it might be wrong or using a derived type.
-    // I will use `character.finalAbilityScores[abilityName]` where abilityName is 'Strength', 'Dexterity', etc.
-
-    const score = character.finalAbilityScores[abilityName];
-    const mod = getAbilityModifierValue(score);
-
-    // TODO: Add proficiency bonus if we implement relevant skills (e.g. Athletics)
-    const d20 = rollDice('1d20');
-    const total = d20 + mod;
-
-    if (total < mechanism.checkDC) {
+    if (result.total < mechanism.checkDC) {
       return {
         success: false,
         newState: mechanism.state,
-        message: `You strain against it, but it doesn't move. (Rolled ${total} vs DC ${mechanism.checkDC})`
+        message: `You strain against it, but it doesn't move. (Rolled ${result.total} vs DC ${mechanism.checkDC})`
       };
     }
   }

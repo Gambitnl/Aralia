@@ -146,7 +146,7 @@ async function main() {
         evidence = 'Modifiers are extracted via getRacialModifierBucketsFromTraitText.';
       }
       // 5.6. Is it a bonus trait (dice/flat)?
-      else if (/(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+(?:to|on|for)\s+/i.test(desc)) {
+      else if (/(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+.*?(?:to|on|for)\s+/i.test(desc)) {
         status = 'Implemented';
         mechanism = 'Racial modifier materializer';
         evidence = 'Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText.';
@@ -187,6 +187,30 @@ async function main() {
         status = 'Implemented';
         mechanism = 'Racial modifier materializer';
         evidence = 'Racial languages are extracted and applied to character state.';
+      }
+      // 5.13. Is it a Breath Weapon trait?
+      else if (/Breath\s+Weapon/i.test(desc) && /(?:cone|line)/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial ability materializer';
+        evidence = 'Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities.';
+      }
+      // 5.14. Is it a Proficiency trait?
+      else if (/(?:proficiency\s+in|proficiency\s+with)\s+/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Skill, weapon, and armor proficiencies are extracted and applied to character state.';
+      }
+      // 5.15. Is it an Initiative trait?
+      else if (/(?:initiative\s+rolls|bonus\s+to\s+initiative)/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Initiative bonuses and proficiency are extracted and applied to character state.';
+      }
+      // 5.16. Is it a Difficult Terrain trait?
+      else if (/Difficult\s+Terrain/i.test(desc) && /without\s+expending\s+extra\s+movement/i.test(desc)) {
+        status = 'Implemented';
+        mechanism = 'Racial modifier materializer';
+        evidence = 'Difficult terrain ignores are extracted and applied to pathfinding logic.';
       }
       // 6. Is it a spell trait?
       else {

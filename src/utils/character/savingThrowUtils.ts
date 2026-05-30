@@ -170,6 +170,33 @@ export function rollSavingThrow(
     //   - Cover: +2 flat bonus
     // These are tracked for logging purposes
     const modifiersApplied: { source: string; value: number }[] = [];
+
+    // Racial Bonuses (from modifierBuckets.bonuses)
+    target.modifiers?.bonuses.forEach(bonus => {
+        const text = bonus.toLowerCase();
+        // Check for ability specific bonus (e.g., "d4 to Dexterity")
+        // or general saving throw bonus (e.g., "d4 to saving throws")
+        const isTargetMatch = text.includes(ability.toLowerCase()) || 
+                             text.includes('saving throw') || 
+                             (ability === 'Intelligence' && text.includes('arcana')) || // Some intuition phrasings might bleed
+                             (ability === 'Wisdom' && (text.includes('insight') || text.includes('perception')));
+
+        if (isTargetMatch) {
+            // Extract dice/flat from text like "d4 to saving throws" or "+2 to Dexterity"
+            const diceMatch = bonus.match(/(\d*d\d+)/i);
+            const flatMatch = bonus.match(/([\+\-]\d+)/);
+            if (diceMatch) {
+                const val = rollDice(diceMatch[1] || '1d4'); // Default to 1d4 if just "d4"
+                mod += val;
+                modifiersApplied.push({ source: 'Racial Bonus', value: val });
+            } else if (flatMatch) {
+                const val = parseInt(flatMatch[1], 10);
+                mod += val;
+                modifiersApplied.push({ source: 'Racial Bonus', value: val });
+            }
+        }
+    });
+
     if (modifiers && modifiers.length > 0) {
         for (const modifier of modifiers) {
             // Dice modifiers (e.g., "1d4" or "-1d4") are rolled and added

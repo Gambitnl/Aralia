@@ -247,7 +247,9 @@ export interface CombatCharacter {
   activeEffects?: ActiveEffect[];  // Active spell effects
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
-  savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
+  savingThrowProficiencies?: AbilityScoreName[];
+  weaponProficiencies?: string[];
+  armorProficiencies?: string[];
   modifiers?: {
     advantage: string[];
     disadvantage: string[];
@@ -258,9 +260,19 @@ export interface CombatCharacter {
     powerfulBuild?: boolean;
     unendingBreath?: boolean;
     languages?: string[];
+    skillProficiencies?: string[];
+    weaponProficiencies?: string[];
+    armorProficiencies?: string[];
+    initiativeBonus?: number;
+    initiativeProficiency?: boolean;
+    ignoreDifficultTerrain?: boolean;
+    breathWeapon?: RacialBreathWeapon;
   };
   /** Tracks which feat effects have been used this turn (e.g., 'slasher_slow' for once-per-turn limit) */
   featUsageThisTurn?: string[];
+  initiativeBonus?: number;
+  initiativeProficiency?: boolean;
+  ignoreDifficultTerrain?: boolean;
   // Optional bookkeeping for analytics/logs; these were used in factories/tests.
   damageDealt?: unknown[];
   healingDone?: unknown[];

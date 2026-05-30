@@ -201,7 +201,7 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
         setTimeout(() => {
             if (batchSize > 1 && batchInfo && batchInfo.maxCraftable >= batchSize) {
                 // Batch crafting
-                const result = attemptBatchCraft(selectedRecipe.recipe, batchSize, crafterModifier);
+                const result = attemptBatchCraft(selectedRecipe.recipe, batchSize, crafterModifier, DEFAULT_BATCH_CONFIG, state.party[0]);
                 const actions = generateBatchCraftActions(selectedRecipe.recipe, result);
 
                 for (const action of actions) {
@@ -234,15 +234,15 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
                     crafterModifier,
                     state.inventory,
                     state.gold,
-                    { 
-                        ...craftingState, 
+                    {
+                        ...craftingState,
                         knownRecipes: knownRecipesSet,
                         toolProficiencies: new Set(craftingState.toolProficiencies)
-                    } as import('../../systems/crafting/crafterProgression').CrafterProgression
+                    } as import('../../systems/crafting/crafterProgression').CrafterProgression,
+                    state.party[0]
                 );
 
-                const actions = generateCraftingActions(selectedRecipe.recipe, result);
-                for (const action of actions) {
+                const actions = generateCraftingActions(selectedRecipe.recipe, result);                for (const action of actions) {
                     dispatch(action as Parameters<typeof dispatch>[0]);
                 }
 

@@ -848,7 +848,19 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       powerfulBuild: character.modifiers.powerfulBuild,
       unendingBreath: character.modifiers.unendingBreath,
       languages: character.modifiers.languages ? [...character.modifiers.languages] : undefined,
+      skillProficiencies: character.modifiers.skillProficiencies ? [...character.modifiers.skillProficiencies] : [],
+      weaponProficiencies: character.modifiers.weaponProficiencies ? [...character.modifiers.weaponProficiencies] : [],
+      armorProficiencies: character.modifiers.armorProficiencies ? [...character.modifiers.armorProficiencies] : [],
+      initiativeBonus: character.modifiers.initiativeBonus,
+      initiativeProficiency: character.modifiers.initiativeProficiency,
+      ignoreDifficultTerrain: character.modifiers.ignoreDifficultTerrain,
     } : { advantage: [], disadvantage: [], bonuses: [] },
+    skills: [...character.skills],
+    weaponProficiencies: [...(character.weaponProficiencies || [])],
+    armorProficiencies: [...(character.armorProficiencies || [])],
+    ignoreDifficultTerrain: character.ignoreDifficultTerrain,
+    initiativeBonus: character.initiativeBonus,
+    initiativeProficiency: character.initiativeProficiency,
     spellbook: character.spellbook ? {
       cantrips: [...(character.spellbook?.cantrips || [])],
       knownSpells: [...(character.spellbook?.knownSpells || [])],
@@ -934,6 +946,53 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     }
     if (trait.modifierBuckets.languages) {
       next.modifiers!.languages = Array.from(new Set([...(next.modifiers!.languages || []), ...trait.modifierBuckets.languages]));
+    }
+    if (trait.modifierBuckets.breathWeapon) {
+      next.modifiers!.breathWeapon = { ...trait.modifierBuckets.breathWeapon };
+    }
+    if (trait.modifierBuckets.skillProficiencies) {
+      trait.modifierBuckets.skillProficiencies.forEach(skillName => {
+        const skillId = skillName.toLowerCase().replace(/\s+/g, '_');
+        const skill = SKILLS_DATA[skillId];
+        if (skill && !next.skills.some(s => s.id === skill.id)) {
+          next.skills.push(skill);
+        }
+        if (!next.modifiers!.skillProficiencies!.includes(skillName)) {
+          next.modifiers!.skillProficiencies!.push(skillName);
+        }
+      });
+    }
+    if (trait.modifierBuckets.weaponProficiencies) {
+      trait.modifierBuckets.weaponProficiencies.forEach(weapon => {
+        if (!next.weaponProficiencies!.includes(weapon)) {
+          next.weaponProficiencies!.push(weapon);
+        }
+        if (!next.modifiers!.weaponProficiencies!.includes(weapon)) {
+          next.modifiers!.weaponProficiencies!.push(weapon);
+        }
+      });
+    }
+    if (trait.modifierBuckets.armorProficiencies) {
+      trait.modifierBuckets.armorProficiencies.forEach(armor => {
+        if (!next.armorProficiencies!.includes(armor)) {
+          next.armorProficiencies!.push(armor);
+        }
+        if (!next.modifiers!.armorProficiencies!.includes(armor)) {
+          next.modifiers!.armorProficiencies!.push(armor);
+        }
+      });
+    }
+    if (trait.modifierBuckets.initiativeBonus !== undefined) {
+      next.initiativeBonus = (next.initiativeBonus || 0) + trait.modifierBuckets.initiativeBonus;
+      next.modifiers!.initiativeBonus = (next.modifiers!.initiativeBonus || 0) + trait.modifierBuckets.initiativeBonus;
+    }
+    if (trait.modifierBuckets.initiativeProficiency) {
+      next.initiativeProficiency = true;
+      next.modifiers!.initiativeProficiency = true;
+    }
+    if (trait.modifierBuckets.ignoreDifficultTerrain) {
+      next.ignoreDifficultTerrain = true;
+      next.modifiers!.ignoreDifficultTerrain = true;
     }
   });
 

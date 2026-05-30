@@ -177,11 +177,18 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const hasMechanicalDamageDefenses = resistances.length > 0 || immunities.length > 0 || vulnerabilities.length > 0;
     const advantage = uniqueSorted(character.modifiers?.advantage);
     const disadvantage = uniqueSorted(character.modifiers?.disadvantage);
-    const bonuses = uniqueSorted(character.modifiers?.bonuses);
+    const bonuses = character.modifiers?.bonuses || [];
+    const genericBonuses = uniqueSorted(bonuses.filter(b => !b.includes('to ')));
+    const skillBonuses = bonuses.filter(b => b.includes('to '));
+
     const hasModifiers = advantage.length > 0 || disadvantage.length > 0 || bonuses.length > 0 ||
                          !!character.modifiers?.baseArmorClass || !!character.modifiers?.acBonus ||
                          !!character.modifiers?.reachBonus || !!character.modifiers?.powerfulBuild ||
-                         !!character.modifiers?.unendingBreath || (character.modifiers?.languages?.length || 0) > 0;
+                         !!character.modifiers?.unendingBreath || (character.modifiers?.languages?.length || 0) > 0 ||
+                         (character.modifiers?.skillProficiencies?.length || 0) > 0 ||
+                         (character.modifiers?.weaponProficiencies?.length || 0) > 0 ||
+                         (character.modifiers?.armorProficiencies?.length || 0) > 0 ||
+                         !!character.modifiers?.breathWeapon;
     
     const hitPointDiceDisplay = hitPointDicePools
         .map(pool => `d${pool.die} ${pool.current}/${pool.max}`)
@@ -347,12 +354,31 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                         <div className="grid grid-cols-1 gap-1 text-sm text-gray-300">
                             {advantage.length > 0 && <p>Advantage: <span className="font-semibold text-sky-300">{formatDefenseList(advantage)}</span></p>}
                             {disadvantage.length > 0 && <p>Disadvantage: <span className="font-semibold text-rose-300">{formatDefenseList(disadvantage)}</span></p>}
-                            {bonuses.length > 0 && <p>Bonuses: <span className="font-semibold text-emerald-300">{formatDefenseList(bonuses)}</span></p>}
+                            {genericBonuses.length > 0 && <p>Bonuses: <span className="font-semibold text-emerald-300">{formatDefenseList(genericBonuses)}</span></p>}
+                            {skillBonuses.length > 0 && (
+                                <div className="mt-1 border-t border-gray-600/30 pt-1">
+                                    <p className="text-xs text-gray-400 mb-0.5 font-medium uppercase tracking-wider">Skill Intuitions:</p>
+                                    {skillBonuses.map((bonus, i) => (
+                                        <p key={i} className="pl-2 flex items-center gap-1.5">
+                                            <span className="text-emerald-400">✦</span> 
+                                            <span className="font-medium text-emerald-300">{bonus}</span>
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
                             {character.modifiers?.baseArmorClass && <p>Natural Armor: <span className="font-semibold text-amber-300">{character.modifiers.baseArmorClass} + Dex</span></p>}
                             {character.modifiers?.acBonus && <p>AC Bonus: <span className="font-semibold text-amber-300">+{character.modifiers.acBonus}</span></p>}
                             {character.modifiers?.reachBonus && <p>Reach: <span className="font-semibold text-sky-300">+{character.modifiers.reachBonus} ft.</span></p>}
                             {character.modifiers?.powerfulBuild && <p>Build: <span className="font-semibold text-emerald-300">Powerful (Count as one size larger)</span></p>}
                             {character.modifiers?.unendingBreath && <p>Breathing: <span className="font-semibold text-sky-300">Hold breath indefinitely</span></p>}
+                            {character.modifiers?.breathWeapon && (
+                                <p>Breath Weapon: <span className="font-semibold text-amber-300">
+                                    {character.modifiers.breathWeapon.areaSize}ft {character.modifiers.breathWeapon.areaShape}, {character.modifiers.breathWeapon.damageDice} {character.modifiers.breathWeapon.damageType}
+                                </span></p>
+                            )}
+                            {character.modifiers?.skillProficiencies && character.modifiers.skillProficiencies.length > 0 && <p>Racial Skills: <span className="font-semibold text-emerald-300">{formatDefenseList(character.modifiers.skillProficiencies)}</span></p>}
+                            {character.modifiers?.weaponProficiencies && character.modifiers.weaponProficiencies.length > 0 && <p>Racial Weapons: <span className="font-semibold text-amber-300">{formatDefenseList(character.modifiers.weaponProficiencies)}</span></p>}
+                            {character.modifiers?.armorProficiencies && character.modifiers.armorProficiencies.length > 0 && <p>Racial Armor: <span className="font-semibold text-blue-300">{formatDefenseList(character.modifiers.armorProficiencies)}</span></p>}
                             {character.modifiers?.languages && character.modifiers.languages.length > 0 && <p>Racial Languages: <span className="font-semibold text-gray-200">{formatDefenseList(character.modifiers.languages)}</span></p>}
                         </div>
                     </CollapsibleSection>
