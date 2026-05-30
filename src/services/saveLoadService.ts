@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 30/05/2026, 23:21:17
+ * Dependents: App.tsx, components/SaveLoad/LoadGameModal.tsx, components/SaveLoad/SaveSlotSelector.tsx, components/layout/MainMenu.tsx, hooks/actions/handleSystemAndUi.ts, hooks/useAutoSave.ts, hooks/useGameInitialization.ts, state/appState.ts, state/initialState.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -26,6 +42,7 @@ import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
 import * as IDBStorage from './indexedDBStorageService';
+import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 
 //
 // Save slot configuration
@@ -355,6 +372,9 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     }
 
     normalizeLoadedDates(loadedState);
+    if (loadedState.mapData) {
+      loadedState.mapData = migrateMapDataToWorldDataV2(loadedState.mapData, loadedState.worldSeed ?? 0);
+    }
     // Ensure new rest pacing fields exist when loading older saves.
     const restTrackerSeedTime = loadedState.gameTime instanceof Date
       ? loadedState.gameTime
