@@ -43,3 +43,18 @@ it('is deterministic for a given seed', () => {
   const b = placeSites(heights, cols, rows, [], new SeededRandom(42), { townTarget: 4, dungeonTarget: 2, ruinTarget: 2 });
   expect(JSON.stringify(a)).toBe(JSON.stringify(b));
 });
+
+it('reaches dungeon/ruin targets without being blocked by towns (per-kind spacing)', () => {
+  const cols = 40;
+  const rows = 30;
+  const heights = new Array(cols * rows).fill(40);
+  const rng = new SeededRandom(9999);
+  const sites = placeSites(heights, cols, rows, [], rng, {
+    townTarget: 5,
+    dungeonTarget: 5,
+    ruinTarget: 5,
+  });
+  expect(sites.filter((s) => s.kind === 'town').length).toBe(5);
+  expect(sites.filter((s) => s.kind === 'dungeon').length).toBe(5);
+  expect(sites.filter((s) => s.kind === 'ruin').length).toBe(5);
+});

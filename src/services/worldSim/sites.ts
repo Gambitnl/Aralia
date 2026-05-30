@@ -94,8 +94,9 @@ export function placeSites(
   wildScores.sort((a, b) => b.score - a.score);
 
   const placed: Site[] = [];
-  const tooClose = (px: number, py: number, minSpacing: number) =>
+  const tooClose = (px: number, py: number, minSpacing: number, kind: Site['kind']) =>
     placed.some((s) => {
+      if (s.kind !== kind) return false;
       const dx = s.position.x - px;
       const dy = s.position.y - py;
       return Math.sqrt(dx * dx + dy * dy) < minSpacing;
@@ -113,9 +114,10 @@ export function placeSites(
 
   let siteId = 0;
 
+  let townCount = 0;
   for (const c of townScores) {
-    if (placed.filter((s) => s.kind === 'town').length >= targets.townTarget) break;
-    if (tooClose(c.x + 0.5, c.y + 0.5, MIN_TOWN_SPACING)) continue;
+    if (townCount >= targets.townTarget) break;
+    if (tooClose(c.x + 0.5, c.y + 0.5, MIN_TOWN_SPACING, 'town')) continue;
     const pop = Math.round(500 + rng.next() * 4500);
     placed.push({
       id: `t${siteId++}`,
@@ -126,28 +128,33 @@ export function placeSites(
       walled: pop > 2500,
       townSeed: (rng.next() * 1e9) | 0,
     });
+    townCount++;
   }
 
+  let dungeonCount = 0;
   for (const c of wildScores) {
-    if (placed.filter((s) => s.kind === 'dungeon').length >= targets.dungeonTarget) break;
-    if (tooClose(c.x + 0.5, c.y + 0.5, MIN_DUNGEON_SPACING)) continue;
+    if (dungeonCount >= targets.dungeonTarget) break;
+    if (tooClose(c.x + 0.5, c.y + 0.5, MIN_DUNGEON_SPACING, 'dungeon')) continue;
     placed.push({
       id: `d${siteId++}`,
       kind: 'dungeon',
       position: { x: c.x + 0.5, y: c.y + 0.5 },
       footprint: stampFootprint(c.x + 0.5, c.y + 0.5, 0.4),
     });
+    dungeonCount++;
   }
 
+  let ruinCount = 0;
   for (const c of wildScores) {
-    if (placed.filter((s) => s.kind === 'ruin').length >= targets.ruinTarget) break;
-    if (tooClose(c.x + 0.5, c.y + 0.5, MIN_RUIN_SPACING)) continue;
+    if (ruinCount >= targets.ruinTarget) break;
+    if (tooClose(c.x + 0.5, c.y + 0.5, MIN_RUIN_SPACING, 'ruin')) continue;
     placed.push({
       id: `u${siteId++}`,
       kind: 'ruin',
       position: { x: c.x + 0.5, y: c.y + 0.5 },
       footprint: stampFootprint(c.x + 0.5, c.y + 0.5, 0.3),
     });
+    ruinCount++;
   }
 
   return placed;
