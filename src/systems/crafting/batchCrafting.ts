@@ -3,9 +3,10 @@
  * Batch crafting system - craft multiple items at once.
  */
 import { CraftingRecipe } from './alchemyRecipes';
-import { Item } from '../../types';
+import { Item, PlayerCharacter } from '../../types';
 import { checkRecipeCraftability, RecipeCraftability } from './craftingEngine';
 import { rollDice } from '../../utils/combatUtils';
+import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import { determineCraftingQuality, CraftingQuality, QualityResult } from './crafterProgression';
 
 export interface BatchCraftingConfig {
@@ -105,7 +106,8 @@ export function attemptBatchCraft(
     recipe: CraftingRecipe,
     quantity: number,
     crafterModifier: number,
-    config: BatchCraftingConfig = DEFAULT_BATCH_CONFIG
+    config: BatchCraftingConfig = DEFAULT_BATCH_CONFIG,
+    crafter?: PlayerCharacter
 ): BatchCraftResult {
     const effectiveDC = recipe.craftingDC + (config.dcIncreasePerItem * (quantity - 1));
     const results: SingleCraftResult[] = [];
@@ -115,8 +117,21 @@ export function attemptBatchCraft(
 
     // Roll for each item in the batch
     for (let i = 0; i < quantity; i++) {
-        const rawRoll = rollDice('1d20');
-        const totalRoll = rawRoll + crafterModifier;
+        let totalRoll: number;
+        let rawRoll: number;
+
+        if (crafter) {
+            // Use unified rollAbilityCheck to capture racial intuition
+            const checkResult = rollAbilityCheck(crafter, 'Intelligence', 'Arcana', {
+                externalModifier: (crafterModifier - Math.floor(((crafter.abilityScores?.Intelligence || 10) - 10) / 2) - (crafter.proficiencyBonus || 2))
+            });
+            totalRoll = checkResult.total;
+            rawRoll = checkResult.roll;
+        } else {
+            rawRoll = rollDice('1d20');
+            totalRoll = rawRoll + crafterModifier;
+        }
+
         const isNat20 = rawRoll === 20;
         const isNat1 = rawRoll === 1;
 

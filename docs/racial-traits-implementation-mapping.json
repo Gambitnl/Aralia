@@ -222,8 +222,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -253,9 +253,9 @@
         "rawText": "Astral Trance: When you take a Long Rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player's Handbook. These proficiencies last until the end of your next Long Rest.",
         "name": "Astral Trance",
         "description": "When you take a Long Rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player's Handbook. These proficiencies last until the end of your next Long Rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       }
     ]
   },
@@ -388,8 +388,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -459,8 +459,8 @@
         "name": "Skillful",
         "description": "You gain proficiency in one skill of your choice.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\HumanSkillSelection.tsx: \"* from all available skills, as per their \"Skillful\" racial trait.\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[humanSkillId] = { granted: true, source: \"Human 'Skillful' trait\" };\"; src\\components\\CharacterCreator\\utils\\__tests__\\skillSelectionUtils.test.ts: \"expect(grants.athletics).toEqual({ granted: true, source: \"Human 'Skillful' trait\" });\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Versatile: You gain an Origin feat of your choice.",
@@ -474,9 +474,9 @@
         "rawText": "Wild Intuition: When you make a Wisdom (Animal Handling) or Intelligence (Nature) check, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Wild Intuition",
         "description": "When you make a Wisdom (Animal Handling) or Intelligence (Nature) check, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Primal Connection: You can cast the Animal Friendship and Speak with Animals spells with this trait, requiring no material component. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Short Rest or Long Rest. Wisdom is your spellcasting ability for these spells.",
@@ -600,9 +600,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to acid damage.",
@@ -671,9 +671,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to lightning damage.",
@@ -742,9 +742,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to fire damage.",
@@ -813,9 +813,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to lightning damage.",
@@ -980,8 +980,8 @@
         "name": "Natural Affinity",
         "description": "Your fey connection to nature gives you an intuitive connection to the natural world and the animals within it. You therefore have proficiency in one of the following skills of your choice: Animal Handling, Medicine, Nature, or Survival.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\CentaurNaturalAffinitySkillSelection.tsx: \"* It allows the player to choose their Natural Affinity skill proficiency.\"; src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Centaur - Natural Affinity (pick 1 of 4) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Natural Affinity skill first'\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[centaurSkillId] = { granted: true, source: \"Centaur 'Natural Affinity' trait\" };\"; src\\components\\CharacterCreator\\utils\\__tests__\\skillSelectionUtils.test.ts: \"expect(grants.survival).toEqual({ granted: true, source: \"Centaur 'Natural Affinity' trait\" });\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       }
     ]
   },
@@ -1019,8 +1019,8 @@
         "name": "Changeling Instincts",
         "description": "Thanks to your connection to the fey realm, you gain proficiency with two of the following skills of your choice: Deception, Insight, Intimidation, Performance, or Persuasion.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\ChangelingInstinctsSelection.tsx: \"title=\"Changeling Instincts\"\"; src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"{/* Changeling Instincts (required choice) */}\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select two Changeling Instincts skills first'\"; src\\components\\CharacterCreator\\__tests__\\CharacterCreator.test.tsx: \"// Changeling Instincts is now selected inline during race selection (required before confirming).\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Shapechanger: As an action, you can change your appearance and your voice. You determine the specifics of the changes, including your coloration, hair length, and sex. You can also adjust your height and weight and can change your size between Medium and Small. You can make yourself appear as a member of another race, though none of your game statistics change. You can’t duplicate the appearance of an individual you’ve never seen, and you must adopt a form that has the same basic arrangement of limbs that you have. Your clothing and equipment aren’t changed by this trait.",
@@ -1191,9 +1191,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to acid damage.",
@@ -1372,9 +1372,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. Each creature in the area must make a Dexterity saving throw (DC 8 + Con mod + Prof Bonus).",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. Each creature in the area must make a Dexterity saving throw (DC 8 + Con mod + Prof Bonus).",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
         "rawText": "Damage Resistance: You have resistance to the damage type associated with your Draconic Ancestry.",
@@ -1452,8 +1452,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -1577,9 +1577,9 @@
         "rawText": "Earth Walk: You can move across Difficult Terrain without expending extra movement if you are walking on the ground or a floor.",
         "name": "Earth Walk",
         "description": "You can move across Difficult Terrain without expending extra movement if you are walking on the ground or a floor.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Difficult terrain ignores are extracted and applied to pathfinding logic."
       },
       {
         "rawText": "Merge with Stone: You know the Blade Ward cantrip. You can cast it as a Bonus Action a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest. Starting at 5th level, you can cast Pass without Trace once per long rest without components.",
@@ -1648,8 +1648,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don’t need to sleep... you can finish a long rest in 4 hours. Whenever you finish this trance, you can change your season, and you can gain two proficiencies that you don’t have, each one with a weapon or a tool of your choice.",
@@ -1718,8 +1718,8 @@
         "name": "Keen Senses",
         "description": "You gain proficiency in one of the following skills of your choice: Insight, Perception, or Survival.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don’t need to sleep and can’t be put to sleep by magic. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -2119,8 +2119,8 @@
         "name": "Skillful",
         "description": "You gain proficiency in one skill of your choice.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\HumanSkillSelection.tsx: \"* from all available skills, as per their \"Skillful\" racial trait.\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[humanSkillId] = { granted: true, source: \"Human 'Skillful' trait\" };\"; src\\components\\CharacterCreator\\utils\\__tests__\\skillSelectionUtils.test.ts: \"expect(grants.athletics).toEqual({ granted: true, source: \"Human 'Skillful' trait\" });\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Versatile: You gain an Origin feat of your choice.",
@@ -2134,17 +2134,17 @@
         "rawText": "Artisan's Intuition: When you make an Arcana check or an ability check involving artisan's tools, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Artisan's Intuition",
         "description": "When you make an Arcana check or an ability check involving artisan's tools, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Maker's Gift: You gain proficiency with one type of artisan's tools of your choice.",
         "name": "Maker's Gift",
         "description": "You gain proficiency with one type of artisan's tools of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Spellsmith: You know the Mending cantrip. You can also cast Magic Weapon with this trait. When you do so, the spell lasts for 1 hour and doesn't require concentration. Once you cast this spell with this trait, you can't do so again until you finish a Long Rest. Intelligence is your spellcasting ability for these spells.",
@@ -2307,9 +2307,9 @@
         "rawText": "Astral Knowledge: Whenever you finish a long rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player’s Handbook. These proficiencies last until the end of your next long rest.",
         "name": "Astral Knowledge",
         "description": "Whenever you finish a long rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player’s Handbook. These proficiencies last until the end of your next long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Githyanki Psionics: You know the mage hand cantrip, and the hand is invisible when you cast the cantrip with this trait. Starting at 3rd level, you can cast the jump spell with this trait. Starting at 5th level, you can also cast the misty step spell with it. Once you cast jump or misty step with this trait, you can’t cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
@@ -2488,9 +2488,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to fire damage.",
@@ -2613,9 +2613,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 poison damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 poison damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to poison damage.",
@@ -2685,8 +2685,8 @@
         "name": "Skillful",
         "description": "You gain proficiency in one skill of your choice.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\HumanSkillSelection.tsx: \"* from all available skills, as per their \"Skillful\" racial trait.\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[humanSkillId] = { granted: true, source: \"Human 'Skillful' trait\" };\"; src\\components\\CharacterCreator\\utils\\__tests__\\skillSelectionUtils.test.ts: \"expect(grants.athletics).toEqual({ granted: true, source: \"Human 'Skillful' trait\" });\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Versatile: You gain an Origin feat of your choice.",
@@ -2700,9 +2700,9 @@
         "rawText": "Sentinel's Intuition: When you make a Wisdom (Insight) or Wisdom (Perception) check, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Sentinel's Intuition",
         "description": "When you make a Wisdom (Insight) or Wisdom (Perception) check, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Guardian's Shield: You can cast the Shield spell once with this trait, and you regain the ability to cast it when you finish a Long Rest. Constitution is your spellcasting ability for this spell.",
@@ -2779,9 +2779,9 @@
         "rawText": "Hadozee Resilience: When you take damage, you can use your reaction to roll a d6 and add your proficiency bonus to the roll; you subtract that total from the damage taken.",
         "name": "Hadozee Resilience",
         "description": "When you take damage, you can use your reaction to roll a d6 and add your proficiency bonus to the roll; you subtract that total from the damage taken.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       }
     ]
   },
@@ -2833,9 +2833,9 @@
         "rawText": "Skill Versatility: You gain proficiency in two skills of your choice.",
         "name": "Skill Versatility",
         "description": "You gain proficiency in two skills of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       }
     ]
   },
@@ -2896,9 +2896,9 @@
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
         "name": "Skill Versatility",
         "description": "You gain proficiency in one skill of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Swim Speed: Your aquatic elf heritage grants you a swimming speed of 30 feet.",
@@ -2959,9 +2959,9 @@
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
         "name": "Skill Versatility",
         "description": "You gain proficiency in one skill of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Drow Magic: You know the Dancing Lights cantrip. When you reach 3rd level, you can cast the Faerie Fire spell once with this trait, and you regain the ability to do so when you finish a Long Rest. When you reach 5th level, you can cast the Darkness spell once with this trait, and you regain the ability to do so when you finish a Long Rest. Charisma is your spellcasting ability for these spells.",
@@ -3022,9 +3022,9 @@
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
         "name": "Skill Versatility",
         "description": "You gain proficiency in one skill of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Cantrip: You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.",
@@ -3085,9 +3085,9 @@
         "rawText": "Skill Versatility: You gain proficiency in one skill of your choice.",
         "name": "Skill Versatility",
         "description": "You gain proficiency in one skill of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Fleet of Foot: Your base walking speed increases to 35 feet.",
@@ -3257,25 +3257,25 @@
         "rawText": "Hare-Trigger: You can add your Proficiency Bonus to your initiative rolls.",
         "name": "Hare-Trigger",
         "description": "You can add your Proficiency Bonus to your initiative rolls.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Initiative bonuses and proficiency are extracted and applied to character state."
       },
       {
         "rawText": "Leporine Senses: You have proficiency in the Perception skill.",
         "name": "Leporine Senses",
         "description": "You have proficiency in the Perception skill.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Lucky Footwork: When you fail a Dexterity saving throw, you can use your reaction to roll a d4 and add it to the save.",
         "name": "Lucky Footwork",
         "description": "When you fail a Dexterity saving throw, you can use your reaction to roll a d4 and add it to the save.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Rabbit Hop: As a bonus action, you can jump a number of feet equal to five times your Proficiency Bonus without provoking opportunity attacks.",
@@ -3344,9 +3344,9 @@
         "rawText": "Ever Hospitable: When you make a Charisma (Persuasion) check or an ability check involving brewer's supplies or cook's utensils, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Ever Hospitable",
         "description": "When you make a Charisma (Persuasion) check or an ability check involving brewer's supplies or cook's utensils, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Innkeeper's Magic: You know the Prestidigitation cantrip. You can also cast the Purify Food and Drink and Unseen Servant spells with this trait. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Long Rest. Charisma is your spellcasting ability for these spells.",
@@ -3416,8 +3416,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -3494,17 +3494,17 @@
         "rawText": "Dwarven Combat Training: You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
         "name": "Dwarven Combat Training",
         "description": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
         "name": "Tool Proficiency",
         "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
@@ -3683,8 +3683,8 @@
         "name": "Skillful",
         "description": "You gain proficiency in one skill of your choice (chosen during character creation).",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\HumanSkillSelection.tsx: \"* from all available skills, as per their \"Skillful\" racial trait.\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[humanSkillId] = { granted: true, source: \"Human 'Skillful' trait\" };\"; src\\components\\CharacterCreator\\utils\\__tests__\\skillSelectionUtils.test.ts: \"expect(grants.athletics).toEqual({ granted: true, source: \"Human 'Skillful' trait\" });\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Versatile: You gain an Origin feat of your choice.",
@@ -3863,9 +3863,9 @@
         "rawText": "Kender Curiosity: You gain proficiency in one skill of your choice from Insight, Investigation, or Sleight of Hand.",
         "name": "Kender Curiosity",
         "description": "You gain proficiency in one skill of your choice from Insight, Investigation, or Sleight of Hand.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Taunt: As a bonus action, you can unleash a provocative string of words at a creature within 60 feet that can hear you, forcing it to use its reaction to attack you if it can.",
@@ -4028,9 +4028,9 @@
         "rawText": "Hunter's Instincts: You gain proficiency in either Athletics, Intimidation, Perception, or Survival.",
         "name": "Hunter's Instincts",
         "description": "You gain proficiency in either Athletics, Intimidation, Perception, or Survival.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Daunting Roar: As a bonus action, you can unleash a roar; creatures of your choice within 10 feet that can hear you must succeed on a Wisdom saving throw or become frightened until the end of your next turn.",
@@ -4164,7 +4164,7 @@
         "description": "While not wearing armor, your AC is 13 + your Dexterity modifier, and you can use it in place of armor when determining AC.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\""
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\"; src\\utils\\character\\statUtils.ts: \"// If not wearing armor, use the best base (Standard 10 vs Racial Natural Armor)\""
       }
     ]
   },
@@ -4288,9 +4288,9 @@
         "rawText": "Timberwalk: Ability checks made to track you have Disadvantage, and you can move across difficult terrain made of nonmagical plants and undergrowth without expending extra movement.",
         "name": "Timberwalk",
         "description": "Ability checks made to track you have Disadvantage, and you can move across difficult terrain made of nonmagical plants and undergrowth without expending extra movement.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Difficult terrain ignores are extracted and applied to pathfinding logic."
       }
     ]
   },
@@ -4337,7 +4337,7 @@
         "description": "While not wearing armor, your Armor Class is 12 + your Constitution modifier. You can benefit from a shield.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\""
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\"; src\\utils\\character\\statUtils.ts: \"// If not wearing armor, use the best base (Standard 10 vs Racial Natural Armor)\""
       },
       {
         "rawText": "Trunk: Your trunk can lift objects, open doors, or act as a snorkel with a 5-foot reach and five times your Strength in pounds.",
@@ -4414,9 +4414,9 @@
         "rawText": "Medical Intuition: When you make a Wisdom (Medicine) check or an ability check using an herbalism kit, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Medical Intuition",
         "description": "When you make a Wisdom (Medicine) check or an ability check using an herbalism kit, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Healing Touch: You can cast the Cure Wounds spell with this trait. Starting at 3rd level, you can also cast Lesser Restoration with it. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Long Rest. Wisdom is your spellcasting ability for these spells.",
@@ -4540,17 +4540,17 @@
         "rawText": "Dwarven Combat Training: You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
         "name": "Dwarven Combat Training",
         "description": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
         "name": "Tool Proficiency",
         "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
@@ -4564,9 +4564,9 @@
         "rawText": "Dwarven Armor Training: You have proficiency with light and medium armor.",
         "name": "Dwarven Armor Training",
         "description": "You have proficiency with light and medium armor.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       }
     ]
   },
@@ -4675,8 +4675,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -4761,9 +4761,9 @@
         "rawText": "Hunter's Intuition: When you make a Wisdom (Perception) or Wisdom (Survival) check, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Hunter's Intuition",
         "description": "When you make a Wisdom (Perception) or Wisdom (Survival) check, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Finder's Magic: You can cast the Hunter's Mark spell with this trait. Starting at 3rd level, you can also cast the Locate Object spell with it. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Long Rest. Wisdom is your spellcasting ability for these spells.",
@@ -5021,9 +5021,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to fire damage.",
@@ -5109,8 +5109,8 @@
         "name": "Tinker",
         "description": "You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: Clockwork Toy (a clockwork animal, monster, or person that moves 5 feet across solid ground when touched), Fire Starter (produces a miniature flame for lighting candles, torches, or campfires), or Music Box (plays a single song at a moderate volume when opened).",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\classes\\index.ts: \"{ id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Tinker's Tools\",\"; src\\data\\monsters.generated.ts: \"\"sourceName\": \"Tinker's Magic\",\"; src\\hooks\\useCharacterProficiencies.ts: \"toolProfs.add(\"Tinker's Tools\");\"; src\\systems\\spells\\validation\\spellValidator.ts: \"// access. Mending is the pilot case: Artificers receive it from Tinker's Magic,\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       }
     ]
   },
@@ -5163,9 +5163,9 @@
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
         "name": "Tool Proficiency",
         "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
@@ -5179,9 +5179,9 @@
         "rawText": "Warder's Intuition: When you make an Intelligence (Investigation) check or an ability check using thieves' tools, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Warder's Intuition",
         "description": "When you make an Intelligence (Investigation) check or an ability check using thieves' tools, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Wards and Seals: You can cast the Alarm and Mage Armor spells with this trait. Starting at 3rd level, you can also cast the Arcane Lock spell with it. Once you cast any of these spells with this trait, you can't cast that spell with it again until you finish a Long Rest. Intelligence is your spellcasting ability for these spells, and you don't need material components for them.",
@@ -5250,9 +5250,9 @@
         "rawText": "Mirthful Leaps: When you make a long or high jump, you can roll a d8 and add it to the distance.",
         "name": "Mirthful Leaps",
         "description": "When you make a long or high jump, you can roll a d8 and add it to the distance.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Reveler: You are proficient in Performance and Persuasion.",
@@ -5385,8 +5385,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -5463,9 +5463,9 @@
         "rawText": "Deductive Intuition: When you make an Intelligence (Investigation) or Wisdom (Insight) check, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Deductive Intuition",
         "description": "When you make an Intelligence (Investigation) or Wisdom (Insight) check, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Magical Detection: You can cast the Detect Magic and Detect Poison and Disease spells with this trait. Starting at 3rd level, you can also cast the See Invisibility spell with it. Once you cast any of these spells with this trait, you can't cast that spell with it again until you finish a Long Rest. Intelligence is your spellcasting ability for these spells, and you don't require material components for them.",
@@ -5535,8 +5535,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -5614,8 +5614,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -5629,9 +5629,9 @@
         "rawText": "Cunning Intuition: When you make a Charisma (Performance) or Dexterity (Stealth) check, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Cunning Intuition",
         "description": "When you make a Charisma (Performance) or Dexterity (Stealth) check, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Shape Shadows: You know the Minor Illusion cantrip. Starting at 3rd level, you can cast the Invisibility spell once with this trait, and you regain the ability to cast it when you finish a Long Rest. Charisma is your spellcasting ability for these spells.",
@@ -5692,9 +5692,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to cold damage.",
@@ -5827,8 +5827,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -6015,9 +6015,9 @@
         "rawText": "Windwright's Intuition: When you make a Dexterity (Acrobatics) check or any ability check involving navigator's tools, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Windwright's Intuition",
         "description": "When you make a Dexterity (Acrobatics) check or any ability check involving navigator's tools, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Storm's Boon: You have resistance to lightning damage.",
@@ -6158,8 +6158,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -6291,9 +6291,9 @@
         "rawText": "Cat’s Talent: You have proficiency in the Perception and Stealth skills.",
         "name": "Cat’s Talent",
         "description": "You have proficiency in the Perception and Stealth skills.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Feline Agility: Your reflexes and agility allow you to move with a burst of speed. When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can’t use it again until you move 0 feet on one of your turns.",
@@ -6622,8 +6622,8 @@
         "name": "Intellect",
         "description": "You gain proficiency in Investigation and double your proficiency bonus on Intelligence (Investigation) checks that allow proficiency.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Headband of Intellect\",\"; src\\data\\monsters.generated.ts: \"\"name\": \"Intellect Devourer\",\"; src\\systems\\spells\\validation\\targetingSchemas.ts: \"// Intellect Fortress-style scaling lets a spell affect more targets only\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       }
     ]
   },
@@ -6676,9 +6676,9 @@
         "rawText": "Persuasive: You gain proficiency in the Persuasion skill.",
         "name": "Persuasive",
         "description": "You gain proficiency in the Persuasion skill.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Telepathic Insight: You have advantage on Wisdom and Charisma saving throws.",
@@ -6739,9 +6739,9 @@
         "rawText": "Integrated Protection: Your body has built-in defensive layers, which can be enhanced with armor: You gain a +1 bonus to Armor Class. You can don only armor with which you have proficiency. To don armor other than a shield, you must incorporate it into your body over the course of 1 hour, during which you remain in contact with the armor. To doff armor, you must spend 1 hour removing it. You can rest while donning or doffing armor in this way. While you live, the armor incorporated into your body can't be removed against your will.",
         "name": "Integrated Protection",
         "description": "Your body has built-in defensive layers, which can be enhanced with armor: You gain a +1 bonus to Armor Class. You can don only armor with which you have proficiency. To don armor other than a shield, you must incorporate it into your body over the course of 1 hour, during which you remain in contact with the armor. To doff armor, you must spend 1 hour removing it. You can rest while donning or doffing armor in this way. While you live, the armor incorporated into your body can't be removed against your will.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Specialized Design: You gain one skill proficiency and one tool proficiency of your choice.",
@@ -6850,8 +6850,8 @@
         "name": "Skillful",
         "description": "You gain proficiency in one skill of your choice.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\HumanSkillSelection.tsx: \"* from all available skills, as per their \"Skillful\" racial trait.\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[humanSkillId] = { granted: true, source: \"Human 'Skillful' trait\" };\"; src\\components\\CharacterCreator\\utils\\__tests__\\skillSelectionUtils.test.ts: \"expect(grants.athletics).toEqual({ granted: true, source: \"Human 'Skillful' trait\" });\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Versatile: You gain an Origin feat of your choice.",
@@ -6873,9 +6873,9 @@
         "rawText": "Intuitive Motion: When you make a Dexterity (Acrobatics) check or any ability check to operate or maintain a land vehicle, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Intuitive Motion",
         "description": "When you make a Dexterity (Acrobatics) check or any ability check to operate or maintain a land vehicle, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Magical Passage: You can cast the Misty Step spell once with this trait, and you regain the ability to cast it when you finish a Long Rest. Dexterity is your spellcasting ability for this spell.",
@@ -6936,9 +6936,9 @@
         "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
         "name": "Breath Weapon",
         "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial ability materializer",
+        "evidence": "Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities."
       },
       {
         "rawText": "Damage Resistance: You have resistance to cold damage.",
@@ -7071,8 +7071,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -7150,8 +7150,8 @@
         "name": "Keen Senses",
         "description": "You have proficiency in the Perception skill.",
         "status": "Implemented",
-        "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"/** Elf - Keen Senses (pick 1 of 3) */\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"? 'Please select a Keen Senses skill first'\"; src\\components\\CharacterCreator\\SkillSelection.tsx: \"// Prepare options for Elf Keen Senses racial feature\"; src\\components\\CharacterCreator\\utils\\skillSelectionUtils.ts: \"grants[selectedKeenSensesSkillId] = { granted: true, source: \"Elf 'Keen Senses' trait\" };\""
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
       },
       {
         "rawText": "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
@@ -7236,9 +7236,9 @@
         "rawText": "Gifted Scribe: When you make an Intelligence (History) check or an ability check using calligrapher's supplies, you can roll a d4 and add the number rolled to the ability check.",
         "name": "Gifted Scribe",
         "description": "When you make an Intelligence (History) check or an ability check using calligrapher's supplies, you can roll a d4 and add the number rolled to the ability check.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText."
       },
       {
         "rawText": "Scribe's Insight: You know the Message cantrip. You can also cast Comprehend Languages once with this trait, and you regain the ability to cast it when you finish a Long Rest. Starting at 3rd level, you can cast the Magic Mouth spell with this trait, and you regain the ability to cast it when you finish a Long Rest. Intelligence is your spellcasting ability for these spells.",

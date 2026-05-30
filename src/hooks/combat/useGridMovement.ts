@@ -93,6 +93,7 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     const movementRemaining = movement ? (movement.total - movement.used) : 0;
 
     const isProne = selectedCharacter.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
+    const ignoreDifficultTerrain = selectedCharacter.modifiers?.ignoreDifficultTerrain || selectedCharacter.ignoreDifficultTerrain || false;
     
     // Multi-tile movement: Large creatures occupy 2x2, Huge 3x3, etc.
     const multiplier = getCharacterSizeMultiplier(selectedCharacter.stats.size);
@@ -135,7 +136,8 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
           if (canPass) {
             const { cost: baseCost, isDiagonal } = calculateMovementCost(dx, dy, diagonalCount);
             const crawlCost = isProne ? 1 : 0;
-            const stepCost = baseCost * (maxTerrainMultiplier + crawlCost);
+            const effectiveTerrainMultiplier = (maxTerrainMultiplier > 1 && ignoreDifficultTerrain) ? 1 : maxTerrainMultiplier;
+            const stepCost = baseCost * (effectiveTerrainMultiplier + crawlCost);
 
             const newCost = cost + stepCost;
             const newDiagonalCount = isDiagonal ? diagonalCount + 1 : diagonalCount;
@@ -180,10 +182,15 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
       // This is a separate check from the BFS above because calculatePath
       // receives a character parameter that might differ from selectedCharacter.
       const isProne = character.conditions?.some(c => c.name === 'Prone' || c.name === 'prone') || false;
+      const ignoreDifficultTerrain = character.modifiers?.ignoreDifficultTerrain || character.ignoreDifficultTerrain || false;
+
       // Pass crawling state to the A* pathfinder in physicsUtils, which adds
       // +1 foot per foot to every step's cost when isCrawling is true.
       const multiplier = getCharacterSizeMultiplier(character.stats.size);
-      const path = findPath(startTile, targetTile, mapData, { isCrawling: isProne }, multiplier);
+      const path = findPath(startTile, targetTile, mapData, { 
+        isCrawling: isProne,
+        ignoreDifficultTerrain: ignoreDifficultTerrain
+      }, multiplier);
       setActivePath(path);
     }
   }, [mapData, characterPositions, validMoves]);

@@ -3,9 +3,10 @@
  * Core engine for checking recipe requirements and executing crafting.
  * Enhanced with quality tiers, time advancement, and recipe discovery.
  */
-import { Item } from '../../types';
+import { Item, PlayerCharacter } from '../../types';
 import { CraftingRecipe, CraftingTool, ALL_RECIPES } from './alchemyRecipes';
 import { rollDice } from '../../utils/combatUtils';
+import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import {
     determineCraftingQuality,
     CraftingQuality,
@@ -162,7 +163,8 @@ export function attemptCrafting(
     crafterModifier: number,
     inventory: Item[],
     gold: number,
-    progression?: CrafterProgression
+    progression?: CrafterProgression,
+    crafter?: PlayerCharacter
 ): CraftingResult {
     // First, verify we can craft
     const craftability = checkRecipeCraftability(
@@ -201,9 +203,26 @@ export function attemptCrafting(
     // Roll the crafting check: d20 + modifier + progression bonus
     // RALPH: Core mechanics loop.
     // Roll = d20 + Stat + Progression Bonus.
-    const rawRoll = rollDice('1d20');
+    let totalRoll: number;
+    let rawRoll: number;
+    let modifiersApplied: { source: string; value: number }[] | undefined;
+
     const progressionBonus = progression?.bonusModifier || 0;
-    const totalRoll = rawRoll + crafterModifier + progressionBonus;
+
+    if (crafter) {
+        // Use unified rollAbilityCheck to capture racial intuition (e.g. Mark of Making)
+        // We pass the externalModifier to account for location bonuses and progression bonuses
+        // that aren't part of the base character stats.
+        const checkResult = rollAbilityCheck(crafter, 'Intelligence', 'Arcana', {
+            externalModifier: progressionBonus + (crafterModifier - Math.floor(((crafter.abilityScores?.Intelligence || 10) - 10) / 2) - (crafter.proficiencyBonus || 2))
+        });
+        totalRoll = checkResult.total;
+        rawRoll = checkResult.roll;
+        modifiersApplied = checkResult.modifiersApplied;
+    } else {
+        rawRoll = rollDice('1d20');
+        totalRoll = rawRoll + crafterModifier + progressionBonus;
+    }
 
     const isNat20 = rawRoll === 20;
     const isNat1 = rawRoll === 1;
@@ -240,7 +259,7 @@ export function attemptCrafting(
         message = `💀 CRITICAL FAILURE! `;
     }
 
-    message += `Roll: ${totalRoll} (${rawRoll}+${crafterModifier + progressionBonus}) vs DC ${recipe.craftingDC}. `;
+    message += `Roll: ${totalRoll} (${rawRoll}+${totalRoll - rawRoll}) vs DC ${recipe.craftingDC}. `;
     message += qualityResult.description;
 
     if (quality !== 'ruined') {
@@ -269,7 +288,8 @@ export function attemptCrafting(
         xpGained,
         timeSpentMinutes,
         isNat20,
-        isNat1
+        isNat1,
+        modifiersApplied
     };
 }
 

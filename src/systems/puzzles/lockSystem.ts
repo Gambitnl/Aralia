@@ -8,30 +8,14 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { rollDice } from '../../utils/combatUtils';
+import { rollAbilityCheck } from '../../utils/character/checkUtils';
 import { Lock, Trap, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
-import { getAbilityModifierValue } from '../../utils/statUtils';
-
-const getLegacyStats = (character: PlayerCharacter) => ({
-  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
-  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
-  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
-  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
-  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
-  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
-});
 
 const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
 
 /**
  * Checks if a character has proficiency with a specific tool.
- * @param character The character to check.
- * @param toolId The ID of the tool (e.g., 'thieves-tools').
- * @returns boolean True if proficient.
  */
-// TODO(lint-intent): 'toolId' is an unused parameter, which suggests a planned input for this flow.
-// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
 export function hasToolProficiency(character: PlayerCharacter, _toolId: string): boolean {
   // Logic simplified for MVP: Rogue class implies proficiency with Thieves' Tools.
   // Future iteration should check the character's explicit proficiency list.
@@ -65,13 +49,9 @@ export function attemptLockpick(
     return { success: false, margin: -10, triggeredTrap: false };
   }
 
-  const stats = getLegacyStats(character);
-  const dexMod = getAbilityModifierValue(stats.dexterity);
-  const isProficient = hasToolProficiency(character, 'thieves-tools');
-  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
-
-  const d20 = rollDice('1d20');
-  const total = d20 + dexMod + profBonus;
+  // Use rollAbilityCheck for Sleight of Hand (Dexterity)
+  const result = rollAbilityCheck(character, 'Dexterity', 'Sleight of Hand');
+  const total = result.total;
 
   const success = total >= lock.dc;
   const margin = total - lock.dc;
@@ -105,13 +85,10 @@ export function attemptBreak(
     return { success: false, margin: 0, isBroken: false };
   }
 
-  const stats = getLegacyStats(character);
-  const strMod = getAbilityModifierValue(stats.strength);
-  const d20 = rollDice('1d20');
-
   // If breakDC is defined, it's a single check
   if (lock.breakDC) {
-    const total = d20 + strMod;
+    const result = rollAbilityCheck(character, 'Strength', 'Athletics');
+    const total = result.total;
     const success = total >= lock.breakDC;
     return {
       success,
@@ -134,21 +111,12 @@ export function detectTrap(
     return { success: true, margin: 0, trapDetected: true };
   }
 
-  const stats = getLegacyStats(character);
-  const wisMod = getAbilityModifierValue(stats.wisdom); // Perception
-  const intMod = getAbilityModifierValue(stats.intelligence); // Investigation
+  // Use the higher of Perception (Wisdom) or Investigation (Intelligence) logic
+  const perceptionResult = rollAbilityCheck(character, 'Wisdom', 'Perception');
+  const investigationResult = rollAbilityCheck(character, 'Intelligence', 'Investigation');
 
-  // Use the higher of Perception or Investigation logic
-  const bestMod = Math.max(wisMod, intMod);
-
-  // Simplified proficiency check for MVP
-  const isProficient = getClasses(character).some(c =>
-    c.name === 'Rogue' || c.name === 'Ranger' || c.name === 'Bard' || c.name === 'Wizard'
-  );
-  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
-
-  const d20 = rollDice('1d20');
-  const total = d20 + bestMod + profBonus;
+  const result = perceptionResult.total >= investigationResult.total ? perceptionResult : investigationResult;
+  const total = result.total;
 
   const success = total >= trap.detectionDC;
 
@@ -176,13 +144,9 @@ export function disarmTrap(
      return { success: false, margin: -10, triggeredTrap: false };
    }
 
-   const stats = getLegacyStats(character);
-   const dexMod = getAbilityModifierValue(stats.dexterity);
-   const isProficient = hasToolProficiency(character, 'thieves-tools');
-   const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
-
-   const d20 = rollDice('1d20');
-   const total = d20 + dexMod + profBonus;
+   // Use rollAbilityCheck for Thieves' Tools check (usually Dexterity)
+   const result = rollAbilityCheck(character, 'Dexterity', 'Sleight of Hand');
+   const total = result.total;
 
    const success = total >= trap.disarmDC;
    const margin = total - trap.disarmDC;

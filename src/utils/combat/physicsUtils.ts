@@ -49,6 +49,8 @@ export interface MovementConfig {
   hasClimbSpeed?: boolean;
   /** Whether the character has a native swimming speed (negates swimming penalty). */
   hasSwimSpeed?: boolean;
+  /** Whether the character ignores difficult terrain (e.g. Ranger, racial trait). */
+  ignoreDifficultTerrain?: boolean;
 }
 
 /**
@@ -262,7 +264,7 @@ export function applyMovementCostModifiers(
   config: MovementConfig
 ): number {
   // Declarative calculation of extra costs (1 ft per condition)
-  const difficultTerrainCost = config.isDifficultTerrain ? 1 : 0;
+  const difficultTerrainCost = (config.isDifficultTerrain && !config.ignoreDifficultTerrain) ? 1 : 0;
   const climbingCost = (config.isClimbing && !config.hasClimbSpeed) ? 1 : 0;
   const swimmingCost = (config.isSwimming && !config.hasSwimSpeed) ? 1 : 0;
   const crawlingCost = config.isCrawling ? 1 : 0;

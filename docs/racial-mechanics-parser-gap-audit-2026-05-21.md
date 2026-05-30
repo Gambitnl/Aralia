@@ -1,5 +1,5 @@
 # Racial Spell Parser Audit
-Generated: 2026-05-28T22:06:12.854Z
+Generated: 2026-05-29T23:53:36.362Z
 
 Races scanned: 111
 Flagged in-scope races: 0

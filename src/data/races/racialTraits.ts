@@ -157,6 +157,15 @@ const INVALID_RACIAL_SPELL_TOKENS = new Set([
 
 type ParsedDefenseType = 'resistances' | 'immunities' | 'vulnerabilities';
 
+export interface RacialBreathWeapon {
+  areaShape: 'cone' | 'line';
+  areaSize: number;
+  saveAbility: AbilityScoreName;
+  damageDice: string;
+  damageType: string;
+  scaling: { level: number; dice: string }[];
+}
+
 export interface RacialModifierBuckets {
   advantage: string[];
   disadvantage: string[];
@@ -167,6 +176,13 @@ export interface RacialModifierBuckets {
   powerfulBuild?: boolean;
   unendingBreath?: boolean;
   languages?: string[];
+  skillProficiencies?: string[];
+  weaponProficiencies?: string[];
+  armorProficiencies?: string[];
+  initiativeBonus?: number;
+  initiativeProficiency?: boolean;
+  ignoreDifficultTerrain?: boolean;
+  breathWeapon?: RacialBreathWeapon;
 }
 
 export interface RacialDefenseBuckets {
@@ -309,14 +325,72 @@ const extractModifierBuckets = (text: string): RacialModifierBuckets => {
     buckets.languages = langMatch.map(m => m.replace(/speak,\s+read,\s+and\s+write\s+/i, '').trim());
   }
 
+  // Proficiencies
+  const skillMatch = text.match(/proficiency\s+in\s+the\s+([A-Z][a-z]+)\s+skill/i) || text.match(/proficiency\s+in\s+([A-Z][a-z]+)/i);
+  if (skillMatch) {
+    buckets.skillProficiencies = [skillMatch[1].trim()];
+  }
+
+  const weaponMatch = text.match(/proficiency\s+with\s+(?:the\s+)?([^.;]+)/i);
+  if (weaponMatch && (text.includes('weapon') || text.includes('axe') || text.includes('bow') || text.includes('sword') || text.includes('hammer'))) {
+    const weapons = weaponMatch[1].split(/,|\band\b/).map(s => s.trim()).filter(Boolean);
+    buckets.weaponProficiencies = weapons;
+  }
+
+  // Initiative
+  if (/add\s+your\s+Proficiency\s+Bonus\s+to\s+your\s+initiative\s+rolls/i.test(text)) {
+    buckets.initiativeProficiency = true;
+  }
+  const initBonusMatch = text.match(/(\+\d+)\s+bonus\s+to\s+initiative/i);
+  if (initBonusMatch) {
+    buckets.initiativeBonus = parseInt(initBonusMatch[1].replace('+', ''), 10);
+  }
+
+  // Difficult Terrain
+  if (/move\s+across\s+Difficult\s+Terrain\s+without\s+expending\s+extra\s+movement/i.test(text)) {
+    buckets.ignoreDifficultTerrain = true;
+  }
+
+  // Breath Weapon
+  if (/Breath\s+Weapon/i.test(text)) {
+    const areaMatch = text.match(/(\d+)-foot\s+(cone|line)/i);
+    const saveMatch = text.match(/\b(Dexterity|Constitution)\b\s+saving\s+throw/i);
+    const damageMatch = text.match(/(\d+d\d+)\s+([a-z]+)\s+damage/i);
+    
+    if (areaMatch && saveMatch && damageMatch) {
+      const scaling: { level: number; dice: string }[] = [];
+      const scalingMatches = [...text.matchAll(/(\d+d\d+)\s+at\s+(\d+)(?:st|nd|rd|th)?\s+level/gi)];
+      scalingMatches.forEach(m => {
+        scaling.push({ level: parseInt(m[2], 10), dice: m[1] });
+      });
+
+      buckets.breathWeapon = {
+        areaShape: areaMatch[2].toLowerCase() as 'cone' | 'line',
+        areaSize: parseInt(areaMatch[1], 10),
+        saveAbility: saveMatch[1] as AbilityScoreName,
+        damageDice: damageMatch[1],
+        damageType: damageMatch[2],
+        scaling
+      };
+    }
+  }
+
   // Refined bonus parsing: "add a d4 to", "roll a d4... to", "gain a +2 bonus to"
+  // Handles "Wild Intuition" style: "roll a d4 and add the number rolled to the ability check"
   const bonusRegex = /(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+.*?(?:to|on|for)\s+([^.;]+)/gi;
   let match;
   while ((match = bonusRegex.exec(text)) !== null) {
     const diceOrFlat = match[1];
     let target = match[2].trim();
+    // Clean up "the number rolled to the ability check" -> "the ability check"
     target = target.replace(/the number rolled to\s+/i, '');
-    buckets.bonuses.push(`${diceOrFlat} to ${target}`);
+    // If it's a skill check, try to extract the skill names
+    const skillMatches = target.match(/\b(Acrobatics|Animal Handling|Arcana|Athletics|Deception|History|Insight|Intimidation|Investigation|Medicine|Nature|Perception|Performance|Persuasion|Religion|Sleight of Hand|Stealth|Survival)\b/gi);
+    if (skillMatches) {
+      skillMatches.forEach(skill => buckets.bonuses.push(`${diceOrFlat} to ${skill}`));
+    } else {
+      buckets.bonuses.push(`${diceOrFlat} to ${target}`);
+    }
   }
 
   return buckets;

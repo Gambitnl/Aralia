@@ -465,6 +465,15 @@ export interface RacialSelectionData {
 
 export type TransportMode = 'foot' | 'mounted';
 
+export interface RacialBreathWeapon {
+  areaShape: 'cone' | 'line';
+  areaSize: number;
+  saveAbility: AbilityScoreName;
+  damageDice: string;
+  damageType: string;
+  scaling: { level: number; dice: string }[];
+}
+
 // -----------------------------------------------------------------------------
 // Characters
 // -----------------------------------------------------------------------------
@@ -490,6 +499,13 @@ export interface PlayerCharacter {
     powerfulBuild?: boolean;
     unendingBreath?: boolean;
     languages?: string[];
+    skillProficiencies?: string[];
+    weaponProficiencies?: string[];
+    armorProficiencies?: string[];
+    initiativeBonus?: number;
+    initiativeProficiency?: boolean;
+    ignoreDifficultTerrain?: boolean;
+    breathWeapon?: RacialBreathWeapon;
   };
   /**
    * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
@@ -510,8 +526,12 @@ export interface PlayerCharacter {
   stats?: CharacterStats;
   skills: Skill[];
   savingThrowProficiencies?: AbilityScoreName[];
+  weaponProficiencies?: string[];
+  armorProficiencies?: string[];
   feats?: string[]; // IDs of selected feats
   initiativeBonus?: number;
+  initiativeProficiency?: boolean;
+  ignoreDifficultTerrain?: boolean;
   hp: number;
   maxHp: number;
   /**
