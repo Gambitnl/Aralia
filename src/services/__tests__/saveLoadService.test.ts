@@ -4,6 +4,7 @@ import * as SaveLoadService from '../saveLoadService';
 import { GameState, GamePhase, NotificationType as _NotificationType } from '../../types';
 // TODO(lint-intent): 'simpleHash' is unused in this test; use it in the assertion path or remove it.
 import { simpleHash as _simpleHash } from '../../utils/hashUtils';
+import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -242,5 +243,28 @@ describe('SaveLoadService', () => {
         it('should return false if save does not exist', () => {
             expect(SaveLoadService.hasSaveGame('ghost_slot')).toBe(false);
         });
+    });
+
+    it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
+      const cols = 6;
+      const rows = 4;
+      const legacyMap = {
+        gridSize: { rows, cols },
+        tiles: new Array(rows).fill(0).map((_, y) =>
+          new Array(cols).fill(0).map((__, x) => ({
+            x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
+          })),
+        ),
+        azgaarWorld: {
+          version: 1 as const,
+          templateId: 'continents',
+          heights: new Array(cols * rows).fill(30),
+          temperatures: new Array(cols * rows).fill(15),
+          moisture: new Array(cols * rows).fill(20),
+          rivers: new Array(cols * rows).fill(false),
+        },
+      };
+      const migrated = migrateMapDataToWorldDataV2(legacyMap as any, 42);
+      expect(migrated.worldData?.version).toBe(2);
     });
 });
