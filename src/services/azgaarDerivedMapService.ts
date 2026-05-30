@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:48
- * Dependents: mapService.ts
- * Imports: 3 files
+ * Last Sync: 30/05/2026, 23:19:43
+ * Dependents: services/mapService.ts
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -17,6 +17,7 @@
 import { Biome, Location, MapData, MapTile } from '../types';
 import { STARTING_LOCATION_ID } from '../constants';
 import { SeededRandom } from '@/utils/random';
+import { runWorldSim } from './worldSim';
 
 type TemplateTool = 'Hill' | 'Pit' | 'Range' | 'Trough' | 'Strait' | 'Mask' | 'Invert' | 'Add' | 'Multiply' | 'Smooth';
 type Grid = { rows: number; cols: number; points: Array<[number, number]>; neighbors: number[][] };
@@ -476,6 +477,24 @@ export function generateAzgaarDerivedMap(
   applyLocationAnchors(tiles, locations, rows, cols);
   applyStartingDiscovery(tiles, locations);
 
+  const biomeIdFlat: string[] = [];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      biomeIdFlat.push(tiles[y][x].biomeId);
+    }
+  }
+
+  const worldData = runWorldSim({
+    seed: worldSeed,
+    templateId,
+    cols,
+    rows,
+    heights,
+    temperatures,
+    moisture: moistureValues,
+    biomeIds: biomeIdFlat,
+  });
+
   return {
     gridSize: { rows, cols },
     tiles,
@@ -487,5 +506,6 @@ export function generateAzgaarDerivedMap(
       moisture: moistureValues,
       rivers,
     },
+    worldData,
   };
 }
