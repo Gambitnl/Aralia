@@ -56,7 +56,7 @@ export function traceRivers(heights: number[], cols: number, rows: number, minFl
   }
 
   // 3. Identify sources and trace polylines downstream.
-  const visited = new Uint8Array(n);
+  const visitedBy = new Int32Array(n).fill(-1);
   const rivers: River[] = [];
   const sourceCandidates = order
     .filter((i) => flow[i] >= minFlow)
@@ -75,21 +75,34 @@ export function traceRivers(heights: number[], cols: number, rows: number, minFl
 
   let riverId = 0;
   for (const src of sourceCandidates) {
-    if (visited[src]) continue;
+    if (visitedBy[src] !== -1) continue;
+    const myId = riverId++;
     const points: Vec2[] = [];
     const widthArr: number[] = [];
     const discharge: number[] = [];
     let cur = src;
     let guard = n;
-    while (cur >= 0 && guard-- > 0 && !visited[cur] && flow[cur] >= minFlow) {
-      visited[cur] = 1;
+    let parentId: string | undefined;
+    while (cur >= 0 && guard-- > 0 && flow[cur] >= minFlow) {
+      if (visitedBy[cur] !== -1) {
+        // We've hit a downstream river — record the tributary link and stop.
+        parentId = `r${visitedBy[cur]}`;
+        break;
+      }
+      visitedBy[cur] = myId;
       points.push({ x: (cur % cols) + 0.5, y: ((cur / cols) | 0) + 0.5 });
       discharge.push(flow[cur]);
       widthArr.push(Math.max(0.4, Math.sqrt(flow[cur]) * 0.3));
       cur = descent[cur];
     }
+    // Per River.width contract: last entry duplicates second-to-last.
+    if (widthArr.length >= 2) {
+      widthArr[widthArr.length - 1] = widthArr[widthArr.length - 2];
+    }
     if (points.length >= 2) {
-      rivers.push({ id: `r${riverId++}`, points, width: widthArr, discharge });
+      const river: River = { id: `r${myId}`, points, width: widthArr, discharge };
+      if (parentId !== undefined) river.parentId = parentId;
+      rivers.push(river);
     }
   }
 
