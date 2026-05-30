@@ -5,6 +5,8 @@ slice after Package 17.
 
 This packet moves the mechanism forward by taking the remaining cantrip/level 1-3
 `reaction_or_opportunity_restriction` findings in a coherent, bounded batch.
+Package 18 is staged, but it must stay parked until Package 17 closes out or is
+explicitly replaced in the visible Jules session.
 
 ## Worker
 
