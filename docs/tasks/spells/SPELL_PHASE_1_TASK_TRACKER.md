@@ -58,7 +58,8 @@ Statuses:
 
 See [SPELL_PHASE_1_PR_HANDOFF_INDEX.md](SPELL_PHASE_1_PR_HANDOFF_INDEX.md) for the moved package lineage and durable PR/handoff references. Keep this tracker focused on active queue state, current blockers, and update rules.
 
-Completed Package 0-17 rows moved to [SPELL_PHASE_1_PACKAGE_HISTORY.md](SPELL_PHASE_1_PACKAGE_HISTORY.md).
+Completed Package 0-16 rows moved to [SPELL_PHASE_1_PACKAGE_HISTORY.md](SPELL_PHASE_1_PACKAGE_HISTORY.md).
+Package 17 is the current ready-for-handoff slice; Package 18 is the next continuation packet.
 Keep this live tracker focused on the current package, nearby blockers, and update rules.
 
 
@@ -66,7 +67,8 @@ Keep this live tracker focused on the current package, nearby blockers, and upda
 
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
-| P18 | active | Codex foreman preparation | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Package 18 is scoped as a bounded continuation with a concrete `Jules value` and row-classification requirement. |
+| P17 | waiting | Codex foreman preparation | Reaction and opportunity restrictions for cantrips and levels 1-3 | `PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md`, `PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md` | Package 17 is the current ready-for-handoff slice in the live Symphony store; it should move through the visible Jules handoff before Package 18 becomes active. |
+| P18 | not_started | Codex foreman preparation | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Package 18 remains the next bounded continuation packet after Package 17. |
 
 ## Current Local Change Classification
 
@@ -79,7 +81,7 @@ It is a routing note, not a request to discard or simplify any work.
 | PHB glossary/rules migration | The main checkout may contain unrelated local glossary/rules work from the operator. | Treat that as adjacent project state, not Package 11 scope. Do not bundle new glossary/rules work into the status/state-change handoff. |
 | BattleMap and combat UI/source edits | The operator has noted combat simulator visibility gaps, including missing tiny icons for active spell rider effects. | Record those as adjacent combat-visibility follow-ups unless Package 11 directly needs them. Package 11 is status/state data and runtime proof, not a combat HUD rider-icon package. |
 | Ignored Symphony/Jules state | Historical ignored Symphony/Jules state can exist locally, but `G93` confirms that running Jules sessions do not receive later local or GitHub tracker changes automatically. | Keep ignored and local. Copy only short Aralia-facing summaries into this tracker or package files when they explain a real package decision. Use explicit update channels after Jules launch. |
-| Branch/worktree state | Package 18 is the active forward-ready slice, but the visible handoff is still blocked by unrelated local edits and one untracked local artifact. Current checkout remains on `master` with `POST /api/v1/git-preflight` blocked until those local files are resolved or intentionally kept local for a later sync. |
+| Branch/worktree state | Package 17 is the current ready-for-handoff slice, but the visible handoff is still blocked by unrelated local edits and one untracked local artifact. Current checkout remains on `master` with `POST /api/v1/git-preflight` blocked until those local files are resolved or intentionally kept local for a later sync. Package 18 stays queued as the later continuation packet. |
 | Untracked local artifact | `src/services/worldSim/__tests__/biomeZones.test.ts` is unrelated local work that surfaced during the resume check and has been kept local in the live Git-disposition ledger. | Keep local and outside the Spell Phase 1 Jules handoff unless the operator later asks to fold it into the world-sim line. |
 
 ## Current Setup And PR Tasks

@@ -1,6 +1,6 @@
 ﻿# Spell Phase 1 Package History
 
-This appendix holds the completed Package 0-17 history that used to live inline in `SPELL_PHASE_1_TASK_TRACKER.md`.
+This appendix holds the completed Package 0-16 history that used to live inline in `SPELL_PHASE_1_TASK_TRACKER.md`.
 The live tracker now stays focused on the current package, live blockers, and update rules.
 
 ## Completed Package Rows
@@ -24,9 +24,9 @@ The live tracker now stays focused on the current package, live blockers, and up
 | P14 | done | Jules implementation, Codex foreman branch-hygiene repair/closeout | Vision/light/sound mechanics bucket for cantrips and levels 1-3 | `PACKAGE_14_VISION_LIGHT_SOUND_JULES_TASK.md`, `PACKAGE_14_VISION_LIGHT_SOUND_JULES_PROMPT.md`, Linear `ARA-23`, draft `draft-1779763218951-adiujn`, handoff `handoff-1779763287600-th7aze`, Jules session `16016352181102771214`, PR #1110 | Package 14 landed as PR #1110 after a bounded foreman clean-acceptance repair. The accepted scope is selected spell JSON for `alarm`, `thaumaturgy`, `disguise-self`, `silent-image`, `phantasmal-force`, `daylight`, and `major-image`; the `SoundEmission` type bridge in `src/types/spells.ts` plus the tracked `.d.ts` mirror; focused `SensoryMechanics` tests; and corrected `vision_light_sound.md` bucket counts. The out-of-scope workflow quota-bypass edit was dropped. Verification passed locally and on GitHub; the dependency visualizer sync command remained unavailable because `misc/dev_hub/codebase-visualizer/server/index.ts` is missing. |
 | P15 | done | Jules implementation, Codex foreman branch-hygiene repair/closeout | Summon/control mechanics bucket for cantrips and levels 1-3 | `PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_TASK.md`, `PACKAGE_15_SUMMON_CONTROLLED_ENTITY_JULES_PROMPT.md`, Linear `ARA-24`, draft `draft-1779771507621-vox90j`, handoff `handoff-1779774561087-k9184e`, Jules session `5400768066928394476`, PR #1122 | PR #1122 merged on 2026-05-26 as `829405547b7505adb409cccd420f8541d6840a83` after bounded feedback, one explicit `@jules` nudge, and a clean current-master branch-hygiene repair. Accepted proof preserved only Package 15 product/test/bucket files, removed raw `.jules` worklog noise, fixed `summon_or_controlled_entity` counts, tightened Summon Beast and Phantom Steed data, preserved zero-like summon stats, and passed local and GitHub verification. |
 | P16 | done | Jules implementation, Codex foreman branch-hygiene repair/closeout | Sustain, move, or recast action mechanics bucket for cantrips and levels 1-3 | `PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_TASK.md`, `PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_PROMPT.md`, Linear `ARA-25`, handoff `handoff-1779867945949-gghfzz`, Jules session `11565543977884436282`, PR #1135 | Jules opened PR #1135 after the visible status nudge. Foreman review found the product direction useful but the PR branch conflicted with current tracker history, had only CodeQL checks, and left implemented bucket rows marked open. PR #1135 merged on 2026-05-27 as `584fb1154d2abbeb435330afaf25d51b8547e7b9` after clean-head acceptance repair and green GitHub checks. Residual deferred rows remain in `sustain_or_recast_action.md` for summon/control, illusion arbitration, persistent weapon lifecycle, sensor switching, and related broader systems. |
-| P17 | done | Codex foreman closeout | Reaction and opportunity restrictions mechanics bucket for cantrips and levels 1-3 | `reaction_or_opportunity_restriction.md`; `PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md`; `PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md`; PR #1140 | Package 17 is complete and merged (`4a36a48`). |
 
 ## Notes
 
-- The active Package 18 row remains in `SPELL_PHASE_1_TASK_TRACKER.md`.
+- The active Package 17 row remains in `SPELL_PHASE_1_TASK_TRACKER.md`.
+- Package 18 remains the next continuation packet in the live tracker.
 - Use the PR/handoff appendix for durable lineage and the live tracker for current state.
