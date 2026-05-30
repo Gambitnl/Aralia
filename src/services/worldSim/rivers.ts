@@ -87,6 +87,9 @@ export function traceRivers(heights: number[], cols: number, rows: number, minFl
       if (visitedBy[cur] !== -1) {
         // We've hit a downstream river — record the tributary link and stop.
         parentId = `r${visitedBy[cur]}`;
+        points.push({ x: (cur % cols) + 0.5, y: ((cur / cols) | 0) + 0.5 });
+        discharge.push(flow[cur]);
+        widthArr.push(Math.max(0.4, Math.sqrt(flow[cur]) * 0.3));
         break;
       }
       visitedBy[cur] = myId;
