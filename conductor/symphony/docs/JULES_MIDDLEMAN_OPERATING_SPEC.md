@@ -176,6 +176,10 @@ queued, planning, waiting for approval, actively working, reporting failure, or
 showing a PR/result that the local record has not captured yet. Record that
 visual check in the owning tracker or task receipt so later agents do not repeat
 an already-resolved launch step or mislabel an external wait as a goal blocker.
+If the visible Jules session is the blocker, the first remediation step is to
+open the session and record one of these visible outcomes: PR URL, no-PR
+completion, failure, or follow-up request. Do not infer the result from task
+drafts or dashboard state alone.
 
 Once Jules has started, its working checkout must be treated as an isolated
 clone of the base commit recorded at launch. Later local commits, tracker
@@ -1176,6 +1180,9 @@ Before adding, committing, or handing a Symphony document to Jules, classify it:
 - Jules needs operator feedback.
 - Jules reports failure or cancellation.
 - Jules creates no PR.
+- Jules is still running or has an ambiguous completion state; refresh once,
+  then inspect the visible Jules session before declaring the handoff blocked
+  or complete.
 
 ### GitHub PR Blockers
 
@@ -1183,6 +1190,8 @@ Before adding, committing, or handing a Symphony document to Jules, classify it:
 - PR is draft.
 - PR checks are pending.
 - PR checks failed.
+- If the PR is missing, record the visible Jules-session result first rather
+  than treating dashboard state alone as proof of completion.
 - GitHub Actions are too broad to identify the failing subsystem quickly.
 - GitHub Actions are too slow to provide useful foreman feedback.
 - GitHub Actions are noisy, duplicated, or not useful for this workflow.

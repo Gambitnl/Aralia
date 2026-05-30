@@ -353,6 +353,9 @@ ignored unless a concise package-facing summary is useful after the run.
   or ignored unless the tracker needs a short durable summary.
 - When a change only repairs Symphony dashboard/workflow support machinery,
   summarize the durable outcome without adding every support PR to this tracker.
+- When a Jules handoff is still running or has an ambiguous completion state,
+  inspect the visible Jules session first and record PR URL, no-PR completion,
+  failure, or follow-up before marking the package blocked or done.
 - For the next Jules package, include a compact decision-logging instruction in
   the task/prompt: full decision entries are for real forks such as plan
   approval/rejection, repair request, stale-session replacement,
