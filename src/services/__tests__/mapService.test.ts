@@ -72,4 +72,11 @@ describe('mapService generateMap (Azgaar-source default)', () => {
     const b = generateMap(15, 20, {}, BIOMES, 1234);
     expect(JSON.stringify(a.worldData)).toBe(JSON.stringify(b.worldData));
   });
+
+  it('every freshly-generated MapData has worldData (invariant)', () => {
+    // Even on the legacy fallback path (or any future code path), MapData.worldData must exist.
+    const map = generateMap(10, 12, {}, BIOMES, 8888);
+    expect(map.worldData).toBeDefined();
+    expect(map.worldData!.version).toBe(2);
+  });
 });

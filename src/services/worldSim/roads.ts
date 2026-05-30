@@ -8,8 +8,7 @@
  *  3. Add up to 20% extra short edges for redundancy.
  */
 import type { Road, Site, Vec2 } from './types';
-
-const SEA_LEVEL = 20;
+import { SEA_LEVEL } from './constants';
 
 interface PathResult {
   cost: number;

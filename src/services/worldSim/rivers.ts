@@ -12,8 +12,8 @@
  * Output coords are cell-center grid coords (cellX + 0.5, cellY + 0.5).
  */
 import type { River, Vec2 } from './types';
+import { SEA_LEVEL } from './constants';
 
-const SEA_LEVEL = 20;
 const NEIGHBOR_OFFSETS: Array<[number, number]> = [
   [1, 0], [-1, 0], [0, 1], [0, -1],
   [1, 1], [-1, -1], [1, -1], [-1, 1],

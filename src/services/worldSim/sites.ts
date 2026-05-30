@@ -8,6 +8,7 @@
  */
 import type { River, Site, Polygon } from './types';
 import { SeededRandom } from '@/utils/random';
+import { SEA_LEVEL } from './constants';
 
 export interface SiteTargets {
   townTarget: number;
@@ -15,7 +16,6 @@ export interface SiteTargets {
   ruinTarget: number;
 }
 
-const SEA_LEVEL = 20;
 const MIN_TOWN_SPACING = 3;
 const MIN_DUNGEON_SPACING = 4;
 const MIN_RUIN_SPACING = 3;
