@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 10/05/2026, 23:32:21
- * Dependents: types/index.ts, types/mechanics.ts, utils/sandbox/quickCharacterGenerator.ts, utils/world/sceneUtils.ts
+ * Last Sync: 30/05/2026, 23:33:47
+ * Dependents: components/BattleMap/CombatCharacterInspector.tsx, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellcastingAdapter.ts, types/index.ts, types/mechanics.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
