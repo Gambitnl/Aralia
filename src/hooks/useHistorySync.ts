@@ -5,10 +5,17 @@ import { LOCATIONS } from '../constants';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // Helper to convert GamePhase enum <-> URL slug
-const getPhaseSlug = (phase: GamePhase): string => GamePhase[phase]?.toLowerCase() || '';
+const getPhaseSlug = (phase: GamePhase): string => {
+  // Map 3D sandbox demo to the clean 'world3d' URL slug rather than 'world3d_demo'
+  if (phase === GamePhase.WORLD3D_DEMO) return 'world3d';
+  return GamePhase[phase]?.toLowerCase() || '';
+};
 const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   if (!slug) return null;
-  if (slug.toLowerCase() === 'design_preview') {
+  const normalizedSlug = slug.toLowerCase();
+  // Map clean 'world3d' URL slug to the GamePhase.WORLD3D_DEMO enum value
+  if (normalizedSlug === 'world3d') return GamePhase.WORLD3D_DEMO;
+  if (normalizedSlug === 'design_preview') {
     console.warn("[Decoupling] 'design_preview' is now a standalone tool. Access it at /Aralia/misc/design.html");
     return null;
   }

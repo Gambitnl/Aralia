@@ -28,6 +28,8 @@ export enum GamePhase {
   COMBAT,
   NOT_FOUND,
   // DESIGN_PREVIEW removed - now a standalone tool at /Aralia/misc/design.html
+  /** 3D world chunk streaming sandbox demo phase added in Plan 2. */
+  WORLD3D_DEMO,
 }
 
 // Core D&D attributes
