@@ -58,7 +58,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
-      cost: { type: 'action' }, description: '', targeting: { type: 'single', validTargets: ['creatures'] } as any, effects: []
+      cost: { type: 'action' }, description: '', targeting: { type: 'single', validTargets: ['creatures'] }, effects: []
     });
     attacker.statusEffects.push({
       id: 'oa_suppressed',
@@ -89,7 +89,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
-      cost: { type: 'action' }, description: '', targeting: { type: 'single', validTargets: ['creatures'] } as any, effects: []
+      cost: { type: 'action' }, description: '', targeting: { type: 'single', validTargets: ['creatures'] }, effects: []
     });
     attacker.statusEffects.push({
       id: 'enemies_abound',
