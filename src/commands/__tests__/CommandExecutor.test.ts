@@ -30,7 +30,7 @@ describe('CommandExecutor', () => {
         execute: vi.fn().mockReturnValue(mockState)
     }
 
-    const result = CommandExecutor.execute([cmd1, cmd2], mockState)
+    const result = await CommandExecutor.execute([cmd1, cmd2], mockState)
 
     expect(result.success).toBe(true)
     expect(cmd1.execute).toHaveBeenCalled()
@@ -52,7 +52,7 @@ describe('CommandExecutor', () => {
         execute: vi.fn().mockImplementation(() => { throw new Error('Boom') })
     }
 
-    const result = CommandExecutor.execute([cmd1, cmdFail], mockState)
+    const result = await CommandExecutor.execute([cmd1, cmdFail], mockState)
 
     expect(result.success).toBe(false)
     expect(result.executedCommands).toHaveLength(1) // Only cmd1

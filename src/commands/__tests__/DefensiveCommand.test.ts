@@ -117,7 +117,7 @@ describe('DefensiveCommand', () => {
     };
 
     const command = new DefensiveCommand(effect, makeContext(caster, [target]));
-    const result = command.execute(state);
+    const result = await command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.armorClass).toBe(17);
@@ -141,7 +141,7 @@ describe('DefensiveCommand', () => {
     };
 
     const command = new DefensiveCommand(effect, makeContext(caster, [target]));
-    const result = command.execute(state);
+    const result = await command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.tempHP).toBe(5);
@@ -165,7 +165,7 @@ describe('DefensiveCommand', () => {
     };
 
     const command = new DefensiveCommand(effect, makeContext(caster, [target]));
-    const result = command.execute(state);
+    const result = await command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     // Expected: 13 (base) + 1 (Dex) = 14

@@ -5,6 +5,9 @@ slice after Package 17.
 
 This packet moves the mechanism forward by taking the remaining cantrip/level 1-3
 `reaction_or_opportunity_restriction` findings in a coherent, bounded batch.
+The live Jules proof surface may lag this tracker; if the visible session still
+shows Package 17, treat that as the current blocker/next proof target instead of
+assuming Package 18 has already started.
 
 ## Worker
 

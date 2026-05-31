@@ -39,7 +39,7 @@ import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { rollDice, generateId, calculateCover, resolveAttack, getDistance } from '@/utils/combatUtils';
+import { rollDice, generateId, calculateCover, resolveAttack, getDistance, rollD20 } from '@/utils/combatUtils';
 import { SpellEffect, isDamageEffect, isHealingEffect, isStatusConditionEffect } from '@/types/spells';
 import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
@@ -81,12 +81,12 @@ export class WeaponAttackCommand implements SpellCommand {
     };
   }
 
-  execute(state: CombatState): CombatState {
+  async execute(state: CombatState): Promise<CombatState> {
     let newState = { ...state };
     const riderSystem = new AttackRiderSystem();
 
     // 1. Process each target (Weapon attacks are usually single target, but could be cleave)
-    this.targets.forEach(target => {
+    for (const target of this.targets) {
       // Clone target to modify
       let currentTarget = newState.characters.find(c => c.id === target.id) || target;
 
@@ -192,10 +192,6 @@ export class WeaponAttackCommand implements SpellCommand {
       const attackRiderSources: string[] = [];
 
       const weaponType = (this.ability.range || 5) <= 5 ? 'melee_weapon' : 'ranged_weapon';
-      // But wait, Ability has 'attack' type, what about spells?
-      // Actually, `this.ability` in WeaponAttackCommand is an Ability.
-      // isMagical indicates spell attack maybe? For now just 'weapon' vs 'spell'.
-      // If it's AbilityCommandFactory it's generally weapons, but it could be spell.
       const resolvedAttackKind = this.ability.isMagical ? 'spell' : weaponType;
 
       const processAttackRider = (activeEffect: any, direction: 'incoming' | 'outgoing') => {
@@ -203,7 +199,6 @@ export class WeaponAttackCommand implements SpellCommand {
 
         const kind = activeEffect.mechanics.attackRollKind;
         if (kind && kind !== 'any' && kind !== 'weapon' && kind !== resolvedAttackKind) {
-           // 'weapon' matches 'melee_weapon' or 'ranged_weapon'
            if (kind === 'weapon' && (resolvedAttackKind === 'melee_weapon' || resolvedAttackKind === 'ranged_weapon')) {
               // matches
            } else {
@@ -235,8 +230,7 @@ export class WeaponAttackCommand implements SpellCommand {
       this.caster.activeEffects?.forEach(eff => processAttackRider(eff, 'outgoing'));
       currentTarget.activeEffects?.forEach(eff => processAttackRider(eff, 'incoming'));
 
-      // Racial Modifiers (e.g., Kobold Pack Tactics, though that needs positioning)
-      // For now, check simple 'attack' keyword in modifier buckets.
+      // Racial Modifiers
       this.caster.modifiers?.advantage.forEach(adv => {
         if (adv.toLowerCase().includes('attack')) hasAdvantage = true;
       });
@@ -259,9 +253,6 @@ export class WeaponAttackCommand implements SpellCommand {
         rollStr += ` (Advantage and Disadvantage cancel out)`;
       }
 
-      // Use the explicit attackBonus from 5eTools ({@hit N}) when present.
-      // This preserves accuracy for monsters with atypical bonuses (e.g. Wisdom-based attacks,
-      // racial traits, or abilities that don't follow the STR/DEX + proficiency formula).
       let modifiers: number;
       if (this.ability.attackBonus !== undefined) {
         modifiers = this.ability.attackBonus;
@@ -305,23 +296,18 @@ export class WeaponAttackCommand implements SpellCommand {
       });
 
       if (!isHit) {
-        return;
+        continue;
       }
 
       // 3. Apply Base Ability Effects
-      this.ability.effects.forEach(abilityEffect => {
+      for (const abilityEffect of this.ability.effects) {
         const spellEffect = AbilityEffectMapper.mapToSpellEffect(abilityEffect);
-        if (!spellEffect) return;
+        if (!spellEffect) continue;
 
         const subContext: CommandContext = {
           ...this.context,
           targets: [currentTarget],
           isCritical,
-          // WHAT CHANGED: Propagated weapon properties to subContext.
-          // WHY IT CHANGED: To decoupling weapon data from damage logic. By 
-          // "flattening" the weapon traits into the command context, we allow 
-          // DamageCommand to remain weapon-agnostic while still supporting 
-          // trait-specific mechanics (e.g., Heavy weapon bonuses).
           weaponProperties: this.ability.weapon?.properties,
           isMagical: this.ability.isMagical,
         };
@@ -334,38 +320,28 @@ export class WeaponAttackCommand implements SpellCommand {
         }
 
         if (command) {
-          newState = command.execute(newState);
+          newState = await command.execute(newState);
           // Refresh target
           currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
         }
-      });
+      }
 
       // 4. Rider System Integration (Restored)
       if (this.ability.type === 'attack') {
-        const weaponType = (this.ability.range || 5) <= 5 ? 'melee' : 'ranged'; // Simple heuristic
+        const weaponTypeMatch = (this.ability.range || 5) <= 5 ? 'melee' : 'ranged'; // Simple heuristic
 
         const attackContext: AttackContext = {
           attackerId: this.caster.id,
           targetId: currentTarget.id,
           attackType: 'weapon',
-          weaponType: weaponType,
+          weaponType: weaponTypeMatch,
           isHit: true
         };
 
         const matchingRiders = riderSystem.getMatchingRiders(newState, attackContext);
 
         if (matchingRiders.length > 0) {
-          matchingRiders.forEach(rider => {
-            // TODO(FIXME): Critical Gap - This loop ignores MOVEMENT, UTILITY, and other effect types.
-            // Thunderous Smite's "Push" (MOVEMENT) is currently dropped.
-            // Refactor to use a generic command creation factory (like SpellCommandFactory.createCommand)
-            // to handle ALL effect types dynamically.
-
-            // TODO(Refactor): Duplicate Logic.
-            // Instead of manually switching on effect type here (and missing types), 
-            // expose and use `SpellCommandFactory.createSingleCommand(effect, context)` 
-            // to ensure consistent handling of all effect types (Damage, Status, Movement, etc.).
-
+          for (const rider of matchingRiders) {
             // Determine effect type
             if (isDamageEffect(rider.effect)) {
               // Create Damage Command for Rider
@@ -375,12 +351,9 @@ export class WeaponAttackCommand implements SpellCommand {
                 isCritical
               };
               const dmgCommand = new DamageCommand(rider.effect, dmgContext);
-              newState = dmgCommand.execute(newState);
+              newState = await dmgCommand.execute(newState);
               currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
 
-              // TODO(Cleanup): Redundant Log.
-              // DamageCommand already generates a combat log entry. 
-              // This manual push creates double logs for every smite hit. Remove this block.
               newState.combatLog.push({
                 id: generateId(),
                 timestamp: Date.now(),
@@ -397,16 +370,16 @@ export class WeaponAttackCommand implements SpellCommand {
                 isCritical
               };
               const statusCommand = new StatusConditionCommand(rider.effect, statusContext);
-              newState = statusCommand.execute(newState);
+              newState = await statusCommand.execute(newState);
               currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
             }
-          });
+          }
 
           // Handle Consumption
           newState = riderSystem.consumeRiders(newState, this.caster.id, matchingRiders);
         }
       }
-    });
+    }
 
     return newState;
   }
@@ -453,7 +426,8 @@ export class AbilityCommandFactory {
     ability: Ability,
     caster: CombatCharacter,
     targets: CombatCharacter[],
-    gameState: GameState
+    gameState: GameState,
+    requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
   ): SpellCommand[] {
     const context: CommandContext = {
       spellId: ability.id,

@@ -114,7 +114,7 @@ describe('HealingCommand', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
     const command = new HealingCommand(effect, makeContext(caster, [target]));
-    const result = command.execute(state);
+    const result = await command.execute(state);
     vi.restoreAllMocks();
 
     const updated = result.characters.find(c => c.id === 'target');

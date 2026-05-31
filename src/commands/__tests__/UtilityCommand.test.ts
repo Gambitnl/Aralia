@@ -57,7 +57,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = command.execute(mockState)
+            const newState = await command.execute(mockState)
 
             expect(newState.activeLightSources).toHaveLength(1)
             const source = newState.activeLightSources[0]
@@ -82,7 +82,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = command.execute(mockState)
+            const newState = await command.execute(mockState)
 
             expect(newState.activeLightSources).toHaveLength(1)
             const source = newState.activeLightSources[0]
@@ -104,7 +104,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = command.execute(mockState)
+            const newState = await command.execute(mockState)
 
             // UtilityCommand automatically applies the FIRST option in the list as a fallback logic
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
@@ -135,7 +135,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = command.execute(closeState)
+            const newState = await command.execute(closeState)
 
             // Character should have moved AWAY from caster (x=5 -> x=6, so move to x=7+)
             const newTarget = newState.characters.find(c => c.id === mockTarget.id)
@@ -158,7 +158,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = command.execute(mockState)
+            const newState = await command.execute(mockState)
 
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
             const tauntEffect = targetInState?.statusEffects.find(e => e.name === 'Taunted')
@@ -185,7 +185,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = command.execute(mockState)
+            const newState = await command.execute(mockState)
 
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
             expect(targetInState?.savePenaltyRiders).toHaveLength(1)

@@ -125,7 +125,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toContain('+ 2 =');
@@ -188,7 +188,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     // The base modifier is 4, but with bless it should be > 4
@@ -250,7 +250,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toMatch(/Mods: -\d+ \[Bane\]/);

@@ -124,7 +124,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = command.execute(initialState)
+        const newState = await command.execute(initialState)
 
         expect(newState.characters.length).toBe(2)
         const summoned = newState.characters.find(c => c.id.startsWith('summon_goblin_'))
@@ -153,7 +153,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = command.execute(initialState)
+        const newState = await command.execute(initialState)
 
         expect(newState.characters.length).toBe(3) // Caster + 2 Goblins
         const goblins = newState.characters.filter(c => c.name.startsWith('Goblin'))
@@ -173,7 +173,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = command.execute(initialState)
+        const newState = await command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.id.startsWith('summon_unknown_beast_'))
         expect(summoned).toBeDefined()
@@ -195,7 +195,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = command.execute(initialState)
+        const newState = await command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.id.startsWith('summon_owl_'))
         expect(summoned).toBeDefined()
@@ -222,7 +222,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = command.execute(initialState)
+        const newState = await command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.name.startsWith('Phantom Steed'))
         expect(summoned).toBeDefined()
@@ -253,7 +253,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = command.execute(initialState)
+        const newState = await command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.name.startsWith('Immobile Test Object'))
         expect(summoned).toBeDefined()
@@ -315,7 +315,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner], mapData)
 
-            const newState = command.execute(state)
+            const newState = await command.execute(state)
 
             // Should have summoned one character
             expect(newState.characters.length).toBe(2)
@@ -344,7 +344,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner], mapData)
 
-            const newState = command.execute(state)
+            const newState = await command.execute(state)
 
             const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
             expect(summoned).toBeDefined()
@@ -370,7 +370,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner], mapData)
 
-            const newState = command.execute(state)
+            const newState = await command.execute(state)
 
             // Should NOT have summoned
             expect(newState.characters.length).toBe(1)
@@ -389,7 +389,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner])
 
-            const newState = command.execute(state)
+            const newState = await command.execute(state)
 
             const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
             expect(summoned).toBeDefined()

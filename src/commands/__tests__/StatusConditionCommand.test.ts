@@ -110,7 +110,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, makeContext(caster, [target]));
-    const result = command.execute(state);
+    const result = await command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.conditions?.[0]?.name).toBe('Prone');

@@ -121,7 +121,7 @@ describe('Concentration System', () => {
                 gameState: mockGameState
             });
 
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             // Check if log contains concentration check message
             const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');
@@ -155,7 +155,7 @@ describe('Concentration System', () => {
                 gameState: mockGameState
             });
 
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeDefined();
             expect(newState.characters[0].concentratingOn!.spellId).toBe(spell.id);
@@ -193,7 +193,7 @@ describe('Concentration System', () => {
                 gameState: mockGameState
             });
 
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeUndefined();
             const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');

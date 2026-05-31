@@ -65,7 +65,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, context);
-    const newState = command.execute(state);
+    const newState = await command.execute(state);
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
 
@@ -101,7 +101,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, context);
-    const newState = command.execute(state);
+    const newState = await command.execute(state);
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
     expect(updatedTarget.conditions).toHaveLength(0);
@@ -141,7 +141,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, context);
-    const newState = command.execute(state);
+    const newState = await command.execute(state);
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
 

@@ -63,7 +63,7 @@ describe('DamageCommand', () => {
 
         const command = new DamageCommand(effect, mockContext);
 
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry).toBeDefined();
@@ -86,7 +86,7 @@ describe('DamageCommand', () => {
         const weaponContext = { ...mockContext, spellName: 'Longsword' };
 
         const command = new DamageCommand(effect, weaponContext);
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry).toBeDefined();
@@ -107,7 +107,7 @@ describe('DamageCommand', () => {
 
         const genericContext = { ...mockContext, spellName: 'Attack' };
         const command = new DamageCommand(effect, genericContext);
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry?.message).toMatch(/Hero (batters|crushes|bludgeons|pummels) Goblin/);
@@ -141,7 +141,7 @@ describe('DamageCommand', () => {
             };
 
             const command = new DamageCommand(effect, mockContext);
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             // Check if speed reduction effect was applied to target
             const speedEffect = newState.characters.find(c => c.id === mockTarget.id)
@@ -166,7 +166,7 @@ describe('DamageCommand', () => {
 
             const criticalContext = { ...mockContext, isCritical: true };
             const command = new DamageCommand(effect, criticalContext);
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             // Check for Grievous Wound active effect
             const targetChar = newState.characters.find(c => c.id === mockTarget.id);
@@ -189,7 +189,7 @@ describe('DamageCommand', () => {
             };
 
             const command = new DamageCommand(effect, mockContext);
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             const speedEffect = newState.characters.find(c => c.id === mockTarget.id)
                 ?.statusEffects.find(e => e.name === 'Slasher Slow');
@@ -263,7 +263,7 @@ describe('DamageCommand', () => {
         };
 
         const command = new DamageCommand(effect, mockContext);
-        const newState = command.execute(stateWithPenalty);
+        const newState = await command.execute(stateWithPenalty);
 
         // Check logs for modifier application
         const saveLog = newState.combatLog.find(l => l.message.includes('save') && l.message.includes('Mods:'));

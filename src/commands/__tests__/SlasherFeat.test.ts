@@ -133,7 +133,7 @@ describe('Slasher Feat', () => {
 
       const effect = makeSlashingDamageEffect();
       const command = new DamageCommand(effect, makeContext(attacker, [target]));
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       // Check that speed reduction status effect was applied
       const updatedTarget = result.characters.find(c => c.id === 'target');
@@ -155,7 +155,7 @@ describe('Slasher Feat', () => {
 
       const effect = makeBludgeoningDamageEffect();
       const command = new DamageCommand(effect, makeContext(attacker, [target]));
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       // Should NOT have Slasher slow effect
       const updatedTarget = result.characters.find(c => c.id === 'target');
@@ -174,7 +174,7 @@ describe('Slasher Feat', () => {
 
       const effect = makeSlashingDamageEffect();
       const command = new DamageCommand(effect, makeContext(attacker, [target]));
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       // Should NOT have Slasher slow effect
       const updatedTarget = result.characters.find(c => c.id === 'target');
@@ -192,7 +192,7 @@ describe('Slasher Feat', () => {
 
       // First attack on target1
       const command1 = new DamageCommand(effect, makeContext(attacker, [target1]));
-      const result1 = command1.execute(state);
+      const result1 = await command1.execute(state);
 
       // Verify target1 got slowed
       const target1AfterFirst = result1.characters.find(c => c.id === 'target1');
@@ -204,7 +204,7 @@ describe('Slasher Feat', () => {
 
       // Second attack on target2 (same turn)
       const command2 = new DamageCommand(effect, makeContext(attackerAfterFirst!, [target2]));
-      const result2 = command2.execute(result1);
+      const result2 = await command2.execute(result1);
 
       // target2 should NOT have Slowed effect (once per turn limit)
       const target2AfterSecond = result2.characters.find(c => c.id === 'target2');
@@ -225,7 +225,7 @@ describe('Slasher Feat', () => {
       const effect = makeSlashingDamageEffect();
       const context = makeContext(attacker, [target], { isCritical: true });
       const command = new DamageCommand(effect, context);
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       // Check that disadvantage ActiveEffect was applied
       const updatedTarget = result.characters.find(c => c.id === 'target');
@@ -250,7 +250,7 @@ describe('Slasher Feat', () => {
       const effect = makeSlashingDamageEffect();
       const context = makeContext(attacker, [target], { isCritical: false });
       const command = new DamageCommand(effect, context);
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       // Should have speed reduction but NOT disadvantage
       const updatedTarget = result.characters.find(c => c.id === 'target');
@@ -266,7 +266,7 @@ describe('Slasher Feat', () => {
       const effect = makeBludgeoningDamageEffect();
       const context = makeContext(attacker, [target], { isCritical: true });
       const command = new DamageCommand(effect, context);
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       // Should NOT have any Slasher effects
       const updatedTarget = result.characters.find(c => c.id === 'target');
@@ -285,13 +285,13 @@ describe('Slasher Feat', () => {
       // First critical attack on target1
       const context1 = makeContext(attacker, [target1], { isCritical: true });
       const command1 = new DamageCommand(effect, context1);
-      const result1 = command1.execute(state);
+      const result1 = await command1.execute(state);
 
       // Second critical attack on target2 (same turn)
       const attackerAfterFirst = result1.characters.find(c => c.id === 'attacker')!;
       const context2 = makeContext(attackerAfterFirst, [target2], { isCritical: true });
       const command2 = new DamageCommand(effect, context2);
-      const result2 = command2.execute(result1);
+      const result2 = await command2.execute(result1);
 
       // Both targets should have disadvantage (crits are not once-per-turn limited)
       const target1Final = result2.characters.find(c => c.id === 'target1');
@@ -314,7 +314,7 @@ describe('Slasher Feat', () => {
       const effect = makeSlashingDamageEffect();
       const context = makeContext(attacker, [target], { isCritical: true });
       const command = new DamageCommand(effect, context);
-      const result = command.execute(state);
+      const result = await command.execute(state);
 
       const updatedTarget = result.characters.find(c => c.id === 'target');
 

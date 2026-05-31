@@ -60,7 +60,7 @@ describe('ReactiveEffectCommand Security Check', () => {
             }
         );
 
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         expect(newState.reactiveTriggers).toHaveLength(1);
 
         // We can't easily trigger the async event listener inside a unit test without mocking the EventEmitters

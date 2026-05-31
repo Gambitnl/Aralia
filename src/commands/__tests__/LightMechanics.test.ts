@@ -112,7 +112,7 @@ describe('LightMechanics', () => {
             };
 
             const command = new UtilityCommand(effect, makeContext(caster, [target]));
-            const result = command.execute(state);
+            const result = await command.execute(state);
 
             // Verify light source was created
             expect(result.activeLightSources).toHaveLength(1);
@@ -143,7 +143,7 @@ describe('LightMechanics', () => {
             };
 
             const command = new UtilityCommand(effect, makeContext(caster, []));
-            const result = command.execute(state);
+            const result = await command.execute(state);
 
             expect(result.activeLightSources).toHaveLength(1);
             const lightSource = result.activeLightSources[0];
@@ -170,7 +170,7 @@ describe('LightMechanics', () => {
             };
 
             const command = new UtilityCommand(effect, makeContext(caster, []));
-            const result = command.execute(state);
+            const result = await command.execute(state);
 
             expect(result.activeLightSources).toHaveLength(1);
             const lightSource = result.activeLightSources[0];
@@ -192,7 +192,7 @@ describe('LightMechanics', () => {
             };
 
             const command = new UtilityCommand(effect, makeContext(caster, []));
-            const result = command.execute(state);
+            const result = await command.execute(state);
 
             expect(result.activeLightSources).toHaveLength(0);
         });
@@ -215,7 +215,7 @@ describe('LightMechanics', () => {
             };
 
             const command = new UtilityCommand(effect, makeContext(caster, []));
-            const result = command.execute(state);
+            const result = await command.execute(state);
 
             // Check for log entries
             const lightLog = result.combatLog.find(entry =>

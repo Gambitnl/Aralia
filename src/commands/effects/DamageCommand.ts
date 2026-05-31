@@ -59,7 +59,7 @@ const DEFAULT_VERBS = ['damages', 'hits', 'strikes', 'hurts'];
  * Handles damage calculation, HP reduction, and triggers concentration saves.
  */
 export class DamageCommand extends BaseEffectCommand {
-  execute(state: CombatState): CombatState {
+  async execute(state: CombatState): Promise<CombatState> {
     if (!isDamageEffect(this.effect)) {
       console.warn('DamageCommand received non-damage effect')
       return state
@@ -194,6 +194,70 @@ export class DamageCommand extends BaseEffectCommand {
       ) {
         const hamPB = Math.ceil((target.level || 1) / 4) + 1;
         finalDamage = Math.max(0, finalDamage - hamPB);
+      }
+
+      // --- RACIAL REACTIONS (e.g. Stone's Endurance) ---
+      if (this.context.requestReaction && target.modifiers?.reactions && finalDamage > 0) {
+        const validReactions = target.modifiers.reactions.filter(r => r.trigger?.type === 'on_target_takes_damage');
+        if (validReactions.length > 0) {
+          // Map to mock Spells so the UI can render them
+          const reactionSpells = validReactions.map(r => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            level: 0,
+            school: 'Abjuration',
+            classes: [],
+            subClasses: [],
+            castingTime: { type: 'reaction' },
+            components: { v: false, s: false, m: false },
+            duration: { type: 'instantaneous' },
+            targeting: { type: 'self' },
+            effects: [ r.effect ]
+          })) as any as import('../../types/spells').Spell[];
+
+          const choice = await this.context.requestReaction(caster.id, target.id, 'on_take_damage', reactionSpells);
+          if (choice) {
+            const chosenReaction = validReactions.find(r => r.id === choice);
+            if (chosenReaction) {
+              if (chosenReaction.effect?.type === 'DEFENSIVE' && chosenReaction.effect.defenseType === 'damage_reduction') {
+                const dice = chosenReaction.effect.damageReduction.dice || '1d12';
+                const drRoll = rollDamageUtil(dice, false, 1);
+                let modifier = 0;
+                if (chosenReaction.effect.damageReduction.abilityModifier === 'Constitution') {
+                  modifier = Math.floor((target.stats.constitution - 10) / 2);
+                }
+                if (chosenReaction.effect.damageReduction.addProficiencyBonus) {
+                  modifier += Math.ceil((target.level || 1) / 4) + 1;
+                }
+                const totalReduction = drRoll + modifier;
+                finalDamage = Math.max(0, finalDamage - totalReduction);
+
+                currentState = this.addLogEntry(currentState, {
+                  type: 'status',
+                  message: `${target.name} uses ${chosenReaction.name} and reduces damage by ${totalReduction} (${dice} + ${modifier})!`,
+                  characterId: target.id
+                });
+              } else if (chosenReaction.effect?.type === 'DAMAGE') {
+                const rdDice = chosenReaction.effect.damage.dice;
+                const rdRoll = rollDamageUtil(rdDice, false, 1);
+                const newCasterHP = Math.max(0, caster.currentHP - rdRoll);
+                currentState = this.updateCharacter(currentState, caster.id, { currentHP: newCasterHP });
+                currentState = this.addLogEntry(currentState, {
+                  type: 'damage',
+                  message: `${target.name} uses ${chosenReaction.name} to deal ${rdRoll} ${chosenReaction.effect.damage.type} damage to ${caster.name}!`,
+                  characterId: caster.id
+                });
+              } else if (chosenReaction.effect?.type === 'REACTIVE') {
+                currentState = this.addLogEntry(currentState, {
+                  type: 'status',
+                  message: `${target.name} triggers ${chosenReaction.name} against ${caster.name}! (Counter-attack queued)`,
+                  characterId: target.id
+                });
+              }
+            }
+          }
+        }
       }
 
       // --- Step 5: Apply final damage to target's HP ---

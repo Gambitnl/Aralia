@@ -49,7 +49,7 @@ describe('DamageCommand', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
     const command = new DamageCommand(effect, context);
-    const result = command.execute(createMockCombatState({
+    const result = await command.execute(createMockCombatState({
       characters: [caster, target],
       combatLog: []
     }));

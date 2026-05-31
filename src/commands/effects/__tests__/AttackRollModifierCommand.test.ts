@@ -58,7 +58,7 @@ describe('AttackRollModifierCommand', () => {
     target.stats.charisma = 1;
     target.stats.saveBonuses = { cha: -20 } as unknown as any;
 
-    const newState = command.execute(state);
+    const newState = await command.execute(state);
 
     const logMessages = newState.combatLog.map(l => l.message);
 

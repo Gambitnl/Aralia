@@ -62,7 +62,7 @@ describe('Sensory Mechanics', () => {
         }
 
         const command = new UtilityCommand(effect, mockContext)
-        const newState = command.execute(mockState)
+        const newState = await command.execute(mockState)
 
         // The combat log is the current player-visible proof surface for
         // utility spell outcomes.
@@ -100,7 +100,7 @@ describe('Sensory Mechanics', () => {
         }
 
         const command = new UtilityCommand(effect, mockContext)
-        const newState = command.execute(mockState)
+        const newState = await command.execute(mockState)
 
         // The command should preserve the sight-only illusion limits exactly,
         // so the spellbook, simulator, and later AI arbitration can read them.

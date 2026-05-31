@@ -24,7 +24,11 @@ should not quietly expand the active slice.
    an explicit migration note in the same pass. Do not turn this tracker into a list of every
    Symphony support PR, raw receipt, dashboard state change, or decision report
    entry.
-7. Use `gpt-5.3-codex-spark` subagents for bounded tracker chores such as
+7. Timing/churn studies for Jules -> GitHub -> Actions -> Scout/Core ->
+   back-to-Jules are local observation data, not tracker content. Keep the raw
+   event log external or local and add only a short summary or pointer here if
+   it changes the package decision or explains a recurring bottleneck.
+8. Use `gpt-5.3-codex-spark` subagents for bounded tracker chores such as
    package row sync, checklist/receipt refreshes, artifact classification,
    cleanup recommendations, and decision-lesson extraction. The Codex foreman
    must review the result and keep plan approval, Jules/GitHub mutations,
@@ -67,6 +71,20 @@ Keep this live tracker focused on the current package, nearby blockers, and upda
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
 | P18 | active | Codex foreman preparation | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Package 18 is scoped as a bounded continuation with a concrete `Jules value` and row-classification requirement. |
+
+The visible Jules proof surface may lag the tracker. If the live session still
+shows Package 17 while this queue already points at Package 18, treat the
+state mismatch as the current blocker and next proof target instead of
+assuming the next package has already started.
+Until the visible Jules session flips to Package 18 or emits a PR/result, keep
+Package 18 as the active queue item and treat the live Package 17 page as the
+current proof-surface lag.
+
+Package 18 has now been staged as local task draft `draft-1780174883115-nnbq7l`,
+but `git-preflight` still reports the current checkout as blocked because the
+worktree does not match the GitHub base commit and there are existing local
+tracked/untracked changes. The handoff is staged but not launchable until that
+Git sync blocker is resolved or intentionally kept local for a later sync.
 
 ## Current Local Change Classification
 
@@ -356,6 +374,10 @@ ignored unless a concise package-facing summary is useful after the run.
 - When a Jules handoff is still running or has an ambiguous completion state,
   inspect the visible Jules session first and record PR URL, no-PR completion,
   failure, or follow-up before marking the package blocked or done.
+- When the visible session shows `Approve plan?`, treat
+  `GET /api/v1/tasks/:id` and its `approvalCheckpoint` packet as the pollable
+  Symphony mirror for that gate, then reconcile the answer against the visible
+  Jules session before recording approval or blockage.
 - For the next Jules package, include a compact decision-logging instruction in
   the task/prompt: full decision entries are for real forks such as plan
   approval/rejection, repair request, stale-session replacement,
