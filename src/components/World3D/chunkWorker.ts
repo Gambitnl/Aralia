@@ -29,12 +29,18 @@ self.onmessage = (ev: MessageEvent) => {
     return;
   }
   if (msg.type === 'load' && world) {
-    const geometry = handleChunkRequest(world, { cx: msg.cx, cy: msg.cy, resolution: msg.resolution });
-    
-    // Transfer the underlying array buffers so it's a zero-copy transfer to the main thread
-    (self as unknown as Worker).postMessage(
-      { id: msg.id, geometry },
-      [geometry.positions.buffer, geometry.indices.buffer, geometry.normals.buffer],
-    );
+    const bundle = handleChunkRequest(world, { cx: msg.cx, cy: msg.cy, resolution: msg.resolution });
+
+    // Transfer all underlying array buffers so it's a zero-copy transfer to the main thread
+    const transfer: Transferable[] = [
+      bundle.terrain.positions.buffer,
+      bundle.terrain.indices.buffer,
+      bundle.terrain.normals.buffer,
+      bundle.terrain.colors.buffer,
+    ];
+    if (bundle.water) transfer.push(bundle.water.positions.buffer, bundle.water.indices.buffer, bundle.water.normals.buffer);
+    if (bundle.roads) transfer.push(bundle.roads.positions.buffer, bundle.roads.indices.buffer, bundle.roads.normals.buffer);
+    if (bundle.vegetation) transfer.push(bundle.vegetation.positions.buffer, bundle.vegetation.scales.buffer, bundle.vegetation.rotations.buffer);
+    (self as unknown as Worker).postMessage({ id: msg.id, bundle }, transfer);
   }
 };

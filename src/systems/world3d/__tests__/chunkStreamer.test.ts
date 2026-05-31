@@ -1,14 +1,20 @@
 import { ChunkStreamer } from '../chunkStreamer';
-import type { ChunkGeometryArrays, ChunkLoader } from '../types';
+import type { ChunkMeshBundle, ChunkLoader } from '../types';
 import { WORLD3D_CONFIG } from '../config';
 
-// A loader that resolves immediately with trivial geometry.
-const fakeGeometry = (): ChunkGeometryArrays => ({
-  positions: new Float32Array(0),
-  indices: new Uint32Array(0),
-  normals: new Float32Array(0),
+// A loader that resolves immediately with a trivial bundle.
+const fakeBundle = (cx = 0, cy = 0): ChunkMeshBundle => ({
+  cx,
+  cy,
+  terrain: {
+    positions: new Float32Array(0),
+    indices: new Uint32Array(0),
+    normals: new Float32Array(0),
+    colors: new Float32Array(0),
+  },
+  sites: [],
 });
-const instantLoader: ChunkLoader = async () => fakeGeometry();
+const instantLoader: ChunkLoader = async (cx, cy) => fakeBundle(cx, cy);
 
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
 
@@ -35,7 +41,7 @@ it('does not double-load a chunk already loaded or in flight', async () => {
   let calls = 0;
   const countingLoader: ChunkLoader = async (cx, cy) => {
     calls++;
-    return fakeGeometry();
+    return fakeBundle(cx, cy);
   };
   const streamer = new ChunkStreamer(countingLoader, { loadRadius: 1, unloadRadius: 2, maxConcurrent: 8 });
   streamer.update(0, 0);

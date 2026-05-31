@@ -35,12 +35,13 @@ const LOD_COLOR: Record<string, string> = {
 
 const ChunkMesh: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
   const geometry = useMemo(() => {
+    const terrain = chunk.bundle.terrain;
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(chunk.geometry.positions, 3));
-    g.setAttribute('normal', new THREE.BufferAttribute(chunk.geometry.normals, 3));
-    g.setIndex(new THREE.BufferAttribute(chunk.geometry.indices, 1));
+    g.setAttribute('position', new THREE.BufferAttribute(terrain.positions, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(terrain.normals, 3));
+    g.setIndex(new THREE.BufferAttribute(terrain.indices, 1));
     return g;
-  }, [chunk.geometry]);
+  }, [chunk.bundle]);
 
   const origin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (

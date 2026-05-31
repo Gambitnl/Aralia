@@ -7,6 +7,10 @@ const flatChunk = (resolution: number, height: number): ChunkData => ({
   cy: 0,
   resolution,
   heights: new Float32Array(resolution * resolution).fill(height),
+  biomeIds: new Array(resolution * resolution).fill('plains'),
+  rivers: [],
+  roads: [],
+  sites: [],
 });
 
 it('produces res*res vertices and (res-1)^2*2 triangles', () => {

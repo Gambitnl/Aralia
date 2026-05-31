@@ -50,10 +50,10 @@ it('streams a full window of well-formed chunk geometry', async () => {
   expect(loaded.length).toBe(9 * 9); // (2*4+1)^2
   for (const c of loaded) {
     const res = WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION;
-    expect(c.geometry.positions.length).toBe(res * res * 3);
-    expect(c.geometry.indices.length).toBe((res - 1) * (res - 1) * 6);
+    expect(c.bundle.terrain.positions.length).toBe(res * res * 3);
+    expect(c.bundle.terrain.indices.length).toBe((res - 1) * (res - 1) * 6);
     // No NaN in positions.
-    for (const v of c.geometry.positions) expect(Number.isFinite(v)).toBe(true);
+    for (const v of c.bundle.terrain.positions) expect(Number.isFinite(v)).toBe(true);
   }
 });
 

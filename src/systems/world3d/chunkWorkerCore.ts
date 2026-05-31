@@ -12,9 +12,9 @@
  */
 
 import type { WorldData } from '@/services/worldSim/types';
-import type { ChunkGeometryArrays } from './types';
+import type { ChunkMeshBundle } from './types';
 import { sampleChunk } from './chunkSampler';
-import { buildPlaceholderHeightfield } from './chunkGeometry';
+import { buildChunkBundle } from './chunkBundle';
 
 export interface ChunkRequest {
   cx: number;
@@ -23,9 +23,9 @@ export interface ChunkRequest {
 }
 
 /**
- * Handles a request to load chunk data by sampling the world heights and generating geometry buffers.
+ * Handles a request to load chunk data by sampling the world and assembling the full mesh bundle.
  */
-export function handleChunkRequest(world: WorldData, req: ChunkRequest): ChunkGeometryArrays {
+export function handleChunkRequest(world: WorldData, req: ChunkRequest): ChunkMeshBundle {
   const data = sampleChunk(world, req.cx, req.cy, req.resolution);
-  return buildPlaceholderHeightfield(data);
+  return buildChunkBundle(data);
 }

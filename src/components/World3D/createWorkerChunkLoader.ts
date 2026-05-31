@@ -14,7 +14,7 @@
  */
 
 import type { WorldData } from '@/services/worldSim/types';
-import type { ChunkGeometryArrays, ChunkLoader } from '@/systems/world3d/types';
+import type { ChunkMeshBundle, ChunkLoader } from '@/systems/world3d/types';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 
 type WorkerFactory = () => Worker;
@@ -34,19 +34,19 @@ export function createWorkerChunkLoader(
   worker.postMessage({ type: 'init', world });
 
   let nextId = 1;
-  const pending = new Map<number, (geo: ChunkGeometryArrays) => void>();
+  const pending = new Map<number, (bundle: ChunkMeshBundle) => void>();
 
   worker.onmessage = (ev: MessageEvent) => {
-    const { id, geometry } = ev.data as { id: number; geometry: ChunkGeometryArrays };
+    const { id, bundle } = ev.data as { id: number; bundle: ChunkMeshBundle };
     const resolve = pending.get(id);
     if (resolve) {
       pending.delete(id);
-      resolve(geometry);
+      resolve(bundle);
     }
   };
 
-  return (cx: number, cy: number): Promise<ChunkGeometryArrays> =>
-    new Promise<ChunkGeometryArrays>((resolve) => {
+  return (cx: number, cy: number): Promise<ChunkMeshBundle> =>
+    new Promise<ChunkMeshBundle>((resolve) => {
       const id = nextId++;
       pending.set(id, resolve);
       worker.postMessage({ type: 'load', id, cx, cy, resolution });

@@ -1,13 +1,19 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChunkStreaming } from '../useChunkStreaming';
-import type { ChunkGeometryArrays, ChunkLoader } from '@/systems/world3d/types';
+import type { ChunkMeshBundle, ChunkLoader } from '@/systems/world3d/types';
 
-const fakeGeo = (): ChunkGeometryArrays => ({
-  positions: new Float32Array(0),
-  indices: new Uint32Array(0),
-  normals: new Float32Array(0),
+const fakeBundle = (cx = 0, cy = 0): ChunkMeshBundle => ({
+  cx,
+  cy,
+  terrain: {
+    positions: new Float32Array(0),
+    indices: new Uint32Array(0),
+    normals: new Float32Array(0),
+    colors: new Float32Array(0),
+  },
+  sites: [],
 });
-const loader: ChunkLoader = async () => fakeGeo();
+const loader: ChunkLoader = async (cx, cy) => fakeBundle(cx, cy);
 
 it('exposes loaded chunks after an update', async () => {
   const { result } = renderHook(() => useChunkStreaming(loader, { loadRadius: 1, unloadRadius: 2 }));

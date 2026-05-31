@@ -85,14 +85,14 @@ export class ChunkStreamer {
 
       this.pending.add(key);
       this.loader(cx, cy)
-        .then((geometry) => {
+        .then((bundle) => {
           this.pending.delete(key);
           if (this.disposed) return;
 
           // Hysteresis boundary safety: drop results if the chunk scrolled out of bounds while loading
           const dist = Math.max(Math.abs(cx - this.centerCx), Math.abs(cy - this.centerCy));
           if (dist <= this.unloadRadius) {
-            this.loaded.set(key, { cx, cy, geometry, lod: selectLodTier(dist) });
+            this.loaded.set(key, { cx, cy, bundle, lod: selectLodTier(dist) });
             this.notify();
           }
           this.pump();
