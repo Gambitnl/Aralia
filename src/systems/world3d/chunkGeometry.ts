@@ -12,8 +12,9 @@
  *   terrain texturing, water sheets, and road polylines using the same output format.
  */
 
-import type { ChunkData, ChunkGeometryArrays } from './types';
+import type { ChunkData, ChunkGeometryArrays, TerrainMesh } from './types';
 import { WORLD3D_CONFIG } from './config';
+import { biomeColor } from './terrainColor';
 
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
 const MAX_H = WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M;
@@ -92,4 +93,21 @@ export function buildPlaceholderHeightfield(data: ChunkData): ChunkGeometryArray
   }
 
   return { positions, indices, normals };
+}
+
+/**
+ * Heightfield terrain mesh with per-vertex biome coloring. Reuses the placeholder
+ * heightfield's position/index/normal generation, then adds a parallel colors buffer.
+ */
+export function buildTerrainMesh(data: ChunkData): TerrainMesh {
+  const base = buildPlaceholderHeightfield(data);
+  const vertCount = data.resolution * data.resolution;
+  const colors = new Float32Array(vertCount * 3);
+  for (let v = 0; v < vertCount; v++) {
+    const [r, g, b] = biomeColor(data.biomeIds[v] ?? 'plains', data.heights[v] ?? 0);
+    colors[v * 3] = r;
+    colors[v * 3 + 1] = g;
+    colors[v * 3 + 2] = b;
+  }
+  return { ...base, colors };
 }
