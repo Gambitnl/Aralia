@@ -57,3 +57,18 @@ export function chunkGridAABB(cx: number, cy: number): {
   const maxGY = ((cy + 1) * S) / M;
   return { minGX, minGY, maxGX, maxGY };
 }
+
+/** Convert grid-cell coords to world meters. Inverse of worldToGrid. */
+export function gridToWorld(gx: number, gy: number): { x: number; z: number } {
+  return { x: gx * M, z: gy * M };
+}
+
+/** Convert a grid-space point to chunk-local world meters (origin at the chunk's NW corner). */
+export function gridPointToLocal(
+  gx: number,
+  gy: number,
+  cx: number,
+  cy: number,
+): { x: number; z: number } {
+  return { x: gx * M - cx * S, z: gy * M - cy * S };
+}

@@ -41,13 +41,54 @@ export interface ChunkGeometryArrays {
 /** LOD tier for a loaded chunk, by chunk-distance from the camera. */
 export type LodTier = 'full' | 'mid' | 'low' | 'culled';
 
-/** Async producer of chunk geometry. Worker-backed in production, inline in tests. */
-export type ChunkLoader = (cx: number, cy: number) => Promise<ChunkGeometryArrays>;
+/** Terrain mesh: heightfield geometry plus per-vertex RGB for biome tinting. */
+export interface TerrainMesh extends ChunkGeometryArrays {
+  /** 3 floats (r,g,b) per vertex, parallel to positions. */
+  colors: Float32Array;
+}
+
+/** A polyline (grid-space) clipped to a chunk, carrying per-point width in grid units. */
+export interface ClippedPolyline {
+  points: { x: number; y: number }[];
+  /** Width in grid units, one per point (length === points.length). */
+  width: number[];
+}
+
+/** A site contained in a chunk, with chunk-local placement for geometry. */
+export interface ChunkSite {
+  id: string;
+  kind: 'town' | 'dungeon' | 'ruin' | 'landmark';
+  localX: number;
+  localZ: number;
+  radius: number;
+  walled: boolean;
+}
+
+/** Instanced vegetation transforms for a chunk. */
+export interface VegetationScatter {
+  positions: Float32Array;
+  scales: Float32Array;
+  rotations: Float32Array;
+}
+
+/** The full set of meshes for one chunk. terrain is always present; the rest optional. */
+export interface ChunkMeshBundle {
+  cx: number;
+  cy: number;
+  terrain: TerrainMesh;
+  water?: ChunkGeometryArrays;
+  roads?: ChunkGeometryArrays;
+  sites: ChunkSite[];
+  vegetation?: VegetationScatter;
+}
+
+/** Async producer of a chunk's full mesh bundle. Worker-backed in production, inline in tests. */
+export type ChunkLoader = (cx: number, cy: number) => Promise<ChunkMeshBundle>;
 
 /** A chunk currently held in memory by the streamer. */
 export interface LoadedChunk {
   cx: number;
   cy: number;
-  geometry: ChunkGeometryArrays;
+  bundle: ChunkMeshBundle;
   lod: LodTier;
 }
