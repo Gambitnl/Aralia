@@ -24,11 +24,7 @@ should not quietly expand the active slice.
    an explicit migration note in the same pass. Do not turn this tracker into a list of every
    Symphony support PR, raw receipt, dashboard state change, or decision report
    entry.
-7. Timing/churn studies for Jules -> GitHub -> Actions -> Scout/Core ->
-   back-to-Jules are local observation data, not tracker content. Keep the raw
-   event log external or local and add only a short summary or pointer here if
-   it changes the package decision or explains a recurring bottleneck.
-8. Use `gpt-5.3-codex-spark` subagents for bounded tracker chores such as
+7. Use `gpt-5.3-codex-spark` subagents for bounded tracker chores such as
    package row sync, checklist/receipt refreshes, artifact classification,
    cleanup recommendations, and decision-lesson extraction. The Codex foreman
    must review the result and keep plan approval, Jules/GitHub mutations,
@@ -70,21 +66,7 @@ Keep this live tracker focused on the current package, nearby blockers, and upda
 
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
-| P18 | active | Codex foreman preparation | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Package 18 is scoped as a bounded continuation with a concrete `Jules value` and row-classification requirement. |
-
-The visible Jules proof surface may lag the tracker. If the live session still
-shows Package 17 while this queue already points at Package 18, treat the
-state mismatch as the current blocker and next proof target instead of
-assuming the next package has already started.
-Until the visible Jules session flips to Package 18 or emits a PR/result, keep
-Package 18 as the active queue item and treat the live Package 17 page as the
-current proof-surface lag.
-
-Package 18 has now been staged as local task draft `draft-1780174883115-nnbq7l`,
-but `git-preflight` still reports the current checkout as blocked because the
-worktree does not match the GitHub base commit and there are existing local
-tracked/untracked changes. The handoff is staged but not launchable until that
-Git sync blocker is resolved or intentionally kept local for a later sync.
+| P18 | waiting | Jules implementation, Codex foreman monitoring | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Launched from clean `origin/master @ 0540633d5eb99fb1e48819e0fc92585608ef1cfe` through the clean dashboard at `http://127.0.0.1:8142`: Linear `ARA-28`, draft `draft-1780188254648-brkhdf`, handoff `handoff-1780188354283-yposds`, Jules session `12854522108539821255`. Visible Jules page shows `Worker: Spell Phase 1 Package 18: Reaction Opportunity Continuation`; next proof target is dashboard/Jules status refresh until PR, plan gate, failure, or follow-up request appears. |
 
 ## Current Local Change Classification
 
@@ -97,8 +79,9 @@ It is a routing note, not a request to discard or simplify any work.
 | PHB glossary/rules migration | The main checkout may contain unrelated local glossary/rules work from the operator. | Treat that as adjacent project state, not Package 11 scope. Do not bundle new glossary/rules work into the status/state-change handoff. |
 | BattleMap and combat UI/source edits | The operator has noted combat simulator visibility gaps, including missing tiny icons for active spell rider effects. | Record those as adjacent combat-visibility follow-ups unless Package 11 directly needs them. Package 11 is status/state data and runtime proof, not a combat HUD rider-icon package. |
 | Ignored Symphony/Jules state | Historical ignored Symphony/Jules state can exist locally, but `G93` confirms that running Jules sessions do not receive later local or GitHub tracker changes automatically. | Keep ignored and local. Copy only short Aralia-facing summaries into this tracker or package files when they explain a real package decision. Use explicit update channels after Jules launch. |
-| Branch/worktree state | Package 17 is the current ready-for-handoff slice and the launched Jules session is active/in-progress, but PR visibility is still pending. Dispatch remains paused. The checkout is clean, while `master` is still ahead of `origin/master` by the unrelated local world-sim commit stack. Package 18 stays queued as the later continuation packet. |
-| Untracked local artifact | No untracked artifacts are currently blocking Package 17. Earlier worldDataMigration files were part of the temporary local-disposition pass and are no longer the live gate. | Keep local and outside the Spell Phase 1 Jules handoff unless the operator later asks to fold them into the world-sim line. |
+| Branch/worktree state | The original `http://127.0.0.1:8081` dashboard remains tied to local `codex/package17-operational` state and unrelated tracked edits. | Use the clean isolated dashboard at `http://127.0.0.1:8142` for Package 18 proof: it launched from `origin/master @ 0540633d5eb99fb1e48819e0fc92585608ef1cfe` without moving or discarding local operator work. |
+| Package 18 PR | Draft PR [#1142](https://github.com/Gambitnl/Aralia/pull/1142) carries the durable Package 18 launch-state doc update, not implementation completion. | Do not treat the docs PR as Package 18 completion. Package 18 remains waiting on Jules session `12854522108539821255` and later PR/review proof. |
+| Untracked local artifact | `src/services/worldSim/__tests__/biomeZones.test.ts` is unrelated local work that surfaced during the resume check and has been kept local in the live Git-disposition ledger. | Keep local and outside the Spell Phase 1 Jules handoff unless the operator later asks to fold it into the world-sim line. |
 
 ## Current Setup And PR Tasks
 
@@ -286,15 +269,17 @@ or Symphony-owned doc that carries the detailed workflow provenance.
 | G159 | done | Git preflight resolved (historical) | This row is historical. At the time it was recorded, tracked decisions for `tracked_changes` had moved through the disposition review and the queue looked clean. | Recorded in context of commit `a5f83e73d8707a711619c4b3f4dec77843a10c89` and a clean `origin/master` sync at that time; it is no longer the active preflight state. |
 | G160 | done | Package 17 no-PR waiter state | Superseded by `G162`. Queue-level handoff is no longer in this branch: PR #1140 is open and now visible, so the older refresh-pr-no-match signature no longer governs package progression. | Owner: queue routing layer + package operator decision; location: `/api/v1/task-drafts`; historical note retained to preserve sequence continuity. |
 | G162 | blocked | Package 17 bridge-conflict risk boundary | Jules PR #1140 is open and merge intent is blocked by a conflict-watch review boundary. `conductor/symphony` handoff summary (`/api/v1/task-drafts` for `draft-1779935690072-pzmogh`) reports `next_action: bridge_conflict_prone_files` and `risk_file_paths`: `src/commands/effects/MovementCommand.ts`, `src/commands/effects/__tests__/MovementCommand.test.ts`, `src/systems/combat/__tests__/OpportunityAttackSystem.test.ts`, `src/systems/combat/reactions/OpportunityAttackSystem.ts`, `src/utils/combat/combatUtils.ts`. GitHub review comments also currently flag `MovementCommand.ts` for direct `reaction.used` mutation and `public/data/spells/level-0/shocking-grasp.json` for incorrect `escapeCheck`/`repeatSave` blocks. Owner: Scout/Core bridge-review gate; location: `/api/v1/task-drafts` next_action, `gh pr view 1140`, and PR review comments in `package-17-reaction-opportunity` diff. This is currently deferred behind a hard GitHub-sync gate; once sync and tracked-change disposition complete, next proof target is Scout/Core closure on these reviewed files. |
-| G169 | superseded | Package 17 local git-sync/disposition gate | The earlier tracked-change portion of the Package 17 gate has been cleared by the spell-doc commit in this pass. The remaining live blocker moved into the local-only commits category in G170. | Owner: historical local workflow gate at `/api/v1/git-preflight`, `/api/v1/task-drafts/.../handoff-readiness`, and `/api/v1/git-disposition`; location: package-17 package branch and draft handoff object; the next proof target is now the live local-commits disposition decision. |
+| G169 | blocked | Package 17 local git-sync/disposition gate | Local handoff readiness now shows `blocked_by_git_sync` with blockers: 5 tracked file edits and 3 commits not on `origin/master`; `/api/v1/task-drafts/draft-1779935690072-pzmogh/handoff-readiness` also points to `publish_or_merge_current_branch`. `git-disposition` reports `tracked_changes` is missing a decision for the same files. | Owner: local workflow gate at `/api/v1/git-preflight`, `/api/v1/task-drafts/.../handoff-readiness`, and `/api/v1/git-disposition`; location: package-17 package branch and draft handoff object; next proof target is a passed preflight and explicit tracked-change disposition before Scout/Core bridge resolution can be processed. |
 | G161 | done | Package 17 local git-sync preflight reblocked (historical) | This was a historical state when the tracker showed a local dirty file. `/api/v1/git-preflight` now reports `clean` (`dirtyFiles: 0`, `untrackedFiles: 0`) and local workspace preflight is no longer blocking this package boundary. | Owner: local git-preflight gate; location: `POST /api/v1/git-disposition`, `/api/v1/git-preflight`; this blocker is resolved in current live state. |
 | G163 | blocked | Package 17 CI/tooling setup gap | GitHub PR checks for #1140 fail in Build/Lint/Tests at `npm ci` because `package.json` and `package-lock.json` are out-of-sync for dependency entries, including `react` and `@types/react` classes in the install stage. This blocker is operational (dependency manifest parity) rather than product-logic. | Owner: CI/tooling setup boundary; location: GH check runs for PR #1140 (e.g., run `26569891629` and sibling Build/Lint/Tests jobs). Next proof target is lockfile reconciliation and successful fresh CI install on the same scoped branch before any bridge repair merge attempt. |
 | G164 | done | Package 17 dashboard visibility route repaired | Runtime dashboard route is now re-checkable at `http://127.0.0.1:8081/api/v1/task-drafts`; the current gate now reads `push_base` with explicit preflight summary (`master has 2 unpushed commit(s)`). This was a workflow-visibility repair; product edits remain unchanged. | Owner: local dashboard operator boundary; location: `http://127.0.0.1:8081/api/v1/task-drafts`, `/api/v1/task-drafts/draft-1779935690072-pzmogh/handoff-readiness`; next proof target is a passing GitHub-sync preflight with the local base committed or explicitly deferred. |
 | G166 | done | Package 17 local master drift barrier | `POST /api/v1/git-preflight` now reports clean sync (`origin/master` and `master` at `49e77d3c630d41d7d94e9a6bbeb07ec07cb0e056`) with no tracked/uncommitted file changes; handoff readiness advanced to active workflow gates. | Owner: Git sync gate; location: `POST /api/v1/git-preflight`, `GET /api/v1/task-drafts`, `/api/v1/task-drafts/draft-1779935690072-pzmogh/handoff-readiness`; outcome is promotion of the handoff packet. |
 | G167 | done | Package 17 handoff refresh and active boundary handoff id | `POST /api/v1/task-drafts/draft-1779935690072-pzmogh/promote` moved the draft to `ready_for_handoff` with a fresh live handoff id `handoff-1779983955513-6xqlup` and revalidated PR/head state against `origin/master @ 49e77d3c...`; next proof target is Scout/Core conflict-watch action for 5 overlap files before PR merge. | Owner: local handoff orchestration + conflict-watch gate; location: `POST /api/v1/task-drafts/draft-1779935690072-pzmogh/promote`, `/api/v1/task-drafts` next_action, and `/api/v1/task-drafts/draft-1779935690072-pzmogh/handoff-readiness`; next proof target is `bridge_conflict_prone_files` with Scout/Core review. |
-| G168 | blocked | Package 17 manifest staged; conflict-watch remains hard blocker | `POST /api/v1/task-drafts/draft-1779935690072-pzmogh/promote` then `POST /api/v1/jules-handoffs/handoff-1779984405537-9dkw7v/stage-manifest` produced a staged manifest at `.jules/runs/symphony-handoff-1779984405537-9dkw7v/manifest.json`; the queue now reports `next_action: bridge_conflict_prone_files` and PR `#1140` merge remains blocked by 5 conflict-prone files before any closeout. | Owner: merge-readiness boundary; location: `/api/v1/jules-handoffs/<handoff>/stage-manifest` and `/api/v1/task-drafts`; next proof target is Scout/Core closure or explicit refusal on `MovementCommand`, `OpportunityAttackSystem`, and `combatUtils` risk files. |
+| G168 | done | Package 17 manifest staged; conflict-watch remains hard blocker | Historical blocker now resolved by Package 17 closeout. PR `#1140` merged to `master` as `4a36a48c3c14a04344c7af2b50fd7d1ad24fa6d6`; Package 17 is recorded as done in package history and no longer owns the live queue. | Owner: historical merge-readiness boundary; next proof target moved to Package 18 Jules monitoring. |
 
-| G170 | blocked | Package 17 handoff blocked by control/local-commit gate | `http://127.0.0.1:8081/api/v1/state` currently reports dispatch disabled, and the launched Jules session is active/in-progress while GitHub PR visibility is still pending. `git log --oneline --left-right master...origin/master` shows `master` is ahead of `origin/master` by the unrelated local world-sim commit stack, so the remaining blocker is branch alignment on the local world-sim line rather than spell-doc dirt or untracked files. | Owner: dashboard control and local-commit gate; location: `GET /api/v1/state`, `GET /api/v1/task-drafts`, `GET /api/v1/git-disposition/review`, and GitHub PR visibility on `http://127.0.0.1:8081`; next proof target is a visible PR from the live Jules session or an explicit branch handoff that keeps the unrelated local stack out of the Package 17 checkout. |
+| G170 | done | Package 18 start blocked by control/bottleneck continuation | Codex recorded the unrelated tracked edit on the original dashboard as keep-local, then used a clean isolated dashboard at `http://127.0.0.1:8142` from `origin/master @ 0540633d5eb99fb1e48819e0fc92585608ef1cfe`. That clean proof surface passed GitHub sync, created Linear `ARA-28`, prepared handoff `handoff-1780188354283-yposds`, staged the ignored `.jules` manifest, and launched Jules session `12854522108539821255`. | Owner: Codex foreman routing; next proof target is Package 18 status refresh until Jules exposes a PR, plan approval gate, failure, or follow-up request. |
+
+| G171 | waiting | Package 18 Jules active state | The visible Jules page for `https://jules.google.com/session/12854522108539821255` shows `Worker: Spell Phase 1 Package 18: Reaction Opportunity Continuation` and the bounded handoff text. The dashboard refresh moved Jules from `QUEUED` to `IN_PROGRESS`, with no PR URL yet. | Owner: Jules implementation + Codex foreman monitoring; location: `http://127.0.0.1:8142/api/v1/task-drafts`, `http://127.0.0.1:8142/api/v1/jules-handoffs/handoff-1780188354283-yposds/refresh-status`, and the visible Jules session page. Next proof target is a refreshed Jules state: PR URL, plan-approval gate, failure, no-PR completion, or explicit follow-up request. |
 
 | G165 | done | Package 17 local disposition decision pending (historical) | This was a historical queue state tied to a transient tracked-file status; current `/api/v1/git-preflight` is clean and no disposition block is active at present. | Owner: local disposition decision boundary; location: `/api/v1/git-disposition/review`, `POST /api/v1/git-disposition`; current next proof target is Scout/Core bridge resolution and CI lockfile parity fix. |
 
@@ -358,8 +343,8 @@ ignored unless a concise package-facing summary is useful after the run.
 | `PACKAGE_16_SUSTAIN_RECAST_ACTION_JULES_PROMPT.md` | Exact Jules prompt for Package 16 | done; PR #1135 merged after clean-head acceptance repair |
 | `PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md` | Package 17 reaction/opportunity mechanics bucket scope, Jules value line, classification requirement, acceptance criteria, and compact decision/wait-state policy | done; PR #1140 merged to `master` |
 | `PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md` | Exact Jules prompt for Package 17 | done; handoff is package-closeout complete after merge |
-| `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md` | Package 18 continuation of reaction/opportunity restrictions with bounded subset and updated `Jules value` | not_started |
-| `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Exact Jules prompt for Package 18 continuation | not_started |
+| `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md` | Package 18 continuation of reaction/opportunity restrictions with bounded subset and updated `Jules value` | waiting; launched through Linear `ARA-28`, handoff `handoff-1780188354283-yposds`, Jules session `12854522108539821255` |
+| `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Exact Jules prompt for Package 18 continuation | waiting; visible Jules page confirms Package 18 worker and bounded handoff text |
 
 ## Update Rules
 
@@ -371,13 +356,6 @@ ignored unless a concise package-facing summary is useful after the run.
   or ignored unless the tracker needs a short durable summary.
 - When a change only repairs Symphony dashboard/workflow support machinery,
   summarize the durable outcome without adding every support PR to this tracker.
-- When a Jules handoff is still running or has an ambiguous completion state,
-  inspect the visible Jules session first and record PR URL, no-PR completion,
-  failure, or follow-up before marking the package blocked or done.
-- When the visible session shows `Approve plan?`, treat
-  `GET /api/v1/tasks/:id` and its `approvalCheckpoint` packet as the pollable
-  Symphony mirror for that gate, then reconcile the answer against the visible
-  Jules session before recording approval or blockage.
 - For the next Jules package, include a compact decision-logging instruction in
   the task/prompt: full decision entries are for real forks such as plan
   approval/rejection, repair request, stale-session replacement,

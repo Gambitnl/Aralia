@@ -25,7 +25,7 @@ active queue state, live blockers, and update rules.
 | P15 | Linear `ARA-24`; draft `draft-1779771507621-vox90j`; handoff `handoff-1779774561087-k9184e`; Jules session `5400768066928394476`; PR #1122 | Summon/control mechanics. |
 | P16 | Linear `ARA-25`; handoff `handoff-1779867945949-gghfzz`; Jules session `11565543977884436282`; PR #1135 | Sustain/recast action mechanics. |
 | P17 | Linear `ARA-27`; draft `draft-1779935690072-pzmogh`; handoff `handoff-1779984405537-9dkw7v`; PR #1140 | Reaction/opportunity restrictions. |
-| P18 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`; `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Current continuation packet for the next bounded reaction/opportunity slice. |
+| P18 | Linear `ARA-28`; draft `draft-1780188254648-brkhdf`; handoff `handoff-1780188354283-yposds`; Jules session `12854522108539821255`; `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`; `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Current continuation packet launched from clean `origin/master @ 0540633d5eb99fb1e48819e0fc92585608ef1cfe`; waiting for Jules status refresh, PR URL, plan gate, failure, or follow-up request. |
 | Symphony support | See `conductor/symphony/JULES_MIDDLEMAN_AUDIT.md`, `conductor/symphony/docs/tasks/SYMPHONY_OPEN_TASKS.md`, and the decision report | Workflow repairs and support history stay separate from the spell PR index. |
 
 ## Notes

@@ -24,9 +24,8 @@ Goal:
 
 Classify the remaining early-game `reaction_or_opportunity_restriction` rows and
 implement the largest coherent safe subset in one bounded package.
-The live Jules page may still show the prior Package 17 run; if so, treat that
-visible-state lag as the proof-surface blocker and keep Package 18 bounded
-rather than widening scope.
+Package 18 is now the live Jules session: Linear `ARA-28`, handoff
+`handoff-1780188354283-yposds`, Jules session `12854522108539821255`.
 
 Expected value for this package:
 
@@ -86,3 +85,4 @@ Output you should include at package completion:
 - Proof commands and outcomes.
 - Files changed.
 - Residual rows left for later buckets or broader systems.
+

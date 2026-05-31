@@ -5,9 +5,9 @@ slice after Package 17.
 
 This packet moves the mechanism forward by taking the remaining cantrip/level 1-3
 `reaction_or_opportunity_restriction` findings in a coherent, bounded batch.
-The live Jules proof surface may lag this tracker; if the visible session still
-shows Package 17, treat that as the current blocker/next proof target instead of
-assuming Package 18 has already started.
+Package 18 launched through the clean dashboard after Package 17 closeout:
+Linear `ARA-28`, handoff `handoff-1780188354283-yposds`, Jules session
+`12854522108539821255`.
 
 ## Worker
 
