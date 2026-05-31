@@ -24,8 +24,16 @@ export interface ChunkData {
   cy: number;
   /** Vertices per edge (square grid). */
   resolution: number;
-  /** Sampled heights (0..100), length resolution*resolution, row-major (z-major, x-minor). */
+  /** Sampled heights (0..100), length resolution*resolution, row-major. */
   heights: Float32Array;
+  /** Per-vertex biome id, length resolution*resolution, nearest-neighbor sampled. */
+  biomeIds: string[];
+  /** River polylines clipped to this chunk (grid space). */
+  rivers: ClippedPolyline[];
+  /** Road polylines clipped to this chunk (grid space). */
+  roads: ClippedPolyline[];
+  /** Sites whose center falls within this chunk (grid space). */
+  sites: { id: string; kind: 'town' | 'dungeon' | 'ruin' | 'landmark'; position: { x: number; y: number }; footprint: { x: number; y: number }[]; walled: boolean }[];
 }
 
 /** Transferable geometry buffers for a chunk mesh, local to the chunk origin. */

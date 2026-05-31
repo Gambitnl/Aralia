@@ -1,5 +1,5 @@
 import { sampleChunk } from '../chunkSampler';
-import type { WorldData } from '@/services/worldSim/types';
+import type { WorldData, River, Site } from '@/services/worldSim/types';
 
 const makeWorld = (cols: number, rows: number, fill: (x: number, y: number) => number): WorldData => {
   const heights: number[] = [];
@@ -52,4 +52,56 @@ it('clamps samples that fall outside the grid to the edge value', () => {
     expect(Number.isFinite(h)).toBe(true);
     expect(h).toBeCloseTo(30);
   }
+});
+
+const worldWithFeatures = (): WorldData => {
+  const cols = 64;
+  const rows = 8;
+  const heights = new Array(cols * rows).fill(40);
+  const biomeIds = new Array(cols * rows).fill('forest');
+  const river: River = {
+    id: 'r0',
+    points: [{ x: 0, y: 0.05 }, { x: 5, y: 0.05 }],
+    width: [1, 1],
+    discharge: [10, 10],
+  };
+  const town: Site = {
+    id: 't0',
+    kind: 'town',
+    position: { x: 0.05, y: 0.05 },
+    footprint: [
+      { x: 0.04, y: 0.04 },
+      { x: 0.06, y: 0.04 },
+      { x: 0.06, y: 0.06 },
+      { x: 0.04, y: 0.06 },
+    ],
+    walled: true,
+  };
+  return {
+    version: 2, seed: 1, templateId: 't',
+    gridSize: { rows, cols },
+    heights, temperatures: [], moisture: [], biomeIds,
+    rivers: [river], roads: [], sites: [town],
+    coastlines: [], lakes: [], biomeZones: [],
+  };
+};
+
+it('samples a per-vertex biome id buffer', () => {
+  const data = sampleChunk(worldWithFeatures(), 0, 0, 4);
+  expect(data.biomeIds).toHaveLength(16);
+  expect(data.biomeIds.every((b) => b === 'forest')).toBe(true);
+});
+
+it('includes rivers that cross the chunk and excludes distant ones', () => {
+  const near = sampleChunk(worldWithFeatures(), 0, 0, 4);
+  expect(near.rivers.length).toBeGreaterThanOrEqual(1);
+  const far = sampleChunk(worldWithFeatures(), 100, 100, 4);
+  expect(far.rivers).toHaveLength(0);
+});
+
+it('includes sites whose center falls within the chunk', () => {
+  const data = sampleChunk(worldWithFeatures(), 0, 0, 4);
+  expect(data.sites).toHaveLength(1);
+  expect(data.sites[0].id).toBe('t0');
+  expect(data.sites[0].walled).toBe(true);
 });

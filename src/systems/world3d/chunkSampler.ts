@@ -1,46 +1,37 @@
 /**
  * @file chunkSampler.ts
- * @description Slices WorldData into the per-chunk input needed for geometry.
- * Samples the coarse WorldData heights (e.g. 60x40 grid) onto a high-resolution chunk
- * heightfield (e.g. 16x16 vertices grid) using bilinear interpolation.
- *
- * Why this is built this way:
- * - Bilinear interpolation smooths out the low-resolution Atlas/grid, preventing ugly step-like
- *   terrains in 3D.
- * - Clamp-to-edge logic ensures that if a chunk is loaded beyond the boundary of the simulated world,
- *   it gracefully clamps to the last available row/column value, avoiding NaN values or crashes.
- * - Row-major indexing `[j * resolution + i]` maps directly to the standard geometry vertex layout.
+ * Slices WorldData into the per-chunk input for geometry: a bilinearly-sampled
+ * height subgrid, a per-vertex biome id buffer, the river/road polylines clipped
+ * to this chunk, and any sites whose center lies inside the chunk.
  */
-
 import type { WorldData } from '@/services/worldSim/types';
 import type { ChunkData } from './types';
 import { chunkGridAABB } from './coords';
+import { clipPolylineToChunk } from './polylineClip';
 
-/**
- * Samples the height grid at fractional coordinates using bilinear interpolation,
- * clamping out-of-bound coords to the nearest boundary edge.
- */
 function sampleHeightBilinear(world: WorldData, gx: number, gy: number): number {
   const { cols, rows } = world.gridSize;
   const clampX = (v: number) => Math.max(0, Math.min(cols - 1, v));
   const clampY = (v: number) => Math.max(0, Math.min(rows - 1, v));
-
   const x0 = Math.floor(clampX(gx));
   const y0 = Math.floor(clampY(gy));
   const x1 = clampX(x0 + 1);
   const y1 = clampY(y0 + 1);
   const tx = clampX(gx) - x0;
   const ty = clampY(gy) - y0;
-
   const h = (xx: number, yy: number) => world.heights[yy * cols + xx] ?? 0;
   const top = h(x0, y0) * (1 - tx) + h(x1, y0) * tx;
   const bot = h(x0, y1) * (1 - tx) + h(x1, y1) * tx;
   return top * (1 - ty) + bot * ty;
 }
 
-/**
- * Slices the world data into a specific chunk's grid data at the requested vertex resolution.
- */
+function sampleBiomeNearest(world: WorldData, gx: number, gy: number): string {
+  const { cols, rows } = world.gridSize;
+  const x = Math.max(0, Math.min(cols - 1, Math.round(gx)));
+  const y = Math.max(0, Math.min(rows - 1, Math.round(gy)));
+  return world.biomeIds[y * cols + x] ?? 'plains';
+}
+
 export function sampleChunk(
   world: WorldData,
   cx: number,
@@ -49,6 +40,7 @@ export function sampleChunk(
 ): ChunkData {
   const aabb = chunkGridAABB(cx, cy);
   const heights = new Float32Array(resolution * resolution);
+  const biomeIds: string[] = new Array(resolution * resolution);
 
   for (let j = 0; j < resolution; j++) {
     const ty = resolution === 1 ? 0 : j / (resolution - 1);
@@ -56,9 +48,32 @@ export function sampleChunk(
     for (let i = 0; i < resolution; i++) {
       const tx = resolution === 1 ? 0 : i / (resolution - 1);
       const gx = aabb.minGX + (aabb.maxGX - aabb.minGX) * tx;
-      heights[j * resolution + i] = sampleHeightBilinear(world, gx, gy);
+      const idx = j * resolution + i;
+      heights[idx] = sampleHeightBilinear(world, gx, gy);
+      biomeIds[idx] = sampleBiomeNearest(world, gx, gy);
     }
   }
 
-  return { cx, cy, resolution, heights };
+  const rivers = world.rivers.flatMap((r) => clipPolylineToChunk(r.points, r.width, cx, cy));
+  const roads = world.roads.flatMap((rd) =>
+    clipPolylineToChunk(rd.points, rd.points.map(() => 0.04), cx, cy),
+  );
+
+  const sites = world.sites
+    .filter(
+      (s) =>
+        s.position.x >= aabb.minGX &&
+        s.position.x <= aabb.maxGX &&
+        s.position.y >= aabb.minGY &&
+        s.position.y <= aabb.maxGY,
+    )
+    .map((s) => ({
+      id: s.id,
+      kind: s.kind,
+      position: s.position,
+      footprint: s.footprint,
+      walled: s.walled ?? false,
+    }));
+
+  return { cx, cy, resolution, heights, biomeIds, rivers, roads, sites };
 }
