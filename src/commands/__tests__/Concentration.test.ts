@@ -78,7 +78,7 @@ describe('Concentration System', () => {
     })
 
     describe('DamageCommand & Saves', () => {
-        it('triggers concentration check on damage', () => {
+        it('triggers concentration check on damage', async () => {
             const spell = createMockSpell();
             const mockCaster = createMockCombatCharacter({ id: 'c1', name: 'Caster' });
             const mockTarget = createMockCombatCharacter({
@@ -130,7 +130,7 @@ describe('Concentration System', () => {
     })
 
     describe('Commands', () => {
-        it('StartConcentrationCommand sets state', () => {
+        it('StartConcentrationCommand sets state', async () => {
             const spell = createMockSpell();
             const mockCaster = createMockCombatCharacter();
             const mockPlayer: PlayerCharacter = createMockPlayerCharacter({
@@ -162,7 +162,7 @@ describe('Concentration System', () => {
             expect(newState.characters[0].concentratingOn!.startedTurn).toBe(5);
         })
 
-        it('BreakConcentrationCommand clears state', () => {
+        it('BreakConcentrationCommand clears state', async () => {
             const mockTarget = createMockCombatCharacter({
                  concentratingOn: {
                     spellId: 'spell1',

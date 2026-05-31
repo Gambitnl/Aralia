@@ -92,7 +92,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 
 describe('LightMechanics', () => {
     describe('UtilityCommand with light effect', () => {
-        it('creates a light source when light config is provided', () => {
+        it('creates a light source when light config is provided', async () => {
             const caster = makeCharacter('caster', { x: 0, y: 0 });
             const target = makeCharacter('target', { x: 1, y: 0 });
             const state = makeState([caster, target]);
@@ -126,7 +126,7 @@ describe('LightMechanics', () => {
             expect(lightSource.sourceSpellId).toBe('light');
         });
 
-        it('attaches light to caster when attachedTo is caster', () => {
+        it('attaches light to caster when attachedTo is caster', async () => {
             const caster = makeCharacter('caster', { x: 0, y: 0 });
             const state = makeState([caster]);
 
@@ -152,7 +152,7 @@ describe('LightMechanics', () => {
             expect(lightSource.dimRadius).toBe(0); // Should default to 0
         });
 
-        it('sets position for point-attached light without targets', () => {
+        it('sets position for point-attached light without targets', async () => {
             const caster = makeCharacter('caster', { x: 5, y: 5 });
             const state = makeState([caster]);
 
@@ -178,7 +178,7 @@ describe('LightMechanics', () => {
             expect(lightSource.position).toEqual({ x: 5, y: 5 }); // Falls back to caster position
         });
 
-        it('does not create light source without light config', () => {
+        it('does not create light source without light config', async () => {
             const caster = makeCharacter('caster', { x: 0, y: 0 });
             const state = makeState([caster]);
 
@@ -197,7 +197,7 @@ describe('LightMechanics', () => {
             expect(result.activeLightSources).toHaveLength(0);
         });
 
-        it('logs light source creation', () => {
+        it('logs light source creation', async () => {
             const caster = makeCharacter('caster', { x: 0, y: 0 });
             const state = makeState([caster]);
 

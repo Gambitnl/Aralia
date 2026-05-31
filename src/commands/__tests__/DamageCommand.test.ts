@@ -7,7 +7,7 @@ import type { DamageEffect } from '../../types/spells';
 // HP and leave a readable combat log entry behind. It intentionally stays tiny
 // so Package 4 can cite a concrete HP/log proof without widening the pilot.
 describe('DamageCommand', () => {
-  it('reduces HP and logs a spell hit for a deterministic damage spell', () => {
+  it('reduces HP and logs a spell hit for a deterministic damage spell', async () => {
     const caster = createMockCombatCharacter({
       id: 'caster',
       name: 'Maelis Quill'

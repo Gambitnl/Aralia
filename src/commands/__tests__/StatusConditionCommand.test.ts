@@ -97,7 +97,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('StatusConditionCommand', () => {
-  it('applies conditions and mirrors them to statusEffects', () => {
+  it('applies conditions and mirrors them to statusEffects', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const state = makeState([caster, target]);

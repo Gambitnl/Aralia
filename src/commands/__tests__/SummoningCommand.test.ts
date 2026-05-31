@@ -112,7 +112,7 @@ describe('SummoningCommand', () => {
         activeLightSources: []
     }
 
-    it('should summon a creature from MONSTERS_DATA', () => {
+    it('should summon a creature from MONSTERS_DATA', async () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summonType: 'creature',
@@ -141,7 +141,7 @@ describe('SummoningCommand', () => {
         expect(dx <= 1 && dy <= 1).toBe(true)
     })
 
-    it('should handle multiple summons', () => {
+    it('should handle multiple summons', async () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summonType: 'creature',
@@ -161,7 +161,7 @@ describe('SummoningCommand', () => {
         expect(goblins[0].position).not.toEqual(goblins[1].position)
     })
 
-    it('should fallback to generic summon if creatureId not found', () => {
+    it('should fallback to generic summon if creatureId not found', async () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summonType: 'creature',
@@ -181,7 +181,7 @@ describe('SummoningCommand', () => {
         expect(summoned?.maxHP).toBe(10) // Fallback HP
     })
 
-    it('should support modern nested summon.formOptions', () => {
+    it('should support modern nested summon.formOptions', async () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summon: {
@@ -203,7 +203,7 @@ describe('SummoningCommand', () => {
         expect(summoned?.stats.speed).toBe(5) // Uses Owl template
     })
 
-    it('should support modern nested summon.statBlock', () => {
+    it('should support modern nested summon.statBlock', async () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summon: {
@@ -230,7 +230,7 @@ describe('SummoningCommand', () => {
         expect(summoned?.stats.speed).toBe(100)
     })
 
-    it('should preserve explicit zero values from modern nested summon.statBlock', () => {
+    it('should preserve explicit zero values from modern nested summon.statBlock', async () => {
         // This guards the Package 15 bridge against treating stored zero values
         // as missing data. Future summon schemas may use zero to mean immobile,
         // defeated, or intentionally unavailable, so the command must not
@@ -304,7 +304,7 @@ describe('SummoningCommand', () => {
             condition: { type: 'always' }
         }
 
-        it('should summon within map boundaries', () => {
+        it('should summon within map boundaries', async () => {
             // Map is 10x10. Caster is at 0,0 (top-left corner)
             const mapData = {
                 dimensions: { width: 10, height: 10 }
@@ -333,7 +333,7 @@ describe('SummoningCommand', () => {
             expect(summoned!.position.y).not.toBe(-1)
         })
 
-        it('should respect map boundaries when caster is at bottom-right corner', () => {
+        it('should respect map boundaries when caster is at bottom-right corner', async () => {
             // Map is 10x10. Caster is at 9,9
             const mapData = {
                 dimensions: { width: 10, height: 10 }
@@ -359,7 +359,7 @@ describe('SummoningCommand', () => {
             expect(summoned!.position.y).not.toBe(10)
         })
 
-        it('should fail to summon if no space is available within boundaries', () => {
+        it('should fail to summon if no space is available within boundaries', async () => {
             // Tiny map 1x1, caster occupies 0,0. No space left.
             const mapData = {
                 dimensions: { width: 1, height: 1 }
@@ -379,7 +379,7 @@ describe('SummoningCommand', () => {
             expect(newState.combatLog.some(l => l.message.includes('No space available'))).toBe(true)
         })
 
-        it('should handle mapData with gridSize format (backward compatibility)', () => {
+        it('should handle mapData with gridSize format (backward compatibility)', async () => {
              const mapData = {
                 gridSize: { cols: 10, rows: 10 }
             }

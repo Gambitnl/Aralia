@@ -87,7 +87,7 @@ describe('AbilityCommandFactory', () => {
 });
 
 describe('WeaponAttackCommand Proficiency Penalties', () => {
-  it('omits proficiency bonus when attacking with a non-proficient weapon', () => {
+  it('omits proficiency bonus when attacking with a non-proficient weapon', async () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',
@@ -134,7 +134,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
 
 
 describe('Active Effect Riders (Bless/Bane)', () => {
-  it('consumes a bonus die from an active effect on the attacker', () => {
+  it('consumes a bonus die from an active effect on the attacker', async () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',
@@ -196,7 +196,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
     expect(logMessage).toMatch(/Mods: \+\d+ \[Bless\]/);
   });
 
-  it('consumes a penalty die from an active effect on the attacker', () => {
+  it('consumes a penalty die from an active effect on the attacker', async () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',

@@ -126,7 +126,7 @@ const makeBludgeoningDamageEffect = (): DamageEffect => ({
 
 describe('Slasher Feat', () => {
   describe('Speed Reduction (Hamstring)', () => {
-    it('applies -10 speed when dealing slashing damage with Slasher feat', () => {
+    it('applies -10 speed when dealing slashing damage with Slasher feat', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);
@@ -148,7 +148,7 @@ describe('Slasher Feat', () => {
       expect(logEntry).toBeDefined();
     });
 
-    it('does NOT apply speed reduction for non-slashing damage types', () => {
+    it('does NOT apply speed reduction for non-slashing damage types', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);
@@ -167,7 +167,7 @@ describe('Slasher Feat', () => {
       expect(logEntry).toBeUndefined();
     });
 
-    it('does NOT apply speed reduction if attacker lacks Slasher feat', () => {
+    it('does NOT apply speed reduction if attacker lacks Slasher feat', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: [] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);
@@ -182,7 +182,7 @@ describe('Slasher Feat', () => {
       expect(slasherSlowEffect).toBeUndefined();
     });
 
-    it('enforces once-per-turn limit on speed reduction', () => {
+    it('enforces once-per-turn limit on speed reduction', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target1 = makeCharacter('target1', { x: 1, y: 0 }, { team: 'enemy' });
       const target2 = makeCharacter('target2', { x: 2, y: 0 }, { team: 'enemy' });
@@ -217,7 +217,7 @@ describe('Slasher Feat', () => {
   });
 
   describe('Grievous Wound (Critical Hit Disadvantage)', () => {
-    it('applies disadvantage on attacks when landing a critical hit with slashing damage', () => {
+    it('applies disadvantage on attacks when landing a critical hit with slashing damage', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);
@@ -242,7 +242,7 @@ describe('Slasher Feat', () => {
       expect(logEntry?.message).toContain('Disadvantage on attacks');
     });
 
-    it('does NOT apply disadvantage on non-critical hits', () => {
+    it('does NOT apply disadvantage on non-critical hits', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);
@@ -258,7 +258,7 @@ describe('Slasher Feat', () => {
       expect(updatedTarget?.activeEffects?.find(e => e.mechanics?.disadvantageOnAttacks === true)).toBeUndefined();
     });
 
-    it('does NOT apply disadvantage on critical hits with non-slashing damage', () => {
+    it('does NOT apply disadvantage on critical hits with non-slashing damage', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);
@@ -274,7 +274,7 @@ describe('Slasher Feat', () => {
       expect(updatedTarget?.activeEffects?.find(e => e.mechanics?.disadvantageOnAttacks === true)).toBeUndefined();
     });
 
-    it('can apply disadvantage multiple times on critical hits (not limited to once per turn)', () => {
+    it('can apply disadvantage multiple times on critical hits (not limited to once per turn)', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target1 = makeCharacter('target1', { x: 1, y: 0 }, { team: 'enemy' });
       const target2 = makeCharacter('target2', { x: 2, y: 0 }, { team: 'enemy' });
@@ -306,7 +306,7 @@ describe('Slasher Feat', () => {
   });
 
   describe('Integration: Both Effects Together', () => {
-    it('applies both speed reduction and disadvantage on a critical slashing hit', () => {
+    it('applies both speed reduction and disadvantage on a critical slashing hit', async () => {
       const attacker = makeCharacter('attacker', { x: 0, y: 0 }, { feats: ['slasher'] });
       const target = makeCharacter('target', { x: 1, y: 0 }, { team: 'enemy' });
       const state = makeState([attacker, target], attacker.id);

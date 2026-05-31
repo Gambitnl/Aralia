@@ -41,7 +41,7 @@ describe('UtilityCommand', () => {
     // --- Tests ---
 
     describe('Light Utility', () => {
-        it('should create a light source attached to the caster', () => {
+        it('should create a light source attached to the caster', async () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'light',
@@ -68,7 +68,7 @@ describe('UtilityCommand', () => {
             expect(newState.combatLog).toHaveLength(2) // 1 generic action, 1 status for light
         })
 
-        it('should create a light source attached to a target', () => {
+        it('should create a light source attached to a target', async () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'light',
@@ -91,7 +91,7 @@ describe('UtilityCommand', () => {
     });
 
     describe('Control Options (Command Spell)', () => {
-        it('should apply "grovel" command (prone status)', () => {
+        it('should apply "grovel" command (prone status)', async () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'control',
@@ -116,7 +116,7 @@ describe('UtilityCommand', () => {
             expect(logEntry).toBeDefined()
         })
 
-        it('should apply "flee" command (movement)', () => {
+        it('should apply "flee" command (movement)', async () => {
             // Mock target close to caster
             const closeState = {
                 ...mockState,
@@ -144,7 +144,7 @@ describe('UtilityCommand', () => {
     });
 
     describe('Taunt Mechanics', () => {
-        it('should apply taunt status marker', () => {
+        it('should apply taunt status marker', async () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'other',
@@ -170,7 +170,7 @@ describe('UtilityCommand', () => {
     });
 
     describe('Save Penalty Registration (Mind Sliver)', () => {
-        it('should register a save penalty rider on the target', () => {
+        it('should register a save penalty rider on the target', async () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'other',

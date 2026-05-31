@@ -42,7 +42,7 @@ describe('ReactiveEffectCommand Security Check', () => {
         vi.clearAllMocks();
     });
 
-    it('should log execution via logger instead of console.log', () => {
+    it('should log execution via logger instead of console.log', async () => {
         const alwaysCondition: EffectCondition = { type: 'always' };
         const command = new ReactiveEffectCommand(
             {

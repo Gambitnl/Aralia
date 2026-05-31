@@ -40,7 +40,7 @@ describe('Sensory Mechanics', () => {
         gameState: createMockGameState()
     }
 
-    it('should process sound emission metadata without errors', () => {
+    it('should process sound emission metadata without errors', async () => {
         // Sound metadata records the audible footprint that later systems can
         // use for alarms, thunderous effects, and other noisy spell results.
         const sound: SoundEmission = {
@@ -75,7 +75,7 @@ describe('Sensory Mechanics', () => {
         expect(logEffect.soundEmission?.audibleRadius).toBe(60)
     })
 
-    it('should process sensory manifestation metadata without errors', () => {
+    it('should process sensory manifestation metadata without errors', async () => {
         // Sensory manifestation metadata states which senses an illusion can
         // affect, while leaving actual illusion dispute handling to later work.
         const manifestation: SensoryManifestation = {

@@ -52,7 +52,7 @@ describe('StatusConditionCommand', () => {
     } as any;
   });
 
-  it('applies a direct status condition (e.g. Ray of Sickness Poisoned)', () => {
+  it('applies a direct status condition (e.g. Ray of Sickness Poisoned)', async () => {
     const effect: StatusConditionEffect = {
       type: 'STATUS_CONDITION',
       statusCondition: {
@@ -78,7 +78,7 @@ describe('StatusConditionCommand', () => {
     expect(updatedTarget.statusEffects[0].name).toBe('Poisoned');
   });
 
-  it('respects saving throw successes to avoid applying condition', () => {
+  it('respects saving throw successes to avoid applying condition', async () => {
     // Simulate a successful save
     vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
       total: 15,
@@ -111,7 +111,7 @@ describe('StatusConditionCommand', () => {
     expect(logs.some(l => l.message.includes('resists the Prone condition'))).toBe(true);
   });
 
-  it('removes conditions if conditionRemoval is specified (e.g. Lesser Restoration)', () => {
+  it('removes conditions if conditionRemoval is specified (e.g. Lesser Restoration)', async () => {
     // Setup target with Poisoned and Blinded
     const targetWithConditions = createMockCombatCharacter({
       id: 'target',

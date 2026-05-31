@@ -16,7 +16,7 @@ describe('CommandExecutor', () => {
     timestamp: Date.now(),
   });
 
-  it('should execute a list of commands', () => {
+  it('should execute a list of commands', async () => {
     const cmd1 = {
         id: '1',
         description: 'Cmd1',
@@ -38,7 +38,7 @@ describe('CommandExecutor', () => {
     expect(result.executedCommands).toHaveLength(2)
   })
 
-  it('should handle failure and return partial success info', () => {
+  it('should handle failure and return partial success info', async () => {
     const cmd1 = {
         id: '1',
         description: 'Cmd1',

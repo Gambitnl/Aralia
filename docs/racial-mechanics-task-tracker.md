@@ -41,6 +41,7 @@ Source objective: `Implement a reusable, race-agnostic racial-mechanics engine (
 | RM-024 | Completed | in-scope-now | Implement multi-choice racial trait resolution (choice from list) | Parser now handles "one of the following cantrips of your choice" and similar patterns, and materializes these choices from character state. | Directly addresses gaps like "Astral Fire" in Astral Elves. |
 | RM-025 | Completed | in-scope-now | Implement highly complex conditional reaction triggers (Schema & Parsing) | Defined RacialReaction schema and implemented robust parser/materializer for reactions like Stone's Endurance and Vengeful Assault. | Essential for manual racial reactions and damage-prevention mechanics. |
 | RM-026 | Completed | in-scope-now | Integrate racial reactions into combat engine | Update DamageCommand and UI (ReactionPrompt) to handle manual reaction choices. | Required for mechanical enforcement of reactive racial traits. |
+| RM-027 | Not started | in-scope-now | Fix test suites broken by async CommandExecutor execution | The conversion of `CommandExecutor.execute` and `SpellCommand.execute` to be asynchronous caused multiple test suites calling these methods synchronously inside `it()` blocks to fail. Requires a codebase-wide test update to use `async/await`. | Required to restore CI/CD build stability after the reactive command engine upgrade. |
 
 
 ## Defer/Risk Register

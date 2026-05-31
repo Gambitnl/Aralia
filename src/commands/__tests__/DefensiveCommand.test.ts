@@ -102,7 +102,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('DefensiveCommand', () => {
-  it('adds an AC bonus and tracks the active effect', () => {
+  it('adds an AC bonus and tracks the active effect', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const state = makeState([caster, target]);
@@ -126,7 +126,7 @@ describe('DefensiveCommand', () => {
     expect(updated?.activeEffects?.[0]?.mechanics?.acBonus).toBe(5);
   });
 
-  it('keeps the higher temporary HP value instead of stacking', () => {
+  it('keeps the higher temporary HP value instead of stacking', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const state = makeState([caster, target]);
@@ -148,7 +148,7 @@ describe('DefensiveCommand', () => {
     expect(result.combatLog.at(-1)?.message).toContain('temporary HP');
   });
 
-  it('calculates set_base_ac correctly including Dexterity modifier', () => {
+  it('calculates set_base_ac correctly including Dexterity modifier', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     // Target has Dex 12 (+1 mod)

@@ -98,7 +98,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('HealingCommand', () => {
-  it('heals the target and caps at max HP', () => {
+  it('heals the target and caps at max HP', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = { ...makeCharacter('target', { x: 1, y: 0 }), currentHP: 5 };
     const state = makeState([caster, target]);

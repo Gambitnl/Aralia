@@ -50,7 +50,7 @@ describe('DamageCommand', () => {
         };
     });
 
-    it('generates a descriptive log message for fire damage', () => {
+    it('generates a descriptive log message for fire damage', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
@@ -71,7 +71,7 @@ describe('DamageCommand', () => {
         expect(logEntry?.message).toMatch(/Hero (scorches|incinerates|burns|chars) Goblin with Fireball for \d+ fire damage/);
     });
 
-    it('generates a descriptive log message for slashing damage', () => {
+    it('generates a descriptive log message for slashing damage', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
@@ -94,7 +94,7 @@ describe('DamageCommand', () => {
         expect(logEntry?.message).toMatch(/Hero (slashes|cleaves|cuts|slices) Goblin with Longsword for \d+ slashing damage/);
     });
 
-    it('handles generic "Attack" name gracefully', () => {
+    it('handles generic "Attack" name gracefully', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
@@ -132,7 +132,7 @@ describe('DamageCommand', () => {
             }
         });
 
-        it('applies speed reduction on slashing damage', () => {
+        it('applies speed reduction on slashing damage', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Slashing' },
@@ -156,7 +156,7 @@ describe('DamageCommand', () => {
             expect(updatedCaster?.featUsageThisTurn).toContain('slasher_slow');
         });
 
-        it('applies grievous wound on critical hit with slashing damage', () => {
+        it('applies grievous wound on critical hit with slashing damage', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Slashing' },
@@ -180,7 +180,7 @@ describe('DamageCommand', () => {
             expect(speedEffect).toBeDefined();
         });
 
-        it('does not apply slasher effects for non-slashing damage', () => {
+        it('does not apply slasher effects for non-slashing damage', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Bludgeoning' },
@@ -196,7 +196,7 @@ describe('DamageCommand', () => {
             expect(speedEffect).toBeUndefined();
         });
 
-        it('only applies speed reduction once per turn', () => {
+        it('only applies speed reduction once per turn', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Slashing' },
@@ -207,7 +207,7 @@ describe('DamageCommand', () => {
             const command = new DamageCommand(effect, mockContext);
 
             // First hit
-            let newState = command.execute(mockState);
+            let newState = await command.execute(mockState);
 
             // Verify first application
             const updatedCaster = newState.characters.find(c => c.id === mockCaster.id);
@@ -222,7 +222,7 @@ describe('DamageCommand', () => {
             // Important: The command.execute implementation calls this.getCaster(currentState).
             // So if we pass the newState, it should fetch the updated caster.
             const command2 = new DamageCommand(effect, mockContext);
-            const finalState = command2.execute(newState);
+            const finalState = await command2.execute(newState);
 
             // Check logs to ensure "Slasher feat slows" message appears only once (in the first execution's log history, effectively)
             // But here we cleared logs. So we expect NO new log about slowing.
@@ -231,7 +231,7 @@ describe('DamageCommand', () => {
         });
     });
 
-    it('applies and consumes save penalties during saving throws', () => {
+    it('applies and consumes save penalties during saving throws', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: { dice: '2d6', type: 'Psychic' },
