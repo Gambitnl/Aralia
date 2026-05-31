@@ -179,10 +179,22 @@ export const useAbilitySystem = ({
     getValidTargets,
     getCharacterAtPosition
   } = useTargetValidator({ characters, mapData });
-  // TODO(lint-intent): 'setPendingReaction' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const [pendingReaction, _setPendingReaction] = useState<PendingReaction | null>(null);
+  const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
+
+  const requestReaction = useCallback((attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage', reactionSpells: Spell[]): Promise<string | null> => {
+    return new Promise(resolve => {
+      setPendingReaction({
+        attackerId,
+        targetId,
+        triggerType: triggerType as any,
+        reactionSpells,
+        onResolve: (choice) => {
+          setPendingReaction(null);
+          resolve(choice);
+        }
+      });
+    });
+  }, []);
 
   // --- Refs for Stability (Actions Only) ---
   // We use Refs to access the latest props inside event handlers (actions)
@@ -269,11 +281,12 @@ export const useAbilitySystem = ({
           castAtLevel,
           mockGameState,
           playerInput,
-          activePlane
+          activePlane,
+          requestReaction
         );
 
         // 3. Execute
-        const result = CommandExecutor.execute(commands, currentState);
+        const result = await CommandExecutor.execute(commands, currentState);
 
         if (result.success) {
           // 4. Propagate State Changes
@@ -586,7 +599,7 @@ export const useAbilitySystem = ({
    * Allows a character to voluntarily stop concentrating on a spell.
    * ACTION: Stabilized via Refs.
    */
-  const dropConcentration = useCallback((character: CombatCharacter) => {
+  const dropConcentration = useCallback(async (character: CombatCharacter) => {
     if (!character.concentratingOn) return;
 
     const currentCharacters = charactersRef.current;
@@ -622,7 +635,7 @@ export const useAbilitySystem = ({
       gameState: {} as unknown as GameState, // Mock
     });
 
-    const result = CommandExecutor.execute([command], currentState);
+    const result = await CommandExecutor.execute([command], currentState);
 
     if (result.success) {
       result.finalState.characters.forEach(finalChar => {

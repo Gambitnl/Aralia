@@ -2510,8 +2510,13 @@ const buildSubfeatureDescription = (subfeatureName: string, relatedDocs: string[
 // as real code modules instead of just text labels.
 // ============================================================================
 const ROADMAP_TOOL_MODULE_IMPLEMENTATION_PATHS: Record<string, string> = {
+  // Legacy capability names still map directly to implementations, while the
+  // current roadmap view uses the "Doc Processing Pipeline" and "Which Nodes
+  // Have Tests" wording after rename.
   'Feature Naming Validation Module': 'devtools/roadmap/scripts/roadmap-orchestrate-one-doc.ts',
+  'Enforce Capability-first Names': 'devtools/roadmap/scripts/roadmap-orchestrate-one-doc.ts',
   'Worker Packet Schema Validation Module': 'devtools/roadmap/scripts/roadmap-packet-validation.ts',
+  'Validate Doc Before Processing': 'devtools/roadmap/scripts/roadmap-packet-validation.ts',
   'Canvas Pan Navigation Module': 'devtools/roadmap/src/components/debug/roadmap/modules/canvas-pan-navigation.ts',
   'Global Branch Expansion Controls Module': 'devtools/roadmap/src/components/debug/roadmap/modules/global-branch-expansion-controls.ts',
   'Node Detail Panel Module': 'devtools/roadmap/src/components/debug/roadmap/modules/node-detail-panel.ts',
@@ -2524,6 +2529,7 @@ const ROADMAP_TOOL_MODULE_IMPLEMENTATION_PATHS: Record<string, string> = {
   'Canvas View Reset Module': 'devtools/roadmap/src/components/debug/roadmap/modules/canvas-view-reset.ts',
   'Cursor-centered Wheel Zoom Module': 'devtools/roadmap/src/components/debug/roadmap/modules/cursor-centered-wheel-zoom.ts',
   'Test Metadata Annotation Module': 'devtools/roadmap/scripts/roadmap-server-logic.ts',
+  'Stamp Nodes With Test Info': 'devtools/roadmap/scripts/roadmap-server-logic.ts',
   'Roadmap History Traceability Module': 'devtools/roadmap/src/components/debug/roadmap/modules/roadmap-history-traceability.ts',
   'Multi-product Roadmap Branching Module': 'devtools/roadmap/src/components/debug/roadmap/modules/multi-product-roadmap-branching.ts',
   'Opportunity Filtering And Sorting Module': 'devtools/roadmap/src/components/debug/roadmap/modules/opportunity-filtering-and-sorting.ts',
@@ -2569,12 +2575,12 @@ const isLikelyCodeFilePath = (rawPath: string) => {
 };
 
 const deriveComponentFiles = (subfeatureName: string, canonicalDocs: string[]): string[] | undefined => {
-  if (!isRoadmapModuleLabel(subfeatureName)) return undefined;
-
   // Prefer explicit module-to-file mappings for renamed/cross-cutting modules.
   const moduleName = getModuleNameFromLabel(subfeatureName);
   const explicitPath = ROADMAP_TOOL_MODULE_IMPLEMENTATION_PATHS[moduleName];
   if (explicitPath) return [explicitPath];
+
+  if (!isRoadmapModuleLabel(subfeatureName)) return undefined;
 
   // Fall back to canonical docs when the module is already represented by one code file.
   const inferredCodeFiles = Array.from(

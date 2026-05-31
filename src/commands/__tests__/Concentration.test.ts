@@ -78,7 +78,7 @@ describe('Concentration System', () => {
     })
 
     describe('DamageCommand & Saves', () => {
-        it('triggers concentration check on damage', () => {
+        it('triggers concentration check on damage', async () => {
             const spell = createMockSpell();
             const mockCaster = createMockCombatCharacter({ id: 'c1', name: 'Caster' });
             const mockTarget = createMockCombatCharacter({
@@ -121,7 +121,7 @@ describe('Concentration System', () => {
                 gameState: mockGameState
             });
 
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             // Check if log contains concentration check message
             const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');
@@ -130,7 +130,7 @@ describe('Concentration System', () => {
     })
 
     describe('Commands', () => {
-        it('StartConcentrationCommand sets state', () => {
+        it('StartConcentrationCommand sets state', async () => {
             const spell = createMockSpell();
             const mockCaster = createMockCombatCharacter();
             const mockPlayer: PlayerCharacter = createMockPlayerCharacter({
@@ -155,14 +155,14 @@ describe('Concentration System', () => {
                 gameState: mockGameState
             });
 
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeDefined();
             expect(newState.characters[0].concentratingOn!.spellId).toBe(spell.id);
             expect(newState.characters[0].concentratingOn!.startedTurn).toBe(5);
         })
 
-        it('BreakConcentrationCommand clears state', () => {
+        it('BreakConcentrationCommand clears state', async () => {
             const mockTarget = createMockCombatCharacter({
                  concentratingOn: {
                     spellId: 'spell1',
@@ -193,7 +193,7 @@ describe('Concentration System', () => {
                 gameState: mockGameState
             });
 
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeUndefined();
             const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');

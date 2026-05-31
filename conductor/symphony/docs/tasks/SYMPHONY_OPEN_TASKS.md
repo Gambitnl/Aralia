@@ -61,6 +61,11 @@ For the active proving-ground Spell Phase 1 track:
   handoff, scope expansion, and merge/closeout. Routine implementation choices,
   repeated unchanged waits, file lists, and verification output should stay in
   compact wait rows, task receipts, PR summaries, or completion reports.
+- When the visible Jules session reaches `Approve plan?`, use the Symphony
+  task-detail API (`GET /api/v1/tasks/:id`) as the read-only mirror for the
+  `approvalCheckpoint` packet and `julesDialogue.planApprovals` history, then
+  reconcile that with the visible Jules page before deciding whether the gate
+  is approved, rejected, or stale.
 - Package 15 routing lesson: the full package was valid for Jules, but the
   final repair loop was no longer worth another tiny orchestration cycle after
   one bounded feedback comment, one explicit nudge, and one still-incomplete

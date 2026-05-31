@@ -98,7 +98,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('HealingCommand', () => {
-  it('heals the target and caps at max HP', () => {
+  it('heals the target and caps at max HP', async () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = { ...makeCharacter('target', { x: 1, y: 0 }), currentHP: 5 };
     const state = makeState([caster, target]);
@@ -114,7 +114,7 @@ describe('HealingCommand', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
     const command = new HealingCommand(effect, makeContext(caster, [target]));
-    const result = command.execute(state);
+    const result = await command.execute(state);
     vi.restoreAllMocks();
 
     const updated = result.characters.find(c => c.id === 'target');

@@ -21,6 +21,14 @@ import {
   RacialSpellCastingMethod,
   Race,
 } from '../../types';
+import type { 
+  EffectTrigger, 
+  EffectCondition, 
+  SpellEffect, 
+  DefensiveEffect, 
+  ReactiveEffect,
+  SavingThrowAbility
+} from '../../types/spells';
 
 type RacialTraitResetCondition = 'short_rest' | 'long_rest';
 
@@ -96,7 +104,7 @@ export interface RacialFeatureTrait extends RacialTraitBase {
   resources?: RacialResourceMechanic[];
 }
 
-export type RacialChoiceRequirementType = 'spellAbility';
+export type RacialChoiceRequirementType = 'spellAbility' | 'spellChoice';
 
 export interface RacialChoiceRequirement {
   type: RacialChoiceRequirementType;
@@ -107,6 +115,8 @@ export interface RacialChoiceRequirement {
   sourceTraitDescription: string;
   sourceText: string;
   requiredSpellIds?: string[];
+  availableSpellIds?: string[];
+  availableAbilities?: AbilityScoreName[];
 }
 
 export type RacialTrait = RacialSpellTrait | RacialFeatureTrait;
@@ -183,6 +193,16 @@ export interface RacialModifierBuckets {
   initiativeProficiency?: boolean;
   ignoreDifficultTerrain?: boolean;
   breathWeapon?: RacialBreathWeapon;
+  reactions?: RacialReaction[];
+}
+
+export interface RacialReaction {
+  id: string;
+  name: string;
+  description: string;
+  trigger: any; // Using any for now to avoid circular dependencies with EffectTrigger
+  condition: any; // Using any for now to avoid circular dependencies with EffectCondition
+  effect: any; // Using any for now to avoid circular dependencies with SpellEffect
 }
 
 export interface RacialDefenseBuckets {
@@ -548,7 +568,7 @@ const parseSpellLevelFromPhrase = (text: string): number => {
 };
 
 const splitSpellNames = (raw: string): string[] => raw
-  .split(/\s*(?:,|;|\band\b)\s*/i)
+  .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i)
   .map((name) => normalizeSpellToken(name))
   .map((name) => name.trim())
   .filter(isSpellTokenAcceptable);
@@ -671,34 +691,61 @@ const extractSpellGrantsFromTraitText = (
   return grants;
 };
 
-const extractChoiceFromTrait = (
+const extractChoicesFromTrait = (
   race: Race,
   trait: string,
   traitName: string
-): RacialChoiceRequirement | null => {
-  const requiredAbilities = parseChoicePromptAbilities(trait);
-  if (requiredAbilities.length === 0) return null;
-  const requiresSpellAbilitySentence = /spellcasting ability|cast (?:the|that) spell|these spells/i.test(trait);
-  if (!requiresSpellAbilitySentence) return null;
+): RacialChoiceRequirement[] => {
+  const choices: RacialChoiceRequirement[] = [];
 
-  const requiredSpellIds = new Set<string>();
-  const grants = extractSpellGrantsFromTraitText(race, traitName, trait);
-  grants.forEach((grant) => requiredSpellIds.add(grant.spellId));
-
-  if (requiredSpellIds.size === 0 && /choose when you select this race/i.test(trait)) {
-    return null;
+  // 1. Spell Choice Detection
+  // Pattern: "one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame"
+  const spellChoiceMatch = trait.match(/one of the following (?:cantrips|spells) of your choice:?\s*([a-z0-9_' -]+?(?:\s*,\s*[a-z0-9_' -]+?)*\s*(?:or|and)\s*[a-z0-9_' -]+)/i);
+  let availableSpellIds: string[] | undefined;
+  if (spellChoiceMatch) {
+    availableSpellIds = splitSpellNames(spellChoiceMatch[1]);
+    if (availableSpellIds.length > 0) {
+      choices.push({
+        type: 'spellChoice',
+        id: `${race.id}::${normalizeSpellToken(traitName)}::spellChoice`,
+        sourceRaceId: race.id,
+        sourceRaceName: race.name,
+        sourceTraitName: traitName,
+        sourceTraitDescription: trait,
+        sourceText: trait,
+        availableSpellIds,
+      });
+    }
   }
 
-  return {
-    type: 'spellAbility',
-    id: `${race.id}::${normalizeSpellToken(traitName)}::spellAbility`,
-    sourceRaceId: race.id,
-    sourceRaceName: race.name,
-    sourceTraitName: traitName,
-    sourceTraitDescription: trait,
-    sourceText: trait,
-    requiredSpellIds: Array.from(requiredSpellIds),
-  };
+  // 2. Spell Ability Choice Detection
+  const requiredAbilities = parseChoicePromptAbilities(trait);
+  if (requiredAbilities.length > 0) {
+    const requiresSpellAbilitySentence = /spellcasting ability|cast (?:the|that) spell|these spells/i.test(trait);
+    if (requiresSpellAbilitySentence) {
+      const requiredSpellIds = new Set<string>();
+      const grants = extractSpellGrantsFromTraitText(race, traitName, trait);
+      grants.forEach((grant) => requiredSpellIds.add(grant.spellId));
+
+      const isManualChoiceHint = /choose when you select this race/i.test(trait);
+      if (requiredSpellIds.size > 0 || isManualChoiceHint || availableSpellIds) {
+         choices.push({
+          type: 'spellAbility',
+          id: `${race.id}::${normalizeSpellToken(traitName)}::spellAbility`,
+          sourceRaceId: race.id,
+          sourceRaceName: race.name,
+          sourceTraitName: traitName,
+          sourceTraitDescription: trait,
+          sourceText: trait,
+          requiredSpellIds: Array.from(requiredSpellIds),
+          availableSpellIds,
+          availableAbilities: requiredAbilities,
+        });
+      }
+    }
+  }
+
+  return choices;
 };
 
 const buildRacialChoiceRequirementFromLegacyRaceField = (race: Race): RacialChoiceRequirement | null => {
@@ -746,15 +793,119 @@ const parseTraitResourceMechanics = (raceId: string, traitName: string, trait: s
   return resources;
 };
 
+const extractRacialReactions = (text: string, raceId: string, traitName: string): RacialReaction[] => {
+  const reactions: RacialReaction[] = [];
+
+  // Pattern 1: Damage Reduction (Stone's Endurance, Hadozee Resilience)
+  const damageReductionRegex = /When you take damage.*?(?:use|take) (?:your |a )?reaction to roll (?:a |an? )?(\d*d\d+).*?(reduce the damage|subtract that total)/i;
+  const drMatch = text.match(damageReductionRegex);
+  if (drMatch) {
+    const dice = drMatch[1];
+    const hasConMod = /Constitution modifier/i.test(text);
+    const hasProfBonus = /proficiency bonus/i.test(text);
+
+    reactions.push({
+      id: `${raceId}__${toResourceSlug(traitName)}__reaction`,
+      name: traitName,
+      description: text,
+      trigger: { type: 'on_target_takes_damage' },
+      condition: { type: 'always' },
+      effect: {
+        type: 'DEFENSIVE',
+        defenseType: 'damage_reduction',
+        damageReduction: {
+          dice: dice,
+          abilityModifier: hasConMod ? 'Constitution' : undefined,
+          addProficiencyBonus: hasProfBonus,
+          appliesTo: 'damage_taken',
+          frequency: 'every_time'
+        }
+      }
+    });
+  }
+
+  // Pattern 2: Vengeful Assault (Reaction Attack)
+  const vengeanceRegex = /When you take damage from a creature.*?(?:use|take) (?:your |a )?reaction to make an attack/i;
+  if (vengeanceRegex.test(text)) {
+    reactions.push({
+      id: `${raceId}__${toResourceSlug(traitName)}__reaction`,
+      name: traitName,
+      description: text,
+      trigger: { type: 'on_target_takes_damage' },
+      condition: { type: 'always' },
+      effect: {
+        type: 'REACTIVE',
+        trigger: {
+          type: 'on_target_attack',
+          movementType: 'any'
+        },
+        description: 'Make an attack with the weapon against that creature.'
+      }
+    });
+  }
+
+  // Pattern 3: Lucky Footwork (Bonus to Save)
+  const luckyFootworkRegex = /When you fail a (Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw.*?(?:use|take) (?:your |a )?reaction to roll (?:a |an? )?(\d*d\d+) and add it to the save/i;
+  const lfMatch = text.match(luckyFootworkRegex);
+  if (lfMatch) {
+    const saveType = lfMatch[1] as SavingThrowAbility;
+    const dice = lfMatch[2];
+    reactions.push({
+      id: `${raceId}__${toResourceSlug(traitName)}__reaction`,
+      name: traitName,
+      description: text,
+      trigger: { type: 'on_target_takes_damage' }, // Placeholder
+      condition: {
+        type: 'save',
+        saveType: saveType
+      },
+      effect: {
+        type: 'ATTACK_ROLL_MODIFIER',
+        savingThrowModifier: {
+          modifier: 'bonus',
+          dice: dice,
+          consumption: 'next_save',
+          duration: { type: 'rounds', value: 1 }
+        }
+      }
+    });
+  }
+
+  // Pattern 4: Reactive Damage (Storm's Thunder)
+  const reactiveDamageRegex = /When you take damage from a creature.*?(?:use|take) (?:your |a )?reaction to deal (?:a |an? )?(\d*d\d+) (\w+) damage/i;
+  const rdMatch = text.match(reactiveDamageRegex);
+  if (rdMatch) {
+    const dice = rdMatch[1];
+    const damageType = rdMatch[2];
+    reactions.push({
+      id: `${raceId}__${toResourceSlug(traitName)}__reaction`,
+      name: traitName,
+      description: text,
+      trigger: { type: 'on_target_takes_damage' },
+      condition: { type: 'always' },
+      effect: {
+        type: 'DAMAGE',
+        damage: {
+          dice: dice,
+          type: damageType
+        }
+      }
+    });
+  }
+
+  return reactions;
+};
+
 const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTrait => {
   const featureNameMatch = trait.match(/^([^:]+):\s*(.*)$/);
   const traitName = featureNameMatch ? featureNameMatch[1].trim() : `${race.name} racial trait`;
   const traitDescription = featureNameMatch ? featureNameMatch[2].trim() : trait;
-  const hasMechanicHint = /(starting at|you can|you have|once per|advantage|disadvantage|resistance|immunity|speed|darkvision|add a d\d+|roll a d\d+)/i.test(trait);
+  const hasMechanicHint = /(starting at|you can|you have|once per|advantage|disadvantage|resistance|immunity|speed|darkvision|add a d\d+|roll a d\d+|reaction)/i.test(trait);
   const resources = parseTraitResourceMechanics(race.id, traitName, trait);
   const featureType = resources.length > 0 ? 'resource' : inferRacialFeatureType(trait);
   const defensiveTraits = getRacialDefenseBucketsFromTraitText(trait);
   const modifierBuckets = getRacialModifierBucketsFromTraitText(trait);
+  const reactions = extractRacialReactions(trait, race.id, traitName);
 
   return {
     type: hasMechanicHint && featureType === 'feature' ? 'combat' : featureType,
@@ -779,6 +930,7 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
       powerfulBuild: modifierBuckets.powerfulBuild,
       unendingBreath: modifierBuckets.unendingBreath,
       languages: modifierBuckets.languages ? [...modifierBuckets.languages] : undefined,
+      reactions: reactions.length > 0 ? reactions : undefined,
     },
     featureGroup: hasMechanicHint ? 'mechanical' : 'informational',
     resources,
@@ -898,10 +1050,12 @@ export const buildRacialTraitLibrary = (races: Record<string, Race>): RacialTrai
         knownSpellIds.add(parsedSpellTrait.spellId);
       });
 
-      const parsedChoice = extractChoiceFromTrait(race, traitText, parsedTrait.traitName);
-      if (parsedChoice && !choices.some(choice => choice.id === parsedChoice.id)) {
-        choices.push(parsedChoice);
-      }
+      const parsedChoices = extractChoicesFromTrait(race, traitText, parsedTrait.traitName);
+      parsedChoices.forEach((parsedChoice) => {
+        if (!choices.some(choice => choice.id === parsedChoice.id)) {
+          choices.push(parsedChoice);
+        }
+      });
     });
 
     traits.push(...textTraitSpells);

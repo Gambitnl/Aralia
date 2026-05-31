@@ -32,7 +32,7 @@ export interface SpellCommand {
    * @param state - The current state of combat.
    * @returns New combat state with effects applied.
    */
-  execute(state: CombatState): CombatState
+  execute(state: CombatState): CombatState | Promise<CombatState>
 
   /**
    * Optional: Undo the command (for turn rewind feature).
@@ -119,4 +119,6 @@ export interface CommandContext {
   weaponProperties?: string[]
   /** Whether the ability is magical; used to bypass nonmagical-attack resistances. */
   isMagical?: boolean
+  /** Request a manual reaction from the user via UI */
+  requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
 }

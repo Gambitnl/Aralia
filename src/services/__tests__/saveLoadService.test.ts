@@ -4,6 +4,7 @@ import * as SaveLoadService from '../saveLoadService';
 import { GameState, GamePhase, NotificationType as _NotificationType } from '../../types';
 // TODO(lint-intent): 'simpleHash' is unused in this test; use it in the assertion path or remove it.
 import { simpleHash as _simpleHash } from '../../utils/hashUtils';
+import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -108,8 +109,8 @@ describe('SaveLoadService', () => {
             const result = await SaveLoadService.saveGame(mockGameState, 'slot_big', mockNotify);
 
             expect(result.success).toBe(false);
-            expect(result.message).toContain('Local storage is full');
-            expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining('Local storage is full'), type: 'error' });
+            expect(result.message).toContain('Storage is full');
+            expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining('Storage is full'), type: 'error' });
         });
 
         it('should handle general save errors', async () => {
@@ -188,6 +189,55 @@ describe('SaveLoadService', () => {
              expect(result.message).toContain("integrity check failed");
              expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("integrity check failed"), type: 'error' });
         });
+
+        it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
+            const cols = 6;
+            const rows = 4;
+            const legacyMap = {
+                gridSize: { rows, cols },
+                tiles: new Array(rows).fill(0).map((_, y) =>
+                    new Array(cols).fill(0).map((__, x) => ({
+                        x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
+                    })),
+                ),
+                azgaarWorld: {
+                    version: 1 as const,
+                    templateId: 'continents',
+                    heights: new Array(cols * rows).fill(30),
+                    temperatures: new Array(cols * rows).fill(15),
+                    moisture: new Array(cols * rows).fill(20),
+                    rivers: new Array(cols * rows).fill(false),
+                },
+            };
+            const migrated = migrateMapDataToWorldDataV2(legacyMap as any, 42);
+            expect(migrated.worldData?.version).toBe(2);
+        });
+
+        it('loadGame migrates legacy saves to WorldData v2', async () => {
+            const state = {
+                ...mockGameState,
+                mapData: {
+                    gridSize: { rows: 4, cols: 6 },
+                    tiles: new Array(4).fill(0).map((_, y) =>
+                        new Array(6).fill(0).map((__, x) => ({
+                            x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
+                        })),
+                    ),
+                    azgaarWorld: {
+                        version: 1 as const,
+                        templateId: 'continents',
+                        heights: new Array(24).fill(30),
+                        temperatures: new Array(24).fill(15),
+                        moisture: new Array(24).fill(20),
+                        rivers: new Array(24).fill(false),
+                    },
+                },
+            };
+            await SaveLoadService.saveGame(state as any, 'TEST_SLOT_v1_MIGRATION');
+            const result = await SaveLoadService.loadGame('TEST_SLOT_v1_MIGRATION');
+            expect(result.success).toBe(true);
+            expect(result.data?.mapData?.worldData?.version).toBe(2);
+        });
     });
 
     describe('getSaveSlots', () => {
@@ -242,5 +292,28 @@ describe('SaveLoadService', () => {
         it('should return false if save does not exist', () => {
             expect(SaveLoadService.hasSaveGame('ghost_slot')).toBe(false);
         });
+    });
+
+    it('migrateMapDataToWorldDataV2 backfills worldData when applied to a v1 mapData', () => {
+      const cols = 6;
+      const rows = 4;
+      const legacyMap = {
+        gridSize: { rows, cols },
+        tiles: new Array(rows).fill(0).map((_, y) =>
+          new Array(cols).fill(0).map((__, x) => ({
+            x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false,
+          })),
+        ),
+        azgaarWorld: {
+          version: 1 as const,
+          templateId: 'continents',
+          heights: new Array(cols * rows).fill(30),
+          temperatures: new Array(cols * rows).fill(15),
+          moisture: new Array(cols * rows).fill(20),
+          rivers: new Array(cols * rows).fill(false),
+        },
+      };
+      const migrated = migrateMapDataToWorldDataV2(legacyMap as any, 42);
+      expect(migrated.worldData?.version).toBe(2);
     });
 });

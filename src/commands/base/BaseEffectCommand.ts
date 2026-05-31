@@ -41,7 +41,7 @@ export abstract class BaseEffectCommand implements SpellCommand {
    * @param state - The current immutable CombatState.
    * @returns A new CombatState with the effects applied.
    */
-  abstract execute(state: CombatState): CombatState
+  abstract execute(state: CombatState): CombatState | Promise<CombatState>
 
   /**
    * Returns a human-readable description of what this command does.

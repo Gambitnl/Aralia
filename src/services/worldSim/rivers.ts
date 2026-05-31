@@ -12,8 +12,8 @@
  * Output coords are cell-center grid coords (cellX + 0.5, cellY + 0.5).
  */
 import type { River, Vec2 } from './types';
+import { SEA_LEVEL } from './constants';
 
-const SEA_LEVEL = 20;
 const NEIGHBOR_OFFSETS: Array<[number, number]> = [
   [1, 0], [-1, 0], [0, 1], [0, -1],
   [1, 1], [-1, -1], [1, -1], [-1, 1],
@@ -87,6 +87,9 @@ export function traceRivers(heights: number[], cols: number, rows: number, minFl
       if (visitedBy[cur] !== -1) {
         // We've hit a downstream river — record the tributary link and stop.
         parentId = `r${visitedBy[cur]}`;
+        points.push({ x: (cur % cols) + 0.5, y: ((cur / cols) | 0) + 0.5 });
+        discharge.push(flow[cur]);
+        widthArr.push(Math.max(0.4, Math.sqrt(flow[cur]) * 0.3));
         break;
       }
       visitedBy[cur] = myId;
