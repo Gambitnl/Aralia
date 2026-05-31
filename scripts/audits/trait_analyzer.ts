@@ -212,13 +212,6 @@ async function main() {
         mechanism = 'Racial modifier materializer';
         evidence = 'Difficult terrain ignores are extracted and applied to pathfinding logic.';
       }
-      // 5.17. Is it a choice trait?
-      else if (/one\s+of\s+the\s+following\s+(?:cantrips|spells|proficiencies|skills)\s+of\s+your\s+choice/i.test(desc) ||
-               /choose\s+one\s+of\s+the\s+following/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial choice materializer';
-        evidence = 'Multi-choice traits are extracted and materialized from character selections.';
-      }
       // 6. Is it a spell trait?
       else {
         // Check if there's an associated spell

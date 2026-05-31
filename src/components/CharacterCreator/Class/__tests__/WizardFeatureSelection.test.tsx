@@ -2,80 +2,13 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import WizardFeatureSelection from '../WizardFeatureSelection';
+import { CLASSES_DATA } from '../../../../constants';
 import type { Class as CharClass, Spell } from '../../../../types';
-
-const spellbook: Record<string, Spell> = {
-  'fire-bolt': {
-    id: 'fire-bolt',
-    name: 'Fire Bolt',
-    level: 0,
-    school: 'Evocation',
-    classes: [],
-    subClasses: [],
-    description: 'A bright streak of flame.',
-    castingTime: { unit: 'action', value: 1 },
-    range: { type: 'self' },
-    components: { verbal: true, somatic: false, material: false },
-    duration: { duration: 'Instantaneous', concentration: false },
-    effects: [],
-  },
-  'mage-hand': {
-    id: 'mage-hand',
-    name: 'Mage Hand',
-    level: 0,
-    school: 'Conjuration',
-    classes: [],
-    subClasses: [],
-    description: 'Create a spectral hand.',
-    castingTime: { unit: 'action', value: 1 },
-    range: { type: 'self' },
-    components: { verbal: true, somatic: true, material: false },
-    duration: { duration: '1 minute', concentration: false },
-    effects: [],
-  },
-  'minor-illusion': {
-    id: 'minor-illusion',
-    name: 'Minor Illusion',
-    level: 0,
-    school: 'Illusion',
-    classes: [],
-    subClasses: [],
-    description: 'Create a small illusion.',
-    castingTime: { unit: 'action', value: 1 },
-    range: { type: 'self' },
-    components: { verbal: true, somatic: false, material: true },
-    duration: { duration: '1 minute', concentration: false },
-    effects: [],
-  },
-  'magic-missile': {
-    id: 'magic-missile',
-    name: 'Magic Missile',
-    level: 1,
-    school: 'Evocation',
-    classes: [],
-    subClasses: [],
-    description: 'Unerring darts of force.',
-    castingTime: { unit: 'action', value: 1 },
-    range: { type: 'self' },
-    components: { verbal: true, somatic: true, material: false },
-    duration: { duration: 'Instantaneous', concentration: false },
-    effects: [],
-  },
-  shield: {
-    id: 'shield',
-    name: 'Shield',
-    level: 1,
-    school: 'Abjuration',
-    classes: [],
-    subClasses: [],
-    description: 'A burst of arcane force.',
-    castingTime: { unit: 'action', value: 1 },
-    range: { type: 'self' },
-    components: { verbal: true, somatic: false, material: false },
-    duration: { duration: '1 minute', concentration: false },
-    effects: [],
-  },
-} as Record<string, Spell>;
+import fireBolt from '../../../../../public/data/spells/level-0/fire-bolt.json';
+import mageHand from '../../../../../public/data/spells/level-0/mage-hand.json';
+import minorIllusion from '../../../../../public/data/spells/level-0/minor-illusion.json';
+import magicMissile from '../../../../../public/data/spells/level-1/magic-missile.json';
+import shield from '../../../../../public/data/spells/level-1/shield.json';
 
 // The selector only needs a thin layout shell in tests. We keep the real spell
 // picking logic mounted, but replace the surrounding page chrome with a small
@@ -108,6 +41,14 @@ vi.mock('../../ui/CreationStepLayout', () => ({
     </div>
   ),
 }));
+
+const spellbook: Record<string, Spell> = {
+  'fire-bolt': fireBolt as Spell,
+  'mage-hand': mageHand as Spell,
+  'minor-illusion': minorIllusion as Spell,
+  'magic-missile': magicMissile as Spell,
+  shield: shield as Spell,
+};
 
 const wizardSpellcastingInfo = {
   ability: 'Intelligence',

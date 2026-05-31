@@ -96,13 +96,6 @@ dashboard friction, stale docs, unclear ownership, repeated approval ambiguity,
 or missing evidence, the foreman must either repair that issue in the same pass
 or record the gap in the owning live doc before continuing the task.
 
-Spell Phase 1 is still part of the current design / mapping / iteration stage.
-The flow is supposed to absorb what we learn as the package boundary settles,
-so keep the live tracker and decision lessons current even when the high-level
-goal text reads like a snapshot. Timing and churn measurements should stay
-local by default; if they matter to Aralia-facing docs, summarize the result
-and add a pointer instead of copying raw telemetry into GitHub docs.
-
 ### Codex And Jules Roles
 
 Codex workers launched by Symphony are foremen. Their default job is to prepare
@@ -183,23 +176,6 @@ queued, planning, waiting for approval, actively working, reporting failure, or
 showing a PR/result that the local record has not captured yet. Record that
 visual check in the owning tracker or task receipt so later agents do not repeat
 an already-resolved launch step or mislabel an external wait as a goal blocker.
-If you are measuring Jules/GitHub churn, keep the raw event log local and only
-copy a short summary or pointer into durable Aralia docs when the measurement
-changes a workflow decision.
-If the visible Jules session is the blocker, the first remediation step is to
-open the session and record one of these visible outcomes: PR URL, no-PR
-completion, failure, or follow-up request. Do not infer the result from task
-drafts or dashboard state alone.
-
-When the visible session shows `Approve plan?`, treat that as the plan-approval
-gate. The Symphony task-detail API is the pollable mirror for this gate:
-`GET /api/v1/tasks/:id` returns an `approvalCheckpoint` packet plus
-`julesDialogue.planApprovals` history. Use that read-only mirror to confirm the
-handoff is still `waiting_for_operator`, but still verify the visible Jules
-session before treating the gate as approved, rejected, or stale. There is no
-separate Jules-native polling endpoint documented here for plan approval; the
-visible session and the Symphony task-detail mirror are the paired proof
-surfaces.
 
 Once Jules has started, its working checkout must be treated as an isolated
 clone of the base commit recorded at launch. Later local commits, tracker
@@ -1036,33 +1012,6 @@ Before adding, committing, or handing a Symphony document to Jules, classify it:
 5. `verify-handoff-timeline.mjs` protects the ARA-6-style chronological path and
    the dashboard's `Task timeline` rendering.
 
-### Timing Template
-
-1. Use a compact timing record whenever the team wants to measure Jules ->
-   GitHub -> Actions -> Scout/Core -> back-to-Jules churn.
-2. Keep the raw timing log local or external by default. Do not copy the raw
-   event stream into durable Aralia docs unless the timing result changes a
-   workflow decision.
-3. Each timing record should capture:
-   - `stage` - one of `draft`, `handoff_staged`, `jules_launched`,
-     `plan_approved`, `implementation_running`, `pr_visible`, `actions_running`,
-     `scout_core_review`, `returned_to_jules`, `merged`, or another explicit
-     stage name the foreman can compare later.
-   - `start_at` - the observed UTC timestamp when the stage began.
-   - `end_at` - the observed UTC timestamp when the stage ended.
-   - `duration` - the elapsed time between `start_at` and `end_at`.
-   - `source_of_truth` - the visible surface used to prove the transition, such
-     as the Jules session page, Symphony task detail, GitHub PR, GitHub Actions,
-     Scout/Core review, or a local receipt.
-   - `visible_state` - the human-readable state that was visible at the moment.
-   - `mirrored_state` - the matching Symphony or local receipt state, if one
-     exists.
-4. When the timing result matters to a durable Aralia-facing decision, record a
-   short summary or pointer in the tracker or related doc instead of the raw
-   event log.
-5. The template is for measuring churn, lag, and handoff wait time, not for
-   creating a second telemetry database.
-
 ### Approvals
 
 1. Auto-approved actions are visible in activity, not hidden.
@@ -1227,12 +1176,6 @@ Before adding, committing, or handing a Symphony document to Jules, classify it:
 - Jules needs operator feedback.
 - Jules reports failure or cancellation.
 - Jules creates no PR.
-- Jules is still running or has an ambiguous completion state; refresh once,
-  then inspect the visible Jules session before declaring the handoff blocked
-  or complete.
-- If the visible session is sitting at `Approve plan?`, record the approval
-  result in the task record during the same pass and do not rely on stale
-  dashboard state alone.
 
 ### GitHub PR Blockers
 
@@ -1240,8 +1183,6 @@ Before adding, committing, or handing a Symphony document to Jules, classify it:
 - PR is draft.
 - PR checks are pending.
 - PR checks failed.
-- If the PR is missing, record the visible Jules-session result first rather
-  than treating dashboard state alone as proof of completion.
 - GitHub Actions are too broad to identify the failing subsystem quickly.
 - GitHub Actions are too slow to provide useful foreman feedback.
 - GitHub Actions are noisy, duplicated, or not useful for this workflow.

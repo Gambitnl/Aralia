@@ -102,7 +102,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('DefensiveCommand', () => {
-  it('adds an AC bonus and tracks the active effect', async () => {
+  it('adds an AC bonus and tracks the active effect', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const state = makeState([caster, target]);
@@ -117,7 +117,7 @@ describe('DefensiveCommand', () => {
     };
 
     const command = new DefensiveCommand(effect, makeContext(caster, [target]));
-    const result = await command.execute(state);
+    const result = command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.armorClass).toBe(17);
@@ -126,7 +126,7 @@ describe('DefensiveCommand', () => {
     expect(updated?.activeEffects?.[0]?.mechanics?.acBonus).toBe(5);
   });
 
-  it('keeps the higher temporary HP value instead of stacking', async () => {
+  it('keeps the higher temporary HP value instead of stacking', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const state = makeState([caster, target]);
@@ -141,14 +141,14 @@ describe('DefensiveCommand', () => {
     };
 
     const command = new DefensiveCommand(effect, makeContext(caster, [target]));
-    const result = await command.execute(state);
+    const result = command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.tempHP).toBe(5);
     expect(result.combatLog.at(-1)?.message).toContain('temporary HP');
   });
 
-  it('calculates set_base_ac correctly including Dexterity modifier', async () => {
+  it('calculates set_base_ac correctly including Dexterity modifier', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     // Target has Dex 12 (+1 mod)
@@ -165,7 +165,7 @@ describe('DefensiveCommand', () => {
     };
 
     const command = new DefensiveCommand(effect, makeContext(caster, [target]));
-    const result = await command.execute(state);
+    const result = command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     // Expected: 13 (base) + 1 (Dex) = 14

@@ -52,7 +52,7 @@ describe('StatusConditionCommand', () => {
     } as any;
   });
 
-  it('applies a direct status condition (e.g. Ray of Sickness Poisoned)', async () => {
+  it('applies a direct status condition (e.g. Ray of Sickness Poisoned)', () => {
     const effect: StatusConditionEffect = {
       type: 'STATUS_CONDITION',
       statusCondition: {
@@ -65,7 +65,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, context);
-    const newState = await command.execute(state);
+    const newState = command.execute(state);
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
 
@@ -78,7 +78,7 @@ describe('StatusConditionCommand', () => {
     expect(updatedTarget.statusEffects[0].name).toBe('Poisoned');
   });
 
-  it('respects saving throw successes to avoid applying condition', async () => {
+  it('respects saving throw successes to avoid applying condition', () => {
     // Simulate a successful save
     vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
       total: 15,
@@ -101,7 +101,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, context);
-    const newState = await command.execute(state);
+    const newState = command.execute(state);
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
     expect(updatedTarget.conditions).toHaveLength(0);
@@ -111,7 +111,7 @@ describe('StatusConditionCommand', () => {
     expect(logs.some(l => l.message.includes('resists the Prone condition'))).toBe(true);
   });
 
-  it('removes conditions if conditionRemoval is specified (e.g. Lesser Restoration)', async () => {
+  it('removes conditions if conditionRemoval is specified (e.g. Lesser Restoration)', () => {
     // Setup target with Poisoned and Blinded
     const targetWithConditions = createMockCombatCharacter({
       id: 'target',
@@ -141,7 +141,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, context);
-    const newState = await command.execute(state);
+    const newState = command.execute(state);
 
     const updatedTarget = newState.characters.find(c => c.id === 'target')!;
 

@@ -112,7 +112,7 @@ describe('SummoningCommand', () => {
         activeLightSources: []
     }
 
-    it('should summon a creature from MONSTERS_DATA', async () => {
+    it('should summon a creature from MONSTERS_DATA', () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summonType: 'creature',
@@ -124,7 +124,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = await command.execute(initialState)
+        const newState = command.execute(initialState)
 
         expect(newState.characters.length).toBe(2)
         const summoned = newState.characters.find(c => c.id.startsWith('summon_goblin_'))
@@ -141,7 +141,7 @@ describe('SummoningCommand', () => {
         expect(dx <= 1 && dy <= 1).toBe(true)
     })
 
-    it('should handle multiple summons', async () => {
+    it('should handle multiple summons', () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summonType: 'creature',
@@ -153,7 +153,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = await command.execute(initialState)
+        const newState = command.execute(initialState)
 
         expect(newState.characters.length).toBe(3) // Caster + 2 Goblins
         const goblins = newState.characters.filter(c => c.name.startsWith('Goblin'))
@@ -161,7 +161,7 @@ describe('SummoningCommand', () => {
         expect(goblins[0].position).not.toEqual(goblins[1].position)
     })
 
-    it('should fallback to generic summon if creatureId not found', async () => {
+    it('should fallback to generic summon if creatureId not found', () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summonType: 'creature',
@@ -173,7 +173,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = await command.execute(initialState)
+        const newState = command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.id.startsWith('summon_unknown_beast_'))
         expect(summoned).toBeDefined()
@@ -181,7 +181,7 @@ describe('SummoningCommand', () => {
         expect(summoned?.maxHP).toBe(10) // Fallback HP
     })
 
-    it('should support modern nested summon.formOptions', async () => {
+    it('should support modern nested summon.formOptions', () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summon: {
@@ -195,7 +195,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = await command.execute(initialState)
+        const newState = command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.id.startsWith('summon_owl_'))
         expect(summoned).toBeDefined()
@@ -203,7 +203,7 @@ describe('SummoningCommand', () => {
         expect(summoned?.stats.speed).toBe(5) // Uses Owl template
     })
 
-    it('should support modern nested summon.statBlock', async () => {
+    it('should support modern nested summon.statBlock', () => {
         const effect: SummoningEffect = {
             type: 'SUMMONING',
             summon: {
@@ -222,7 +222,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = await command.execute(initialState)
+        const newState = command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.name.startsWith('Phantom Steed'))
         expect(summoned).toBeDefined()
@@ -230,7 +230,7 @@ describe('SummoningCommand', () => {
         expect(summoned?.stats.speed).toBe(100)
     })
 
-    it('should preserve explicit zero values from modern nested summon.statBlock', async () => {
+    it('should preserve explicit zero values from modern nested summon.statBlock', () => {
         // This guards the Package 15 bridge against treating stored zero values
         // as missing data. Future summon schemas may use zero to mean immobile,
         // defeated, or intentionally unavailable, so the command must not
@@ -253,7 +253,7 @@ describe('SummoningCommand', () => {
         }
 
         const command = new SummoningCommand(effect, mockContext)
-        const newState = await command.execute(initialState)
+        const newState = command.execute(initialState)
 
         const summoned = newState.characters.find(c => c.name.startsWith('Immobile Test Object'))
         expect(summoned).toBeDefined()
@@ -304,7 +304,7 @@ describe('SummoningCommand', () => {
             condition: { type: 'always' }
         }
 
-        it('should summon within map boundaries', async () => {
+        it('should summon within map boundaries', () => {
             // Map is 10x10. Caster is at 0,0 (top-left corner)
             const mapData = {
                 dimensions: { width: 10, height: 10 }
@@ -315,7 +315,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner], mapData)
 
-            const newState = await command.execute(state)
+            const newState = command.execute(state)
 
             // Should have summoned one character
             expect(newState.characters.length).toBe(2)
@@ -333,7 +333,7 @@ describe('SummoningCommand', () => {
             expect(summoned!.position.y).not.toBe(-1)
         })
 
-        it('should respect map boundaries when caster is at bottom-right corner', async () => {
+        it('should respect map boundaries when caster is at bottom-right corner', () => {
             // Map is 10x10. Caster is at 9,9
             const mapData = {
                 dimensions: { width: 10, height: 10 }
@@ -344,7 +344,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner], mapData)
 
-            const newState = await command.execute(state)
+            const newState = command.execute(state)
 
             const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
             expect(summoned).toBeDefined()
@@ -359,7 +359,7 @@ describe('SummoningCommand', () => {
             expect(summoned!.position.y).not.toBe(10)
         })
 
-        it('should fail to summon if no space is available within boundaries', async () => {
+        it('should fail to summon if no space is available within boundaries', () => {
             // Tiny map 1x1, caster occupies 0,0. No space left.
             const mapData = {
                 dimensions: { width: 1, height: 1 }
@@ -370,7 +370,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner], mapData)
 
-            const newState = await command.execute(state)
+            const newState = command.execute(state)
 
             // Should NOT have summoned
             expect(newState.characters.length).toBe(1)
@@ -379,7 +379,7 @@ describe('SummoningCommand', () => {
             expect(newState.combatLog.some(l => l.message.includes('No space available'))).toBe(true)
         })
 
-        it('should handle mapData with gridSize format (backward compatibility)', async () => {
+        it('should handle mapData with gridSize format (backward compatibility)', () => {
              const mapData = {
                 gridSize: { cols: 10, rows: 10 }
             }
@@ -389,7 +389,7 @@ describe('SummoningCommand', () => {
             const command = new SummoningCommand(mockEffect, context)
             const state = createMockState([casterAtCorner])
 
-            const newState = await command.execute(state)
+            const newState = command.execute(state)
 
             const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
             expect(summoned).toBeDefined()

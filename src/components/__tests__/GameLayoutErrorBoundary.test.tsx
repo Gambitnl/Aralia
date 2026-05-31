@@ -52,11 +52,6 @@ vi.mock('../layout/GameLayout', () => ({
   },
 }));
 
-// Skip data-gating in this focused test so the fallback boundary path is rendered directly.
-vi.mock('../providers/DataLoaderGate', () => ({
-  DataLoaderGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
 // Mock AppProviders
 vi.mock('../providers/AppProviders', () => ({
   AppProviders: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
@@ -73,8 +68,6 @@ vi.mock('../../state/appState', async () => {
     initialGameState: {
       ...baseState,
       phase: 2, // GamePhase.PLAYING
-      isLoading: false,
-      loadingMessage: null,
       party: [{ name: 'Test', id: 'p1' }],
       subMapCoordinates: { x: 5, y: 5 },
       mapData: { tiles: [], gridSize: { rows: 10, cols: 10 } },

@@ -87,7 +87,7 @@ describe('AbilityCommandFactory', () => {
 });
 
 describe('WeaponAttackCommand Proficiency Penalties', () => {
-  it('omits proficiency bonus when attacking with a non-proficient weapon', async () => {
+  it('omits proficiency bonus when attacking with a non-proficient weapon', () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',
@@ -125,7 +125,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toContain('+ 2 =');
@@ -134,7 +134,7 @@ describe('WeaponAttackCommand Proficiency Penalties', () => {
 
 
 describe('Active Effect Riders (Bless/Bane)', () => {
-  it('consumes a bonus die from an active effect on the attacker', async () => {
+  it('consumes a bonus die from an active effect on the attacker', () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',
@@ -188,7 +188,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     // The base modifier is 4, but with bless it should be > 4
@@ -196,7 +196,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
     expect(logMessage).toMatch(/Mods: \+\d+ \[Bless\]/);
   });
 
-  it('consumes a penalty die from an active effect on the attacker', async () => {
+  it('consumes a penalty die from an active effect on the attacker', () => {
     const attacker = createMockCombatCharacter({
       id: 'attacker',
       name: 'Attacker',
@@ -250,7 +250,7 @@ describe('Active Effect Riders (Bless/Bane)', () => {
       gameState: { characters: [attacker, target], combatLog: [] } as unknown as GameState
     });
 
-    const newState = await command.execute({ characters: [attacker, target], combatLog: [] } as any);
+    const newState = command.execute({ characters: [attacker, target], combatLog: [] } as any);
 
     const logMessage = newState.combatLog[0].message;
     expect(logMessage).toMatch(/Mods: -\d+ \[Bane\]/);

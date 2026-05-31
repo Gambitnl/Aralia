@@ -42,7 +42,7 @@ describe('ReactiveEffectCommand Security Check', () => {
         vi.clearAllMocks();
     });
 
-    it('should log execution via logger instead of console.log', async () => {
+    it('should log execution via logger instead of console.log', () => {
         const alwaysCondition: EffectCondition = { type: 'always' };
         const command = new ReactiveEffectCommand(
             {
@@ -60,7 +60,7 @@ describe('ReactiveEffectCommand Security Check', () => {
             }
         );
 
-        const newState = await command.execute(mockState);
+        const newState = command.execute(mockState);
         expect(newState.reactiveTriggers).toHaveLength(1);
 
         // We can't easily trigger the async event listener inside a unit test without mocking the EventEmitters

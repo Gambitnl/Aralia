@@ -10,12 +10,11 @@ import path from 'path';
  * project's unit and integration tests.
  *
  * Recent updates focus on 'Workspace Isolation'. By excluding
- * local runtime mirrors and scratch workspaces (`.agent_tools`,
- * `.worktrees`, `.tmp`, `.local`) we prevent the main test runner
- * from picking up tests that belong to operational workspaces.
- * This keeps the core test results clean and relevant to the Aralia
- * application code, while allowing those tools to maintain independent
- * testing cycles.
+ * `.agent_tools`, we prevent the main test runner from picking up
+ * test files that belong to specialized agent sub-workspaces. This
+ * keeps the core test results clean and relevant to the Aralia application
+ * code, while allowing tools to maintain their own independent testing
+ * life cycles.
  * 
  * @file vitest.config.ts
  */
@@ -42,12 +41,6 @@ export default defineConfig({
             // Keep default app test runs focused on Aralia code.
             // Tooling workspaces under .agent_tools are validated separately.
             '**/.agent_tools/**',
-            // Keep local git snapshots, scratch vendors, and toolchain mirrors out of
-            // normal discovery so `npm run test` stays on the main repository.
-            '**/.worktrees/**',
-            '**/.tmp/**',
-            '**/.local/**',
-            '**/vendor/**',
         ],
     },
     resolve: {

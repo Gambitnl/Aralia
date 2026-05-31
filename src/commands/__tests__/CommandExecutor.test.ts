@@ -16,7 +16,7 @@ describe('CommandExecutor', () => {
     timestamp: Date.now(),
   });
 
-  it('should execute a list of commands', async () => {
+  it('should execute a list of commands', () => {
     const cmd1 = {
         id: '1',
         description: 'Cmd1',
@@ -30,7 +30,7 @@ describe('CommandExecutor', () => {
         execute: vi.fn().mockReturnValue(mockState)
     }
 
-    const result = await CommandExecutor.execute([cmd1, cmd2], mockState)
+    const result = CommandExecutor.execute([cmd1, cmd2], mockState)
 
     expect(result.success).toBe(true)
     expect(cmd1.execute).toHaveBeenCalled()
@@ -38,7 +38,7 @@ describe('CommandExecutor', () => {
     expect(result.executedCommands).toHaveLength(2)
   })
 
-  it('should handle failure and return partial success info', async () => {
+  it('should handle failure and return partial success info', () => {
     const cmd1 = {
         id: '1',
         description: 'Cmd1',
@@ -52,7 +52,7 @@ describe('CommandExecutor', () => {
         execute: vi.fn().mockImplementation(() => { throw new Error('Boom') })
     }
 
-    const result = await CommandExecutor.execute([cmd1, cmdFail], mockState)
+    const result = CommandExecutor.execute([cmd1, cmdFail], mockState)
 
     expect(result.success).toBe(false)
     expect(result.executedCommands).toHaveLength(1) // Only cmd1

@@ -26,7 +26,6 @@ import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
 import * as IDBStorage from './indexedDBStorageService';
-import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 
 //
 // Save slot configuration
@@ -356,10 +355,6 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     }
 
     normalizeLoadedDates(loadedState);
-    // Backfill rich WorldData v2 on saves created before worldSim existed.
-    if (loadedState.mapData) {
-      loadedState.mapData = migrateMapDataToWorldDataV2(loadedState.mapData, loadedState.worldSeed ?? 0);
-    }
     // Ensure new rest pacing fields exist when loading older saves.
     const restTrackerSeedTime = loadedState.gameTime instanceof Date
       ? loadedState.gameTime

@@ -22,7 +22,6 @@ import { MapData, MapTile, Location, Biome } from '../types';
 import { STARTING_LOCATION_ID } from '../constants';
 import { SeededRandom } from '@/utils/random';
 import { generateAzgaarDerivedMap } from './azgaarDerivedMapService';
-import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';
 
 /**
  * Generates a world map with biomes and links to predefined locations.
@@ -167,6 +166,8 @@ function generateLegacyMap(
 
   // TODO(FEATURES): Generate Location metadata for unkeyed tiles and seeded towns (names, descriptions, persistence) during map build (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // TODO: Add a connectivity pass that guarantees a walkable path from STARTING_LOCATION_ID to other discoverable tiles (Reason: random clustering can strand the player on unreachable islands; Expectation: every generated map remains explorable without soft-locks).
-  const legacyResult: MapData = { gridSize: { rows, cols }, tiles };
-  return migrateMapDataToWorldDataV2(legacyResult, worldSeed);
+  return {
+    gridSize: { rows, cols },
+    tiles,
+  };
 }

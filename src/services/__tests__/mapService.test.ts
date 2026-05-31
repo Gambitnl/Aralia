@@ -58,25 +58,4 @@ describe('mapService generateMap (Azgaar-source default)', () => {
       }
     }
   });
-
-  it('generateMap returns MapData with worldData v2 attached', () => {
-    const map = generateMap(20, 30, {}, BIOMES, 7777);
-    expect(map.worldData).toBeDefined();
-    expect(map.worldData!.version).toBe(2);
-    expect(map.worldData!.seed).toBe(7777);
-    expect(map.worldData!.gridSize).toEqual({ rows: 20, cols: 30 });
-  });
-
-  it('generateMap is deterministic — same seed produces identical worldData', () => {
-    const a = generateMap(15, 20, {}, BIOMES, 1234);
-    const b = generateMap(15, 20, {}, BIOMES, 1234);
-    expect(JSON.stringify(a.worldData)).toBe(JSON.stringify(b.worldData));
-  });
-
-  it('every freshly-generated MapData has worldData (invariant)', () => {
-    // Even on the legacy fallback path (or any future code path), MapData.worldData must exist.
-    const map = generateMap(10, 12, {}, BIOMES, 8888);
-    expect(map.worldData).toBeDefined();
-    expect(map.worldData!.version).toBe(2);
-  });
 });

@@ -42,21 +42,22 @@ it('the last width entry duplicates the second-to-last', () => {
 });
 
 it('tributary river records its parentId when joining a trunk', () => {
-  // A 7x5 Y-shape. Tall walls (W=500) confine flow to a cross-shaped channel.
-  // The trunk runs down column 3 (heights 200 -> 90 -> 80 -> 70 -> 60).
-  // Row 2 has side branches that descend horizontally toward (3,2)=80, merging with the trunk.
+  // A 7x3 heightmap with two branches that merge.
+  // Layout (y rows top to bottom):
+  //   row 0: 70 60 50 40 30 25 15
+  //   row 1: 80 70 60 50 40 25 15   <- trunk descends along this row
+  //   row 2: 70 60 50 40 30 25 15
+  // Both row 0 and row 2 will source rivers that descend into row 1's path.
   const cols = 7;
-  const rows = 5;
-  const W = 500;
+  const rows = 3;
   const heights = [
-    W,   W,   W,  200,  W,   W,   W,
-    W,   W,   W,   90,  W,   W,   W,
-   180, 170, 160,  80, 160, 170, 180,
-    W,   W,   W,   70,  W,   W,   W,
-    W,   W,   W,   60,  W,   W,   W,
+    70, 60, 50, 40, 30, 25, 15,
+    80, 70, 60, 50, 40, 25, 15,
+    70, 60, 50, 40, 30, 25, 15,
   ];
   const rivers = traceRivers(heights, cols, rows, 1);
-
+  // The trunk source is the highest point (cell (0,1), height 80).
+  // Tributary sources are (0,0) height 70 and (0,2) height 70.
   // At least one river should have a parentId pointing at the trunk.
   const withParents = rivers.filter((r) => r.parentId !== undefined);
   expect(withParents.length).toBeGreaterThanOrEqual(1);

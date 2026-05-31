@@ -173,7 +173,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
-      const result = await CommandExecutor.execute(commands, combatState);
+      const result = CommandExecutor.execute(commands, combatState);
       expect(result.success).toBe(true);
 
       const finalTarget = result.finalState.characters.find(c => c.id === mockTarget.id);
@@ -212,7 +212,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
-      const result = await CommandExecutor.execute(commands, combatState);
+      const result = CommandExecutor.execute(commands, combatState);
       expect(result.success).toBe(true);
 
       const finalTarget = result.finalState.characters.find(c => c.id === mockTarget.id);
@@ -247,7 +247,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
-      const result = await CommandExecutor.execute(commands, combatState);
+      const result = CommandExecutor.execute(commands, combatState);
       const finalAlly = result.finalState.characters.find(c => c.id === mockAlly.id);
 
       expect(finalAlly!.currentHP).toBeGreaterThan(mockAlly.currentHP);
@@ -285,7 +285,7 @@ describe('Combat Simulator Deterministic Spell Pilot', () => {
         validTargets: [], validMoves: [], reactiveTriggers: [], activeLightSources: []
       };
 
-      const result = await CommandExecutor.execute(commands, combatState);
+      const result = CommandExecutor.execute(commands, combatState);
 
       const finalAlly = result.finalState.characters.find(c => c.id === mockAlly.id);
       expect(finalAlly!.conditions?.some(c => c.name === 'Blessed') || finalAlly!.statusEffects.some(se => se.name === 'Blessed')).toBe(true);

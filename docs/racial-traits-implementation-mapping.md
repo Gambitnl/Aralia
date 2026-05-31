@@ -6,8 +6,8 @@ This document lists every trait for all 111 races and indicates whether they are
 
 - **Total Races Scanned**: 111
 - **Total Unique Traits Scanned**: 819
-- **Mechanically Implemented Traits**: 750 (92%)
-- **Text-Only / Flavor Traits**: 69 (8%)
+- **Mechanically Implemented Traits**: 749 (91%)
+- **Text-Only / Flavor Traits**: 70 (9%)
 
 ## Core Engine Mechanics
 
@@ -79,7 +79,7 @@ Most traits are either **Text-Only** tooltips or fall into standard core engine 
 | **Fey Ancestry** | `Implemented` | Racial modifier materializer | Modifiers are extracted via getRacialModifierBucketsFromTraitText. |
 | **Keen Senses** | `Implemented` | Racial modifier materializer | Skill, weapon, and armor proficiencies are extracted and applied to character state. |
 | **Trance** | `Implemented` | Custom system logic | Referenced in: src\components\DesignPreview\steps\PreviewComponents.tsx: "<TableCell className="font-bold text-sky-300">Trance</TableCell>" |
-| **Astral Fire** | `Implemented` | Racial choice materializer | Multi-choice traits are extracted and materialized from character selections. |
+| **Astral Fire** | `Text-Only` | N/A | You know one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this race). |
 | **Starlight Step** | `Implemented` | Racial resource materializer | Usage limits and reset conditions are extracted and applied to character state. |
 | **Astral Trance** | `Implemented` | Racial modifier materializer | Skill, weapon, and armor proficiencies are extracted and applied to character state. |
 

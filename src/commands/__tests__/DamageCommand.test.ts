@@ -7,7 +7,7 @@ import type { DamageEffect } from '../../types/spells';
 // HP and leave a readable combat log entry behind. It intentionally stays tiny
 // so Package 4 can cite a concrete HP/log proof without widening the pilot.
 describe('DamageCommand', () => {
-  it('reduces HP and logs a spell hit for a deterministic damage spell', async () => {
+  it('reduces HP and logs a spell hit for a deterministic damage spell', () => {
     const caster = createMockCombatCharacter({
       id: 'caster',
       name: 'Maelis Quill'
@@ -49,7 +49,7 @@ describe('DamageCommand', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
     const command = new DamageCommand(effect, context);
-    const result = await command.execute(createMockCombatState({
+    const result = command.execute(createMockCombatState({
       characters: [caster, target],
       combatLog: []
     }));

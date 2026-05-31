@@ -40,7 +40,7 @@ describe('Sensory Mechanics', () => {
         gameState: createMockGameState()
     }
 
-    it('should process sound emission metadata without errors', async () => {
+    it('should process sound emission metadata without errors', () => {
         // Sound metadata records the audible footprint that later systems can
         // use for alarms, thunderous effects, and other noisy spell results.
         const sound: SoundEmission = {
@@ -62,7 +62,7 @@ describe('Sensory Mechanics', () => {
         }
 
         const command = new UtilityCommand(effect, mockContext)
-        const newState = await command.execute(mockState)
+        const newState = command.execute(mockState)
 
         // The combat log is the current player-visible proof surface for
         // utility spell outcomes.
@@ -75,7 +75,7 @@ describe('Sensory Mechanics', () => {
         expect(logEffect.soundEmission?.audibleRadius).toBe(60)
     })
 
-    it('should process sensory manifestation metadata without errors', async () => {
+    it('should process sensory manifestation metadata without errors', () => {
         // Sensory manifestation metadata states which senses an illusion can
         // affect, while leaving actual illusion dispute handling to later work.
         const manifestation: SensoryManifestation = {
@@ -100,7 +100,7 @@ describe('Sensory Mechanics', () => {
         }
 
         const command = new UtilityCommand(effect, mockContext)
-        const newState = await command.execute(mockState)
+        const newState = command.execute(mockState)
 
         // The command should preserve the sight-only illusion limits exactly,
         // so the spellbook, simulator, and later AI arbitration can read them.

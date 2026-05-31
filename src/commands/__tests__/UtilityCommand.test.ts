@@ -41,7 +41,7 @@ describe('UtilityCommand', () => {
     // --- Tests ---
 
     describe('Light Utility', () => {
-        it('should create a light source attached to the caster', async () => {
+        it('should create a light source attached to the caster', () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'light',
@@ -57,7 +57,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = await command.execute(mockState)
+            const newState = command.execute(mockState)
 
             expect(newState.activeLightSources).toHaveLength(1)
             const source = newState.activeLightSources[0]
@@ -68,7 +68,7 @@ describe('UtilityCommand', () => {
             expect(newState.combatLog).toHaveLength(2) // 1 generic action, 1 status for light
         })
 
-        it('should create a light source attached to a target', async () => {
+        it('should create a light source attached to a target', () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'light',
@@ -82,7 +82,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = await command.execute(mockState)
+            const newState = command.execute(mockState)
 
             expect(newState.activeLightSources).toHaveLength(1)
             const source = newState.activeLightSources[0]
@@ -91,7 +91,7 @@ describe('UtilityCommand', () => {
     });
 
     describe('Control Options (Command Spell)', () => {
-        it('should apply "grovel" command (prone status)', async () => {
+        it('should apply "grovel" command (prone status)', () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'control',
@@ -104,7 +104,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = await command.execute(mockState)
+            const newState = command.execute(mockState)
 
             // UtilityCommand automatically applies the FIRST option in the list as a fallback logic
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
@@ -116,7 +116,7 @@ describe('UtilityCommand', () => {
             expect(logEntry).toBeDefined()
         })
 
-        it('should apply "flee" command (movement)', async () => {
+        it('should apply "flee" command (movement)', () => {
             // Mock target close to caster
             const closeState = {
                 ...mockState,
@@ -135,7 +135,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = await command.execute(closeState)
+            const newState = command.execute(closeState)
 
             // Character should have moved AWAY from caster (x=5 -> x=6, so move to x=7+)
             const newTarget = newState.characters.find(c => c.id === mockTarget.id)
@@ -144,7 +144,7 @@ describe('UtilityCommand', () => {
     });
 
     describe('Taunt Mechanics', () => {
-        it('should apply taunt status marker', async () => {
+        it('should apply taunt status marker', () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'other',
@@ -158,7 +158,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = await command.execute(mockState)
+            const newState = command.execute(mockState)
 
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
             const tauntEffect = targetInState?.statusEffects.find(e => e.name === 'Taunted')
@@ -170,7 +170,7 @@ describe('UtilityCommand', () => {
     });
 
     describe('Save Penalty Registration (Mind Sliver)', () => {
-        it('should register a save penalty rider on the target', async () => {
+        it('should register a save penalty rider on the target', () => {
             const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'other',
@@ -185,7 +185,7 @@ describe('UtilityCommand', () => {
             }
 
             const command = new UtilityCommand(effect, mockContext)
-            const newState = await command.execute(mockState)
+            const newState = command.execute(mockState)
 
             const targetInState = newState.characters.find(c => c.id === mockTarget.id)
             expect(targetInState?.savePenaltyRiders).toHaveLength(1)

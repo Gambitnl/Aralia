@@ -1047,14 +1047,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [],
-        "soundEmission": {
-          "audibleRadius": 60,
-          "radiusUnit": "feet",
-          "source": "spell_area",
-          "trigger": "on_trigger",
-          "description": "Produces the sound of a handbell for 10 seconds."
-        }
+        "conditionalEndings": []
       },
       {
         "type": "UTILITY",
@@ -6815,7 +6808,7 @@
     },
     "effects": [
       {
-        "type": "ATTACK_ROLL_MODIFIER",
+        "type": "STATUS_CONDITION",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -6866,33 +6859,6 @@
           "saveModifiers": [],
           "saveOutcomeOverrides": []
         },
-        "attackRollModifier": {
-          "modifier": "penalty",
-          "direction": "outgoing",
-          "attackKind": "any",
-          "consumption": "while_active",
-          "duration": {
-            "type": "minutes",
-            "value": 1
-          },
-          "dice": "1d4"
-        },
-        "savingThrowModifier": {
-          "modifier": "penalty",
-          "consumption": "while_active",
-          "duration": {
-            "type": "minutes",
-            "value": 1
-          },
-          "dice": "1d4"
-        },
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "+1 target",
-          "customFormula": ""
-        },
-        "description": "Subtracts 1d4 from attack rolls and saving throws",
-        "conditionalEndings": [],
         "statusCondition": {
           "name": "Bane",
           "duration": {
@@ -6910,7 +6876,14 @@
             "successEnds": true,
             "useOriginalDC": true
           }
-        }
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "+1 target",
+          "customFormula": ""
+        },
+        "description": "",
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -9607,7 +9580,7 @@
     },
     "effects": [
       {
-        "type": "ATTACK_ROLL_MODIFIER",
+        "type": "STATUS_CONDITION",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -9656,33 +9629,6 @@
           "saveModifiers": [],
           "saveOutcomeOverrides": []
         },
-        "attackRollModifier": {
-          "modifier": "bonus",
-          "direction": "outgoing",
-          "attackKind": "any",
-          "consumption": "while_active",
-          "duration": {
-            "type": "minutes",
-            "value": 1
-          },
-          "dice": "1d4"
-        },
-        "savingThrowModifier": {
-          "modifier": "bonus",
-          "consumption": "while_active",
-          "duration": {
-            "type": "minutes",
-            "value": 1
-          },
-          "dice": "1d4"
-        },
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "description": "Adds 1d4 to attack rolls and saving throws",
-        "conditionalEndings": [],
         "statusCondition": {
           "name": "Blessed",
           "duration": {
@@ -9700,7 +9646,14 @@
             "successEnds": true,
             "useOriginalDC": true
           }
-        }
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "",
+          "customFormula": ""
+        },
+        "description": "",
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -11608,104 +11561,6 @@
         },
         "description": "",
         "conditionalEndings": []
-      },
-      {
-        "type": "UTILITY",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "utilityType": "control",
-        "description": "You can take a Magic action to call down lightning again.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "grantedActions": [
-          {
-            "type": "action",
-            "action": "Call Lightning",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "magic_action",
-            "notes": "Call down lightning in that way again, targeting the same point or a different one."
-          }
-        ],
-        "attackAugments": [],
-        "controlOptions": [],
-        "taunt": {
-          "disadvantageAgainstOthers": false,
-          "leashRangeFeet": 0,
-          "breakConditions": []
-        },
-        "savePenalty": {
-          "dice": "",
-          "flat": 0,
-          "applies": "next_save",
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          }
-        },
-        "light": {
-          "brightRadius": 0,
-          "dimRadius": 0,
-          "attachedTo": "caster",
-          "color": "",
-          "colorChoice": "not_applicable",
-          "opaqueCoverBlocks": "not_applicable",
-          "emitsHeat": "not_applicable",
-          "ignitesObjects": "not_applicable",
-          "consumesFuel": "not_applicable",
-          "canBeCoveredOrHidden": "not_applicable",
-          "canBeSmotheredOrQuenched": "not_applicable"
-        },
-        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -12156,12 +12011,12 @@
             "isNativeToPlane": false,
             "willing": "not_applicable",
             "objectEligibility": {
-              "wornOrCarried": "excluded",
-              "magicalStatus": "any",
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
               "fixedToSurface": "not_applicable",
               "maxSize": "not_applicable",
-              "maxWeightPounds": 5,
-              "maxWeightScaling": "+5 pounds per slot above 1"
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
             },
             "communicationPrerequisites": {
               "canHearCaster": "not_applicable",
@@ -12218,12 +12073,12 @@
             "isNativeToPlane": false,
             "willing": "not_applicable",
             "objectEligibility": {
-              "wornOrCarried": "excluded",
-              "magicalStatus": "any",
+              "wornOrCarried": "not_applicable",
+              "magicalStatus": "not_applicable",
               "fixedToSurface": "not_applicable",
               "maxSize": "not_applicable",
-              "maxWeightPounds": 5,
-              "maxWeightScaling": "+5 pounds per slot above 1"
+              "maxWeightPounds": "not_applicable",
+              "maxWeightScaling": "not_applicable"
             },
             "communicationPrerequisites": {
               "canHearCaster": "not_applicable",
@@ -15464,15 +15319,7 @@
           {
             "name": "Grovel",
             "effect": "grovel",
-            "details": "Target has the Prone condition and then ends its turn.",
-            "statusCondition": {
-              "name": "Prone",
-              "duration": {
-                "type": "rounds",
-                "value": 1
-              },
-              "level": 0
-            }
+            "details": "Target has the Prone condition and then ends its turn."
           },
           {
             "name": "Halt",
@@ -23445,17 +23292,7 @@
           "bonusPerLevel": "",
           "customFormula": ""
         },
-        "grantedActions": [
-          {
-            "type": "bonus_action",
-            "action": "Move",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "rangeLimit": 60,
-            "notes": "Move the lights up to 60 feet to a space within range."
-          }
-        ],
+        "grantedActions": [],
         "attackAugments": [],
         "controlOptions": [],
         "taunt": {
@@ -24566,7 +24403,7 @@
           "attachedTo": "point",
           "color": "sunlight",
           "colorChoice": "not_applicable",
-          "opaqueCoverBlocks": true,
+          "opaqueCoverBlocks": "not_applicable",
           "emitsHeat": "not_applicable",
           "ignitesObjects": "not_applicable",
           "consumesFuel": "not_applicable",
@@ -26566,13 +26403,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [
-          {
-            "trigger": "repeat_save_success",
-            "scope": "spell",
-            "description": "On a successful save, the spell ends."
-          }
-        ]
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -26956,32 +26787,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [],
-        "illusion": {
-          "revealScope": "per_creature",
-          "revealRules": [
-            {
-              "method": "study_action",
-              "actionCost": "action",
-              "ability": "Intelligence",
-              "skill": "Investigation",
-              "dc": "spell_save_dc",
-              "appliesTo": [
-                "image"
-              ],
-              "notes": "A creature can use its Action to inspect your appearance."
-            },
-            {
-              "method": "physical_interaction",
-              "appliesTo": [
-                "image"
-              ],
-              "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
-            }
-          ],
-          "discernedState": "faint_to_discerning_creature",
-          "notes": "The changes wrought by this spell fail to hold up to physical inspection."
-        }
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -32962,7 +32768,7 @@
     },
     "effects": [
       {
-        "type": "STATUS_CONDITION",
+        "type": "UTILITY",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -33019,25 +32825,52 @@
             }
           ]
         },
-        "statusCondition": {
-          "name": "Enemies Abound",
-          "duration": {
-            "type": "minutes",
-            "value": 1
-          },
-          "level": 0,
-          "repeatSave": {
-            "timing": "on_damage",
-            "saveType": "Intelligence",
-            "successEnds": true,
-            "useOriginalDC": true
-          }
-        },
+        "utilityType": "other",
         "description": "You reach into the mind of one creature you can see and force it to make an Intelligence saving throw. A creature automatically succeeds if it is immune to being Frightened. On a failed save, the target loses the ability to distinguish friend from foe, regarding all creatures it can see as enemies until the spell ends. Each time the target takes damage, it can repeat the saving throw, ending the effect on itself on a success. Whenever the affected creature chooses another creature as a target, it must choose the target at random from among the creatures it can see within range of the attack, spell, or other ability it's using. If an enemy provokes an Opportunity Attack from the affected creature, the creature must make that attack if it is able to.",
+        "recurringMechanics": [
+          {
+            "timing": "on_damage",
+            "frequency": "every_time",
+            "saveType": "Intelligence",
+            "saveEffect": "negates_condition",
+            "successOutcome": "effect_ends",
+            "notes": "Each time the affected target takes damage, it can repeat the Intelligence save and end the effect on itself on a success."
+          }
+        ],
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
           "customFormula": ""
+        },
+        "grantedActions": [],
+        "attackAugments": [],
+        "controlOptions": [],
+        "taunt": {
+          "disadvantageAgainstOthers": false,
+          "leashRangeFeet": 0,
+          "breakConditions": []
+        },
+        "savePenalty": {
+          "dice": "",
+          "flat": 0,
+          "applies": "next_save",
+          "duration": {
+            "type": "rounds",
+            "value": 0
+          }
+        },
+        "light": {
+          "brightRadius": 0,
+          "dimRadius": 0,
+          "attachedTo": "caster",
+          "color": "",
+          "colorChoice": "not_applicable",
+          "opaqueCoverBlocks": "not_applicable",
+          "emitsHeat": "not_applicable",
+          "ignitesObjects": "not_applicable",
+          "consumesFuel": "not_applicable",
+          "canBeCoveredOrHidden": "not_applicable",
+          "canBeSmotheredOrQuenched": "not_applicable"
         },
         "conditionalEndings": []
       }
@@ -33501,7 +33334,7 @@
         "isNativeToPlane": false,
         "willing": "not_applicable",
         "objectEligibility": {
-          "wornOrCarried": "excluded",
+          "wornOrCarried": "not_applicable",
           "magicalStatus": "not_applicable",
           "fixedToSurface": "not_applicable",
           "maxSize": "not_applicable",
@@ -33551,7 +33384,7 @@
             "isNativeToPlane": false,
             "willing": "not_applicable",
             "objectEligibility": {
-              "wornOrCarried": "excluded",
+              "wornOrCarried": "not_applicable",
               "magicalStatus": "not_applicable",
               "fixedToSurface": "not_applicable",
               "maxSize": "not_applicable",
@@ -33642,7 +33475,7 @@
             "isNativeToPlane": false,
             "willing": "not_applicable",
             "objectEligibility": {
-              "wornOrCarried": "excluded",
+              "wornOrCarried": "not_applicable",
               "magicalStatus": "not_applicable",
               "fixedToSurface": "not_applicable",
               "maxSize": "not_applicable",
@@ -35691,16 +35524,7 @@
           "bonusPerLevel": "",
           "customFormula": ""
         },
-        "grantedActions": [
-          {
-            "type": "bonus_action",
-            "action": "Dash",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "You can take the Dash action as a Bonus Action."
-          }
-        ],
+        "grantedActions": [],
         "attackAugments": [],
         "controlOptions": [],
         "taunt": {
@@ -38185,12 +38009,7 @@
           "operator": "not_applicable",
           "value": "not_applicable"
         },
-        "selfRelation": "not_applicable",
-        "placementEligibility": {
-          "unoccupied": "required",
-          "surface": "not_applicable",
-          "destination": "not_applicable"
-        }
+        "selfRelation": "not_applicable"
       }
     },
     "effects": [
@@ -38238,12 +38057,7 @@
               "operator": "not_applicable",
               "value": "not_applicable"
             },
-            "selfRelation": "not_applicable",
-            "placementEligibility": {
-              "unoccupied": "required",
-              "surface": "not_applicable",
-              "destination": "not_applicable"
-            }
+            "selfRelation": "not_applicable"
           },
           "requiresStatus": [],
           "saveModifiers": [],
@@ -40512,18 +40326,7 @@
           "customFormula": ""
         },
         "description": "A target hit by a ranged weapon attack using ammunition drawn from the touched quiver takes an extra 1d6 Fire damage.",
-        "conditionalEndings": [
-          {
-            "trigger": "all_target_instances_expended",
-            "scope": "spell",
-            "description": "The spell ends when twelve pieces of ammunition have been drawn from the quiver."
-          },
-          {
-            "trigger": "on_attack_hit_or_miss",
-            "scope": "item",
-            "description": "The spell's magic ends on the piece of ammunition when it hits or misses."
-          }
-        ]
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -41288,105 +41091,6 @@
           "type": "slot_level",
           "bonusPerLevel": "+1d6",
           "customFormula": ""
-        },
-        "conditionalEndings": []
-      },
-      {
-        "type": "UTILITY",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "utilityType": "control",
-        "description": "You can move the sphere up to 30 feet, rolling it along the ground.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "grantedActions": [
-          {
-            "type": "bonus_action",
-            "action": "Move Sphere",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "rangeLimit": 30,
-            "notes": "Move the sphere up to 30 feet, rolling it along the ground."
-          }
-        ],
-        "attackAugments": [],
-        "controlOptions": [],
-        "taunt": {
-          "disadvantageAgainstOthers": false,
-          "leashRangeFeet": 0,
-          "breakConditions": []
-        },
-        "savePenalty": {
-          "dice": "",
-          "flat": 0,
-          "applies": "next_save",
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          }
-        },
-        "light": {
-          "brightRadius": 0,
-          "dimRadius": 0,
-          "attachedTo": "caster",
-          "color": "",
-          "colorChoice": "not_applicable",
-          "opaqueCoverBlocks": "not_applicable",
-          "emitsHeat": "not_applicable",
-          "ignitesObjects": "not_applicable",
-          "consumesFuel": "not_applicable",
-          "canBeCoveredOrHidden": "not_applicable",
-          "canBeSmotheredOrQuenched": "not_applicable"
         },
         "conditionalEndings": []
       }
@@ -44862,10 +44566,7 @@
           "operator": "not_applicable",
           "value": "not_applicable"
         },
-        "selfRelation": "not_applicable",
-        "specialIdentity": {
-          "corpseOrRemains": "required"
-        }
+        "selfRelation": "not_applicable"
       }
     },
     "effects": [
@@ -44913,10 +44614,7 @@
               "operator": "not_applicable",
               "value": "not_applicable"
             },
-            "selfRelation": "not_applicable",
-            "specialIdentity": {
-              "corpseOrRemains": "required"
-            }
+            "selfRelation": "not_applicable"
           },
           "requiresStatus": [],
           "saveModifiers": [],
@@ -48591,16 +48289,7 @@
           "bonusPerLevel": "",
           "customFormula": ""
         },
-        "grantedActions": [
-          {
-            "type": "bonus_action",
-            "action": "Change Direction",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Change the direction in which the Line blasts from you."
-          }
-        ],
+        "grantedActions": [],
         "attackAugments": [],
         "controlOptions": [],
         "taunt": {
@@ -50501,10 +50190,7 @@
           "operator": "not_applicable",
           "value": "not_applicable"
         },
-        "selfRelation": "not_applicable",
-        "specialIdentity": {
-          "reactionTriggeringCreature": "required"
-        }
+        "selfRelation": "not_applicable"
       }
     },
     "effects": [
@@ -50554,10 +50240,7 @@
               "operator": "not_applicable",
               "value": "not_applicable"
             },
-            "selfRelation": "not_applicable",
-            "specialIdentity": {
-              "reactionTriggeringCreature": "required"
-            }
+            "selfRelation": "not_applicable"
           },
           "requiresStatus": [],
           "saveModifiers": [],
@@ -51574,13 +51257,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [
-          {
-            "trigger": "target_drops_to_0_hp",
-            "scope": "effect",
-            "description": "If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature."
-          }
-        ]
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -53328,13 +53005,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [
-          {
-            "trigger": "target_drops_to_0_hp",
-            "scope": "effect",
-            "description": "If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action to move the mark to a new creature you can see within range."
-          }
-        ]
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -60015,15 +59686,7 @@
           "trigger": "on_cast",
           "description": "A loud knock audible up to 300 feet away emanates from the target object."
         },
-        "conditionalEndings": [
-          {
-            "trigger": "triggered_duration_expires",
-            "scope": "effect",
-            "durationValue": 10,
-            "durationUnit": "minute",
-            "description": "If the target is held shut by Arcane Lock, that spell is suppressed for 10 minutes, during which time the target can be opened and closed."
-          }
-        ]
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -60782,12 +60445,6 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionRemoval": [
-          "Blinded",
-          "Deafened",
-          "Paralyzed",
-          "Poisoned"
-        ],
         "conditionalEndings": []
       }
     ],
@@ -65331,53 +64988,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [],
-        "sensoryManifestation": {
-          "modeSource": "not_applicable",
-          "variants": [
-            {
-              "label": "Major Image",
-              "allowedSenses": [
-                "sight",
-                "sound",
-                "smell",
-                "other_sensory_effect"
-              ],
-              "excludedSenses": [],
-              "maxSize": {
-                "shape": "Cube",
-                "size": 20,
-                "unit": "feet"
-              },
-              "timing": "continuous_or_discrete_before_spell_end",
-              "notes": "It seems real, including sounds, smells, and temperature appropriate to the thing depicted. You can cause the illusion to make different sounds at different times."
-            }
-          ]
-        },
-        "illusion": {
-          "revealScope": "per_creature",
-          "revealRules": [
-            {
-              "method": "physical_interaction",
-              "appliesTo": [
-                "Major Image"
-              ],
-              "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
-            },
-            {
-              "method": "study_action",
-              "actionCost": "action",
-              "ability": "Intelligence",
-              "skill": "Investigation",
-              "dc": "spell_save_dc",
-              "appliesTo": [
-                "Major Image"
-              ]
-            }
-          ],
-          "discernedState": "faint_to_discerning_creature",
-          "notes": "If a creature discerns the illusion for what it is, the creature can see through the image, and its other sensory qualities become faint to the creature."
-        }
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -67328,104 +66939,6 @@
           "customFormula": ""
         },
         "description": "",
-        "conditionalEndings": []
-      },
-      {
-        "type": "UTILITY",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "utilityType": "control",
-        "description": "You can expend one or two of the meteors.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "grantedActions": [
-          {
-            "type": "bonus_action",
-            "action": "Expend Meteors",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Expend one or two of the meteors, sending them streaking toward a point or points you choose within 120 feet of you."
-          }
-        ],
-        "attackAugments": [],
-        "controlOptions": [],
-        "taunt": {
-          "disadvantageAgainstOthers": false,
-          "leashRangeFeet": 0,
-          "breakConditions": []
-        },
-        "savePenalty": {
-          "dice": "",
-          "flat": 0,
-          "applies": "next_save",
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          }
-        },
-        "light": {
-          "brightRadius": 0,
-          "dimRadius": 0,
-          "attachedTo": "caster",
-          "color": "",
-          "colorChoice": "not_applicable",
-          "opaqueCoverBlocks": "not_applicable",
-          "emitsHeat": "not_applicable",
-          "ignitesObjects": "not_applicable",
-          "consumesFuel": "not_applicable",
-          "canBeCoveredOrHidden": "not_applicable",
-          "canBeSmotheredOrQuenched": "not_applicable"
-        },
         "conditionalEndings": []
       }
     ],
@@ -70759,12 +70272,7 @@
           "operator": "not_applicable",
           "value": "not_applicable"
         },
-        "selfRelation": "not_applicable",
-        "placementEligibility": {
-          "unoccupied": "required",
-          "surface": "not_applicable",
-          "destination": "caster_choice"
-        }
+        "selfRelation": "not_applicable"
       }
     },
     "effects": [
@@ -70812,12 +70320,7 @@
               "operator": "not_applicable",
               "value": "not_applicable"
             },
-            "selfRelation": "not_applicable",
-            "placementEligibility": {
-              "unoccupied": "required",
-              "surface": "not_applicable",
-              "destination": "caster_choice"
-            }
+            "selfRelation": "not_applicable"
           },
           "requiresStatus": [],
           "saveModifiers": [],
@@ -71416,17 +70919,7 @@
         },
         "dispersedByStrongWind": false,
         "description": "",
-        "conditionalEndings": [],
-        "grantedActions": [
-          {
-            "type": "action",
-            "action": "Dismiss",
-            "frequency": "while_active",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Dismiss an active non-instantaneous effect."
-          }
-        ]
+        "conditionalEndings": []
       },
       {
         "type": "TERRAIN",
@@ -71516,17 +71009,7 @@
         },
         "dispersedByStrongWind": false,
         "description": "",
-        "conditionalEndings": [],
-        "grantedActions": [
-          {
-            "type": "action",
-            "action": "Dismiss",
-            "frequency": "while_active",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Dismiss an active non-instantaneous effect."
-          }
-        ]
+        "conditionalEndings": []
       },
       {
         "type": "TERRAIN",
@@ -71616,17 +71099,7 @@
         },
         "dispersedByStrongWind": false,
         "description": "",
-        "conditionalEndings": [],
-        "grantedActions": [
-          {
-            "type": "action",
-            "action": "Dismiss",
-            "frequency": "while_active",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Dismiss an active non-instantaneous effect."
-          }
-        ]
+        "conditionalEndings": []
       },
       {
         "type": "TERRAIN",
@@ -71716,17 +71189,7 @@
         },
         "dispersedByStrongWind": false,
         "description": "",
-        "conditionalEndings": [],
-        "grantedActions": [
-          {
-            "type": "action",
-            "action": "Dismiss",
-            "frequency": "while_active",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Dismiss an active non-instantaneous effect."
-          }
-        ]
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -75586,45 +75049,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [],
-        "sensoryManifestation": {
-          "modeSource": "not_applicable",
-          "variants": [
-            {
-              "label": "Phantasm",
-              "allowedSenses": [
-                "sight",
-                "sound",
-                "other_sensory_effect"
-              ],
-              "excludedSenses": [],
-              "maxSize": {
-                "shape": "Cube",
-                "size": 10,
-                "unit": "feet"
-              },
-              "notes": "The phantasm includes sound, temperature, and other stimuli, but only in the mind of the target."
-            }
-          ]
-        },
-        "illusion": {
-          "revealScope": "per_creature",
-          "revealRules": [
-            {
-              "method": "study_action",
-              "actionCost": "action",
-              "ability": "Intelligence",
-              "skill": "Investigation",
-              "dc": "spell_save_dc",
-              "appliesTo": [
-                "Phantasm"
-              ],
-              "notes": "The target can use its Action to examine the phantasm."
-            }
-          ],
-          "discernedState": "not_applicable",
-          "notes": "If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends."
-        }
+        "conditionalEndings": []
       },
       {
         "type": "DAMAGE",
@@ -76023,7 +75448,7 @@
     },
     "effects": [
       {
-        "type": "SUMMONING",
+        "type": "UTILITY",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -76072,11 +75497,42 @@
           "saveModifiers": [],
           "saveOutcomeOverrides": []
         },
+        "utilityType": "other",
         "description": "A Large quasi-real horse-like creature appears on the ground in an unoccupied space of your choice within range. You determine the creature's appearance, but it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed. For the duration, you or a creature you choose can ride the steed. The creature uses the statistics for a Riding Horse, except it has a Speed of 100 feet and can travel 13 miles in an hour, or 13 miles at a fast pace. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends early if the steed takes any damage.",
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
           "customFormula": ""
+        },
+        "grantedActions": [],
+        "attackAugments": [],
+        "controlOptions": [],
+        "taunt": {
+          "disadvantageAgainstOthers": false,
+          "leashRangeFeet": 0,
+          "breakConditions": []
+        },
+        "savePenalty": {
+          "dice": "",
+          "flat": 0,
+          "applies": "next_save",
+          "duration": {
+            "type": "rounds",
+            "value": 0
+          }
+        },
+        "light": {
+          "brightRadius": 0,
+          "dimRadius": 0,
+          "attachedTo": "caster",
+          "color": "",
+          "colorChoice": "not_applicable",
+          "opaqueCoverBlocks": "not_applicable",
+          "emitsHeat": "not_applicable",
+          "ignitesObjects": "not_applicable",
+          "consumesFuel": "not_applicable",
+          "canBeCoveredOrHidden": "not_applicable",
+          "canBeSmotheredOrQuenched": "not_applicable"
         },
         "conditionalEndings": [
           {
@@ -76084,29 +75540,7 @@
             "scope": "spell",
             "description": "The spell ends early if the phantom steed takes any damage."
           }
-        ],
-        "summon": {
-          "entityType": "mount",
-          "persistent": false,
-          "count": 1,
-          "commandCost": "none",
-          "statBlock": {
-            "name": "Phantom Steed",
-            "type": "Beast",
-            "size": "Large",
-            "hp": 13,
-            "ac": 10,
-            "speed": 100,
-            "abilities": {
-              "str": 16,
-              "dex": 10,
-              "con": 12,
-              "int": 2,
-              "wis": 11,
-              "cha": 7
-            }
-          }
-        }
+        ]
       }
     ],
     "arbitrationType": "mechanical",
@@ -77028,7 +76462,7 @@
     },
     "effects": [
       {
-        "type": "TERRAIN",
+        "type": "UTILITY",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -77077,45 +76511,44 @@
           "saveModifiers": [],
           "saveOutcomeOverrides": []
         },
+        "utilityType": "other",
         "description": "This spell channels vitality into plants. The casting time you use determines whether the spell has the Overgrowth or the Enrichment effect below. Overgrowth. Choose a point within range. All normal plants in a 100-foot-radius Sphere centered on that point become thick and overgrown. A creature moving through that area must spend 4 feet of movement for every 1 foot it moves. You can exclude one or more areas of any size within the spell's area from being affected. Enrichment. All plants in a half-mile radius centered on a point within range become enriched for 365 days. The plants yield twice the normal amount of food when harvested. They can benefit from only one Plant Growth per year.",
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
           "customFormula": ""
         },
-        "conditionalEndings": [],
-        "terrainType": "difficult",
-        "areaOfEffect": {
-          "shape": "Sphere",
-          "size": 100,
-          "height": 0
+        "grantedActions": [],
+        "attackAugments": [],
+        "controlOptions": [],
+        "taunt": {
+          "disadvantageAgainstOthers": false,
+          "leashRangeFeet": 0,
+          "breakConditions": []
         },
-        "duration": {
-          "type": "special",
-          "value": 0
-        },
-        "damage": {
+        "savePenalty": {
           "dice": "",
-          "type": ""
-        },
-        "wallProperties": {
-          "hp": 0,
-          "ac": 0
-        },
-        "dispersedByStrongWind": false,
-        "manipulation": {
-          "type": "cosmetic",
-          "volume": {
-            "shape": "Cube",
-            "size": 0,
-            "depth": 0
-          },
+          "flat": 0,
+          "applies": "next_save",
           "duration": {
             "type": "rounds",
             "value": 0
-          },
-          "depositDistance": 0
-        }
+          }
+        },
+        "light": {
+          "brightRadius": 0,
+          "dimRadius": 0,
+          "attachedTo": "caster",
+          "color": "",
+          "colorChoice": "not_applicable",
+          "opaqueCoverBlocks": "not_applicable",
+          "emitsHeat": "not_applicable",
+          "ignitesObjects": "not_applicable",
+          "consumesFuel": "not_applicable",
+          "canBeCoveredOrHidden": "not_applicable",
+          "canBeSmotheredOrQuenched": "not_applicable"
+        },
+        "conditionalEndings": []
       },
       {
         "type": "UTILITY",
@@ -89148,16 +88581,7 @@
           "bonusPerLevel": "",
           "customFormula": ""
         },
-        "grantedActions": [
-          {
-            "type": "action",
-            "action": "Dismiss",
-            "frequency": "while_active",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "notes": "Dismiss an active non-instantaneous effect."
-          }
-        ],
+        "grantedActions": [],
         "attackAugments": [],
         "controlOptions": [
           {
@@ -90921,10 +90345,21 @@
           "saveOutcomeOverrides": []
         },
         "statusCondition": {
-          "name": "Opportunity Attacks Suppressed",
+          "name": "Reactions Suppressed",
           "duration": {
             "type": "rounds",
             "value": 1
+          },
+          "level": 0,
+          "escapeCheck": {
+            "dc": 0,
+            "actionCost": "action"
+          },
+          "repeatSave": {
+            "timing": "turn_end",
+            "saveType": "Wisdom",
+            "successEnds": true,
+            "useOriginalDC": true
           }
         },
         "scaling": {
@@ -91766,53 +91201,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [],
-        "sensoryManifestation": {
-          "modeSource": "not_applicable",
-          "variants": [
-            {
-              "label": "Visual Image",
-              "allowedSenses": [
-                "sight"
-              ],
-              "excludedSenses": [
-                "sound",
-                "smell",
-                "other_sensory_effect"
-              ],
-              "maxSize": {
-                "shape": "Cube",
-                "size": 15,
-                "unit": "feet"
-              },
-              "notes": "The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects."
-            }
-          ]
-        },
-        "illusion": {
-          "revealScope": "per_creature",
-          "revealRules": [
-            {
-              "method": "physical_interaction",
-              "appliesTo": [
-                "Visual Image"
-              ],
-              "notes": "Physical interaction with the image reveals it to be an illusion, because things can pass through it."
-            },
-            {
-              "method": "study_action",
-              "actionCost": "action",
-              "ability": "Intelligence",
-              "skill": "Investigation",
-              "dc": "spell_save_dc",
-              "appliesTo": [
-                "Visual Image"
-              ]
-            }
-          ],
-          "discernedState": "transparent_to_discerning_creature",
-          "notes": "If a creature discerns the illusion for what it is, the creature can see through the image."
-        }
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -93017,96 +92406,6 @@
         },
         "description": "",
         "conditionalEndings": []
-      },
-      {
-        "type": "TERRAIN",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "terrainType": "difficult",
-        "areaOfEffect": {
-          "shape": "Cylinder",
-          "size": 20,
-          "height": 40
-        },
-        "duration": {
-          "type": "minutes",
-          "value": 1
-        },
-        "damage": {
-          "dice": "",
-          "type": ""
-        },
-        "description": "Ground in the Cylinder is Difficult Terrain.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "wallProperties": {
-          "hp": 0,
-          "ac": 0
-        },
-        "dispersedByStrongWind": false,
-        "manipulation": {
-          "type": "cosmetic",
-          "volume": {
-            "shape": "Cube",
-            "size": 0,
-            "depth": 0
-          },
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          },
-          "depositDistance": 0
-        },
-        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -93210,7 +92509,7 @@
     },
     "effects": [
       {
-        "type": "STATUS_CONDITION",
+        "type": "UTILITY",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -93226,9 +92525,7 @@
           }
         },
         "condition": {
-          "type": "save",
-          "saveType": "Wisdom",
-          "saveEffect": "negates_condition",
+          "type": "always",
           "targetFilter": {
             "creatureTypes": [],
             "excludeCreatureTypes": [],
@@ -93261,25 +92558,52 @@
           "saveModifiers": [],
           "saveOutcomeOverrides": []
         },
-        "statusCondition": {
-          "name": "Slowed",
-          "duration": {
-            "type": "minutes",
-            "value": 1
-          },
-          "level": 0,
-          "repeatSave": {
-            "timing": "turn_end",
-            "saveType": "Wisdom",
-            "successEnds": true,
-            "useOriginalDC": true
-          }
-        },
+        "utilityType": "other",
         "description": "You alter time around up to six creatures of your choice in a 40-foot Cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration. An affected target's Speed is halved, it takes a -2 penalty to AC and Dexterity saving throws, and it can't take Reactions. On its turns, it can take either an action or a Bonus Action, not both, and it can make only one attack if it takes the Attack action. If it casts a spell with a Somatic component, there is a 25 percent chance the spell fails as a result of the target making the spell's gestures too slowly. An affected target repeats the save at the end of each of its turns, ending the spell on itself on a success.",
+        "recurringMechanics": [
+          {
+            "timing": "turn_end",
+            "frequency": "every_time",
+            "saveType": "Wisdom",
+            "saveEffect": "negates_condition",
+            "successOutcome": "effect_ends_for_target",
+            "notes": "An affected target repeats the Wisdom save at the end of each of its turns, ending Slow on itself on a success."
+          }
+        ],
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
           "customFormula": ""
+        },
+        "grantedActions": [],
+        "attackAugments": [],
+        "controlOptions": [],
+        "taunt": {
+          "disadvantageAgainstOthers": false,
+          "leashRangeFeet": 0,
+          "breakConditions": []
+        },
+        "savePenalty": {
+          "dice": "",
+          "flat": 0,
+          "applies": "next_save",
+          "duration": {
+            "type": "rounds",
+            "value": 0
+          }
+        },
+        "light": {
+          "brightRadius": 0,
+          "dimRadius": 0,
+          "attachedTo": "caster",
+          "color": "",
+          "colorChoice": "not_applicable",
+          "opaqueCoverBlocks": "not_applicable",
+          "emitsHeat": "not_applicable",
+          "ignitesObjects": "not_applicable",
+          "consumesFuel": "not_applicable",
+          "canBeCoveredOrHidden": "not_applicable",
+          "canBeSmotheredOrQuenched": "not_applicable"
         },
         "conditionalEndings": []
       }
@@ -95026,96 +94350,6 @@
           "depositDistance": 0
         },
         "conditionalEndings": []
-      },
-      {
-        "type": "TERRAIN",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "terrainType": "difficult",
-        "areaOfEffect": {
-          "shape": "Sphere",
-          "size": 20,
-          "height": 0
-        },
-        "duration": {
-          "type": "minutes",
-          "value": 10
-        },
-        "damage": {
-          "dice": "",
-          "type": ""
-        },
-        "description": "The area becomes Difficult Terrain.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "wallProperties": {
-          "hp": 0,
-          "ac": 0
-        },
-        "dispersedByStrongWind": false,
-        "manipulation": {
-          "type": "cosmetic",
-          "volume": {
-            "shape": "Cube",
-            "size": 0,
-            "depth": 0
-          },
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          },
-          "depositDistance": 0
-        },
-        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -95499,105 +94733,6 @@
           "type": "custom",
           "customFormula": "Damage increases by 1d8 at slots 3/4, and another 1d8 at 5/6, etc.",
           "bonusPerLevel": ""
-        },
-        "conditionalEndings": []
-      },
-      {
-        "type": "UTILITY",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "utilityType": "control",
-        "description": "You can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "grantedActions": [
-          {
-            "type": "bonus_action",
-            "action": "Move and Attack",
-            "frequency": "each_turn",
-            "actor": "caster",
-            "actionKind": "standard_action",
-            "rangeLimit": 20,
-            "notes": "Move the force up to 20 feet and repeat the attack against a creature within 5 feet of it."
-          }
-        ],
-        "attackAugments": [],
-        "controlOptions": [],
-        "taunt": {
-          "disadvantageAgainstOthers": false,
-          "leashRangeFeet": 0,
-          "breakConditions": []
-        },
-        "savePenalty": {
-          "dice": "",
-          "flat": 0,
-          "applies": "next_save",
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          }
-        },
-        "light": {
-          "brightRadius": 0,
-          "dimRadius": 0,
-          "attachedTo": "caster",
-          "color": "",
-          "colorChoice": "not_applicable",
-          "opaqueCoverBlocks": "not_applicable",
-          "emitsHeat": "not_applicable",
-          "ignitesObjects": "not_applicable",
-          "consumesFuel": "not_applicable",
-          "canBeCoveredOrHidden": "not_applicable",
-          "canBeSmotheredOrQuenched": "not_applicable"
         },
         "conditionalEndings": []
       }
@@ -98547,7 +97682,7 @@
     },
     "effects": [
       {
-        "type": "SUMMONING",
+        "type": "UTILITY",
         "trigger": {
           "type": "immediate",
           "frequency": "every_time",
@@ -98596,11 +97731,42 @@
           "saveModifiers": [],
           "saveOutcomeOverrides": []
         },
+        "utilityType": "other",
         "description": "You call forth a bestial spirit. It manifests in an unoccupied space that you can see within range and uses the Bestial Spirit stat block. When you cast the spell, choose an environment: Air, Land, or Water. The creature resembles an animal of your choice that is native to the chosen environment, which determines certain details in its stat block. The creature is an ally to you and your companions. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
         "scaling": {
           "type": "slot_level",
           "bonusPerLevel": "",
           "customFormula": ""
+        },
+        "grantedActions": [],
+        "attackAugments": [],
+        "controlOptions": [],
+        "taunt": {
+          "disadvantageAgainstOthers": false,
+          "leashRangeFeet": 0,
+          "breakConditions": []
+        },
+        "savePenalty": {
+          "dice": "",
+          "flat": 0,
+          "applies": "next_save",
+          "duration": {
+            "type": "rounds",
+            "value": 0
+          }
+        },
+        "light": {
+          "brightRadius": 0,
+          "dimRadius": 0,
+          "attachedTo": "caster",
+          "color": "",
+          "colorChoice": "not_applicable",
+          "opaqueCoverBlocks": "not_applicable",
+          "emitsHeat": "not_applicable",
+          "ignitesObjects": "not_applicable",
+          "consumesFuel": "not_applicable",
+          "canBeCoveredOrHidden": "not_applicable",
+          "canBeSmotheredOrQuenched": "not_applicable"
         },
         "conditionalEndings": [
           {
@@ -98608,54 +97774,7 @@
             "scope": "effect",
             "description": "The bestial spirit disappears when it drops to 0 Hit Points."
           }
-        ],
-        "summon": {
-          "entityType": "creature",
-          "persistent": false,
-          "count": 1,
-          "commandCost": "none",
-          "initiative": "shared",
-          "statBlock": {
-            "name": "Bestial Spirit",
-            "type": "Beast",
-            "size": "Small",
-            "hp": 20,
-            "ac": 13,
-            "speed": 30,
-            "flySpeed": 60,
-            "climbSpeed": 30,
-            "swimSpeed": 30,
-            "abilities": {
-              "str": 18,
-              "dex": 11,
-              "con": 16,
-              "int": 4,
-              "wis": 14,
-              "cha": 5
-            },
-            "senses": [
-              "Darkvision 60 ft.",
-              "Passive Perception 12"
-            ],
-            "cr": "None"
-          },
-          "formOptions": [
-            "Air",
-            "Land",
-            "Water"
-          ],
-          "specialActions": [
-            {
-              "name": "Rend",
-              "description": "Melee spell attack, reach 5 ft. Hit: 1d8 + 4 + the spell's level Piercing damage. The spirit makes a number of Rend attacks equal to half the spell's level, rounded down.",
-              "cost": "action",
-              "damage": {
-                "dice": "1d8 + 4 + spell_level",
-                "type": "piercing"
-              }
-            }
-          ]
-        }
+        ]
       }
     ],
     "arbitrationType": "mechanical",
@@ -103773,14 +102892,7 @@
           "canBeCoveredOrHidden": "not_applicable",
           "canBeSmotheredOrQuenched": "not_applicable"
         },
-        "conditionalEndings": [],
-        "soundEmission": {
-          "audibleRadius": "not_applicable",
-          "radiusUnit": "not_applicable",
-          "source": "caster",
-          "trigger": "on_cast",
-          "description": "Your voice booms up to three times as loud as normal for 1 minute."
-        }
+        "conditionalEndings": []
       }
     ],
     "arbitrationType": "mechanical",
@@ -108159,12 +107271,7 @@
           "operator": "not_applicable",
           "value": "not_applicable"
         },
-        "selfRelation": "not_applicable",
-        "placementEligibility": {
-          "unoccupied": "required",
-          "surface": "ground",
-          "destination": "not_applicable"
-        }
+        "selfRelation": "not_applicable"
       }
     },
     "effects": [
@@ -108212,12 +107319,7 @@
               "operator": "not_applicable",
               "value": "not_applicable"
             },
-            "selfRelation": "not_applicable",
-            "placementEligibility": {
-              "unoccupied": "required",
-              "surface": "ground",
-              "destination": "not_applicable"
-            }
+            "selfRelation": "not_applicable"
           },
           "requiresStatus": [],
           "saveModifiers": [],
@@ -112741,96 +111843,6 @@
           "type": "slot_level",
           "bonusPerLevel": "",
           "customFormula": ""
-        },
-        "conditionalEndings": []
-      },
-      {
-        "type": "TERRAIN",
-        "trigger": {
-          "type": "immediate",
-          "frequency": "every_time",
-          "consumption": "unlimited",
-          "attackFilter": {
-            "weaponType": "any",
-            "attackType": "any"
-          },
-          "movementType": "any",
-          "sustainCost": {
-            "actionType": "action",
-            "optional": false
-          }
-        },
-        "condition": {
-          "type": "always",
-          "targetFilter": {
-            "creatureTypes": [],
-            "excludeCreatureTypes": [],
-            "sizes": [],
-            "alignments": [],
-            "hasCondition": [],
-            "isNativeToPlane": false,
-            "willing": "not_applicable",
-            "objectEligibility": {
-              "wornOrCarried": "not_applicable",
-              "magicalStatus": "not_applicable",
-              "fixedToSurface": "not_applicable",
-              "maxSize": "not_applicable",
-              "maxWeightPounds": "not_applicable",
-              "maxWeightScaling": "not_applicable"
-            },
-            "communicationPrerequisites": {
-              "canHearCaster": "not_applicable",
-              "canUnderstandCaster": "not_applicable",
-              "canSeeCaster": "not_applicable"
-            },
-            "abilityThreshold": {
-              "ability": "not_applicable",
-              "operator": "not_applicable",
-              "value": "not_applicable"
-            },
-            "selfRelation": "not_applicable"
-          },
-          "requiresStatus": [],
-          "saveModifiers": [],
-          "saveOutcomeOverrides": []
-        },
-        "terrainType": "difficult",
-        "areaOfEffect": {
-          "shape": "Cube",
-          "size": 20,
-          "height": 0
-        },
-        "duration": {
-          "type": "minutes",
-          "value": 60
-        },
-        "damage": {
-          "dice": "",
-          "type": ""
-        },
-        "description": "The webs are Difficult Terrain.",
-        "scaling": {
-          "type": "slot_level",
-          "bonusPerLevel": "",
-          "customFormula": ""
-        },
-        "wallProperties": {
-          "hp": 0,
-          "ac": 0
-        },
-        "dispersedByStrongWind": false,
-        "manipulation": {
-          "type": "cosmetic",
-          "volume": {
-            "shape": "Cube",
-            "size": 0,
-            "depth": 0
-          },
-          "duration": {
-            "type": "rounds",
-            "value": 0
-          },
-          "depositDistance": 0
         },
         "conditionalEndings": []
       }

@@ -29,32 +29,6 @@ import { RACES_DATA as _RACES_DATA } from '../../../constants';
 // TODO(lint-intent): 'initialCharacterCreatorState' is unused in this test; use it in the assertion path or remove it.
 import { initialCharacterCreatorState as _initialCharacterCreatorState, CreationStep as _CreationStep } from '../state/characterCreatorState';
 
-const motionComponent = (tag: keyof JSX.IntrinsicElements) => {
-  return ({
-    children,
-    layout,
-    layoutId,
-    whileTap,
-    whileHover,
-    whileInView,
-    initial,
-    animate,
-    exit,
-    transition,
-    variants,
-    custom,
-    ...props
-  }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode; [key: string]: unknown }) =>
-    React.createElement(tag, props as React.HTMLAttributes<HTMLElement>, children);
-};
-
-vi.mock('framer-motion', () => ({
-  motion: new Proxy({}, {
-    get: (_target, key) => motionComponent(key as keyof JSX.IntrinsicElements),
-  }),
-  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-}));
-
 // Mocks
 const mockOnCharacterCreate = vi.fn();
 const mockOnExitToMainMenu = vi.fn();
@@ -65,8 +39,8 @@ const mockSpells = {
   getByLevel: vi.fn(() => []),
   getByIds: vi.fn(() => []),
   getBySchool: vi.fn(() => []),
-  // DEBT: Cast to any to allow partial mock of SpellContext without full interface implementation in tests.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// DEBT: Cast to any to allow partial mock of SpellContext without full interface implementation in tests.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 // We need to wrap the component in a test provider to supply the context
@@ -75,6 +49,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     {children}
   </SpellContext.Provider>
 );
+
 
 describe('CharacterCreator Flow', () => {
   beforeEach(() => {
@@ -97,10 +72,10 @@ describe('CharacterCreator Flow', () => {
     expect(screen.getByText('Choose Your Race')).toBeInTheDocument();
 
     // 2. Select Changeling (grouped under Shapeshifters)
-    const shapeshiftersGroupButton = await screen.findByRole('button', { name: /Shapeshifters/i }, { timeout: 5000 });
+    const shapeshiftersGroupButton = screen.getByRole('button', { name: /Shapeshifters/i });
     fireEvent.click(shapeshiftersGroupButton);
 
-    const changelingVariantButton = await screen.findByRole('button', { name: /^Changeling$/i }, { timeout: 5000 });
+    const changelingVariantButton = screen.getByRole('button', { name: /^Changeling$/i });
     fireEvent.click(changelingVariantButton);
 
     // Changeling Instincts is now selected inline during race selection (required before confirming).
@@ -113,8 +88,8 @@ describe('CharacterCreator Flow', () => {
     fireEvent.click(confirmButton);
 
     // 3. Advance past Age Selection
-    await screen.findByRole('heading', { name: /Age Selection/i }, { timeout: 5000 });
-    const nextButtonAfterAge = await screen.findByRole('button', { name: /^Next$/i }, { timeout: 5000 });
+    await screen.findByRole('heading', { name: /Age Selection/i });
+    const nextButtonAfterAge = await screen.findByRole('button', { name: /^Next$/i });
     fireEvent.click(nextButtonAfterAge);
 
     // 4. Advance past Background Selection
@@ -124,16 +99,16 @@ describe('CharacterCreator Flow', () => {
     // a specific string ('Acolyte') became a maintenance burden;
     // validating the presence of the 'Confirm' action is sufficient
     // for this integration smoke test.
-    const confirmBackgroundButton = await screen.findByRole('button', { name: /^Confirm /i }, { timeout: 8000 });
+    const confirmBackgroundButton = await screen.findByRole('button', { name: /^Confirm /i }, { timeout: 5000 });
     fireEvent.click(confirmBackgroundButton);
 
     // 5. Advance past Visuals Selection
     // Wait for the visuals step to render before grabbing the action button (AnimatePresence can be slow in suites).
     await screen.findByRole('heading', { name: /Customize Appearance/i }, { timeout: 5000 });
-    const nextButtonAfterVisuals = await screen.findByRole('button', { name: /^Next$/i }, { timeout: 5000 });
+    const nextButtonAfterVisuals = screen.getByRole('button', { name: /^Next$/i });
     fireEvent.click(nextButtonAfterVisuals);
 
     // 6. Assert we are at the Class Selection step (wait for motion transition).
-    expect(await screen.findByRole('heading', { name: /Choose Your Class/i }, { timeout: 8000 })).toBeInTheDocument();
-  }, 25000); // Allow for async step transitions + animations during full-suite runs.
+    expect(await screen.findByRole('heading', { name: /Choose Your Class/i })).toBeInTheDocument();
+  }, 20000); // Allow for async step transitions + animations during full-suite runs.
 });

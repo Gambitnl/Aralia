@@ -14,17 +14,17 @@ export class CommandExecutor {
   /**
    * Execute a sequence of commands
    */
-  static async execute(
+  static execute(
     commands: SpellCommand[],
     initialState: CombatState
-  ): Promise<ExecutionResult> {
+  ): ExecutionResult {
     let currentState = initialState
     const executedCommands: SpellCommand[] = []
 
     try {
       for (const command of commands) {
         // Execute command
-        currentState = await command.execute(currentState)
+        currentState = command.execute(currentState)
         executedCommands.push(command)
 
         // Log execution (debug level)
@@ -65,11 +65,11 @@ export class CommandExecutor {
   /**
    * Execute commands with rollback on failure
    */
-  static async executeWithRollback(
+  static executeWithRollback(
     commands: SpellCommand[],
     initialState: CombatState
-  ): Promise<ExecutionResult> {
-    const result = await this.execute(commands, initialState)
+  ): ExecutionResult {
+    const result = this.execute(commands, initialState)
 
     if (!result.success && result.executedCommands.length > 0) {
       // Attempt rollback

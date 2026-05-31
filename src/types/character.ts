@@ -461,7 +461,6 @@ export interface RacialSelectionData {
   choiceId?: string;
   spellAbility?: AbilityScoreName;
   skillIds?: string[];
-  selectedSpellIds?: string[];
 }
 
 export type TransportMode = 'foot' | 'mounted';
@@ -507,7 +506,6 @@ export interface PlayerCharacter {
     initiativeProficiency?: boolean;
     ignoreDifficultTerrain?: boolean;
     breathWeapon?: RacialBreathWeapon;
-    reactions?: any[]; // Using any[] for now to avoid complex circular dependencies with RacialReaction
   };
   /**
    * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).

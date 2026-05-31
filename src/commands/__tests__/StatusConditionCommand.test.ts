@@ -97,7 +97,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
 });
 
 describe('StatusConditionCommand', () => {
-  it('applies conditions and mirrors them to statusEffects', async () => {
+  it('applies conditions and mirrors them to statusEffects', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 });
     const target = makeCharacter('target', { x: 1, y: 0 });
     const state = makeState([caster, target]);
@@ -110,7 +110,7 @@ describe('StatusConditionCommand', () => {
     };
 
     const command = new StatusConditionCommand(effect, makeContext(caster, [target]));
-    const result = await command.execute(state);
+    const result = command.execute(state);
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.conditions?.[0]?.name).toBe('Prone');

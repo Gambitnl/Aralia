@@ -9,7 +9,8 @@
  */
 import type { Polygon } from './types';
 import { extractPolygons } from './marchingSquares';
-import { SEA_LEVEL } from './constants';
+
+const SEA_LEVEL = 20;
 
 export function extractCoastlines(heights: number[], cols: number, rows: number): Polygon[] {
   const at = (x: number, y: number) => heights[y * cols + x] ?? 0;
@@ -39,9 +40,8 @@ export function extractLakes(heights: number[], cols: number, rows: number): Pol
   }
 
   // 4-neighbor flood-fill from those seeds.
-  let head = 0;
-  while (head < queue.length) {
-    const i = queue[head++];
+  while (queue.length) {
+    const i = queue.shift() as number;
     const x = i % cols;
     const y = (i / cols) | 0;
     push(x + 1, y);

@@ -126,7 +126,7 @@ function processSourceFiles() {
       for (const t of baseItemsData.itemType || []) {
           typeMap[t.abbreviation] = t.name;
       }
-  } catch { /* Optional item type metadata is allowed to be unavailable during glossary ingest. */ }
+  } catch(e) { /* ignore */ }
 
   for (const source of sources) {
     const fullPath = path.join(VENDOR_DATA_DIR, source.file);

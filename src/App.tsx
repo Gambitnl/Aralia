@@ -113,7 +113,6 @@ const CharacterCreator = lazy(() => import('./components/CharacterCreator/Charac
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
-const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
 // --- Decoupled Developer Tools Registry ---
 // Some developer tools have been decoupled from the main application bundle to 
 // optimize production builds and prevent build-time dependencies on local-only files.
@@ -922,13 +921,6 @@ const App: React.FC = () => {
           initialCharacters={gameState.currentEnemies || []}
           party={gameState.party}
         />
-      </ErrorBoundary>
-    );
-  } else if (gameState.phase === GamePhase.WORLD3D_DEMO) {
-    // Render the 3D Sandbox Demo
-    mainContent = (
-      <ErrorBoundary fallbackMessage="An error occurred in the 3D Sandbox.">
-        <World3DDemo />
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.COMBAT) {

@@ -10,8 +10,7 @@ export declare enum GamePhase {
     LOAD_TRANSITION = 5,
     VILLAGE_VIEW = 6,
     COMBAT = 7,
-    NOT_FOUND = 8,
-    WORLD3D_DEMO = 9
+    NOT_FOUND = 8
 }
 export type AbilityScoreName = 'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma';
 export interface AbilityScores {

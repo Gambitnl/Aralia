@@ -198,37 +198,13 @@ export const getRacialSpellGrantsForCharacter = (
   const legacyRaceGrants = (race as any).knownSpells ?? [];
   const spellbookGrants = character.spellbook?.racialSpellGrants || [];
 
+  if (libraryGrants.length === 0 && legacyRaceGrants.length === 0 && spellbookGrants.length === 0) {
+    return [];
+  }
+
   const activeGrants = [...libraryGrants, ...legacyRaceGrants]
     .filter(entry => targetLevel >= entry.minLevel)
     .map(entry => normalizeRacialSpellGrantSource(character, entry));
-
-  // 3. Synthesize grants from selections
-  const selections = character.racialSelections?.[race.id];
-  if (selections?.selectedSpellIds) {
-    const libraryChoices = getRacialTraitLibrary().byChoiceRaceId[race.id] || [];
-    selections.selectedSpellIds.forEach(spellId => {
-      const choice = libraryChoices.find(c => 
-        (c.type === 'spellChoice' || c.type === 'spellAbility') && 
-        c.availableSpellIds?.includes(spellId)
-      );
-      if (choice) {
-        const synthesized = normalizeRacialSpellGrantSource(character, {
-          sourceRaceId: race.id,
-          traitName: choice.sourceTraitName,
-          minLevel: 1,
-          spellId: spellId,
-          castingMethod: 'at_will',
-          spellAbility: 'subrace_choice',
-          countsAsPrepared: false,
-        });
-        activeGrants.push(synthesized);
-      }
-    });
-  }
-
-  if (activeGrants.length === 0 && spellbookGrants.length === 0) {
-    return [];
-  }
 
   const byId = new Map<string, RacialSpellGrant>();
 
@@ -878,8 +854,7 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       initiativeBonus: character.modifiers.initiativeBonus,
       initiativeProficiency: character.modifiers.initiativeProficiency,
       ignoreDifficultTerrain: character.modifiers.ignoreDifficultTerrain,
-      reactions: character.modifiers.reactions ? [...character.modifiers.reactions] : [],
-    } : { advantage: [], disadvantage: [], bonuses: [], reactions: [] },
+    } : { advantage: [], disadvantage: [], bonuses: [] },
     skills: [...character.skills],
     weaponProficiencies: [...(character.weaponProficiencies || [])],
     armorProficiencies: [...(character.armorProficiencies || [])],
@@ -1018,12 +993,6 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
     if (trait.modifierBuckets.ignoreDifficultTerrain) {
       next.ignoreDifficultTerrain = true;
       next.modifiers!.ignoreDifficultTerrain = true;
-    }
-    if (trait.modifierBuckets.reactions) {
-      next.modifiers!.reactions = [
-        ...(next.modifiers!.reactions || []),
-        ...trait.modifierBuckets.reactions,
-      ];
     }
   });
 

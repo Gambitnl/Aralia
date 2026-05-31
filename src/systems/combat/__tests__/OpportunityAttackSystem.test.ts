@@ -58,8 +58,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
-      // This fixture uses the combat Ability TargetingType string; spell target-filter objects do not type-check here.
-      cost: { type: 'action' }, description: '', targeting: 'single_enemy', effects: []
+      cost: { type: 'action' }, description: '', targeting: { type: 'single', validTargets: ['creatures'] } as any, effects: []
     });
     attacker.statusEffects.push({
       id: 'oa_suppressed',
@@ -90,8 +89,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
-      // This fixture uses the combat Ability TargetingType string; spell target-filter objects do not type-check here.
-      cost: { type: 'action' }, description: '', targeting: 'single_enemy', effects: []
+      cost: { type: 'action' }, description: '', targeting: { type: 'single', validTargets: ['creatures'] } as any, effects: []
     });
     attacker.statusEffects.push({
       id: 'enemies_abound',
