@@ -56,6 +56,7 @@ it('tributary river records its parentId when joining a trunk', () => {
     W,   W,   W,   60,  W,   W,   W,
   ];
   const rivers = traceRivers(heights, cols, rows, 1);
+
   // At least one river should have a parentId pointing at the trunk.
   const withParents = rivers.filter((r) => r.parentId !== undefined);
   expect(withParents.length).toBeGreaterThanOrEqual(1);

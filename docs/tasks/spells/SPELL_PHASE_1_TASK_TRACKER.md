@@ -58,8 +58,7 @@ Statuses:
 
 See [SPELL_PHASE_1_PR_HANDOFF_INDEX.md](SPELL_PHASE_1_PR_HANDOFF_INDEX.md) for the moved package lineage and durable PR/handoff references. Keep this tracker focused on active queue state, current blockers, and update rules.
 
-Completed Package 0-16 rows moved to [SPELL_PHASE_1_PACKAGE_HISTORY.md](SPELL_PHASE_1_PACKAGE_HISTORY.md).
-Package 17 is the current ready-for-handoff slice; Package 18 is the next continuation packet.
+Completed Package 0-17 rows moved to [SPELL_PHASE_1_PACKAGE_HISTORY.md](SPELL_PHASE_1_PACKAGE_HISTORY.md).
 Keep this live tracker focused on the current package, nearby blockers, and update rules.
 
 
@@ -67,8 +66,7 @@ Keep this live tracker focused on the current package, nearby blockers, and upda
 
 | ID | Status | Owner | Task | Detail file | Current boundary |
 |---|---|---|---|---|---|
-| P17 | waiting | Codex foreman preparation | Reaction and opportunity restrictions for cantrips and levels 1-3 | `PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md`, `PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md` | Package 17 is the current ready-for-handoff slice in the live Symphony store; it should move through the visible Jules handoff before Package 18 becomes active. |
-| P18 | not_started | Codex foreman preparation | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Package 18 remains the next bounded continuation packet after Package 17. |
+| P18 | active | Codex foreman preparation | Reaction and opportunity continuation for cantrips and levels 1-3 | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | Package 18 is scoped as a bounded continuation with a concrete `Jules value` and row-classification requirement. |
 
 ## Current Local Change Classification
 
