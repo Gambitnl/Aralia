@@ -12,7 +12,7 @@
  * - A fog layer handles far chunk blending seamlessly.
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import FreeRoamCameraController from './FreeRoamCameraController';
@@ -26,30 +26,121 @@ interface World3DSceneProps {
   start: readonly [number, number, number];
 }
 
-const LOD_COLOR: Record<string, string> = {
-  full: '#5a7a4a',
-  mid: '#4a6a44',
-  low: '#3a5038',
-  culled: '#2a3a2a',
-};
+// --- per-chunk rendering ---
 
-const ChunkMesh: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+function useDisposableGeometry(arr: {
+  positions: Float32Array;
+  indices: Uint32Array;
+  normals: Float32Array;
+  colors?: Float32Array;
+}) {
   const geometry = useMemo(() => {
-    const terrain = chunk.bundle.terrain;
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(terrain.positions, 3));
-    g.setAttribute('normal', new THREE.BufferAttribute(terrain.normals, 3));
-    g.setIndex(new THREE.BufferAttribute(terrain.indices, 1));
+    g.setAttribute('position', new THREE.BufferAttribute(arr.positions, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(arr.normals, 3));
+    if (arr.colors) g.setAttribute('color', new THREE.BufferAttribute(arr.colors, 3));
+    g.setIndex(new THREE.BufferAttribute(arr.indices, 1));
     return g;
-  }, [chunk.bundle]);
+  }, [arr]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return geometry;
+}
 
+const TerrainPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+  const geometry = useDisposableGeometry(chunk.bundle.terrain);
   const origin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
     <mesh geometry={geometry} position={[origin.x, 0, origin.y]} receiveShadow>
-      <meshStandardMaterial color={LOD_COLOR[chunk.lod] ?? '#5a7a4a'} flatShading />
+      <meshStandardMaterial vertexColors flatShading />
     </mesh>
   );
 };
+
+const WaterPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+  const water = chunk.bundle.water;
+  // Hooks must run unconditionally: build geometry from water or a tiny empty stand-in.
+  const geometry = useDisposableGeometry(
+    water ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
+  );
+  if (!water) return null;
+  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
+  return (
+    <mesh geometry={geometry} position={[origin.x, 0, origin.y]}>
+      <meshStandardMaterial color="#2a5a8a" transparent opacity={0.75} />
+    </mesh>
+  );
+};
+
+const RoadPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+  const roads = chunk.bundle.roads;
+  const geometry = useDisposableGeometry(
+    roads ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
+  );
+  if (!roads) return null;
+  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
+  return (
+    <mesh geometry={geometry} position={[origin.x, 0, origin.y]}>
+      <meshStandardMaterial color="#9a8458" />
+    </mesh>
+  );
+};
+
+const SitePieces: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
+  return (
+    <group position={[origin.x, 0, origin.y]}>
+      {chunk.bundle.sites.map((s) => (
+        <mesh key={s.id} position={[s.localX, s.radius * 0.5, s.localZ]} castShadow>
+          <boxGeometry args={[s.radius, s.radius, s.radius]} />
+          <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : '#888888'} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+const VegetationPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+  const veg = chunk.bundle.vegetation;
+  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
+  const ref = useRef<THREE.InstancedMesh>(null);
+  const count = veg ? veg.positions.length / 3 : 0;
+  useEffect(() => {
+    if (!ref.current || !veg) return;
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const axis = new THREE.Vector3(0, 1, 0);
+    const pos = new THREE.Vector3();
+    const scl = new THREE.Vector3();
+    for (let i = 0; i < count; i++) {
+      const s = veg.scales[i];
+      q.setFromAxisAngle(axis, veg.rotations[i]);
+      pos.set(veg.positions[i * 3], veg.positions[i * 3 + 1], veg.positions[i * 3 + 2]);
+      scl.set(s * 2, s * 5, s * 2);
+      m.compose(pos, q, scl);
+      ref.current.setMatrixAt(i, m);
+    }
+    ref.current.instanceMatrix.needsUpdate = true;
+  }, [veg, count]);
+  if (!veg || count === 0) return null;
+  return (
+    <group position={[origin.x, 0, origin.y]}>
+      <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow>
+        <coneGeometry args={[1, 1, 6]} />
+        <meshStandardMaterial color="#2f5d2f" flatShading />
+      </instancedMesh>
+    </group>
+  );
+};
+
+const ChunkPieces: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => (
+  <>
+    <TerrainPiece chunk={chunk} />
+    <WaterPiece chunk={chunk} />
+    <RoadPiece chunk={chunk} />
+    <SitePieces chunk={chunk} />
+    <VegetationPiece chunk={chunk} />
+  </>
+);
 
 const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
   const { loaded, update } = useChunkStreaming(loader);
@@ -69,7 +160,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
         <fog attach="fog" args={[0x9fb8d0, 300, 1200]} />
         <FreeRoamCameraController initialTarget={start} onPositionChange={onPositionChange} />
         {loaded.map((c) => (
-          <ChunkMesh key={`${c.cx}|${c.cy}`} chunk={c} />
+          <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} />
         ))}
       </Canvas>
     </div>
