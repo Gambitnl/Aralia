@@ -939,6 +939,8 @@ export interface DefensiveEffect extends BaseEffect {
   damageReduction?: {
     dice: string;
     flat?: number;
+    abilityModifier?: SavingThrowAbility;
+    addProficiencyBonus?: boolean;
     appliesTo: "damage_taken";
     frequency?: "once_per_turn" | "every_time";
   };

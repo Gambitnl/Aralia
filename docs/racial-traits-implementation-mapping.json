@@ -237,9 +237,9 @@
         "rawText": "Astral Fire: You know one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this race).",
         "name": "Astral Fire",
         "description": "You know one of the following cantrips of your choice: Dancing Lights, Light, or Sacred Flame. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this race).",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Racial choice materializer",
+        "evidence": "Multi-choice traits are extracted and materialized from character selections."
       },
       {
         "rawText": "Starlight Step: As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",

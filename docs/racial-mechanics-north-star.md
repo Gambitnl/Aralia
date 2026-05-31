@@ -104,8 +104,8 @@ Operational goal:
 
 Current state (2026-05-27):
 
-- Completed: race spell extraction, racial spell-choice requirements, source-scoped racial spell spending, Deep Gnome cast-level caps, parser-derived limited-use resources, damage-type defense materialization, combat projection for damage defenses, character-sheet display for Resistance/Immunity/Vulnerability, Deep Gnome resource-use behavior verification, trait analyzer recognition of defense buckets, reusable modifier bucket parsing (advantage, disadvantage, bonus dice, AC, reach, build, breathing, languages, proficiencies, initiative, difficult terrain), character state materialization for all expanded modifiers, threading into attack/save combat math, and scaling Breath Weapon engine integration.
-- In-progress: highly complex conditional reaction triggers and multi-choice trait resolution.
+- Completed: race spell extraction, racial spell-choice requirements, source-scoped racial spell spending, Deep Gnome cast-level caps, parser-derived limited-use resources, damage-type defense materialization, combat projection for damage defenses, character-sheet display for Resistance/Immunity/Vulnerability, Deep Gnome resource-use behavior verification, trait analyzer recognition of defense buckets, reusable modifier bucket parsing (advantage, disadvantage, bonus dice, AC, reach, build, breathing, languages, proficiencies, initiative, difficult terrain), character state materialization for all expanded modifiers, threading into attack/save combat math, scaling Breath Weapon engine integration, and **multi-choice trait resolution (choice from list)**.
+- In-progress: highly complex conditional reaction triggers.
 - Deferred: mark-table spell-list traits, open non-concrete spell choice lines, heuristic classifier replacement, and Deep Gnome notes naming remain adjacent-deferred unless explicitly promoted.
 
 Canonical Deep Gnome constraints (keep explicit and unchanged):

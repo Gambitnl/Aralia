@@ -86,6 +86,18 @@ const EXEMPT_FILES: Record<string, string> = {
     'Clickable dice faces — distinct non-action visual',
 };
 
+// Internal review/authoring surfaces (non-gameplay UI) are intentionally exempt
+// from production button audit constraints unless they start driving product flows.
+const EXEMPT_DIR_PREFIXES = ['components/DesignPreview/'];
+
+function getExemptReason(relPath: string): string | undefined {
+  if (EXEMPT_FILES[relPath]) return EXEMPT_FILES[relPath];
+  if (EXEMPT_DIR_PREFIXES.some(prefix => relPath.startsWith(prefix))) {
+    return 'DesignPreview authoring surface: preview-only UI, not gameplay product flow';
+  }
+  return undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -179,8 +191,9 @@ function auditFile(absPath: string): AuditEntry {
   const importsButtonComponent = IMPORTS_BUTTON_COMPONENT_RE.test(src);
 
   // Exempt?
-  if (EXEMPT_FILES[rel]) {
-    return { file: rel, category: 'exempt', rawButtonCount: totalRaw, exemptReason: EXEMPT_FILES[rel] };
+  const exemptReason = getExemptReason(rel);
+  if (exemptReason) {
+    return { file: rel, category: 'exempt', rawButtonCount: totalRaw, exemptReason };
   }
 
   // No raw buttons — check if it uses the <Button> component properly
@@ -296,16 +309,16 @@ describe('Button Design System Audit', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Optional regression guard
-  // Set ENABLE_REGRESSION_GUARD = true and update BASELINE_VIOLATION_COUNT
-  // to the "Needs work" number printed above after your first audit run.
-  // Once enabled, the test will fail if anyone adds a new unacknowledged
-  // raw button — it can only stay the same or improve.
+  // Regression guard
+  // ENABLE_REGRESSION_GUARD controls whether this suite fails when new
+  // unacknowledged raw-button violations are introduced.
+  // Keep BASELINE_VIOLATION_COUNT at the current accepted count and allow only
+  // equal or improving totals.
   // -----------------------------------------------------------------------
   const ENABLE_REGRESSION_GUARD = true;
-  const BASELINE_VIOLATION_COUNT = 112; // established 2026-03-11 at 108; drifted to 112 by 2026-05-08 across 14 component commits — only reduce from here
+  const BASELINE_VIOLATION_COUNT = 88; // baseline after excluding DesignPreview preview surfaces as intentional
 
-  it('regression guard: no new raw-button violations introduced (disabled until baseline is set)', () => {
+  it('regression guard: no new raw-button violations introduced', () => {
     if (!ENABLE_REGRESSION_GUARD) {
       console.log(
         '\n  ℹ️  Regression guard is disabled.\n' +

@@ -5,7 +5,9 @@ const fakeTiles = (cols: number, rows: number) => {
   const tiles = [];
   for (let y = 0; y < rows; y++) {
     const row = [];
-    for (let x = 0; x < cols; x++) row.push({ x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false });
+    for (let x = 0; x < cols; x++) {
+      row.push({ x, y, biomeId: 'plains', discovered: false, isPlayerCurrent: false });
+    }
     tiles.push(row);
   }
   return tiles;

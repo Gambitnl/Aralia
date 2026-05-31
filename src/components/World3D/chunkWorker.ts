@@ -1,0 +1,40 @@
+/**
+ * @file chunkWorker.ts
+ * @description Web Worker entry. Thin glue around handleChunkRequest — receives the WorldData
+ * once via an `init` message, then answers `load` requests with geometry arrays.
+ *
+ * Why this is built this way:
+ * - Real-time mesh generation of large 3D heightfields is computationally expensive.
+ *   Running this task on a background worker thread keeps the React main render thread
+ *   silky-smooth at 60fps.
+ * - Transferable objects: The Float32Array and Uint32Array backing buffers are passed in
+ *   the second argument of postMessage. This transfers ownership of the memory instantly
+ *   without doing any deep copies, making off-thread rendering zero-overhead.
+ *
+ * Known limitations/deferred issues:
+ * - Web Workers do not run in Node/jsdom/Vitest environments. Therefore, all worker core logic
+ *   lives inside pure, synchronously-testable modules (chunkWorkerCore.ts) so we maintain test coverage.
+ */
+
+/// <reference lib="webworker" />
+import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
+import type { WorldData } from '@/services/worldSim/types';
+
+let world: WorldData | null = null;
+
+self.onmessage = (ev: MessageEvent) => {
+  const msg = ev.data;
+  if (msg.type === 'init') {
+    world = msg.world as WorldData;
+    return;
+  }
+  if (msg.type === 'load' && world) {
+    const geometry = handleChunkRequest(world, { cx: msg.cx, cy: msg.cy, resolution: msg.resolution });
+    
+    // Transfer the underlying array buffers so it's a zero-copy transfer to the main thread
+    (self as unknown as Worker).postMessage(
+      { id: msg.id, geometry },
+      [geometry.positions.buffer, geometry.indices.buffer, geometry.normals.buffer],
+    );
+  }
+};

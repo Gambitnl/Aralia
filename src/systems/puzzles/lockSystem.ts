@@ -8,10 +8,19 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { rollAbilityCheck } from '../../utils/character/checkUtils';
+import { rollDice } from '../../utils/combatUtils';
+import { getAbilityModifierValue } from '../../utils/statUtils';
 import { Lock, Trap, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
 
 const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
+const getLegacyStats = (character: PlayerCharacter) => ({
+  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
+  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
+  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
+  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
+  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
+  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
+});
 
 /**
  * Checks if a character has proficiency with a specific tool.
@@ -49,9 +58,12 @@ export function attemptLockpick(
     return { success: false, margin: -10, triggeredTrap: false };
   }
 
-  // Use rollAbilityCheck for Sleight of Hand (Dexterity)
-  const result = rollAbilityCheck(character, 'Dexterity', 'Sleight of Hand');
-  const total = result.total;
+  // Keep legacy-style lockpicking checks aligned with other puzzle systems in this package.
+  const stats = getLegacyStats(character);
+  const dexMod = getAbilityModifierValue(stats.dexterity);
+  const isProficient = hasToolProficiency(character, 'thieves-tools');
+  const bonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
+  const total = rollDice('1d20') + dexMod + bonus;
 
   const success = total >= lock.dc;
   const margin = total - lock.dc;
@@ -87,8 +99,10 @@ export function attemptBreak(
 
   // If breakDC is defined, it's a single check
   if (lock.breakDC) {
-    const result = rollAbilityCheck(character, 'Strength', 'Athletics');
-    const total = result.total;
+    // Keep break checks on raw strength modifier only; no skill bonus unless called elsewhere.
+    const stats = getLegacyStats(character);
+    const strMod = getAbilityModifierValue(stats.strength);
+    const total = rollDice('1d20') + strMod;
     const success = total >= lock.breakDC;
     return {
       success,
@@ -111,12 +125,15 @@ export function detectTrap(
     return { success: true, margin: 0, trapDetected: true };
   }
 
-  // Use the higher of Perception (Wisdom) or Investigation (Intelligence) logic
-  const perceptionResult = rollAbilityCheck(character, 'Wisdom', 'Perception');
-  const investigationResult = rollAbilityCheck(character, 'Intelligence', 'Investigation');
-
-  const result = perceptionResult.total >= investigationResult.total ? perceptionResult : investigationResult;
-  const total = result.total;
+  // Use the higher of Perception (Wisdom) or Investigation (Intelligence) logic.
+  const stats = getLegacyStats(character);
+  const wisMod = getAbilityModifierValue(stats.wisdom);
+  const intMod = getAbilityModifierValue(stats.intelligence);
+  const perceptionRoll = rollDice('1d20');
+  const investigationRoll = rollDice('1d20');
+  const perceptionTotal = perceptionRoll + wisMod;
+  const investigationTotal = investigationRoll + intMod;
+  const total = Math.max(perceptionTotal, investigationTotal);
 
   const success = total >= trap.detectionDC;
 
@@ -144,9 +161,12 @@ export function disarmTrap(
      return { success: false, margin: -10, triggeredTrap: false };
    }
 
-   // Use rollAbilityCheck for Thieves' Tools check (usually Dexterity)
-   const result = rollAbilityCheck(character, 'Dexterity', 'Sleight of Hand');
-   const total = result.total;
+  // Keep the legacy lock roll shape here so older puzzle DCs stay calibrated while the shared check system evolves.
+  const stats = getLegacyStats(character);
+  const dexMod = getAbilityModifierValue(stats.dexterity);
+  const isProficient = hasToolProficiency(character, 'thieves-tools');
+  const bonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
+  const total = rollDice('1d20') + dexMod + bonus;
 
    const success = total >= trap.disarmDC;
    const margin = total - trap.disarmDC;

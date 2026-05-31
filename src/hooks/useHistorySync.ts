@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 30/05/2026, 23:33:57
+ * Dependents: App.tsx
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useCallback, useEffect, useRef } from 'react';
 import { GamePhase, GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
@@ -5,10 +21,17 @@ import { LOCATIONS } from '../constants';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // Helper to convert GamePhase enum <-> URL slug
-const getPhaseSlug = (phase: GamePhase): string => GamePhase[phase]?.toLowerCase() || '';
+const getPhaseSlug = (phase: GamePhase): string => {
+  // Map 3D sandbox demo to the clean 'world3d' URL slug rather than 'world3d_demo'
+  if (phase === GamePhase.WORLD3D_DEMO) return 'world3d';
+  return GamePhase[phase]?.toLowerCase() || '';
+};
 const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   if (!slug) return null;
-  if (slug.toLowerCase() === 'design_preview') {
+  const normalizedSlug = slug.toLowerCase();
+  // Map clean 'world3d' URL slug to the GamePhase.WORLD3D_DEMO enum value
+  if (normalizedSlug === 'world3d') return GamePhase.WORLD3D_DEMO;
+  if (normalizedSlug === 'design_preview') {
     console.warn("[Decoupling] 'design_preview' is now a standalone tool. Access it at /Aralia/misc/design.html");
     return null;
   }

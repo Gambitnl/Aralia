@@ -104,7 +104,8 @@ describe('Planar Mechanics Integration', () => {
     };
 
     // We expect no crash
-    const newState = commands[0].execute(state);
+    // DamageCommand.execute is async, so resolve it before checking combat log output.
+    const newState = await commands[0].execute(state);
     expect(newState).toBeDefined();
     // Check log for fire damage
     expect(newState.combatLog.some(l => l.type === 'damage')).toBe(true);

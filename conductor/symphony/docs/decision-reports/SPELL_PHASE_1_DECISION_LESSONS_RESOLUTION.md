@@ -94,3 +94,7 @@ repairs that still remain after the lessons were extracted from the ledger:
 5. Keep monitoring plan-revision routing, no-PR completion reconciliation, and
    stale-history queue focus in future packages; the rules are implemented, but
    the proving-ground should continue to catch regressions.
+6. When a Jules handoff is running or an outcome is ambiguous, the first
+   remediation step is the visible session page check. Record the actual
+   visible result - PR URL, no-PR completion, failure, or follow-up - before
+   treating the handoff as blocked or done.

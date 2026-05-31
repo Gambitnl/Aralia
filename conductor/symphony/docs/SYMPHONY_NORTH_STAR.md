@@ -133,6 +133,10 @@ As of the latest verified docs, assume:
   been used to exercise the Symphony/Jules path, with the exact current package
   frontier and remaining adjacent gaps tracked in
   `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`.
+- Spell Phase 1 is still in the mapping / iteration / refinement stage. Treat
+  the package boundary as a moving target while the row classifications,
+  proof gates, and workflow handoffs are being learned. The goal text is a
+  living snapshot, not a frozen product spec.
 - Much of Symphony's runtime byproduct is intentionally untracked. Do not use
   local runtime artifacts as a substitute for the live queue, audit, or task
   tracker.

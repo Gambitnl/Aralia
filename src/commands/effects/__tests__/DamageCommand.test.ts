@@ -50,7 +50,7 @@ describe('DamageCommand', () => {
         };
     });
 
-    it('generates a descriptive log message for fire damage', () => {
+    it('generates a descriptive log message for fire damage', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
@@ -63,7 +63,7 @@ describe('DamageCommand', () => {
 
         const command = new DamageCommand(effect, mockContext);
 
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry).toBeDefined();
@@ -71,7 +71,7 @@ describe('DamageCommand', () => {
         expect(logEntry?.message).toMatch(/Hero (scorches|incinerates|burns|chars) Goblin with Fireball for \d+ fire damage/);
     });
 
-    it('generates a descriptive log message for slashing damage', () => {
+    it('generates a descriptive log message for slashing damage', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
@@ -86,7 +86,7 @@ describe('DamageCommand', () => {
         const weaponContext = { ...mockContext, spellName: 'Longsword' };
 
         const command = new DamageCommand(effect, weaponContext);
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry).toBeDefined();
@@ -94,7 +94,7 @@ describe('DamageCommand', () => {
         expect(logEntry?.message).toMatch(/Hero (slashes|cleaves|cuts|slices) Goblin with Longsword for \d+ slashing damage/);
     });
 
-    it('handles generic "Attack" name gracefully', () => {
+    it('handles generic "Attack" name gracefully', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
@@ -107,7 +107,7 @@ describe('DamageCommand', () => {
 
         const genericContext = { ...mockContext, spellName: 'Attack' };
         const command = new DamageCommand(effect, genericContext);
-        const newState = command.execute(mockState);
+        const newState = await command.execute(mockState);
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry?.message).toMatch(/Hero (batters|crushes|bludgeons|pummels) Goblin/);
@@ -132,7 +132,7 @@ describe('DamageCommand', () => {
             }
         });
 
-        it('applies speed reduction on slashing damage', () => {
+        it('applies speed reduction on slashing damage', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Slashing' },
@@ -141,7 +141,7 @@ describe('DamageCommand', () => {
             };
 
             const command = new DamageCommand(effect, mockContext);
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             // Check if speed reduction effect was applied to target
             const speedEffect = newState.characters.find(c => c.id === mockTarget.id)
@@ -156,7 +156,7 @@ describe('DamageCommand', () => {
             expect(updatedCaster?.featUsageThisTurn).toContain('slasher_slow');
         });
 
-        it('applies grievous wound on critical hit with slashing damage', () => {
+        it('applies grievous wound on critical hit with slashing damage', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Slashing' },
@@ -166,7 +166,7 @@ describe('DamageCommand', () => {
 
             const criticalContext = { ...mockContext, isCritical: true };
             const command = new DamageCommand(effect, criticalContext);
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             // Check for Grievous Wound active effect
             const targetChar = newState.characters.find(c => c.id === mockTarget.id);
@@ -180,7 +180,7 @@ describe('DamageCommand', () => {
             expect(speedEffect).toBeDefined();
         });
 
-        it('does not apply slasher effects for non-slashing damage', () => {
+        it('does not apply slasher effects for non-slashing damage', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Bludgeoning' },
@@ -189,14 +189,14 @@ describe('DamageCommand', () => {
             };
 
             const command = new DamageCommand(effect, mockContext);
-            const newState = command.execute(mockState);
+            const newState = await command.execute(mockState);
 
             const speedEffect = newState.characters.find(c => c.id === mockTarget.id)
                 ?.statusEffects.find(e => e.name === 'Slasher Slow');
             expect(speedEffect).toBeUndefined();
         });
 
-        it('only applies speed reduction once per turn', () => {
+        it('only applies speed reduction once per turn', async () => {
             const effect: SpellEffect = {
                 type: "DAMAGE",
                 damage: { dice: '1d6', type: 'Slashing' },
@@ -207,7 +207,7 @@ describe('DamageCommand', () => {
             const command = new DamageCommand(effect, mockContext);
 
             // First hit
-            let newState = command.execute(mockState);
+            let newState = await command.execute(mockState);
 
             // Verify first application
             const updatedCaster = newState.characters.find(c => c.id === mockCaster.id);
@@ -222,7 +222,7 @@ describe('DamageCommand', () => {
             // Important: The command.execute implementation calls this.getCaster(currentState).
             // So if we pass the newState, it should fetch the updated caster.
             const command2 = new DamageCommand(effect, mockContext);
-            const finalState = command2.execute(newState);
+            const finalState = await command2.execute(newState);
 
             // Check logs to ensure "Slasher feat slows" message appears only once (in the first execution's log history, effectively)
             // But here we cleared logs. So we expect NO new log about slowing.
@@ -231,7 +231,7 @@ describe('DamageCommand', () => {
         });
     });
 
-    it('applies and consumes save penalties during saving throws', () => {
+    it('applies and consumes save penalties during saving throws', async () => {
         const effect: SpellEffect = {
             type: "DAMAGE",
             damage: { dice: '2d6', type: 'Psychic' },
@@ -263,7 +263,7 @@ describe('DamageCommand', () => {
         };
 
         const command = new DamageCommand(effect, mockContext);
-        const newState = command.execute(stateWithPenalty);
+        const newState = await command.execute(stateWithPenalty);
 
         // Check logs for modifier application
         const saveLog = newState.combatLog.find(l => l.message.includes('save') && l.message.includes('Mods:'));

@@ -46,7 +46,8 @@ export class SpellCommandFactory {
     castAtLevel: number,
     gameState: GameState,
     playerInput?: string,
-    currentPlane?: Plane // NEW: Added plane context
+    currentPlane?: Plane,
+    requestReaction?: (attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_take_damage', options: any[]) => Promise<string | null>
   ): Promise<SpellCommand[]> {
     const commands: SpellCommand[] = []
 

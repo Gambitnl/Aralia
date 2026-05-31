@@ -4,7 +4,7 @@ import { AttackRollModifierCommand } from '../AttackRollModifierCommand';
 import { AttackRollModifierEffect } from '../../../types/spells';
 
 describe('AttackRollModifierCommand', () => {
-  it('bundles status condition logic so targets only roll one save', () => {
+  it('bundles status condition logic so targets only roll one save', async () => {
     const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });
     const target = createMockCombatCharacter({ id: 'target', name: 'Target' });
 
@@ -58,7 +58,7 @@ describe('AttackRollModifierCommand', () => {
     target.stats.charisma = 1;
     target.stats.saveBonuses = { cha: -20 } as unknown as any;
 
-    const newState = command.execute(state);
+    const newState = await command.execute(state);
 
     const logMessages = newState.combatLog.map(l => l.message);
 
