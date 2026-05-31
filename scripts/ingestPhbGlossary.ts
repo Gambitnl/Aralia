@@ -126,7 +126,7 @@ function processSourceFiles() {
       for (const t of baseItemsData.itemType || []) {
           typeMap[t.abbreviation] = t.name;
       }
-  } catch(e) { /* ignore */ }
+  } catch(e) {}
 
   for (const source of sources) {
     const fullPath = path.join(VENDOR_DATA_DIR, source.file);

@@ -102,8 +102,8 @@ export function rollAbilityCheck(
                              (skill && text.includes(skill.toLowerCase()));
 
         if (isTargetMatch) {
-            const diceMatch = bonus.match(/(\+?\d*d\d+)/i);
-            const flatMatch = bonus.match(/([+++-]+d+)/);
+            const diceMatch = bonus.match(/(\d*d\d+)/i);
+            const flatMatch = bonus.match(/([\+\-]\d+)/);
             if (diceMatch) {
                 const val = rollDice(diceMatch[1] || '1d4');
                 mod += val;

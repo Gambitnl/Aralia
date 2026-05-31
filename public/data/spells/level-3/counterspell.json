@@ -172,13 +172,7 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": [],
-      "reactionTrigger": {
-        "event": "when_targeted",
-        "includesSpells": [
-          "any"
-        ]
-      }
+      "conditionalEndings": []
     }
   ],
   "arbitrationType": "mechanical",

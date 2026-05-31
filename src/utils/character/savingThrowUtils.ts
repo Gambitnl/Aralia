@@ -183,8 +183,8 @@ export function rollSavingThrow(
 
         if (isTargetMatch) {
             // Extract dice/flat from text like "d4 to saving throws" or "+2 to Dexterity"
-            const diceMatch = bonus.match(/(\+?\d*d\d+)/i);
-            const flatMatch = bonus.match(/([+++-]+d+)/);
+            const diceMatch = bonus.match(/(\d*d\d+)/i);
+            const flatMatch = bonus.match(/([\+\-]\d+)/);
             if (diceMatch) {
                 const val = rollDice(diceMatch[1] || '1d4'); // Default to 1d4 if just "d4"
                 mod += val;
