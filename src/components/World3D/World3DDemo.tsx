@@ -1,19 +1,25 @@
 /**
  * @file World3DDemo.tsx
- * @description Self-contained host for the streamed 3D world. Generates a deterministic world
- * via runWorldSim and feeds World3DScene an inline (main-thread) chunk loader.
+ * @description Self-contained host for the streamed 3D world. Generates a full world via the
+ * real generation pipeline (`generateMap` → `WorldData` v2) and feeds World3DScene an inline
+ * (main-thread) chunk loader.
  *
  * Why this is built this way:
- * - Direct inline loader integration allows us to test and preview the full 3D chunk streaming
- *   behavior in a sandbox demo without needing real background Web Worker thread support,
- *   which is perfect for isolated UI prototyping and local runs.
- * - Center camera placement at the grid midpoint `[midX, 0, midZ]` positions exploration inside
- *   procedural landmasses immediately upon mount.
+ * - Using the real `generateMap` pipeline (instead of a synthetic all-`plains` heightmap) means
+ *   the demo showcases the *actual* implemented content: varied biomes, flow-traced rivers,
+ *   the MST road graph, and placed towns/dungeons/ruins — the same data the live atlas + 3D
+ *   world consume. (Resolves gap W3D-G8 / task T4.)
+ * - The inline loader keeps the sandbox runnable without the Web Worker pool (worker-backed
+ *   loading is tracked separately as W3D-G1).
+ * - The camera spawns on the first generated town so content (town exterior + roads + nearby
+ *   rivers/biomes) is visible immediately, rather than risking an open-ocean spawn at the
+ *   geometric center.
  */
 
 import React, { useMemo } from 'react';
 import World3DScene from './World3DScene';
-import { runWorldSim } from '@/services/worldSim';
+import { generateMap } from '@/services/mapService';
+import { BIOMES } from '@/constants';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
@@ -24,29 +30,25 @@ const DEMO_SEED = 2026;
 
 const World3DDemo: React.FC = () => {
   const { loader, start } = useMemo(() => {
-    const cells = DEMO_COLS * DEMO_ROWS;
-    const heights: number[] = [];
-    for (let i = 0; i < cells; i++) {
-      const v = Math.sin(i * 0.13) * 30 + Math.cos(i * 0.21) * 20 + 40;
-      heights.push(Math.max(0, Math.min(100, Math.round(v))));
+    // Run the real world-generation pipeline so the demo renders authentic rivers, roads,
+    // towns, and varied biomes rather than a uniform-plains placeholder.
+    const map = generateMap(DEMO_ROWS, DEMO_COLS, {}, BIOMES, DEMO_SEED);
+    const world = map.worldData;
+    if (!world) {
+      throw new Error('World3DDemo: generateMap did not produce worldData (v2). Check the worldSim pipeline.');
     }
-    const world = runWorldSim({
-      seed: DEMO_SEED,
-      templateId: 'continents',
-      cols: DEMO_COLS,
-      rows: DEMO_ROWS,
-      heights,
-      temperatures: new Array(cells).fill(15),
-      moisture: new Array(cells).fill(25),
-      biomeIds: new Array(cells).fill('plains'),
-    });
+
     const inlineLoader: ChunkLoader = async (cx, cy) =>
       handleChunkRequest(world, { cx, cy, resolution: WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION });
-    
-    // Start the camera near the middle of the world (in meters)
-    const midX = (DEMO_COLS / 2) * WORLD3D_CONFIG.METERS_PER_CELL;
-    const midZ = (DEMO_ROWS / 2) * WORLD3D_CONFIG.METERS_PER_CELL;
-    return { loader: inlineLoader, start: [midX, 0, midZ] as const };
+
+    // Spawn on the first generated town (grid coords → meters) so content is visible on mount;
+    // fall back to the world's geometric center if no town was placed.
+    const firstTown = world.sites.find((s) => s.kind === 'town');
+    const startGridX = firstTown ? firstTown.position.x : DEMO_COLS / 2;
+    const startGridY = firstTown ? firstTown.position.y : DEMO_ROWS / 2;
+    const startX = startGridX * WORLD3D_CONFIG.METERS_PER_CELL;
+    const startZ = startGridY * WORLD3D_CONFIG.METERS_PER_CELL;
+    return { loader: inlineLoader, start: [startX, 0, startZ] as const };
   }, []);
 
   return (

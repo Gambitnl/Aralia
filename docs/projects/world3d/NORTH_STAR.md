@@ -39,25 +39,30 @@ Implemented and rendering. As of 2026-06-01:
 - **Rendering hardening done:** floating-origin (scene drawn near 0,0), vegetation cap,
   shadows dropped + WebGL context-loss recovery, and a concrete canvas height — the last of
   which was the decisive fix that made terrain visible.
-- **Verified live:** `?phase=world3d` renders green streamed terrain to the horizon with
-  instanced trees, no context loss, no console errors. 65 unit tests pass across
-  `src/systems/world3d` + `src/components/World3D`; `tsc --noEmit` clean for world3d.
+- **Verified live:** `?phase=world3d` renders streamed terrain, no context loss, no console
+  errors. 70 unit tests pass across `src/systems/world3d` + `src/components/World3D`;
+  `tsc --noEmit` clean for world3d.
+- **T4 done (2026-06-01):** the demo now feeds the **real** `generateMap(...).worldData`
+  pipeline (varied biomes, flow-traced rivers, MST roads, ~30 towns) and spawns the camera on
+  the first town. Live screenshot confirms biome variety renders (ocean meeting a landmass)
+  instead of uniform plains.
 
-Consumes `WorldData` from `worldsim-service` (`runWorldSim`). Today's demo feeds an all-`plains`
-world, so rivers/roads/towns exist in data + tests but aren't visible — the active task below
-fixes that.
+**Known visibility limitation (→ T8 / W3D-G11):** terrain relief is near-flat at world scale
+(`MAX_TERRAIN_HEIGHT_M=150` over `METERS_PER_CELL=1024`), so the rivers/roads/town-boxes the
+engine builds are hard to *see* from a near-horizontal camera. Vertical exaggeration is the
+highest visual-value next task.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Make the demo render its implemented content — feed `World3DDemo` a varied biome world so rivers/water, roads, and town/dungeon/ruin exteriors are actually visible (today it is all-`plains`) |
-| Acceptance criteria | A clean load of `?phase=world3d` shows varied terrain with blue river ribbons, tan roads, and town boxes — not just uniform plains + trees |
-| Allowed boundaries | `src/components/World3D/World3DDemo.tsx`, `src/systems/world3d/*`. Do NOT touch entry/transition routing (owned by `world-3d-ui`) or `worldSim` generation internals (owned by `worldsim-service`). |
-| Stop condition | Stop when content is visible; do not build the transition or HUD. |
-| Verification | dev-start, navigate `?phase=world3d`, screenshot shows water + roads + town boxes. |
-| Owner | claude (claimed) |
-| Next action | Replace the all-`plains` biome array with a multi-biome world (or feed a real generated `WorldData`) and confirm the existing builders surface content. Note: the cold-load `?phase=world3d` bounce that blocks *reaching* the scene is owned by `world-3d-ui` (entry), tracked there. |
+| Task | T8 — add **vertical exaggeration** so terrain relief (and thus the rivers/roads/town-boxes the engine already builds) is legible (W3D-G11) |
+| Acceptance criteria | A clean load of `?phase=world3d` shows hills with visible relief, and the water/road ribbons read as rivers/roads from the default camera — not a flat plane |
+| Allowed boundaries | `src/systems/world3d/chunkGeometry.ts`, `src/systems/world3d/config.ts`, optionally `World3DScene.tsx` camera. Do NOT touch entry/transition (owned by `world-3d-ui`) or `worldSim` generation (owned by `worldsim-service`). |
+| Stop condition | Stop when relief is legible; do not build LOD detail (T7), lakes (T6), or biome blending (T9) in the same slice. |
+| Verification | dev-start, navigate `?phase=world3d` (may take 2-3 tries due to the world-3d-ui entry bounce), screenshot shows relief + legible ribbons. |
+| Owner | unassigned |
+| Next action | Introduce a vertical-exaggeration factor (e.g., multiply the height→meters mapping in `chunkGeometry`, or expose a config knob); re-verify content legibility. The cold-load `?phase=world3d` bounce that blocks *reaching* the scene is owned by `world-3d-ui` (W3DUI-5/6) — not this slice. |
 
 ## Scope Boundaries
 
@@ -89,7 +94,9 @@ See `docs/projects/world3d/GAPS.md`. Headline rendering-owned gaps:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Demo world all-`plains` → no visible water/roads/towns | adjacent_follow_up | claude | `World3DDemo.tsx` biome array | feed a varied biome world (active task) |
+| **Flat terrain relief → rivers/roads/towns hard to see (W3D-G11)** | adjacent_follow_up | unassigned | T4 screenshot: flat plane; `MAX_TERRAIN_HEIGHT_M` vs `METERS_PER_CELL` | **active task (T8)** — add vertical exaggeration |
+| Hard biome-color seams (no blending) (W3D-G12) | adjacent_follow_up | unassigned | `sampleBiomeNearest` + per-vertex color | feather biome colors across boundaries |
+| Demo world all-`plains` → uniform terrain | done | claude | resolved by T4: real `generateMap` world | — |
 | `WorldData.lakes` polygons not meshed (only river ribbons) | adjacent_follow_up | unassigned | `waterGeometry.ts` | add lake-fill geometry behind the bundle |
 | Per-LOD geometry detail (LOD only tints) | adjacent_follow_up | unassigned | `lod.ts` unused by sampler resolution | lower resolution for mid/low tiers |
 | Worker loader unused by demo (inline path) | adjacent_follow_up | unassigned | `World3DDemo.tsx` inline `handleChunkRequest` | decide inline vs worker (with `world-3d-ui` entry choice) |
