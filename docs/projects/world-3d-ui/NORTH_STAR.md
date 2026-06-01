@@ -1,7 +1,11 @@
 # World 3D UI North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-01
+
+> Part of the **Azgaar-driven streamed 3D world** initiative and overlaps `world3d`
+> (both own `src/components/World3D`). Canonical umbrella North Star:
+> `docs/projects/world3d/NORTH_STAR.md` (see its Open Questions re: consolidating these two surfaces).
 
 ## Why this project exists
 
@@ -92,3 +96,13 @@ Not in scope:
 4. Compare with `docs/projects/world3d/TRACKER.md` and `docs/projects/world3d/GAPS.md` before editing implementation.
 5. Continue by resolving next in-project gap rows in priority order.
 
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

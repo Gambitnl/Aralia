@@ -1,7 +1,11 @@
 # NORTH_STAR: WorldSim Service
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-01
+
+> Part of the **Azgaar-driven streamed 3D world** initiative. This surface owns the
+> upstream `WorldData` generation (Plan 1, landed). Canonical umbrella North Star for
+> the initiative: `docs/projects/world3d/NORTH_STAR.md`.
 
 ## Why This Project Exists
 
@@ -85,3 +89,13 @@ Last updated: 2026-05-31
 2. Read `docs/projects/worldsim-service/TRACKER.md`.
 3. Read `docs/projects/worldsim-service/GAPS.md`.
 4. Read `docs/projects/world/NORTH_STAR.md` for ownership boundary comparison.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

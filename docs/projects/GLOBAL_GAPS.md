@@ -16,7 +16,7 @@ critical scope review.
 | Gap ID | Status | Classification | Detected during | Gap | Evidence/source | Why it matters | Suspected owner/project | Routing decision | Destination | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 
-No global gaps recorded yet.
+| GG-1 | untriaged | support_needed_now | World 3D rendering debug (2026-06-01) | Consolidation merge left a stale import that crashed the whole app: `characterValidation.ts` imported `SKILL_DATA` from `dndData.ts`, but skill data was relocated/renamed to `SKILLS_DATA` in `src/data/skills/`. One fix applied locally (uncommitted); other stale imports may exist. | `src/utils/character/characterValidation.ts` (fixed import), `src/data/skills/index.ts` (`SKILLS_DATA`), `src/data/dndData.ts` (no `SKILL_DATA`) | A single bad ESM import blanks the entire app with no error-boundary catch — found only because the 3D preview wouldn't load | Character/data modules (not world3d) | untriaged | none yet | Commit the `characterValidation` fix; grep `src/` for other imports of relocated `dndData`/skill symbols | `tsc --noEmit` clean + app boots to main menu with no blank-page ESM error |
 
 ## Status Vocabulary
 

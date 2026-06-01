@@ -175,7 +175,7 @@ duplicate project.
 | Underdark System | partial | medium | `src/systems/underdark` | GAPS.md present | implemented | verify integration with geography + encounters |
 | Visibility System | partial | high | `src/systems/visibility` | GAPS.md present | implemented | confirm LOS/perception model assumptions |
 | World System | partial | high | `src/systems/world`, `docs/projects/town-description-system` | GAPS.md present | implemented | complete worldgen-state contract |
-| World 3D System | experimental | high | `src/systems/world3d`, `src/components/World3D` | GAPS.md present | implemented | stabilize renderer-state ownership |
+| World 3D System | active | high | `src/systems/world3d`, `src/components/World3D` | North Star + TRACKER + GAPS refreshed 2026-06-01; renders live | rendering works (Plans 1-3 + hardening) | make `?phase=world3d` cold-load reliable, then Plan 4 gameplay wiring (W3D-G7/G3) |
 
 ## Feature/UI Projects (`src/components/*`)
 
@@ -268,7 +268,7 @@ duplicate project.
 | Underdark System | partial | medium | `src/systems/underdark` | GAPS.md present | implemented | verify integration with geography + encounters |
 | Visibility System | partial | high | `src/systems/visibility` | GAPS.md present | implemented | confirm LOS/perception model assumptions |
 | World System | partial | high | `src/systems/world`, `docs/projects/town-description-system` | GAPS.md present | implemented | complete worldgen-state contract |
-| World 3D System | experimental | high | `src/systems/world3d`, `src/components/World3D` | GAPS.md present | implemented | stabilize renderer-state ownership |
+| World 3D System | active | high | `src/systems/world3d`, `src/components/World3D` | North Star + TRACKER + GAPS refreshed 2026-06-01; renders live | rendering works (Plans 1-3 + hardening) | make `?phase=world3d` cold-load reliable, then Plan 4 gameplay wiring (W3D-G7/G3) |
 
 ## Feature/UI Projects (`src/components/*`)
 
