@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:09
+ * Last Sync: 31/05/2026, 23:31:45
  * Dependents: App.tsx
- * Imports: 40 files
+ * Imports: 41 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,11 +27,9 @@ import { CompanionSoul } from '../types/companion';
 import type { DivineFavor, NavalState } from '../types';
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
-// TODO(lint-intent): 'ITEMS' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { STARTING_LOCATION_ID, LOCATIONS, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS, COMPANIONS } from '../constants';
-import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
+import { STARTING_LOCATION_ID, LOCATIONS } from '../data/world/locations';
+import { NPCS } from '../data/world/npcs';
+import { COMPANIONS } from '../data/companions';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
@@ -45,7 +43,6 @@ import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { applyXpAndHandleLevelUps, canLevelUp, createPlayerCharacterFromTemp as _createPlayerCharacterFromTemp } from '../utils/characterUtils';
-import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
@@ -423,7 +420,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 worldSeed: worldSeed,
                 party: generatedParty,
                 tempParty: generatedParty.map(p => ({ id: p.id || generateId(), name: p.name, level: p.level || 1, classId: p.class.id })),
-                inventory: [...initialInventoryForDummyCharacter],
+                inventory: [...action.payload.initialInventory],
                 gold: 100, // Dummy gets some spending money
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
@@ -653,7 +650,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 mapData: action.payload.mapData,
                 isSubmapVisible: false,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
-                inventory: [...initialInventoryForDummyCharacter],
+                inventory: [...action.payload.initialInventory],
                 gold: 100,
                 currentLocationActiveDynamicNpcIds: action.payload.initialActiveDynamicNpcIds,
                 gameTime: dummyGameTime,
@@ -703,16 +700,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'START_BATTLE_MAP_ENCOUNTER': {
-            // TODO(lint-intent): 'monsterIndex' is an unused parameter, which suggests a planned input for this flow.
-            // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-            // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
             // Use 'as any' to bypass the discriminated union strictness for now, relying on runtime shape
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const payload = action.payload as any;
             const encounterPayload = payload.startBattleMapEncounterData as import('../types').StartBattleMapEncounterPayload;
-            const combatants = encounterPayload.monsters.flatMap((monster, _monsterIndex) =>
-                Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
-            );
+            const combatants = encounterPayload.combatants ?? [];
             return {
                 ...state,
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase

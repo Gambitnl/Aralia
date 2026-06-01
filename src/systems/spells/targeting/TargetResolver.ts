@@ -1,8 +1,49 @@
-import type { SpellTargeting, TargetFilter , CombatCharacter, CombatState, Position } from '@/types'
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 22:23:51
+ * Dependents: systems/spells/targeting/index.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import type { SpellTargeting, TargetFilter, TargetConditionFilter, CombatCharacter, CombatState, Position } from '@/types'
 
 import { hasLineOfSight } from '../../../utils/lineOfSight'
 import { TargetValidationUtils } from './TargetValidationUtils'
 import { canInteract, canSeeTarget } from '../../../utils/planarTargeting'
+
+/**
+ * Minimal runtime shape for object spell targets.
+ *
+ * Aralia does not yet have a first-class combat object registry, but spell data
+ * already describes object targeting. This envelope lets callers validate an
+ * object candidate without pretending it is a CombatCharacter.
+ */
+export interface TargetableObject {
+  id: string
+  name: string
+  position: Position
+  size?: string
+  weightPounds?: number
+  isWornOrCarried?: boolean
+  isMagical?: boolean
+  isFixedToSurface?: boolean
+}
+
+export interface TargetCandidateSet {
+  creatures: CombatCharacter[]
+  objects: TargetableObject[]
+}
+
+const OBJECT_SIZE_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan']
 
 /**
  * Resolves valid targets based on spell targeting rules
@@ -99,6 +140,68 @@ export class TargetResolver {
   }
 
   /**
+   * Return valid creature and object candidates through one caller-facing API.
+   *
+   * Object discovery is intentionally dependency-injected for now. The spell
+   * resolver should not invent battle-map objects from visual decorations, but
+   * callers that already have object candidates can aggregate them with creature
+   * targets through the same targeting rules.
+   */
+  static getValidTargetCandidates(
+    targeting: SpellTargeting,
+    caster: CombatCharacter,
+    gameState: CombatState,
+    objectCandidates: TargetableObject[] = []
+  ): TargetCandidateSet {
+    return {
+      creatures: this.getValidTargets(targeting, caster, gameState),
+      objects: objectCandidates.filter(targetObject =>
+        this.isValidObjectTarget(targeting, caster, targetObject, gameState)
+      )
+    }
+  }
+
+  /**
+   * Validate a non-creature object candidate against spell targeting rules.
+   *
+   * This intentionally stays separate from `isValidTarget` because object
+   * candidates do not have creature teams, planar state, conditions, HP, or
+   * creature taxonomy. It gives object-aware callers a real bridge while keeping
+   * the existing character-target path stable.
+   */
+  static isValidObjectTarget(
+    targeting: SpellTargeting,
+    caster: CombatCharacter,
+    targetObject: TargetableObject,
+    gameState: CombatState
+  ): boolean {
+    if (
+      targeting.type !== 'single' &&
+      targeting.type !== 'multi' &&
+      targeting.type !== 'area'
+    ) {
+      return false
+    }
+
+    if (!targeting.validTargets.includes('objects')) {
+      return false
+    }
+
+    const distance = this.getDistance(caster.position, targetObject.position)
+    if (distance > targeting.range) return false
+
+    if (targeting.lineOfSight && !this.hasLineOfSight(caster.position, targetObject.position, gameState)) {
+      return false
+    }
+
+    if (!this.matchesObjectEligibility(targeting.filter?.objectEligibility, targetObject)) {
+      return false
+    }
+
+    return true
+  }
+
+  /**
    * Calculate distance between two positions (Euclidean)
    */
   private static getDistance(pos1: Position, pos2: Position): number {
@@ -183,14 +286,26 @@ export class TargetResolver {
     // If filter is 'creatures', target MUST be creature (all CombatCharacters are).
     // If filter is 'self', target MUST be caster.
     
+    const categoryFilters = filters.filter(filter =>
+      filter === 'creatures' || filter === 'objects' || filter === 'point'
+    )
+
+    // Category filters are an allowed-target-kind list, not a set of traits
+    // that one runtime target must all satisfy. A CombatCharacter can satisfy
+    // `creatures` even when the same spell also allows `objects`.
+    if (categoryFilters.length > 0 && !categoryFilters.includes('creatures')) {
+      return false
+    }
+
     for (const filter of filters) {
       switch (filter) {
         case 'creatures':
           // All CombatCharacters are creatures
           break;
         case 'objects':
-          // CombatCharacters are NOT objects
-          return false; 
+          // Objects are handled by isValidObjectTarget; do not reject creature
+          // targets merely because this spell also permits objects.
+          break;
         case 'allies':
           if (!this.isAlly(caster, target)) return false;
           break;
@@ -201,11 +316,78 @@ export class TargetResolver {
           if (target.id !== caster.id) return false;
           break;
         case 'point':
-           // Points aren't Characters, so this resolver (which takes CombatCharacter) shouldn't handle points
-           return false; 
+           // Points are handled by area/position targeting, not by this
+           // character resolver. Mixed creature/point spells can still target
+           // creatures through the `creatures` category guard above.
+           break;
       }
     }
     return true;
+  }
+
+  /**
+   * Apply spell-data object gates to a runtime object envelope.
+   *
+   * Only concrete constraints are enforced. Missing or `not_applicable` fields
+   * are treated as no restriction so partially specified legacy data remains
+   * usable while structured spells can opt into stricter object gates.
+   */
+  private static matchesObjectEligibility(
+    eligibility: TargetConditionFilter['objectEligibility'],
+    targetObject: TargetableObject
+  ): boolean {
+    if (!eligibility) {
+      return true
+    }
+
+    if (eligibility.wornOrCarried === 'excluded' && targetObject.isWornOrCarried) {
+      return false
+    }
+
+    if (eligibility.magicalStatus === 'nonmagical' && targetObject.isMagical) {
+      return false
+    }
+
+    if (eligibility.fixedToSurface === 'excluded' && targetObject.isFixedToSurface) {
+      return false
+    }
+
+    if (
+      typeof eligibility.maxWeightPounds === 'number' &&
+      typeof targetObject.weightPounds === 'number' &&
+      targetObject.weightPounds > eligibility.maxWeightPounds
+    ) {
+      return false
+    }
+
+    if (
+      eligibility.maxSize &&
+      eligibility.maxSize !== 'not_applicable' &&
+      targetObject.size &&
+      !this.isObjectSizeAllowed(targetObject.size, eligibility.maxSize)
+    ) {
+      return false
+    }
+
+    return true
+  }
+
+  private static isObjectSizeAllowed(size: string, maxSize: string): boolean {
+    const normalizedSize = this.normalizeSizeLabel(size)
+    const normalizedMaxSize = this.normalizeSizeLabel(maxSize)
+    const sizeIndex = OBJECT_SIZE_ORDER.indexOf(normalizedSize)
+    const maxSizeIndex = OBJECT_SIZE_ORDER.indexOf(normalizedMaxSize)
+
+    if (sizeIndex < 0 || maxSizeIndex < 0) {
+      return true
+    }
+
+    return sizeIndex <= maxSizeIndex
+  }
+
+  private static normalizeSizeLabel(size: string): string {
+    const lower = size.toLowerCase()
+    return OBJECT_SIZE_ORDER.find(candidate => candidate.toLowerCase() === lower) ?? size
   }
 
   /**

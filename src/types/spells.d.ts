@@ -307,7 +307,7 @@ export interface SaveModifier {
 }
 /** Defines the trigger for an effect. */
 export interface EffectTrigger {
-    type: "immediate" | "after_primary" | "turn_start" | "turn_end" | "on_enter_area" | "on_exit_area" | "on_end_turn_in_area" | "on_target_move" | "on_target_attack" | "on_target_cast" | "on_caster_action" | "on_attack_hit";
+    type: "immediate" | "after_primary" | "turn_start" | "turn_end" | "on_enter_area" | "on_exit_area" | "on_end_turn_in_area" | "on_move_in_area" | "on_target_move" | "on_target_attack" | "on_target_cast" | "on_caster_action" | "on_attack_hit";
     /**
      * Controls how often this trigger can fire.
      * Defaults to 'every_time' if not specified.

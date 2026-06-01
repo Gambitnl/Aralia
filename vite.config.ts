@@ -1309,7 +1309,7 @@ const devHubApiManager = () => ({
               .filter((d: any) => d.isFile() && d.name.startsWith('conductor-') && d.name.endsWith('.md'))
               .map((d: any) => ({ name: d.name.replace('.md', ''), path: `.claude/commands/${d.name}`, source: 'claude' }))
             : [];
-          // Track workflows — the conductor workflow mirrors from .agent/workflows
+          // Track workflows — the conductor workflow mirrors from public agent docs
           const allWorkflows = readMdFiles('workflows');
           const trackWorkflows = allWorkflows
             .filter((w: any) => w.name.startsWith('track-'))

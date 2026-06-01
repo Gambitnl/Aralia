@@ -19,7 +19,7 @@ assignee: Pickle Rick
 We don't know exactly which tools exist to be indexed.
 
 ## Solution
-Scan `scripts/`, `.agent/workflows/`, and `package.json`. Produce a JSON list of tools with:
+Scan `scripts/`, `public/agent-docs/workflows/`, and `package.json`. Produce a JSON list of tools with:
 - Name
 - Path/Command
 - Description

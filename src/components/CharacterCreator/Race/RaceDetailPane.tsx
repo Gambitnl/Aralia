@@ -245,6 +245,14 @@ export interface RacialChoiceData {
     centaurNaturalAffinitySkillId?: string;
     /** Changeling - Instincts (pick 2 of 5) */
     changelingInstinctSkillIds?: string[];
+    /** Changeling - Size (Small or Medium) */
+    changelingSize?: 'Small' | 'Medium';
+    /** Generic skill choices (e.g. Kender, Kenku, Warforged, Half-Elf) */
+    genericSkillChoices?: string[];
+    /** Generic tool choices (e.g. Autognome, Dwarves, Warforged) */
+    genericToolChoices?: string[];
+    /** Generic cantrip choices (e.g. Astral Elf, High Elf) */
+    genericCantripChoices?: string[];
 }
 
 interface RaceDetailPaneProps {
@@ -258,8 +266,17 @@ interface RaceDetailPaneProps {
     onCentaurNaturalAffinitySkillChange?: (skillId: string) => void;
     selectedChangelingInstinctSkillIds?: Set<string>;
     onChangelingInstinctSkillToggle?: (skillId: string) => void;
+    selectedChangelingSize?: 'Small' | 'Medium' | null;
+    onChangelingSizeChange?: (size: 'Small' | 'Medium') => void;
+    
+    // Generic choices
+    racialSkillChoices?: string[];
+    onRacialSkillChoiceToggle?: (skillId: string, maxChoices: number) => void;
+    racialToolChoices?: string[];
+    onRacialToolChoiceToggle?: (toolId: string, maxChoices: number) => void;
+    racialCantripChoices?: string[];
+    onRacialCantripChoiceToggle?: (cantripId: string, maxChoices: number) => void;
 }
-
 
 export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.ReactNode }> = ({
     race,
@@ -272,6 +289,14 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
     onCentaurNaturalAffinitySkillChange,
     selectedChangelingInstinctSkillIds = new Set<string>(),
     onChangelingInstinctSkillToggle,
+    selectedChangelingSize = null,
+    onChangelingSizeChange,
+    racialSkillChoices = [],
+    onRacialSkillChoiceToggle,
+    racialToolChoices = [],
+    onRacialToolChoiceToggle,
+    racialCantripChoices = [],
+    onRacialCantripChoiceToggle,
     children
 }) => {
     const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
@@ -514,6 +539,169 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                             </div>
                             <div className="px-3 pb-3 text-xs text-gray-400">
                                 Selected: {selectedChangelingInstinctSkillIds.size} / 2
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Changeling Size (required choice) */}
+                    {race.id === 'changeling' && (
+                        <div className="mt-4 bg-emerald-900/10 border border-emerald-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-emerald-700/40">
+                                <h4 className="text-sm font-semibold text-emerald-300">Size - Choose Your Size</h4>
+                                <p className="text-xs text-gray-400 mt-1">You are Medium or Small. You choose the size when you select this race.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-2 gap-2">
+                                {(['Small', 'Medium'] as const).map((size) => {
+                                    const isSelected = selectedChangelingSize === size;
+                                    return (
+                                        <button
+                                            key={size}
+                                            type="button"
+                                            onClick={() => onChangelingSizeChange?.(size)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-emerald-600/80 text-white border-emerald-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-emerald-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {size}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Kender Curiosity (required choice) */}
+                    {race.id === 'kender' && (
+                        <div className="mt-4 bg-orange-900/10 border border-orange-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-orange-700/40">
+                                <h4 className="text-sm font-semibold text-orange-300">Kender Curiosity - Choose a Skill</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick one: Insight, Investigation, or Sleight of Hand.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                {(['insight', 'investigation', 'sleight_of_hand'] as const).map((skillId) => {
+                                    const skill = SKILLS_DATA[skillId];
+                                    const isSelected = racialSkillChoices.includes(skillId);
+                                    return (
+                                        <button
+                                            key={skillId}
+                                            type="button"
+                                            onClick={() => onRacialSkillChoiceToggle?.(skillId, 1)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-orange-600/80 text-white border-orange-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-orange-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill?.name ?? skillId}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Kenku Recall (required choice) */}
+                    {race.id === 'kenku' && (
+                        <div className="mt-4 bg-indigo-900/10 border border-indigo-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-indigo-700/40">
+                                <h4 className="text-sm font-semibold text-indigo-300">Kenku Recall - Choose Two Skills</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick two: Acrobatics, Deception, History, Investigation, Nature, Perception, Sleight of Hand, Stealth, or Survival.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                {(['acrobatics', 'deception', 'history', 'investigation', 'nature', 'perception', 'sleight_of_hand', 'stealth', 'survival'] as const).map((skillId) => {
+                                    const skill = SKILLS_DATA[skillId];
+                                    const isSelected = racialSkillChoices.includes(skillId);
+                                    const isMaxed = racialSkillChoices.length >= 2;
+                                    const isDisabled = !isSelected && isMaxed;
+                                    return (
+                                        <button
+                                            key={skillId}
+                                            type="button"
+                                            onClick={() => onRacialSkillChoiceToggle?.(skillId, 2)}
+                                            disabled={isDisabled}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-indigo-600/80 text-white border-indigo-400 shadow-lg'
+                                                    : isDisabled
+                                                        ? 'bg-gray-900/40 text-gray-600 border-gray-900 cursor-not-allowed'
+                                                        : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-indigo-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill?.name ?? skillId}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="px-3 pb-3 text-xs text-gray-400">
+                                Selected: {racialSkillChoices.length} / 2
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Warforged Specialized Design (required choice) */}
+                    {race.id === 'warforged' && (
+                        <div className="mt-4 bg-slate-800 border border-slate-600/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-slate-600/40">
+                                <h4 className="text-sm font-semibold text-slate-300">Specialized Design - Choose a Skill</h4>
+                                <p className="text-xs text-gray-400 mt-1">You gain one skill proficiency of your choice.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                {Object.values(SKILLS_DATA).sort((a, b) => a.name.localeCompare(b.name)).map((skill) => {
+                                    const isSelected = racialSkillChoices.includes(skill.id);
+                                    return (
+                                        <button
+                                            key={skill.id}
+                                            type="button"
+                                            onClick={() => onRacialSkillChoiceToggle?.(skill.id, 1)}
+                                            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-slate-600/80 text-white border-slate-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-slate-500 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Half-Elf Skill Versatility (required choice) */}
+                    {race.id.startsWith('half_elf') && (
+                        <div className="mt-4 bg-rose-900/10 border border-rose-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-rose-700/40">
+                                <h4 className="text-sm font-semibold text-rose-300">Skill Versatility - Choose Two Skills</h4>
+                                <p className="text-xs text-gray-400 mt-1">You gain proficiency in two skills of your choice.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                {Object.values(SKILLS_DATA).sort((a, b) => a.name.localeCompare(b.name)).map((skill) => {
+                                    const isSelected = racialSkillChoices.includes(skill.id);
+                                    const isMaxed = racialSkillChoices.length >= 2;
+                                    const isDisabled = !isSelected && isMaxed;
+                                    return (
+                                        <button
+                                            key={skill.id}
+                                            type="button"
+                                            onClick={() => onRacialSkillChoiceToggle?.(skill.id, 2)}
+                                            disabled={isDisabled}
+                                            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-rose-600/80 text-white border-rose-400 shadow-lg'
+                                                    : isDisabled
+                                                        ? 'bg-gray-900/40 text-gray-600 border-gray-900 cursor-not-allowed'
+                                                        : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-rose-500 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="px-3 pb-3 text-xs text-gray-400">
+                                Selected: {racialSkillChoices.length} / 2
                             </div>
                         </div>
                     )}

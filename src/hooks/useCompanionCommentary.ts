@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:25:25
+ * Dependents: App.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -19,7 +35,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState, OllamaLogEntry } from '../types';
-import { isPlayerFocused } from '../utils/world';
+import { isPlayerFocused } from '../utils/world/sceneUtils';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
 import { OllamaService, BanterContext } from '../services/ollama';
 import { createOllamaLogEntry } from '../utils/createOllamaLogEntry';

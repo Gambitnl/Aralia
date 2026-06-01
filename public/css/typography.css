@@ -1,7 +1,13 @@
 /* Typography & Prose Overrides */
 
+/* Premium display-heavy Roman serif headers font */
 .font-cinzel {
   font-family: 'Cinzel Decorative', cursive;
+}
+
+/* Classical highly readable body serif font for RPG character sheets */
+.font-quattrocento {
+  font-family: 'Quattrocento', serif;
 }
 
 /* Enhanced Prose Styles for Markdown Content */

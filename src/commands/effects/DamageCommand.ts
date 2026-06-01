@@ -95,6 +95,29 @@ export class DamageCommand extends BaseEffectCommand {
       const isCritical = this.context.isCritical || false;
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
+      // --- RACIAL TRAIT: Savage Attacks (Half-Orc) ---
+      // If melee weapon attack and critical hit, roll one extra damage die
+      // Following the 5e rules, Savage Attacks applies to a melee weapon attack.
+      // We check if it is not ranged and has the savageAttacks modifier.
+      if (
+        isCritical &&
+        caster.modifiers?.savageAttacks &&
+        this.context.weaponProperties &&
+        !this.context.weaponProperties.includes('ranged')
+      ) {
+        const dieSizeMatch = this.effect.damage.dice.match(/\b\d*d(\d+)\b/i);
+        if (dieSizeMatch && dieSizeMatch[1]) {
+          const dieSize = parseInt(dieSizeMatch[1], 10);
+          const extraRoll = rollDamageUtil(`1d${dieSize}`, false, minRoll);
+          damageRoll += extraRoll;
+          currentState = this.addLogEntry(currentState, {
+            type: 'status',
+            message: `${caster.name}'s Savage Attacks adds +${extraRoll} (1d${dieSize}) to critical damage!`,
+            characterId: caster.id
+          });
+        }
+      }
+
       // Step 2: Apply planar impediment (negative modifier only)
       // Positive modifiers are handled upstream via upcasting.
       if (planarModifier < 0) {

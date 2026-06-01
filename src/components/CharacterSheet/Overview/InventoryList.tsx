@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 15/05/2026, 16:59:40
+ * Last Sync: 01/06/2026, 00:45:56
  * Dependents: components/CharacterSheet/Overview/index.ts
  * Imports: 5 files
  *
@@ -18,11 +18,11 @@
  * @file InventoryList.tsx
  * This component displays a list of inventory items with their details and actions.
  * It's used within the CharacterSheetModal.
- * 
+ *
  * CHANGE LOG:
- * 2026-02-27 09:24:00: [Preservationist] Removed redundant 'as any' casts 
- * when accessing 'rarity' and simplified the 'isContainerItem' type 
- * guard by removing unnecessary type assertions, improving type safety 
+ * 2026-02-27 09:24:00: [Preservationist] Removed redundant 'as any' casts
+ * when accessing 'rarity' and simplified the 'isContainerItem' type
+ * guard by removing unnecessary type assertions, improving type safety
  * and code readability.
  */
 import React, { useEffect, useMemo, useState } from 'react';
@@ -32,6 +32,27 @@ import { canEquipItem, calculatePotentialAcChange } from '../../../utils/charact
 import { resolveItemVisual } from '../../../utils/visuals/visualUtils';
 import Tooltip from '../../ui/Tooltip';
 import { CoinBadge } from '../../ui/CoinPurseDisplay';
+
+/**
+ * This file displays a list of the items carried by a character, including bags and currency.
+ *
+ * It renders the inventory column on the right side of the character sheet overview.
+ * It supports:
+ * - Currency breakdown (Coin Pouch) showing physical coin items and liquid gold.
+ * - Filtering items by type and equipment slot compatibility.
+ * - Storing items inside nested containers (e.g. bags within bags) and calculating weight recursively.
+ * - Quick action triggers for equipping, using, or dropping items.
+ *
+ * Called by: CharacterSheetModal.tsx (Overview tab, column 3)
+ * Depends on: utility functions for item equipping and visuals, and the CoinBadge display component.
+ */
+
+// ============================================================================
+// Types & Container Guards
+// ============================================================================
+// Defines props for the inventory list and handles a type-guard function
+// to safely identify when an item can contain other items (like a backpack or pouch).
+// ============================================================================
 
 interface InventoryListProps {
   inventory: Item[];
@@ -52,6 +73,12 @@ const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
   typeof item.capacityWeight === 'number';
 
 // TODO(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// ============================================================================
+// Item Tooltip Generator
+// ============================================================================
+// Generates detailed, user-friendly HTML summaries for all types of items.
+// Shows weapons damage, armor class values, consumables effects, and weight.
+// ============================================================================
 
 const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode => {
   let details = `${item.description}\nType: ${item.type}`;
@@ -143,6 +170,12 @@ const resolveInventoryAssetSrc = (src?: string): string | undefined => {
   if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
   return `${import.meta.env.BASE_URL}${src}`;
 };
+// ============================================================================
+// Main Inventory List Component
+// ============================================================================
+// Organizes the character's coin purse, filtering controls, backpack contents,
+// and recursively renders nested containers.
+// ============================================================================
 
 const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction, filterBySlot, onClearFilter }) => {
   /**
@@ -508,11 +541,12 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full font-quattrocento">
 
       {/* Currency Header */}
+      {/* Renders the character's available currency across platinum, gold, silver, and copper denominations. */}
       <div className="mb-3 bg-gray-900/60 p-3 rounded-lg border border-gray-700">
-        <h4 className="text-xs font-semibold text-amber-500 mb-2 uppercase tracking-widest border-b border-gray-700 pb-1">Coin Pouch</h4>
+        <h4 className="text-xs font-semibold font-cinzel text-amber-500 mb-2 uppercase tracking-widest border-b border-gray-700 pb-1">Coin Pouch</h4>
         <div className="flex justify-start items-center gap-3 flex-wrap">
           <CoinBadge type="pp" amount={currency.PP} />
           <CoinBadge type="gp" amount={currency.GP} />
@@ -541,8 +575,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
       )}
 
       {/* Weight & List Header */}
+      {/* Displays the inventory weight summary and standard item list section header. */}
       <div className="flex justify-between items-center mb-2 px-1">
-        <h3 className="font-semibold text-sky-400 text-sm">Backpack</h3>
+        <h3 className="font-semibold font-cinzel text-sky-400 text-sm">Backpack</h3>
         <span className="text-xs text-gray-400">Weight: {totalInventoryWeight} lbs</span>
       </div>
 

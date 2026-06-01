@@ -1,58 +1,59 @@
 # NORTH STAR: Tiered Autosave Checkpoint System
 
-**Project Objective:**
-Replace the single-slot localStorage autosave with a tiered checkpoint system backed by IndexedDB. Players get multiple recovery points at logarithmically-spaced intervals (rapid, 1min, 5min, 15min, 30min, 1hr), giving them safety nets ranging from seconds to an hour into the past.
+## Purpose
+Document the state, scope, and next actions for the autosave checkpoint work so future work can continue without re-locating implementation intent.
 
-**Intended Outcome:**
-1. All save data (autosave + manual saves) stored in IndexedDB instead of localStorage.
-2. Existing localStorage saves auto-migrated on first load; old data cleaned up after success.
-3. Six autosave checkpoint slots with independent refresh timers based on real-world playtime.
-4. Load Game UI ("Resume Journey") displays checkpoints with live-updating age labels.
-5. The rapid autosave continues to work exactly as before (debounce + throttle on state changes).
+## Scope
+- In scope: IndexedDB persistence, autosave slot migration, checkpoint tier model, save slot loading behavior, checkpoint-to-UI integration.
+- Adjacent, explicitly deferred: save compression, cross-tab sync strategy, advanced export/import, long-term save migration version strategy.
 
-**Current State:**
-- Single autosave slot (`aralia_rpg_autosave`) in localStorage.
-- Autosave triggers via debounce (1.5s) + throttle (10s) on GameState changes.
-- Manual save slots also in localStorage with a metadata index.
-- Playtime tracked via wall-clock elapsed time (`Date.now() - sessionStartedAtMs`).
-- No IndexedDB usage anywhere in the codebase.
-- No save compression; raw JSON could be hundreds of KB to 1MB+.
-- localStorage quota (5-10MB) is already a risk with growing game state.
+## Objective
+Keep multiple recovery points available for the player while removing localStorage quota risk.
 
-**Scope Boundaries:**
-- **In Scope:** IndexedDB storage layer, migration from localStorage, checkpoint timer system, Load UI updates for checkpoints.
-- **Out of Scope:** Save compression, save export/import, save migration logic (version upgrades), save size reporting, in-game time tracking changes. These are recorded as adjacent follow-ups.
+## Current State (as of 2026-05-31)
+- `src/services/indexedDBStorageService.ts` exists and is wired into `src/services/saveLoadService.ts`.
+- `saveLoadService` now stores save payloads in IndexedDB when available, and falls back to localStorage when needed.
+- Legacy localStorage saves can be migrated into IndexedDB, with an `MIGRATION_FLAG_KEY` guard.
+- Emergency fallback save uses localStorage key `aralia_rpg_emergency_save` and is recovered into normal loading flow.
+- Checkpoint slots are defined in `CHECKPOINT_TIERS`:
+  - 1 minute
+  - 5 minutes
+  - 15 minutes
+  - 30 minutes
+  - 1 hour
+- Auto-save still runs through `useAutoSave` (debounce + throttle, visibility hooks, beforeunload save attempt).
+- `useCheckpointSaves` is not present in source, so checkpoint copy timers are not yet active in practice.
+- `LoadGameModal` currently groups `isAutoSave` slots together and does not yet render a dedicated checkpoint section.
+- `saveLoad.README.md` still describes localStorage-first behavior and is no longer current.
 
-**Key Source Files:**
-| File | Role |
-|------|------|
-| `src/services/saveLoadService.ts` | Core save/load API, slot index, StoredSavePayload type |
-| `src/hooks/useAutoSave.ts` | Autosave hook (debounce+throttle, visibility/unload handlers) |
-| `src/utils/core/storageUtils.ts` | SafeStorage/SafeSession wrappers |
-| `src/utils/core/hashUtils.ts` | simpleHash for save integrity |
-| `src/components/SaveLoad/LoadGameModal.tsx` | Load UI ("Resume Journey") |
-| `src/components/SaveLoad/SaveSlotSelector.tsx` | Save UI ("Chronicle Journey") |
-| `src/App.tsx` | Consumes useAutoSave (line 168) |
+## Implementation Status Snapshot
+- PASS: metadata fields, slot index cache, checkpoint slot tagging.
+- PASS: migration from localStorage payload keys and emergency save recovery path are implemented in service layer.
+- PASS: core save/load APIs support async storage through IndexedDB.
+- BLOCKER: startup initialization and checkpoint runner are not fully connected to the app flow.
 
-**Design Decisions:**
-- Checkpoint tiers: Rapid (~10s), 1min, 5min, 15min, 30min, 1hr — 6 total autosave slots.
-- Each checkpoint independently copies the rapid autosave data at its own interval.
-- Timers based on real-world playtime (matching existing `playtimeSeconds` tracking), not in-game clock.
-- Labels show actual age ("4 minutes ago"), not fixed descriptions ("5 minute checkpoint").
-- IndexedDB replaces localStorage for all save data (not just autosaves) to solve the quota risk.
-- Small metadata (slot index, preferences) can remain in localStorage for sync/perf.
+## File Map
+- `src/services/indexedDBStorageService.ts` - raw IndexedDB wrapper (`putSave`, `getSave`, `deleteSave`, `getAllKeys`, `clearAllSaves`).
+- `src/services/saveLoadService.ts` - canonical save/read/delete API, migration flags, metadata indexing.
+- `src/hooks/useAutoSave.ts` - periodic gameplay autosave hook.
+- `src/components/SaveLoad/LoadGameModal.tsx` - resume/load listing.
+- `src/components/SaveLoad/SaveSlotSelector.tsx` - save slot manual selection.
+- `src/components/layout/MainMenu.tsx` - save/load modal entry and slot refresh wiring.
+- `src/hooks/useGameInitialization.ts` - load flow entrypoint into reducer.
+- `src/services/__tests__/saveLoadService*.ts` - existing coverage still mostly localStorage-first assertions.
+- `docs/projects/tiered-autosave/ARCHITECTURE_NOTES.md` and `DECISIONS.md`.
 
-**Assumptions:**
-1. A typical save payload is ~200KB-1MB based on GameState complexity. 6 autosave slots ≈ 1.2-6MB — trivial for IndexedDB.
-2. The `idb` npm package (or raw IndexedDB API) is acceptable as a dependency.
-3. Cross-tab sync can be deferred. Accept single-tab behavior for IndexedDB saves initially.
-4. The `beforeunload` save path needs special handling since IndexedDB is async (localStorage was sync).
+## Decisions To Preserve
+- IndexedDB for payload storage is the storage direction; metadata can stay in localStorage for sync reads.
+- Checkpoint model remains five checkpoints plus rapid autosave (6 total auto slots).
+- Independent checkpoint timers are the intended behavior, not cascading promotion.
 
-**Project Pointers:**
-- [Living Tracker](./TRACKER.md)
-- [Gap Registry](./GAPS.md)
-- [Decision Log](./DECISIONS.md)
-- [Architecture Notes](./ARCHITECTURE_NOTES.md)
+## Active Uncertainty
+- Whether startup call order should force an explicit `initializeStorage()` before UI save checks.
+- Whether checkpoint slots should be user-visible as their own protected section vs current auto save section.
+- How to prevent checkpoint data loss across rapid tab close events without impacting normal autosave path.
 
-**Resume Path:**
-Read `TRACKER.md` for current active task and blockers. The implementation is split into 4 phases: (1) IndexedDB storage layer, (2) migration, (3) checkpoint timer system, (4) UI updates. Each phase is a bounded task in the tracker.
+## Resume Path
+1. Read `TRACKER.md`.
+2. Address the open gaps in `GAPS.md`.
+3. Re-check implementation against `src/services/saveLoadService.ts`, then update docs in this folder only.

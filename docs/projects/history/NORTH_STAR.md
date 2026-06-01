@@ -1,0 +1,56 @@
+# History System North Star
+
+Status: active
+Last updated: 2026-05-31
+
+## Purpose
+The History System is Aralia's long-term world memory layer. It stores immutable `WorldHistoryEvent` records that survive beyond ephemeral rumor life and is the intended source of canonical event memory for faction wars, political shifts, discoveries, and major battles.
+
+## Scope Boundaries
+
+In scope:
+- Types and contracts for world-history records.
+- Event creation factories for permanent history.
+- Utility functions that add, query, and sort historical records.
+- State/action integration for write paths and initial world history seed.
+- Evidence-backed test coverage of creation + add/filter behavior.
+
+Out of scope for this pass:
+- Player discovery log, NPC memory, and rumor lifecycle logic.
+- Any UI timeline implementation or direct rendering surface.
+
+## Project File Map
+
+| File | Responsibility | Evidence-backed state |
+|---|---|---|
+| [src/types/history.ts](/F:/Repos/Aralia/src/types/history.ts) | Event contracts (`WorldHistoryEvent`, `WorldHistory`, enum types) | Implemented with a partial contract and explicit TODOs on missing recorder wiring |
+| [src/systems/history/HistoryService.ts](/F:/Repos/Aralia/src/systems/history/HistoryService.ts) | `FACTION_WAR`, `POLITICAL_SHIFT`, `DISCOVERY`, `CATASTROPHE` event factories | Implemented; returns structured records with IDs, timestamps, participants, tags, importance |
+| [src/services/WorldHistoryService.ts](/F:/Repos/Aralia/src/services/WorldHistoryService.ts) | Converts skirmish outcomes into `MAJOR_BATTLE` permanent events | Implemented |
+| [src/utils/world/historyUtils.ts](/F:/Repos/Aralia/src/utils/world/historyUtils.ts) | `createEmptyHistory`, `addHistoryEvent`, `getRelevantHistory`, `findEventsByParticipant`, `findEventsByLocation` | Implemented; no retention/pruning hook yet |
+| [src/utils/historyUtils.ts](/F:/Repos/Aralia/src/utils/historyUtils.ts) | Deprecated bridge export to `src/utils/world/historyUtils.ts` | Implemented as compatibility layer |
+| [src/systems/world/WorldEventManager.ts](/F:/Repos/Aralia/src/systems/world/WorldEventManager.ts) | Persistent history write for skirmish resolution | Implemented through `WorldHistoryService.createSkirmishEvent` |
+| [src/state/reducers/worldReducer.ts](/F:/Repos/Aralia/src/state/reducers/worldReducer.ts) | Handles `ADD_WORLD_HISTORY_EVENT` and persists updates | Implemented |
+| [src/state/actionTypes.ts](/F:/Repos/Aralia/src/state/actionTypes.ts) | `ADD_WORLD_HISTORY_EVENT` action shape | Implemented |
+| [src/types/state.ts](/F:/Repos/Aralia/src/types/state.ts) | `worldHistory?: WorldHistory` on `GameState` | Implemented |
+| [src/state/initialState.ts](/F:/Repos/Aralia/src/state/initialState.ts) | Initializes `worldHistory: createEmptyHistory()` | Implemented |
+| [src/state/appState.ts](/F:/Repos/Aralia/src/state/appState.ts) | Uses history init in flow assembly | Implemented; history touched via imports/flow setup |
+| [src/systems/history/__tests__/HistoryService.test.ts](/F:/Repos/Aralia/src/systems/history/__tests__/HistoryService.test.ts) | Factory behavior test coverage | Implemented |
+| [src/utils/world/__tests__/historyUtils.test.ts](/F:/Repos/Aralia/src/utils/world/__tests__/historyUtils.test.ts) | Utility behavior and duplicate-ID guard tests | Implemented |
+| [src/systems/world/World_Ralph.md](/F:/Repos/Aralia/src/systems/world/World_Ralph.md) | Legacy note confirming skirmish history conversion work | Important historical context |
+
+## Implemented State
+- State shape includes `worldHistory` and starts as an empty list.
+- `ADD_WORLD_HISTORY_EVENT` can append a record through reducer logic with duplicate-id prevention.
+- Faction skirmish is actively converted to permanent history in the world event loop.
+- History query utilities support filtering by tag, minimum importance, participant, and location.
+
+## Gaps and Uncertainties (Preserved)
+- Permanent records are currently append-only; no explicit retention or archive policy exists.
+- `WorldHistoryEventType` includes `HEROIC_DEED` and `MYSTERY_SOLVED`, but there are no dedicated emitters for these event types.
+- No timeline/replay consumer or UI contract is defined in this slice yet.
+- `HistoryService.ts` and `types/history.ts` still contain TODO comments about planned recorder and integration paths.
+
+## Next checks for a cold agent
+- Confirm every producer of major world events and map each to a concrete history event type.
+- Define and document a retention/pruning policy (or explicit no-prune policy) and add it to the same layer.
+- Validate whether world-history records should feed a UI timeline and define the read contract.

@@ -38,11 +38,6 @@ export function deriveRacialSkillGrants(params: {
 
   const grants: SkillGrantsById = {};
 
-  const humanSkillId = racialSelections['human']?.skillIds?.[0];
-  if (humanSkillId) {
-    grants[humanSkillId] = { granted: true, source: "Human 'Skillful' trait" };
-  }
-
   if (raceId === 'elf' && selectedKeenSensesSkillId) {
     grants[selectedKeenSensesSkillId] = { granted: true, source: "Elf 'Keen Senses' trait" };
   }
@@ -51,16 +46,18 @@ export function deriveRacialSkillGrants(params: {
     grants[BUGBEAR_AUTO_SKILL_ID] = { granted: true, source: "Bugbear 'Sneaky' trait" };
   }
 
-  const centaurSkillId = racialSelections['centaur']?.skillIds?.[0];
-  if (centaurSkillId) {
-    grants[centaurSkillId] = { granted: true, source: "Centaur 'Natural Affinity' trait" };
+  // Generically apply all skills selected for the current race
+  const currentRaceSkillIds = racialSelections[raceId]?.skillIds;
+  if (currentRaceSkillIds) {
+    for (const skillId of currentRaceSkillIds) {
+      grants[skillId] = { granted: true, source: "Racial trait choice" };
+    }
   }
 
-  const changelingSkillIds = racialSelections['changeling']?.skillIds;
-  if (changelingSkillIds) {
-    for (const skillId of changelingSkillIds) {
-      grants[skillId] = { granted: true, source: "Changeling 'Instincts' trait" };
-    }
+  // Always apply Human skill choice if it exists (legacy behavior)
+  const humanSkillId = racialSelections['human']?.skillIds?.[0];
+  if (humanSkillId && raceId === 'human') {
+    grants[humanSkillId] = { granted: true, source: "Human 'Skillful' trait" };
   }
 
   return grants;
@@ -103,7 +100,9 @@ export function buildSkillsForSubmit(params: {
     .map((id) => skillsById[id])
     .filter((s): s is Skill => !!s);
 
-  pushUniqueSkill(skillsById, allSelectedSkills, racialSelections['human']?.skillIds?.[0]);
+  if (raceId === 'human') {
+    pushUniqueSkill(skillsById, allSelectedSkills, racialSelections['human']?.skillIds?.[0]);
+  }
 
   if (raceId === 'elf') {
     pushUniqueSkill(skillsById, allSelectedSkills, selectedKeenSensesSkillId);
@@ -113,10 +112,9 @@ export function buildSkillsForSubmit(params: {
     pushUniqueSkill(skillsById, allSelectedSkills, BUGBEAR_AUTO_SKILL_ID);
   }
 
-  pushUniqueSkill(skillsById, allSelectedSkills, racialSelections['centaur']?.skillIds?.[0]);
-
-  const changelingSkillIds = racialSelections['changeling']?.skillIds ?? [];
-  for (const skillId of changelingSkillIds) {
+  // Generically push all skills selected for the current race
+  const currentRaceSkillIds = racialSelections[raceId]?.skillIds ?? [];
+  for (const skillId of currentRaceSkillIds) {
     pushUniqueSkill(skillsById, allSelectedSkills, skillId);
   }
 

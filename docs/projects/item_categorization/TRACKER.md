@@ -1,32 +1,32 @@
 # TRACKER: Item Categorization
 
 ## Active Work
-- `[done]` Bootstrapping project skeleton and writing implementation plan.
-- `[done]` Implement categorization tag injection in `ingestPhbGlossary.ts`.
-- `[done]` Implement Equipment grouping logic (in `generateGlossaryIndex.js` or `glossaryRuleChapters.ts`).
-- `[done]` Rebuild indexes and verify UI visually.
+## Confirmed Completed
+- `[done]` Category ingestion for Equipment is adding `itemType` tags + `itemMetadata` in `scripts/ingestPhbGlossary.ts`.
+- `[done]` Build-time Equipment hierarchy is emitted in `scripts/generateGlossaryIndex.js` as `subEntries` buckets.
+- `[done]` Engine item data pipeline exists: `scripts/generateItemRegistry.ts` writes `src/data/items/generatedGlossaryItems.ts`.
+- `[done]` Generated glossary items are merged into `ALL_ITEMS` in `src/data/items/index.ts`.
+- `[done]` Existing glossary UI supports nested nodes and recursive searches (`src/components/Glossary/GlossarySidebar.tsx`, `src/components/Glossary/glossaryRuleChapters.ts`, `src/components/Glossary/hooks/useGlossarySearch.ts`).
+- `[done]` Dev-mode glossary index rebuild trigger is wired in Vite and calls `node scripts/generateGlossaryIndex.js` (`vite.config.ts` + `Glossary.tsx`).
 
-## Active Work (Phase 2: Visuals & Mechanics)
-- `[x]` Update `src/types/ui.ts` to include `itemMetadata`.
-- `[x]` Update `ingestPhbGlossary.ts` to pass structured metadata instead of plain markdown.
-- `[x]` Build `generateItemRegistry.ts` to convert `GlossaryEntry` items into strict engine `Item` entities.
-- `[x]` Merge `GENERATED_GLOSSARY_ITEMS` into `ALL_ITEMS` inside `src/data/items/index.ts`.
-- `[x]` Test the engine integration adapter against the Glossary entries. Ensure no items fall back to unregistered `ItemType` values.
-- `[x]` Fix Stitch MCP `spawn EINVAL` on Windows.
-- `[x]` Establish Stitch MCP as the standard for generating new premium glassmorphic UI components.
-- `[x]` Fix data ingestion pipeline gaps (resolve `{@dice}`, `{@damage}`, `{@recharge}` markup missing in glossary entries).
-- `[x]` Fix data ingestion to automatically build `seeAlso` arrays by scanning generated markdown links.
-- `[-]` Use Stitch MCP to generate a premium glassmorphic UI for Glossary Item Entries (`GlossaryItemStatBlock.tsx`) - *Deferred per user request*.
-
-## Completed Work
-- Equipment correctly grouped dynamically at build-time.
-- Magic items successfully ingested and categorized (XDMG).
-
-## Blockers
-- Waiting for user approval on updated `implementation_plan.md`.
+## Remaining Work
+- `[open]` Resolve type-surface drift: `src/types/ui.d.ts` lacks `itemMetadata` while `src/types/ui.ts` has it.
+- `[open]` Verify semantic completeness of mechanical mapping in `scripts/generateItemRegistry.ts` (type heuristics and conversions).
+- `[open]` Decide whether and how to represent 5e `itemGroup`-style grouping in this pipeline.
+- `[open]` Add or document a canonical `generateGlossaryIndex` run command path in project scripts (currently available via Vite dev endpoint, and manual direct invocation).
 
 ## Discovered Gaps
-- (See `GAPS.md` for full 50-item audit).
+- See `GAPS.md` for the evidence-backed set tied to this project.
+
+## Blockers
+- No hard blockers. Current open items are mostly validation/normalization decisions.
+
+## Next Expected Actions
+- Reconcile and document the unresolved gap items from `GAPS.md`.
+- Add a short verification checklist for future cold-starts:
+  1. verify equipment entry count and tag coverage,
+  2. regenerate glossary index,
+  3. run targeted checks for item registry output count and runtime usage.
 
 ## Next Expected Actions
 - Find and record new gaps in item integration (e.g. hooking up weapon attacks to combat engine).

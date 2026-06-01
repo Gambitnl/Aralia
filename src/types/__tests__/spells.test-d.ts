@@ -1,6 +1,6 @@
 import { expectType, expectError } from 'tsd';
 import { SpellSchool } from '../spells';
-import type { Spell, SpellEffect, DamageEffect, DamageData, HealingEffect, StatusConditionEffect, ConditionName } from '../spells';
+import type { Spell, SpellEffect, DamageEffect, DamageData, HealingEffect, StatusConditionEffect, ConditionName, EffectTrigger } from '../spells';
 
 // A mock function to get a generic spell effect
 declare function getSpellEffect(): SpellEffect;
@@ -65,5 +65,12 @@ describe('Spell System Type-Level Tests', () => {
       const _invalidDamage: DamageData = { dice: '1d6', type: 'NotARealType' } as any;
       return _invalidDamage;
     });
+  });
+
+  it('should keep area-movement triggers available to declaration consumers', () => {
+    // This protects the manual declaration surface from drifting behind the runtime
+    // spell validator when zone movement effects use on_move_in_area.
+    const movementTrigger: EffectTrigger = { type: 'on_move_in_area', frequency: 'every_time' };
+    expectType<EffectTrigger>(movementTrigger);
   });
 });

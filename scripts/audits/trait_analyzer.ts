@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { buildRacialTraitLibrary } from '../../src/data/races/racialTraits';
 
 type RaceLike = {
   id: string;
@@ -88,12 +89,13 @@ async function main() {
 
   console.log(`Loaded ${races.length} races and ${fileContents.length} source files for scanning.`);
 
-  // We will map each trait and identify its mechanical support:
-  // - "Spell Grant": has associated spell in knownSpells or parsed in text
-  // - "Speed Adjuster": parsed as speed
-  // - "Darkvision Sensor": parsed as vision/darkvision
-  // - "Custom Mechanics": referenced by name/property in code
-  // - "Text-Only/Informational": cosmetic/flavor tooltip only
+  // We will map each trait and identify its mechanical support using both the
+  // actual runtime parser (buildRacialTraitLibrary) and static code scans.
+  const racesRecord: Record<string, any> = {};
+  for (const r of races) {
+    racesRecord[r.id] = r;
+  }
+  const library = buildRacialTraitLibrary(racesRecord);
 
   const traitReport: any[] = [];
 
@@ -109,6 +111,13 @@ async function main() {
 
       const lowerName = name.toLowerCase();
 
+      // Check if the runtime parser maps this trait into a mechanical category
+      const parsedTraitsForRace = library.byRaceId[race.id] || [];
+      const parsedTraits = parsedTraitsForRace.filter(t => t.traitName === name);
+
+      const spellTraits = parsedTraits.filter(t => t.type === 'spell');
+      const featureTraits = parsedTraits.filter(t => t.type !== 'spell');
+
       // 1. Is it Creature Type?
       if (lowerName === 'creature type') {
         status = 'Implemented'; // Handled via metadata
@@ -122,7 +131,7 @@ async function main() {
         evidence = 'Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts).';
       }
       // 3. Is it Speed?
-      else if (lowerName === 'speed') {
+      else if (lowerName === 'speed' || lowerName === 'flight' || lowerName === 'swim') {
         status = 'Implemented';
         mechanism = 'Movement speed parser';
         evidence = 'calculateCharacterSpeedFromRace parses numeric value from the Speed trait string.';
@@ -133,113 +142,90 @@ async function main() {
         mechanism = 'Darkvision range parser';
         evidence = 'calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string.';
       }
-      // 5. Is it a defense trait?
-      else if (/(resistance|resistant|immunity|immune|vulnerability|vulnerable)\s+(?:to|against)\s+/i.test(desc)) {
+      // 5. Does the parser map it as a spell?
+      else if (spellTraits.length > 0) {
         status = 'Implemented';
-        mechanism = 'Damage-type defense materializer';
-        evidence = 'Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state.';
+        mechanism = 'Racial Spellcasting Engine';
+        const spellIds = spellTraits.map(t => (t as any).spellId);
+        evidence = `Spells from this trait (${spellIds.join(', ')}) are resolved and granted via getRacialSpellGrantsForCharacter.`;
       }
-      // 5.5. Is it a modifier trait?
-      else if (/(advantage|disadvantage)\s+on/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Modifiers are extracted via getRacialModifierBucketsFromTraitText.';
-      }
-      // 5.6. Is it a bonus trait (dice/flat)?
-      else if (/(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+.*?(?:to|on|for)\s+/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText.';
-      }
-      // 5.7. Is it an AC modifier trait?
-      else if (/(?:base\s+Armor\s+Class|bonus\s+to\s+your\s+Armor\s+Class|bonus\s+to\s+your\s+AC)/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText.';
-      }
-      // 5.8. Is it a resource trait?
-      else if (/(?:use\s+this\s+trait|use\s+this\s+feature|number\s+of\s+times|regain\s+all\s+expended\s+uses)/i.test(desc) &&
-               /(?:short|long|daily)\s+rest/i.test(desc)) {
+      // 6. Does the parser map it as a resource?
+      else if (featureTraits.some(t => t.type === 'resource' || ((t as any).resources && (t as any).resources.length > 0))) {
         status = 'Implemented';
         mechanism = 'Racial resource materializer';
         evidence = 'Usage limits and reset conditions are extracted and applied to character state.';
       }
-      // 5.9. Is it a reach trait?
-      else if (/reach\s+for\s+it\s+is\s+\d+\s+feet\s+greater/i.test(desc)) {
+      // 7. Does the parser map it as a defense?
+      else if (featureTraits.some(t => t.type === 'resistance' || ((t as any).defensiveTraits && ((t as any).defensiveTraits.resistances.length > 0 || (t as any).defensiveTraits.immunities.length > 0 || (t as any).defensiveTraits.vulnerabilities.length > 0)))) {
         status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Reach bonuses are extracted and applied to character state.';
+        mechanism = 'Damage-type defense materializer';
+        evidence = 'Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state.';
       }
-      // 5.10. Is it a size/build trait?
-      else if (/count\s+as\s+one\s+size\s+larger/i.test(desc)) {
+      // 8. Does the parser map it as a modifier?
+      else if (featureTraits.some(t => {
+        const mb = (t as any).modifierBuckets;
+        if (!mb) return false;
+        return mb.advantage.length > 0 || mb.disadvantage.length > 0 || mb.bonuses.length > 0 ||
+               mb.baseArmorClass !== undefined || mb.acBonus !== undefined || mb.reachBonus !== undefined ||
+               mb.powerfulBuild || mb.unendingBreath || mb.languages?.length || mb.skillProficiencies?.length ||
+               mb.weaponProficiencies?.length || mb.armorProficiencies?.length || mb.initiativeBonus !== undefined ||
+               mb.initiativeProficiency || mb.ignoreDifficultTerrain || mb.reactions?.length;
+      })) {
         status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Powerful build traits are extracted and applied to character state.';
+        const mbMatch = featureTraits.find(t => (t as any).modifierBuckets);
+        const mb = mbMatch ? (mbMatch as any).modifierBuckets : {};
+        
+        if (mb.ignoreDifficultTerrain) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Difficult terrain ignores are extracted and applied to pathfinding logic.';
+        } else if (mb.reachBonus !== undefined) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Reach bonuses are extracted and applied to character state.';
+        } else if (mb.powerfulBuild) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Powerful build traits are extracted and applied to character state.';
+        } else if (mb.unendingBreath) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Unending breath traits are extracted and applied to character state.';
+        } else if (mb.languages?.length) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Racial languages are extracted and applied to character state.';
+        } else if (mb.skillProficiencies?.length || mb.weaponProficiencies?.length || mb.armorProficiencies?.length) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Skill, weapon, and armor proficiencies are extracted and applied to character state.';
+        } else if (mb.initiativeBonus !== undefined || mb.initiativeProficiency) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Initiative bonuses and proficiency are extracted and applied to character state.';
+        } else if (mb.reactions?.length) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Stone\'s Endurance and reaction-triggers are extracted via parser-defined mechanics.';
+        } else if (mb.baseArmorClass !== undefined || mb.acBonus !== undefined) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'AC bonuses and Natural Armor are extracted via getRacialModifierBucketsFromTraitText.';
+        } else if (mb.bonuses.length > 0) {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Bonus dice/flat modifiers are extracted via getRacialModifierBucketsFromTraitText.';
+        } else {
+          mechanism = 'Racial modifier materializer';
+          evidence = 'Modifiers are extracted via getRacialModifierBucketsFromTraitText.';
+        }
       }
-      // 5.11. Is it a breathing trait?
-      else if (/hold\s+your\s+breath\s+indefinitely/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Unending breath traits are extracted and applied to character state.';
-      }
-      // 5.12. Is it a language trait?
-      else if (/speak,\s+read,\s+and\s+write\s+[A-Z][a-z]+/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Racial languages are extracted and applied to character state.';
-      }
-      // 5.13. Is it a Breath Weapon trait?
-      else if (/Breath\s+Weapon/i.test(desc) && /(?:cone|line)/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial ability materializer';
-        evidence = 'Breath weapon mechanics (area, damage, scaling) are extracted and converted to combat abilities.';
-      }
-      // 5.14. Is it a Proficiency trait?
-      else if (/(?:proficiency\s+in|proficiency\s+with)\s+/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Skill, weapon, and armor proficiencies are extracted and applied to character state.';
-      }
-      // 5.15. Is it an Initiative trait?
-      else if (/(?:initiative\s+rolls|bonus\s+to\s+initiative)/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Initiative bonuses and proficiency are extracted and applied to character state.';
-      }
-      // 5.16. Is it a Difficult Terrain trait?
-      else if (/Difficult\s+Terrain/i.test(desc) && /without\s+expending\s+extra\s+movement/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial modifier materializer';
-        evidence = 'Difficult terrain ignores are extracted and applied to pathfinding logic.';
-      }
-      // 5.17. Is it a choice trait?
-      else if (/one\s+of\s+the\s+following\s+(?:cantrips|spells|proficiencies|skills)\s+of\s+your\s+choice/i.test(desc) ||
-               /choose\s+one\s+of\s+the\s+following/i.test(desc)) {
-        status = 'Implemented';
-        mechanism = 'Racial choice materializer';
-        evidence = 'Multi-choice traits are extracted and materialized from character selections.';
-      }
-      // 6. Is it a spell trait?
-      else {
-        // Check if there's an associated spell
+      
+      // 9. Ultimate Fallback: Check for code references by trait name in files or associated spells
+      if (status === 'Text-Only') {
         const hasSpell = race.knownSpells?.some((ks: any) => {
-          // Check if spell ID matches words in the trait description
           const spellWord = ks.spellId.replace(/-/g, ' ');
           return desc.toLowerCase().includes(spellWord) || rawTrait.toLowerCase().includes(spellWord);
         });
 
-        // Or if the parser in racialTraits would extract it
         if (hasSpell || /cantrip|spell|cast/i.test(desc) && (race.knownSpells?.length || race.racialSpellChoice)) {
-          // Let's verify if there is an actual spell mapped
           status = 'Implemented';
           mechanism = 'Racial Spellcasting Engine';
           evidence = `Spells from this trait are resolved and granted via getRacialSpellGrantsForCharacter.`;
         } else {
-          // 6. Check for code references by trait name in files
           const references: string[] = [];
           for (const fc of fileContents) {
             if (fc.content.includes(name)) {
-              // Extract a short line snippet
               const lines = fc.content.split('\n');
               const matchingLine = lines.find(l => l.includes(name))?.trim();
               const relativePath = path.relative(ROOT, fc.path);
@@ -273,10 +259,11 @@ async function main() {
     });
   }
 
-  // Write the mapping report
-  const outPath = path.join(ROOT, 'docs', 'racial-traits-implementation-mapping.json');
+  // Write the mapping report JSON to its canonical home in the projects folder.
+  // This is used as the machine-readable trait map for audit and tracking.
+  const outPath = path.join(ROOT, 'docs', 'projects', 'racial-mechanics', 'traits-implementation-mapping.json');
   fs.writeFileSync(outPath, JSON.stringify(traitReport, null, 2), 'utf8');
-  console.log(`Generated JSON mapping at docs/racial-traits-implementation-mapping.json`);
+  console.log(`Generated JSON mapping at docs/projects/racial-mechanics/traits-implementation-mapping.json`);
 
   // Also write a markdown file mapping all races
   let md = `# Racial Traits Implementation Mapping\n\n`;
@@ -324,8 +311,10 @@ async function main() {
     md += `\n---\n\n`;
   });
 
-  fs.writeFileSync(path.join(ROOT, 'docs', 'racial-traits-implementation-mapping.md'), md, 'utf8');
-  console.log(`Generated Markdown mapping at docs/racial-traits-implementation-mapping.md`);
+  // Write the markdown report to its canonical home in the projects folder.
+  // This serves as the human-readable tracking document showing what is mechanically implemented.
+  fs.writeFileSync(path.join(ROOT, 'docs', 'projects', 'racial-mechanics', 'traits-implementation-mapping.md'), md, 'utf8');
+  console.log(`Generated Markdown mapping at docs/projects/racial-mechanics/traits-implementation-mapping.md`);
 }
 
 main().catch((err) => {

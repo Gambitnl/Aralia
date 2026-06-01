@@ -19,7 +19,7 @@
  * This service module handles the generation of the world map for Aralia RPG.
  */
 import { MapData, MapTile, Location, Biome } from '../types';
-import { STARTING_LOCATION_ID } from '../constants';
+import { STARTING_LOCATION_ID } from '../data/world/locations';
 import { SeededRandom } from '@/utils/random';
 import { generateAzgaarDerivedMap } from './azgaarDerivedMapService';
 import { migrateMapDataToWorldDataV2 } from '@/state/migrations/worldDataMigration';

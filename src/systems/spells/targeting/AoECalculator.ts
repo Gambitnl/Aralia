@@ -1,9 +1,21 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 22:45:56
+ * Dependents: systems/spells/effects/triggerHandler.ts, systems/spells/targeting/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { Position, AreaOfEffect } from '@/types'
-import { getCone } from './gridAlgorithms/cone'
-import { getCube } from './gridAlgorithms/cube'
-import { getSphere } from './gridAlgorithms/sphere'
-import { getLine } from './gridAlgorithms/line'
-import { getCylinder } from './gridAlgorithms/cylinder'
+import { calculateAffectedTiles, type AoEParams, type AoEShape } from '../../../utils/combat/aoeCalculations'
 
 /**
  * Calculates affected tiles for AoE spells
@@ -40,81 +52,61 @@ export class AoECalculator {
     aoe: AreaOfEffect,
     direction?: Position
   ): Position[] {
-    switch (aoe.shape) {
-      case 'Cone':
-        if (!direction) throw new Error('Cone requires direction vector')
-        return getCone(center, direction, aoe.size)
+    return calculateAffectedTiles(this.toSharedAoEParams(center, aoe, direction))
+  }
 
-      case 'Cube':
-        return getCube(center, aoe.size)
-
-      case 'Sphere':
-        return getSphere(center, aoe.size)
-
-      case 'Square':
-        // Treat planar squares the same as cubes on the 2D grid.
-        return getCube(center, aoe.size)
-
-      case 'Line':
-        if (!direction) throw new Error('Line requires direction vector')
-        // Line requires a width in spells.ts? No, spells.ts AreaOfEffect only has size.
-        // Wait, where does width come from?
-        // The Line algo takes a width.
-        // But spells.ts AreaOfEffect is { shape, size }.
-        // I might need to assume default width or check if AreaOfEffect has width in spells.ts
-        // Checking spells.ts:
-        // export interface AreaOfEffect { shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere"; size: number; }
-        // It does NOT have width.
-        // The task description for getLine in AoECalculator says:
-        // return getLine(center, direction, aoe.size, aoe.width ?? 5)
-        // This implies aoe might have width, or it's casted/extended.
-        // I will assume 5ft default width for now since the interface doesn't support it yet.
-        return getLine(center, direction, aoe.size, 5)
-
-      case 'Cylinder':
-        return getCylinder(center, aoe.size)
-
-      default: {
-        // In case of exhaustiveness check failure or runtime invalid data
-        // TODO(lint-intent): 'exhaustive' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
-        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
-        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
-        const _exhaustive: never = aoe.shape as never;
-        throw new Error(`Unknown AoE shape: ${aoe.shape}`)
-      }
-    }
+  /**
+   * Check whether one grid tile is inside an AoE by reusing the same tile list
+   * that targeting previews and spell resolution use.
+   *
+   * This keeps persistent area zones from maintaining their own distance math for
+   * spheres, cubes, cylinders, and squares. Directional shapes still require the
+   * caller to provide a direction because cone and line geometry is not defined
+   * by center + size alone.
+   */
+  static containsTile(
+    position: Position,
+    center: Position,
+    aoe: AreaOfEffect,
+    direction?: Position
+  ): boolean {
+    return this.getAffectedTiles(center, aoe, direction).some(tile => (
+      tile.x === position.x && tile.y === position.y
+    ))
   }
 
   /**
    * Get tiles affected by a Cone
    *
-   * Uses 90-degree cone emanating from caster
-   * Size is length from origin
+   * Uses the shared combat AoE utility so preview, terrain, and zone math agree.
+   * Size is length from origin.
    */
   static getCone(origin: Position, direction: Position, size: number): Position[] {
-    return getCone(origin, direction, size)
+    return calculateAffectedTiles({
+      shape: 'Cone',
+      origin,
+      size,
+      direction: vectorToCompassDegrees(direction)
+    })
   }
 
   /**
    * Get tiles affected by a Sphere
    *
-   * Uses Euclidean distance: sqrt((x2-x1)² + (y2-y1)²)
-   * Radius is in feet
+   * Uses the shared combat AoE utility's 5e grid distance rule.
+   * Radius is in feet.
    */
   static getSphere(center: Position, radius: number): Position[] {
-    return getSphere(center, radius)
+    return calculateAffectedTiles({ shape: 'Sphere', origin: center, size: radius })
   }
 
   /**
    * Get tiles affected by a Cube
    *
-   * Center point defines cube center, size is edge length
+   * Uses the shared combat AoE utility convention where the point is the cube origin.
    */
   static getCube(center: Position, size: number): Position[] {
-    return getCube(center, size)
+    return calculateAffectedTiles({ shape: 'Cube', origin: center, size })
   }
 
   /**
@@ -129,7 +121,13 @@ export class AoECalculator {
     length: number,
     width: number = 5
   ): Position[] {
-    return getLine(start, direction, length, width)
+    return calculateAffectedTiles({
+      shape: 'Line',
+      origin: start,
+      size: length,
+      direction: vectorToCompassDegrees(direction),
+      width
+    })
   }
 
   /**
@@ -143,6 +141,49 @@ export class AoECalculator {
     radius: number,
     height: number = Infinity
   ): Position[] {
-    return getCylinder(center, radius, height)
+    void height
+    return calculateAffectedTiles({ shape: 'Cylinder', origin: center, size: radius })
   }
+
+  private static toSharedAoEParams(
+    center: Position,
+    aoe: AreaOfEffect,
+    direction?: Position
+  ): AoEParams {
+    const shape = normalizeShapeForSharedGeometry(aoe.shape)
+
+    if ((shape === 'Cone' || shape === 'Line') && !direction) {
+      throw new Error(`${shape} requires direction vector`)
+    }
+
+    return {
+      shape,
+      origin: center,
+      size: aoe.size,
+      direction: direction ? vectorToCompassDegrees(direction) : undefined,
+      width: aoe.height ?? 5
+    }
+  }
+}
+
+function normalizeShapeForSharedGeometry(shape: AreaOfEffect['shape']): AoEShape {
+  switch (shape) {
+    case 'Square':
+      return 'Cube'
+    case 'Sphere':
+    case 'Cone':
+    case 'Cube':
+    case 'Line':
+    case 'Cylinder':
+      return shape
+    default:
+      throw new Error(`Unknown AoE shape: ${shape}`)
+  }
+}
+
+function vectorToCompassDegrees(direction: Position): number {
+  const angleRad = Math.atan2(direction.y, direction.x)
+  const angleDeg = angleRad * (180 / Math.PI)
+  const compassDegrees = angleDeg + 90
+  return compassDegrees < 0 ? compassDegrees + 360 : compassDegrees
 }

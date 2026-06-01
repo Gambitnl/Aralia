@@ -390,6 +390,7 @@ export interface PlayerCharacter {
     initiativeBonus?: number;
     hp: number;
     maxHp: number;
+    heroicInspiration?: boolean;
     /**
      * Hit Point Dice (Hit Dice) available for spending during Short Rests.
      * 2024 rules: a character has 1 at level 1 and gains 1 each level thereafter.

@@ -10,7 +10,7 @@ F:\Repos\Aralia
 
 Read first:
 - AGENTS.md
-- .agent/workflows/USER.local.md
+- .agent/workflows/USER.local.md (if present; local-only)
 - src/data/races/index.ts
 - src/data/races/*.ts
 - src/types/character.ts

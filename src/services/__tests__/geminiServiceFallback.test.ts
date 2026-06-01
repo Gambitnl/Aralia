@@ -5,7 +5,7 @@ import { ai } from '../aiClient';
 import { TempPartyMember } from '../../types';
 // TODO(lint-intent): 'getFallbackEncounter' is unused in this test; use it in the assertion path or remove it.
 import { getFallbackEncounter as _getFallbackEncounter } from '../geminiServiceFallback';
-import { MONSTERS_DATA } from '../../constants';
+import { MONSTERS_DATA } from '../../data/monsters';
 
 // Mock the AI client
 vi.mock('../aiClient', () => ({

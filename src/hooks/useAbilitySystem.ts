@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 22/05/2026, 22:21:08
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, hooks/useBattleMap.ts
- * Imports: 13 files
+ * Last Sync: 31/05/2026, 23:28:55
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,21 +27,30 @@
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability } from '../types/combat';
 import { GameState } from '../types';
-import type { Spell } from '../types/spells';
+import type { AreaOfEffect, Spell, SpellEffect } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 import { getDistance, generateId } from '../utils/combatUtils';
+import { calculateSpellDC } from '../utils/savingThrowUtils';
 // TODO(lint-intent): 'hasLineOfSight' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { hasLineOfSight as _hasLineOfSight } from '../utils/lineOfSight';
-import { calculateAffectedTiles } from '../utils/aoeCalculations';
+import { calculateAffectedTiles, type AoEParams } from '../utils/combat/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
-import { resolveAoEParams } from '../utils/targetingUtils';
+import { resolveAoEParams } from '../utils/spatial/targetingUtils';
 import { Plane } from '../types/planes';
 import { useTargetValidator } from './combat/useTargetValidator';
 import { consumeActionCost } from '../utils/combat/actionEconomyUtils';
+import {
+  createMovementDebuff,
+  createScheduledSpellEffect,
+  createSpellZoneFromAoEParams,
+  type ActiveSpellZone,
+  type MovementTriggerDebuff,
+  type ScheduledSpellEffect
+} from '../systems/spells/effects/triggerHandler';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -55,6 +64,12 @@ interface UseAbilitySystemProps {
   reactiveTriggers?: ReactiveTrigger[];
   onReactiveTriggerUpdate?: (triggers: ReactiveTrigger[]) => void;
   onMapUpdate?: (mapData: BattleMapData) => void;
+  /** Registers persistent spell zones created by structured area-trigger effects. */
+  onAddSpellZone?: (zone: ActiveSpellZone) => void;
+  /** Registers target-bound scheduled spell effects that resolve on future turns. */
+  onAddScheduledSpellEffect?: (effect: ScheduledSpellEffect) => void;
+  /** Registers target movement debuffs such as Booming Blade-style delayed triggers. */
+  onAddMovementDebuff?: (debuff: MovementTriggerDebuff) => void;
   currentPlane?: Plane; // NEW: Added plane context
 }
 
@@ -89,6 +104,58 @@ const buildAbilityCombatAction = (
   targetCharacterIds,
   cost: ability.cost,
   timestamp: Date.now()
+});
+
+const AREA_ZONE_TRIGGER_TYPES = new Set([
+  'on_enter_area',
+  'on_exit_area',
+  'on_end_turn_in_area',
+  'on_move_in_area'
+]);
+
+const hasPersistentAreaTrigger = (effect: SpellEffect): boolean => {
+  const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
+  return typeof triggerType === 'string' && AREA_ZONE_TRIGGER_TYPES.has(triggerType);
+};
+
+const SCHEDULED_EFFECT_TRIGGER_TYPES = new Set(['turn_start', 'turn_end']);
+
+const hasScheduledEffectTrigger = (effect: SpellEffect): boolean => {
+  const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
+  return typeof triggerType === 'string' && SCHEDULED_EFFECT_TRIGGER_TYPES.has(triggerType);
+};
+
+const hasTargetMovementTrigger = (effect: SpellEffect): boolean => {
+  const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
+  return triggerType === 'on_target_move';
+};
+
+const getDurationRounds = (spell: Spell): number | undefined => {
+  const duration = spell.duration;
+  if (!duration.value || duration.type === 'instantaneous') return undefined;
+
+  switch (duration.unit) {
+    case 'round':
+      return duration.value;
+    case 'minute':
+      return duration.value * 10;
+    case 'hour':
+      return duration.value * 600;
+    case 'day':
+      return duration.value * 14400;
+    default:
+      return undefined;
+  }
+};
+
+const getZoneAreaFromAoEParams = (
+  areaOfEffect: AreaOfEffect,
+  aoeParams: AoEParams
+): { shape: string; size: number } => ({
+  shape: areaOfEffect.shape,
+  // Use the resolved AoE size so persistent zone containment follows the same
+  // unit convention as targeting previews and immediate affected-tile lookup.
+  size: aoeParams.size
 });
 
 const applyResourceSnapshotToCaster = (
@@ -159,6 +226,9 @@ export const useAbilitySystem = ({
   reactiveTriggers,
   onReactiveTriggerUpdate,
   onMapUpdate,
+  onAddSpellZone,
+  onAddScheduledSpellEffect,
+  onAddMovementDebuff,
   currentPlane
 }: UseAbilitySystemProps) => {
 
@@ -220,7 +290,8 @@ export const useAbilitySystem = ({
       targets: CombatCharacter[],
       castAtLevel: number,
       playerInput?: string,
-      resourceSnapshot?: CombatCharacter
+      resourceSnapshot?: CombatCharacter,
+      zoneRegistration?: { areaOfEffect: AreaOfEffect; aoeParams: AoEParams }
     ) {
       // RALPH: Stability Pattern.
       // We access `charactersRef.current` instead of `characters` from props to avoid re-creating this function on every render.
@@ -318,6 +389,65 @@ export const useAbilitySystem = ({
             }
           }
 
+          // Persistent area triggers need an ActiveSpellZone so movement and
+          // end-turn processors can observe the spell after the initial command
+          // execution finishes. This bridge intentionally reuses the AoE params
+          // already resolved for targeting so origin and direction do not drift.
+          // Capture the caster's save DC at cast time so delayed zone/scheduled
+          // effects do not silently change if the caster's stats change later.
+          const castSaveDC = calculateSpellDC(caster);
+
+          if (onAddSpellZone && zoneRegistration && spell.effects.some(hasPersistentAreaTrigger)) {
+            onAddSpellZone(createSpellZoneFromAoEParams(
+              spell.id,
+              caster.id,
+              zoneRegistration.aoeParams,
+              getZoneAreaFromAoEParams(zoneRegistration.areaOfEffect, zoneRegistration.aoeParams),
+              spell.effects,
+              currentState.turnState.currentTurn,
+              getDurationRounds(spell),
+              castSaveDC
+            ));
+          }
+
+          if (onAddScheduledSpellEffect && spell.effects.some(hasScheduledEffectTrigger)) {
+            (['turn_start', 'turn_end'] as const).forEach(timing => {
+              const scheduledEffects = spell.effects.filter(effect => effect.trigger?.type === timing);
+              if (scheduledEffects.length === 0) return;
+
+              targets.forEach(target => {
+                onAddScheduledSpellEffect(createScheduledSpellEffect(
+                  spell.id,
+                  caster.id,
+                  target.id,
+                  timing,
+                  scheduledEffects,
+                  currentState.turnState.currentTurn,
+                  getDurationRounds(spell),
+                  castSaveDC
+                ));
+              });
+            });
+          }
+
+          if (onAddMovementDebuff && spell.effects.some(hasTargetMovementTrigger)) {
+            targets.forEach(target => {
+              // Target-move triggers need their own runtime debuff record so the
+              // movement executor can notice the later move and apply the stored
+              // spell payload. Capture save DC here for parity with zones and
+              // scheduled turn effects.
+              onAddMovementDebuff(createMovementDebuff(
+                spell.id,
+                caster.id,
+                target.id,
+                spell.effects,
+                currentState.turnState.currentTurn,
+                getDurationRounds(spell) ?? 1,
+                castSaveDC
+              ));
+            });
+          }
+
         } else {
           console.error("Spell execution failed:", result.error);
           if (onLogEntry) {
@@ -345,7 +475,7 @@ export const useAbilitySystem = ({
         }
       }
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onMapUpdate]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onMapUpdate, onAddSpellZone, onAddScheduledSpellEffect, onAddMovementDebuff]
   );
 
 
@@ -388,7 +518,22 @@ export const useAbilitySystem = ({
 
       const casterAfterCost = consumeActionCost(liveCaster, ability.cost);
 
-      executeSpell(ability.spell, casterAfterCost, targets, ability.spell.level, undefined, casterAfterCost);
+      const zoneAoEParams = ability.areaOfEffect
+        ? resolveAoEParams(ability.areaOfEffect, targetPosition, liveCaster)
+        : null;
+      const zoneRegistration = ability.areaOfEffect && zoneAoEParams
+        ? { areaOfEffect: ability.areaOfEffect, aoeParams: zoneAoEParams }
+        : undefined;
+
+      executeSpell(
+        ability.spell,
+        casterAfterCost,
+        targets,
+        ability.spell.level,
+        undefined,
+        casterAfterCost,
+        zoneRegistration
+      );
       cancelTargeting();
       return;
     }

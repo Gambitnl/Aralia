@@ -10,12 +10,12 @@
     *   Unexpected errors that required debugging.
 
 2.  **Fetch Existing Log**:
-    *   Call `read_file` on `misc/chronicle_data.json`.
+    *   Read `misc/chronicle_data.json` with the current agent's available file-reading tools.
 
 3.  **Construct Entry**:
     *   **ID**: Generate a simple unique ID (e.g., `Date.now()`).
     *   **Date**: Current timestamp in `YYYY-MM-DD HH:mm` format.
-    *   **Agent**: "Gemini" (or specific persona if active).
+    *   **Agent**: The active agent/runtime name, such as `Codex Desktop` or `Gemini`, based on observable session context.
     *   **Categories**: Select 1-3 tags based on the work done.
     *   **Summary**: 1 sentence.
     *   **Actions**: 2-5 bullet points.
@@ -25,7 +25,7 @@
 4.  **Write Update**:
     *   Parse the existing JSON.
     *   `unshift` (prepend) the new entry so it appears first.
-    *   Call `write_file` with the updated JSON array.
+    *   Use the current agent's standard edit tool to write the updated JSON array without corrupting formatting.
 
 5.  **Confirm**:
     *   Notify the user: "Session logged to Development Chronicle."

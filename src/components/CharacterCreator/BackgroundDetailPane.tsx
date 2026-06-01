@@ -4,6 +4,7 @@
  */
 import React from 'react';
 import { Background } from '../../data/backgrounds';
+import { FEATS_DATA } from '../../data/feats/featsData';
 import { BTN_PRIMARY } from '../../styles/buttonStyles';
 
 interface BackgroundDetailPaneProps {
@@ -12,6 +13,8 @@ interface BackgroundDetailPaneProps {
 }
 
 export const BackgroundDetailPane: React.FC<BackgroundDetailPaneProps> = ({ background, onSelect }) => {
+  const originFeat = FEATS_DATA.find(f => f.id === background.originFeatId);
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -27,6 +30,17 @@ export const BackgroundDetailPane: React.FC<BackgroundDetailPaneProps> = ({ back
         <p className="text-gray-300 text-sm italic border-l-2 border-green-500/50 pl-3">
           {background.description}
         </p>
+
+        {/* Origin Feat */}
+        {originFeat && (
+          <div className="bg-sky-900/20 p-4 rounded-lg border border-sky-500/30">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] bg-sky-500/30 text-sky-200 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Origin Feat</span>
+              <h3 className="text-lg font-cinzel text-sky-300">{originFeat.name}</h3>
+            </div>
+            <p className="text-sm text-gray-400">{originFeat.description}</p>
+          </div>
+        )}
 
         {/* Feature */}
         <div className="bg-gray-900/40 p-4 rounded-lg border border-gray-700">

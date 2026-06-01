@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 03:25:09
+ * Last Sync: 01/06/2026, 01:15:23
  * Dependents: commands/effects/ConcentrationCommands.ts, commands/effects/RegisterRiderCommand.ts, commands/factory/AbilityCommandFactory.ts
  * Imports: 1 files
  *
@@ -14,10 +14,19 @@
  */
 // @dependencies-end
 
-// TODO(lint-intent): 'CombatCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { ActiveRider, CombatState, CombatCharacter as _CombatCharacter } from '@/types/combat';
+/**
+ * This file manages "Riders" — conditional combat effects like Smite or Sneak Attack.
+ *
+ * It registers new riders on casters, filters and matches active riders against the
+ * current attack context (e.g., weapon type, spell vs weapon, specific target), and
+ * consumes those riders when they are triggered (e.g. removing first-hit riders or
+ * marking per-turn riders as used).
+ *
+ * Called by: ActionExecutor, CombatEngine, and other combat resolution systems.
+ * Depends on: Combat types from @/types/combat.
+ */
+
+import { ActiveRider, CombatState } from '@/types/combat';
 
 export interface AttackContext {
     attackerId: string;

@@ -1,5 +1,62 @@
 {
-  "description": "Defines the tidy-up chain: which workflows, skills, and scripts participate and in what order.",
+  "description": "Defines the tidy-up chain: which tracked workflows, local-only calibration files, skills, and scripts participate and in what order.",
+  "canonicalWorkflowRoot": "public/agent-docs/workflows",
+  "localOnlyRoot": ".agent/workflows",
+  "entrypoint": {
+    "name": "tidy-up",
+    "path": "public/agent-docs/workflows/tidy-up.md",
+    "script": "scripts/tidy-up.sh",
+    "defaultMode": "standard"
+  },
+  "modes": [
+    {
+      "name": "light",
+      "command": "npm run tidy-up:light",
+      "useWhen": "Docs, comments, local notes, or tiny metadata edits only."
+    },
+    {
+      "name": "standard",
+      "command": "npm run tidy-up:standard",
+      "useWhen": "Ordinary code, data, tests, UI, or user-facing behavior changed."
+    },
+    {
+      "name": "full",
+      "command": "npm run tidy-up:full",
+      "useWhen": "Shared systems, workflow docs/scripts, Git hooks, package scripts, roadmap docs, or agent-facing contracts changed."
+    },
+    {
+      "name": "push",
+      "command": "npm run tidy-up:push",
+      "useWhen": "Push preparation, Git/worktree cleanup, release prep, hook repair, or sync blocker checks."
+    }
+  ],
+  "workflows": [
+    {
+      "name": "test-ts",
+      "path": "public/agent-docs/workflows/test-ts.md",
+      "chainOrder": 1
+    },
+    {
+      "name": "roadmap-node-orchestration",
+      "path": "public/agent-docs/workflows/roadmap-node-orchestration.md",
+      "chainOrder": 2
+    },
+    {
+      "name": "session-ritual",
+      "path": "public/agent-docs/workflows/session-ritual.md",
+      "chainOrder": 3
+    },
+    {
+      "name": "verify",
+      "path": "public/agent-docs/workflows/verify.md",
+      "chainVia": "session-ritual"
+    },
+    {
+      "name": "codexception",
+      "path": ".codex/steer.md",
+      "chainOrder": 4
+    }
+  ],
   "extras": [
     {
       "name": "sync-dependencies",
@@ -7,19 +64,22 @@
       "chainVia": "session-ritual"
     },
     {
-      "name": "roadmap-node-orchestration",
-      "path": ".agent/workflows/roadmap-node-orchestration.md",
-      "chainOrder": 2
-    },
-    {
       "name": "user-profile-calibration",
       "path": "public/agent-docs/workflows/user-profile-calibration.md",
       "chainVia": "session-ritual"
     },
     {
-      "name": "codexception",
-      "path": ".codex/steer.md",
-      "chainOrder": 4
+      "name": "intent-gate",
+      "path": "scripts/git/intent-gate-check.cjs",
+      "localFile": ".agent/workflows/INTENT-GATE.local.md",
+      "chainVia": "pre-push"
+    },
+    {
+      "name": "git-hygiene",
+      "path": "scripts/git/git-hygiene-check.cjs",
+      "primaryTree": "F:/Repos/Aralia",
+      "primaryBranch": "master",
+      "chainVia": "tidy-up:push"
     }
   ],
   "skills": [

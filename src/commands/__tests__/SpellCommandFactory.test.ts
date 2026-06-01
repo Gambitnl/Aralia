@@ -234,5 +234,52 @@ describe('SpellCommandFactory', () => {
       expect(contextTargets).toHaveLength(1);
       expect(contextTargets[0].id).toBe('frozen');
     })
+
+    it('should not create immediate commands for persistent area-zone triggers', async () => {
+      // Area-zone effects are registered into ActiveSpellZone by useAbilitySystem.
+      // The command factory must not also create an immediate DamageCommand for
+      // the same delayed effect or movement/end-turn hazards resolve twice.
+      const spell = createMockSpell('create_bonfire_zone', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '1d8', type: 'Fire' },
+          trigger: { type: 'on_enter_area' },
+          condition: { type: 'always' }
+        }]
+      })
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+
+      expect(commands).toHaveLength(0)
+    })
+
+    it('should not create immediate commands for bare scheduled triggers', async () => {
+      // turn_start/turn_end spell effects are registered into the scheduled
+      // effect runtime by useAbilitySystem and should not fire at cast time.
+      const spell = createMockSpell('delayed_acid', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '2d4', type: 'Acid' },
+          trigger: { type: 'turn_end' },
+          condition: { type: 'always' }
+        }]
+      })
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [mockTarget],
+        1,
+        createMockGameState()
+      )
+
+      expect(commands).toHaveLength(0)
+    })
   })
 })

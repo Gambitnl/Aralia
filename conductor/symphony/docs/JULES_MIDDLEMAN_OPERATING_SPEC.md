@@ -25,6 +25,7 @@ and live task status; this spec defines what the system must handle.
   - 1.12 [Approval Boundaries](#approval-boundaries)
   - 1.13 [Workflow Phases](#workflow-phases)
   - 1.14 [Spark Subagent Delegation](#spark-subagent-delegation)
+  - 1.15 [Jules MCP Usage Policy](#jules-mcp-usage-policy)
 - 2. [System Boundaries](#system-boundaries)
   - 2.1 [Git Tracking And Jules Handoff Boundary](#git-tracking-and-jules-handoff-boundary)
 - 3. [Task Scenarios To Cover](#task-scenarios-to-cover)
@@ -461,6 +462,39 @@ launch base, so later local edits to this spec do not update that session by
 themselves. Jules final reports should summarize files changed, verification,
 and deferred work; the full assumed-approval ledger is for foreman decisions
 that change the workflow path.
+
+### Jules MCP Usage Policy
+
+Jules MCPs are optional capability surfaces, not new workflow gates. A handoff
+should name an MCP only when that MCP would reduce ambiguity, remove duplicate
+lookup work, or improve evidence quality for the current package. The default
+source path remains the Aralia task packet, repository files, visible Jules
+state, GitHub PR/check state, Linear issue state, and concise tracker or receipt
+updates.
+
+MCP availability must not make a package broader. If a package does not need a
+database, analytics tool, design generator, preview-deployment debugger, or
+current-library documentation lookup, the foreman should tell Jules to ignore
+that MCP and proceed from the packet and repository. If a handoff allows an MCP,
+the prompt should say what the MCP may be used for, what it must not decide, and
+whether its use is optional or required for that package.
+
+| Jules MCP | Where it would come into play | Use when | Avoid when | Curiosity or evidence to collect |
+|---|---|---|---|---|
+| Linear | Linear issue creation/linking, handoff context, status comments, and post-PR status summaries | The package already has or should have a Linear issue and Jules needs issue context or concise status traceability | The Aralia task packet is enough, or a Linear update would duplicate durable tracker notes | Can Jules read/update exactly the issue we intend without drifting away from the Aralia tracker as source of durable package truth? |
+| Context7 | Jules plan formulation, implementation, or repair when current third-party library APIs matter | A task depends on current framework/library behavior and repo code is not enough evidence | Pure Aralia data, spell bucket, or docs work where domain files are authoritative | Does Context7 reduce API mistakes enough to become a default recommendation for coding-heavy packages? |
+| Render | GitHub PR/deployment phase after Jules creates a PR with preview or build failure evidence | A Jules-created PR has a Render preview, deploy, or build issue to diagnose | Mechanics/data/doc packages with no preview failure or when Render state is unrelated noise | Can Render diagnostics shorten the PR repair loop without distracting Jules during non-deployment packages? |
+| Stitch | Pre-handoff or Jules planning for UI/design exploration packages | The package needs web/mobile UI design exploration or mockups before implementation | Spell mechanics, schema, validator, data, or tracker packages; UI work that should preserve existing Aralia patterns without generated design detours | Should Stitch outputs become durable design artifacts, or stay disposable exploration aids unless copied into a task packet? |
+| Neon | Database-specific handoffs | Aralia adopts or touches Neon projects, branches, or SQL in a scoped package | Any non-database package | Which exact Aralia project/database would own the credentials and rollback plan? |
+| Supabase | Supabase database/functions handoffs | A package explicitly touches Supabase projects, SQL, branches, or Edge Functions | Any package outside that platform | Which environment is safe for Jules to inspect, and what mutations require approval? |
+| Tinybird | Analytics/data-product handoffs | A package explicitly touches Tinybird data sources, endpoints, or ClickHouse queries | Ordinary app/mechanics packages | Is analytics evidence read-only, or can Jules mutate production-facing endpoints? |
+| v0 | UI generation handoffs | A package explicitly asks for generated React/UI prototypes and the foreman accepts design-system risk | Default UI work, established Aralia component patterns, or packages where generated UI would override local intent | Can v0 be constrained to prototype-only output without bypassing Aralia's design standards? |
+
+Read-only MCP inspection belongs with ordinary read-only GitHub/Jules/Linear
+inspection and does not by itself advance a workflow boundary. MCP actions that
+create or update external state still inherit the approval boundary of that
+system. For example, reading Linear issue context is inspection; changing Linear
+status or posting a Linear comment is a guarded Linear mutation.
 
 ### Workflow Phases
 

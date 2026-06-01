@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 00:45:15
+ * Dependents: components/CharacterSheet/Overview/index.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useState } from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../../types';
 import Tooltip from '../../ui/Tooltip';
@@ -5,6 +21,31 @@ import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisp
 import { calculatePassiveScore } from '../../../utils/statUtils';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { useCharacterProficiencies } from '../../../hooks/useCharacterProficiencies';
+
+/**
+ * This file displays the core statistics and capabilities of a character.
+ *
+ * It renders a column in the character sheet overview showing:
+ * - Vitals: hit points, speed, armor class, darkvision, proficiency bonus.
+ * - Ability Scores: Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma, and their modifiers.
+ * - Saving Throws: showing proficiency and calculated bonuses.
+ * - Spell Slots: total and remaining pools per level.
+ * - Spellcasting Stats: spellcasting ability, save DC, and attack bonus.
+ * - Weapon Masteries: weapon mastery features.
+ * - Senses, defenses, modifiers, traits, and general proficiencies in collapsible sections.
+ *
+ * Called by: CharacterSheetModal.tsx (Overview tab, column 1)
+ * Depends on: utility functions for stats and proficiencies, feats data, and UI tooltips.
+ */
+
+// ============================================================================
+// Types & Helper Components
+// ============================================================================
+// This section defines the interfaces for properties passed into the main
+// overview and the collapsible section component.
+// The CollapsibleSection component handles toggling the visibility of
+// lower-priority information blocks to keep the layout clean.
+// ============================================================================
 
 interface CharacterOverviewProps {
     character: PlayerCharacter;
@@ -34,7 +75,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="w-full flex items-center justify-between text-left"
             >
-                <h4 className={`text-lg font-semibold ${accentColor} flex items-center gap-2`}>
+                <h4 className={`text-lg font-semibold font-cinzel ${accentColor} flex items-center gap-2`}>
                     <span className="text-sm">{icon}</span> {title}
                 </h4>
                 <span className="text-gray-400 text-sm transition-transform" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
@@ -45,6 +86,13 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         </div>
     );
 };
+// ============================================================================
+// Helper Functions
+// ============================================================================
+// This section contains utility and formatting functions that compute derived values,
+// such as assembling the Armor Class tooltip detail block and sorting unique lists
+// of defense statuses.
+// ============================================================================
 
 /** Builds a tooltip explaining the AC calculation */
 const buildAcTooltip = (character: PlayerCharacter, dexMod: number): React.ReactNode => {
@@ -136,6 +184,14 @@ const uniqueSorted = (values?: string[]): string[] => {
 const formatDefenseList = (values: string[]): string =>
     values.length > 0 ? values.join(', ') : 'None';
 
+// ============================================================================
+// Main Character Overview Component
+// ============================================================================
+// The central component that arranges the character's vital statistics, ability
+// scores, saving throws, spell slots, and traits into a clean vertical scrolling grid.
+// Each section uses custom styling and descriptive tooltips to guide the player.
+// ============================================================================
+
 const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
     const proficiencies = useCharacterProficiencies(character);
     const profBonus = character.proficiencyBonus || 2;
@@ -195,12 +251,13 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
         .join(' • ');
 
     return (
-        <div className="grid grid-cols-1 gap-y-4 h-full overflow-hidden">
+        <div className="grid grid-cols-1 gap-y-4 h-full overflow-hidden font-quattrocento">
             <div className="space-y-3 overflow-y-auto scrollable-content p-1 pr-2 h-full">
                 {/* Header */}
+                {/* Main banner displaying the character's race and class combination. */}
                 <div className="flex justify-between items-start">
                     <div>
-                        <p className="text-lg text-sky-300">{getCharacterRaceDisplayString(character)} {character.class.name}</p>
+                        <p className="text-lg font-cinzel text-sky-300">{getCharacterRaceDisplayString(character)} {character.class.name}</p>
                         <p className="text-xs text-gray-400">Age: {character.age} | Background: {character.background?.replace(/_/g, ' ') || 'None'}</p>
                     </div>
                     <div className="text-right">
@@ -210,8 +267,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 </div>
 
                 {/* 1. Vitals (always expanded) */}
+                {/* Displays core life stats including HP, Hit Dice, Speed, AC, and proficiency bonus. */}
                 <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                    <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <h4 className="text-lg font-semibold font-cinzel text-sky-300 mb-1.5 flex items-center gap-2">
                         <span className="text-sm">❤️</span> Vitals
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
@@ -231,8 +289,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 </div>
 
                 {/* 2. Ability Scores (always expanded) */}
+                {/* Lists all primary ability scores with their respective calculated modifier values. */}
                 <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                    <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <h4 className="text-lg font-semibold font-cinzel text-sky-300 mb-1.5 flex items-center gap-2">
                         <span className="text-sm">🎲</span> Ability Scores
                     </h4>
                     <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-sm">
@@ -243,8 +302,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 </div>
 
                 {/* 3. Saving Throws (always expanded) */}
+                {/* Renders calculated saving throw modifiers for all primary statistics, highlighting proficient classes. */}
                 <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                    <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <h4 className="text-lg font-semibold font-cinzel text-sky-300 mb-1.5 flex items-center gap-2">
                         <span className="text-sm">🛡️</span> Saving Throws
                     </h4>
                     <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
@@ -266,9 +326,10 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 </div>
 
                 {/* 4. Spell Slots (only if character has spellcasting) */}
+                {/* Shows remaining and maximum spell slots grouped by spell level for active magic users. */}
                 {hasSpellSlots && (
                     <div className="p-3 bg-gray-700/50 rounded-md border border-purple-500/20">
-                        <h4 className="text-lg font-semibold text-purple-300 mb-1.5 flex items-center gap-2">
+                        <h4 className="text-lg font-semibold font-cinzel text-purple-300 mb-1.5 flex items-center gap-2">
                             <span className="text-sm">✨</span> Spell Slots
                         </h4>
                         <div className="grid grid-cols-3 gap-2 text-sm">
@@ -286,9 +347,10 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 )}
 
                 {/* 5. Spellcasting Stats (if has spellcasting ability) */}
+                {/* Displays spellcasting ability modifier, spell save DC, and spell attack bonus details. */}
                 {character.spellcastingAbility && spellcastingAbilityName && (
                     <div className="p-3 bg-gray-700/50 rounded-md border border-purple-500/20">
-                        <h4 className="text-lg font-semibold text-purple-300 mb-1.5 flex items-center gap-2">
+                        <h4 className="text-lg font-semibold font-cinzel text-purple-300 mb-1.5 flex items-center gap-2">
                             <span className="text-sm">🔮</span> Spellcasting
                         </h4>
                         <div className="grid grid-cols-3 gap-2 text-sm text-center">
@@ -315,9 +377,10 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                 )}
 
                 {/* 6. Weapon Masteries (if any) */}
+                {/* Lists unlocked weapon masteries, offering special attack behaviors for active weapons. */}
                 {character.selectedWeaponMasteries && character.selectedWeaponMasteries.length > 0 && (
                     <div className="p-3 bg-gray-700/50 rounded-md border border-amber-500/30">
-                        <h4 className="text-lg font-semibold text-amber-300 mb-1.5 flex items-center gap-2">
+                        <h4 className="text-lg font-semibold font-cinzel text-amber-300 mb-1.5 flex items-center gap-2">
                             <span className="text-sm">⚔️</span> Weapon Masteries
                         </h4>
                         <div className="flex flex-wrap gap-2">

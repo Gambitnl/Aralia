@@ -10,19 +10,8 @@ import { createMockGameState, createMockPlayerCharacter } from '../../utils/fact
 // Mock dependencies
 vi.mock('@/constants', async (importOriginal) => {
     const actual = await importOriginal()
-    // TODO: keep the mock data aligned with the real constants when summon payloads expand.
     return {
         ...(actual as Record<string, unknown>),
-        MONSTERS_DATA: {
-            'goblin': {
-                id: 'goblin',
-                name: 'Goblin',
-                baseStats: { strength: 8, dexterity: 14, constitution: 10, intelligence: 10, wisdom: 8, charisma: 8, baseInitiative: 2, speed: 30, cr: '1/4' },
-                maxHP: 7,
-                abilities: [],
-                tags: ['goblinoid']
-            }
-        },
         CLASSES_DATA: {
             'fighter': {
                 id: 'fighter',
@@ -40,6 +29,20 @@ vi.mock('@/constants', async (importOriginal) => {
         }
     }
 })
+
+vi.mock('@/data/monsters', () => ({
+    // TODO: keep the mock data aligned with the real monster registry when summon payloads expand.
+    MONSTERS_DATA: {
+        'goblin': {
+            id: 'goblin',
+            name: 'Goblin',
+            baseStats: { strength: 8, dexterity: 14, constitution: 10, intelligence: 10, wisdom: 8, charisma: 8, baseInitiative: 2, speed: 30, cr: '1/4' },
+            maxHP: 7,
+            abilities: [],
+            tags: ['goblinoid']
+        }
+    }
+}))
 
 describe('SummoningCommand', () => {
     type SummoningMapData = {

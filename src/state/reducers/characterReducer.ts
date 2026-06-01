@@ -579,6 +579,11 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 }));
                 charCopy.hitPointDice = restoredHitPointDice;
 
+                // Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest.
+                if (charCopy.race?.traits?.some(t => t.toLowerCase().includes('resourceful'))) {
+                    charCopy.heroicInspiration = true;
+                }
+
                 return charCopy;
             });
             return { party: newParty };
@@ -717,7 +722,20 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     };
                 };
 
-                if (choiceType === 'dragonborn_ancestry') updateRacialSelection('dragonborn', { choiceId });
+                if (choiceType.includes('::skillChoice')) {
+                    const raceId = choiceType.split('::')[0];
+                    const currentSkills = charToUpdate.racialSelections[raceId]?.skillIds || [];
+                    if (!currentSkills.includes(choiceId)) {
+                        updateRacialSelection(raceId, { skillIds: [...currentSkills, choiceId] });
+                    }
+                } else if (choiceType.includes('::featChoice')) {
+                    const raceId = choiceType.split('::')[0];
+                    updateRacialSelection(raceId, { choiceId });
+                    if (!charToUpdate.feats) charToUpdate.feats = [];
+                    if (!charToUpdate.feats.includes(choiceId)) {
+                        charToUpdate.feats = [...charToUpdate.feats, choiceId];
+                    }
+                } else if (choiceType === 'dragonborn_ancestry') updateRacialSelection('dragonborn', { choiceId });
                 else if (choiceType === 'elf_lineage') updateRacialSelection('elf', { choiceId });
                 else if (choiceType === 'gnome_subrace') updateRacialSelection('gnome', { choiceId });
                 else if (choiceType === 'goliath_ancestry') updateRacialSelection('goliath', { choiceId });

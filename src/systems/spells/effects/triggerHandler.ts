@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:25:34
+ * Dependents: hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/spells/effects/triggerHandler.ts
  * 
@@ -7,8 +23,11 @@
 // TODO(lint-intent): 'EffectCondition' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { SpellEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
+import type { AreaOfEffect, SpellEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
 import type { CombatCharacter, Position } from '../../../types/combat';
+import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spellStatusMetadata';
+import type { AoEParams } from '../../../utils/combat/aoeCalculations';
+import { AoECalculator } from '../targeting/AoECalculator';
 
 /**
  * Represents an active spell zone on the battlefield (e.g., Create Bonfire)
@@ -19,12 +38,35 @@ export interface ActiveSpellZone {
     casterId: string;
     position: Position;
     areaOfEffect?: { shape: string; size: number };
+    /** Direction/orientation for directional zones such as Cone and Line. */
+    direction?: Position;
+    /** Spell save DC captured at cast time so delayed zone saves do not drift with later caster stat changes. */
+    saveDC?: number;
     effects: SpellEffect[];
     /** Track entities that have already triggered "first_per_turn" effects this turn */
     triggeredThisTurn: Set<string>;
     /** Track entities that should only ever trigger once (per creature) for this zone */
     triggeredEver: Set<string>;
     expiresAtRound?: number;
+}
+
+/**
+ * Stores spell effects that should fire on a future target turn rather than at
+ * cast time. This is intentionally separate from repeat-save metadata: repeat
+ * saves end statuses, while scheduled spell effects apply delayed payloads such
+ * as damage or healing.
+ */
+export interface ScheduledSpellEffect {
+    id: string;
+    spellId: string;
+    casterId: string;
+    targetId: string;
+    timing: 'turn_start' | 'turn_end';
+    effects: SpellEffect[];
+    createdAtRound: number;
+    expiresAtRound?: number;
+    /** Spell save DC captured at cast time for delayed target-bound payloads. */
+    saveDC?: number;
 }
 
 /**
@@ -38,6 +80,8 @@ export interface MovementTriggerDebuff {
     effects: SpellEffect[];
     expiresAtRound: number;
     hasTriggered: boolean;
+    /** Spell save DC captured when the movement-triggered debuff was created. */
+    saveDC?: number;
 }
 
 /**
@@ -66,15 +110,12 @@ export interface TriggerResult {
     triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_end_turn_in_area' | 'on_move_in_area' | 'on_target_move';
 }
 
-// TODO(GAP-3 Follow-up): `ProcessedEffect` lacks `sourceContext` (spellId, casterId, saveDC).
-// This forces downstream handlers (in `useCombatEngine` or `useActionExecutor`) to re-lookup
-// the caster to calculate Spell Save DC, which is fragile if the caster has left combat or
-// their spellcasting stat has changed. Extend interface:
-// export interface ProcessedEffect {
-//   ...existing fields...
-//   sourceContext?: { spellId: string; casterId: string; saveDC?: number };
-// }
-// Populate this from `ActiveSpellZone` or `MovementTriggerDebuff` in `convertSpellEffectToProcessed`.
+export interface ProcessedEffectSourceContext {
+    spellId: string;
+    casterId: string;
+    saveDC?: number;
+}
+
 export interface ProcessedEffect {
     type: 'damage' | 'heal' | 'status_condition';
     value?: number;
@@ -84,6 +125,15 @@ export interface ProcessedEffect {
     requiresSave?: boolean;
     saveType?: string;
     saveEffect?: string;
+    repeatSave?: RepeatSave;
+    escapeCheck?: EscapeCheck;
+    breakTriggers?: ConditionBreakTrigger[];
+    /**
+     * Carries the original spell/caster identity through delayed trigger
+     * processing. Area and movement triggers can fire long after the cast, so
+     * downstream handlers should not guess save DCs from the target.
+     */
+    sourceContext?: ProcessedEffectSourceContext;
 }
 
 /**
@@ -188,10 +238,21 @@ export function shouldTriggerForFrequency(
 export function isPositionInArea(
     position: Position,
     zonePosition: Position,
-    areaOfEffect: { shape: string; size: number }
+    areaOfEffect: { shape: string; size: number },
+    direction?: Position
 ): boolean {
+    const normalizedShape = normalizeAreaShape(areaOfEffect.shape);
+
+    if (normalizedShape && (normalizedShape !== 'Cone' && normalizedShape !== 'Line' || direction)) {
+        return AoECalculator.containsTile(position, zonePosition, {
+            ...areaOfEffect,
+            shape: normalizedShape
+        }, direction);
+    }
+
     // TODO: The current Line and Cone checks are direction-agnostic (checking distance only).
-    // This is incorrect for directional spells. Integrate distinct `direction` logic (e.g. from `src/utils/aoeCalculations.ts` if it exists, or implementing vector math) to correctly validate geometry for Cones and Lines.
+    // This is incorrect for directionless spells. Preserve direction data from the casting path so `AoECalculator`
+    // can delegate to the canonical `src/utils/combat/aoeCalculations.ts` geometry for Cones and Lines.
 
     // TODO(SPELL-OVERHAUL): Replace simplified line/cone checks with direction-aware AoE math (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
     const dx = Math.abs(position.x - zonePosition.x);
@@ -214,6 +275,26 @@ export function isPositionInArea(
         default:
             // Default to cube-like behavior
             return dx < sizeInTiles && dy < sizeInTiles;
+    }
+}
+
+function normalizeAreaShape(shape: string): AreaOfEffect['shape'] | null {
+    switch (shape.toLowerCase()) {
+        case 'cube':
+            return 'Cube';
+        case 'square':
+            return 'Square';
+        case 'sphere':
+        case 'circle':
+            return 'Sphere';
+        case 'cylinder':
+            return 'Cylinder';
+        case 'cone':
+            return 'Cone';
+        case 'line':
+            return 'Line';
+        default:
+            return null;
     }
 }
 
@@ -245,8 +326,8 @@ export function processAreaEntryTriggers(
     for (const zone of zones) {
         if (!zone.areaOfEffect) continue;
 
-        const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
-        const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+        const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction);
+        const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect, zone.direction);
 
         // Only trigger on actual entry (wasn't in zone before, is now)
         if (!wasInZone && isNowInZone) {
@@ -268,7 +349,7 @@ export function processAreaEntryTriggers(
 
                 results.push({
                     triggered: true,
-                    effects: convertSpellEffectToProcessed(effect)
+                    effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC })
                 });
             }
         }
@@ -310,7 +391,7 @@ export function processMovementTriggers(
 
             results.push({
                 triggered: true,
-                effects: convertSpellEffectToProcessed(effect),
+                effects: convertSpellEffectToProcessed(effect, { spellId: debuff.spellId, casterId: debuff.casterId, saveDC: debuff.saveDC }),
                 sourceId: debuff.id
             });
 
@@ -336,8 +417,8 @@ export function processAreaExitTriggers(
     for (const zone of zones) {
         if (!zone.areaOfEffect) continue;
 
-        const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
-        const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+        const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction);
+        const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect, zone.direction);
 
         // Only trigger on actual exit (was in zone, now out)
         if (wasInZone && !isNowInZone) {
@@ -356,7 +437,7 @@ export function processAreaExitTriggers(
 
                 results.push({
                     triggered: true,
-                    effects: convertSpellEffectToProcessed(effect)
+                    effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC })
                 });
             }
         }
@@ -378,7 +459,7 @@ export function processAreaEndTurnTriggers(
     for (const zone of zones) {
         if (!zone.areaOfEffect) continue;
 
-        const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect);
+        const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect, zone.direction);
         if (!isInZone) continue;
 
         const endTurnEffects = zone.effects.filter(effect =>
@@ -398,7 +479,7 @@ export function processAreaEndTurnTriggers(
 
             results.push({
                 triggered: true,
-                effects: convertSpellEffectToProcessed(effect)
+                effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC })
             });
         }
     }
@@ -409,7 +490,10 @@ export function processAreaEndTurnTriggers(
 /**
  * Convert a SpellEffect to a ProcessedEffect for the combat system
  */
-export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
+export function convertSpellEffectToProcessed(
+    effect: SpellEffect,
+    sourceContext?: ProcessedEffectSourceContext
+): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
 
     // TODO: The function relies on double-casting `effect as unknown as ...` which bypasses type safety.
@@ -444,7 +528,8 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
                 damageType: effectDetails.damage?.type,
                 requiresSave: effectDetails.condition?.type === 'save',
                 saveType: effectDetails.condition?.saveType,
-                saveEffect: effectDetails.condition?.saveEffect
+                saveEffect: effectDetails.condition?.saveEffect,
+                sourceContext
             });
             break;
 
@@ -454,15 +539,31 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
                 // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
                 // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                 // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                dice: effectDetails.healing?.dice
+                dice: effectDetails.healing?.dice,
+                sourceContext
             });
             break;
 
         case 'STATUS_CONDITION': {
             // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect.statusCondition typing is loose; casting for now.
             const statusEffect = effect as unknown as {
-                statusCondition?: { name?: string };
-                condition?: { type?: string; saveType?: string; saveEffect?: string };
+                statusCondition?: {
+                    name?: string;
+                    repeatSave?: RepeatSave;
+                    escapeCheck?: EscapeCheck;
+                    breakTriggers?: ConditionBreakTrigger[];
+                };
+                condition?: {
+                    type?: string;
+                    saveType?: string;
+                    saveEffect?: string;
+                    repeatSave?: RepeatSave;
+                    escapeCheck?: EscapeCheck;
+                    breakTriggers?: ConditionBreakTrigger[];
+                };
+                repeatSave?: RepeatSave;
+                escapeCheck?: EscapeCheck;
+                breakTriggers?: ConditionBreakTrigger[];
             };
             processed.push({
                 type: 'status_condition',
@@ -472,7 +573,15 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
                 statusName: statusEffect.statusCondition?.name,
                 requiresSave: statusEffect.condition?.type === 'save',
                 saveType: statusEffect.condition?.saveType,
-                saveEffect: statusEffect.condition?.saveEffect
+                saveEffect: statusEffect.condition?.saveEffect,
+                // Status-condition metadata appears in more than one declaration
+                // shape while the spell-data migration is still in flight. Preserve
+                // all known locations so delayed effects and area triggers keep the
+                // ongoing-resolution rules that immediate status commands already use.
+                repeatSave: statusEffect.repeatSave ?? statusEffect.statusCondition?.repeatSave ?? statusEffect.condition?.repeatSave,
+                escapeCheck: statusEffect.escapeCheck ?? statusEffect.statusCondition?.escapeCheck ?? statusEffect.condition?.escapeCheck,
+                breakTriggers: statusEffect.breakTriggers ?? statusEffect.statusCondition?.breakTriggers ?? statusEffect.condition?.breakTriggers,
+                sourceContext
             });
             break;
         }
@@ -500,7 +609,9 @@ export function createSpellZone(
     areaOfEffect: { shape: string; size: number },
     effects: SpellEffect[],
     currentRound: number,
-    durationRounds?: number
+    durationRounds?: number,
+    direction?: Position,
+    saveDC?: number
 ): ActiveSpellZone {
     return {
         id: `zone-${spellId}-${Date.now()}`,
@@ -508,6 +619,8 @@ export function createSpellZone(
         casterId,
         position,
         areaOfEffect,
+        direction,
+        saveDC,
         effects: effects.filter(e => {
             // DEBT: Cast trigger to any to probe optional type property without complex typing in this zone factory.
             const t = e.trigger as any;
@@ -525,6 +638,77 @@ export function createSpellZone(
 }
 
 /**
+ * Create an ActiveSpellZone from the shared AoE targeting parameters used by
+ * previews and immediate spell targeting. This keeps the future casting bridge
+ * from re-deriving origin/direction in a different format when it registers a
+ * persistent zone.
+ */
+export function createSpellZoneFromAoEParams(
+    spellId: string,
+    casterId: string,
+    aoeParams: AoEParams,
+    areaOfEffect: { shape: string; size: number },
+    effects: SpellEffect[],
+    currentRound: number,
+    durationRounds?: number,
+    saveDC?: number
+): ActiveSpellZone {
+    return createSpellZone(
+        spellId,
+        casterId,
+        aoeParams.origin,
+        areaOfEffect,
+        effects,
+        currentRound,
+        durationRounds,
+        directionFromAoEParams(aoeParams),
+        saveDC
+    );
+}
+
+export function createScheduledSpellEffect(
+    spellId: string,
+    casterId: string,
+    targetId: string,
+    timing: 'turn_start' | 'turn_end',
+    effects: SpellEffect[],
+    currentRound: number,
+    durationRounds?: number,
+    saveDC?: number
+): ScheduledSpellEffect {
+    return {
+        id: `scheduled-${spellId}-${targetId}-${timing}-${Date.now()}`,
+        spellId,
+        casterId,
+        targetId,
+        timing,
+        effects: effects.filter(effect => effect.trigger?.type === timing),
+        createdAtRound: currentRound,
+        expiresAtRound: durationRounds ? currentRound + durationRounds : undefined,
+        saveDC
+    };
+}
+
+function directionFromAoEParams(params: AoEParams): Position | undefined {
+    if (params.targetPoint && (params.targetPoint.x !== params.origin.x || params.targetPoint.y !== params.origin.y)) {
+        return {
+            x: params.targetPoint.x - params.origin.x,
+            y: params.targetPoint.y - params.origin.y
+        };
+    }
+
+    if (params.direction === undefined) {
+        return undefined;
+    }
+
+    const angleRad = (params.direction - 90) * (Math.PI / 180);
+    return {
+        x: Math.cos(angleRad),
+        y: Math.sin(angleRad)
+    };
+}
+
+/**
  * Create a MovementTriggerDebuff from a spell hit
  */
 export function createMovementDebuff(
@@ -533,7 +717,8 @@ export function createMovementDebuff(
     targetId: string,
     effects: SpellEffect[],
     currentRound: number,
-    durationRounds: number = 1
+    durationRounds: number = 1,
+    saveDC?: number
 ): MovementTriggerDebuff {
     return {
         id: `debuff-${spellId}-${targetId}-${Date.now()}`,
@@ -542,6 +727,7 @@ export function createMovementDebuff(
         targetId,
         effects: effects.filter(e => e.trigger?.type === 'on_target_move'),
         expiresAtRound: currentRound + durationRounds,
-        hasTriggered: false
+        hasTriggered: false,
+        saveDC
     };
 }

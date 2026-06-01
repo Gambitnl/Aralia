@@ -1,9 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 22:47:07
+ * Dependents: commands/factory/SpellCommandFactory.ts
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
 import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect } from '@/types/combat'
-import { calculateAffectedTiles, AoEParams } from '../../utils/aoeCalculations'
-import { mapShapeToStandard } from '../../utils/targetingUtils'
+import { calculateAffectedTiles, AoEParams } from '../../utils/combat/aoeCalculations'
+import { mapShapeToStandard } from '../../utils/spatial/targetingUtils'
 
 export class TerrainCommand extends BaseEffectCommand {
     constructor(

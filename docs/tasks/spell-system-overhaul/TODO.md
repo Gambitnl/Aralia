@@ -22,15 +22,20 @@
 ---
 
 ### area-entry-exit-triggers
-**Issue**: Zone effects still use simplified entry/exit handling; needs first-per-turn gating and exit handling aligned with targeting geometry.
+**Issue**: Zone effects are partially implemented, but area-trigger behavior still needs consolidation and proof. Current evidence shows entry/exit/end-turn paths and some first-per-turn tests already exist; the remaining risks are duplicate trigger paths, missing `on_move_in_area` behavior tests, simplified containment geometry, and stale spell-level migration notes.
 
 **Action Required**:
-1. Replace `isPositionInArea` logic with direction-aware AoE (see geometry-zone-aoe-fidelity).
-2. Add exit detection and first-per-turn enforcement via an AreaEffectTracker.
-3. Migrate `grease.json`, `fog-cloud.json`, `entangle.json` to entry/exit/end-turn triggers.
+1. Decide whether `AreaEffectTracker` or standalone `triggerHandler` helpers are the canonical area-trigger path.
+2. Add focused `processMovementWithin` tests for Spike Growth-style movement-through-area behavior.
+3. Replace or wrap `isPositionInArea` with geometry that stays aligned with targeting preview logic (see geometry-zone-aoe-fidelity).
+4. Re-audit `grease.json`, `fog-cloud.json`, and `entangle.json`; current search shows `grease` and `entangle` already have area trigger rows, while `fog-cloud` needs mechanic classification rather than automatic trigger migration.
 
 **Related Files**:
-- `src/systems/spells/effects/triggerHandler.ts:157`
+- `src/systems/spells/effects/AreaEffectTracker.ts`
+- `src/systems/spells/effects/triggerHandler.ts`
+- `src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts`
+- `src/systems/spells/effects/__tests__/triggerHandler.test.ts`
+- `docs/tasks/spell-system-overhaul/GAPS.md` (`SSO-AREA-ENTRY-EXIT-001`, `SSO-AREA-MOVE-WITHIN-COVERAGE-001`, `SSO-AOE-CONTAINMENT-PARITY-001`)
 
 ---
 

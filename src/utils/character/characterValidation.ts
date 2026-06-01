@@ -21,8 +21,10 @@
  */
 import { PlayerCharacter, MissingChoice } from '../../types';
 import { RACE_DATA_BUNDLE } from '../../data/races/index';
-import { getRacialSpellCastingAbilityChoicesForRace } from '../../data/races';
+import { getRacialSpellCastingAbilityChoicesForRace, getRacialChoiceRequirementsForRace } from '../../data/races';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../data/dndData';
+import { SKILLS_DATA } from '../../data/skills';
+import { FEATS_DATA } from '../../data/feats/featsData';
 import { getRacialSpellGrantsForCharacter } from './characterUtils';
 
 export const validateCharacterChoices = (character: PlayerCharacter): MissingChoice[] => {
@@ -31,7 +33,56 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
 
   // --- RACE VALIDATION ---
   
-  // Dragonborn: Ancestry
+  // Generic Racial Choice Detector
+  // This uses the expanded parser in racialTraits.ts to find all choice requirements
+  const racialChoiceRequirements = getRacialChoiceRequirementsForRace(race.id);
+  racialChoiceRequirements.forEach(req => {
+    if (req.type === 'skillChoice') {
+      const selections = racialSelections?.[race.id];
+      const selectedSkillIds = selections?.skillIds || [];
+      if (selectedSkillIds.length < (req.skillCount || 1)) {
+        // Populate all skills as options for the resolution modal
+        const skillOptions = Object.entries(SKILLS_DATA).map(([id, skill]) => ({
+          id,
+          label: skill.name,
+          description: '' // Skill type has no description field yet (see src/data/skills/index.ts TODO)
+        }));
+
+        missingChoices.push({
+          id: req.id,
+          label: req.sourceTraitName,
+          description: req.sourceTraitDescription,
+          type: 'race',
+          options: skillOptions
+        });
+      }
+    } else if (req.type === 'featChoice') {
+      const selections = racialSelections?.[race.id];
+      // Check if a feat choice exists in selections or if character has any feat at level 1
+      if (!selections?.choiceId && (!character.feats || character.feats.length === 0)) {
+        // Origin feats (2024 rules)
+        const originFeatIds = ['alert', 'crafter', 'healer', 'lucky', 'magic_initiate', 'musician', 'savage_attacker', 'skilled', 'tough'];
+        const featOptions = originFeatIds.map(id => {
+          const feat = FEATS_DATA.find(f => f.id === id);
+          return {
+            id,
+            label: feat?.name || id,
+            description: feat?.description
+          };
+        });
+
+        missingChoices.push({
+          id: req.id,
+          label: req.sourceTraitName,
+          description: req.sourceTraitDescription,
+          type: 'race',
+          options: featOptions
+        });
+      }
+    }
+  });
+
+  // Dragonborn: Ancestry (Legacy/Specific check)
   if (race.id === 'dragonborn' && !racialSelections?.dragonborn?.choiceId) {
     missingChoices.push({
       id: 'dragonborn_ancestry',
@@ -46,7 +97,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
     });
   }
 
-  // Elf: Lineage
+  // Elf: Lineage (Legacy/Specific check)
   if (race.id === 'elf' && !racialSelections?.elf?.choiceId && race.elvenLineages) {
      missingChoices.push({
         id: 'elf_lineage',

@@ -1,57 +1,45 @@
-# GAPS: Item Categorization & Project Audit
+# GAPS: Item Categorization
 
-## 1. Glossary Ingestion & 5etools Parsing Gaps
-1. **[~~Missing `itemType`~~]**: (Resolved - Fallbacks added to `ingestPhbGlossary.ts`)
-2. **[~~Missing Rarity/Tier~~]**: (Resolved - Extracted mechanically via generateItemRegistry)
-3. **[~~Missing Attunement~~]**: (Resolved - Mapped to magicProperties.attunement via generateItemRegistry)
-4. **[Missing ItemGroup]**: The script completely ignores `itemGroup` which could bundle "Arcane Focus" or "Artisan's Tools".
-5. **[Missing `entriesHigherLevel`]**: Spells/features with `entriesHigherLevel` array lose their upcast effects because it is not processed.
-6. **[Missing Feat Prerequisites]**: Feat prerequisites are not extracted and injected into the markdown.
-7. **[Missing Background Proficiencies]**: Background `skillProficiencies` and `languageProficiencies` are dropped.
-8. **[Missing Background Equipment]**: Background `startingEquipment` is dropped.
-9. **[~~{@dice} Markup Gap~~]**: (Resolved)
-10. **[~~{@damage} Markup Gap~~]**: (Resolved)
-11. **[~~{@chance} Markup Gap~~]**: (Resolved)
-12. **[~~{@recharge} Markup Gap~~]**: (Resolved)
-13. **[~~{@hit} Markup Gap~~]**: (Resolved)
-14. **[~~Empty `seeAlso` arrays~~]**: (Resolved)
-15. **[Missing Classes]**: Character Classes from XPHB are not fully ingested.
-16. **[Missing Races]**: Races from XPHB are not fully ingested.
-17. **[Missing Spells]**: Spells from XPHB are not fully ingested.
-18. **[Unlinked Weapon Properties]**: Weapon properties (e.g., Finesse, Light) are printed as plain text instead of linking to their glossary rules.
-19. **[Unlinked Damage Types]**: Damage types (Slashing, Fire) are plain text instead of linking to the rules glossary.
-20. **[Raw Item Value]**: Item value is hardcoded as `/ 100 gp`, ignoring silver/copper specifics in 5etools or strange edge cases.
+## 1. Confirmed, Project-Scoped Gaps
 
-## 2. Visual & UI Aesthetic Gaps
-21. **[No Glassmorphism]**: The UI uses plain `bg-gray-800` backgrounds instead of modern glassmorphic `backdrop-blur` utilities.
-22. **[Default Font]**: The project falls back to generic `-apple-system` instead of modern Google Fonts like Inter or Roboto, violating visual excellence.
-23. **[Missing Hover Micro-animations]**: Sidebar list items (`GlossaryEntryNode`) lack `transition-all duration-300` smooth micro-animations.
-24. **[Missing Focus Rings]**: Many buttons lack custom `focus:ring` states for accessibility.
-25. **[Scrollbar Aesthetics]**: There's no modern styled scrollbar in the glossary sidebar; `scrollable-content` may be using default browser bars.
-26. **[Bland Gradients]**: There are no subtle gradients behind main containers to make the UI feel premium and alive.
-27. **[Image Modal Transition]**: `ImageModal.tsx` probably lacks smooth scale-in and fade-in transitions.
-28. **[Hard Shadows]**: Using basic `shadow-lg` instead of premium soft shadow arrays (`box-shadow: 0 10px 40px -10px rgba(...)`).
-29. **[Glossary Divider]**: `spell-card-divider` is likely a flat border line; a fading gradient line would look much more premium.
-30. **[Empty States]**: The "Male"/"Female" fallback boxes for missing images are flat gray blocks instead of styled placeholders.
-31. **[Missing Entry Fade-in]**: When selecting a new glossary entry, the content snaps into place instead of gently fading in.
-32. **[Sidebar Collapse Snapping]**: Expanding/collapsing the sidebar categories snaps abruptly because it relies on React re-renders rather than CSS transitions on `max-height`.
-33. **[Search Highlight Contrast]**: The search term highlighter colors may not contrast well against the background.
-34. **[Layout Reflow on Load]**: Images inside `GlossaryEntryTemplate` don't have aspect ratios explicitly declared (just `w-full h-auto`), causing reflow jumps.
-35. **[Z-Index Collisions]**: `GlossaryDisplay` uses a magic constant `z-[var(--z-index-content-overlay-low)]` which may collide with other absolute UI.
+1. **[Open: Type Drift Between Typing Surfaces]** `src/types/ui.d.ts` does not expose `itemMetadata` even though `src/types/ui.ts` and ingested glossary JSON entries include it.
+   - Impact: declaration-only consumers can miss the field at compile time even though runtime data exists.
+   - Evidence: `src/types/ui.ts` includes `itemMetadata`; `src/types/ui.d.ts` does not.
 
-## 3. Protocol, Code Debt, and Logic Gaps
-36. **[AI Model Fallback]**: Missing settings to toggle between Ollama/Gemini with graceful fallback (`src/App.tsx:126`).
-37. **[Performance Bottleneck]**: `useGameActions` may cause re-render hotspots (`src/App.tsx:330`).
-38. **[Combat Log Duck Typing]**: Combat log data shapes are not formalized (`ConcentrationCommands.ts:57`).
-39. **[Heavy Armor Tracking]**: Damage calculation ignores whether the target is wearing heavy armor (`DamageCommand.ts:188`).
-40. **[Teleport Clamping]**: Teleports do not correctly clamp at map boundaries if no map data exists (`MovementCommand.ts:447`).
-41. **[Pathfinding Reaction]**: Reactions use straight-line stepping instead of A* pathfinding (`MovementCommand.ts:290`).
-42. **[Teleport Units]**: Unnormalized `distance` causes mismatch between tiles vs feet (`MovementCommand.ts:242`).
-43. **[Condition Expiration]**: ActiveConditions are not wired into the turn pipeline to automatically expire (`StatusConditionCommand.ts:73`).
-44. **[State Map Tagging]**: `applyStateToTags` is missing for elemental conditions like 'Ignited' (`StatusConditionCommand.ts:102`).
-45. **[Legacy Durations]**: 'hours' or 'instantaneous' are not normalized before entering the StatusConditionCommand (`StatusConditionCommand.ts:171`).
-46. **[Persistent Terrain Maps]**: Effect terrain doesn't persist properly in map-less encounters (`TerrainCommand.ts:43`).
-47. **[Light Source Expiration]**: UtilityCommand light sources do not properly expire or update the renderer (`UtilityCommand.ts:53`).
-48. **[Taunt Break Conditions]**: Taunt status effects do not enforce mechanical leash distance or disadvantage mechanics (`UtilityCommand.ts:184`).
-49. **[Test Flakiness]**: `ReactiveEffectCommand.test.ts` relies on logger spies instead of proper EventEmitter mocking (`ReactiveEffectCommand.test.ts:9`).
-50. **[Effect Parsing Loop]**: `AbilityCommandFactory` ignores MOVEMENT and UTILITY effects during parse loops (`AbilityCommandFactory.ts:295`).
+2. **[Open: Item Grouping Semantics]** `scripts/ingestPhbGlossary.ts` normalizes only `itemType` tags and currently does not preserve a separate `itemGroup`-driven grouping signal.
+   - Impact: any intended sub-groupings tied to 5etools `itemGroup` are not explicit in generated category trees.
+   - Evidence: the item ingestion logic builds `itemTags` from `itemType` values and fallback heuristics, with no `itemGroup` mapping.
+
+3. **[Open: Mechanical Conversion Validation]** `generateItemRegistry.ts` maps raw item metadata into simplified `Item` fields using heuristics (for type, damage, and value/rarity shape).
+   - Impact: downstream gameplay parity may diverge from source metadata without an explicit acceptance test.
+   - Evidence: heuristic type mapping (`weapon/armor/accessory/...`) and token-based damage parsing in `scripts/generateItemRegistry.ts`.
+
+4. **[Open: Source Coverage Ambiguity]** `generateItemRegistry.ts` reads both `public/data/glossary/entries/equipment` and `public/data/glossary/entries/magic_items`, but the magic-items directory is currently empty in checked files.
+   - Impact: unclear if empty directory is expected in current scope or a silent assumption.
+   - Evidence: file-count check returned 0 files in `public/data/glossary/entries/magic_items`.
+
+5. **[Open: Duplicate Conversion Paths]** `src/utils/itemAdapter.ts` is an alternate `GlossaryEntry` -> `Item` path and is only exercised by `scripts/test_itemAdapter.ts`.
+   - Impact: future edits may diverge from `generateItemRegistry.ts` if one path is treated as canonical and the other drifts.
+   - Evidence: both converter and generated registry exist; adapter is currently separate from the merged `generatedGlossaryItems.ts`.
+
+6. **[Open: Rebuild Command Contract]** There is no dedicated `package.json` script listed for running `scripts/generateGlossaryIndex.js`.
+   - Impact: regeneration is possible via dev endpoint (`POST /api/glossary/rebuild-index`) or manual `node scripts/generateGlossaryIndex.js`, but runbooks are less explicit.
+   - Evidence: `package.json` has `build:data` for item registry, while index rebuild endpoint is implemented in `vite.config.ts`.
+
+## 2. Verified/Resolved Within This Project
+
+7. **[Resolved: Equipment Grouping]** Equipment entries are now grouped by `itemType` into hierarchical buckets in `public/data/glossary/index/equipment.json`.
+   - Evidence: inspected file has 30 top-level groups with no missing `itemType` tags across 810 Equipment entries.
+
+8. **[Resolved: Registry Merge]** Generated glossary items flow into runtime item data via `ALL_ITEMS`.
+   - Evidence: `scripts/generateItemRegistry.ts` emits `GENERATED_GLOSSARY_ITEMS`, and `src/data/items/index.ts` spreads them into `ALL_ITEMS`.
+
+9. **[Resolved: Recursive Glossary Display]** The glossary UI path already supports nested parents and child expansion/search behavior.
+   - Evidence: `GlossarySidebar.tsx`, `useGlossarySearch.ts`, and `buildGlossaryDisplayIndex` route recursion over `subEntries`.
+
+## 3. Notes / Open Validation Flags
+
+10. **[Uncertain: Group Taxonomy Consistency]** Group names currently mirror generated `itemType` values (including plurals and punctuation variants like "Treasure (Gemstone)").
+   - If UX requires a strict canonical taxonomy, this should be normalized in a dedicated taxonomy table.
+
+11. **[Uncertain: `magic_items` Coverage Intent]** The empty `magic_items` directory may be transitional or stale; verify with project intent before leaving unchanged.

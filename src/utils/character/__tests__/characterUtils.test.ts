@@ -781,4 +781,119 @@ describe('characterUtils', () => {
       expect(isRacialSpellLockedForPreparation(updated, 'fireball')).toBe(false);
     });
   });
+
+  describe('Racial Modifier Buckets & Movement Speed updates (Slice 2)', () => {
+    it('should correctly parse and grant Satyr Performance and Persuasion proficiencies', () => {
+      // Create a Satyr character.
+      const satyr = createMockPlayerCharacter({
+        race: {
+          id: 'satyr',
+          name: 'Satyr',
+          description: 'Fey revelers.',
+          traits: [
+            'Creature Type: Fey',
+            'Size: Medium',
+            'Speed: 35 feet',
+            'Reveler: You are proficient in Performance and Persuasion.',
+          ],
+        },
+      });
+
+      // Assemble the character and apply racial modifiers.
+      const assembled = applyRacialSpellGrantsByLevel(satyr, 1);
+
+      // Verify that Performance and Persuasion are added to the character's skill list.
+      const skillNames = assembled.skills.map(s => s.name);
+      expect(skillNames).toContain('Performance');
+      expect(skillNames).toContain('Persuasion');
+      expect(assembled.modifiers?.skillProficiencies).toContain('Performance');
+      expect(assembled.modifiers?.skillProficiencies).toContain('Persuasion');
+    });
+
+    it('should correctly parse Tortle Natural Armor and set base AC to 17', () => {
+      // Create a Tortle character.
+      const tortle = createMockPlayerCharacter({
+        race: {
+          id: 'tortle',
+          name: 'Tortle',
+          description: 'Shell-bound humanoids.',
+          traits: [
+            'Creature Type: Humanoid',
+            'Size: Medium',
+            'Speed: 30 feet',
+            'Natural Armor (Tortle): Your shell grants you a base AC of 17; you can still gain the benefit of a shield but not wear armor.',
+          ],
+        },
+      });
+
+      // Assemble the character and apply racial modifiers.
+      const assembled = applyRacialSpellGrantsByLevel(tortle, 1);
+
+      // Verify the base Armor Class is set to 17.
+      expect(assembled.modifiers?.baseArmorClass).toBe(17);
+    });
+
+    it('should correctly parse Thri-Kreen Chameleon Carapace and set base AC to 13', () => {
+      // Create a Thri-Kreen character.
+      const thriKreen = createMockPlayerCharacter({
+        race: {
+          id: 'thri_kreen',
+          name: 'Thri-Kreen',
+          description: 'Insectoid monstrosities.',
+          traits: [
+            'Creature Type: Monstrosity',
+            'Size: Medium',
+            'Speed: 30 feet',
+            'Chameleon Carapace: While unarmored, your base AC is 13 + your Dexterity modifier, and you can change color to gain advantage on Stealth checks once per rest.',
+          ],
+        },
+      });
+
+      // Assemble the character and apply racial modifiers.
+      const assembled = applyRacialSpellGrantsByLevel(thriKreen, 1);
+
+      // Verify the base Armor Class is set to 13.
+      expect(assembled.modifiers?.baseArmorClass).toBe(13);
+    });
+
+    it('should correctly calculate Wood Elf and Wood Half-Elf base speed as 35 feet', () => {
+      // Create a Wood Elf character.
+      const woodElf = createMockPlayerCharacter({
+        race: {
+          id: 'wood_elf',
+          name: 'Wood Elf',
+          description: 'Woodland protectors.',
+          traits: [
+            'Speed: 35 feet',
+            'Fleet of Foot: Your base walking speed increases to 35 feet.',
+          ],
+        },
+      });
+
+      // Normalize the character.
+      const normalizedElf = normalizeCharacterRaceData(woodElf);
+
+      // Verify speed is 35.
+      expect(normalizedElf.speed).toBe(35);
+
+      // Create a Wood Half-Elf character.
+      const woodHalfElf = createMockPlayerCharacter({
+        race: {
+          id: 'half_elf_wood',
+          name: 'Wood Half-Elf',
+          description: 'Half-elves with wood elf heritage.',
+          traits: [
+            'Speed: 35 feet',
+            'Fleet of Foot: Your base walking speed increases to 35 feet.',
+          ],
+        },
+      });
+
+      // Normalize the character.
+      const normalizedHalfElf = normalizeCharacterRaceData(woodHalfElf);
+
+      // Verify speed is 35.
+      expect(normalizedHalfElf.speed).toBe(35);
+    });
+  });
 });

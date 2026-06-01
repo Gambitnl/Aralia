@@ -1,4 +1,37 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 01:14:48
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, test/combatEmitters.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 // TODO: Add comprehensive unit and integration tests for combat mechanics, attack resolution, and damage calculation
+
+/**
+ * This file implements the event emitter for all attack-related actions in combat.
+ *
+ * It allows registering event listeners that can run BEFORE an attack (to potentially cancel
+ * or redirect it, e.g., Sanctuary, Shield) or AFTER an attack (to trigger side-effects or logging).
+ * It is structured as a singleton so that any part of the combat engine can register or emit events
+ * on the same central bus.
+ *
+ * Called by: useActionExecutor, ReactiveEffectCommand, and various combat rule validators.
+ * Depends on: None.
+ */
+
+// ============================================================================
+// Types and Interfaces
+// ============================================================================
+
 export interface AttackEvent {
     attackerId: string;
     targetId: string;
@@ -95,13 +128,36 @@ export class AttackEventEmitter {
         }
     }
 
-    // Singleton instance
+    // ============================================================================
+    // Singleton Instance and Test Isolation Controls
+    // ============================================================================
+
+    // The shared single instance of the emitter.
     private static instance: AttackEventEmitter;
+
+    /**
+     * Get the active singleton instance.
+     */
     static getInstance(): AttackEventEmitter {
         if (!AttackEventEmitter.instance) {
             AttackEventEmitter.instance = new AttackEventEmitter();
         }
         return AttackEventEmitter.instance;
+    }
+
+    /**
+     * Set the current singleton instance. Useful for mocking/isolating tests.
+     */
+    static setInstance(instance: AttackEventEmitter | null): void {
+        AttackEventEmitter.instance = instance as AttackEventEmitter;
+    }
+
+    /**
+     * Create a completely fresh instance of AttackEventEmitter.
+     * Useful for isolating events in unit tests.
+     */
+    static createFresh(): AttackEventEmitter {
+        return new AttackEventEmitter();
     }
 }
 

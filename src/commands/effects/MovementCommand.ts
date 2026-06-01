@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:21:02
+ * Dependents: commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/commands/effects/MovementCommand.ts
  * Command for executing movement-based effects in combat.
@@ -9,6 +25,8 @@ import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position } from '@/types/combat'
 import { getDistance } from '../../utils/combatUtils'
+import { findPath } from '../../utils/pathfinding'
+import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
 
 /**
  * Command responsible for applying movement effects to characters.
@@ -300,7 +318,6 @@ export class MovementCommand extends BaseEffectCommand {
                 nextTarget = lookup ?? target
             }
 
-            // TODO: path via a safest-route pathfinder (respecting obstacles/terrain) instead of straight-line stepping.
             const distanceFeet = effect.forcedMovement.maxDistance === 'target_speed'
                 ? target.stats.speed
                 : effect.forcedMovement.maxDistance
@@ -333,19 +350,32 @@ export class MovementCommand extends BaseEffectCommand {
                 })
             }
 
-            // Iterate for forced movement (similar to push/pull safety)
-            let bestX = target.position.x
-            let bestY = target.position.y
+            // Route walking-style forced movement through the battle-map pathfinder
+            // when a map is available. This preserves the old straight-line fallback
+            // for mapless state, but lets Fear-style "move away/toward" effects go
+            // around known walls instead of stopping at the first blocked tile.
+            const routedDestination = this.findRoutedForcedMovementDestination(
+                nextState,
+                target,
+                caster,
+                dir,
+                distanceFeet
+            )
 
-            for (let i = 1; i <= tiles; i++) {
-                const nextX = target.position.x + Math.round((dx / magnitude) * i)
-                const nextY = target.position.y + Math.round((dy / magnitude) * i)
+            let bestX = routedDestination?.x ?? target.position.x
+            let bestY = routedDestination?.y ?? target.position.y
 
-                if (this.validatePosition(nextState, { x: nextX, y: nextY }, target.id)) {
-                    bestX = nextX
-                    bestY = nextY
-                } else {
-                    break
+            if (!routedDestination) {
+                for (let i = 1; i <= tiles; i++) {
+                    const nextX = target.position.x + Math.round((dx / magnitude) * i)
+                    const nextY = target.position.y + Math.round((dy / magnitude) * i)
+
+                    if (this.validatePosition(nextState, { x: nextX, y: nextY }, target.id)) {
+                        bestX = nextX
+                        bestY = nextY
+                    } else {
+                        break
+                    }
                 }
             }
 
@@ -484,7 +514,16 @@ export class MovementCommand extends BaseEffectCommand {
             return false // Was out of bounds
         }
 
-        // 2. Check collision
+        // 2. Check map terrain when a battle map is present. The movement
+        // command is shared by immediate spells and delayed scheduled spells,
+        // so this is the central guard that prevents teleports, pushes, and
+        // pulls from ending inside known wall/blocked tiles.
+        const tile = state.mapData?.tiles.get(`${position.x}-${position.y}`)
+        if (tile && (tile as any).blocksMovement) {
+            return false
+        }
+
+        // 3. Check collision
         const isOccupied = state.characters.some(c =>
             c.id !== excludeCharacterId &&
             c.position.x === position.x &&
@@ -507,13 +546,80 @@ export class MovementCommand extends BaseEffectCommand {
             return requested
         }
 
-        for (const pos of state.validMoves || []) {
+        // When an explicit teleport destination is blocked, choose the closest
+        // available candidate to that requested point instead of whichever tile
+        // happened to be inserted first into the caller's valid-move list.
+        const fallbackMoves = [...(state.validMoves || [])]
+            .sort((a, b) => getDistance(requested, a) - getDistance(requested, b))
+
+        for (const pos of fallbackMoves) {
             if (inRange(pos) && this.validatePosition(state, pos, targetId)) {
                 return pos
             }
         }
 
         return null
+    }
+
+    private findRoutedForcedMovementDestination(
+        state: CombatState,
+        target: CombatCharacter,
+        caster: CombatCharacter,
+        direction: string,
+        distanceFeet: number
+    ): Position | null {
+        if (!state.mapData || distanceFeet <= 0) {
+            return null
+        }
+
+        const startTile = state.mapData.tiles.get(`${target.position.x}-${target.position.y}`)
+        if (!startTile) {
+            return null
+        }
+
+        const startDistance = getDistance(caster.position, target.position)
+        const candidateTiles = Array.from(state.mapData.tiles.values())
+            .filter(tile => !tile.blocksMovement)
+            .filter(tile => this.validatePosition(state, tile.coordinates, target.id))
+            .filter(tile => {
+                const candidateDistance = getDistance(caster.position, tile.coordinates)
+                if (direction === 'away_from_caster') {
+                    return candidateDistance > startDistance
+                }
+                if (direction === 'toward_caster') {
+                    return candidateDistance < startDistance
+                }
+                return false
+            })
+
+        let bestDestination: Position | null = null
+        let bestDirectionalDistance = startDistance
+        let bestPathCost = Number.POSITIVE_INFINITY
+
+        for (const candidateTile of candidateTiles) {
+            const path = findPath(startTile, candidateTile, state.mapData)
+            if (path.length <= 1) {
+                continue
+            }
+
+            const pathCost = calculatePathMovementCost(path)
+            if (pathCost > distanceFeet) {
+                continue
+            }
+
+            const candidateDistance = getDistance(caster.position, candidateTile.coordinates)
+            const isBetterDirection = direction === 'away_from_caster'
+                ? candidateDistance > bestDirectionalDistance
+                : candidateDistance < bestDirectionalDistance
+
+            if (isBetterDirection || (candidateDistance === bestDirectionalDistance && pathCost < bestPathCost)) {
+                bestDestination = candidateTile.coordinates
+                bestDirectionalDistance = candidateDistance
+                bestPathCost = pathCost
+            }
+        }
+
+        return bestDestination
     }
 
     get description(): string {

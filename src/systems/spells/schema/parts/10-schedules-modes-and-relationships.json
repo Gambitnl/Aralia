@@ -12,6 +12,7 @@
             "turn_start",
             "turn_end",
             "on_damage",
+            "on_move_in_area",
             "on_entity_proximity",
             "on_target_cast"
           ]

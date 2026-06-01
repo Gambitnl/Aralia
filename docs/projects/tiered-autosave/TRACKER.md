@@ -1,44 +1,34 @@
 # TRACKER: Tiered Autosave Checkpoint System
 
-## Active Work
+## Last Updated
+2026-05-31
 
-### Phase 1: IndexedDB Storage Layer
-- `[not_started]` Create `src/services/indexedDBStorageService.ts` — async storage API wrapping IndexedDB
-- `[not_started]` Define DB schema: object store for save payloads, object store for slot metadata
-- `[not_started]` Implement: `putSave()`, `getSave()`, `deleteSave()`, `getAllSlotMetadata()`, `clearAll()`
-- `[not_started]` Handle DB open/upgrade, versioning, error handling
-- `[not_started]` Unit tests for IndexedDB service (using fake-indexeddb or similar)
-
-### Phase 2: Migration & Integration
-- `[not_started]` Update `saveLoadService.ts` to use IndexedDB instead of localStorage for payloads
-- `[not_started]` Keep slot index metadata in localStorage for fast synchronous reads (cache)
-- `[not_started]` Auto-migration: detect localStorage saves → copy to IndexedDB → remove from localStorage
-- `[not_started]` Handle `beforeunload` save path (IndexedDB is async; need fallback strategy)
-- `[not_started]` Update `SafeStorage` cross-tab sync or document single-tab limitation
-
-### Phase 3: Checkpoint Timer System
-- `[not_started]` Define checkpoint tier config: `{ id, intervalSeconds, displayLabel }`
-- `[not_started]` Create `useCheckpointSaves` hook (or extend `useAutoSave`)
-- `[not_started]` Track playtime elapsed per tier, trigger copy from rapid slot at each interval
-- `[not_started]` Ensure timers respect: tab background (pause), page reload (persist timer state), game phase eligibility
-- `[not_started]` Checkpoint saves are non-deletable by the user (system-managed)
-
-### Phase 4: UI Updates
-- `[not_started]` Update `LoadGameModal.tsx` to show checkpoint slots as a new "Checkpoints" section
-- `[not_started]` Live-updating age labels (re-render every ~10s showing "X min ago")
-- `[not_started]` Visual distinction between Rapid autosave, Checkpoints, and Manual saves
-- `[not_started]` Update `saveLoad.README.md` with new system documentation
+## Project Status
+- **Mode:** active
+- **Current Outcome Level:** partial
+- **Primary risk:** checkpoint automation is not yet wired through app runtime.
 
 ## Completed Work
-- `[done]` Research: Mapped current save system architecture (all key files, data flow, constraints).
-- `[done]` Design: Established checkpoint tier intervals, cascading copy approach, IndexedDB migration strategy.
-- `[done]` Bootstrapped project skeleton (NORTH_STAR, TRACKER, GAPS, DECISIONS, ARCHITECTURE_NOTES).
+- `[done]` Added IndexedDB storage service with async payload operations.
+- `[done]` Switched `saveLoadService` to IDB-first payload storage with localStorage fallback.
+- `[done]` Added migration path from legacy localStorage save payload keys.
+- `[done]` Added emergency save key path and recovery helper in `saveLoadService`.
+- `[done]` Added checkpoint slot constants and metadata support (`isCheckpoint`, `slotId` prefixes).
 
-## Blockers
-- None.
+## Active Work Queue
 
-## Discovered Gaps
-- See [GAPS.md](./GAPS.md) for classified items.
+| ID | Status | Task | Owner | Evidence | Next Action | Next Check |
+|---|---|---|---|---|---|---|
+| A1 | active | Call `initializeStorage()` during app startup and remove startup race gaps between migration and UI rendering | Project owner | `src/services/saveLoadService.ts`, `src/App.tsx`, `src/components/layout/MainMenu.tsx` | Add one initialization effect in root boot path before save checks and modals | Verify legacy localStorage payloads migrate correctly |
+| A2 | active | Implement checkpoint copy runner for defined tiers | Project owner | `src/services/saveLoadService.ts` tier config; missing `useCheckpointSaves.ts` | Create and wire checkpoint timer hook from autosave snapshots | Confirm checkpoints appear as expected in slot list |
+| A3 | active | Separate checkpoint presentation in `LoadGameModal` and guard deletion for non-manual slots | Project owner | `src/components/SaveLoad/LoadGameModal.tsx` | Add checkpoint section and disable delete action for checkpoint slots | Manual UI test for checkpoint list and action behavior |
+| A4 | active | Update save/load docs to match IndexedDB behavior | Project owner | `src/services/saveLoad.README.md` | Replace localStorage-first text with current design | Add note on IDB fallback and emergency save |
+| A5 | active | Extend persistence tests to cover IndexedDB paths and initializeStorage | Project owner | `src/services/__tests__/saveLoadService*.ts` | Add tests for migration + fallback + emergency recovery | CI test run for save/load suite |
 
-## Next Expected Actions
-- Begin Phase 1: Create the IndexedDB storage service.
+## Discovery Notes
+- Current docs in this folder were written before runtime details matured; they need regular refreshs when implementation changes.
+- No external code edits are required by this doc update.
+
+## Next Checks
+- Re-scan this tracker whenever checkpoint hooks or storage init are added.
+- Keep `status` rows as `done` only after evidence is verified in code and tests.

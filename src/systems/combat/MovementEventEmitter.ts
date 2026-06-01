@@ -1,3 +1,35 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 01:14:58
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, test/combatEmitters.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file implements the event emitter for all creature movement in combat.
+ *
+ * It allows registering event listeners that can run BEFORE movement (to potentially cancel
+ * it, e.g., Sentinel feat, grappling, difficult terrain limits) or AFTER movement (to trigger
+ * reactions like Opportunity Attacks). It tracks the distance moved and distinguishes between
+ * willing and forced movement.
+ *
+ * Called by: useActionExecutor, useGridMovement, and various combat rule validators.
+ * Depends on: Combat types from @/types/combat.
+ */
+
+// ============================================================================
+// Types and Interfaces
+// ============================================================================
+
 import { Position } from '../../types/combat';
 
 export interface MovementEvent {
@@ -104,13 +136,36 @@ export class MovementEventEmitter {
         }
     }
 
-    // Singleton instance
+    // ============================================================================
+    // Singleton Instance and Test Isolation Controls
+    // ============================================================================
+
+    // The shared single instance of the emitter.
     private static instance: MovementEventEmitter;
+
+    /**
+     * Get the active singleton instance.
+     */
     static getInstance(): MovementEventEmitter {
         if (!MovementEventEmitter.instance) {
             MovementEventEmitter.instance = new MovementEventEmitter();
         }
         return MovementEventEmitter.instance;
+    }
+
+    /**
+     * Set the current singleton instance. Useful for mocking/isolating tests.
+     */
+    static setInstance(instance: MovementEventEmitter | null): void {
+        MovementEventEmitter.instance = instance as MovementEventEmitter;
+    }
+
+    /**
+     * Create a completely fresh instance of MovementEventEmitter.
+     * Useful for isolating events in unit tests.
+     */
+    static createFresh(): MovementEventEmitter {
+        return new MovementEventEmitter();
     }
 }
 

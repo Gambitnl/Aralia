@@ -62,4 +62,79 @@ describe('ResistanceCalculator', () => {
     const damage = ResistanceCalculator.applyResistances(100, 'Fire', mockCharacter)
     expect(damage).toBe(0)
   })
+
+  it('should apply temporary resistance from active status effects (e.g. Barbarian Rage)', () => {
+    const mockCharacter = {
+      resistances: [],
+      vulnerabilities: [],
+      immunities: [],
+      statusEffects: [
+        {
+          id: 'rage',
+          name: 'Rage',
+          type: 'buff',
+          duration: 10,
+          modifiers: {
+            resistance: ['Bludgeoning', 'Piercing', 'Slashing']
+          }
+        }
+      ]
+    } as unknown as CombatCharacter
+
+    // Barbarian taking physical slashing damage while raging
+    const damageSlashing = ResistanceCalculator.applyResistances(10, 'Slashing', mockCharacter)
+    expect(damageSlashing).toBe(5) // floor(10 / 2)
+
+    // Barbarian taking physical piercing damage while raging
+    const damagePiercing = ResistanceCalculator.applyResistances(15, 'Piercing', mockCharacter)
+    expect(damagePiercing).toBe(7) // floor(15 / 2)
+
+    // Fire damage is not resisted by standard Rage
+    const damageFire = ResistanceCalculator.applyResistances(10, 'Fire', mockCharacter)
+    expect(damageFire).toBe(10)
+  })
+
+  it('should apply temporary immunity from active status effects', () => {
+    const mockCharacter = {
+      resistances: [],
+      vulnerabilities: [],
+      immunities: [],
+      statusEffects: [
+        {
+          id: 'death_ward',
+          name: 'Death Ward',
+          type: 'buff',
+          duration: 1,
+          modifiers: {
+            immunity: ['Necrotic']
+          }
+        }
+      ]
+    } as unknown as CombatCharacter
+
+    const damageNecrotic = ResistanceCalculator.applyResistances(50, 'Necrotic', mockCharacter)
+    expect(damageNecrotic).toBe(0)
+  })
+
+  it('should apply temporary vulnerability from active status effects', () => {
+    const mockCharacter = {
+      resistances: [],
+      vulnerabilities: [],
+      immunities: [],
+      statusEffects: [
+        {
+          id: 'curse',
+          name: 'Curse',
+          type: 'debuff',
+          duration: 3,
+          modifiers: {
+            vulnerability: ['Cold']
+          }
+        }
+      ]
+    } as unknown as CombatCharacter
+
+    const damageCold = ResistanceCalculator.applyResistances(10, 'Cold', mockCharacter)
+    expect(damageCold).toBe(20) // 10 * 2
+  })
 })

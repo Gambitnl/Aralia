@@ -20,7 +20,8 @@
  */
 import type { GameMessage, Monster, TempPartyMember } from '../../types';
 import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR } from '../../data/dndData';
-import { LOCATIONS, BIOMES, MONSTERS_DATA } from '../../constants';
+import { LOCATIONS, BIOMES } from '../../constants';
+import { MONSTERS_DATA } from '../../data/monsters';
 
 interface EncounterParameters {
   xpBudget: number;

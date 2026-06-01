@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/03/2026, 23:48:00
+ * Last Sync: 31/05/2026, 23:24:08
  * Dependents: App.tsx
- * Imports: 38 files
+ * Imports: 37 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -44,20 +44,16 @@ import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
-import { NPCS } from '../../constants';
+import { NPCS } from '../../data/world/npcs';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-// TODO(lint-intent): 'GeminiService' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import * as _GeminiService from '../../services/geminiService';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
 import ErrorBoundary from '../ui/ErrorBoundary';
-import ThreeDModal from '../ThreeDModal/ThreeDModal';
 
 // Lazy load heavy/conditional components to improve initial bundle size
 const MapPane = lazy(() => import('../MapPane'));
+const ThreeDModal = lazy(() => import('../ThreeDModal/ThreeDModal'));
 const QuestLog = lazy(() => import('../QuestLog'));
 const SubmapPane = lazy(() => import('../Submap/SubmapPane'));
 const CharacterSheetModal = lazy(() => import('../CharacterSheet/CharacterSheetModal'));
@@ -227,20 +223,22 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Global 3D Overlay (from main screen button) */}
             {gameState.isThreeDVisible && gameState.party[0] && gameState.subMapCoordinates && currentLocation.mapCoordinates && (
-                <ThreeDModal
-                    isOpen={gameState.isThreeDVisible}
-                    onClose={() => dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' })}
-                    worldSeed={gameState.worldSeed}
-                    biomeId={currentLocation.biomeId}
-                    gameTime={gameState.gameTime}
-                    playerSpeed={gameState.party[0].speed}
-                    partyMembers={gameState.party}
-                    parentWorldMapCoords={currentLocation.mapCoordinates}
-                    playerSubmapCoords={gameState.subMapCoordinates}
-                    onMove={(direction) => onAction({ type: 'move', payload: {}, targetId: direction, label: `Move ${direction}` })}
-                    isDevModeEnabled={gameState.isDevModeEnabled}
-                    devModelOverride={gameState.devModelOverride}
-                />
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ThreeDModal
+                        isOpen={gameState.isThreeDVisible}
+                        onClose={() => dispatch({ type: 'TOGGLE_THREE_D_VISIBILITY' })}
+                        worldSeed={gameState.worldSeed}
+                        biomeId={currentLocation.biomeId}
+                        gameTime={gameState.gameTime}
+                        playerSpeed={gameState.party[0].speed}
+                        partyMembers={gameState.party}
+                        parentWorldMapCoords={currentLocation.mapCoordinates}
+                        playerSubmapCoords={gameState.subMapCoordinates}
+                        onMove={(direction) => onAction({ type: 'move', payload: {}, targetId: direction, label: `Move ${direction}` })}
+                        isDevModeEnabled={gameState.isDevModeEnabled}
+                        devModelOverride={gameState.devModelOverride}
+                    />
+                </Suspense>
             )}
 
             {/* Character Sheet Modal */}

@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 01/06/2026, 00:46:13
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/CharacterSheet/index.ts, components/Combat/CombatView.tsx, components/layout/GameModals.tsx
+ * Imports: 14 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file CharacterSheetModal.tsx
@@ -12,6 +27,24 @@ import { Companion } from '../../types/companions';
 import { WindowFrame } from '../ui/WindowFrame';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import { canLevelUp } from '../../utils/characterUtils';
+
+/**
+ * This file renders the primary window frame containing the interactive D&D character sheet.
+ *
+ * It implements the tab navigation bar that switches between the Overview (stats, equipment,
+ * inventory), Skills, Details, Family, Spellbook, Crafting, and Journal sub-views.
+ * It is wrapped in a WindowFrame component to handle dragging, maximizing, and resizing.
+ *
+ * Called by: GameScreen / Dashboard layout components.
+ * Depends on: sub-tabs (SkillsTab, SpellbookTab, CharacterOverview, etc.) and WindowFrame UI container.
+ */
+
+// ============================================================================
+// Imports & Properties Interface
+// ============================================================================
+// Collects all required character sub-tabs, utility functions, and defines the
+// properties interface passed into the modal window.
+// ============================================================================
 
 // Tab components from subfolders
 import { CharacterOverview, EquipmentMannequin, InventoryList } from './Overview';
@@ -105,10 +138,11 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
     >
       <div className="flex flex-col h-full">
         {/* Tab Bar */}
+        {/* Main character sheet tab navigation, rendered using a premium serif font for immersive D&D theme. */}
         <div className="flex border-b border-gray-700 bg-gray-800/50 px-4">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'overview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'overview' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'overview'}
           >
@@ -116,7 +150,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('skills')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'skills' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'skills' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'skills'}
           >
@@ -124,7 +158,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('details')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'details'}
           >
@@ -133,7 +167,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {hasFamily && (
             <button
               onClick={() => setActiveTab('family')}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'family' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
               role="tab"
               aria-selected={activeTab === 'family'}
             >
@@ -143,7 +177,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {hasSpells && (
             <button
               onClick={() => setActiveTab('spellbook')}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'spellbook' ? 'border-b-2 border-purple-400 text-purple-300' : 'text-gray-400 hover:text-white'}`}
+              className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'spellbook' ? 'border-b-2 border-purple-400 text-purple-300' : 'text-gray-400 hover:text-white'}`}
               role="tab"
               aria-selected={activeTab === 'spellbook'}
             >
@@ -152,7 +186,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           )}
           <button
             onClick={() => setActiveTab('crafting')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'crafting' ? 'border-b-2 border-green-400 text-green-300' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'crafting' ? 'border-b-2 border-green-400 text-green-300' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'crafting'}
           >
@@ -160,7 +194,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('journal')}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'journal' ? 'border-b-2 border-amber-500 text-amber-400' : 'text-gray-400 hover:text-white'}`}
+            className={`px-4 py-2.5 text-sm font-medium font-cinzel transition-colors ${activeTab === 'journal' ? 'border-b-2 border-amber-500 text-amber-400' : 'text-gray-400 hover:text-white'}`}
             role="tab"
             aria-selected={activeTab === 'journal'}
           >
@@ -180,7 +214,8 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-grow overflow-hidden min-h-0 flex flex-col p-4">
+        {/* Embeds all inner tabs. Formatted to use a classical, highly-readable RPG body serif font (Quattrocento) across all tabs. */}
+        <div className="flex-grow overflow-hidden min-h-0 flex flex-col p-4 font-quattrocento font-medium">
           {activeTab === 'overview' && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4 h-full overflow-hidden">
               {/* Column 1: Core Stats & Features */}

@@ -317,6 +317,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     if (choices?.changelingInstinctSkillIds) {
       dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId: 'changeling', patch: { skillIds: choices.changelingInstinctSkillIds } } });
     }
+
+    if (choices?.genericSkillChoices) {
+      // Handle the generic skill choices for Kender, Kenku, Warforged, Half-Elf, etc.
+      // We apply it to the specific raceId that was selected.
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId, patch: { skillIds: choices.genericSkillChoices } } });
+    }
   }, [dispatch]);
 
   const handleClassSelect = useCallback((classId: string) => dispatch({ type: 'SELECT_CLASS', payload: CLASSES_DATA[classId] }), [dispatch]);
@@ -334,16 +340,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleBardFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_BARD_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
   const handleWarlockFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_WARLOCK_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
   const handleWeaponMasteriesSelect = useCallback((weaponIds: string[]) => dispatch({ type: 'SELECT_WEAPON_MASTERIES', payload: weaponIds }), [dispatch]);
-  const handleFeatSelect = useCallback((featId: string) => dispatch({ type: 'SELECT_FEAT', payload: featId }), [dispatch]);
+  const handleBackgroundFeatSelect = useCallback((featId: string) => dispatch({ type: 'SELECT_BACKGROUND_FEAT', payload: featId }), [dispatch]);
+  const handleRacialFeatSelect = useCallback((featId: string) => dispatch({ type: 'SELECT_RACIAL_FEAT', payload: featId }), [dispatch]);
 
   const handleFeatConfirm = useCallback(() => {
-    const chosenFeat = state.selectedFeat ? featOptions.find(f => f.id === state.selectedFeat) : null;
-    const shouldClear = chosenFeat && !chosenFeat.isEligible;
-    if (shouldClear) {
-      dispatch({ type: 'SELECT_FEAT', payload: '' });
-    }
     dispatch({ type: 'CONFIRM_FEAT_STEP' });
-  }, [featOptions, state.selectedFeat, dispatch]);
+  }, [dispatch]);
 
   const handleVisualsChange = useCallback((visuals: Partial<CharacterVisualConfig>) => dispatch({ type: 'SELECT_VISUALS', payload: visuals }), [dispatch]);
   const handleNameAndReviewSubmit = useCallback((name: string) => {
@@ -452,11 +454,43 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.WeaponMastery:
         if (!selectedClass) return <StepLockedPlaceholder message="Select a class first to unlock this step." />;
         return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />;
-      case CreationStep.FeatSelection: {
-        // Calculate known skills so we can disable them in the Skilled feat picker
+      case CreationStep.BackgroundFeatSelection: {
         const previewForFeat = generatePreviewCharacter(state, state.characterName);
         const knownSkills = previewForFeat?.skills.map(s => s.id) || [];
-        return <FeatSelection availableFeats={featOptions} selectedFeatId={state.selectedFeat || undefined} featChoices={state.featChoices} onSelectFeat={handleFeatSelect} onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} onConfirm={handleFeatConfirm} onBack={goBack} hasEligibleFeats={hasEligibleFeats} dispatch={appDispatch} knownSkillIds={knownSkills} />;
+        return (
+          <FeatSelection 
+            availableFeats={featOptions} 
+            selectedFeatId={state.backgroundFeatId || undefined} 
+            featChoices={state.featChoices} 
+            onSelectFeat={handleBackgroundFeatSelect} 
+            onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} 
+            onConfirm={handleFeatConfirm} 
+            onBack={goBack} 
+            hasEligibleFeats={hasEligibleFeats} 
+            dispatch={appDispatch} 
+            knownSkillIds={knownSkills}
+            allowSkip={false}
+          />
+        );
+      }
+      case CreationStep.RacialFeatSelection: {
+        const previewForFeat = generatePreviewCharacter(state, state.characterName);
+        const knownSkills = previewForFeat?.skills.map(s => s.id) || [];
+        return (
+          <FeatSelection 
+            availableFeats={featOptions} 
+            selectedFeatId={state.racialFeatId || undefined} 
+            featChoices={state.featChoices} 
+            onSelectFeat={handleRacialFeatSelect} 
+            onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} 
+            onConfirm={handleFeatConfirm} 
+            onBack={goBack} 
+            hasEligibleFeats={hasEligibleFeats} 
+            dispatch={appDispatch} 
+            knownSkillIds={knownSkills}
+            allowSkip={false}
+          />
+        );
       }
       case CreationStep.NameAndReview: {
         const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);

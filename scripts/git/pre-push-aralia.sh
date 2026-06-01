@@ -31,13 +31,30 @@ if [ $? -ne 0 ]; then
 fi
 
 # ============================================================================
+# Git Hygiene Gate
+# ============================================================================
+# The primary checkout at F:/Repos/Aralia should stay on master, and local
+# branches/worktrees should not accumulate silently. This gate reports drift and
+# requires an explicit allowlist or bypass instead of deleting anything.
+# ============================================================================
+npm run git:hygiene 2>&1
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "!! Push blocked: Aralia git hygiene failed."
+  echo "!! Keep F:/Repos/Aralia on master and remove or explicitly allowlist extra branches/worktrees."
+  echo "!! Hygiene-only bypass: ARALIA_GIT_HYGIENE_BYPASS=1 git push"
+  echo "!! Full hook bypass remains git push --no-verify, and should be documented."
+  exit 1
+fi
+
+# ============================================================================
 # Intent Gate
 # ============================================================================
 # The intent gate is still blocking because it is about whether the session has an
 # approved direction. It protects the project from agents pushing broad work with
 # unclear purpose.
 # ============================================================================
-node .agent/workflows/intent-gate-check.mjs --strict 2>&1
+npm run intent-gate -- --strict 2>&1
 if [ $? -ne 0 ]; then
   echo ""
   echo "!! Push blocked: Intent gate is missing/incomplete."

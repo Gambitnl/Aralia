@@ -10,7 +10,7 @@ F:\Repos\Aralia
 
 Read first:
 - AGENTS.md
-- .agent/workflows/USER.local.md
+- .agent/workflows/USER.local.md (if present; local-only)
 - docs/Prompts/race-data-reconciliation-goal.md
 - docs/reports/race-reconciliation/README.md
 - docs/reports/race-reconciliation/reconciliation-summary.md

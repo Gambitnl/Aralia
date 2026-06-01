@@ -330,9 +330,18 @@ const PartyMemberCard: React.FC<PartyMemberCardProps> = ({
                 <div className="flex justify-between items-start gap-2">
                     {/* Name and Race/Class */}
                     <div className="min-w-0">
-                        <h3 className="text-lg font-bold text-white leading-none truncate">
-                            {character.name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-white leading-none truncate">
+                                {character.name}
+                            </h3>
+                            {character.heroicInspiration && (
+                                <Tooltip content="Heroic Inspiration (Advantage on a d20 Test)">
+                                    <div className="flex items-center justify-center text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)] animate-pulse" title="Heroic Inspiration">
+                                        <span className="text-sm">✦</span>
+                                    </div>
+                                </Tooltip>
+                            )}
+                        </div>
                         <span className="text-xs font-medium text-amber-500/80 uppercase tracking-wider">
                             {raceClassName}
                         </span>

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/05/2026, 01:37:45
- * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, hooks/useBattleMap.ts
+ * Last Sync: 31/05/2026, 23:02:40
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
@@ -80,16 +80,20 @@ export const useTurnManager = ({
 
   const {
     spellZones,
+    scheduledSpellEffects,
     movementDebuffs,
     reactiveTriggers,
     addSpellZone,
     removeSpellZone,
+    addScheduledSpellEffect,
+    removeScheduledSpellEffect,
     addMovementDebuff,
     addReactiveTrigger,
     setReactiveTriggers,
     setMovementDebuffs,
     handleDamage,
     processRepeatSaves,
+    processScheduledSpellEffects,
     processTileEffects,
     processEndOfTurnEffects,
     updateRoundBasedEffects,
@@ -141,6 +145,14 @@ export const useTurnManager = ({
       // Reset per-turn feat usage tracking (e.g., Slasher's once-per-turn speed reduction)
       featUsageThisTurn: []
     };
+
+    // Some spell conditions repeat at the start of the affected creature's
+    // turn. The combat engine already owns repeat-save resolution, so the turn
+    // coordinator invokes that existing path here instead of duplicating save
+    // logic in the scheduling layer.
+    updatedChar = processRepeatSaves(updatedChar, 'turn_start');
+    updatedChar = processScheduledSpellEffects(updatedChar, 'turn_start', turnState.currentTurn);
+
     onCharacterUpdate(updatedChar);
 
     onLogEntry({
@@ -151,7 +163,7 @@ export const useTurnManager = ({
       characterId: character.id
     });
     // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
-  }, [onCharacterUpdate, onLogEntry]);
+  }, [onCharacterUpdate, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     // 1. Roll initiatives
@@ -360,7 +372,10 @@ export const useTurnManager = ({
     addReactiveTrigger,
     setReactiveTriggers,
     spellZones,
+    scheduledSpellEffects,
     movementDebuffs,
-    reactiveTriggers
+    reactiveTriggers,
+    addScheduledSpellEffect,
+    removeScheduledSpellEffect
   };
 };

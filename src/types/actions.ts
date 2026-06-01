@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:30:18
- * Dependents: actionTypes.d.ts, actionTypes.ts, index.d.ts, state.d.ts, state.ts, types/index.ts
- * Imports: 6 files
+ * Last Sync: 31/05/2026, 23:14:41
+ * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleResourceActions.ts, types/index.ts
+ * Imports: None
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -20,6 +20,7 @@ import { Quest } from './quests.js';
 import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character.js';
 import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
+import type { CombatCharacter } from './combat.js';
 
 // -----------------------------------------------------------------------------
 // Actions & payloads
@@ -244,6 +245,12 @@ export interface ShowEncounterModalPayload {
 
 export interface StartBattleMapEncounterPayload {
   monsters: Monster[];
+  /**
+   * Combat-ready enemy instances can be prepared by the action layer so the
+   * root reducer does not need to import the full combat utility stack during
+   * the main-menu startup path.
+   */
+  combatants?: CombatCharacter[];
 }
 
 export interface QuickTravelPayload {

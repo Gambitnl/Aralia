@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 23/05/2026, 00:19:44
+ * Last Sync: 31/05/2026, 19:21:38
  * Dependents: components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Party/PartyPane/PartyMemberCard.tsx, services/premadeCharacterService.ts, utils/character/characterValidation.ts, utils/character/index.ts, utils/character/spellAbilityFactory.ts, utils/character/spellUtils.ts, utils/characterUtils.ts, utils/combat/actionEconomyUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: 9 files
  *
@@ -49,7 +49,7 @@ import {
   HitPointDicePool,
   RacialSpellGrant,
 } from '../../types';
-import { RacialFeatureTrait, RacialResourceMechanic } from '../../data/races/racialTraits';
+import { RacialFeatureTrait, RacialResourceMechanic, RacialModifierBuckets } from '../../data/races/racialTraits';
 import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE, getRacialTraitLibrary } from '../../data/races';
 import { CLASSES_DATA } from '../../data/classes';
 import { SKILLS_DATA } from '../../data/skills';
@@ -879,7 +879,8 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       initiativeProficiency: character.modifiers.initiativeProficiency,
       ignoreDifficultTerrain: character.modifiers.ignoreDifficultTerrain,
       reactions: character.modifiers.reactions ? [...character.modifiers.reactions] : [],
-    } : { advantage: [], disadvantage: [], bonuses: [], reactions: [] },
+      savageAttacks: character.modifiers.savageAttacks,
+    } : { advantage: [], disadvantage: [], bonuses: [], reactions: [], skillProficiencies: [], weaponProficiencies: [], armorProficiencies: [] },
     skills: [...character.skills],
     weaponProficiencies: [...(character.weaponProficiencies || [])],
     armorProficiencies: [...(character.armorProficiencies || [])],
@@ -976,7 +977,7 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       next.modifiers!.breathWeapon = { ...trait.modifierBuckets.breathWeapon };
     }
     if (trait.modifierBuckets.skillProficiencies) {
-      trait.modifierBuckets.skillProficiencies.forEach(skillName => {
+      trait.modifierBuckets.skillProficiencies.forEach((skillName: string) => {
         const skillId = skillName.toLowerCase().replace(/\s+/g, '_');
         const skill = SKILLS_DATA[skillId];
         if (skill && !next.skills.some(s => s.id === skill.id)) {
@@ -988,7 +989,7 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       });
     }
     if (trait.modifierBuckets.weaponProficiencies) {
-      trait.modifierBuckets.weaponProficiencies.forEach(weapon => {
+      trait.modifierBuckets.weaponProficiencies.forEach((weapon: string) => {
         if (!next.weaponProficiencies!.includes(weapon)) {
           next.weaponProficiencies!.push(weapon);
         }
@@ -998,7 +999,7 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       });
     }
     if (trait.modifierBuckets.armorProficiencies) {
-      trait.modifierBuckets.armorProficiencies.forEach(armor => {
+      trait.modifierBuckets.armorProficiencies.forEach((armor: string) => {
         if (!next.armorProficiencies!.includes(armor)) {
           next.armorProficiencies!.push(armor);
         }
@@ -1024,6 +1025,9 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
         ...(next.modifiers!.reactions || []),
         ...trait.modifierBuckets.reactions,
       ];
+    }
+    if (trait.modifierBuckets.savageAttacks) {
+      next.modifiers!.savageAttacks = true;
     }
   });
 
@@ -1382,16 +1386,29 @@ const buildAutomaticAbilityScoreChoice = (character: PlayerCharacter, budget: nu
   return increases;
 };
 
+// Calculate a character's base movement speed based on their chosen race and subrace options.
+// Most characters move at 30 feet, but some races (like Wood Elves) move faster, and some slower.
 export function calculateCharacterSpeedFromRace(race: PlayerCharacter['race'], racialSelections: PlayerCharacter['racialSelections'] = {}): number {
+  // Start with a standard fallback speed of 30 feet.
   let speed = 30;
+
+  // Look for a trait starting with "Speed:" (like "Speed: 35 feet" or "Speed: 25 feet").
+  // If found, extract the numeric value and use it as the base speed.
   const speedTrait = race.traits.find(t => t.toLowerCase().startsWith('speed:'));
   if (speedTrait) {
     const match = speedTrait.match(/(\d+)/);
     if (match) speed = parseInt(match[1], 10);
   }
 
-  if (race.id === 'elf' && racialSelections?.elf?.choiceId === 'wood_elf') {
-    speed += 5;
+  // Fleet of Foot (Wood Elf / Wood Half-Elf): Base speed increases to 35 feet.
+  // This covers the wood elf lineage option selected under the base elf race,
+  // as well as the standalone Wood Elf ("wood_elf") and Wood Half-Elf ("half_elf_wood") races.
+  if (
+    (race.id === 'elf' && racialSelections?.elf?.choiceId === 'wood_elf') ||
+    race.id === 'wood_elf' ||
+    race.id === 'half_elf_wood'
+  ) {
+    speed = 35;
   }
 
   return speed;

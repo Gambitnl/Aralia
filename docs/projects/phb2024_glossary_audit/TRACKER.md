@@ -1,22 +1,36 @@
-# TRACKER: PHB2024 Glossary Audit
+﻿# TRACKER: PHB 2024 Glossary Audit
 
-## Active Work
-- `[done]` Bootstrapping project skeleton.
-- `[done]` Ingesting Skills, Senses, Languages, and Hazards into `rules/`.
-- `[done]` Ingesting Feats into `feats/`.
-- `[done]` Ingesting Backgrounds into `backgrounds/`.
-- `[done]` Ingesting Items into `equipment/` (and solving the Item Metadata parsing gap).
-- `[done]` Updating `src/components/Glossary/glossaryUIUtils.tsx` to index the new top-level categories (Feats, Character Backgrounds).
+Status: complete implementation scope
+Last updated: 2026-05-31
 
 ## Completed Work
-- `[done]` Discovery: Identified source JSON files containing `XPHB` content using a scratch script.
-- `[done]` Bootstrapped `NORTH_STAR`, `TRACKER`, `GAPS`, and `DECISIONS` docs.
+
+- `[done]` PHB 2024 core rules migration documented in `docs/tasks/2024_phb_rules_migration.md`.
+- `[done]` Added in-scope category ingestion (`skills`, `senses`, `languages`, `trapsHazards`, `feats`, `backgrounds`, `items`).
+- `[done]` Preserved item metadata fields in glossary entry generation.
+- `[done]` Wired new top-level category folders into glossary UI mapping (`src/components/Glossary/glossaryUIUtils.tsx`).
+- `[done]` Recorded project docs in `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, and `DECISIONS.md`.
+
+## Active Work
+
+- `[done]` No active implementation work remains.
 
 ## Blockers
-- None.
 
-## Discovered Gaps
-- (See `GAPS.md` for registered items - Item Metadata Gap was explicitly resolved)
+- No hard blockers.
 
-## Next Expected Actions
-- **PROJECT COMPLETE**. All objectives fully met.
+## Open Items to Track
+
+- Cross-project type-contract parity for `itemMetadata`.
+- Standardized non-dev index rebuild workflow for glossary regeneration.
+- Ongoing consistency checks on PHB-specific content surfaced through rules glossary UI.
+
+## Gaps Register
+
+- See `GAPS.md` for the durable gap log and uncertainty tags.
+
+## Next Checks
+
+1. Re-run `node scripts/generateGlossaryIndex.js` after any data or mapping edits.
+2. Verify glossary index loading path in `GlossaryContext` and sidebar display for new categories.
+3. Reconcile unresolved type/build contract gaps with owning project owners before touching shared item pipelines.

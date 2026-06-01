@@ -29,4 +29,3 @@ export * from './securityUtils';
 export * from './permissions';
 export * from './hashUtils';
 export * from './i18n';
-export * from './testUtils';

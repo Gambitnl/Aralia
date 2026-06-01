@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:25:34
+ * Dependents: hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/spells/effects/AreaEffectTracker.ts
  * 
@@ -87,8 +103,8 @@ export class AreaEffectTracker {
         for (const zone of this.zones) {
             if (!zone.areaOfEffect) continue;
 
-            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
-            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction);
+            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect, zone.direction);
 
             // Trigger if moving *within* the zone (start and end are both in)
             if (wasInZone && isNowInZone) {
@@ -118,7 +134,7 @@ export class AreaEffectTracker {
 
                         results.push({
                             triggered: true,
-                            effects: convertSpellEffectToProcessed(effect),
+                            effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
                             triggerType: 'on_move_in_area'
                         });
                     }
@@ -147,8 +163,8 @@ export class AreaEffectTracker {
         for (const zone of this.zones) {
             if (!zone.areaOfEffect) continue;
 
-            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
-            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction);
+            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect, zone.direction);
 
             if (!wasInZone && isNowInZone) {
                 // Emit event regardless of whether there are effects
@@ -177,7 +193,7 @@ export class AreaEffectTracker {
 
                     results.push({
                         triggered: true,
-                        effects: convertSpellEffectToProcessed(effect),
+                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
                         triggerType: 'on_enter_area'
                     });
                 }
@@ -201,8 +217,8 @@ export class AreaEffectTracker {
         for (const zone of this.zones) {
             if (!zone.areaOfEffect) continue;
 
-            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
-            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect, zone.direction);
+            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect, zone.direction);
 
             if (wasInZone && !isNowInZone) {
                 // Emit event
@@ -231,7 +247,7 @@ export class AreaEffectTracker {
 
                     results.push({
                         triggered: true,
-                        effects: convertSpellEffectToProcessed(effect),
+                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
                         triggerType: 'on_exit_area'
                     });
                 }
@@ -256,7 +272,7 @@ export class AreaEffectTracker {
         for (const zone of this.zones) {
             if (!zone.areaOfEffect) continue;
 
-            const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect);
+            const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect, zone.direction);
 
             if (isInZone) {
                 const endTurnEffects = zone.effects.filter(effect =>
@@ -279,7 +295,7 @@ export class AreaEffectTracker {
 
                     results.push({
                         triggered: true,
-                        effects: convertSpellEffectToProcessed(effect),
+                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
                         triggerType: 'on_end_turn_in_area'
                     });
                 }

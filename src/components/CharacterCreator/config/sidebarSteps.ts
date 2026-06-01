@@ -66,6 +66,8 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
       return state.characterAge > 0 && state.selectedRace !== null;
     case CreationStep.BackgroundSelection:
       return state.selectedBackground !== null;
+    case CreationStep.BackgroundFeatSelection:
+      return state.backgroundFeatId !== null;
     case CreationStep.Visuals:
       return true; // Visuals are always "complete" as they have defaults
 
@@ -85,9 +87,9 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
       return true;
     case CreationStep.WeaponMastery:
       return state.selectedWeaponMasteries !== null && state.selectedWeaponMasteries.length > 0;
-    case CreationStep.FeatSelection:
+    case CreationStep.RacialFeatSelection:
       // Feat selection is "complete" if we've either selected a feat or confirmed skipping
-      return state.selectedFeat !== null || state.featStepSkipped === true;
+      return state.racialFeatId !== null || state.featStepSkipped === true;
     case CreationStep.NameAndReview:
       return state.characterName.trim().length > 0;
     default:
@@ -135,6 +137,16 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
       return state.selectedBackground.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
     isVisible: () => true,
+  },
+  {
+    step: CreationStep.BackgroundFeatSelection,
+    label: 'Origin Feat',
+    group: 'origin',
+    getSelectionSummary: (state) => {
+      if (!state.backgroundFeatId) return null;
+      return state.backgroundFeatId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+    isVisible: (state) => !!state.selectedBackground,
   },
   {
     step: CreationStep.Visuals,
@@ -188,7 +200,7 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
   // Deprecated sidebar step removed: RacialSpellAbilityChoice - now handled inline in RaceDetailPane
   {
     step: CreationStep.HumanSkillChoice,
-    label: 'Versatile Skill',
+    label: 'Skillful',
     group: 'abilities',
     getSelectionSummary: (state) => {
       const skills = state.racialSelections['human']?.skillIds;
@@ -217,16 +229,15 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     isVisible: (state) => (state.selectedClass?.weaponMasterySlots ?? 0) > 0,
   },
   {
-    step: CreationStep.FeatSelection,
-    label: 'Feat',
+    step: CreationStep.RacialFeatSelection,
+    label: 'Racial Feat',
     group: 'abilities',
     getSelectionSummary: (state) => {
       if (state.featStepSkipped) return 'Skipped';
-      if (!state.selectedFeat) return null;
-      return state.selectedFeat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      if (!state.racialFeatId) return null;
+      return state.racialFeatId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
-    // Always show so users can jump ahead and see eligibility/skipping messaging.
-    isVisible: () => true,
+    isVisible: (state) => state.selectedRace?.id === 'human',
   },
 
   // === FINAL GROUP ===

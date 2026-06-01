@@ -1,4 +1,9 @@
-# Spell System Overhaul - Task Documentation
+# Structured Spell Execution - Task Documentation
+
+Project display name: Structured Spell Execution
+Legacy name / folder slug: Spell System Overhaul (`docs/tasks/spell-system-overhaul`)
+
+This directory keeps the historical `spell-system-overhaul` path because many older task files, status docs, and handoff notes already link here. The current living-project name is **Structured Spell Execution** because the active work is about proving and extending the data-to-validation-to-runtime spell pipeline, not just performing a broad "overhaul."
 
 This directory contains detailed implementation tasks for the Component-Based Spell System overhaul.
 

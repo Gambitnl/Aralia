@@ -223,6 +223,19 @@ export class SpellCommandFactory {
   /**
    * Create a single command from an effect, filtering targets if necessary
    */
+  private static isPersistentAreaZoneTrigger(effect: SpellEffect): boolean {
+    return [
+      'on_enter_area',
+      'on_exit_area',
+      'on_end_turn_in_area',
+      'on_move_in_area'
+    ].includes(effect.trigger.type)
+  }
+
+  private static isScheduledRuntimeTrigger(effect: SpellEffect): boolean {
+    return ['turn_start', 'turn_end'].includes(effect.trigger.type)
+  }
+
   private static createCommand(
     effect: SpellEffect,
     context: CommandContext
@@ -263,9 +276,17 @@ export class SpellCommandFactory {
       return new RegisterRiderCommand(effect, context)
     }
 
-    // TODO(Refactor): Area triggers (on_enter_area, on_end_turn_in_area) should NOT fall through
-    // to immediate commands like DamageCommand. They must be registered as persistent hazards.
-    // Potential fix: Handle registered hazard logic here or via TerrainCommand.
+    if (this.isPersistentAreaZoneTrigger(effect)) {
+      // Area-zone triggers are registered by useAbilitySystem/createSpellZoneFromAoEParams.
+      // Returning null here prevents delayed zone effects from also resolving immediately.
+      return null
+    }
+
+    if (this.isScheduledRuntimeTrigger(effect)) {
+      // Bare turn-start/end effects are registered by useAbilitySystem as target-bound
+      // scheduled effects. They should not resolve during the initial cast.
+      return null
+    }
 
     // Pass conditional endings to the command context to provide a runtime bridge
     if (effect.conditionalEndings && effect.conditionalEndings.length > 0) {

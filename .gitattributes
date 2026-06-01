@@ -1,0 +1,2 @@
+# Keep Bash entrypoints runnable on Windows checkouts that have core.autocrlf enabled.
+*.sh text eol=lf

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 22:47:07
+ * Dependents: hooks/useAbilitySystem.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file hooks/combat/useTargeting.ts
  * Manages the "Selection Phase" of ability usage.
@@ -11,8 +27,8 @@
 
 import { useState, useCallback } from 'react';
 import { Ability, Position, CombatCharacter, BattleMapData } from '../../types/combat';
-import { resolveAoEParams } from '../../utils/targetingUtils';
-import { calculateAffectedTiles } from '../../utils/aoeCalculations';
+import { resolveAoEParams } from '../../utils/spatial/targetingUtils';
+import { calculateAffectedTiles } from '../../utils/combat/aoeCalculations';
 
 interface UseTargetingProps {
     mapData: BattleMapData | null;

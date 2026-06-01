@@ -8,7 +8,7 @@ This repo should be approached as **expansion-first**, not cleanup-first.
 Preserve unfinished intent, future optionality, and embryonic systems unless removal is clearly justified.
 Do not mistake a cleaner diff, lower lint count, or less code for automatic progress.
 
-**The goal is an ever-widening scope.** When executing a task, treat it as a discovery process. Do not artificially shrink success to whatever is easiest to complete. When you discover gaps, missing features, or adjacent debt, classify them and add them to the relevant project's `GAPS.md` tracker without letting discovery swallow the active task.
+**The goal is an ever-widening scope.** When executing a task, treat it as a discovery process. Do not artificially shrink success to whatever is easiest to complete. When you discover gaps, missing features, or adjacent debt, classify them without letting discovery swallow the active task. Add gaps that belong to the active project to that project's `GAPS.md`. Add cross-project, orphaned, or clearly out-of-current-scope gaps to `docs/projects/GLOBAL_GAPS.md` so later agents can surface and route them.
 
 Aralia task docs are the durable GitHub-synced home for Jules-readable handoff
 material. Symphony dashboards, generated manifests, draft ids, click receipts,
@@ -222,18 +222,33 @@ The roadmap/tooling layer is not just project management. It helps humans and ag
 
 If you are changing a system with roadmap implications, use the roadmap-related workflow/tooling rather than relying only on local code impressions.
 
+## Living Project Conversion Trigger
+
+If the user says "convert this to the living project format", "make this a
+living project", or asks to preserve an expanding task for future cold-start
+agents, read `docs/agent-workflows/LIVING_PROJECT_TASK_PROTOCOL.md` before
+creating or moving docs.
+
+That workflow points to the full protocol and templates. Use it to choose the
+owning project folder, check `docs/projects/GLOBAL_GAPS.md` for pre-registered
+gaps that may belong to the new project, register the project in
+`docs/projects/PROJECT_TRACKER.md`, create or refresh the North Star as the main
+drop-in file, add only needed supporting files, and then continue the active
+task without treating documentation setup as task completion.
+
 ## Environment
 
 1. **Shell**: Use `powershell -NoLogo -Command` (do not use `pwsh`).
 2. **Paths**: Project root is `F:\Repos\Aralia`. Use backslashes for native commands and avoid `Users\Users` nesting mistakes.
 3. **Node Execution**: Setting `{ shell: true }` is mandatory when spawning Windows `.cmd` or `.ps1` wrappers via Node.js.
+4. **Git Tree Hygiene**: `F:\Repos\Aralia` is the primary tree and should normally stay on `master`. Extra local branches and registered worktrees are temporary exceptions, not a resting state; run `npm run git:hygiene` during push/worktree cleanup and report or remove drift before session close.
 
 ## Required Tooling
 
 1. **Testing**: Use `/test-ts` to execute unit tests (Vitest), type tests (TSD), or build-time checks (TSC).
 2. **Dependency Tracking**: When modifying exported signatures, `utils`, `hooks`, or `state` files, run:
    `npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync <path>`
-3. **Push Policy**: Treat broad `npm run typecheck` and `npm run lint` output as visible debt unless the task is explicitly a strict cleanup/review pass. The pre-push policy in `scripts/git/pre-push-aralia.sh` keeps `npm run sync-check` and intent-gate failures blocking, but ordinary pushes do not run the full type/lint backlog. Run `npm run quality:debt` for a summarized report, `ARALIA_PRE_PUSH_STRICT=1 git push` for strict local gating, and `npm run hooks:install` to install or refresh the local `.git/hooks/pre-push` delegator.
+3. **Push Policy**: Treat broad `npm run typecheck` and `npm run lint` output as visible debt unless the task is explicitly a strict cleanup/review pass. The pre-push policy in `scripts/git/pre-push-aralia.sh` keeps `npm run sync-check`, `npm run git:hygiene`, and intent-gate failures blocking, but ordinary pushes do not run the full type/lint backlog. Run `npm run quality:debt` for a summarized report, `ARALIA_PRE_PUSH_STRICT=1 git push` for strict local gating, and `npm run hooks:install` to install or refresh the local `.git/hooks/pre-push` delegator.
 4. **Session Hygiene**: Execute `/session-ritual` after major task verification to sync dependency headers and complete end-of-session maintenance.
 
 ## Practical Rule

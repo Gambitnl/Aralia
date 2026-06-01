@@ -4,7 +4,7 @@
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
  * Last Sync: 11/03/2026, 20:48:33
- * Dependents: CharacterCreator.tsx, CreationSidebar.tsx, FeatSelection.tsx, LevelUpModal.tsx, NameAndReview.tsx, sidebarSteps.ts, useCharacterAssembly.ts, useCharacterAssembly.ts
+ * Dependents: CharacterCreator.tsx, CreationSidebar.tsx, FeatSelection.tsx, LevelUpModal.tsx, NameAndReview.tsx, sidebarSteps.ts, useCharacterAssembly.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -19,21 +19,8 @@
  * This file manages the complex state machine for the 'Character Creator'. 
  * It uses a Reducer pattern (characterCreatorReducer) to handle step-by-step 
  * navigation and data accumulation.
- *
- * Recent updates focus on 'Non-Destructive Navigation'. Previously, clicking 
- * 'Back' would wipe the data for the step being exited. Now, data is only 
- * reset if a 'Hard Dependency' changes (e.g., swapping your Race resets 
- * racial traits, swapping Class resets class features). This creates a 
- * much smoother 'Review and Edit' UX.
- *
- * It also handles the 'Feat Selection' branching logic, determining 
- * dynamically if a level 1 character is eligible for a feat (e.g., Humans).
  */
 
-/**
- * @file src/components/CharacterCreator/state/characterCreatorState.ts
- * This file manages the complex state machine for the Character Creator.
- */
 import {
   Race,
   Class as CharClass,
@@ -42,16 +29,12 @@ import {
   Spell,
   FightingStyle,
   AbilityScoreName,
-  DraconicAncestorType,
-  ElvenLineageType,
-  GnomeSubraceType,
-  GiantAncestryType,
-  FiendishLegacyType,
   RacialSelectionData,
 } from '../../../types';
 import { CharacterVisualConfig } from '../../../services/CharacterAssetService';
 import { FEATS_DATA } from '../../../data/feats/featsData';
-import { calculateFixedRacialBonuses, evaluateFeatPrerequisites } from '../../../utils/characterUtils';
+import { BACKGROUNDS } from '../../../data/backgrounds';
+import { calculateFixedRacialBonuses } from '../../../utils/characterUtils';
 import { getRacialSpellCastingAbilityChoiceForRace } from '../../../data/races';
 
 // --- Enums and Types ---
@@ -59,6 +42,7 @@ export enum CreationStep {
   Race,
   AgeSelection,
   BackgroundSelection,
+  BackgroundFeatSelection,
   Visuals,
   Class,
   AbilityScores,
@@ -66,7 +50,7 @@ export enum CreationStep {
   Skills,
   ClassFeatures,
   WeaponMastery,
-  FeatSelection,
+  RacialFeatSelection,
   NameAndReview,
 }
 
@@ -107,14 +91,14 @@ export interface CharacterCreationState {
   selectedCantrips: Spell[];
   selectedSpellsL1: Spell[];
   selectedWeaponMasteries: string[] | null;
-  selectedFeat: string | null;
+  backgroundFeatId: string | null;
+  racialFeatId: string | null;
   featChoices?: Record<string, FeatChoiceState>;
   characterName: string;
   characterAge: number;
   selectedBackground: string | null;
   featStepSkipped?: boolean;
   visuals: CharacterVisualConfig;
-  /** Optional appearance/portrait prompt text entered by the player. */
   visualDescription: string;
   portrait: {
     status: PortraitGenerationStatus;
@@ -147,7 +131,8 @@ export type CharacterCreatorAction =
   | { type: 'SELECT_SKILLS'; payload: Skill[] }
   | ClassFeatureFinalSelectionAction
   | { type: 'SELECT_WEAPON_MASTERIES'; payload: string[] }
-  | { type: 'SELECT_FEAT'; payload: string }
+  | { type: 'SELECT_BACKGROUND_FEAT'; payload: string }
+  | { type: 'SELECT_RACIAL_FEAT'; payload: string }
   | { type: 'SET_FEAT_CHOICE'; payload: { featId: string; choiceType: string; value: FeatChoiceValue } }
   | { type: 'CONFIRM_FEAT_STEP' }
   | { type: 'SET_CHARACTER_NAME'; payload: string }
@@ -180,10 +165,11 @@ export const initialCharacterCreatorState: CharacterCreationState = {
   selectedCantrips: [],
   selectedSpellsL1: [],
   selectedWeaponMasteries: null,
-  selectedFeat: null,
+  backgroundFeatId: null,
+  racialFeatId: null,
   featChoices: {},
   characterName: '',
-  characterAge: 25, // Default age
+  characterAge: 25,
   selectedBackground: null,
   featStepSkipped: false,
   visuals: {
@@ -204,10 +190,6 @@ export const initialCharacterCreatorState: CharacterCreationState = {
 
 // --- Reducer Helper Functions ---
 
-/**
- * Determines the next step after race selection.
- * Race-specific sub-selections (ancestry, lineage, etc.) come BEFORE age/background.
- */
 function determineNextStepAfterRace(_race: Race): CreationStep {
   return CreationStep.AgeSelection;
 }
@@ -217,38 +199,28 @@ const getResetStateForNewRace = (): Partial<CharacterCreationState> => {
   return { ...resettableFields, racialSelections: {} };
 };
 
-// Determine whether the feat step should even appear for the current snapshot of the character.
-// We compute this in the reducer so navigation/backtracking logic can skip the screen entirely when nothing qualifies.
-const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
+const canOfferRacialFeatAtLevelOne = (state: CharacterCreationState): boolean => {
   if (!state.selectedRace || !state.selectedClass || !state.finalAbilityScores) {
     return false;
   }
-
-  // Humans get the Versatile trait which grants access to feat selection at level 1
   if (state.selectedRace.id === 'human') {
     return true;
   }
+  return false;
+};
 
-  return FEATS_DATA.some(feat => {
-    const eligibility = evaluateFeatPrerequisites(feat, {
-      level: 1,
-      abilityScores: state.finalAbilityScores!,
-      raceId: state.selectedRace!.id,
-      classId: state.selectedClass!.id,
-      // Avoid treating the in-progress choice as already learned; we only want to filter out
-      // feats that fail real prerequisites for this snapshot of the character.
-      knownFeats: [],
-    });
-    return eligibility.isEligible;
-  });
+const canOfferBackgroundFeat = (state: CharacterCreationState): boolean => {
+  return !!state.selectedBackground;
 };
 
 export const getFeatStepOrReview = (state: CharacterCreationState): { step: CreationStep; skipped: boolean } => {
-  const canOffer = canOfferFeatAtLevelOne(state) || !!state.selectedFeat;
-  return {
-    step: canOffer ? CreationStep.FeatSelection : CreationStep.NameAndReview,
-    skipped: !canOffer,
-  };
+  if (canOfferBackgroundFeat(state)) {
+    return { step: CreationStep.BackgroundFeatSelection, skipped: false };
+  }
+  if (canOfferRacialFeatAtLevelOne(state)) {
+    return { step: CreationStep.RacialFeatSelection, skipped: false };
+  }
+  return { step: CreationStep.NameAndReview, skipped: true };
 };
 
 const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: CreationStep): Partial<CharacterCreationState> => {
@@ -284,8 +256,11 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
     case CreationStep.WeaponMastery:
       resetFields.selectedWeaponMasteries = null;
       break;
-    case CreationStep.FeatSelection:
-      resetFields.selectedFeat = null;
+    case CreationStep.BackgroundFeatSelection:
+      resetFields.backgroundFeatId = null;
+      break;
+    case CreationStep.RacialFeatSelection:
+      resetFields.racialFeatId = null;
       break;
     case CreationStep.NameAndReview:
       break;
@@ -294,8 +269,14 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
   return resetFields;
 };
 
-// Centralizes the step that immediately precedes the feat screen so we can reuse the same logic for back navigation from review.
 const getPreviousStepBeforeFeat = (state: CharacterCreationState): CreationStep => {
+  if (canOfferRacialFeatAtLevelOne(state)) {
+    return CreationStep.RacialFeatSelection;
+  }
+  if (canOfferBackgroundFeat(state)) {
+    return CreationStep.BackgroundFeatSelection;
+  }
+
   return (state.selectedClass?.weaponMasterySlots ?? 0) > 0
     ? CreationStep.WeaponMastery
     : (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills);
@@ -309,7 +290,8 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.Race]: { previousStep: () => CreationStep.Race },
   [CreationStep.AgeSelection]: { previousStep: () => CreationStep.Race },
   [CreationStep.BackgroundSelection]: { previousStep: () => CreationStep.AgeSelection },
-  [CreationStep.Visuals]: { previousStep: () => CreationStep.BackgroundSelection },
+  [CreationStep.BackgroundFeatSelection]: { previousStep: () => CreationStep.BackgroundSelection },
+  [CreationStep.Visuals]: { previousStep: () => (canOfferBackgroundFeat(initialCharacterCreatorState) ? CreationStep.BackgroundFeatSelection : CreationStep.BackgroundSelection) },
   [CreationStep.Class]: { previousStep: () => CreationStep.Visuals },
   [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
   [CreationStep.HumanSkillChoice]: { previousStep: () => CreationStep.AbilityScores },
@@ -318,13 +300,21 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   },
   [CreationStep.ClassFeatures]: { previousStep: () => CreationStep.Skills },
   [CreationStep.WeaponMastery]: { previousStep: (state) => (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills) },
-  [CreationStep.FeatSelection]: { previousStep: (state) => getPreviousStepBeforeFeat(state) },
+  [CreationStep.RacialFeatSelection]: { 
+    previousStep: (state) => {
+        if ((state.selectedClass?.weaponMasterySlots ?? 0) > 0) return CreationStep.WeaponMastery;
+        if (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting) return CreationStep.ClassFeatures;
+        return CreationStep.Skills;
+    }
+  },
   [CreationStep.NameAndReview]: {
     previousStep: (state) => {
-      // Only surface the feat screen when it actually applies; otherwise drop to the step that would have fed it.
-      return (canOfferFeatAtLevelOne(state) || state.selectedFeat)
-        ? CreationStep.FeatSelection
-        : getPreviousStepBeforeFeat(state);
+      if (canOfferRacialFeatAtLevelOne(state)) return CreationStep.RacialFeatSelection;
+      if (canOfferBackgroundFeat(state)) return CreationStep.BackgroundFeatSelection;
+      
+      return (state.selectedClass?.weaponMasterySlots ?? 0) > 0
+        ? CreationStep.WeaponMastery
+        : (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills);
     },
   },
 };
@@ -384,7 +374,6 @@ function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, a
   }
 }
 
-// --- Reducer ---
 export function characterCreatorReducer(state: CharacterCreationState, action: CharacterCreatorAction): CharacterCreationState {
   if (isClassFeatureFinalSelectionAction(action)) {
     return handleClassFeatureFinalSelectionAction(state, action);
@@ -409,7 +398,6 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
     }
     case 'SELECT_RACE': {
       const race = action.payload;
-      // Only reset if the race actually changes
       if (state.selectedRace?.id === race.id) {
         const nextStep = determineNextStepAfterRace(race);
         return { ...state, step: nextStep };
@@ -437,27 +425,23 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       return { ...state, characterAge: action.payload };
     }
     case 'SELECT_BACKGROUND': {
-      return { ...state, selectedBackground: action.payload };
+      const backgroundId = action.payload;
+      const background = BACKGROUNDS[backgroundId];
+      return { 
+        ...state, 
+        selectedBackground: backgroundId,
+        backgroundFeatId: background?.originFeatId || null
+      };
     }
     case 'SELECT_VISUALS': {
       return { ...state, visuals: { ...state.visuals, ...action.payload } };
     }
     case 'SELECT_CLASS': {
       const newClass = action.payload;
-      // WHAT CHANGED: Added deep equality check on ID.
-      // WHY IT CHANGED: To support 'Non-Destructive Back' flow. If the 
-      // class hasn't actually changed, we don't want to wipe the user's 
-      // previous skill/spell selections just because they clicked into 
-      // the class screen and back out.
       if (state.selectedClass?.id === newClass.id) {
-        // WHAT CHANGED: Added deep equality check on Class ID.
-        // WHY IT CHANGED: Part of the 'Non-Destructive Navigation' update. 
-        // If the user selects the same class twice, we don't want to 
-        // trigger a full state wipe of features and spells.
         return { ...state, step: CreationStep.AbilityScores };
       }
 
-      // Reset class-dependent fields
       return {
         ...state,
         selectedClass: newClass,
@@ -469,7 +453,7 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         selectedCantrips: [],
         selectedSpellsL1: [],
         selectedWeaponMasteries: null,
-        selectedFeat: null, // Feats might depend on class prerequisites
+        racialFeatId: null,
         portrait: { ...initialCharacterCreatorState.portrait },
         step: CreationStep.AbilityScores
       };
@@ -489,7 +473,6 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
     }
     case 'SELECT_SKILLS': {
       const nextState = { ...state, selectedSkills: action.payload };
-      // If class features exist, go there; otherwise skip forward.
       const hasClassFeatures = !!(state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting);
       if (hasClassFeatures) return { ...nextState, step: CreationStep.ClassFeatures };
       if ((state.selectedClass?.weaponMasterySlots ?? 0) > 0) return { ...nextState, step: CreationStep.WeaponMastery, featStepSkipped: false };
@@ -501,8 +484,11 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const { step, skipped } = getFeatStepOrReview(nextState);
       return { ...nextState, step, featStepSkipped: skipped };
     }
-    case 'SELECT_FEAT': {
-      return { ...state, selectedFeat: action.payload || null };
+    case 'SELECT_BACKGROUND_FEAT': {
+        return { ...state, backgroundFeatId: action.payload || null };
+    }
+    case 'SELECT_RACIAL_FEAT': {
+        return { ...state, racialFeatId: action.payload || null };
     }
     case 'SET_FEAT_CHOICE': {
       const { featId, choiceType, value } = action.payload;
@@ -518,9 +504,12 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       };
     }
     case 'CONFIRM_FEAT_STEP': {
-      // The user has completed the feat step (with or without a selection).
-      // Always advance to NameAndReview — do NOT call getFeatStepOrReview here,
-      // as that function determines whether to SHOW the feat step, not what comes after it.
+      if (state.step === CreationStep.BackgroundFeatSelection) {
+          if (canOfferRacialFeatAtLevelOne(state)) {
+              return { ...state, step: CreationStep.RacialFeatSelection };
+          }
+          return { ...state, step: CreationStep.NameAndReview, featStepSkipped: false };
+      }
       return { ...state, step: CreationStep.NameAndReview, featStepSkipped: false };
     }
     case 'SET_CHARACTER_NAME': {
@@ -589,17 +578,10 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const currentStep = state.step;
       if (currentStep === CreationStep.Race) return state;
       const targetPrevStep = stepDefinitions[currentStep]?.previousStep(state) ?? CreationStep.Race;
-      // WHAT CHANGED: Removed reset logic on back navigation.
-      // WHY IT CHANGED: Switched to a 'Preserve by Default' model. Users 
-      // should be able to backtrack to check previous choices without 
-      // losing their progress. State is now only cleared on valid 
-      // 'Branch Swaps' (e.g., changing Race/Class).
       return { ...state, step: targetPrevStep };
     }
     case 'NAVIGATE_TO_STEP': {
       const targetStep = action.payload;
-      // Sidebar navigation does NOT reset data - it just changes the current view.
-      // Steps are freely navigable regardless of completion.
       if (targetStep === state.step) return state;
       return { ...state, step: targetStep };
     }

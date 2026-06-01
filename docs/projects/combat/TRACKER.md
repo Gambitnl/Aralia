@@ -1,0 +1,44 @@
+# Combat System Living Tracker
+
+Status: active
+Last updated: 2026-06-01
+
+## Status Vocabulary
+
+- `not_started`
+- `active`
+- `waiting`
+- `blocked`
+- `done`
+- `superseded`
+- `out_of_scope`
+
+## Active Task Queue
+
+| ID | Status | Task | Owner | Last updated | Evidence | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|
+| T1 | done | Create initial project scaffold files under `docs/projects/combat/` and register combat in project context. | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Continue with concrete evidence-backed combat surface documentation. | Completed by this docs pass. |
+| T2 | done | Replace scaffold docs with implementation-backed evidence map and gap list for `src/systems/combat`, `src/hooks/combat`, and `src/components/Combat`. | Worker A | 2026-05-31 | `src/systems/combat`, `src/hooks/combat`, `src/components/Combat`, `src/systems/combat/__tests__`, `src/hooks/combat/__tests__`, `src/components/Combat/__tests__` | Verify `NORTH_STAR.md` and `GAPS.md` contain concrete owners, partials, and open questions. | Manual evidence check across edited docs and source files. |
+| T3 | done | Confirm and classify the cross-slice gaps for next combat implementation slice in the smallest safe package, and implement the test isolation and lint cleanup. | Worker A | 2026-06-01 | `src/systems/combat/AttackEventEmitter.ts`, `src/systems/combat/MovementEventEmitter.ts`, `src/systems/combat/SustainActionSystem.ts`, `src/test/combatEmitters.ts` | Verify G1 and G2 are implemented and unit tests pass cleanly. | 21 new unit tests added; all 40 combat system tests pass. |
+| T4 | done | Map player `armorClass` and `baseAC` in player-to-combat converter. | Worker A | 2026-06-01 | `src/utils/combat/combatUtils.ts:845` | Map character.armorClass in player combat character converter. | Completed and verified by `combatUtils_premade.test.ts` mapping checks. |
+| T5 | done | Parse ranged weapon range from weapon properties. | Worker A | 2026-06-01 | `src/utils/combat/combatUtils.ts` | Integrate range parsing into `createWeaponAbility`. | Completed and verified by `combatUtils_premade.test.ts` range checks. |
+| T6 | done | Map `armorClass` and `baseAC` in `createEnemyFromMonster.ts`. | Worker A | 2026-06-01 | `src/utils/combat/createEnemyFromMonster.ts` | Map monsterData.armorClass to prevent default AC 10 bypass. | Completed and verified by `createEnemyFromMonster.test.ts`. |
+| T7 | not_started | Implement Death Saving Throws system for players at 0 HP. | Next Agent | 2026-06-01 | `src/hooks/combat/useTurnOrder.ts` | Add downed check and d20 death save rolls to player turns in advanceTurn. | Downed characters roll death saves on turn start; stabilize or die. |
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | done | support_needed_now | Worker A | `docs/projects/combat/GAPS.md` | T3 documentation enrichment | Event emitters and sustain tracker are singletons with no test-reset API. | `src/systems/combat/*` | Shared singleton state can leak across test runs and prevents deterministic test isolation. | Implement singleton instance setter and creator controls. | 21 isolated unit tests verify test reset behavior. |
+| G2 | done | support_needed_now | Worker A | `docs/projects/combat/` | T3 documentation enrichment | Widespread `TODO(lint-intent)` debt (`unused imports`) in combat systems. | `src/systems/combat/*` | Unused imports reduce file signal and clarity. | Remove unused imports and add visual commentary headers. | Unused imports removed; linter passes cleanly. |
+| G3 | not_started | adjacent_follow_up | Worker A | `src/hooks/combat/` | combat docs enrichment | AI and turn loop behavior has known hard-coded assumptions and TODO markers (`max` action cap, action-type support). | `src/hooks/combat/useCombatAI.ts` | Limits hidden assumptions can become correctness issues. | Add pass to confirm AI action loop assumptions against gameplay test fixtures. | Capture focused test scenario before changing behavior. |
+| G4 | not_started | in_scope_now | Worker A | `src/hooks/combat`, `src/systems/combat` | combat docs enrichment | Death-save and several rules-level details are documented as missing/incomplete. | `docs/architecture/domains/combat.md` | Missing/partial combat rule coverage risks sequencing differences. | Decide whether to route to immediate follow-up implementation. | Any implementation change should reference this gap. |
+| G5 | done | in_scope_now | Worker A | `src/components/Combat/` | combat docs enrichment | No broad end-to-end gameplay flow test tying reaction UI prompt timing to turn-level execution. | `src/components/Combat/ReactionPrompt.tsx` | Current coverage is component-scoped and does not guarantee full flow correctness. | Add integration test slice if regressions appear. | Keep as open follow-up. |
+| G6 | done | support_needed_now | Worker A | `src/utils/combat/` | combat docs enrichment | Player `armorClass` / `baseAC` are not mapped to CombatCharacter. | `src/utils/combat/combatUtils.ts:845` | Players enter combat with undefined AC, bypassing AC checks. | Map `PlayerCharacter.armorClass` in player combat character converter. | Verified correct AC mapping inside `combatUtils_premade.test.ts`. |
+| G7 | done | support_needed_now | Worker A | `src/utils/combat/` | combat docs enrichment | Ranged weapon range is not read in `createWeaponAbility`, default is melee (1 or 2). | `src/utils/combat/combatUtils.ts` | Equipped ranged weapons get melee range, breaking ranged combat mechanics. | Parse `range:N` from `weapon.properties`. | Verified range greater than 2 inside `combatUtils_premade.test.ts`. |
+| G8 | done | adjacent_follow_up | Worker A | `src/utils/combat/` | combat docs enrichment | Rage resistance modifiers are ignored by ResistanceCalculator. | `src/utils/combat/resistanceUtils.ts:126` | Barbarian Rage status effects do not reduce incoming slashing/piercing/bludgeoning damage. | Modify `applyResistances` to check status effect modifiers. | Verified using new `resistanceUtils.test.ts` status effects tests. |
+| G9 | done | adjacent_follow_up | Worker A | `src/commands/factory/` | combat docs enrichment | Sneak Attack automatic trigger logic is completely absent. | `src/commands/factory/AbilityCommandFactory.ts` | Rogue Sneak Attack mechanics cannot be resolved or logged during active combat. | Implement Sneak Attack validation and trigger hooks. | Verified Rogue triggers sneak attack bonus damage in `AbilityCommandFactory.test.ts`. |
+| G10 | done | support_needed_now | Worker A | `src/utils/combat/` | combat docs enrichment | Enemy / Monster `armorClass` / `baseAC` are not mapped in `createEnemyFromMonster.ts`. | `src/utils/combat/createEnemyFromMonster.ts` | Enemies enter combat with undefined AC, defaulting to AC 10 and bypassing bestiary definitions. | Map `monsterData.armorClass` in fallback and standard paths. | Verified using new `createEnemyFromMonster.test.ts`. |
+| G11 | not_started | adjacent_follow_up | Next Agent | `src/utils/combat/` | combat docs enrichment | Class features are not auto-generated for most classes. | `src/utils/combat/combatUtils.ts:930` | Barbarian Rage, Monk Flurry, Bardic Inspiration, and Divine Smite are absent from the ability palette. | Create class-specific combat ability generators in `combatUtils.ts`. | Verify monk possesses Flurry of Blows and warlock possesses Pact features. |
+| G12 | not_started | adjacent_follow_up | Next Agent | `public/premade-characters/` | combat docs enrichment | Weaponless premade character data configuration. | `public/premade-characters/` | All 13 premade characters have `"equippedItems": {}`, causing martial characters to fall back to Unarmed Strike. | Update the JSON templates in `public/premade-characters/` to contain standard equipped starting weapons. | Verify fighter premade character possesses attack_main Rapier/Longsword. |
+| G13 | not_started | in_scope_now | Next Agent | `src/hooks/combat/` | combat docs enrichment | Death Saving Throws system is completely absent. | `src/hooks/combat/useTurnOrder.ts:112` | Characters at 0 HP are simply skipped by turn ordering indefinitely instead of rolling death saves or dying. | Implement a comprehensive downed condition state and death-saving throw d20 execution loop in `advanceTurn`. | Verify downed characters roll death saves on turn start, and die on 3 failures or stabilize on 3 successes. |

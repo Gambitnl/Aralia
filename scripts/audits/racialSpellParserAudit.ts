@@ -133,7 +133,8 @@ const normalizeRaceFiles = async (): Promise<Record<string, RaceLike>> => {
 };
 
 const main = async () => {
-  const outputPath = process.argv[2] || path.join('docs', 'racial-mechanics-parser-gap-audit-2026-05-21.md');
+  // The default output destination is now AUDIT_OR_PROOF.md in the racial-mechanics project folder.
+  const outputPath = process.argv[2] || path.join('docs', 'projects', 'racial-mechanics', 'AUDIT_OR_PROOF.md');
   const races = await normalizeRaceFiles();
   const entries = Object.values(races).sort((a, b) => a.name.localeCompare(b.name));
   const library = buildRacialTraitLibrary(races);

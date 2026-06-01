@@ -1,7 +1,37 @@
-// TODO(lint-intent): 'CombatCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { CombatState, CombatCharacter as _CombatCharacter } from '../../types/combat';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 01:15:11
+ * Dependents: commands/effects/ReactiveEffectCommand.ts, test/combatEmitters.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file tracks and manages spells and abilities that require ongoing action
+ * resources to sustain across turns (e.g., Witch Bolt, Telekinesis).
+ *
+ * It registers sustained spells, generates action-cost prompts for the turn manager,
+ * handles resource cost processing (sustaining a spell consumes actions), and performs
+ * cleanup at the end of a character's turn (e.g., terminating effects if the caster
+ * fails to sustain).
+ *
+ * Called by: useTurnManager, useCombatEngine, and ReactiveEffectCommand.
+ * Depends on: Combat types from @/types/combat.
+ */
+
+// ============================================================================
+// Types and Interfaces
+// ============================================================================
+
+import { CombatState } from '../../types/combat';
 
 export interface SustainedSpell {
     spellId: string;
@@ -122,13 +152,36 @@ export class SustainActionSystem {
         return Array.from(this.sustainedSpells.values());
     }
 
-    // Singleton instance
+    // ============================================================================
+    // Singleton Instance and Test Isolation Controls
+    // ============================================================================
+
+    // The shared single instance of the system.
     private static instance: SustainActionSystem;
+
+    /**
+     * Get the active singleton instance.
+     */
     static getInstance(): SustainActionSystem {
         if (!SustainActionSystem.instance) {
             SustainActionSystem.instance = new SustainActionSystem();
         }
         return SustainActionSystem.instance;
+    }
+
+    /**
+     * Set the current singleton instance. Useful for mocking/isolating tests.
+     */
+    static setInstance(instance: SustainActionSystem | null): void {
+        SustainActionSystem.instance = instance as SustainActionSystem;
+    }
+
+    /**
+     * Create a completely fresh instance of SustainActionSystem.
+     * Useful for isolating tracking state in unit tests.
+     */
+    static createFresh(): SustainActionSystem {
+        return new SustainActionSystem();
     }
 }
 

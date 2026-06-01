@@ -22,16 +22,16 @@ In a multi-agent environment, different agents run in different shells. If you a
 - Always set { shell: true } when spawning Windows commands (e.g., `npx`) from Node so `.cmd`/`.ps1` wrappers resolve.
 - Use non-watch modes for tests/builds, capture hanging output to logs, and filter noisy errors with `Select-String` when exit codes are misleading.
 
-## Review Session Workflow (per `.agent/workflows/review-session.md`)
+## Review Session Workflow (per `public/agent-docs/workflows/review-session.md`)
 - Phase 1: Re-read modified code files, analyze for quality/risks, and draft up to five additive proposals (one of which must be creative) without editing files.
 - Phase 2 (triggered by explicit approval): Re-verify target locations, avoid duplicating TODOs, and insert the discussed inline TODOs with the enhanced wording, working file-by-file.
 - After applying a proposal in Phase 2, summarize added TODOs and where they landed to close the loop.
 
-## TypeScript Testing Workflow (per `.agent/workflows/test-ts.md`)
+## TypeScript Testing Workflow (per `public/agent-docs/workflows/test-ts.md`)
 - Use `/test-ts` to run unit tests (Vitest), type tests (TSD), or build-time checks (TSC).
 - Follow the workflow's systematic error-handling guide for debugging failures and reading environment logs like `test_output.log`.
 
-## Terminal Learnings Workflow (per `.agent/workflows/extract-terminal-learnings.md`)
+## Terminal Learnings Workflow (per `public/agent-docs/workflows/extract-terminal-learnings.md`)
 - Scan conversation history for CLI runs to capture errors, workarounds, or environment quirks.
 - Update `.agent/rules/Terminal.md` with the new insights, grouping them under the existing sections and using code blocks for concrete commands/examples.
 - If no fresh terminal learnings emerge, explicitly tell the user instead of editing the file.

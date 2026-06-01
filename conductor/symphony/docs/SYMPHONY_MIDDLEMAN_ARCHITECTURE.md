@@ -34,6 +34,11 @@ This file is the architectural index. It is not the behavioral spec and not the 
 
 Symphony is the local dashboard-first middleman around the existing Aralia Jules workflow. It is responsible for safe task intake, Codex foreman clarification, Git/GitHub readiness, Linear tracking, Jules handoff staging and launch, Jules browser/session reconciliation, GitHub PR observation, GitHub Pages deployment observation, Scout/Core readiness, local sync readiness, Codex worker observability, and proof capture.
 
+Jules MCP integrations are optional capability adapters around that path, not
+new architecture owners. The detailed policy for when Linear, Context7, Render,
+Stitch, database, analytics, or UI-generation MCPs would come into play lives in
+[`JULES_MIDDLEMAN_OPERATING_SPEC.md`](./JULES_MIDDLEMAN_OPERATING_SPEC.md#jules-mcp-usage-policy).
+
 Symphony is not meant to replace Jules or become an unbounded local implementation runner. Codex workers launched by Symphony are foremen by default: they inspect dashboard state, clarify ambiguous tasks with the operator, prepare bounded handoffs, monitor external progress, explain blockers, and update the operator trail.
 
 Approval gates are architectural boundaries, not a ban on local maintenance.

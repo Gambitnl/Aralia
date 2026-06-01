@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Syncs .agent/workflows/track-*.md files from .claude/commands/conductor-*.md sources.
+# Syncs public/agent-docs/workflows/track-*.md files from .claude/commands/conductor-*.md sources.
 # The conductor files in .claude/commands/ are the canonical versions;
-# the track files in .agent/workflows/ are mirrors for universal agent access.
+# the tracked public workflow files are mirrors for universal agent access.
 #
 # Usage: bash scripts/sync-track-workflows.sh [--dry-run]
 
@@ -9,7 +9,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 SRC="$ROOT/.claude/commands"
-DST="$ROOT/.agent/workflows"
+DST="$ROOT/public/agent-docs/workflows"
 
 DRY_RUN=false
 if [[ "${1:-}" == "--dry-run" ]]; then

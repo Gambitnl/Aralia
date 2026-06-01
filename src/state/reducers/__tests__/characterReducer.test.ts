@@ -280,4 +280,24 @@ describe('characterReducer', () => {
 
         expect(castChar?.limitedUses?.[limitedUseId].current).toBe(1);
     });
+
+    it('should grant heroicInspiration on long rest for Resourceful characters', () => {
+        const character = createMockPlayerCharacter({
+            id: 'resourceful-char',
+            hp: 5,
+            maxHp: 10,
+            race: {
+                id: 'human',
+                name: 'Human',
+                traits: ['Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest.']
+            } as any
+        });
+        const state = { ...initialState, party: [character] } as GameState;
+        const action: AppAction = { type: 'LONG_REST', payload: {} };
+
+        const newState = characterReducer(state, action);
+        const updated = newState.party?.[0];
+
+        expect(updated?.heroicInspiration).toBe(true);
+    });
 });

@@ -10,6 +10,7 @@ export interface Background {
     toolProficiencies?: string[];
     languages?: string[];
     equipment: string[];
+    originFeatId: string;
     feature: {
         name: string;
         description: string;

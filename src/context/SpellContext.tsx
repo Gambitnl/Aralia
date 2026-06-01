@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 31/05/2026, 23:09:13
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/CharacterCreator/FeatSpellPicker.tsx, components/CharacterCreator/NameAndReview.tsx, components/CharacterCreator/Race/GnomeSubraceSelection.tsx, components/CharacterCreator/Race/TieflingLegacySelection.tsx, components/CharacterSheet/Spellbook/SpellbookOverlay.tsx, components/CharacterSheet/Spellbook/SpellbookTab.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/providers/AppProviders.tsx, components/providers/DataLoaderGate.tsx, utils/character/spellFilterUtils.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Spell } from '../types';
@@ -13,19 +28,30 @@ export type SpellDataRecord = Record<string, Spell>;
 
 const SpellContext = createContext<SpellDataRecord | null>(null);
 
-export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+interface SpellProviderProps {
+  children: ReactNode;
+  /** Defers the 4 MB spell bundle until a spell-aware screen is actually open. */
+  enabled?: boolean;
+}
+
+export const SpellProvider: React.FC<SpellProviderProps> = ({ children, enabled = true }) => {
   const [spellData, setSpellData] = useState<SpellDataRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [issues, setIssues] = useState<string[]>([]);
 
   useEffect(() => {
+    if (!enabled || spellData !== null) return;
+    let didCancel = false;
+
     const fetchAllSpells = async () => {
       try {
         const bundledSpells = await fetchWithTimeout<SpellDataRecord>(
           assetUrl('data/spells_bundle.json'),
           { timeoutMs: 15000 }
         );
+
+        if (didCancel) return;
 
         const collectedIssues: string[] = [];
 
@@ -38,6 +64,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setIssues(collectedIssues);
         setSpellData(bundledSpells);
       } catch (err) {
+        if (didCancel) return;
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error("Failed to load spell data:", errorMessage);
         setError(errorMessage);
@@ -48,7 +75,11 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
 
     fetchAllSpells();
-  }, []);
+
+    return () => {
+      didCancel = true;
+    };
+  }, [enabled, spellData]);
 
   if (error) {
     return <ErrorOverlay message={error} />;

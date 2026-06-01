@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/05/2026, 00:13:21
- * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
- * Imports: 13 files
+ * Last Sync: 31/05/2026, 23:20:24
+ * Dependents: components/BattleMap/characters/CharacterActor.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,7 +28,7 @@
  * @file src/utils/combatUtils.ts
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../../types/combat';
-import { PlayerCharacter, Monster, Item } from '../../types';
+import { PlayerCharacter, Item } from '../../types';
 // TODO(lint-intent): 'ConditionName' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -39,9 +39,6 @@ import { PlayerCharacter, Monster, Item } from '../../types';
 // 2. Removing the import to reduce module surface area and potential confusion
 // 3. Creating a dedicated conditions module that handles status effect processing
 import { Spell, DamageType, ConditionName } from '../../types/spells';
-import { CreatureType, CreatureTypeTraits } from '../../types/creatures';
-import { CLASSES_DATA } from '../../data/classes';
-import { getMonster } from '../../data/adapters/runtimeMonsterRegistry';
 import { createAbilityFromSpell } from '../character/spellAbilityFactory';
 import { isWeaponProficient } from '../character/weaponUtils';
 import { generateId } from '../core/idGenerator';
@@ -887,6 +884,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       initiativeProficiency: player.modifiers.initiativeProficiency,
       ignoreDifficultTerrain: player.modifiers.ignoreDifficultTerrain,
       breathWeapon: player.modifiers.breathWeapon ? { ...player.modifiers.breathWeapon } : undefined,
+      savageAttacks: player.modifiers.savageAttacks,
     } : undefined,
     initiativeBonus: player.initiativeBonus,
     initiativeProficiency: player.initiativeProficiency,
@@ -939,153 +937,6 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   }
 
   return combatChar;
-}
-
-/**
- * Converts a Monster from the encounter generator into a CombatCharacter for the battle map.
- *
- * WHY:
- * Encounters are generated as lightweight `Monster` templates. The combat engine requires
- * unique instances with tracking for HP, status effects, and position.
- *
- * HOW:
- * - Looks up the full monster statistics in `MONSTERS_DATA` using the name.
- * - If data is missing (e.g., content mismatch), falls back to a generic "Fighter" template
- *   to prevent the game from crashing.
- * - Assigns a unique ID incorporating the index to distinguish identical enemies (e.g., "Goblin 1", "Goblin 2").
- *
- * CURRENT FUNCTIONALITY:
- * - Creates unique combat instances from monster templates
- * - Handles missing monster data with graceful fallbacks
- * - Supports Challenge Rating conversion to level equivalents
- * - Assigns unique identifiers for multi-enemy encounters
- * - Provides basic combat stats and abilities from monster data
- *
- * IMPROVEMENT OPPORTUNITIES:
- * 1. DATA INTEGRITY: Fallback system masks underlying data issues
- *    - Add logging/alerting for missing monster data
- *    - Implement data validation during encounter generation
- *    - Create better fallback templates based on monster category
- * 2. PERFORMANCE: Lookup-based approach doesn't scale well
- *    - Consider pre-loading monster data into memory
- *    - Implement lazy loading with caching strategy
- *    - Add bulk creation methods for large encounters
- * 3. CUSTOMIZATION: Limited support for monster variants
- *    - Add support for elite/weak monster modifiers
- *    - Implement dynamic stat scaling based on party size
- *    - Support for temporary monster buffs/debuffs
- * 4. MAINTAINABILITY: Hard-coded class assignment ('fighter') is inflexible
- *    - Create monster-type specific combat behaviors
- *    - Implement proper monster AI integration
- *    - Add support for legendary actions and lair actions
- *
- * @param monster - The lightweight Monster template.
- * @param index - Unique index for this instance (0-based).
- * @returns A CombatCharacter object representing an enemy.
- */
-
-function computeConditionImmunities(tags: string[]): ConditionName[] {
-  const immunities = new Set<ConditionName>();
-  for (const tag of tags) {
-    const type = (tag.charAt(0).toUpperCase() + tag.slice(1)) as CreatureType;
-    const traits = CreatureTypeTraits[type];
-    if (traits?.conditionImmunities) {
-      traits.conditionImmunities.forEach(c => immunities.add(c));
-    }
-  }
-  return Array.from(immunities);
-}
-
-export function createEnemyFromMonster(monster: Monster, index: number): CombatCharacter {
-  const monsterData = getMonster(monster.name);
-
-  if (!monsterData) {
-    console.warn(`No data found for monster: ${monster.name}. Creating a generic enemy.`);
-    const fallbackStats: CharacterStats = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: monster.cr || '1/4', senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 } };
-    const fallbackId = monster.name.toLowerCase().replace(/\s+/g, '_');
-    return {
-      id: `enemy_${fallbackId}_${index}`,
-      name: `${monster.name} ${index + 1}`,
-      level: parseFloat(monster.cr) || 1,
-      class: CLASSES_DATA['fighter'],
-      position: { x: 0, y: 0 },
-      stats: fallbackStats,
-      abilities: [
-        { id: 'basic_attack', name: 'Attack', description: 'A basic attack.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'bludgeoning' }], icon: '⚔️', isProficient: true },
-        { id: 'stand_up', name: 'Stand Up', description: 'Right yourself from a Prone position. Costs half your Speed.', type: 'movement', cost: { type: 'movement-only', movementCost: Math.floor(fallbackStats.speed / 2) }, targeting: 'self', range: 0, effects: [], icon: '⬆️' }
-      ],
-      team: 'enemy',
-      maxHP: 10,
-      currentHP: 10,
-      initiative: 0,
-      statusEffects: [],
-      actionEconomy: {
-        action: { used: false, remaining: 1 },
-        bonusAction: { used: false, remaining: 1 },
-        reaction: { used: false, remaining: 1 },
-        legendary: { used: 0, total: 0 },
-        movement: { used: 0, total: 30 },
-        freeActions: 1,
-      },
-    };
-  }
-
-  // Merge type-inferred immunities (e.g. Undead → Poisoned) with explicit 5eTools
-  // conditionImmune entries (e.g. Zombie → Exhaustion, Poisoned). Deduplication is
-  // handled by Set so there are no duplicate entries on the spawned CombatCharacter.
-  const typeInferred = computeConditionImmunities(monsterData.tags);
-  const explicit: ConditionName[] = (monsterData.conditionImmunities || []) as ConditionName[];
-  const conditionImmunities = Array.from(new Set([...typeInferred, ...explicit]));
-
-  // Parse CR to number for level
-  let level = 1;
-  if (monsterData.baseStats.cr) {
-    if (monsterData.baseStats.cr.includes('/')) {
-      const [n, d] = monsterData.baseStats.cr.split('/');
-      level = parseInt(n) / parseInt(d);
-    } else {
-      level = parseFloat(monsterData.baseStats.cr);
-    }
-  }
-
-  return {
-    id: `enemy_${monsterData.id}_${index}`,
-    name: `${monsterData.name} ${index + 1}`,
-    level: level || 1,
-    class: CLASSES_DATA['fighter'], // Needs a class for structure
-    position: { x: 0, y: 0 },
-    stats: monsterData.baseStats,
-    abilities: [
-      // Start with all abilities from the monster's data definition
-      ...(monsterData.abilities || []),
-      // Inject the Stand Up universal action for enemies too — any creature
-      // that gets knocked Prone needs a way to right itself on its turn.
-      // Cost is half the creature's base speed, same rule as players.
-      { id: 'stand_up', name: 'Stand Up', description: 'Right yourself from a Prone position. Costs half your Speed.', type: 'movement', cost: { type: 'movement-only', movementCost: Math.floor(monsterData.baseStats.speed / 2) }, targeting: 'self', range: 0, effects: [], icon: '⬆️' }
-    ],
-    team: 'enemy',
-    maxHP: monsterData.maxHP,
-    currentHP: monsterData.maxHP,
-    initiative: 0,
-    statusEffects: [],
-    actionEconomy: {
-      action: { used: false, remaining: 1 },
-      bonusAction: { used: false, remaining: 1 },
-      reaction: { used: false, remaining: 1 },
-      legendary: { 
-        used: 0, 
-        total: monsterData.baseStats.legendaryActionsPerRound || 0 
-      },
-      movement: { used: 0, total: monsterData.baseStats.speed },
-      freeActions: 1,
-    },
-    resistances: monsterData.resistances,
-    vulnerabilities: monsterData.vulnerabilities,
-    immunities: monsterData.immunities,
-    ...(monsterData.nonMagicalResistances && { nonMagicalResistances: monsterData.nonMagicalResistances }),
-    ...(monsterData.nonMagicalImmunities && { nonMagicalImmunities: monsterData.nonMagicalImmunities }),
-    ...(conditionImmunities.length > 0 && { conditionImmunities }),
-  };
 }
 
 export interface AttackResult {

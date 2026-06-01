@@ -16,15 +16,24 @@ import { DiceProvider } from '../../contexts/DiceContext';
 interface AppProvidersProps {
     /** The child components that will have access to the providers. */
     children: React.ReactNode;
+    /** Load the glossary bundle only when a screen actually needs rules text or search. */
+    loadGlossaryData: boolean;
+    /** Load the spell bundle only when gameplay or character creation needs spell records. */
+    loadSpellData: boolean;
 }
 
 /**
  * Wraps the application in global context providers.
+ *
+ * The providers stay mounted around the app so context consumers keep their normal
+ * shape, but the heavy rule-data fetches are demand-driven. This keeps the main
+ * menu lightweight while preserving the existing data path once the player enters
+ * gameplay, character creation, or the glossary.
  */
-export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+export const AppProviders: React.FC<AppProvidersProps> = ({ children, loadGlossaryData, loadSpellData }) => {
     return (
-        <GlossaryProvider>
-            <SpellProvider>
+        <GlossaryProvider enabled={loadGlossaryData}>
+            <SpellProvider enabled={loadSpellData}>
                 <DiceProvider>
                     {children}
                 </DiceProvider>

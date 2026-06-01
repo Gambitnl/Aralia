@@ -2,7 +2,8 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { SummoningEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position, CharacterStats } from '@/types/combat'
-import { MONSTERS_DATA, CLASSES_DATA } from '@/constants'
+import { CLASSES_DATA } from '@/constants'
+import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combatUtils'
 import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplates'
 
@@ -16,7 +17,9 @@ import { getSummonTemplate, type SummonTemplate } from '../../data/summonTemplat
  * begins moving summon spells toward structured stat blocks.
  *
  * Called by: SpellCommandFactory when a spell effect has type `SUMMONING`.
- * Depends on: combat state placement rules, monster constants, and summon templates.
+ * Depends on: combat state placement rules, the monster registry, and summon templates.
+ * Monster data is imported directly instead of through the central constants barrel so
+ * the main menu does not download the full bestiary before combat or summoning needs it.
  */
 
 export class SummoningCommand extends BaseEffectCommand {

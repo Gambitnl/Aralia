@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  createSpellZone,
+  createSpellZoneFromAoEParams,
+  isPositionInArea,
   processAreaEndTurnTriggers,
+  processAreaEntryTriggers,
   processAreaExitTriggers,
   resetZoneTurnTracking,
   type ActiveSpellZone
@@ -56,6 +60,61 @@ const makeZone = (effects: SpellEffect[]): ActiveSpellZone => ({
   triggeredEver: new Set()
 })
 
+describe('isPositionInArea', () => {
+  it('uses supplied direction for directional persistent zones', () => {
+    // Directional zones need to share AoECalculator geometry once the casting
+    // path can supply orientation; without this guard they silently fall back
+    // to the older direction-agnostic approximation.
+    const cone = { shape: 'cone', size: 15 }
+
+    expect(isPositionInArea({ x: 2, y: 0 }, { x: 0, y: 0 }, cone, { x: 1, y: 0 })).toBe(true)
+    expect(isPositionInArea({ x: -2, y: 0 }, { x: 0, y: 0 }, cone, { x: 1, y: 0 })).toBe(false)
+  })
+})
+
+describe('createSpellZone', () => {
+  it('preserves directional zone orientation when supplied by casting code', () => {
+    // This protects the handoff between future casting/targeting integration and
+    // persistent zone processing: the factory must not drop cone/line direction.
+    const zone = createSpellZone(
+      'burning-cone',
+      'caster',
+      { x: 0, y: 0 },
+      { shape: 'cone', size: 15 },
+      [],
+      1,
+      2,
+      { x: 1, y: 0 }
+    )
+
+    expect(zone.direction).toEqual({ x: 1, y: 0 })
+  })
+
+  it('can build a directional zone from shared AoE targeting params', () => {
+    // This is the bridge shape the casting path needs: use the same origin and
+    // compass direction computed for AoE previews instead of inventing separate
+    // zone orientation math.
+    const zone = createSpellZoneFromAoEParams(
+      'burning-cone',
+      'caster',
+      {
+        shape: 'Cone',
+        origin: { x: 0, y: 0 },
+        size: 15,
+        direction: 90
+      },
+      { shape: 'cone', size: 15 },
+      [],
+      1,
+      2
+    )
+
+    expect(zone.position).toEqual({ x: 0, y: 0 })
+    expect(zone.direction?.x).toBeCloseTo(1)
+    expect(zone.direction?.y).toBeCloseTo(0)
+  })
+})
+
 describe('processAreaEndTurnTriggers', () => {
   it('fires once per turn per creature when configured with first_per_turn', () => {
     const effect: SpellEffect = {
@@ -77,6 +136,28 @@ describe('processAreaEndTurnTriggers', () => {
     resetZoneTurnTracking([zone])
     const nextRound = processAreaEndTurnTriggers([zone], occupant, 2)
     expect(nextRound.length).toBe(1)
+  })
+})
+
+describe('processAreaEntryTriggers', () => {
+  it('passes zone direction into directional containment checks', () => {
+    const effect: SpellEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_enter_area', frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d4', type: 'Fire' }
+    } as unknown as SpellEffect
+
+    const zone: ActiveSpellZone = {
+      ...makeZone([effect]),
+      areaOfEffect: { shape: 'cone', size: 15 },
+      direction: { x: 1, y: 0 }
+    }
+
+    const mover = makeCharacter({ x: -2, y: 0 })
+
+    expect(processAreaEntryTriggers([zone], mover, { x: -2, y: 0 }, { x: -3, y: 0 }, 1)).toHaveLength(0)
+    expect(processAreaEntryTriggers([zone], mover, { x: 2, y: 0 }, { x: -2, y: 0 }, 1)).toHaveLength(1)
   })
 })
 

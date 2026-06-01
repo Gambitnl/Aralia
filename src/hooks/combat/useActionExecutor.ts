@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 17:10:36
+ * Last Sync: 31/05/2026, 23:23:16
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 8 files
  *
@@ -431,7 +431,13 @@ export const useActionExecutor = ({
               let damage = rollDice(effect.dice);
               let saveMessage = '';
               if (effect.requiresSave && effect.saveType) {
-                const dc = calculateSpellDC(updatedCharacter);
+                // Area effects can trigger after the original cast. Prefer the
+                // caster preserved on the processed trigger effect so saves use
+                // the spell's source DC instead of the target's own spell DC.
+                const sourceCaster = effect.sourceContext?.casterId
+                  ? characters.find(candidate => candidate.id === effect.sourceContext?.casterId)
+                  : undefined;
+                const dc = effect.sourceContext?.saveDC ?? calculateSpellDC(sourceCaster || updatedCharacter);
                 const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
                 onLogEntry({
                   id: generateId(), timestamp: Date.now(), type: 'status',
@@ -466,7 +472,13 @@ export const useActionExecutor = ({
               let saveMessage = '';
 
               if (effect.requiresSave && effect.saveType) {
-                const dc = calculateSpellDC(updatedCharacter);
+                // Keep area-trigger status saves tied to the original caster
+                // when the zone/debuff source context is available. This makes
+                // delayed zone conditions behave like immediate spell commands.
+                const sourceCaster = effect.sourceContext?.casterId
+                  ? characters.find(candidate => candidate.id === effect.sourceContext?.casterId)
+                  : undefined;
+                const dc = effect.sourceContext?.saveDC ?? calculateSpellDC(sourceCaster || updatedCharacter);
                 const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
                 onLogEntry({
                   id: generateId(), timestamp: Date.now(), type: 'status',

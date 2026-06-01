@@ -879,6 +879,7 @@
             "turn_start",
             "turn_end",
             "on_damage",
+            "on_move_in_area",
             "on_entity_proximity",
             "on_target_cast"
           ]
@@ -1287,6 +1288,14 @@
                   "damage_prevention"
                 ]
               }
+            },
+            "damageTypeSource": {
+              "type": "string",
+              "enum": [
+                "listed",
+                "triggering_damage_type",
+                "chosen_damage_type"
+              ]
             }
           },
           "required": [
@@ -1302,6 +1311,9 @@
         },
         "secondaryTargeting": {
           "$ref": "#/definitions/SecondaryTargeting"
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -1334,6 +1346,9 @@
           "items": {
             "$ref": "#/definitions/RecurringMechanic"
           }
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -1544,6 +1559,9 @@
           "items": {
             "$ref": "#/definitions/RecurringMechanic"
           }
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -1588,6 +1606,9 @@
         },
         "duration": {
           "type": "object"
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -1620,6 +1641,9 @@
         },
         "duration": {
           "type": "object"
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -1656,6 +1680,9 @@
         },
         "wallProperties": {
           "type": "object"
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -1870,12 +1897,6 @@
         "sustainRequirement": {
           "$ref": "#/definitions/SustainRequirement"
         },
-        "grantedActions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GrantedAction"
-          }
-        },
         "linkedDamage": {
           "type": "object",
           "properties": {
@@ -1984,6 +2005,9 @@
               ]
             }
           }
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
@@ -2185,12 +2209,111 @@
         },
         "duration": {
           "type": "object"
+        },
+        "trigger": {
+          "$ref": "#/definitions/EffectTrigger"
         }
       },
       "required": [
         "type",
         "defenseType",
         "duration"
+      ]
+    },
+    "EffectTrigger": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "immediate",
+            "after_primary",
+            "turn_start",
+            "turn_end",
+            "on_enter_area",
+            "on_exit_area",
+            "on_end_turn_in_area",
+            "on_move_in_area",
+            "on_target_move",
+            "on_target_takes_damage",
+            "on_attack_hit",
+            "on_target_attack",
+            "on_target_cast",
+            "on_entity_proximity",
+            "on_caster_action",
+            "on_granted_action"
+          ]
+        },
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "every_time",
+            "first_per_turn",
+            "once",
+            "once_per_creature"
+          ]
+        },
+        "consumption": {
+          "type": "string",
+          "enum": [
+            "unlimited",
+            "first_hit",
+            "per_turn",
+            "per_instance_hit_or_miss"
+          ]
+        },
+        "attackFilter": {
+          "type": "object",
+          "properties": {
+            "weaponType": {
+              "type": "string",
+              "enum": [
+                "melee",
+                "ranged",
+                "any"
+              ]
+            },
+            "attackType": {
+              "type": "string",
+              "enum": [
+                "weapon",
+                "spell",
+                "any"
+              ]
+            }
+          }
+        },
+        "movementType": {
+          "type": "string",
+          "enum": [
+            "any",
+            "willing",
+            "forced"
+          ]
+        },
+        "sustainCost": {
+          "type": "object",
+          "properties": {
+            "actionType": {
+              "type": "string",
+              "enum": [
+                "action",
+                "bonus_action",
+                "reaction"
+              ]
+            },
+            "optional": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "actionType",
+            "optional"
+          ]
+        }
+      },
+      "required": [
+        "type"
       ]
     },
     "GrantedAction": {

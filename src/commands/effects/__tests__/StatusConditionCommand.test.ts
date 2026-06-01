@@ -1,3 +1,8 @@
+/**
+ * Focused coverage for applying spell status conditions through the command
+ * layer. These tests protect both the structured condition mirror and the
+ * legacy statusEffects bridge that current combat runtime systems still read.
+ */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatusConditionCommand } from '../StatusConditionCommand';
 import { CombatState } from '@/types/combat';
@@ -76,6 +81,46 @@ describe('StatusConditionCommand', () => {
     // Check legacy statusEffects
     expect(updatedTarget.statusEffects).toHaveLength(1);
     expect(updatedTarget.statusEffects[0].name).toBe('Poisoned');
+  });
+
+  it('preserves repeat-save metadata when mirroring spell conditions to runtime status state', async () => {
+    const repeatSave = {
+      timing: 'turn_end',
+      saveType: 'Wisdom',
+      successEnds: true,
+      useOriginalDC: true
+    } as const;
+
+    const escapeCheck = {
+      ability: 'Strength',
+      dc: 'spell_save_dc',
+      actionCost: 'action'
+    } as const;
+
+    const effect: StatusConditionEffect = {
+      type: 'STATUS_CONDITION',
+      statusCondition: {
+        name: 'Restrained',
+        duration: { type: 'rounds', value: 2 },
+        repeatSave,
+        escapeCheck,
+        breakTriggers: ['target_takes_damage']
+      },
+      condition: { type: 'always' } as any,
+      trigger: { type: 'immediate' } as any
+    };
+
+    const command = new StatusConditionCommand(effect, context);
+    const newState = await command.execute(state);
+
+    const updatedTarget = newState.characters.find(c => c.id === 'target')!;
+
+    expect(updatedTarget.statusEffects[0].repeatSave).toEqual(repeatSave);
+    expect(updatedTarget.statusEffects[0].escapeCheck).toEqual(escapeCheck);
+    expect(updatedTarget.statusEffects[0].breakTriggers).toEqual(['target_takes_damage']);
+    expect(updatedTarget.conditions![0].repeatSave).toEqual(repeatSave);
+    expect(updatedTarget.conditions![0].escapeCheck).toEqual(escapeCheck);
+    expect(updatedTarget.conditions![0].breakTriggers).toEqual(['target_takes_damage']);
   });
 
   it('respects saving throw successes to avoid applying condition', async () => {

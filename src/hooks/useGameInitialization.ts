@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:36
+ * Last Sync: 31/05/2026, 23:31:45
  * Dependents: App.tsx
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -56,9 +56,8 @@ import { GamePhase, PlayerCharacter, MapData, Item, StartGameSuccessPayload } fr
 // Union type of all actions the game state reducer can handle.
 import { AppAction } from '../state/actionTypes';
 // Static game world data: the spawn location ID, all location definitions, and biome definitions.
-import { STARTING_LOCATION_ID, LOCATIONS, BIOMES } from '../constants';
-// Pre-built dummy party used by the legacy dummy start path (not the quick-start).
-import { getDummyParty } from '../data/dev/dummyCharacter';
+import { STARTING_LOCATION_ID, LOCATIONS } from '../data/world/locations';
+import { BIOMES } from '../data/biomes';
 // Grid dimensions for the world map and the sub-map (local tile grid within a location).
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
@@ -68,8 +67,6 @@ import * as SaveLoadService from '../services/saveLoadService';
 // Utility that determines which dynamic NPCs should be active at a given location.
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
-// Generates a full companion character (stats + AI-driven backstory) from a race/class config.
-import { generateCompanion } from '../services/CompanionGenerator';
 import { generateId } from '../utils/core/idGenerator';
 
 // Shorthand type for the chat message function passed in from the parent component.
@@ -139,6 +136,10 @@ export function useGameInitialization({
     ];
 
     try {
+      // This dev-only shortcut needs the procedural companion pipeline, but the
+      // main menu does not. Dynamic import keeps that heavier AI/character
+      // generation path out of the initial page load.
+      const { generateCompanion } = await import('../services/CompanionGenerator');
       const generatedParty: PlayerCharacter[] = [];
 
       // Generate each companion sequentially (Ollama calls are async and resource-heavy).
@@ -169,8 +170,12 @@ export function useGameInitialization({
       });
       const newMapData = generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, newWorldSeed);
 
+      // Dev inventory pulls in the generated item registry, so load it inside
+      // this dev-only quick-start path instead of the main reducer startup.
+      const { initialInventoryForDummyCharacter } = await import('../data/dev/dummyCharacter');
+
       // Dispatch jumps straight into gameplay, skipping the character creator entirely.
-      dispatch({ type: 'START_GAME_FOR_DUMMY', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, generatedParty, worldSeed: newWorldSeed } });
+      dispatch({ type: 'START_GAME_FOR_DUMMY', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, generatedParty, worldSeed: newWorldSeed, initialInventory: initialInventoryForDummyCharacter } });
 
     } catch (error) {
       // Surface the error to both the console and the UI error state.
@@ -265,7 +270,7 @@ export function useGameInitialization({
   // Sets up a fully functional world WITHOUT a real player character.
   // Used for UI/design preview screens (e.g. the DesignPreview page)
   // where you need a map, locations, and NPCs rendered but no actual player.
-  const initializeDummyPlayerState = useCallback(() => {
+  const initializeDummyPlayerState = useCallback(async () => {
     // Look up the starting location for its description.
     const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
 
@@ -288,6 +293,10 @@ export function useGameInitialization({
       dynamicItemsToUse[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
     });
 
+    // Dev inventory pulls in the generated item registry; keep that import
+    // scoped to this preview/dev initializer so the main menu remains light.
+    const { initialInventoryForDummyCharacter } = await import('../data/dev/dummyCharacter');
+
     // Dispatch sets up the world state for preview mode (no player character attached).
     dispatch({
       type: 'INITIALIZE_DUMMY_PLAYER_STATE',
@@ -298,6 +307,34 @@ export function useGameInitialization({
         initialLocationDescription: initialLocation.baseDescription,
         initialSubMapCoordinates: initialSubMapCoords,
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
+        initialInventory: initialInventoryForDummyCharacter,
+      }
+    });
+  }, [currentMapData, currentWorldSeed, dispatch]);
+
+  const handleLegacyDummyAutoStart = useCallback(async () => {
+    // Legacy dev auto-start still exists, but the dummy party and its large
+    // generated inventory are loaded only when that dev-only path is eligible.
+    const { getDummyParty, initialInventoryForDummyCharacter } = await import('../data/dev/dummyCharacter');
+    const generatedParty = getDummyParty();
+    if (!generatedParty || generatedParty.length === 0) return;
+
+    const dynamicItemsToUse: Record<string, string[]> = {};
+    Object.values(LOCATIONS).forEach(loc => {
+      dynamicItemsToUse[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
+    });
+
+    const worldSeed = currentMapData ? currentWorldSeed : generateWorldSeed();
+    const mapToUse = currentMapData || generateMap(MAP_GRID_SIZE.rows, MAP_GRID_SIZE.cols, LOCATIONS, BIOMES, worldSeed);
+
+    dispatch({
+      type: 'START_GAME_FOR_DUMMY',
+      payload: {
+        mapData: mapToUse,
+        dynamicLocationItemIds: dynamicItemsToUse,
+        generatedParty,
+        worldSeed,
+        initialInventory: initialInventoryForDummyCharacter,
       }
     });
   }, [currentMapData, currentWorldSeed, dispatch]);
@@ -309,5 +346,6 @@ export function useGameInitialization({
     handleLoadGameFlow,
     startGame,
     initializeDummyPlayerState,
+    handleLegacyDummyAutoStart,
   };
 }

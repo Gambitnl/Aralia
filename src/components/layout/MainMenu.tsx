@@ -149,7 +149,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
   };
 
   return (
-    <div id={UI_ID.MAIN_MENU} data-testid={UI_ID.MAIN_MENU} className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-8">
+    <main id={UI_ID.MAIN_MENU} data-testid={UI_ID.MAIN_MENU} className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-8">
       <div className="bg-gray-800 p-8 md:p-12 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md text-center">
         <h1 className="text-5xl font-bold text-amber-400 mb-12 font-cinzel tracking-wider">
           {t('main_menu.title')}
@@ -171,11 +171,10 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <button
               onClick={() => handleLoadSlot(latestSlot?.slotId)}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
-              aria-label={t('main_menu.continue')}
             >
               {t('main_menu.continue')}
               {(latestSlot?.lastSaved || latestSaveTimestamp) && (
-                <span className="block text-xs text-emerald-200 mt-1">
+                <span className="block text-xs text-gray-950 mt-1">
                   {formatTimestamp(latestSlot?.lastSaved || latestSaveTimestamp)}
                 </span>
               )}
@@ -184,7 +183,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
           <button
             onClick={onNewGame}
             className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
-            aria-label={t('main_menu.new_game')}
           >
             {t('main_menu.new_game')}
           </button>
@@ -193,7 +191,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
               <button
                 onClick={onOpenWorldGeneration}
                 className={`w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75 ${isWorldGenerationLocked ? 'opacity-80' : ''}`}
-                aria-label="Open world generation setup"
                 title={isWorldGenerationLocked && worldGenerationLockedReason ? worldGenerationLockedReason : 'Open world generation setup'}
               >
                 World Generation
@@ -209,7 +206,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
             onClick={() => setIsSaveModalOpen(true)}
             disabled={!onSaveGame}
             className={`w-full bg-amber-600 hover:bg-amber-500 text-gray-900 font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-opacity-75 ${!onSaveGame ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-label={t('main_menu.save_to_slot')}
           >
             {t('main_menu.save_to_slot')}
           </button>
@@ -221,7 +217,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
                 <button
                   onClick={onOpenDevMenu}
                   className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
-                  aria-label="Open Developer Menu"
                 >
                   Dev Menu
                 </button>
@@ -232,7 +227,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
             onClick={() => setIsLoadModalOpen(true)}
             disabled={!hasSaveGame && saveSlots.length === 0}
             className={`w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 ${(!hasSaveGame && saveSlots.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-label={hasSaveGame || saveSlots.length > 0 ? t('main_menu.load_game_aria') : t('main_menu.load_game_empty_aria')}
             title={hasSaveGame || saveSlots.length > 0 ? t('main_menu.load_game') : t('main_menu.load_game_empty_title')}
           >
             {t('main_menu.load_game')}
@@ -250,7 +244,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
               <button
                 onClick={() => setPendingConfirm('abandon')}
                 className="w-full bg-orange-700 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
-                aria-label={t('main_menu.abandon_run')}
               >
                 {t('main_menu.abandon_run')}
               </button>
@@ -269,7 +262,6 @@ const MainMenu: React.FC<MainMenuProps> = ({
               <button
                 onClick={() => setPendingConfirm('wipe')}
                 className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75"
-                aria-label={t('main_menu.clear_save')}
               >
                 {t('main_menu.clear_save')}
               </button>
@@ -278,13 +270,12 @@ const MainMenu: React.FC<MainMenuProps> = ({
           <button
             onClick={onShowCompendium} // This prop now correctly opens the Glossary
             className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75"
-            aria-label={t('main_menu.glossary_aria')}
             title={t('main_menu.glossary_title')}
           >
             {t('main_menu.glossary')}
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-12">{t('main_menu.powered_by')}</p>
+        <p className="text-sm text-gray-400 mt-12">{t('main_menu.powered_by')}</p>
       </div>
 
       {isSaveModalOpen && (
@@ -307,7 +298,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
       )}
 
       <VersionDisplay position="main-menu" />
-    </div>
+    </main>
   );
 };
 

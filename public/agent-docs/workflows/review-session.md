@@ -21,7 +21,7 @@ A two-phase workflow for reviewing the session's code changes and adding inline 
     - Include: `.ts`, `.tsx`, `.py`, `.css`, `.html`, etc.
 
 2.  **Re-read Each File**
-    - Use `view_file` to confirm current state, line numbers, and logic.
+    - Use the current agent's available file-reading tools to confirm current state, line numbers, and logic.
     - Do NOT assume previous memory is accurate—always verify.
 
 3.  **Analyze for Improvements**
@@ -71,7 +71,7 @@ A two-phase workflow for reviewing the session's code changes and adding inline 
 ### Steps
 
 1.  **Review Before Action**
-    - Before applying each comment, `view_file` to check the target location again.
+    - Before applying each comment, re-read the target file and line location again.
 
 2.  **Handle Existing Comments**
     - If an **equivalent comment already exists**: Skip it.
@@ -79,7 +79,7 @@ A two-phase workflow for reviewing the session's code changes and adding inline 
     - If **no comment exists**: Insert the TODO directly above the relevant line.
 
 3.  **Execute Edits**
-    - Use `replace_file_content` or `multi_replace_file_content` to apply.
+    - Use the current agent's standard patch/edit tool to apply.
     - Do NOT make concurrent edits to the same file—edit one file at a time.
 
 4.  **Confirm Completion**

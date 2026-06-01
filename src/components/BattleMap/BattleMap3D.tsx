@@ -283,9 +283,16 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
     return <div className="text-gray-400">Generating 3D battlefield...</div>;
   }
 
+  // The combat view supplies the available windowpane size; this wrapper fills
+  // that box so the Three.js canvas resizes with the encounter instead of
+  // collapsing into a short, content-sized strip.
   return (
-    <div style={{ width: '100%', flex: '1 1 0%', minHeight: '300px', borderRadius: '8px', overflow: 'hidden' }}>
+    <div
+      className="h-full min-h-[320px] w-full overflow-hidden rounded-lg bg-slate-950"
+      style={{ flex: '1 1 0%' }}
+    >
       <Canvas
+        className="h-full w-full"
         shadows
         camera={{
           fov: 50,

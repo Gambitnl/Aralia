@@ -91,7 +91,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
     // causing the heavy 'axe-core' dependency to remain in production bundles. Do not revert.
     if (import.meta.env.DEV && rootRef.current) {
       const node = rootRef.current;
-      import('../../utils/testUtils').then(({ runAxe }) => {
+      import('../../utils/core/testUtils').then(({ runAxe }) => {
         runAxe(node);
       });
     }

@@ -240,6 +240,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -358,6 +359,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -476,6 +478,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -643,6 +646,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -788,6 +792,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -989,6 +994,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -1162,6 +1168,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";
@@ -1350,6 +1357,7 @@ export declare const SpellValidator: z.ZodObject<{
                 on_enter_area: "on_enter_area";
                 on_exit_area: "on_exit_area";
                 on_end_turn_in_area: "on_end_turn_in_area";
+                on_move_in_area: "on_move_in_area";
                 on_target_move: "on_target_move";
                 on_attack_hit: "on_attack_hit";
                 on_target_attack: "on_target_attack";

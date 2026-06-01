@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:25
+ * Last Sync: 31/05/2026, 23:25:25
  * Dependents: App.tsx
- * Imports: 7 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -13,6 +13,7 @@
  * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
+
 /**
  * ARCHITECTURAL CONTEXT:
  * This hook is the 'Social Brain' of Aralia. It manages the lifecycle 
@@ -69,7 +70,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState, GamePhase } from '../types';
-import { isPlayerFocused, isNpcOccupied } from '../utils/world';
+import { isPlayerFocused, isNpcOccupied } from '../utils/world/sceneUtils';
 import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext, extractDiscoveredFacts } from '../services/ollama';
 import { Companion } from '../types/companions';

@@ -1,0 +1,16 @@
+# Underdark System Gap Registry
+
+Status: active
+Last updated: 2026-05-31
+
+Use this file for durable unresolved Underdark items that are too important to keep only in temporary notes.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| UD-1 | not_started | in_scope_now | Worker A | `docs/projects/underdark/TRACKER.md` | Code scan | Runtime does not show a confirmed production assignment path for `underdark.currentDepth`. | `src/state/initialState.ts`, `src/state/appState.ts`, `rg` search for `currentDepth` writes in `src` | Underdark logic in `UnderdarkMechanics` is gated on active depth but may never transition from defaults. | Add ownership for location depth updates in travel/submap action flow and reducer. | Add a test that entering an underdark location sets `currentDepth > 0` and triggers sanity-light behavior. |
+| UD-2 | not_started | in_scope_now | Worker A | `docs/projects/underdark/TRACKER.md` | Code scan | No confirmed production path updates `underdark.currentBiomeId` during gameplay transitions. | `src/types/underdark.ts`, `src/data/underdark/biomes.ts`, `rg` search for `currentBiomeId` writes | Biome-specific ambient light and sanity modifiers are unused if biome ID never changes. | Define biome transition source and connect it to world movement outputs. | Verify `currentBiomeId` changes at least once in an underdark travel scenario. |
+| UD-3 | not_started | in_scope_now | Worker A | `docs/projects/underdark/TRACKER.md` | Integration scan | `UnderdarkFactionSystem.applyTerritoryMechanics` is not executed by main time reducer path. | `src/systems/underdark/UnderdarkFactionSystem.ts`, `src/state/reducers/worldReducer.ts` | Territory-based mechanics are authored but do not yet affect live state. | Wire territory mechanics in a deterministic pass after depth/biome updates. | Add regression where territory faction field changes sanity or faerzress. |
+| UD-4 | not_started | support_needed_now | Worker A | `docs/projects/underdark/TRACKER.md` | Source scan | Duplicate underdark logic exists in `UnderdarkMechanics` and `underdarkService.ts` with different thresholds and rules. | `src/systems/underdark/UnderdarkMechanics.ts`, `src/services/underdarkService.ts` | Multiple implementations increase risk of inconsistent behavior between action flows. | Decide canonical owner and remove or document bridge behavior for the alternate function set. | Add one consistency test matrix and mark legacy path deprecated or deleted. |
+| UD-5 | not_started | adjacent_follow_up | Worker A | `docs/projects/underdark/TRACKER.md` | Integration scan | `useUnderdarkLighting` outputs are not shown as the core state update path for underdark light in reducer time flow. | `src/hooks/useUnderdarkLighting.ts`, `src/state/reducers/worldReducer.ts`, `src/systems/underdark/UnderdarkMechanics.ts` | Light source source-of-truth can diverge from UI-derived source; drift can mask bugs in inventory-dependent lighting. | Define explicit contract: either hook writes into state or remains observational with clear conversion. | Add comment or test proving source path chosen in one place. |

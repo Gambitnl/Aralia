@@ -1,0 +1,121 @@
+# NORTH_STAR: Scripts: Tooling
+
+Status: active
+Last updated: 2026-05-31
+
+## Why this project exists
+
+`scripts/tooling` is the shared developer-maintenance surface for Aralia. This project exists to preserve:
+
+- tooling intent,
+- workflow touchpoints,
+- run metadata contracts,
+- unresolved risks that should not be lost during future slices.
+
+The goal is a cold-start map, not a cleanup summary.
+
+## Purpose and scope
+
+Document the `scripts/tooling` bundle, how it is consumed by dev workflows and tooling UI, and what remains open.
+
+Allowed scope for this documentation pass:
+
+- `scripts/tooling` (evidence files),
+- direct runtime/UI integration in `vite.config.ts` and `misc/tooling.html`,
+- references in workflow docs that call these scripts.
+
+## File map
+
+| File | Role |
+|---|---|
+| `scripts/tooling/script-registry.json` | Canonical script registry data with bucket + feature branch metadata |
+| `scripts/tooling/.run-log.json` | Shared run history for each script and last-run timestamps |
+| `scripts/tooling/script-tracker.ts` | Tracks `@script-meta` in script headers and updates `.run-log.json` |
+| `scripts/tooling/audit-dependencies.ts` | Dependency and package-lock drift checks |
+| `scripts/tooling/audit-typedoc-reference.ts` | TypeDoc and export doc compliance checks |
+| `scripts/tooling/check-bundle-size.ts` | Bundle size regression gating |
+| `scripts/tooling/create-session-pr.ts` | Branch, commit, and draft PR workflow helper |
+| `scripts/tooling/diagnose-shell.ts` | Shell failure pattern extraction for session ritual |
+| `scripts/tooling/mempalace-sync.ts` | MemPalace diagnostics and recovery flow |
+| `scripts/tooling/organize-dev-tools.ts` | Tooling script relocation and reference migration helper |
+| `scripts/tooling/purge-stale-branches.ts` | Local git branch hygiene utility |
+| `scripts/tooling/scan-secrets.ts` | Secret/token scanning for modified and staged paths |
+| `scripts/tooling/scan-temp-assets.ts` | Orphan and temporary asset scanner |
+| `scripts/tooling/serialize-session-proof.ts` | Session proof output serializer into `.symphony/live-proof` |
+| `scripts/tooling/track-turn-cost.ts` | Turn-level token and cost estimation |
+| `scripts/tooling/validate-git-remote.ts` | Git remote and CI/PR consistency checks |
+| `scripts/tooling/verify-ollama-router.ts` | Local Ollama model routing verification |
+
+## Implemented state
+
+- `scripts/tooling` contains 16 files and one registry/log JSON pair.
+- `vite.config.ts` exposes:
+  - `GET /api/script-registry` for merged registry + run-log data
+  - `POST /api/script-touch` for branch-level freshness resets
+- `misc/tooling.html` renders both the branch view and tooling card view from registry data.
+- Some scripts declare workflow owners directly in file headers, mainly:
+  - `verify.md` for quality checks,
+  - `tidy-up.md` for maintenance loops,
+  - `session-ritual.md` for ritual checks.
+
+## Active task
+
+| Field | Value |
+|---|---|
+| Task | Refresh this project surface for scripts/tooling as a concise cold-start reference. |
+| Acceptance criteria | The three project files state scope, file map, integration points, evidence, and open gaps clearly. |
+| Allowed boundaries | `docs/projects/scripts-tooling/*` only. |
+| Stop condition | Do not edit tooling code or add new script behavior. |
+| Verification | Re-scan `scripts/tooling`, `vite.config.ts`, `misc/tooling.html`, and workflow markdown references. |
+| Owner | Worker C |
+| Next action | Resolve/route gaps in `GAPS.md` and keep tracker row current. |
+
+## Scope boundaries
+
+In scope:
+- scripts/tooling intent and current integration contracts
+- immediate workflow and UI contracts
+- durable gaps for scripts tooling
+
+Adjacent but not in scope:
+- redesigning CI pipeline topology
+- changing workflow policy language in external guides
+
+Out of scope:
+- adding new tooling scripts
+- modifying script logic
+
+## What must not be lost
+
+- `script-registry.json`, `.run-log.json`, and the script-tracker update contract.
+- `/api/script-registry` and `/api/script-touch` behavior in `vite.config.ts`.
+- Tooling UI mapping and execution contract in `misc/tooling.html`.
+- A short handoff chain: this file plus `TRACKER.md` and `GAPS.md`.
+
+## Known gaps and follow-ups
+
+- Gaps are registered in `docs/projects/scripts-tooling/GAPS.md` and should be reviewed at the next resume point.
+
+## Evidence and proof
+
+| Evidence | What it proves | Path |
+|---|---|---|
+| Registry API middleware | Run data and script buckets are served together | `vite.config.ts` |
+| Tooling branch UI wiring | Registry is user-visible in dev tooling UI | `misc/tooling.html` |
+| Script header ownership notes | Existing workflow intent is embedded in scripts | `scripts/tooling/*.ts` |
+| Workflow references | Operational expectations for script invocation | `public/agent-docs/workflows/verify.md`, `public/agent-docs/workflows/tidy-up.md`, `public/agent-docs/workflows/session-ritual.md` |
+
+## Artifact boundary
+
+Keep durable intent, decisions, and gap entries. Keep runtime logs, caches, and raw session proof artifacts external unless summarized in a separate proof artifact.
+
+## Resume path for a cold agent
+
+1. Read this file.
+2. Read `TRACKER.md`, then `GAPS.md`.
+3. Recheck:
+   - `scripts/tooling/`
+   - `vite.config.ts`
+   - `misc/tooling.html`
+   - `public/agent-docs/workflows/{verify,tidy-up,session-ritual}.md`
+4. Continue with the active tracker row or the oldest open gap.

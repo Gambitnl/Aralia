@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:24:08
+ * Dependents: systems/world/WorldEventManager.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/crime/BountyHunterSystem.ts
  * Logic for spawning and managing Bounty Hunters tracking the player.
@@ -6,8 +22,6 @@
 import { GameState, GameMessage, NotorietyState, NPC } from '../../types';
 import { AmbushEvent, HunterProfile, HunterTier } from '../../types/crime';
 import { SeededRandom } from '@/utils/random';
-import { createEnemyFromMonster } from '../../utils/combatUtils';
-import { MONSTERS_DATA } from '../../data/monsters';
 
 export class BountyHunterSystem {
 

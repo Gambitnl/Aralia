@@ -21,7 +21,6 @@ import { ALL_ITEMS, ITEMS as _BASE_ITEMS, WEAPONS_DATA } from './data/items';
 import { MASTERY_DATA } from './data/masteryData';
 import { CLASSES_DATA, AVAILABLE_CLASSES } from './data/classes';
 import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR, ABILITY_SCORE_NAMES, RELEVANT_SPELLCASTING_ABILITIES } from './data/dndData';
-import { MONSTERS_DATA } from './data/monsters';
 
 // Import newly separated data modules
 import { LOCATIONS, STARTING_LOCATION_ID } from './data/world/locations';
@@ -58,7 +57,6 @@ export {
   TTS_VOICE_OPTIONS, // Re-export from new location
   XP_THRESHOLDS_BY_LEVEL, // Re-export from new dndData
   XP_BY_CR, // Re-export from new dndData
-  MONSTERS_DATA, // Re-export from new monsterData
   ABILITY_SCORE_NAMES,
   RELEVANT_SPELLCASTING_ABILITIES,
 };

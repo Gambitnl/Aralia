@@ -508,6 +508,7 @@ export interface PlayerCharacter {
     ignoreDifficultTerrain?: boolean;
     breathWeapon?: RacialBreathWeapon;
     reactions?: any[]; // Using any[] for now to avoid complex circular dependencies with RacialReaction
+    savageAttacks?: boolean;
   };
   /**
    * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
@@ -536,6 +537,7 @@ export interface PlayerCharacter {
   ignoreDifficultTerrain?: boolean;
   hp: number;
   maxHp: number;
+  heroicInspiration?: boolean;
   /**
    * Hit Point Dice (Hit Dice) available for spending during Short Rests.
    * 2024 rules: a character has 1 at level 1 and gains 1 each level thereafter.

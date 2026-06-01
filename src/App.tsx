@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 01/05/2026, 01:35:24
+ * Last Sync: 31/05/2026, 23:30:41
  * Dependents: None (Orphan)
- * Imports: 46 files
+ * Imports: 50 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -66,7 +66,6 @@ import { useOllamaCheck } from './hooks/useOllamaCheck';
 import { useAutoSave } from './hooks/useAutoSave';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
-import { generateCompanion } from './services/CompanionGenerator';
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
@@ -77,11 +76,9 @@ import { DataLoaderGate } from './components/providers/DataLoaderGate';
 import {
   STARTING_LOCATION_ID,
   LOCATIONS,
-  ITEMS,
-  NPCS,
-  BIOMES,
-} from './constants';
-import { getDummyParty } from './data/dev/dummyCharacter';
+} from './data/world/locations';
+import { NPCS } from './data/world/npcs';
+import { BIOMES } from './data/biomes';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
@@ -146,6 +143,25 @@ const App: React.FC = () => {
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
   const autoSaveEnabled = gameState.autoSaveEnabled ?? true;
   const [isAutoSavePrefHydrated, setIsAutoSavePrefHydrated] = useState(false);
+  const [itemsById, setItemsById] = useState<Record<string, Item> | null>(null);
+
+  useEffect(() => {
+    if (gameState.phase === GamePhase.MAIN_MENU || itemsById) return;
+    let cancelled = false;
+
+    // The item registry includes generated glossary-backed items, so keep it
+    // out of the main-menu startup path and load it only for playable screens
+    // that can actually show location item interactions.
+    import('./data/items').then(({ ITEMS: loadedItems }) => {
+      if (!cancelled) {
+        setItemsById(loadedItems);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameState.phase, itemsById]);
 
   // Load persisted preference once (default is ON if absent).
   useEffect(() => {
@@ -345,7 +361,7 @@ const App: React.FC = () => {
     handleSkipCharacterCreator,
     handleLoadGameFlow,
     startGame,
-    initializeDummyPlayerState,
+    handleLegacyDummyAutoStart,
   } = useGameInitialization({
     dispatch,
     addMessage,
@@ -364,21 +380,16 @@ const App: React.FC = () => {
   }, [cleanupAudioContext]);
 
   useEffect(() => {
-    if (
-      canUseDevTools() &&
-      getDummyParty().length > 0 &&
-      gameState.phase === GamePhase.PLAYING &&
-      gameState.party.length > 0 &&
-      gameState.messages.length === 0 &&
-      !SaveLoadService.hasSaveGame()
-    ) {
-      initializeDummyPlayerState();
-    }
+    if (!canUseDevTools()) return;
+    if (gameState.phase !== GamePhase.MAIN_MENU) return;
+    if (gameState.party.length > 0 || gameState.messages.length > 0) return;
+    if (SaveLoadService.hasSaveGame()) return;
+    handleLegacyDummyAutoStart();
   }, [
     gameState.phase,
     gameState.party,
     gameState.messages.length,
-    initializeDummyPlayerState,
+    handleLegacyDummyAutoStart,
   ]);
 
   useEffect(() => {
@@ -682,6 +693,10 @@ const App: React.FC = () => {
       case 'restart_dynamic_party':
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
         try {
+          // Load the procedural companion generator only for this dev action.
+          // It pulls in character, NPC, and local-AI helpers that the main menu
+          // does not need during normal startup.
+          const { generateCompanion } = await import('./services/CompanionGenerator');
           const newParty: PlayerCharacter[] = [];
           // Generate a party of 3 for now
           const configs = [
@@ -822,8 +837,8 @@ const App: React.FC = () => {
   const currentLocationData = getCurrentLocation();
   const npcs = getCurrentNPCs();
   const itemsInCurrentLocation =
-    (!currentLocationData.id.startsWith('coord_') && currentLocationData.itemIds
-      ?.map((id) => ITEMS[id])
+    (itemsById && !currentLocationData.id.startsWith('coord_') && currentLocationData.itemIds
+      ?.map((id) => itemsById[id])
       .filter(Boolean) as Item[]) || [];
 
   // Determine if the UI should be interactive based on modal/loading states.
@@ -1047,12 +1062,14 @@ const App: React.FC = () => {
   }
 
   const notifications = (gameState.notifications as Notification[]) || [];
+  const shouldLoadGlossaryData = gameState.phase !== GamePhase.MAIN_MENU || gameState.isGlossaryVisible;
+  const shouldLoadSpellData = gameState.phase !== GamePhase.MAIN_MENU;
 
   // --- Root Render ---
   // Wraps the application in <AppProviders> for context access.
   // Renders global notifications, the computed 'mainContent', and the manager for <GameModals>.
   return (
-    <AppProviders>
+    <AppProviders loadGlossaryData={shouldLoadGlossaryData} loadSpellData={shouldLoadSpellData}>
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
           <NotificationSystem notifications={notifications} dispatch={dispatch} />

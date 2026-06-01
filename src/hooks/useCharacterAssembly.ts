@@ -66,6 +66,10 @@ function validateAllSelectionsMade(state: CharacterCreationState): boolean {
 
   if (selectedClass.weaponMasterySlots && (!selectedWeaponMasteries || selectedWeaponMasteries.length !== selectedClass.weaponMasterySlots)) return false;
 
+  // Check feats (2024 PHB origin feats)
+  if (state.selectedBackground && !state.backgroundFeatId) return false;
+  if (state.selectedRace?.id === 'human' && !state.racialFeatId) return false;
+
   return true;
 }
 
@@ -287,11 +291,29 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     };
     assembledCharacter.hitPointDice = buildHitPointDicePools(assembledCharacter, { classLevels });
 
-    // Apply selected feat if present
-    if (currentState.selectedFeat) {
-      const feat = FEATS_DATA.find(f => f.id === currentState.selectedFeat);
+    // Apply Background feat
+    if (currentState.backgroundFeatId) {
+      const feat = FEATS_DATA.find(f => f.id === currentState.backgroundFeatId);
       if (feat) {
-        const choices = currentState.featChoices?.[currentState.selectedFeat];
+        const choices = currentState.featChoices?.[currentState.backgroundFeatId];
+        const selectedSpellSource = choices?.selectedSpellSource;
+        const typedSpellSource = (selectedSpellSource && typeof selectedSpellSource === 'string')
+          ? (selectedSpellSource as MagicInitiateSource)
+          : undefined;
+        assembledCharacter = applyFeatToCharacter(assembledCharacter, feat, {
+          selectedAbilityScore: choices?.selectedAbilityScore,
+          selectedCantrips: choices?.selectedCantrips,
+          selectedLeveledSpells: choices?.selectedLeveledSpells,
+          selectedSpellSource: typedSpellSource,
+        });
+      }
+    }
+
+    // Apply Racial feat
+    if (currentState.racialFeatId) {
+      const feat = FEATS_DATA.find(f => f.id === currentState.racialFeatId);
+      if (feat) {
+        const choices = currentState.featChoices?.[currentState.racialFeatId];
         const selectedSpellSource = choices?.selectedSpellSource;
         const typedSpellSource = (selectedSpellSource && typeof selectedSpellSource === 'string')
           ? (selectedSpellSource as MagicInitiateSource)

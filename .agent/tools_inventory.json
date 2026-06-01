@@ -57,36 +57,64 @@
   },
   {
     "category": "Utilities",
-    "name": "Tidy Up (PS1)",
-    "command": "powershell -File scripts/tidy-up.ps1",
-    "description": "General cleanup script for the repo.",
-    "path": "scripts/tidy-up.ps1"
+    "name": "Tidy Up",
+    "command": "npm run tidy-up",
+    "description": "Launches standard tidy-up for Codex CLI contexts. Agents choose light, standard, full, or push by risk and blast radius; active Codex Desktop sessions should read the tracked workflow doc directly.",
+    "path": "public/agent-docs/workflows/tidy-up.md"
+  },
+  {
+    "category": "Utilities",
+    "name": "Tidy Up Light",
+    "command": "npm run tidy-up:light",
+    "description": "Low-risk tidy-up for docs, comments, local notes, or tiny metadata edits.",
+    "path": "public/agent-docs/workflows/tidy-up.md"
+  },
+  {
+    "category": "Utilities",
+    "name": "Tidy Up Full",
+    "command": "npm run tidy-up:full",
+    "description": "Full tidy-up for shared workflow, tooling, hook, package-script, roadmap, or agent-doc changes.",
+    "path": "public/agent-docs/workflows/tidy-up.md"
+  },
+  {
+    "category": "Utilities",
+    "name": "Tidy Up Push",
+    "command": "npm run tidy-up:push",
+    "description": "Push-readiness tidy-up for sync, intent gate, hook, branch, or worktree checks.",
+    "path": "public/agent-docs/workflows/tidy-up.md"
+  },
+  {
+    "category": "Validation",
+    "name": "Git Hygiene",
+    "command": "npm run git:hygiene",
+    "description": "Blocks unchecked local branch/worktree growth and verifies the primary F:/Repos/Aralia tree stays on master.",
+    "path": "scripts/git/git-hygiene-check.cjs"
   },
   {
     "category": "Agent Workflows",
     "name": "Maintain Icons",
     "command": "/maintain-icons",
     "description": "Workflow to audit and update MDI icons.",
-    "path": ".agent/workflows/maintain-icons.md"
+    "path": "public/agent-docs/workflows/maintain-icons.md"
   },
   {
     "category": "Agent Workflows",
     "name": "Stitch Generate",
     "command": "/stitch-generate",
     "description": "Workflow to generate UI using Google Stitch.",
-    "path": ".agent/workflows/stitch-generate.md"
+    "path": "public/agent-docs/workflows/stitch-generate.md"
   },
   {
     "category": "Agent Workflows",
     "name": "Extract Terminal Learnings",
     "command": "/extract-terminal-learnings",
     "description": "Scans history to update Terminal.md rules.",
-    "path": ".agent/workflows/extract-terminal-learnings.md"
+    "path": "public/agent-docs/workflows/extract-terminal-learnings.md"
   },
   {
     "category": "Debugging",
     "name": "Map R: Drive",
-    "command": "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\MapRDrive.cmd",
+    "command": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\MapRDrive.cmd",
     "description": "Re-maps the R: drive if disconnected.",
     "path": "External (Startup)"
   }

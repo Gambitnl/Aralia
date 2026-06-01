@@ -204,10 +204,10 @@ const EscapeCheck = z.object({
   ])).optional(),
 });
 
-// TODO: The trigger type 'on_move_in_area' is implemented in `AreaEffectTracker.processMovementWithin`
-// but is NOT listed in the `EffectTrigger.type` schema enum. This causes validation to reject
-// spells using this trigger (e.g., Spike Growth). Add 'on_move_in_area' to the enum:
-// type: z.enum([..., "on_move_in_area"])
+// Zone movement is a real runtime trigger, not prose-only spell text. It stays
+// beside the other area triggers so spell data for Spike Growth-style movement
+// hazards can validate before the effect layer processes movement through a
+// zone.
 const EffectTrigger = z.object({
   type: z.enum([
     "immediate",
@@ -217,6 +217,7 @@ const EffectTrigger = z.object({
     "on_enter_area",
     "on_exit_area",
     "on_end_turn_in_area",
+    "on_move_in_area",
     "on_target_move",
     "on_target_takes_damage",
     "on_attack_hit",
@@ -318,7 +319,7 @@ const RecurringMechanic = z.object({
   // Recurring mechanics capture turn-by-turn or trigger-by-trigger rules that
   // are not always status repeat saves, such as Heroism temp HP, Elemental Bane
   // first-per-turn damage, and Tree Stride end-turn positioning.
-  timing: z.enum(["turn_start", "turn_end", "on_damage", "on_entity_proximity", "on_target_cast"]),
+  timing: z.enum(["turn_start", "turn_end", "on_damage", "on_move_in_area", "on_entity_proximity", "on_target_cast"]),
   frequency: z.enum(["every_time", "first_per_turn", "once_per_creature"]).optional(),
   saveType: SavingThrowAbility.optional(),
   saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),

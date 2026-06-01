@@ -1,3 +1,11 @@
+/**
+ * Applies spell status conditions to combat characters.
+ *
+ * The command writes both the newer `conditions` array and the legacy
+ * `statusEffects` array because different combat systems still read different
+ * mirrors. Metadata such as repeat saves must be copied to both mirrors so the
+ * spell payload remains executable after application.
+ */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState, StatusEffect, ActiveCondition } from '../../types/combat';
 import { isStatusConditionEffect, EffectDuration, ConditionName } from '../../types/spells';
@@ -102,7 +110,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
         name: this.effect.statusCondition.name,
         duration: this.effect.statusCondition.duration,
         appliedTurn: currentState.turnState.currentTurn,
-        source: this.context.spellName || this.context.spellId
+        source: this.context.spellName || this.context.spellId,
+        sourceCasterId: this.context.caster.id,
+        ...this.getStatusMetadata()
       };
 
       // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
@@ -180,8 +190,11 @@ export class StatusConditionCommand extends BaseEffectCommand {
       name,
       type: 'debuff',
       duration,
+      source: this.context.spellName || this.context.spellId,
+      sourceCasterId: this.context.caster.id,
       effect: mechanicalEffect,
-      icon: this.getIconForCondition(name)
+      icon: this.getIconForCondition(name),
+      ...this.getStatusMetadata()
     };
 
     if (matchIndex >= 0) {
@@ -191,6 +204,28 @@ export class StatusConditionCommand extends BaseEffectCommand {
     }
 
     return { statusEffects, appliedStatus };
+  }
+
+  /**
+   * Preserve status-condition metadata that comes from spell data.
+   *
+   * Repeat saves are already consumed by the combat engine from statusEffects,
+   * while escape checks and break triggers are near-term execution metadata.
+   * Keeping the helper local avoids rebuilding those optional copies in each
+   * mirror and makes the lossy-bridge decision easy to audit.
+   */
+  private getStatusMetadata(): Pick<StatusEffect, 'repeatSave' | 'escapeCheck' | 'breakTriggers'> {
+    if (!isStatusConditionEffect(this.effect)) {
+      return {};
+    }
+
+    const { repeatSave, escapeCheck, breakTriggers } = this.effect.statusCondition;
+
+    return {
+      ...(repeatSave ? { repeatSave } : {}),
+      ...(escapeCheck ? { escapeCheck } : {}),
+      ...(breakTriggers ? { breakTriggers } : {})
+    };
   }
 
   private calculateDuration(duration: EffectDuration): number {

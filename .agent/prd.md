@@ -25,7 +25,7 @@ The Aralia project has accumulated various scripts, debugging tools, and agent w
 ### In-scope or Goals
 -   **Static HTML Architecture**: Must remain a standalone file (no build step required) so it works when the app is down.
 -   **Visual Redesign**: Improve the UI to handle dozens of tools (Grid/List view, Categories).
--   **Content Expansion**: Index scripts from `scripts/`, `.agent/workflows/`, and key root configs.
+-   **Content Expansion**: Index scripts from `scripts/`, tracked workflows from `public/agent-docs/workflows/`, and key root configs.
 -   **Agent Metadata**: Add semantic tagging (or hidden JSON-LD) so agents can "read" the catalog efficiently.
 
 ### Not-in-scope or Non-Goals

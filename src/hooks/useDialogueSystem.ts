@@ -16,7 +16,7 @@ import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { ProcessTopicResult } from '../services/dialogueService';
 import * as OllamaTextService from '../services/ollamaTextService';
-import { NPCS } from '../constants';
+import { NPCS } from '../data/world/npcs';
 
 export const useDialogueSystem = (
     gameState: GameState,

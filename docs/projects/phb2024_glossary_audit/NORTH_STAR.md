@@ -1,28 +1,60 @@
-# NORTH STAR: PHB2024 Glossary Audit
+﻿# NORTH STAR: PHB 2024 Glossary Audit
 
-**Project Objective:**
-Ingest and structure all remaining 2024 Player's Handbook (XPHB) content from the `5e.tools` vendor repository into the Aralia glossary. Classes, races, and spells are explicitly out of scope for this pass.
+Status: complete docs handoff
+Last updated: 2026-05-31
 
-**Intended Outcome:**
-The Glossary contains full Markdown-formatted rule entries for 2024 Feats, Backgrounds, Items, Skills, Senses, Languages, and Hazards. The sidebar taxonomy gracefully categorizes them, and intra-glossary Markdown links (e.g., `[[skill_id|Display]]`) work seamlessly.
+## Purpose and Scope
 
-**Current State:**
-Core rules (actions, conditions, variant rules) were ingested. The remaining content categories require dedicated parsing and JSON generation.
+Capture the remaining 2024 Player's Handbook glossary work needed for Aralia without expanding this project into spell, class, or race migration.
 
-**Scope Boundaries:**
-- **In Scope:** Feats, Backgrounds, Items, Skills, Senses, Languages, Hazards, Optional Features marked `source: "XPHB"` or `basicRules2024: true`.
-- **Out of Scope:** Spells, Classes, Races (Subclasses, Subraces), pre-2024 content unless updated to 2024 mechanics.
+In-scope families are Feats, Backgrounds, Items, Skills, Senses, Languages, and Hazards where `source: "XPHB"` or `basicRules2024 === true`.
 
-**Project Pointers:**
-- [Living Tracker](./TRACKER.md)
-- [Gap Registry](./GAPS.md)
-- [Decision Log](./DECISIONS.md)
+Out of scope:
+- Spells
+- Classes and races
+- Non-2024 rule text
 
-**Resume Path:**
-Read `TRACKER.md` to see the current active task and blocks. If picking up from scratch, verify which data files have been processed by running `node scripts/generateGlossaryIndex.js` and checking the frontend.
+## Implemented State
 
-**Operational Protocol (For Future Agents):**
-- **Ever-Widening Scope**: Treat the task as a discovery process. The goal is an ever-widening scope, not artificial shrinkage just to complete the task.
-- **Track Gaps**: Discover gaps as you work, classify them, and add them to the `GAPS.md` tracker without letting discovery swallow the active task.
-- **Preserve intent**: Preserve durable intent, decisions, and evidence. Keep raw process exhaust external or summarized.
-- **UI Generation**: Use the Stitch MCP (and `/stitch-generate` workflow) to create and refine new UI components whenever visually possible.
+- Core rules work was completed in the earlier PHB rules migration pass.
+- This project completed ingestion for the remaining PHB 2024 families above.
+- Item metadata extraction was added during PHB ingestion (`type`, `value`, `weight`, `dmg1`, `ac`) and preserved in generated entry output.
+- Top-level category visibility was wired into glossary UI utilities for the new PHB folders.
+
+## File Map (Primary Evidence)
+
+- `scripts/ingestPhbGlossary.ts`: source extraction and glossary-entry emission.
+- `scripts/generateGlossaryIndex.js`: index build and subgroup wiring.
+- `src/components/Glossary/glossaryUIUtils.tsx`: category labels used by the sidebar.
+- `docs/tasks/2024_phb_rules_migration.md`: prior PHB core-rules scope and mapping history.
+- `public/data/glossary/entries/<category>/...`: generated 2024 category output.
+- `public/data/glossary/index/<category>.json`: generated tree consumed by runtime.
+- `docs/projects/item_categorization`: shared `itemType` and metadata assumptions.
+- `docs/tasks/glossary`: broader glossary scope and link target standards.
+
+## Integrations
+
+- Build path follows the pattern:
+  1) `scripts/ingestPhbGlossary.ts` parses vendor JSON,
+  2) `scripts/generateGlossaryIndex.js` builds nested index files,
+  3) glossary runtime loads `public/data/glossary` through the existing context and UI stack.
+- This project depends on `docs/projects/item_categorization` for equipment grouping behavior.
+- This project is functionally visible via `docs/projects/glossary-ui` for runtime behavior checks.
+
+## Current Gaps and Uncertainties
+
+- Item metadata typing parity is tracked in item-categorization follow-up work.
+- The non-dev glossary rebuild contract is not fully normalized outside Vite/dev endpoints.
+- `docs/tasks/glossary` notes that not all rule-surface inventory entries are high-value for PHB completeness checks.
+
+## Resume Path
+
+Read `TRACKER.md`, then `GAPS.md`, then the files in the file map above.
+For a quick validation cycle, run `node scripts/generateGlossaryIndex.js` and check that the glossary UI categories load without merge conflicts.
+
+## Registry Links
+
+- [Project registry](../../projects/PROJECT_TRACKER.md)
+- [Global gaps](../../projects/GLOBAL_GAPS.md)
+- [Tracker](./TRACKER.md)
+- [Gaps](./GAPS.md)

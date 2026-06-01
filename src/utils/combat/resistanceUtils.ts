@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:31:37
- * Dependents: DamageCommand.ts, combat/index.ts, combatUtils.ts
+ * Last Sync: 01/06/2026, 01:25:18
+ * Dependents: commands/effects/DamageCommand.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -107,6 +107,15 @@ export class ResistanceCalculator {
    * When isMagical is explicitly false, also checks nonMagicalImmunities
    * (e.g. lycanthropes are immune to nonmagical bludgeoning/piercing/slashing).
    */
+  /**
+   * Check if character is immune to damage type.
+   * When isMagical is explicitly false, also checks nonMagicalImmunities
+   * (e.g. lycanthropes are immune to nonmagical bludgeoning/piercing/slashing).
+   * 
+   * WHAT CHANGED: Added status effect modifiers check for immunities.
+   * WHY IT CHANGED: Status effects (like spells or special temporary abilities)
+   * can grant temporary immunities that are registered in statusEffects[].modifiers.immunity.
+   */
   private static isImmune(
     character: CombatCharacter,
     damageType: DamageType,
@@ -115,12 +124,20 @@ export class ResistanceCalculator {
     const lowerType = damageType.toLowerCase();
     if (character.immunities?.some(dt => dt.toLowerCase() === lowerType)) return true;
     if (isMagical === false && character.nonMagicalImmunities?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    
+    // Check for temporary immunity modifiers applied by active status effects
+    if (character.statusEffects?.some(se => se.modifiers?.immunity?.some(dt => dt.toLowerCase() === lowerType))) return true;
+    
     return false;
   }
 
   /**
    * Check if character is resistant to damage type.
    * When isMagical is explicitly false, also checks nonMagicalResistances.
+   * 
+   * WHAT CHANGED: Added status effect modifiers check for resistances.
+   * WHY IT CHANGED: Active status effects such as a Barbarian's Rage grant
+   * temporary damage resistance registered in statusEffects[].modifiers.resistance.
    */
   private static isResistant(
     character: CombatCharacter,
@@ -130,18 +147,30 @@ export class ResistanceCalculator {
     const lowerType = damageType.toLowerCase();
     if (character.resistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
     if (isMagical === false && character.nonMagicalResistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    
+    // Check for temporary resistance modifiers applied by active status effects (e.g., Rage)
+    if (character.statusEffects?.some(se => se.modifiers?.resistance?.some(dt => dt.toLowerCase() === lowerType))) return true;
+    
     return false;
   }
 
   /**
-   * Check if character is vulnerable to damage type
+   * Check if character is vulnerable to damage type.
+   * 
+   * WHAT CHANGED: Added status effect modifiers check for vulnerabilities.
+   * WHY IT CHANGED: Active status effects can impose temporary damage vulnerabilities
+   * registered in statusEffects[].modifiers.vulnerability.
    */
   private static isVulnerable(
     character: CombatCharacter,
     damageType: DamageType
   ): boolean {
-    if (!character.vulnerabilities) return false;
     const lowerType = damageType.toLowerCase();
-    return character.vulnerabilities.some(dt => dt.toLowerCase() === lowerType);
+    if (character.vulnerabilities?.some(dt => dt.toLowerCase() === lowerType)) return true;
+    
+    // Check for temporary vulnerability modifiers applied by active status effects
+    if (character.statusEffects?.some(se => se.modifiers?.vulnerability?.some(dt => dt.toLowerCase() === lowerType))) return true;
+    
+    return false;
   }
 }

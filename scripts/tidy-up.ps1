@@ -25,9 +25,12 @@ Set-Location $root
 # ============================================================================
 Write-Host "The tidy-up script is now an agent workflow." -ForegroundColor Yellow
 Write-Host "Please ask your active AI agent to execute the '/tidy-up' workflow instead, so it can use your actual conversation history to log changes." -ForegroundColor Cyan
+Write-Host "Canonical workflow doc: public/agent-docs/workflows/tidy-up.md" -ForegroundColor Cyan
+Write-Host "Modes: light, standard, full, push. The active agent should choose by risk and blast radius." -ForegroundColor Cyan
+Write-Host "Local-only calibration files may live under .agent/workflows/, but shared workflow docs do not." -ForegroundColor Cyan
 
 # WHAT CHANGED: Updated the warning message to include new mandatory checkpoints.
 # WHY IT CHANGED: We've added "Roadmap Orchestration" and "User Profile Calibration" 
 # to the end-of-session ritual. These must be done by the agent to ensure 
 # the project status and user preferences stay in sync.
-Write-Host "The '/tidy-up' workflow now includes mandatory roadmap-node orchestration and user-profile calibration checkpoints with explicit report blocks." -ForegroundColor Cyan
+Write-Host "Full tidy-up includes mandatory roadmap-node orchestration and user-profile calibration checkpoints with explicit report blocks." -ForegroundColor Cyan

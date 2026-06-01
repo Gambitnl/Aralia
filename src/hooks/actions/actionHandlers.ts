@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:14:40
+ * Dependents: hooks/useGameActions.ts
+ * Imports: 16 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/hooks/actions/actionHandlers.ts
  * Central registry builder for action handlers.
@@ -207,8 +223,8 @@ export function buildActionHandlers({
     HIDE_ENCOUNTER_MODAL: () => {
       handleHideEncounterModal(dispatch);
     },
-    START_BATTLE_MAP_ENCOUNTER: (action) => {
-      handleStartBattleMapEncounter(dispatch, (action.payload as { startBattleMapEncounterData: StartBattleMapEncounterPayload }).startBattleMapEncounterData);
+    START_BATTLE_MAP_ENCOUNTER: async (action) => {
+      await handleStartBattleMapEncounter(dispatch, (action.payload as { startBattleMapEncounterData: StartBattleMapEncounterPayload }).startBattleMapEncounterData);
     },
     END_BATTLE: () => {
       handleEndBattle(dispatch);

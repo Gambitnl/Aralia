@@ -4,6 +4,10 @@ description: Execute the "Implicit Rituals" at the end of a session to maintain 
 
 This workflow automates the maintenance tasks that should be performed before ending a task or session.
 
+Tracked workflow docs live in `public/agent-docs/workflows/`.
+The `.agent/workflows/` directory is local-only and ignored by Git; use it only
+for local calibration files such as `USER.local.md` and `INTENT-GATE.local.md`.
+
 ## Sub-Agent Parallel Contract
 
 Use sub-agents only for independent branches that do not require earlier gates to complete.
@@ -36,7 +40,8 @@ Use sub-agents only for independent branches that do not require earlier gates t
 
 4. **User Profile Calibration Checkpoint (Mandatory)**:
    - This checkpoint is required on every tidy-up run.
-   - Use `.agent/workflows/USER.local.md` as the source-of-truth user profile file.
+   - Use `.agent/workflows/USER.local.md` as the local-only source-of-truth user profile file when it exists.
+   - If the file is missing, run the checkpoint as `no (profile file absent)` and do not fail tidy-up solely for that absence.
    - Refine the profile only when the session surfaced meaningful signal.
    - Keep the profile concise and distinguish between user reasoning style and project-adjacent philosophy.
    - Do not force questionnaire-style updates just to satisfy the step.
@@ -49,7 +54,7 @@ Use sub-agents only for independent branches that do not require earlier gates t
    Execute the `/review-session` workflow.
 
 7. **Verify**: Run the pre-completion QA checklist - lint, type-check, build, tests, and red flag scan.
-   Execute the `/verify` workflow.
+   Execute the `/verify` workflow from `public/agent-docs/workflows/verify.md`.
 
 8. **Code Commentary Check**: Verify that all files touched during the session follow the Code Commentary skill standards.
    Reference: `.agent/skills/code_commentary/SKILL.md`

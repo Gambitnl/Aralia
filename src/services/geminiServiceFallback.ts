@@ -1,7 +1,8 @@
 
 import { Monster } from '../types';
 import type { MonsterData } from '../types/ui';
-import { MONSTERS_DATA, XP_BY_CR } from '../constants';
+import { XP_BY_CR } from '../constants';
+import { MONSTERS_DATA } from '../data/monsters';
 import { logger } from '../utils/logger';
 
 /**

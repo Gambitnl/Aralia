@@ -166,6 +166,12 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
   const [selectedKeenSensesSkillId, setSelectedKeenSensesSkillId] = useState<string | null>(null);
   const [selectedCentaurNaturalAffinitySkillId, setSelectedCentaurNaturalAffinitySkillId] = useState<string | null>(null);
   const [selectedChangelingInstinctSkillIds, setSelectedChangelingInstinctSkillIds] = useState<Set<string>>(new Set());
+  const [selectedChangelingSize, setSelectedChangelingSize] = useState<'Small' | 'Medium' | null>(null);
+  
+  // Generic choices for the current race
+  const [racialSkillChoices, setRacialSkillChoices] = useState<string[]>([]);
+  const [racialToolChoices, setRacialToolChoices] = useState<string[]>([]);
+  const [racialCantripChoices, setRacialCantripChoices] = useState<string[]>([]);
 
   // Group races by baseRace
   const raceGroups = useMemo(() => {
@@ -218,6 +224,8 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
     setSelectedCentaurNaturalAffinitySkillId(null);
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedChangelingInstinctSkillIds(new Set());
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedChangelingSize(null);
   }, [effectiveRaceId]); // Depend on effectiveRaceId instead of setStates inside
 
   // Compute detail data with sibling variants for comparison table
@@ -303,9 +311,17 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
         if (selectedRace.id === 'centaur' && selectedCentaurNaturalAffinitySkillId) {
           choices.centaurNaturalAffinitySkillId = selectedCentaurNaturalAffinitySkillId;
         }
-        if (selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size > 0) {
-          choices.changelingInstinctSkillIds = Array.from(selectedChangelingInstinctSkillIds);
+        if (selectedRace.id === 'changeling') {
+          if (selectedChangelingInstinctSkillIds.size > 0) {
+            choices.changelingInstinctSkillIds = Array.from(selectedChangelingInstinctSkillIds);
+          }
+          if (selectedChangelingSize) {
+            choices.changelingSize = selectedChangelingSize;
+          }
         }
+        if (racialSkillChoices.length > 0) choices.genericSkillChoices = racialSkillChoices;
+        if (racialToolChoices.length > 0) choices.genericToolChoices = racialToolChoices;
+        if (racialCantripChoices.length > 0) choices.genericCantripChoices = racialCantripChoices;
         onRaceSelect(selectedRace.id, choices);
       }}
       disabled={
@@ -313,7 +329,11 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
           (selectedRaceSpellAbilityChoice && !selectedSpellAbility) ||
           (selectedRace.id === 'elf' && !selectedKeenSensesSkillId) ||
           (selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId) ||
-          (selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2)
+          (selectedRace.id === 'changeling' && (selectedChangelingInstinctSkillIds.size !== 2 || !selectedChangelingSize)) ||
+          (selectedRace.id === 'kender' && racialSkillChoices.length !== 1) ||
+          (selectedRace.id === 'kenku' && racialSkillChoices.length !== 2) ||
+          (selectedRace.id === 'warforged' && racialSkillChoices.length !== 1) ||
+          (selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2)
         )
       }
       title={
@@ -325,7 +345,17 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
               ? 'Please select a Natural Affinity skill first'
               : selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2
                 ? 'Please select two Changeling Instincts skills first'
-                : `Confirm ${selectedRace.name}`
+                : selectedRace.id === 'changeling' && !selectedChangelingSize
+                  ? 'Please select your size first'
+                  : selectedRace.id === 'kender' && racialSkillChoices.length !== 1
+                    ? 'Please select a skill first'
+                    : selectedRace.id === 'kenku' && racialSkillChoices.length !== 2
+                      ? 'Please select two skills first'
+                      : selectedRace.id === 'warforged' && racialSkillChoices.length !== 1
+                        ? 'Please select a skill first'
+                        : selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2
+                          ? 'Please select two skills first'
+                          : `Confirm ${selectedRace.name}`
       }
     >
       Confirm {selectedRace.name}
@@ -461,6 +491,44 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
                         next.add(skillId);
                       }
                       return next;
+                    });
+                  }}
+                  selectedChangelingSize={selectedChangelingSize}
+                  onChangelingSizeChange={setSelectedChangelingSize}
+                  racialSkillChoices={racialSkillChoices}
+                  onRacialSkillChoiceToggle={(skillId, maxChoices) => {
+                    setRacialSkillChoices(prev => {
+                      if (prev.includes(skillId)) {
+                        return prev.filter(id => id !== skillId);
+                      }
+                      if (prev.length < maxChoices) {
+                        return [...prev, skillId];
+                      }
+                      return prev;
+                    });
+                  }}
+                  racialToolChoices={racialToolChoices}
+                  onRacialToolChoiceToggle={(toolId, maxChoices) => {
+                    setRacialToolChoices(prev => {
+                      if (prev.includes(toolId)) {
+                        return prev.filter(id => id !== toolId);
+                      }
+                      if (prev.length < maxChoices) {
+                        return [...prev, toolId];
+                      }
+                      return prev;
+                    });
+                  }}
+                  racialCantripChoices={racialCantripChoices}
+                  onRacialCantripChoiceToggle={(cantripId, maxChoices) => {
+                    setRacialCantripChoices(prev => {
+                      if (prev.includes(cantripId)) {
+                        return prev.filter(id => id !== cantripId);
+                      }
+                      if (prev.length < maxChoices) {
+                        return [...prev, cantripId];
+                      }
+                      return prev;
                     });
                   }}
                 />

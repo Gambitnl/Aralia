@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/05/2026, 00:13:21
+ * Last Sync: 31/05/2026, 19:21:27
  * Dependents: utils/character/characterUtils.ts
- * Imports: 1 files
+ * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -29,6 +29,17 @@ import type {
   ReactiveEffect,
   SavingThrowAbility
 } from '../../types/spells';
+
+/**
+ * This file manages the definition and parsing of racial traits.
+ *
+ * It parses trait strings from race configurations and extracts mechanical benefits
+ * such as spell grants, defensive features (resistance/immunity), and modifier buckets
+ * (ability score increases, custom Armor Class formulas, skill proficiencies, and speeds).
+ *
+ * Called by: characterUtils.ts (character assembly pipeline)
+ * Depends on: types/index.ts, types/spells.ts for character/combat data definitions
+ */
 
 type RacialTraitResetCondition = 'short_rest' | 'long_rest';
 
@@ -104,7 +115,7 @@ export interface RacialFeatureTrait extends RacialTraitBase {
   resources?: RacialResourceMechanic[];
 }
 
-export type RacialChoiceRequirementType = 'spellAbility' | 'spellChoice';
+export type RacialChoiceRequirementType = 'spellAbility' | 'spellChoice' | 'skillChoice' | 'featChoice';
 
 export interface RacialChoiceRequirement {
   type: RacialChoiceRequirementType;
@@ -117,6 +128,8 @@ export interface RacialChoiceRequirement {
   requiredSpellIds?: string[];
   availableSpellIds?: string[];
   availableAbilities?: AbilityScoreName[];
+  skillCount?: number;
+  featId?: string;
 }
 
 export type RacialTrait = RacialSpellTrait | RacialFeatureTrait;
@@ -194,6 +207,7 @@ export interface RacialModifierBuckets {
   ignoreDifficultTerrain?: boolean;
   breathWeapon?: RacialBreathWeapon;
   reactions?: RacialReaction[];
+  savageAttacks?: boolean;
 }
 
 export interface RacialReaction {
@@ -295,83 +309,143 @@ const extractDefenseBuckets = (text: string): RacialDefenseBuckets => {
 export const getRacialDefenseBucketsFromTraitText = (traitText: string): RacialDefenseBuckets =>
   extractDefenseBuckets(traitText);
 
+// ============================================================================
+// Racial Modifier Parsing and Extraction
+// ============================================================================
+// This section handles parsing raw trait descriptions to find mechanical
+// bonuses that alter character stats, such as additional skill or weapon
+// proficiencies, custom Armor Class formulas (Natural Armor), extra attack
+// reach, speed improvements, and saving throw modifiers.
+// ============================================================================
+
+// Look at a trait's text description and pull out any mechanical stat adjustments.
+// This supports translating natural text blocks into concrete player stats.
 const extractModifierBuckets = (text: string): RacialModifierBuckets => {
+  // Start with empty lists for bonuses, advantages, and disadvantages.
   const buckets: RacialModifierBuckets = {
     advantage: [],
     disadvantage: [],
     bonuses: [],
   };
 
+  // Find phrases that give advantage on certain rolls (like stealth or charm saving throws).
   const advMatch = text.match(/advantage on ([^.;]+)/gi);
   if (advMatch) {
     advMatch.forEach(match => buckets.advantage.push(match.replace(/advantage on /i, '').trim()));
   }
   
+  // Find phrases that impose disadvantage on certain rolls.
   const disMatch = text.match(/disadvantage on ([^.;]+)/gi);
   if (disMatch) {
     disMatch.forEach(match => buckets.disadvantage.push(match.replace(/disadvantage on /i, '').trim()));
   }
 
-  // Match AC bonuses: "+1 bonus to your Armor Class", "bonus to your AC is 13"
-  const baseACMatch = text.match(/base\s+Armor\s+Class\s+is\s+(\d+)/i);
+  // Look for custom base Armor Class overrides.
+  // This matches formulas like "base AC of 17" (Tortle) or "base AC is 13" (Thri-Kreen).
+  const baseACMatch = text.match(/base\s+(?:Armor\s+Class|AC)\s+(?:is|of)\s+(\d+)/i);
   if (baseACMatch) {
     buckets.baseArmorClass = parseInt(baseACMatch[1], 10);
   }
 
+  // Look for flat additions to Armor Class (like a "+1 bonus to Armor Class").
   const acBonusMatch = text.match(/(\+\d+)\s+bonus\s+to\s+your\s+Armor\s+Class/i) || text.match(/bonus\s+to\s+your\s+AC\s+of\s+(\d+)/i);
   if (acBonusMatch) {
     buckets.acBonus = parseInt(acBonusMatch[1].replace('+', ''), 10);
   }
 
-  // Reach
+  // Look for modifications to melee attack range (reach).
   const reachMatch = text.match(/reach\s+for\s+it\s+is\s+(\d+)\s+feet\s+greater/i);
   if (reachMatch) {
     buckets.reachBonus = parseInt(reachMatch[1], 10);
   }
 
-  // Powerful Build
+  // Determine if this trait treats the character as one size category larger for carrying/lifting.
   if (/count\s+as\s+one\s+size\s+larger/i.test(text)) {
     buckets.powerfulBuild = true;
   }
 
-  // Unending Breath
+  // Check if the character has the ability to breathe underwater or hold their breath indefinitely.
   if (/hold\s+your\s+breath\s+indefinitely/i.test(text)) {
     buckets.unendingBreath = true;
   }
 
-  // Languages
+  // Extract any additional languages the character learns to speak, read, and write.
   const langMatch = text.match(/speak,\s+read,\s+and\s+write\s+([A-Z][a-z]+)/g);
   if (langMatch) {
     buckets.languages = langMatch.map(m => m.replace(/speak,\s+read,\s+and\s+write\s+/i, '').trim());
   }
 
-  // Proficiencies
-  const skillMatch = text.match(/proficiency\s+in\s+the\s+([A-Z][a-z]+)\s+skill/i) || text.match(/proficiency\s+in\s+([A-Z][a-z]+)/i);
-  if (skillMatch) {
-    buckets.skillProficiencies = [skillMatch[1].trim()];
+  // Parse skill proficiencies granted by this trait.
+  // We look for phrasing like "proficiency in..." or "proficient in...".
+  // To handle multiple skills (e.g. Satyr's Performance and Persuasion), we scan the matching text
+  // block for any of the 18 standard D&D skills and grant proficiency for each one found.
+  const skillMatches: string[] = [];
+  const profSkillRegex = /(?:proficiency|proficient)\s+in\s+(?:the\s+)?([^.;]+)/i;
+  const profSkillMatch = text.match(profSkillRegex);
+  if (profSkillMatch) {
+    const targetText = profSkillMatch[1];
+    const skillsList = targetText.match(/\b(Acrobatics|Animal Handling|Arcana|Athletics|Deception|History|Insight|Intimidation|Investigation|Medicine|Nature|Perception|Performance|Persuasion|Religion|Sleight of Hand|Stealth|Survival)\b/gi);
+    if (skillsList) {
+      skillsList.forEach(skill => {
+        // Ensure each skill name is correctly formatted with capital starting letters (e.g., Sleight of Hand).
+        const formattedSkill = skill.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+        if (!skillMatches.includes(formattedSkill)) {
+          skillMatches.push(formattedSkill);
+        }
+      });
+    }
   }
 
+  // If we found skill proficiencies using the generalized matcher, apply them.
+  // Otherwise, fall back to standard single-skill matching patterns.
+  if (skillMatches.length > 0) {
+    buckets.skillProficiencies = skillMatches;
+  } else {
+    const skillMatch = text.match(/proficiency\s+in\s+the\s+([A-Z][a-z]+)\s+skill/i) || text.match(/proficiency\s+in\s+([A-Z][a-z]+)/i);
+    if (skillMatch) {
+      buckets.skillProficiencies = [skillMatch[1].trim()];
+    }
+  }
+
+  // Parse weapon proficiencies granted by this trait (e.g. axes, swords, or specific weapons).
   const weaponMatch = text.match(/proficiency\s+with\s+(?:the\s+)?([^.;]+)/i);
   if (weaponMatch && (text.includes('weapon') || text.includes('axe') || text.includes('bow') || text.includes('sword') || text.includes('hammer'))) {
     const weapons = weaponMatch[1].split(/,|\band\b/).map(s => s.trim()).filter(Boolean);
     buckets.weaponProficiencies = weapons;
   }
 
-  // Initiative
+  // Parse armor or shield proficiencies granted by this trait (e.g., light or medium armor).
+  const armorMatch = text.match(/proficiency\s+with\s+(?:the\s+)?([^.;]+)/i);
+  if (armorMatch && (text.includes('armor') || text.includes('shield'))) {
+    const armorTypes: string[] = [];
+    if (/light/i.test(text)) armorTypes.push('Light armor');
+    if (/medium/i.test(text)) armorTypes.push('Medium armor');
+    if (/heavy/i.test(text)) armorTypes.push('Heavy armor');
+    if (/shield/i.test(text)) armorTypes.push('Shields');
+    buckets.armorProficiencies = armorTypes;
+  }
+
+  // Check if the character can add their Proficiency Bonus to initiative rolls.
   if (/add\s+your\s+Proficiency\s+Bonus\s+to\s+your\s+initiative\s+rolls/i.test(text)) {
     buckets.initiativeProficiency = true;
   }
+  // Look for flat initiative roll bonuses (e.g. "+5 bonus to initiative").
   const initBonusMatch = text.match(/(\+\d+)\s+bonus\s+to\s+initiative/i);
   if (initBonusMatch) {
     buckets.initiativeBonus = parseInt(initBonusMatch[1].replace('+', ''), 10);
   }
 
-  // Difficult Terrain
+  // Check if the character can move across difficult terrain without expending extra movement.
   if (/move\s+across\s+Difficult\s+Terrain\s+without\s+expending\s+extra\s+movement/i.test(text)) {
     buckets.ignoreDifficultTerrain = true;
   }
 
-  // Breath Weapon
+  // Check if the character has the Savage Attacks feature (grants extra damage die on melee critical hits).
+  if (/Savage\s+Attacks/i.test(text)) {
+    buckets.savageAttacks = true;
+  }
+
+  // Parse breath weapon parameters if this trait describes a dragonborn-style breath weapon.
   if (/Breath\s+Weapon/i.test(text)) {
     const areaMatch = text.match(/(\d+)-foot\s+(cone|line)/i);
     const saveMatch = text.match(/\b(Dexterity|Constitution)\b\s+saving\s+throw/i);
@@ -395,16 +469,14 @@ const extractModifierBuckets = (text: string): RacialModifierBuckets => {
     }
   }
 
-  // Refined bonus parsing: "add a d4 to", "roll a d4... to", "gain a +2 bonus to"
-  // Handles "Wild Intuition" style: "roll a d4 and add the number rolled to the ability check"
+  // Look for other general numerical or die-roll bonuses to specific rolls,
+  // such as adding a d4 to ability checks or skill checks.
   const bonusRegex = /(?:add|roll|gain)\s+(?:a\s+)?(d\d+|\+\d+)\s+.*?(?:to|on|for)\s+([^.;]+)/gi;
   let match;
   while ((match = bonusRegex.exec(text)) !== null) {
     const diceOrFlat = match[1];
     let target = match[2].trim();
-    // Clean up "the number rolled to the ability check" -> "the ability check"
     target = target.replace(/the number rolled to\s+/i, '');
-    // If it's a skill check, try to extract the skill names
     const skillMatches = target.match(/\b(Acrobatics|Animal Handling|Arcana|Athletics|Deception|History|Insight|Intimidation|Investigation|Medicine|Nature|Perception|Performance|Persuasion|Religion|Sleight of Hand|Stealth|Survival)\b/gi);
     if (skillMatches) {
       skillMatches.forEach(skill => buckets.bonuses.push(`${diceOrFlat} to ${skill}`));
@@ -745,6 +817,35 @@ const extractChoicesFromTrait = (
     }
   }
 
+  // 3. Skill Choice Detection
+  // Pattern: "one skill of your choice" (Human Skillful)
+  if (/\bone skill of your choice\b/i.test(trait) || /\bproficiency in one skill of your choice\b/i.test(trait)) {
+    choices.push({
+      type: 'skillChoice',
+      id: `${race.id}::${normalizeSpellToken(traitName)}::skillChoice`,
+      sourceRaceId: race.id,
+      sourceRaceName: race.name,
+      sourceTraitName: traitName,
+      sourceTraitDescription: trait,
+      sourceText: trait,
+      skillCount: 1,
+    });
+  }
+
+  // 4. Feat Choice Detection
+  // Pattern: "an Origin feat of your choice" (Human Versatile)
+  if (/\bOrigin feat of your choice\b/i.test(trait)) {
+    choices.push({
+      type: 'featChoice',
+      id: `${race.id}::${normalizeSpellToken(traitName)}::featChoice`,
+      sourceRaceId: race.id,
+      sourceRaceName: race.name,
+      sourceTraitName: traitName,
+      sourceTraitDescription: trait,
+      sourceText: trait,
+    });
+  }
+
   return choices;
 };
 
@@ -931,6 +1032,13 @@ const buildRacialTextFeatureTrait = (race: Race, trait: string): RacialFeatureTr
       unendingBreath: modifierBuckets.unendingBreath,
       languages: modifierBuckets.languages ? [...modifierBuckets.languages] : undefined,
       reactions: reactions.length > 0 ? reactions : undefined,
+      skillProficiencies: modifierBuckets.skillProficiencies ? [...modifierBuckets.skillProficiencies] : [],
+      weaponProficiencies: modifierBuckets.weaponProficiencies ? [...modifierBuckets.weaponProficiencies] : [],
+      armorProficiencies: modifierBuckets.armorProficiencies ? [...modifierBuckets.armorProficiencies] : [],
+      initiativeBonus: modifierBuckets.initiativeBonus,
+      initiativeProficiency: modifierBuckets.initiativeProficiency,
+      ignoreDifficultTerrain: modifierBuckets.ignoreDifficultTerrain,
+      savageAttacks: modifierBuckets.savageAttacks,
     },
     featureGroup: hasMechanicHint ? 'mechanical' : 'informational',
     resources,

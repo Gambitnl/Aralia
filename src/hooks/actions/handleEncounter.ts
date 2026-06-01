@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 31/05/2026, 23:14:41
+ * Dependents: hooks/actions/actionHandlers.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/hooks/actions/handleEncounter.ts
@@ -67,8 +82,16 @@ export function handleHideEncounterModal(dispatch: React.Dispatch<AppAction>): v
     dispatch({ type: 'HIDE_ENCOUNTER_MODAL' });
 }
 
-export function handleStartBattleMapEncounter(dispatch: React.Dispatch<AppAction>, payload: StartBattleMapEncounterPayload): void {
-    dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: payload } });
+export async function handleStartBattleMapEncounter(dispatch: React.Dispatch<AppAction>, payload: StartBattleMapEncounterPayload): Promise<void> {
+    // Build combat-ready enemies only when the player actually starts a battle.
+    // createEnemyFromMonster imports the runtime monster registry, which pulls in
+    // the generated bestiary; keeping that import here prevents the main menu
+    // from downloading monster data during startup.
+    const { createEnemyFromMonster } = await import('../../utils/combat/createEnemyFromMonster');
+    const combatants = payload.monsters.flatMap((monster) =>
+        Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
+    );
+    dispatch({ type: 'START_BATTLE_MAP_ENCOUNTER', payload: { startBattleMapEncounterData: { ...payload, combatants } } });
 }
 
 export function handleEndBattle(dispatch: React.Dispatch<AppAction>, rewards?: { gold: number; items: Item[]; xp: number }): void {

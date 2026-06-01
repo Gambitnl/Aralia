@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 07/05/2026, 00:03:24
+ * Last Sync: 31/05/2026, 23:28:55
  * Dependents: components/Combat/index.ts
- * Imports: 33 files
+ * Imports: 36 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -280,6 +280,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
     onMapUpdate: setMapData,
+    onAddSpellZone: turnManager.addSpellZone,
+    onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
+    onAddMovementDebuff: turnManager.addMovementDebuff,
     currentPlane
   });
 
@@ -510,7 +513,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         </button>
       </div>
 
-      <div className="flex-grow grid grid-cols-1 xl:grid-cols-[200px_1fr_200px] gap-4 overflow-hidden">
+      <div className="flex-grow min-h-0 grid grid-cols-1 xl:grid-cols-[200px_1fr_200px] gap-4 overflow-hidden">
         {/* Left Pane */}
         <div className="flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
           <PartyDisplay
@@ -524,14 +527,25 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
         </div>
 
         {/* Center Pane */}
-        <div className="flex flex-col gap-2 overflow-hidden p-1">
+        <div className="flex min-h-0 flex-col gap-2 overflow-hidden p-1">
           <InitiativeTracker
             characters={characters}
             turnState={turnManager.turnState}
             onCharacterSelect={handleSheetOpen}
             onSkipToCharacter={turnManager.skipToCharacter}
           />
-          <div className="flex-1 flex items-center justify-center overflow-auto relative">
+          {/*
+            The map pane owns the remaining combat-center space. min-h-0 keeps
+            the surrounding grid/flex layout from forcing a scroll-sized child,
+            while the framed 3D mode gives the canvas a stable box to measure.
+          */}
+          <div
+            className={`relative flex min-h-0 flex-1 items-center justify-center ${
+              renderMode === '3d'
+                ? 'overflow-hidden rounded-lg border border-sky-500/35 bg-slate-950 shadow-[0_0_0_1px_rgba(15,23,42,0.85),0_18px_50px_rgba(0,0,0,0.35)]'
+                : 'overflow-auto'
+            }`}
+          >
             {/* Map controls: 2D/3D toggle + Pop-out */}
             {!isBattleMapExpanded && (
               <div className="absolute top-2 right-2 z-10 flex gap-1">

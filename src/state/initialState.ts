@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:11
- * Dependents: App.tsx, appState.ts
- * Imports: 16 files
+ * Last Sync: 31/05/2026, 23:31:45
+ * Dependents: App.tsx, state/appState.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,20 +22,17 @@
 
 import { GameState, GamePhase, SuspicionLevel, UnderdarkState } from '../types';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
-import { STARTING_LOCATION_ID, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS, COMPANIONS } from '../constants';
-import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
+import { STARTING_LOCATION_ID } from '../data/world/locations';
+import { NPCS } from '../data/world/npcs';
+import { COMPANIONS } from '../data/companions';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
-import { canUseDevTools } from '../utils/permissions';
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
-import * as SaveLoadService from '../services/saveLoadService';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
 import { NavalState } from '../types/naval';
 import type { DivineFavor } from '../types/religion';
 import { getGameDay } from '../utils/core';
-import { generateId } from '../utils/core/idGenerator';
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
@@ -80,26 +77,20 @@ export const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce(
 
 // RALPH: The Genesis State.
 // Defines the exact starting conditions for a new game.
-// It uses "Dummy" data if dev tools are enabled and no save exists to facilitate rapid testing.
+// Dev dummy auto-start is now handled after App mounts so this static state does
+// not import the generated item registry during saved main-menu startup.
 export const initialGameState: GameState = {
-    phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
+    phase: GamePhase.MAIN_MENU,
     autoSaveEnabled: true,
-    party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
-    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame()
-        ? getDummyParty().map(p => ({
-            id: p.id || generateId(),
-            name: p.name, // TempPartyMember requires a display name.
-            level: p.level || 1,
-            classId: p.class.id
-        }))
-        : null,
-    inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
+    party: [],
+    tempParty: null,
+    inventory: [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
-    subMapCoordinates: canUseDevTools() && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
+    subMapCoordinates: null,
     messages: [],
-    isLoading: canUseDevTools() && !!getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame(),
-    loadingMessage: canUseDevTools() && !!getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
+    isLoading: false,
+    loadingMessage: null,
     isImageLoading: false,
     error: null,
     worldSeed: Date.now(), // Default seed, will be overwritten on new game

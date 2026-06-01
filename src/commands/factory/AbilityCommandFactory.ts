@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 17:10:53
+ * Last Sync: 01/06/2026, 01:25:48
  * Dependents: commands/index.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -323,6 +323,94 @@ export class WeaponAttackCommand implements SpellCommand {
           newState = await command.execute(newState);
           // Refresh target
           currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+        }
+      }
+
+      // ================================================================
+      // SNEAK ATTACK TRIGGER & RESOLUTION (G9)
+      // ================================================================
+      // Rogue Sneak Attack trigger conditions:
+      // 1. Attacker is Rogue class OR has the sneak_attack feature.
+      // 2. Has not used Sneak Attack yet this turn.
+      // 3. Is using a Finesse weapon or a Ranged weapon.
+      // 4. Trigger requirement:
+      //    - Attacker has Advantage (and not Disadvantage)
+      //    OR
+      //    - Attacker has an active, conscious adjacent ally to the target
+      //      (within 1 tile / 5 feet) AND does not have Disadvantage.
+      // ================================================================
+      const isRogue = this.caster.class.id === 'rogue' || this.caster.feats?.includes('sneak_attack');
+      const hasUsedSneakAttack = this.caster.featUsageThisTurn?.includes('sneak_attack');
+      
+      const isFinesse = this.ability.weapon?.properties?.includes('finesse');
+      const isRanged = this.ability.range > 1 || 
+                       this.ability.weapon?.properties?.includes('range') || 
+                       this.ability.weapon?.category?.toLowerCase().includes('ranged');
+      const isEligibleWeapon = isFinesse || isRanged;
+
+      if (isRogue && !hasUsedSneakAttack && isEligibleWeapon) {
+        const hasAdv = hasAdvantage && !hasDisadvantage;
+        const hasDisadv = hasDisadvantage && !hasAdvantage;
+
+        // Check for an active, conscious adjacent ally of the attacker to the target (HP > 0 and within 1 tile)
+        const adjacentAlly = newState.characters.find(c => 
+          c.team === this.caster.team && 
+          c.id !== this.caster.id && 
+          c.currentHP > 0 && 
+          getDistance(c.position, currentTarget.position) <= 1
+        );
+
+        if (hasAdv || (!!adjacentAlly && !hasDisadv)) {
+          // Sneak Attack triggered!
+          const rogueLevel = this.caster.level || 1;
+          const sneakAttackDiceNum = Math.ceil(rogueLevel / 2);
+          const sneakAttackDice = `${sneakAttackDiceNum}d6`;
+          const baseWeaponDamageType = this.ability.effects.find(e => e.type === 'damage')?.damageType || 'piercing';
+
+          const sneakAttackEffect: SpellEffect = {
+            type: 'DAMAGE',
+            trigger: { type: 'immediate' },
+            condition: { type: 'hit' },
+            damage: {
+              dice: sneakAttackDice,
+              type: baseWeaponDamageType
+            }
+          };
+
+          const sneakAttackContext: CommandContext = {
+            ...this.context,
+            targets: [currentTarget],
+            isCritical
+          };
+
+          const sneakAttackCommand = new DamageCommand(sneakAttackEffect, sneakAttackContext);
+          newState = await sneakAttackCommand.execute(newState);
+          
+          // Refresh target and caster references in the updated state
+          currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+
+          // Mark Sneak Attack as used this turn on the caster in characters list
+          newState = {
+            ...newState,
+            characters: newState.characters.map(c => 
+              c.id === this.caster.id 
+                ? { ...c, featUsageThisTurn: [...(c.featUsageThisTurn || []), 'sneak_attack'] }
+                : c
+            )
+          };
+
+          // Also update the local reference of caster's featUsageThisTurn for subsequent target checks in the cleave loop
+          this.caster = newState.characters.find(c => c.id === this.caster.id) || this.caster;
+
+          // Log the Sneak Attack trigger
+          newState.combatLog.push({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'damage',
+            message: `${this.caster.name}'s Sneak Attack triggers! Dealing an extra ${sneakAttackDice} ${baseWeaponDamageType} damage.`,
+            characterId: this.caster.id,
+            targetIds: [currentTarget.id]
+          });
         }
       }
 

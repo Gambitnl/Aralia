@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 05/04/2026, 00:55:31
+ * Last Sync: 31/05/2026, 23:30:41
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -54,7 +54,7 @@ export type AppAction =
   | { type: 'SET_AUTO_SAVE_ENABLED'; payload: boolean }
   | { type: 'ABANDON_RUN' }
   | { type: 'START_NEW_GAME_SETUP'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; worldSeed: number; } }
-  | { type: 'START_GAME_FOR_DUMMY'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; generatedParty: PlayerCharacter[]; worldSeed: number; } }
+  | { type: 'START_GAME_FOR_DUMMY'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; generatedParty: PlayerCharacter[]; worldSeed: number; initialInventory: Item[]; } }
   | { type: 'START_GAME_SUCCESS'; payload: StartGameSuccessPayload }
   | { type: 'LOAD_GAME_SUCCESS'; payload: GameState }
   | { type: 'SET_LOADING'; payload: { isLoading: boolean; message?: string | null } }
@@ -69,7 +69,7 @@ export type AppAction =
   | { type: 'TOGGLE_THREE_D_VISIBILITY' }
   | { type: 'SET_WORLD_SEED'; payload: number }
   | { type: 'SET_MAP_DATA'; payload: MapData }
-  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
+  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { worldSeed: number; mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null; initialInventory: Item[] } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }
   | { type: 'OPEN_CHARACTER_SHEET'; payload: PlayerCharacter }
   | { type: 'CLOSE_CHARACTER_SHEET' }

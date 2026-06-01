@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 30/05/2026, 23:33:57
+ * Last Sync: 31/05/2026, 23:32:33
  * Dependents: App.tsx
  * Imports: 4 files
  *
@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { GamePhase, GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
-import { LOCATIONS } from '../constants';
+import { LOCATIONS } from '../data/world/locations';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 
 // Helper to convert GamePhase enum <-> URL slug

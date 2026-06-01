@@ -31,7 +31,7 @@ AntiGravity operates in a different environment than Claude Code:
 |--------|-------------|-------------|
 | **Skill location** | `.claude/skills/` | `.agent/skills/` |
 | **Environment rules** | `.claude/settings.json` | `.agent/rules/Terminal.md`, `GEMINI.md` |
-| **Workflow files** | `.claude/commands/` | `.agent/workflows/` |
+| **Workflow files** | `.claude/commands/` | `public/agent-docs/workflows/` |
 | **User profile** | N/A | `.agent/workflows/USER.local.md` |
 | **Session hooks** | Shell hooks | Tidy-up chain (Step 5) |
 | **Shell** | Bash/Zsh | PowerShell (Windows) |
@@ -90,7 +90,7 @@ UI generation, code commentary standards.
 **Example**: The checkerboard removal technique for AI-generated sprites
 (pattern detection → flood fill → preservation of character details).
 
-### 3. Workflow Improvements → `.agent/workflows/[workflow].md`
+### 3. Workflow Improvements → `public/agent-docs/workflows/[workflow].md`
 Process improvements discovered during tidy-up or other workflows.
 
 **Example**: Adding a multi-agent scoping step to the session ritual so each

@@ -1,10 +1,41 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+/**
+ * Status-condition integration coverage for SpellCommandFactory.
+ *
+ * These tests protect the path from spell payloads to executable commands.
+ * The real-data Hold Person case is intentionally broader than a factory-only
+ * assertion: it proves repeat-save metadata survives command creation and
+ * status application into the runtime mirrors used by combat.
+ */
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories';
 import { SpellSchool, type Spell, type SpellEffect, type UtilityEffect, type StatusConditionEffect } from '@/types/spells';
+import { INGESTED_MONSTERS } from '@/data/monsters.generated';
+import * as savingThrowUtils from '@/utils/savingThrowUtils';
+
+vi.mock('@/utils/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>();
+  return {
+    ...actual,
+    calculateSpellDC: vi.fn(() => 13),
+    rollSavingThrow: vi.fn()
+  };
+});
 
 const readEffect = (commands: unknown[], index = 0): SpellEffect =>
   (commands[index] as { effect: SpellEffect }).effect;
+
+const findGeneratedSpell = (spellId: string): Spell => {
+  for (const monster of Object.values(INGESTED_MONSTERS)) {
+    for (const ability of monster.abilities ?? []) {
+      if (ability.spell?.id === spellId) {
+        return ability.spell as Spell;
+      }
+    }
+  }
+
+  throw new Error(`Generated spell payload not found: ${spellId}`);
+};
 
 describe('SpellCommandFactory - Status Condition Integration', () => {
   let caster: ReturnType<typeof createMockCombatCharacter>;
@@ -12,6 +43,8 @@ describe('SpellCommandFactory - Status Condition Integration', () => {
   let gameState: ReturnType<typeof createMockGameState>;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     caster = createMockCombatCharacter({
       id: 'caster',
       name: 'Test Caster'
@@ -105,5 +138,41 @@ describe('SpellCommandFactory - Status Condition Integration', () => {
     const statusEffect = readEffect(commands, 0) as StatusConditionEffect;
     expect(statusEffect.type).toBe('STATUS_CONDITION');
     expect(statusEffect.statusCondition.name).toBe('Prone');
+  });
+
+  it('preserves real generated Hold Person repeat-save metadata through factory and status application', async () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 5,
+      success: false,
+      modifiersApplied: []
+    } as any);
+
+    const holdPerson = findGeneratedSpell('hold-person');
+    const commands = await SpellCommandFactory.createCommands(holdPerson, caster, [target], 2, gameState);
+    const statusCommand = commands.find(command => readEffect([command]).type === 'STATUS_CONDITION');
+
+    expect(statusCommand).toBeDefined();
+
+    const result = await statusCommand!.execute(createMockCombatState({
+      characters: [caster, target],
+      turnState: {
+        currentTurn: 1,
+        currentCharacterId: 'caster',
+        turnOrder: ['caster', 'target'],
+        phase: 'action',
+        actionsThisTurn: []
+      }
+    }));
+
+    const updatedTarget = result.characters.find(character => character.id === target.id)!;
+
+    expect(updatedTarget.statusEffects[0].name).toBe('Paralyzed');
+    expect(updatedTarget.statusEffects[0].repeatSave).toEqual({
+      timing: 'turn_end',
+      saveType: 'Wisdom',
+      successEnds: true,
+      useOriginalDC: true
+    });
+    expect(updatedTarget.conditions?.[0].repeatSave).toEqual(updatedTarget.statusEffects[0].repeatSave);
   });
 });

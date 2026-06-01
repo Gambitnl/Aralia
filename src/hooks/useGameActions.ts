@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:31
+ * Last Sync: 31/05/2026, 23:09:13
  * Dependents: App.tsx
- * Imports: 8 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,11 +22,11 @@
 import React, { useCallback } from 'react';
 import { GameState, Action, Location, GeminiLogEntry, DiscoveryType, ACTION_METADATA } from '../types';
 import { AppAction } from '../state/actionTypes';
-import { LOCATIONS, NPCS } from '../constants';
+import { LOCATIONS } from '../data/world/locations';
+import { NPCS } from '../data/world/npcs';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { generateGeneralActionContext } from '../utils/contextUtils';
-import { buildActionHandlers } from './actions/actionHandlers';
 import { UIToggleAction } from '../types/ui';
 
 
@@ -127,6 +127,11 @@ export function useGameActions({
         currentLocation: currentLoc,
         npcsInLocation
       });
+
+      // Load the full action registry only once a player action actually needs it.
+      // That registry imports encounter, item, spell, and merchant handlers, so
+      // keeping it out of the startup path protects the main menu from gameplay data.
+      const { buildActionHandlers } = await import('./actions/actionHandlers');
 
       // Build the registry in src/hooks/actions/actionHandlers.ts so this hook
       // stays focused on orchestration and lifecycle management.

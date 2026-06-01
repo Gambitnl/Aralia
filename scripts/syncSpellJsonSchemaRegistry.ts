@@ -65,6 +65,7 @@ const DEFINITION_PARTS: Array<{ fileName: string; part: string; names: string[] 
     fileName: '20-effect-payloads.json',
     part: '20-effect-payloads',
     names: [
+      'EffectTrigger',
       'DamageEffect',
       'HealingEffect',
       'StatusConditionEffect',

@@ -56,6 +56,7 @@ export type AppAction = {
         dynamicLocationItemIds: Record<string, string[]>;
         generatedParty: PlayerCharacter[];
         worldSeed: number;
+        initialInventory: Item[];
     };
 } | {
     type: 'START_GAME_SUCCESS';
@@ -122,6 +123,7 @@ export type AppAction = {
             y: number;
         };
         initialActiveDynamicNpcIds: string[] | null;
+        initialInventory: Item[];
     };
 } | {
     type: 'SET_GEMINI_ACTIONS';
