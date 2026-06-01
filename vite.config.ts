@@ -2735,6 +2735,20 @@ export default defineConfig(async ({ mode, command }) => {
         '@': path.resolve(__dirname, 'src'),
       }
     },
+    optimizeDeps: {
+      // Pre-bundle the 3D stack at dev-server startup. Without this, the first
+      // navigation to a lazy-loaded 3D surface (BattleMap3D, World3DDemo) makes
+      // Vite discover these deps on the fly and trigger a "new dependencies
+      // optimized — reloading" full page reload mid-navigation. That reload races
+      // the URL→phase init and bounces deep links like ?phase=world3d back to the
+      // main menu. Including them up front removes the reload (and speeds first load).
+      include: [
+        'three',
+        '@react-three/fiber',
+        '@react-three/drei',
+        '@react-three/postprocessing',
+      ],
+    },
     build: {
       rollupOptions: {
         input: {
