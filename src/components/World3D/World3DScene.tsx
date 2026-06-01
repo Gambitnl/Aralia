@@ -166,7 +166,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
   const onPositionChange = useCallback((x: number, z: number) => update(x, z), [update]);
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '600px', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>
       <Canvas
         shadows={SHADOWS}
         camera={{ fov: 55, near: 1, far: 2000, position: [120, 160, 120] }}
