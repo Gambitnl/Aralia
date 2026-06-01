@@ -26,7 +26,8 @@ export function buildVegetationScatter(data: ChunkData): VegetationScatter {
   const scales: number[] = [];
   const rotations: number[] = [];
 
-  for (let j = 0; j < res; j++) {
+  let capped = false;
+  for (let j = 0; j < res && !capped; j++) {
     for (let i = 0; i < res; i++) {
       const idx = j * res + i;
       const biome = data.biomeIds[idx];
@@ -34,6 +35,9 @@ export function buildVegetationScatter(data: ChunkData): VegetationScatter {
 
       const gate = hash01(data.cx * 73856093 + i, data.cy * 19349663 + j, 1);
       if (gate < 0.5) continue;
+
+      // Perf guard: never exceed the per-chunk instance cap.
+      if (positions.length / 3 >= WORLD3D_CONFIG.MAX_VEGETATION_PER_CHUNK) { capped = true; break; }
 
       const tx = res === 1 ? 0 : i / (res - 1);
       const tz = res === 1 ? 0 : j / (res - 1);

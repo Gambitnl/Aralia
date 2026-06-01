@@ -26,6 +26,10 @@ export const WORLD3D_CONFIG = {
   UNLOAD_RADIUS: 6,
   /** Max chunk loads in flight at once (throttles the worker pool). */
   MAX_CONCURRENT_LOADS: 4,
+  /** Hard cap on vegetation instances emitted per chunk (perf guard). */
+  MAX_VEGETATION_PER_CHUNK: 60,
+  /** Whether the streamed world casts/receives real-time shadows (off = much cheaper). */
+  STREAMED_WORLD_SHADOWS: false,
 } as const;
 
 /** Derived: number of chunks spanning one grid cell along each axis. */

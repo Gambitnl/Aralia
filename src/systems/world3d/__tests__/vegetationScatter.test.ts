@@ -1,5 +1,17 @@
 import { buildVegetationScatter } from '../vegetationScatter';
+import { WORLD3D_CONFIG } from '../config';
 import type { ChunkData } from '../types';
+
+it('never emits more instances than MAX_VEGETATION_PER_CHUNK', () => {
+  const data: ChunkData = {
+    cx: 1, cy: 1, resolution: 32,
+    heights: new Float32Array(32 * 32).fill(50),
+    biomeIds: new Array(32 * 32).fill('forest'),
+    rivers: [], roads: [], sites: [],
+  };
+  const veg = buildVegetationScatter(data);
+  expect(veg.positions.length / 3).toBeLessThanOrEqual(WORLD3D_CONFIG.MAX_VEGETATION_PER_CHUNK);
+});
 
 const chunk = (biome: string): ChunkData => ({
   cx: 2,
