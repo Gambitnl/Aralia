@@ -3,19 +3,45 @@
 Status: active
 Last updated: 2026-06-01
 
-> Part of the **Azgaar-driven streamed 3D world** initiative. This surface owns the
-> upstream `WorldData` generation (Plan 1, landed). Canonical umbrella North Star for
-> the initiative: `docs/projects/world3d/NORTH_STAR.md`.
+> One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
+> (not consolidated):
+> - **this surface (`worldsim-service`)** — world **generation + simulation**: the spatial
+>   geometry pipeline *and* the world's first-build history/story/events.
+> - `world3d` — the 3D rendering engine that consumes this surface's `WorldData`.
+> - `world-3d-ui` — the 2D↔3D transition + in-3D HUD.
+> Owner: claude.
 
 ## Why This Project Exists
 
-`src/services/worldSim` is the single owner for generated world artifacts used as deterministic runtime geometry and navigation data. This project keeps that ownership explicit and records how world snapshots are loaded, versioned, and consumed by map and 3D systems.
+This is the owner of **how a world comes into being**: both its physical generation and the
+simulation that produces its initial state and story at first build. Two halves:
+
+1. **Spatial generation (built):** `src/services/worldSim` deterministically produces the
+   `WorldData` v2 artifact (heightmap, biomes, rivers, roads, sites, coastlines, lakes) that
+   the 3D rendering engine (`world3d`) and the 2D atlas consume. This is the "Plan 1" work.
+2. **World story / history / events (growth area):** the narrative simulation that runs when
+   a player first creates a character and the world is generated — the world's seeded history,
+   founding events, and initial lore. `src/services/WorldHistoryService.ts` is the current
+   seed of this; it is early and intended to grow under this surface.
+
+Keeping both halves here makes "the world that gets generated at game start" a single owned
+concern, so geometry and the world's story are versioned and reasoned about together.
 
 ## Purpose and Scope
 
-- Owns the procedural world geometry pipeline contract (`WorldData` v2).
-- Owns simulation ownership boundaries around world snapshots, migration, and sync/performance entry points.
-- Does not own long-running gameplay simulation (faction events, rumor systems, economy updates), which stays under `docs/projects/world`.
+In scope:
+- The procedural world **geometry** pipeline + `WorldData` v2 contract (`src/services/worldSim/*`).
+- World **snapshot** lifecycle: load, version, migrate (`worldDataMigration`, `saveLoadService`).
+- **First-build world simulation**: generated history/story/events at world creation
+  (`src/services/WorldHistoryService.ts` and its growth).
+- The generation entry paths (`mapService.ts`, `azgaarDerivedMapService.ts`).
+
+Out of scope (owned elsewhere):
+- 3D rendering of `WorldData` — `world3d`.
+- Entry/transition + HUD — `world-3d-ui`.
+- **Ongoing/live** gameplay world-state churn after world birth (faction events over time,
+  rumor systems, economy ticks) — stays under `docs/projects/world`. The boundary: this
+  surface owns world **birth** (generation + initial story); `world` owns world **runtime**.
 
 ## Key File Map
 

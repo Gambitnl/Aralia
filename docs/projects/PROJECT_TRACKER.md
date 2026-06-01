@@ -206,7 +206,7 @@ duplicate project.
 | Trade UI | partial | medium | `src/components/Trade` | GAPS.md present | implemented | normalize pricing and offer format |
 | Town | partial | medium | `src/components/Town` | GAPS.md present | implemented | clarify city-state model coupling |
 | ThreeD Modal | partial | medium | `src/components/ThreeDModal` | GAPS.md present | implemented | establish UX contract for 3D entrypoints |
-| World 3D UI | experimental | medium | `src/components/World3D` | GAPS.md present | implemented | stabilize scene lifecycle API |
+| World 3D UI | active | medium | `src/components/World3D`, `src/hooks/useHistorySync.ts` | North Star refreshed 2026-06-01 (re-scoped: 2D↔3D transition + in-3D HUD) | scope clarified | fix `?phase=world3d` entry bounce; author Plan 4 (transition + atlas marker sync) |
 | types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
 | Layout | partial | medium | `src/components/layout` | GAPS.md present | implemented | define application shell boundaries |
 | Providers | partial | medium | `src/components/providers` | GAPS.md present | implemented | specify provider dependency graph |
@@ -223,7 +223,7 @@ duplicate project.
 | Gemini Service | experimental | medium | `src/services/gemini` | GAPS.md present | implemented | define cost/error fallback strategy |
 | Ollama Service | experimental | medium | `src/services/ollama` | GAPS.md present | implemented | define local/remote adapter abstraction |
 | RealmSmith Service | partial | medium | `src/services/realmsmith` | GAPS.md present | implemented | stabilize API contract + retry policy |
-| WorldSim Service | partial | high | `src/services/worldSim` | GAPS.md present | implemented | define simulation ownership and state snapshots |
+| WorldSim Service | active | high | `src/services/worldSim`, `src/services/WorldHistoryService.ts` | North Star refreshed 2026-06-01 (generation + simulation) | geometry done; story/history early | grow first-build world history/story/events generation |
 
 ## Tools, Automation, and Infrastructure
 
@@ -299,7 +299,7 @@ duplicate project.
 | Trade UI | partial | medium | `src/components/Trade` | GAPS.md present | implemented | normalize pricing and offer format |
 | Town | partial | medium | `src/components/Town` | GAPS.md present | implemented | clarify city-state model coupling |
 | ThreeD Modal | partial | medium | `src/components/ThreeDModal` | GAPS.md present | implemented | establish UX contract for 3D entrypoints |
-| World 3D UI | experimental | medium | `src/components/World3D` | GAPS.md present | implemented | stabilize scene lifecycle API |
+| World 3D UI | active | medium | `src/components/World3D`, `src/hooks/useHistorySync.ts` | North Star refreshed 2026-06-01 (re-scoped: 2D↔3D transition + in-3D HUD) | scope clarified | fix `?phase=world3d` entry bounce; author Plan 4 (transition + atlas marker sync) |
 | types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
 | Layout | partial | medium | `src/components/layout` | GAPS.md present | implemented | define application shell boundaries |
 | Providers | partial | medium | `src/components/providers` | GAPS.md present | implemented | specify provider dependency graph |
@@ -316,7 +316,7 @@ duplicate project.
 | Gemini Service | experimental | medium | `src/services/gemini` | GAPS.md present | implemented | define cost/error fallback strategy |
 | Ollama Service | experimental | medium | `src/services/ollama` | GAPS.md present | implemented | define local/remote adapter abstraction |
 | RealmSmith Service | partial | medium | `src/services/realmsmith` | GAPS.md present | implemented | stabilize API contract + retry policy |
-| WorldSim Service | partial | high | `src/services/worldSim` | GAPS.md present | implemented | define simulation ownership and state snapshots |
+| WorldSim Service | active | high | `src/services/worldSim`, `src/services/WorldHistoryService.ts` | North Star refreshed 2026-06-01 (generation + simulation) | geometry done; story/history early | grow first-build world history/story/events generation |
 
 ## Tools, Automation, and Infrastructure
 

@@ -1,30 +1,19 @@
 # World 3D UI Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-01
 
-Use this file for unresolved findings owned by the World 3D UI surface.
+North Star: `docs/projects/world-3d-ui/NORTH_STAR.md`
 
-| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
-|---|---|---|---|---|---|---|---|---|---|---|
-| W3DUI-1 | not_started | in_scope_now | Worker B | `docs/projects/world-3d-ui/TRACKER.md` | scan of World 3D UI files | `World3DDemo` still uses inline loader and does not use `createWorkerChunkLoader` on the default entry path | `src/components/World3D/World3DDemo.tsx`, `src/components/World3D/createWorkerChunkLoader.ts`, `src/components/World3D/chunkWorker.ts` | Streaming behavior can differ from worker-backed behavior before moving from sandbox to real UI usage | Decide entry strategy and either switch this entry to worker-backed loading or document sandbox parity exception | Add acceptance text to implementation ticket and verify by observing `load` path in a run |
-| W3DUI-2 | not_started | in_scope_now | Worker B | `docs/projects/world3d/TRACKER.md` | scan of shared types and loader usage | `ChunkLoader` type definition expects `Promise<ChunkMeshBundle>` while current callers/tests currently return `ChunkGeometryArrays` | `src/systems/world3d/types.ts`, `src/components/World3D/useChunkStreaming.ts`, `src/components/World3D/createWorkerChunkLoader.ts`, `src/components/World3D/__tests__/createWorkerChunkLoader.test.ts` | Contract mismatch blocks clean migration from placeholder geometry to richer bundle output | Resolve contract in the owning system docs first, then update all UI loaders/consumers in one pass | type-level proof in build/test step before adding bundle consumers |
-| W3DUI-3 | not_started | adjacent_follow_up | Worker B | `docs/projects/world3d/GAPS.md` | scan of scene lifecycle usage | No visual/component-level mount-unmount test for `World3DScene` and camera control lifecycle | `src/components/World3D/World3DScene.tsx`, `src/components/World3D/__tests__/useChunkStreaming.test.tsx` | Regressions may appear only in React mount/unmount and control binding paths | Add one focused Playwright or RTL test for scene mount and cleanup | include proof in next project audit or tracker note |
-| W3DUI-4 | not_started | in_scope_now | Worker B | `docs/projects/world3d/TRACKER.md` | scan of demo UI surface | `World3DDemo` currently has no view-mode toggle or control panel state surface | `src/components/World3D/World3DDemo.tsx` | Expected UX for mode switching is currently unstated and easy to break in future handoffs | Define explicit scope for view switches (sandbox-only vs integrated mode) and document acceptance in NORTH_STAR | verify acceptance item exists before code-level expansion |
+Scope: unresolved findings for the **2D↔3D transition + in-3D HUD** layer. Rendering-engine
+gaps belong in `docs/projects/world3d/GAPS.md`; generation gaps in `docs/projects/worldsim-service/GAPS.md`.
 
-## Classification Reference
-
-| Classification | Use when |
-|---|---|
-| `in_scope_now` | Required to continue the current project slice without rework. |
-| `support_needed_now` | Needed before next slice can proceed, but not direct implementation deliverable. |
-| `adjacent_follow_up` | Useful, related, and should be recorded, but not required to continue this slice. |
-| `out_of_scope` | Not part of this project feature boundary. |
-| `blocked_human_decision` | Waiting on owner or product direction choice. |
-| `blocked_external_state` | Waiting on another person, environment, vendor, or branch state. |
-
-## Update Rules
-
-- Keep gap rows tied to evidence and a measurable next check.
-- Route clear systems-level rows into `docs/projects/world3d/GAPS.md`.
-- Remove rows from this file when they become implemented or explicitly out of scope.
+| Gap ID | Status | Classification | Owner | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|
+| W3DUI-5 | not_started | blocked_human_decision | claude | 2026-06-01 live debug; routed from world3d (W3D-G7) | `?phase=world3d` cold-load intermittently bounces to `main_menu` | live nav this session; `optimizeDeps` change did not fix; server logs show no Vite re-optimize → app-level phase race | The 3D world's entry path is unreliable; blocks testing/demo and the future real transition | Instrument mount-time phase dispatch order (`useHistorySync` initial-mount vs `App` game-init effects); fix what overrides the URL phase | 3 consecutive clean cold loads land on world3d with terrain |
+| W3DUI-6 | not_started | adjacent_follow_up | claude | 2026-06-01 re-scope; routed from world3d (W3D-G3) | The 3D world is a sandbox (`WORLD3D_DEMO`), not entered from real gameplay/atlas | `src/App.tsx`, `useHistorySync.ts` | Without a real transition it ships test-only; this is the project's core deliverable | Author Plan 4: atlas→3D transition, camera dive, scene mount/unmount handoff with `world3d`, `playerWorldPos` | Plan 4 doc committed + reviewed |
+| W3DUI-7 | not_started | adjacent_follow_up | claude | 2026-06-01 re-scope | Bidirectional Azgaar atlas ↔ 3D position marker sync unbuilt | spec §9; no code | The atlas and 3D view must agree on player position both ways | Design marker projection (3D pos → atlas) + atlas click → entry, in Plan 4 | Marker tracks in both directions in a prototype |
+| W3DUI-8 | not_started | adjacent_follow_up | claude | 2026-06-01 re-scope | No in-3D HUD: control panel, view-mode toggle, nameplates, minimap, debug overlay | `World3DDemo.tsx` has static header only | Expected UX is unstated and easy to break in handoffs | Define HUD scope + acceptance in Plan 4; build incrementally over `world3d`'s canvas | HUD components mount over the scene without disturbing rendering |
+| W3DUI-3 | not_started | adjacent_follow_up | claude | 2026-05-31 scan | No mount/unmount + control-lifecycle test for the 3D scene entry | `World3DScene.tsx`, `useChunkStreaming.ts` | Entry/exit regressions escape unit tests | Add one non-flaky RTL/Playwright lifecycle proof for scene mount + camera + cleanup | Lifecycle test green |
+| W3DUI-1 | not_started | adjacent_follow_up | claude | 2026-05-31 scan | Demo entry uses inline loader, not `createWorkerChunkLoader` | `World3DDemo.tsx`, `createWorkerChunkLoader.ts` | Entry-strategy choice affects transition perf; loader impl itself is `world3d`'s | Decide inline vs worker for the live entry (coordinate with `world3d`) | Entry-strategy decision recorded in Plan 4 |
+| W3DUI-2 | done | in_scope_now | — | 2026-05-31 scan | `ChunkLoader` expected `Promise<ChunkMeshBundle>` while callers returned `ChunkGeometryArrays` | Whole pipeline now carries `ChunkMeshBundle` | Was a contract-migration blocker | — | Resolved by world3d Plan 3 Task 9 (bundle rewire) |

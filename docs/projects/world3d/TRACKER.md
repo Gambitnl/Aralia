@@ -19,9 +19,11 @@ Gap registry: `docs/projects/world3d/GAPS.md`
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
-| T3 | not_started | Make `?phase=world3d` reliably enter the scene on first cold navigation (kill intermittent main_menu bounce) | unassigned | 2026-06-01 | live debugging this session; server logs show no Vite re-optimize, so race is app-level | Instrument mount-time phase dispatch order (useHistorySync initial-mount vs App game-init) | 3 consecutive clean cold loads land on world3d with terrain |
-| T4 | not_started | Point the demo at a varied biome map so water/roads/towns are visible (currently all-`plains`) | unassigned | 2026-06-01 | `World3DDemo.tsx` builds `new Array(cells).fill('plains')` | Feed a multi-biome `WorldData` (or real generated world) into the demo loader | Screenshot shows blue rivers + tan roads + town boxes |
-| T5 | not_started | Plan 4: wire 3D world into real gameplay (2D↔3D transition, Azgaar marker sync, playerWorldPos, submap/grid removal) | unassigned | 2026-06-01 | spec §13; not started | Write Plan 4 then implement | per Plan 4 acceptance |
+| T4 | active | Point the demo at a varied biome map so water/roads/towns are visible (currently all-`plains`) | claude | 2026-06-01 | `World3DDemo.tsx` builds `new Array(cells).fill('plains')` | Feed a multi-biome `WorldData` (or real generated world) into the demo loader | Screenshot shows blue rivers + tan roads + town boxes |
+| T6 | not_started | Mesh `WorldData.lakes` polygons (only river ribbons today) | unassigned | 2026-06-01 | `waterGeometry.ts` builds ribbons only | Add lake-fill geometry behind the bundle | Lake renders in a lake-containing chunk |
+| T7 | not_started | Per-LOD geometry detail (lower mesh resolution for mid/low tiers) | unassigned | 2026-06-01 | `lod.ts` tier unused by sampler resolution | Lower `resolution` for distant tiers | Perf delta + visible LOD falloff |
+| — | routed | Cold-load `?phase=world3d` entry bounce | world-3d-ui | 2026-06-01 | routed from world3d | Owned by `world-3d-ui` (entry) | see `docs/projects/world-3d-ui/GAPS.md` W3DUI-5 |
+| — | routed | Plan 4: 2D↔3D transition + marker sync + gameplay routing | world-3d-ui | 2026-06-01 | routed from world3d | Owned by `world-3d-ui` (transition) | see `docs/projects/world-3d-ui/` |
 
 ## Completed / Superseded
 
