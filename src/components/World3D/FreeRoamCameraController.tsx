@@ -15,11 +15,14 @@ import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { MapControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { sceneToWorld, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 
 interface FreeRoamCameraControllerProps {
-  /** Initial look-at target in world space. */
+  /** Initial look-at target in SCENE-LOCAL coords (typically [0,0,0]). */
   initialTarget: readonly [number, number, number];
-  /** Called (throttled) with the controls' current target world position. */
+  /** Scene origin used to convert the scene-local camera target back to world coords. */
+  sceneOrigin: SceneOrigin;
+  /** Called (throttled) with the controls' current target in ABSOLUTE WORLD coords. */
   onPositionChange: (worldX: number, worldZ: number) => void;
 }
 
@@ -27,6 +30,7 @@ const REPORT_INTERVAL = 0.1; // seconds (~10 Hz)
 
 const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   initialTarget,
+  sceneOrigin,
   onPositionChange,
 }) => {
   const controlsRef = useRef<any>(null);
@@ -36,16 +40,18 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   useFrame((_, delta) => {
     const controls = controlsRef.current;
     if (!controls?.target) return;
-    
+
     sinceReport.current += delta;
     if (sinceReport.current < REPORT_INTERVAL) return;
-    
+
     sinceReport.current = 0;
     const t = controls.target as THREE.Vector3;
-    
+
     if (lastReported.current.x !== t.x || lastReported.current.y !== t.z) {
       lastReported.current.set(t.x, t.z);
-      onPositionChange(t.x, t.z);
+      // Controls operate in scene-local space; the streamer needs absolute world coords.
+      const w = sceneToWorld(t.x, t.z, sceneOrigin);
+      onPositionChange(w.x, w.z);
     }
   });
 

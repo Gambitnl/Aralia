@@ -1,15 +1,19 @@
 /**
  * @file World3DScene.tsx
- * @description Thin R3F shell for the streamed 3D world. Renders one mesh per loaded chunk
- * from the streamer's geometry arrays. Placeholder material — Plan 3 adds real
- * terrain texturing, water, roads, and props.
+ * @description R3F shell for the streamed 3D world. Renders one bundle of meshes per
+ * loaded chunk (terrain + water + roads + sites + instanced vegetation).
  *
- * Why this is built this way:
- * - A separate `ChunkMesh` sub-component is designed to memoize and wrap the Three.js BufferGeometry
- *   creation. This prevents unnecessary and expensive garbage collection thrashing and GPU buffer allocations
- *   during normal camera pans.
- * - Flat shading on `meshStandardMaterial` represents chunk heights cleanly in Plan 2.
- * - A fog layer handles far chunk blending seamlessly.
+ * Floating-origin rendering: the streamer works in absolute world meters (which can be
+ * ~30k for a mid-world demo), but the R3F scene is drawn relative to a fixed `sceneOrigin`
+ * near the player so rendered coordinates stay near 0. This avoids float-precision loss,
+ * keeps the camera/light math simple, and lets the directional light actually cover the
+ * visible area. The camera controller converts its reported target back to world coords
+ * (via sceneToWorld) so the streamer keeps receiving absolute positions.
+ *
+ * Shadows are gated off by WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS (a real-time shadow pass
+ * over dozens of streamed chunks is expensive and was contributing to renderer stalls /
+ * WebGL context loss). A webglcontextlost/restored handler keeps a transient loss from
+ * leaving the canvas permanently blank.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -19,14 +23,25 @@ import FreeRoamCameraController from './FreeRoamCameraController';
 import { useChunkStreaming } from './useChunkStreaming';
 import type { ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
+import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
+import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 
 interface World3DSceneProps {
   loader: ChunkLoader;
-  /** World-space position to center streaming on at mount. */
+  /** World-space position to center streaming + the scene origin on at mount. */
   start: readonly [number, number, number];
 }
 
+const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
+
 // --- per-chunk rendering ---
+
+/** Chunk-local-space origin (meters) for a chunk, relative to the scene origin. */
+function chunkScenePos(cx: number, cy: number, origin: SceneOrigin): [number, number, number] {
+  const o = chunkOriginWorld(cx, cy);
+  const s = worldToScene(o.x, o.y, origin);
+  return [s.x, 0, s.z];
+}
 
 function useDisposableGeometry(arr: {
   positions: Float32Array;
@@ -46,51 +61,47 @@ function useDisposableGeometry(arr: {
   return geometry;
 }
 
-const TerrainPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+const TerrainPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const geometry = useDisposableGeometry(chunk.bundle.terrain);
-  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
-    <mesh geometry={geometry} position={[origin.x, 0, origin.y]} receiveShadow>
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)} receiveShadow={SHADOWS}>
       <meshStandardMaterial vertexColors flatShading />
     </mesh>
   );
 };
 
-const WaterPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+const WaterPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const water = chunk.bundle.water;
   // Hooks must run unconditionally: build geometry from water or a tiny empty stand-in.
   const geometry = useDisposableGeometry(
     water ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
   if (!water) return null;
-  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
-    <mesh geometry={geometry} position={[origin.x, 0, origin.y]}>
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       <meshStandardMaterial color="#2a5a8a" transparent opacity={0.75} />
     </mesh>
   );
 };
 
-const RoadPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const roads = chunk.bundle.roads;
   const geometry = useDisposableGeometry(
     roads ?? { positions: new Float32Array(0), indices: new Uint32Array(0), normals: new Float32Array(0) },
   );
   if (!roads) return null;
-  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
   return (
-    <mesh geometry={geometry} position={[origin.x, 0, origin.y]}>
+    <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       <meshStandardMaterial color="#9a8458" />
     </mesh>
   );
 };
 
-const SitePieces: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
-  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
+const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   return (
-    <group position={[origin.x, 0, origin.y]}>
+    <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {chunk.bundle.sites.map((s) => (
-        <mesh key={s.id} position={[s.localX, s.radius * 0.5, s.localZ]} castShadow>
+        <mesh key={s.id} position={[s.localX, s.radius * 0.5, s.localZ]} castShadow={SHADOWS}>
           <boxGeometry args={[s.radius, s.radius, s.radius]} />
           <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : '#888888'} />
         </mesh>
@@ -99,9 +110,8 @@ const SitePieces: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
   );
 };
 
-const VegetationPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
+const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const veg = chunk.bundle.vegetation;
-  const origin = chunkOriginWorld(chunk.cx, chunk.cy);
   const ref = useRef<THREE.InstancedMesh>(null);
   const count = veg ? veg.positions.length / 3 : 0;
   useEffect(() => {
@@ -123,8 +133,8 @@ const VegetationPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
   }, [veg, count]);
   if (!veg || count === 0) return null;
   return (
-    <group position={[origin.x, 0, origin.y]}>
-      <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow>
+    <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
+      <instancedMesh ref={ref} args={[undefined, undefined, count]} castShadow={SHADOWS}>
         <coneGeometry args={[1, 1, 6]} />
         <meshStandardMaterial color="#2f5d2f" flatShading />
       </instancedMesh>
@@ -132,20 +142,23 @@ const VegetationPiece: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => {
   );
 };
 
-const ChunkPieces: React.FC<{ chunk: LoadedChunk }> = ({ chunk }) => (
+const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => (
   <>
-    <TerrainPiece chunk={chunk} />
-    <WaterPiece chunk={chunk} />
-    <RoadPiece chunk={chunk} />
-    <SitePieces chunk={chunk} />
-    <VegetationPiece chunk={chunk} />
+    <TerrainPiece chunk={chunk} origin={origin} />
+    <WaterPiece chunk={chunk} origin={origin} />
+    <RoadPiece chunk={chunk} origin={origin} />
+    <SitePieces chunk={chunk} origin={origin} />
+    <VegetationPiece chunk={chunk} origin={origin} />
   </>
 );
 
 const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
-  // Kick off the first window once.
+  // Fixed scene origin near the player; the scene is drawn relative to it (coords ~0).
+  const sceneOrigin: SceneOrigin = useMemo(() => ({ x: start[0], z: start[2] }), [start]);
+
+  // Kick off the first window once (in absolute world coords).
   React.useEffect(() => {
     update(start[0], start[2]);
   }, [update, start]);
@@ -154,13 +167,36 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
 
   return (
     <div style={{ width: '100%', height: '100%', minHeight: '600px', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>
-      <Canvas shadows camera={{ fov: 55, near: 1, far: 2000, position: [start[0] + 120, 160, start[2] + 120] }}>
+      <Canvas
+        shadows={SHADOWS}
+        camera={{ fov: 55, near: 1, far: 2000, position: [120, 160, 120] }}
+        onCreated={({ gl }) => {
+          const el = gl.domElement;
+          el.addEventListener(
+            'webglcontextlost',
+            (e) => {
+              e.preventDefault(); // allows the browser to fire webglcontextrestored
+              // eslint-disable-next-line no-console
+              console.warn('[world3d] WebGL context lost — will attempt restore');
+            },
+            false,
+          );
+          el.addEventListener(
+            'webglcontextrestored',
+            () => {
+              // eslint-disable-next-line no-console
+              console.warn('[world3d] WebGL context restored');
+            },
+            false,
+          );
+        }}
+      >
         <hemisphereLight args={[0x88bbff, 0x556644, 0.9]} />
-        <directionalLight position={[200, 300, 100]} intensity={1.6} castShadow />
+        <directionalLight position={[120, 200, 80]} intensity={1.6} />
         <fog attach="fog" args={[0x9fb8d0, 300, 1200]} />
-        <FreeRoamCameraController initialTarget={start} onPositionChange={onPositionChange} />
+        <FreeRoamCameraController initialTarget={[0, 0, 0]} sceneOrigin={sceneOrigin} onPositionChange={onPositionChange} />
         {loaded.map((c) => (
-          <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} />
+          <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
         ))}
       </Canvas>
     </div>
