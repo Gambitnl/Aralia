@@ -14,6 +14,8 @@
 
 **Depends on:** Plan 2 (World3D Streaming) — landed. `sampleChunk`, `handleChunkRequest`, `ChunkStreamer`, `World3DScene`, `coords`, `config` exist under `src/systems/world3d/` and `src/components/World3D/`.
 
+> **STATUS (2026-05-31):** Implemented and unit-tested (61 tests green). Live browser debugging found the demo scene does **not** render reliably yet — blank canvas from WebGL context loss + an over-heavy scene at ~30k world coordinates, plus a `?phase=world3d` cold-load phase bounce. Data + streaming are confirmed working (81 chunks load). The rendering fixes are tracked in the follow-up plan: **`docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md`**.
+
 ---
 
 ## Coordinate facts (CRITICAL — every builder relies on these)
