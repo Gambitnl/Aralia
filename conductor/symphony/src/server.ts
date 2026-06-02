@@ -4442,19 +4442,6 @@ export class HttpServer {
       method,
     });
 
-    // The queue-level action is the single safest thing a worker or operator
-    // should look at first. Git sync blocks everything Jules-related, so it
-    // outranks individual draft/handoff actions whenever the gate is red.
-    if (!snapshot.preflight.ok && snapshot.preflight.nextAction) {
-      return attachSource(
-        snapshot.preflight.nextAction as unknown as Record<string, unknown>,
-        'git_preflight',
-        null,
-        `${baseUrl}/api/v1/git-preflight`,
-        'POST',
-      );
-    }
-
     const firstDraft = drafts[0] ?? null;
     const firstHandoff = this.pickQueueHandoff(handoffs, firstDraft);
     const waitForPostedFeedbackHandoff = conflictWatch.status === 'attention'
@@ -4465,6 +4452,31 @@ export class HttpServer {
           return ownsRiskFile && actionCode === 'wait_for_checks' && actionTone === 'waiting';
         })
       : null;
+    const activeExternalHandoff = firstHandoff
+      ? Boolean(
+          firstHandoff.julesSessionId
+          || firstHandoff.julesSessionUrl
+          || firstHandoff.julesState
+          || firstHandoff.githubPullRequestUrl
+          || firstHandoff.githubPullRequestState,
+        )
+      : false;
+
+    // The queue-level action is the single safest thing a worker or operator
+    // should look at first. A dirty local checkout still blocks new Linear,
+    // manifest, and launch work, but it must not hide a Jules session or PR
+    // that already exists in the cloud. Once external work is in flight, the
+    // user's dashboard needs the live monitor/review action first; Git cleanup
+    // remains visible in the Git Safety panel instead of taking over the page.
+    if (!activeExternalHandoff && !snapshot.preflight.ok && snapshot.preflight.nextAction) {
+      return attachSource(
+        snapshot.preflight.nextAction as unknown as Record<string, unknown>,
+        'git_preflight',
+        null,
+        `${baseUrl}/api/v1/git-preflight`,
+        'POST',
+      );
+    }
 
     // Cross-PR overlaps are still the strongest Scout/Core stop because two
     // workers can collide on the same file. Single-PR risk is softer: if the

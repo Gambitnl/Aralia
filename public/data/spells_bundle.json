@@ -20901,7 +20901,8 @@
       "explorationCost": {
         "value": 0,
         "unit": "minute"
-      }
+      },
+      "reactionCondition": "which you take when you see a creature within 60 feet of you casting a spell"
     },
     "range": {
       "type": "ranged",

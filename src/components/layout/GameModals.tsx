@@ -39,7 +39,7 @@
  * quick-start action should appear instead of the main menu rendering a separate
  * developer-only launch button.
  */
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -162,6 +162,31 @@ const GameModals: React.FC<GameModalsProps> = ({
 }) => {
 
     const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
+
+    // G8 fix: Fallback Escape handler for modals that don't bind their own close key.
+    // When a child modal's useFocusTrap or own handler calls preventDefault() on the
+    // Escape event, this handler sees defaultPrevented and does nothing — preserving
+    // the child's authority. Only the topmost open modal is dismissed.
+    const handleFallbackEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key !== 'Escape' || e.defaultPrevented) return;
+
+        // Close the topmost visible modal by dispatch priority.
+        if (missingChoiceModal.isOpen) { onCloseMissingChoice(); return; }
+        if (gameState.isGameGuideVisible) { onAction({ type: 'TOGGLE_GAME_GUIDE', label: 'Close Game Guide' }); return; }
+        if (gameState.isOllamaDependencyModalVisible) { dispatch({ type: 'HIDE_OLLAMA_DEPENDENCY_MODAL' }); return; }
+        if (gameState.isEncounterModalVisible) { dispatch({ type: 'HIDE_ENCOUNTER_MODAL' }); return; }
+        if (gameState.isLockpickingModalVisible) { dispatch({ type: 'CLOSE_LOCKPICKING_MODAL' }); return; }
+        if (gameState.isDiceRollerVisible) { dispatch({ type: 'TOGGLE_DICE_ROLLER' }); return; }
+        if (gameState.isGlossaryVisible) { handleOpenGlossary(); return; }
+        if (gameState.isQuestLogVisible) { dispatch({ type: 'TOGGLE_QUEST_LOG' }); return; }
+        if (gameState.isMapVisible) { onAction({ type: 'toggle_map', label: 'Close Map' }); return; }
+        if (gameState.isSubmapVisible) { onAction({ type: 'toggle_submap_visibility', label: 'Close Submap' }); return; }
+    }, [gameState, missingChoiceModal, dispatch, onAction, onCloseMissingChoice, handleOpenGlossary]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleFallbackEscape, true);
+        return () => document.removeEventListener('keydown', handleFallbackEscape, true);
+    }, [handleFallbackEscape]);
 
     return (
         <AnimatePresence>
