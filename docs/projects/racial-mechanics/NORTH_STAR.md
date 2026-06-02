@@ -1,6 +1,6 @@
 # Racial Mechanics / Race Hierarchy North Star
 
-Last updated: 2026-06-02
+Last updated: 2026-06-03
 
 Purpose and scope
 This project is the single source for race-mechanics runtime behavior in the character stack: parser extraction, state materialization, combat math integration, user-facing sheet visibility for race traits, and glossary entry alignment with 2024 standards.
@@ -19,6 +19,8 @@ This project is the single source for race-mechanics runtime behavior in the cha
 | GG-9 | yes | RM-GG9-001 | Condition immunities are racial trait materialization outputs. | 2026-06-02 |
 | GG-18 | no | n/a | Character Creator draft persistence is out of scope for mechanical traits. | 2026-06-02 |
 | GG-19 | no | n/a | Heavy Armor UI feedback is a general UI concern, not race-specific. | 2026-06-02 |
+| GG-20 | no | n/a | GameModals refactoring is a Core UI/Architecture task, not race-specific. | 2026-06-03 |
+| GG-21 | no | n/a | ActionPane local state refactoring is a Core UI/Architecture task, not race-specific. | 2026-06-03 |
 
 Scope boundary:
 - In scope: race trait parsing and materialization across racial spells, usages, defenses, modifiers, reactions, race resources, and race choices; alignment of race glossary entries with 2024 rule text.

@@ -58,6 +58,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
+      // This fixture uses the combat Ability TargetingType string; spell target-filter objects do not type-check here.
       effects: [{ type: 'damage', value: 1, damageType: 'slashing' }],
       cost: { type: 'action' }
     });
@@ -90,6 +91,7 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
+      // This fixture uses the combat Ability TargetingType string; spell target-filter objects do not type-check here.
       effects: [{ type: 'damage', value: 1, damageType: 'slashing' }],
       cost: { type: 'action' }
     });

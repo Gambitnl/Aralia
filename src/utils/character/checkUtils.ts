@@ -103,7 +103,8 @@ export function rollAbilityCheck(
 
         if (isTargetMatch) {
             const diceMatch = bonus.match(/(\d*d\d+)/i);
-            const flatMatch = bonus.match(/([\+\-]\d+)/);
+            // Signed flat bonuses use an unescaped character class so lint stays clean without changing behavior.
+            const flatMatch = bonus.match(/([+-]\d+)/);
             if (diceMatch) {
                 const val = rollDice(diceMatch[1] || '1d4');
                 mod += val;
