@@ -51,11 +51,9 @@ export function useChunkStreaming(
     return () => s.dispose();
   }, []);
 
-  // Adopt a swapped loader. The host (World3DWrapper) terminates and recreates its Web Worker on
-  // StrictMode's dev double-mount and on loader re-creation; the streamer was constructed with the
-  // ORIGINAL loader and would otherwise post forever to the now-dead worker. Pushing the live loader
-  // into the existing streamer keeps the single-streamer (StrictMode-safe) lifecycle while ensuring
-  // chunk loads reach the live worker. See chunkStreamer.setLoader. (Fixes the empty-3D-world bug.)
+  // Keep the single streamer instance alive while adopting a recreated worker-backed loader.
+  // Without this, React StrictMode or loader re-creation can leave pending chunk requests tied
+  // to a dead worker, which renders the encounter window as an empty 3D world.
   useEffect(() => {
     streamer?.setLoader(loader);
   }, [streamer, loader]);

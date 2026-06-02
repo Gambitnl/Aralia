@@ -49,17 +49,13 @@ export class ChunkStreamer {
   }
 
   /**
-   * Swap the underlying chunk loader — e.g. when the host recreated its Web Worker (React
-   * StrictMode's dev double-mount, or any loader re-creation). Requests already in flight were
-   * bound to the OLD loader and may never resolve, so we requeue those chunk coords against the
-   * new loader and re-pump. Without this, a streamer that outlives a worker teardown keeps posting
-   * to a dead worker forever and never loads a single chunk (observed live as an empty 3D world).
-   * No-op if the loader is unchanged or the streamer is disposed.
+   * Swap the underlying chunk loader when the host recreates its worker-backed loader.
+   * Any requests already pending against the old loader may never resolve after that worker
+   * is torn down, so we requeue their coordinates and pump them through the live loader.
    */
   setLoader(loader: ChunkLoader): void {
     if (this.disposed || loader === this.loader) return;
     this.loader = loader;
-    // Requeue in-flight requests (nearest-first) that were stranded on the previous loader.
     for (const key of [...this.pending]) {
       const { cx, cy } = parseChunkKey(key);
       this.queue.unshift({ cx, cy });

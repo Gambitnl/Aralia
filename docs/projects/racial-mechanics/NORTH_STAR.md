@@ -21,6 +21,8 @@ This project is the single source for race-mechanics runtime behavior in the cha
 | GG-19 | no | n/a | Heavy Armor UI feedback is a general UI concern, not race-specific. | 2026-06-02 |
 | GG-20 | no | n/a | GameModals refactoring is a Core UI/Architecture task, not race-specific. | 2026-06-03 |
 | GG-21 | no | n/a | ActionPane local state refactoring is a Core UI/Architecture task, not race-specific. | 2026-06-03 |
+| GG-22 | no | n/a | SpellEffect type casing is a combat/spells architecture issue. | 2026-06-03 |
+| GG-23 | no | n/a | SpellEffect double-casting is a combat/spells typing issue. | 2026-06-03 |
 
 Scope boundary:
 - In scope: race trait parsing and materialization across racial spells, usages, defenses, modifiers, reactions, race resources, and race choices; alignment of race glossary entries with 2024 rule text.

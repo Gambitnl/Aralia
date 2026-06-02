@@ -101,17 +101,32 @@ export function rollSavingThrow(
     let hasAdvantage = false;
     let hasDisadvantage = false;
 
-    target.modifiers?.advantage.forEach(adv => {
-        const text = adv.toLowerCase();
-        if (text.includes('saving throw') || text.includes(ability.toLowerCase())) {
-            hasAdvantage = true;
+    const ALL_ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+    const abilityLower = ability.toLowerCase();
+
+    const checkModifier = (modText: string) => {
+        const text = modText.toLowerCase();
+        // A modifier only applies to saving throws if it explicitly mentions "saving throw" or "save"
+        // (to avoid applying "Dexterity (Stealth) checks" to Dexterity saving throws).
+        if (text.includes('saving throw') || text.includes('save')) {
+            const mentionsAnyAbility = ALL_ABILITIES.some(ab => text.includes(ab));
+            if (mentionsAnyAbility) {
+                // If it mentions specific abilities, it MUST mention this specific ability.
+                return text.includes(abilityLower);
+            } else {
+                // Generic saving throw modifier (e.g., "saving throws against magic" or "all saving throws").
+                // NOTE: Contextual saves (like "against poison") will over-apply here until context is added to rollSavingThrow.
+                return true;
+            }
         }
+        return false;
+    };
+
+    target.modifiers?.advantage.forEach(adv => {
+        if (checkModifier(adv)) hasAdvantage = true;
     });
     target.modifiers?.disadvantage.forEach(dis => {
-        const text = dis.toLowerCase();
-        if (text.includes('saving throw') || text.includes(ability.toLowerCase())) {
-            hasDisadvantage = true;
-        }
+        if (checkModifier(dis)) hasDisadvantage = true;
     });
 
     // Step 1: Roll the d20

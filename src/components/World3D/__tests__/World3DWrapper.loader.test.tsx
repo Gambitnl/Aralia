@@ -8,18 +8,23 @@ import type { ChunkLoader } from '@/systems/world3d/types';
 import type { WorldData } from '@/services/worldSim/types';
 
 const mockCreateWorkerChunkLoader = vi.fn(
-  (_world: WorldData, _resolution?: number, _workerFactory?: () => Worker): ChunkLoader =>
-    async (cx, cy) => ({
-    cx,
-    cy,
-    terrain: {
-      positions: new Float32Array(0),
-      indices: new Uint32Array(0),
-      normals: new Float32Array(0),
-      colors: new Float32Array(0),
-    },
-    sites: [],
-  }),
+  (_world: WorldData, _resolution?: number, _workerFactory?: () => Worker): ChunkLoader & { dispose: () => void } => {
+    const base: ChunkLoader = async (cx, cy) => ({
+      cx,
+      cy,
+      terrain: {
+        positions: new Float32Array(0),
+        indices: new Uint32Array(0),
+        normals: new Float32Array(0),
+        colors: new Float32Array(0),
+      },
+      sites: [],
+    });
+    // The wrapper now owns a disposable, self-healing loader and calls dispose() on cleanup.
+    const loader = base as ChunkLoader & { dispose: () => void };
+    loader.dispose = vi.fn();
+    return loader;
+  },
 );
 
 vi.mock('../createWorkerChunkLoader', () => ({

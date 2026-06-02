@@ -16,14 +16,13 @@
 import React, { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import World3DScene from './World3DScene';
 import InWorldHUD from './InWorldHUD';
-import { createWorkerChunkLoader } from './createWorkerChunkLoader';
+import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
 import { getTerrainHeight } from '../../utils/worldCoords';
 import { useGameState } from '../../state/GameContext';
 import { GamePhase } from '../../types/core';
 import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
-import type { ChunkLoader } from '../../systems/world3d/types';
 import { WORLD3D_CONFIG } from '../../systems/world3d/config';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 
@@ -46,34 +45,31 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   const { setMode } = useWorldViewMode();
   const isDevModeEnabled = state.isDevModeEnabled ?? false;
 
-  // Worker ref for teardown when worldData changes or the player leaves 3D (W3DUI-1).
-  const chunkWorkerRef = useRef<Worker | null>(null);
-
   // Worker-backed loader for PLAYING — keeps chunk mesh generation off the main thread.
-  const loader = useMemo<ChunkLoader | undefined>(() => {
-    if (chunkWorkerRef.current) {
-      chunkWorkerRef.current.terminate();
-      chunkWorkerRef.current = null;
-    }
-    if (!worldData) return undefined;
-
-    return createWorkerChunkLoader(
-      worldData,
-      WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION,
-      () => {
-        const worker = new Worker(new URL('./chunkWorker.ts', import.meta.url), { type: 'module' });
-        chunkWorkerRef.current = worker;
-        return worker;
-      },
-    );
-  }, [worldData]);
+  // Created and disposed inside ONE effect (the React-correct disposable-resource pattern): under
+  // StrictMode's dev double-mount (setup → cleanup → setup) each setup builds a fresh loader+worker
+  // and each cleanup disposes the very instance it built, so the committed tree always holds a LIVE
+  // worker. The previous render-phase `useMemo` + out-of-band worker termination left the chunk
+  // streamer bound to a worker that StrictMode had already terminated → it posted forever to a dead
+  // worker and never loaded a chunk (the empty/flat 3D world). See createWorkerChunkLoader.
+  const [loader, setLoader] = useState<DisposableChunkLoader | undefined>(undefined);
 
   useEffect(() => {
+    if (!worldData) {
+      setLoader(undefined);
+      return;
+    }
+    const built = createWorkerChunkLoader(
+      worldData,
+      WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION,
+      () => new Worker(new URL('./chunkWorker.ts', import.meta.url), { type: 'module' }),
+    );
+    setLoader(() => built);
     return () => {
-      chunkWorkerRef.current?.terminate();
-      chunkWorkerRef.current = null;
+      built.dispose();
+      setLoader(undefined);
     };
-  }, []);
+  }, [worldData]);
 
   // FPS tracking state.
   const [fps, setFps] = useState(0);

@@ -25,6 +25,7 @@ All rows below are required for the shared parser/materializer path and are comp
 - RM-028 (Racial Traits Parser Gap): Materialized copiers repo-wide, making Leporine Senses, Hare-Trigger, Earth Walk, and Dwarven Combat/Armor Training fully active.
 - RM-029 (Savage Attacks & Resourceful): Melee crit roll extra damage and long rest Heroic Inspiration states fully active.
 - RM-030 (Racial Traits Mechanics Slice 2): Fully materialized and wired Satyr's Reveler, Tortle's Natural Armor, Thri-Kreen's Chameleon Carapace, and Wood Elf/Half-Elf's Fleet of Foot traits.
+- RM-GNOME-001 (Gnomish Cunning Advantage): Re-aligned saving throw advantage logic to properly respect specific abilities instead of triggering on all saves, aligning with 2024 PHB Gnome traits.
 
 ## Active and adjacent work queue
 

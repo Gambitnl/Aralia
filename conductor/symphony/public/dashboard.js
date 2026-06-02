@@ -2398,6 +2398,11 @@ function renderMiddlemanPath(path) {
     const blockers = Array.isArray(stage.blockedBy) && stage.blockedBy.length
       ? `<ul>${stage.blockedBy.map(reason => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>`
       : '';
+    const timing = [
+      stage.startTime ? `start: ${formatTimestamp(stage.startTime)}` : '',
+      stage.endTime ? `end: ${formatTimestamp(stage.endTime)}` : '',
+      stage.durationLabel ? `time taken: ${stage.durationLabel}` : '',
+    ].filter(Boolean).join(' · ');
 
     return `<li class="${escapeAttribute(stage.status || 'waiting')}">
       <div>
@@ -2409,6 +2414,7 @@ function renderMiddlemanPath(path) {
       <small>${stage.canRunNow ? 'can run now' : 'not runnable now'} · ${escapeHtml(mutationFlags)}</small>
       ${stage.receipt ? `<code>${escapeHtml(stage.receipt)}</code>` : ''}
       ${stage.endpoint ? `<code>${escapeHtml(stage.method || 'GET')} ${escapeHtml(stage.endpoint)}</code>` : ''}
+      ${timing ? `<p class="usage-summary">${escapeHtml(timing)}</p>` : ''}
       <p class="usage-summary">Expected proof: ${escapeHtml(stage.expectedProof || '')}</p>
       ${blockers}
     </li>`;

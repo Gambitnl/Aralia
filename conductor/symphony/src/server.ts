@@ -344,6 +344,10 @@ type MiddlemanPathStage = {
   blockedBy: string[];
   expectedProof: string;
   receipt: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  durationMs?: number | null;
+  durationLabel?: string | null;
 };
 
 type MiddlemanForemanAction = {
@@ -3959,7 +3963,54 @@ export class HttpServer {
       },
     ];
 
-    const activeStages = stages.filter(stage => stage.status === 'active');
+    const stageTime = (value: unknown): string | null => (typeof value === 'string' && Number.isFinite(Date.parse(value))) ? value : null;
+    const preflightRecord = this.recordFromUnknown(snapshot.preflight);
+    const latestDraftRecord = this.recordFromUnknown(latestDraft);
+    const latestHandoffRecord = this.recordFromUnknown(latestHandoff);
+    const dashboardHandoffRecord = this.recordFromUnknown(dashboardHandoff);
+    const manifestHandoffRecord = this.recordFromUnknown(manifestHandoff);
+    const prHandoffRecord = this.recordFromUnknown(prHandoff);
+    const localSyncRecord = this.recordFromUnknown(localSync);
+    const stageTimingStarts: Partial<Record<MiddlemanPathStage['id'], string | null>> = {
+      git_sync: stageTime(preflightRecord.generatedAt) ?? stageTime(preflightRecord.checkedAt),
+      linear_issue: stageTime(latestDraftRecord.linearIssueCreatedAt) ?? stageTime(latestHandoffRecord.linearIssueCreatedAt),
+      jules_handoff: stageTime(dashboardHandoffRecord.createdAt),
+      jules_manifest: stageTime(manifestHandoffRecord.manifestStagedAt),
+      jules_launch: stageTime(manifestHandoffRecord.launchedAt),
+      jules_session: stageTime(manifestHandoffRecord.launchedAt) ?? stageTime(manifestHandoffRecord.lastJulesStatusRefreshAt),
+      github_pr: stageTime(prHandoffRecord.githubPullRequestCreatedAt) ?? stageTime(prHandoffRecord.lastPullRequestRefreshAt),
+      scout_core: stageTime(prHandoffRecord.lastPullRequestRefreshAt),
+      local_sync: stageTime(localSyncRecord.checkedAt) ?? stageTime(localSyncRecord.updatedAt),
+    };
+    const stagesWithTiming = stages.map((stage, index) => {
+      const startTime = stageTimingStarts[stage.id] ?? null;
+      const startMs = startTime ? Date.parse(startTime) : Number.NaN;
+      const nextStartTime = stages
+        .slice(index + 1)
+        .map(nextStage => stageTimingStarts[nextStage.id] ?? null)
+        .find(time => Boolean(time)) ?? null;
+      const endTime = startTime && (stage.status === 'complete' || stage.status === 'observed') ? nextStartTime : null;
+      const endMs = endTime ? Date.parse(endTime) : Number.NaN;
+      const durationMs = Number.isFinite(startMs)
+        ? Number.isFinite(endMs)
+          ? Math.max(0, endMs - startMs)
+          : stage.status === 'active'
+            ? Math.max(0, Date.now() - startMs)
+            : null
+        : null;
+
+      return {
+        ...stage,
+        startTime,
+        endTime,
+        durationMs,
+        durationLabel: durationMs === null
+          ? null
+          : `${stage.status === 'active' ? 'elapsed ' : ''}${this.formatTimingDuration(durationMs)}`,
+      };
+    });
+
+    const activeStages = stagesWithTiming.filter(stage => stage.status === 'active');
     // Once Jules has launched, refreshing that cloud session is a safe
     // dashboard action even if the local receipt-writing branch later makes Git
     // preflight red again. Keep the running Jules boundary visible so a human
@@ -3969,19 +4020,19 @@ export class HttpServer {
       ?? activeStages.find(stage => stage.id === 'jules_session')
       ?? null;
     const unresolvedCompletedJulesStage = completedWithoutPr
-      ? stages.find(stage => stage.id === 'jules_session') ?? null
+      ? stagesWithTiming.find(stage => stage.id === 'jules_session') ?? null
       : null;
     const downstreamReviewBlocker = hasPr
-      ? stages.find(stage => (stage.id === 'github_pr' || stage.id === 'scout_core') && stage.status === 'blocked') ?? null
+      ? stagesWithTiming.find(stage => (stage.id === 'github_pr' || stage.id === 'scout_core') && stage.status === 'blocked') ?? null
       : null;
-    const current = stages.find(stage => stage.status === 'ready')
+    const current = stagesWithTiming.find(stage => stage.status === 'ready')
       ?? unresolvedCompletedJulesStage
       ?? downstreamReviewBlocker
       ?? liveJulesStage
-      ?? stages.find(stage => stage.status === 'blocked')
+      ?? stagesWithTiming.find(stage => stage.status === 'blocked')
       ?? activeStages[activeStages.length - 1]
-      ?? stages.find(stage => stage.status === 'waiting')
-      ?? stages[stages.length - 1];
+      ?? stagesWithTiming.find(stage => stage.status === 'waiting')
+      ?? stagesWithTiming[stagesWithTiming.length - 1];
     const status: MiddlemanPathPacket['status'] = current.status === 'complete' || current.status === 'observed'
       ? 'complete'
       : current.status;
@@ -3994,7 +4045,7 @@ export class HttpServer {
       summary: `${current.label}: ${current.detail}`,
       nextExpectedProof: current.expectedProof,
       foremanAction,
-      stages,
+      stages: stagesWithTiming,
       safetyNote: 'Read-only path packet: this response does not mutate Git, Linear, Jules, GitHub, Scout/Core, local files, or worker state.',
     };
   }
@@ -4502,6 +4553,29 @@ export class HttpServer {
 
     if (conflictWatch.next_action) {
       return attachSource(conflictWatch.next_action, 'conflict_watch', null);
+    }
+
+    if (
+      firstHandoff?.next_action
+      && this.readStringField(firstHandoff.next_action, 'code') === 'record_post_launch_update_path'
+      && firstHandoff.julesState === 'IN_PROGRESS'
+      && !firstHandoff.githubPullRequestUrl
+    ) {
+      return attachSource({
+        code: 'refresh_jules_status',
+        tone: 'waiting',
+        label: 'Refresh Jules Status',
+        summary: `Jules is ${firstHandoff.julesState}, but no PR URL has been captured yet.`,
+        url: `${baseUrl}/api/v1/jules-handoffs/${encodeURIComponent(firstHandoff.id)}/refresh-status`,
+        method: 'POST',
+        steps: [
+          'Refresh Jules status.',
+          'Use the handoff card drift warning only if new instructions must be sent to the running clone.',
+          'Wait for a PR URL before checking GitHub readiness.',
+        ],
+        jules_session_id: firstHandoff.julesSessionId,
+        jules_session_url: firstHandoff.julesSessionUrl,
+      }, 'handoff', firstHandoff.id);
     }
 
     if (firstHandoff?.next_action) {

@@ -91,3 +91,5 @@ Why global:
 
 Spell-side dependency:
 - TargetResolver.isValidObjectTarget can validate supplied candidates once such a registry exists.
+| GG-24 | untriaged | technical_debt | Racial Mechanics Implementation (2026-06-03) | The any casting of ability proficiencies in savingThrowUtils.ts bypasses TS safety. | src/utils/character/savingThrowUtils.ts | Can silently break if character stat block types change. | Types / combat | untriaged | none yet | Replace the any cast with a proper type guard or discriminated union. | tsc --noEmit passes and the TODO is resolved. |
+| GG-25 | untriaged | test_infrastructure | Racial Mechanics Implementation (2026-06-03) | Vitest coverage reporting is not fully configured for all combat utils like savingThrowUtils.ts. | vitest config | Code could be modified and break untested edge cases without warnings. | Test infrastructure | untriaged | none yet | Add c8 or istanbul to vitest config and enforce coverage thresholds for core utils. | Coverage report runs and shows 80%+ for utils. |

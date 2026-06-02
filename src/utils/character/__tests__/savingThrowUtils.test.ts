@@ -222,5 +222,26 @@ describe('savingThrowUtils', () => {
         expect(result1.roll).toBe(1);
         expect(result1.natural1).toBe(true);
     });
+
+    it('only applies advantage to specific abilities if mentioned', () => {
+        const char = createMockCombatCharacter({
+            modifiers: { advantage: ['advantage on Intelligence, Wisdom, and Charisma saving throws'], disadvantage: [], bonuses: [] } as any,
+            stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' }
+        });
+
+        const rollDiceMock = vi.mocked(combatUtils.rollDice);
+        // Setup returns: First roll 10, second roll 20. If advantage is active, max(10,20) = 20.
+        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5); // 5 for any other bonus rolls just in case
+
+        const resultWis = rollSavingThrow(char, 'Wisdom', 15);
+        expect(resultWis.roll).toBe(20); // Max of 10 and 20
+
+        rollDiceMock.mockClear();
+        // Setup returns for Dex: First roll 10, second roll 20. If no advantage, it just takes the 10.
+        rollDiceMock.mockReturnValueOnce(10).mockReturnValueOnce(20).mockReturnValue(5);
+
+        const resultDex = rollSavingThrow(char, 'Dexterity', 15);
+        expect(resultDex.roll).toBe(10); // Should just be the first roll
+    });
   });
 });

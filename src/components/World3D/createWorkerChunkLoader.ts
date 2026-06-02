@@ -1,16 +1,19 @@
 /**
  * @file createWorkerChunkLoader.ts
  * @description Build a ChunkLoader backed by a single Web Worker. The worker is initialized
- * once with the WorldData; each load() call sends a request tagged with a unique
- * id and resolves when the matching response arrives.
+ * with the WorldData; each load() call sends a request tagged with a unique id and resolves
+ * when the matching response arrives.
  *
  * Why this is built this way:
- * - A single Web Worker handles requests sequentially/concurrently. We map each request to a unique ID
- *   and store a resolver promise callback in a `pending` Map. This guarantees that responses
- *   are perfectly correlated back to the caller even if they arrive out-of-order.
- * - Injected workerFactory: By injecting `workerFactory`, we allow unit tests to substitute
- *   a `FakeWorker` that runs synchronously in-process, giving us full testability of the loader
- *   wrapper logic without browser worker environments.
+ * - A single Web Worker handles requests concurrently. Each request maps to a unique ID and a
+ *   resolver stored in a `pending` Map, so responses correlate back to the caller even out-of-order.
+ * - **Self-healing worker lifecycle.** The loader OWNS its worker and exposes `dispose()`. If the
+ *   worker dies (worker `error`, or it was never spawned yet) the next load() respawns it, re-sends
+ *   `init`, and re-posts any in-flight requests that were stranded on the dead worker. This is what
+ *   prevents the "empty 3D world" bug: previously the host (World3DWrapper) terminated the worker
+ *   out-of-band (React StrictMode dev double-mount), leaving the chunk streamer posting forever to a
+ *   dead worker that never replied. Now a terminated worker is transparently recreated.
+ * - Injected workerFactory: lets unit tests substitute a synchronous in-process FakeWorker.
  */
 
 import type { WorldData } from '@/services/worldSim/types';
@@ -19,36 +22,75 @@ import { WORLD3D_CONFIG } from '@/systems/world3d/config';
 
 type WorkerFactory = () => Worker;
 
+/** A ChunkLoader that owns a Web Worker and must be disposed when no longer needed. */
+export type DisposableChunkLoader = ChunkLoader & { dispose: () => void };
+
 const defaultWorkerFactory: WorkerFactory = () =>
   new Worker(new URL('./chunkWorker.ts', import.meta.url), { type: 'module' });
 
+interface PendingRequest {
+  cx: number;
+  cy: number;
+  resolve: (bundle: ChunkMeshBundle) => void;
+}
+
 /**
- * Creates a ChunkLoader instance backed by a background Web Worker pool.
+ * Creates a self-healing, disposable ChunkLoader backed by a single background Web Worker.
  */
 export function createWorkerChunkLoader(
   world: WorldData,
   resolution: number = WORLD3D_CONFIG.HEIGHTFIELD_RESOLUTION,
   workerFactory: WorkerFactory = defaultWorkerFactory,
-): ChunkLoader {
-  const worker = workerFactory();
-  worker.postMessage({ type: 'init', world });
-
+): DisposableChunkLoader {
+  let worker: Worker | null = null;
+  let disposed = false;
   let nextId = 1;
-  const pending = new Map<number, (bundle: ChunkMeshBundle) => void>();
+  const pending = new Map<number, PendingRequest>();
 
-  worker.onmessage = (ev: MessageEvent) => {
-    const { id, bundle } = ev.data as { id: number; bundle: ChunkMeshBundle };
-    const resolve = pending.get(id);
-    if (resolve) {
-      pending.delete(id);
-      resolve(bundle);
+  const spawn = (): void => {
+    const w = workerFactory();
+    w.onmessage = (ev: MessageEvent) => {
+      const { id, bundle } = ev.data as { id: number; bundle: ChunkMeshBundle };
+      const req = pending.get(id);
+      if (req) {
+        pending.delete(id);
+        req.resolve(bundle);
+      }
+    };
+    // If the worker dies, drop it so the next load() transparently respawns a fresh one.
+    w.onerror = () => {
+      if (worker === w) worker = null;
+    };
+    w.postMessage({ type: 'init', world });
+    // Re-send any in-flight requests stranded on a previous (now-dead) worker.
+    for (const [id, req] of pending) {
+      w.postMessage({ type: 'load', id, cx: req.cx, cy: req.cy, resolution });
     }
+    worker = w;
   };
 
-  return (cx: number, cy: number): Promise<ChunkMeshBundle> =>
+  const load = ((cx: number, cy: number): Promise<ChunkMeshBundle> =>
     new Promise<ChunkMeshBundle>((resolve) => {
+      if (disposed) return;
+      if (!worker) spawn();
       const id = nextId++;
-      pending.set(id, resolve);
-      worker.postMessage({ type: 'load', id, cx, cy, resolution });
-    });
+      pending.set(id, { cx, cy, resolve });
+      worker!.postMessage({ type: 'load', id, cx, cy, resolution });
+    })) as DisposableChunkLoader;
+
+  load.dispose = (): void => {
+    disposed = true;
+    pending.clear();
+    try {
+      worker?.terminate();
+    } catch {
+      /* worker may already be gone */
+    }
+    worker = null;
+  };
+
+  // Warm the worker up front so the first chunk doesn't pay spawn+init latency.
+  spawn();
+
+  return load;
 }
