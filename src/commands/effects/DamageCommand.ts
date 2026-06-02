@@ -21,12 +21,14 @@ import { CombatState, StatusEffect, ActiveEffect } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
-import { rollDamage as rollDamageUtil } from '../../utils/combatUtils';
+import type { SavingThrowModifier } from '../../utils/savingThrowUtils';
+import { rollDamage as rollDamageUtil, calculateCover } from '../../utils/combatUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';
 import { StatusConditionCommand } from './StatusConditionCommand';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
+import { applyDamageAndCheckDowned } from '../../utils/combat/deathSaveUtils';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -154,7 +156,15 @@ export class DamageCommand extends BaseEffectCommand {
 
         // Gather any active save penalties (e.g., Mind Sliver's -1d4)
         const savePenaltySystem = new SavePenaltySystem();
-        const saveModifiers = savePenaltySystem.getActivePenalties(target);
+        const activeSaveModifiers = savePenaltySystem.getActivePenalties(target);
+
+        // Dexterity saving throws can benefit from physical map cover, using the
+        // same cover calculation that already protects attack rolls. This keeps
+        // Fireball-style map positioning meaningful without changing non-Dex saves.
+        const coverSaveModifier = this.getCoverSaveModifier(currentState, caster, target);
+        const saveModifiers = coverSaveModifier
+          ? [...activeSaveModifiers, coverSaveModifier]
+          : activeSaveModifiers;
 
         // Roll the save: 1d20 + ability mod + proficiency (if proficient) + modifiers
         const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
@@ -284,10 +294,16 @@ export class DamageCommand extends BaseEffectCommand {
       }
 
       // --- Step 5: Apply final damage to target's HP ---
-      // HP cannot go below 0 (death handling is elsewhere)
-      const newHP = Math.max(0, target.currentHP - finalDamage);
+      // We delegate HP reduction, temporary HP, and downed/unconscious state changes
+      // to the centralized applyDamageAndCheckDowned utility.
+      const updatedTarget = applyDamageAndCheckDowned(target, finalDamage, isCritical);
       currentState = this.updateCharacter(currentState, target.id, {
-        currentHP: newHP
+        currentHP: updatedTarget.currentHP,
+        tempHP: updatedTarget.tempHP,
+        deathSaves: updatedTarget.deathSaves,
+        statusEffects: updatedTarget.statusEffects,
+        conditions: updatedTarget.conditions,
+        damagedThisTurn: updatedTarget.damagedThisTurn
       });
 
       // --- SLASHER FEAT LOGIC ---
@@ -330,6 +346,14 @@ export class DamageCommand extends BaseEffectCommand {
             characterId: target.id
           });
         }
+      }
+
+      // Summoned creatures are temporary spell-created map actors, not normal
+      // dying combatants. When damage drops one to 0 HP, remove it from the
+      // combat roster so familiar and summon disappearance rules have a real
+      // runtime foothold instead of leaving an inert token on the map.
+      if (target.isSummon && updatedTarget.currentHP <= 0) {
+        currentState = this.removeDefeatedSummon(currentState, target);
       }
     }
 
@@ -475,10 +499,127 @@ export class DamageCommand extends BaseEffectCommand {
   }
 
   /**
+   * Removes a spell-created summon after it reaches 0 HP.
+   *
+   * Ordinary player and monster combatants remain in the roster so the death-save
+   * and unconscious systems can handle them. Summons are different: familiar and
+   * summon spell text usually says the created creature disappears at 0 HP, and
+   * the map needs that cleanup immediately so 2D/3D tokens do not linger.
+   */
+  private removeDefeatedSummon(
+    state: CombatState,
+    target: CombatState['characters'][0]
+  ): CombatState {
+    const remainingCharacters = state.characters.filter(character => character.id !== target.id);
+    const summonLabel = target.summonMetadata?.formName ?? target.summonMetadata?.entityType ?? target.name;
+    const sourceLabel = target.summonMetadata?.sourceName
+      ? ` from ${target.summonMetadata.sourceName}`
+      : '';
+
+    return this.addLogEntry({
+      ...state,
+      characters: remainingCharacters
+    }, {
+      type: 'status',
+      message: `${target.name} (${summonLabel}${sourceLabel}) disappears as the spell-created summon drops to 0 HP`,
+      characterId: target.summonMetadata?.casterId ?? target.id,
+      targetIds: [target.id],
+      data: {
+        removedSummonId: target.id,
+        spellId: target.summonMetadata?.spellId,
+        entityType: target.summonMetadata?.entityType,
+        formName: target.summonMetadata?.formName,
+        sourceName: target.summonMetadata?.sourceName
+      }
+    });
+  }
+
+  /**
    * Helper to parse dice string (e.g., "2d6+3") and roll damage.
    * Delegates to centralized combatUtils for consistent critical hit logic.
    */
   private rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
     return rollDamageUtil(diceString, isCritical, minRoll);
+  }
+
+  /**
+   * Builds the saving-throw modifier granted by map cover.
+   *
+   * Cover only affects Dexterity saves in the 5e rules this command is modeling.
+   * The map already knows how to calculate half-cover and three-quarters-cover
+   * bonuses for attacks, so this helper reuses that signal for spell saves.
+   *
+   * TODO(next-agent): Total cover is not represented by `calculateCover` yet.
+   * When total-cover geometry exists, route it through this helper instead of
+   * treating it as another flat bonus.
+   */
+  private getCoverSaveModifier(
+    state: CombatState,
+    caster: CombatState['characters'][0],
+    target: CombatState['characters'][0]
+  ): SavingThrowModifier | undefined {
+    // Non-Dexterity saves do not receive cover bonuses from battlefield geometry.
+    if (!isDamageEffect(this.effect) || this.effect.condition.saveType !== 'Dexterity') {
+      return undefined;
+    }
+
+    // Mapless combat has no cover geometry to inspect, so the save proceeds normally.
+    if (!state.mapData) {
+      return undefined;
+    }
+
+    // Use the same origin-to-target cover calculation as attack resolution.
+    const coverBonus = calculateCover(caster.position, target.position, state.mapData);
+    const coverGrade = this.getCoverGrade(coverBonus);
+
+    // No cover grade means no saving-throw modifier is needed.
+    if (!coverGrade || coverBonus <= 0) {
+      return undefined;
+    }
+
+    // Some spells explicitly bypass normal cover. Sacred Flame is the canonical
+    // example: it ignores half and three-quarters cover but should not silently
+    // erase future total-cover rules.
+    if (this.isCoverBypassed(coverGrade)) {
+      return undefined;
+    }
+
+    return {
+      flat: coverBonus,
+      source: 'Cover'
+    };
+  }
+
+  /**
+   * Converts the numeric cover bonus into the spell-data vocabulary.
+   *
+   * This bridge lets JSON metadata such as `ignoredCover: ["half"]` compare
+   * against the existing combat utility without inventing a second cover model.
+   */
+  private getCoverGrade(coverBonus: number): 'half' | 'three_quarters' | undefined {
+    if (coverBonus >= 5) {
+      return 'three_quarters';
+    }
+
+    if (coverBonus >= 2) {
+      return 'half';
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Checks whether this spell says to ignore the current cover grade.
+   *
+   * The modifier lives on effect condition metadata because it changes how the
+   * saving throw is made, not how much damage the spell rolls afterward.
+   */
+  private isCoverBypassed(coverGrade: 'half' | 'three_quarters'): boolean {
+    const saveModifiers = this.effect.condition.saveModifiers || [];
+
+    return saveModifiers.some(modifier =>
+      modifier.type === 'cover_bypass' &&
+      modifier.ignoredCover?.includes(coverGrade)
+    );
   }
 }

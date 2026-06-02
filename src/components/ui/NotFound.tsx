@@ -1,3 +1,8 @@
+/**
+ * @file NotFound.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React from 'react';
 import { Button } from './Button'; // Build failed because the old './ui/Button' path only works in runtime alias; correct relative path for the bundler.
 

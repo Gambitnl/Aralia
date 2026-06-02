@@ -75,3 +75,13 @@ The feature is already partially implemented as an NPC conversation modal and to
 3. Confirm how `DialogueSession.sessionDispositionMod` should affect response and availability logic.
 4. Keep `dialogueService.test.ts` and `npcReducer.test.ts` as the base regression set when changing service/reducer behavior.
 
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

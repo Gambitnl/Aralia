@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/05/2026, 23:25:34
- * Dependents: hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts
+ * Last Sync: 01/06/2026, 13:33:35
+ * Dependents: components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -23,7 +23,7 @@
 // TODO(lint-intent): 'EffectCondition' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { AreaOfEffect, SpellEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
+import type { AreaOfEffect, SpellEffect, TerrainEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
 import type { CombatCharacter, Position } from '../../../types/combat';
 import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spellStatusMetadata';
 import type { AoEParams } from '../../../utils/combat/aoeCalculations';
@@ -308,9 +308,10 @@ function normalizeAreaShape(shape: string): AreaOfEffect['shape'] | null {
  * @param round - Current combat round
  * @returns Array of trigger results for effects that should fire
  */
-// TODO: `processAreaEntryTriggers`/`processAreaExitTriggers`/`processAreaEndTurnTriggers` in this file
-// are **duplicated** by logic in `AreaEffectTracker.ts`. This violates DRY and risks drift.
-// Recommend deprecating these standalone functions in favor of `AreaEffectTracker` for cleaner architecture.
+// These helper exports remain as compatibility functions for callers and tests,
+// while AreaEffectTracker delegates entry/exit/end-turn effect selection here.
+// Keep tracker-owned event emission in AreaEffectTracker and pure effect
+// filtering here so the runtime path and helper tests share one decision point.
 export function processAreaEntryTriggers(
     zones: ActiveSpellZone[],
     character: CombatCharacter,
@@ -349,7 +350,8 @@ export function processAreaEntryTriggers(
 
                 results.push({
                     triggered: true,
-                    effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC })
+                    effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
+                    triggerType: 'on_enter_area'
                 });
             }
         }
@@ -437,7 +439,8 @@ export function processAreaExitTriggers(
 
                 results.push({
                     triggered: true,
-                    effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC })
+                    effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
+                    triggerType: 'on_exit_area'
                 });
             }
         }
@@ -479,7 +482,8 @@ export function processAreaEndTurnTriggers(
 
             results.push({
                 triggered: true,
-                effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC })
+                effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
+                triggerType: 'on_end_turn_in_area'
             });
         }
     }
@@ -664,6 +668,38 @@ export function createSpellZoneFromAoEParams(
         directionFromAoEParams(aoeParams),
         saveDC
     );
+}
+
+/**
+ * Create an ActiveSpellZone specifically for mapless terrain persistence.
+ *
+ * TerrainCommand can mutate real map tiles when `mapData` exists. In mapless
+ * combat there are no tiles to mutate, so this helper stores the terrain spell's
+ * affected area as durable spell-zone state instead of reducing the spell to a
+ * one-line combat log. It deliberately preserves TERRAIN effects instead of
+ * using createSpellZone's trigger-only filter.
+ */
+export function createTerrainSpellZoneFromAoEParams(
+    spellId: string,
+    casterId: string,
+    aoeParams: AoEParams,
+    areaOfEffect: { shape: string; size: number },
+    effects: TerrainEffect[],
+    currentRound: number,
+    durationRounds?: number
+): ActiveSpellZone {
+    return {
+        id: `terrain-zone-${spellId}-${Date.now()}`,
+        spellId,
+        casterId,
+        position: aoeParams.origin,
+        areaOfEffect,
+        direction: directionFromAoEParams(aoeParams),
+        effects,
+        triggeredThisTurn: new Set(),
+        triggeredEver: new Set(),
+        expiresAtRound: durationRounds ? currentRound + durationRounds : undefined
+    };
 }
 
 export function createScheduledSpellEffect(

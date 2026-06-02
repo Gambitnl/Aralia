@@ -1,0 +1,61 @@
+{
+  "id": "infernal_tiefling",
+  "title": "Infernal Legacy",
+  "category": "Character Races",
+  "entryLore": "The structured hierarchy of the Nine Hells is the source of the Infernal Legacy. Tieflings of this bloodline often possess classic diabolic features—cloven hooves, tails, or pointed horns. They are gifted with magic that burns and binds, reflecting the lawful and punishing nature of their diabolic ancestors.",
+  "lore": {
+    "typicalDwelling": "Infernal tieflings are drawn to places of order, history, and calculated power. They often make their homes in large cities, within fortified districts, or in buildings that once belonged to nobility or influential organizations. Their living spaces tend to be orderly and well-maintained, featuring collections of books, historical artifacts, or items that denote status and lineage. They find comfort in the presence of established law and the weight of history.",
+    "typicalAttire": "Infernal tieflings favor attire that reflects their diabolic heritage and sense of authority. They wear garments in shades of deep red, obsidian black, and burnished gold, often decorated with metallic filigree or sashes that denote their rank or affiliation. Their clothing is well-tailored and designed to impress. Jewelry is typically made from precious metals and may incorporate symbols of their diabolic ancestry or the organizations they serve.",
+    "typicalEnvironment": "Infernal tieflings gravitate toward environments that value structure, ambition, and the pursuit of power. They're comfortable in urban centers, within the halls of government, and in places where the law is clearly defined. Many work as administrators, lawyers, advisors, or military officers. They find chaotic environments frustrating and prefer spaces where they can use their intellect and social standing to achieve their goals.",
+    "societyType": "Infernal tieflings often value hierarchy, tradition, and the fulfillment of duty. Those who form communities tend to organize around clear structures, guilds, or service to powerful entities. Their communities are orderly and disciplined, with leadership held by those who demonstrate the greatest strategic brilliance or social influence. They value loyalty, reciprocity, and the belief that order is the foundation of prosperity.",
+    "typicalAssociation": "Infernal tieflings tend toward lawful alignments, reflecting their internal connection to the structured hierarchies of the Nine Hells. They are often viewed as ambitious or manipulative by those who value personal freedom, but they possess a strong sense of honor and commitment to their word. They value intellectual rigor, social competence, and the search for collective order. Their connection to fire energy doesn't make them inherently evil, but it does give them a passionate and sometimes punishing perspective on justice.",
+    "physicalAppearance": "Infernal tieflings possess a refined and authoritative beauty. They stand 5' to 6' tall with athletic, well-proportioned builds. Their skin ranges from deep reds to sun-kissed bronzes, sometimes featuring metallic hints or subtle patterns. Their horns are typically symmetrical and elegant—often spiraling or pointing backward. Their eyes can be solid colors like gold, silver, or amber, sometimes with pupils that suggest a focused intensity. Hair is typically dark or metallic, kept in peak condition. Their presence is commanding and disciplined, conveying a sense of calculated power."
+  },
+  "characteristics": [
+    {
+      "label": "Legacy Type",
+      "value": "Fiendish (Infernal)"
+    },
+    {
+      "label": "Origin",
+      "value": "The Nine Hells"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Otherworldly Presence",
+      "icon": "magic",
+      "description": "You know the [[thaumaturgy|Thaumaturgy]] cantrip."
+    },
+    {
+      "name": "Infernal Resistance",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
+    },
+    {
+      "name": "Infernal Magic",
+      "icon": "magic",
+      "description": "You know the [[fire_bolt|Fire Bolt]] cantrip. Starting at 3rd level, you can cast [[hellish_rebuke|Hellish Rebuke]] once per long rest. Starting at 5th level, you can cast [[darkness|Darkness]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    }
+  ],
+  "tags": [
+    "tiefling",
+    "legacy",
+    "infernal",
+    "lawful evil",
+    "fire"
+  ],
+  "aliases": [
+    "infernal legacy"
+  ],
+  "seeAlso": [
+    "tiefling",
+    "fire_damage",
+    "fire_bolt",
+    "hellish_rebuke",
+    "darkness"
+  ],
+  "filePath": "/data/glossary/entries/races/tiefling_legacies/infernal.json",
+  "maleImageUrl": "/assets/images/races/Tiefling_Infernal_Male.png",
+  "femaleImageUrl": "/assets/images/races/Tiefling_Infernal_Female.png"
+}

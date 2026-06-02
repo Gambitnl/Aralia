@@ -2,6 +2,7 @@
  * @file ImagePane.tsx
  * THIS ENTIRE FILE IS OBSOLETE but will be picked up someday.
  * The scene visual feature is currently inactive and this component is no longer used actively in App.tsx.
+ * @component-owner UI Team / Core UI
  */
 // TODO(FEATURES): Re-enable scene visuals (wire ImagePane + image generation back into layout) when API quotas allow (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 /*

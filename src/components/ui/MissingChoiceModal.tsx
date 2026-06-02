@@ -2,10 +2,13 @@
 /**
  * @file MissingChoiceModal.tsx
  * A modal that prompts the user to make a specific missing choice for a character.
+ *
+ * @component-owner Gameplay Team / Core UI
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { MissingChoice } from '../types';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 
@@ -40,13 +43,12 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
     choiceId: string;
     optionId: string;
   } | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      closeButtonRef.current?.focus();
-    }
-  }, [isOpen]);
+  // We use useFocusTrap to capture keyboard focus within the modal.
+  // This automatically keeps focus inside the modal, supports Tab/Shift+Tab wrapping,
+  // and closes the modal on Escape press. We pass `isOpen && !!missingChoice` to ensure
+  // the trap is only active when the modal is fully ready and displayed.
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen && !!missingChoice, onClose);
 
   if (!isOpen || !missingChoice) return null;
 
@@ -77,16 +79,18 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
       role="dialog"
     >
       <motion.div
+        ref={modalRef}
         {...modalMotion}
-        className="bg-gray-800 border border-amber-500/50 rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+        className="bg-gray-800 border border-amber-500/50 rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden focus:outline-none"
         onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         <div className="bg-amber-900/30 p-4 border-b border-amber-500/30 flex justify-between items-center">
              <div>
                 <h3 className="text-lg font-bold text-amber-400 font-cinzel">Incomplete Character</h3>
                 <p className="text-sm text-amber-200/70">{characterName} is missing a vital trait or spell.</p>
              </div>
-             <button ref={closeButtonRef} onClick={onClose} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+             <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">&times;</button>
         </div>
         
         <div className="p-6 max-h-[60vh] overflow-y-auto scrollable-content">
@@ -128,3 +132,4 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
 };
 
 export default MissingChoiceModal;
+

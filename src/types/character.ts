@@ -461,6 +461,7 @@ export interface RacialSelectionData {
   choiceId?: string;
   spellAbility?: AbilityScoreName;
   skillIds?: string[];
+  toolIds?: string[];
   selectedSpellIds?: string[];
 }
 
@@ -528,6 +529,7 @@ export interface PlayerCharacter {
    */
   stats?: CharacterStats;
   skills: Skill[];
+  toolProficiencies?: string[];
   savingThrowProficiencies?: AbilityScoreName[];
   weaponProficiencies?: string[];
   armorProficiencies?: string[];

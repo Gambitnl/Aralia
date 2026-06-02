@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:23:16
+ * Last Sync: 01/06/2026, 09:49:45
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 8 files
  *
@@ -26,6 +26,7 @@ import {
   CombatLogEntry,
   BattleMapData,
   TurnState,
+  DamageNumber,
   Animation,
   AbilityCost,
   ReactiveTrigger,
@@ -64,7 +65,7 @@ export interface UseActionExecutorProps {
   recordAction: (action: CombatAction) => void;
 
   // Visuals
-  addDamageNumber: (val: number, pos: { x: number, y: number }, type: 'damage' | 'heal' | 'miss') => void;
+  addDamageNumber: (val: number, pos: { x: number, y: number }, type: DamageNumber['type']) => void;
   queueAnimation: (anim: Animation) => void;
 
   // Engine Mechanics
@@ -485,13 +486,25 @@ export const useActionExecutor = ({
                   message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
                   characterId: updatedCharacter.id
                 });
-                if (!saveResult.success) { appliedCondition = true; } else { saveMessage = ' (resisted)'; }
+                if (!saveResult.success) {
+                  appliedCondition = true;
+                } else {
+                  // Area-triggered conditions often resolve after the player has
+                  // moved into or through a zone. Show successful resistance on
+                  // the map immediately so the visible board matches the log.
+                  addDamageNumber(0, updatedCharacter.position, 'resist');
+                  saveMessage = ' (resisted)';
+                }
               } else {
                 appliedCondition = true;
               }
 
               if (appliedCondition && updatedCharacter.conditionImmunities?.includes(effect.statusName as any)) {
                 appliedCondition = false;
+                // Immunity prevents the condition just like a successful save,
+                // but it communicates a different rule. Use the explicit shared
+                // IMMUNE label so the map does not make immunity look like a miss.
+                addDamageNumber(0, updatedCharacter.position, 'immune');
                 onLogEntry({
                   id: generateId(), timestamp: Date.now(), type: 'status',
                   message: `${updatedCharacter.name} is immune to ${effect.statusName}`,

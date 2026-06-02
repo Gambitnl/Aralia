@@ -1,3 +1,8 @@
+/**
+ * @file Table.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React, { forwardRef } from 'react';
 
 // Since I haven't confirmed 'cn' exists, I will use a simple helper or just template literals if I can't find it.

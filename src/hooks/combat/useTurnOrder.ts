@@ -109,9 +109,16 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
       const charId = prev.turnOrder[nextIndex];
       const char = characters.find(c => c.id === charId);
 
-      if (char && char.currentHP > 0) {
+      if (char) {
+        // Player characters at 0 HP are "downed" and must take their turns to roll death saves
+        // until they either stabilize (3 successes) or die (3 failures).
+        const isDeadPlayer = char.team === 'player' && (char.deathSaves?.failures || 0) >= 3;
+        const isDownedPlayer = char.team === 'player' && char.currentHP === 0 && !isDeadPlayer;
+
+        if (char.currentHP > 0 || isDownedPlayer) {
           foundNext = true;
           break;
+        }
       }
       nextIndex = (nextIndex + 1) % prev.turnOrder.length;
       attempts++;

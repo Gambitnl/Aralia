@@ -86,3 +86,13 @@ This is not the full crime domain implementation. Core logic, math, and bounty l
 2. Read `docs/projects/crime-ui/TRACKER.md`.
 3. Read `docs/projects/crime-ui/GAPS.md`.
 4. Cross-check `docs/projects/crime/TRACKER.md` before changing shared crime-core behavior.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

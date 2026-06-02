@@ -6,6 +6,18 @@ import { calculateConcentrationDC, checkConcentration } from '../../utils/concen
 import { createMockSpell, createMockCombatCharacter, createMockCombatState, createMockGameState, createMockPlayerCharacter } from '../../utils/factories'
 import type { DamageEffect } from '@/types/spells'
 import type { PlayerCharacter } from '@/types'
+import type { ActiveRider } from '@/types/combat'
+
+/**
+ * These tests protect the concentration command bridge.
+ *
+ * Concentration spells create effects in several different runtime places:
+ * character statuses, structured conditions, map light sources, summons, and
+ * attack riders. The command layer records enough IDs/source data to clean
+ * those effects up when concentration ends. These tests keep that cleanup
+ * behavior visible so future refactors do not leave stale spell artifacts on
+ * the combat map or character sheets.
+ */
 
 describe('Concentration System', () => {
 
@@ -198,6 +210,180 @@ describe('Concentration System', () => {
             expect(newState.characters[0].concentratingOn).toBeUndefined();
             const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');
             expect(logMessages).toContain('stops concentrating');
+        })
+
+        it('BreakConcentrationCommand removes linked statuses, conditions, lights, and summons', async () => {
+            const mockCaster = createMockCombatCharacter({
+                id: 'caster',
+                name: 'Caster',
+                concentratingOn: {
+                    spellId: 'summon-light-spell',
+                    spellName: 'Summon Light Spell',
+                    spellLevel: 2,
+                    startedTurn: 3,
+                    effectIds: ['linked-status', 'linked-light', 'linked-summon'],
+                    canDropAsFreeAction: true
+                }
+            });
+            const affectedTarget = createMockCombatCharacter({
+                id: 'target',
+                name: 'Target',
+                statusEffects: [
+                    {
+                        id: 'linked-status',
+                        name: 'Restrained',
+                        type: 'debuff',
+                        duration: 10,
+                        source: 'Summon Light Spell',
+                        sourceCasterId: mockCaster.id,
+                        effect: { type: 'condition' }
+                    },
+                    {
+                        id: 'unrelated-status',
+                        name: 'Blessed',
+                        type: 'buff',
+                        duration: 10,
+                        source: 'Other Spell',
+                        effect: { type: 'condition' }
+                    }
+                ],
+                conditions: [
+                    {
+                        name: 'Restrained',
+                        duration: { type: 'rounds', value: 10 },
+                        appliedTurn: 3,
+                        source: 'summon-light-spell',
+                        sourceCasterId: mockCaster.id
+                    },
+                    {
+                        name: 'Blessed',
+                        duration: { type: 'rounds', value: 10 },
+                        appliedTurn: 3,
+                        source: 'other-spell'
+                    }
+                ]
+            });
+            const linkedSummon = createMockCombatCharacter({
+                id: 'linked-summon',
+                name: 'Linked Summon'
+            });
+            const mockState = createMockCombatState({
+                characters: [mockCaster, affectedTarget, linkedSummon],
+                activeLightSources: [
+                    {
+                        id: 'linked-light',
+                        sourceSpellId: 'summon-light-spell',
+                        casterId: mockCaster.id,
+                        brightRadius: 20,
+                        dimRadius: 20,
+                        attachedTo: 'caster'
+                    },
+                    {
+                        id: 'unrelated-light',
+                        sourceSpellId: 'other-spell',
+                        casterId: 'other-caster',
+                        brightRadius: 10,
+                        dimRadius: 10,
+                        attachedTo: 'point'
+                    }
+                ] as any,
+                combatLog: []
+            });
+            const mockGameState = createMockGameState();
+
+            const command = new BreakConcentrationCommand({
+                spellId: 'summon-light-spell',
+                spellName: 'Summon Light Spell',
+                castAtLevel: 2,
+                caster: mockCaster,
+                targets: [],
+                gameState: mockGameState
+            });
+
+            const newState = await command.execute(mockState);
+            const updatedCaster = newState.characters.find(character => character.id === mockCaster.id)!;
+            const updatedTarget = newState.characters.find(character => character.id === affectedTarget.id)!;
+
+            // Ending concentration must clear the caster pointer and remove only
+            // artifacts linked to that spell. Unrelated statuses/lights remain.
+            expect(updatedCaster.concentratingOn).toBeUndefined();
+            expect(updatedTarget.statusEffects.map(effect => effect.id)).toEqual(['unrelated-status']);
+            expect(updatedTarget.conditions?.map(condition => condition.name)).toEqual(['Blessed']);
+            expect(newState.activeLightSources.map(source => source.id)).toEqual(['unrelated-light']);
+            expect(newState.characters.some(character => character.id === linkedSummon.id)).toBe(false);
+            expect(newState.combatLog.map(entry => entry.message)).toContain('Linked Summon disappears');
+        })
+
+        it('BreakConcentrationCommand removes linked riders from the concentrating caster', async () => {
+            // Riders are attack add-ons such as Hex or Hunter's Mark. They live on
+            // the caster, not on the target, so this guard protects a different
+            // cleanup branch from the status/light/summon test above.
+            const riderEffect: DamageEffect = {
+                type: 'DAMAGE',
+                damage: { dice: '1d6', type: 'Necrotic' },
+                trigger: { type: 'immediate' },
+                condition: { type: 'hit' }
+            };
+            const linkedRider: ActiveRider = {
+                id: 'linked-rider',
+                spellId: 'hex',
+                casterId: 'caster',
+                sourceName: 'Hex',
+                targetId: 'target',
+                effect: riderEffect,
+                consumption: 'unlimited',
+                attackFilter: { attackType: 'weapon', weaponType: 'any' },
+                usedThisTurn: false,
+                duration: { type: 'minutes', value: 60 }
+            };
+            const unrelatedRider: ActiveRider = {
+                id: 'unrelated-rider',
+                spellId: 'hunters-mark',
+                casterId: 'caster',
+                sourceName: "Hunter's Mark",
+                targetId: 'target',
+                effect: riderEffect,
+                consumption: 'unlimited',
+                attackFilter: { attackType: 'weapon', weaponType: 'any' },
+                usedThisTurn: false,
+                duration: { type: 'minutes', value: 60 }
+            };
+            const mockCaster = createMockCombatCharacter({
+                id: 'caster',
+                name: 'Caster',
+                riders: [linkedRider, unrelatedRider],
+                concentratingOn: {
+                    spellId: 'hex',
+                    spellName: 'Hex',
+                    spellLevel: 1,
+                    startedTurn: 4,
+                    effectIds: ['linked-rider'],
+                    canDropAsFreeAction: true
+                }
+            });
+            const mockState = createMockCombatState({
+                characters: [mockCaster],
+                combatLog: []
+            });
+            const mockGameState = createMockGameState();
+
+            const command = new BreakConcentrationCommand({
+                spellId: 'hex',
+                spellName: 'Hex',
+                castAtLevel: 1,
+                caster: mockCaster,
+                targets: [],
+                gameState: mockGameState
+            });
+
+            const newState = await command.execute(mockState);
+            const updatedCaster = newState.characters.find(character => character.id === mockCaster.id)!;
+
+            // Ending Hex should remove only Hex's attack rider. Other rider-based
+            // spells remain active so concentration cleanup does not become a broad
+            // purge of every attack add-on on the caster.
+            expect(updatedCaster.concentratingOn).toBeUndefined();
+            expect(updatedCaster.riders?.map(rider => rider.id)).toEqual(['unrelated-rider']);
         })
     })
 })

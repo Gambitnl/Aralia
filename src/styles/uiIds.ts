@@ -46,6 +46,8 @@ export const UI_ID = {
   WORLD_PANE: 'world-pane',
   /** Tactical minimap canvas */
   MINIMAP: 'minimap',
+  /** Compact world atlas strip with 3D player marker (W3DUI-23) */
+  WORLD_ATLAS_STRIP: 'world-atlas-strip',
 
   // ── Screens ───────────────────────────────────────────────────────────
   /** Main menu screen */

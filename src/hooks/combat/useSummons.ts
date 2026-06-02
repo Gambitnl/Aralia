@@ -1,9 +1,38 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 18:11:07
+ * Dependents: components/Combat/CombatView.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useState, useCallback } from 'react';
 import { CombatCharacter, ActionCostType, AbilityEffect } from '../../types/combat';
 import { Spell, SummoningEffect, FamiliarContract } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
 import { getSummonTemplate, SummonTemplate } from '../../data/summonTemplates';
 import { Class } from '../../types/character';
+
+/**
+ * This hook keeps a local list of summoned actors for UI/helper flows.
+ *
+ * The active spell-casting runtime currently creates combat summons through
+ * `SummoningCommand`, not through this hook. We keep this hook aligned with the
+ * command metadata shape because older UI/tests still reference it, but it is
+ * not the authoritative summon owner until a future parity slice either wires
+ * it into command execution or formally retires it.
+ *
+ * Called by: CombatView as a currently parallel helper path.
+ * Depends on: summon templates and CombatCharacter metadata.
+ */
 
 interface UseSummonsProps {
     onSummonAdded?: (summon: CombatCharacter) => void;
@@ -36,13 +65,14 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
     ) => {
         // Determine stats based on effect definition or selected form
         let statBlock: SummonTemplate | undefined = summonEffect.statBlock;
+        let selectedFormName: string | undefined;
 
         // Handle form selection (e.g. from familiar options) if statBlock is missing
         if (!statBlock) {
             const forms = summonEffect.formOptions || summonEffect.familiarContract?.forms;
             if (forms && Array.isArray(forms) && forms.length > 0) {
                 // Safely access the selected form, defaulting to the first one if index is invalid
-                const selectedFormName = forms[formIndex] || forms[0];
+                selectedFormName = forms[formIndex] || forms[0];
                 statBlock = getSummonTemplate(selectedFormName);
 
                 if (!statBlock) {
@@ -122,6 +152,13 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
             summonMetadata: {
                 casterId: caster.id,
                 spellId: spell.id,
+                // Keep this hook's summon records aligned with command-created
+                // summons. Even if this path remains a UI/helper path, map
+                // labels and lifecycle code need the same identity fields
+                // instead of guessing from the rendered name.
+                entityType: summonEffect.entityType,
+                formName: selectedFormName ?? summonEffect.statBlock?.name ?? statBlock.name,
+                sourceName: spell.name,
                 durationRemaining: typeof summonEffect.duration?.value === 'number' ? summonEffect.duration.value : undefined,
                 dismissable: !!summonEffect.dismissAction
             }

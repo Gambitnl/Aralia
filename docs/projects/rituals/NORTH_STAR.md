@@ -85,3 +85,14 @@ without losing intent.
 3. Verify whether `silence`, `incapacitated`, and event-shaped interruption checks can be made symmetric in reducer and manager.
 4. Resolve whether `src/types/ritual.ts` is legacy cleanup or should be merged into `src/types/rituals.ts`.
 5. Add minimal ritual execution route from combat ability use path (`useActionExecutor`) when TODO intent is implemented.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- read the existing project gaps before choosing work
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

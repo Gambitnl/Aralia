@@ -1,3 +1,8 @@
+/**
+ * @file SelectionCard.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 

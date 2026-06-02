@@ -1532,13 +1532,15 @@ export class HttpServer {
       </div>
     </header>
 
+    ${this.renderTaskPageAtAGlance(detail)}
+
     <section class="task-page-grid">
-      <article class="card task-page-current">
+      <article id="task-page-current-boundary" class="card task-page-current" data-task-page-current-boundary>
         <h2>Current Boundary</h2>
-        <p><strong>${this.escapeHtml(this.stringFromUnknown(currentBoundary.label) ?? status)}</strong></p>
-        <p>${this.escapeHtml(this.stringFromUnknown(currentBoundary.detail) ?? this.stringFromUnknown(detail.summary) ?? 'No boundary detail recorded.')}</p>
+        <p><strong data-current-boundary-label>${this.escapeHtml(this.stringFromUnknown(currentBoundary.label) ?? status)}</strong></p>
+        <p data-current-boundary-detail>${this.escapeHtml(this.stringFromUnknown(currentBoundary.detail) ?? this.stringFromUnknown(detail.summary) ?? 'No boundary detail recorded.')}</p>
         <dl class="task-page-facts">
-          <div><dt>Needs human input</dt><dd>${needsHumanInput ? 'Yes' : 'No'}</dd></div>
+          <div><dt>Needs human input</dt><dd data-current-boundary-human-input>${needsHumanInput ? 'Yes' : 'No'}</dd></div>
           <div><dt>Mutates Git</dt><dd>${detail.mutatesGit === true ? 'Yes' : 'No'}</dd></div>
           <div><dt>Mutates external systems</dt><dd>${detail.mutatesExternalSystems === true ? 'Yes' : 'No'}</dd></div>
           <div><dt>Mutates local files</dt><dd>${detail.mutatesLocalFiles === true ? 'Yes' : 'No'}</dd></div>
@@ -1547,7 +1549,7 @@ export class HttpServer {
         ${externalLinks ? `<nav class="task-page-links" aria-label="Task links">${externalLinks}</nav>` : ''}
       </article>
 
-      <article class="card task-page-chat">
+      <article id="task-page-messages" class="card task-page-chat">
         <h2>Task Messages</h2>
         <p class="usage-summary">Local operator/Codex notes for this task. This does not send feedback to Jules.</p>
         <form data-task-message-form data-task-message-url="${this.escapeHtml(messageUrl)}">
@@ -1563,10 +1565,12 @@ export class HttpServer {
           <button type="submit">Record Task Message</button>
           <p class="usage-summary" data-task-message-status></p>
         </form>
-        ${this.renderTaskPageMessages(messages)}
+        <div data-task-page-messages>
+          ${this.renderTaskPageMessages(messages)}
+        </div>
       </article>
 
-      <article class="card task-page-clarifications">
+      <article id="task-page-clarifications" class="card task-page-clarifications">
         <h2>Task Clarifications</h2>
         <p class="usage-summary">Structured Codex-foreman questions and operator answers for task boundaries. This does not send feedback to Jules, create Linear work, push to GitHub, or mutate Git.</p>
         <form data-task-clarification-form data-task-clarification-url="${this.escapeHtml(clarificationUrl)}">
@@ -1579,7 +1583,9 @@ export class HttpServer {
           <button type="submit">Record Clarification</button>
           <p class="usage-summary" data-task-clarification-status></p>
         </form>
-        ${this.renderTaskPageClarifications(clarifications)}
+        <div data-task-page-clarifications>
+          ${this.renderTaskPageClarifications(clarifications)}
+        </div>
       </article>
 
       ${this.renderTaskPageGuardedActions(detail)}
@@ -1588,11 +1594,11 @@ export class HttpServer {
       ${this.renderTaskPageOperatorAnswer(detail)}
       ${this.renderTaskPageRepairPushResult(detail)}
 
-      <article class="card task-page-disposition">
+      <article id="task-page-filing" class="card task-page-disposition">
         <h2>Task Filing</h2>
         <p class="usage-summary">Local task disposition for dashboard triage. This does not close Linear, message Jules, change GitHub, or mutate Git.</p>
-        <p><strong>Current:</strong> ${this.escapeHtml(this.stringFromUnknown(taskDisposition.state) ?? 'active')}</p>
-        ${this.stringFromUnknown(taskDisposition.reason) ? `<p>${this.escapeHtml(this.stringFromUnknown(taskDisposition.reason) ?? '')}</p>` : ''}
+        <p><strong>Current:</strong> <span data-task-filing-state>${this.escapeHtml(this.stringFromUnknown(taskDisposition.state) ?? 'active')}</span></p>
+        <p data-task-filing-reason>${this.escapeHtml(this.stringFromUnknown(taskDisposition.reason) ?? '')}</p>
         <form data-task-disposition-form data-task-disposition-url="${this.escapeHtml(dispositionUrl)}">
           <label>Status
             <select name="state">
@@ -1610,11 +1616,15 @@ export class HttpServer {
         </form>
       </article>
 
-      <article class="card task-page-timeline">
+      <article id="task-page-timeline" class="card task-page-timeline">
         <h2>Task Timeline</h2>
         <p>${this.escapeHtml(this.stringFromUnknown(timeline.summary) ?? `Timeline events: ${timelineEvents.length}`)}</p>
-        ${this.renderTaskPageTimeline(timelineEvents)}
+        <div data-task-page-timeline>
+          ${this.renderTaskPageTimeline(timelineEvents)}
+        </div>
       </article>
+
+      ${this.renderTaskPageTimingTracker(detail.timingTracker)}
 
       ${this.renderTaskPageRoiEvidence(detail.delegationRoiLedger)}
 
@@ -1622,7 +1632,7 @@ export class HttpServer {
 
       ${this.renderTaskActivityMirror(timelineEvents, messages, clarifications)}
 
-      <article class="card">
+      <article id="task-page-scope" class="card">
         <h2>Scope And Verification</h2>
         <h3>Expected Files</h3>
         ${this.renderTaskPageList(expectedFiles, 'No expected files recorded.')}
@@ -1643,6 +1653,152 @@ export class HttpServer {
     </section>
   </main>
   <script>
+    const atAGlanceRoot = document.querySelector('[data-task-at-a-glance]');
+    function escapeTaskPageText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[character] || character));
+    }
+    function renderTaskPageDrilldownLinks(detail = {}) {
+      const links = [
+        ['Current boundary', '#task-page-current-boundary'],
+        ['Timeline', '#task-page-timeline'],
+        ['Messages', '#task-page-messages'],
+        ['Scope', '#task-page-scope'],
+        detail.julesStateReconciliation ? ['Jules state', '#task-page-jules-state-reconciliation'] : null,
+        detail.deploymentReadiness ? ['Deployment', '#task-page-deployment-readiness'] : null,
+        detail.localSyncReadiness ? ['Local sync', '#task-page-local-sync-readiness'] : null
+      ].filter(Boolean);
+
+      return '<nav class="task-page-drilldown-links" aria-label="Task drilldowns">'
+        + links.map(([label, href]) => '<a href="' + escapeTaskPageText(href) + '">' + escapeTaskPageText(label) + '</a>').join('')
+        + '</nav>';
+    }
+    function renderTaskPageAtAGlance(packet = {}, fallbackSummary = '', detail = {}) {
+      const boundary = packet.boundary || 'unknown';
+      const boundaryLabel = packet.boundaryLabel || boundary;
+      const owner = packet.owner || 'Symphony';
+      const summary = packet.summary || fallbackSummary || 'Task status is available in the detail cards below.';
+      const nextProof = packet.nextProof || packet.nextAction || 'Use the current boundary card below.';
+      const freshness = packet.freshness || 'Source freshness unavailable.';
+      const tone = packet.tone || 'waiting';
+      const badgeClass = tone === 'blocked' ? 'approval' : tone === 'ready' ? 'running' : 'retrying';
+      return '<div>'
+        + '<span class="badge ' + escapeTaskPageText(badgeClass) + '">' + escapeTaskPageText(boundaryLabel) + '</span>'
+        + '<h2>At a glance</h2>'
+        + '</div>'
+        + '<p>' + escapeTaskPageText(summary) + '</p>'
+        + '<dl class="task-page-facts">'
+        + '<div><dt>Boundary</dt><dd><code>' + escapeTaskPageText(boundary) + '</code></dd></div>'
+        + '<div><dt>Owner</dt><dd>' + escapeTaskPageText(owner) + '</dd></div>'
+        + '<div><dt>Source</dt><dd>' + escapeTaskPageText(freshness) + '</dd></div>'
+        + '<div><dt>Next proof</dt><dd>' + escapeTaskPageText(nextProof) + '</dd></div>'
+        + '</dl>'
+        + renderTaskPageDrilldownLinks(detail);
+    }
+    async function refreshTaskPageAtAGlance() {
+      if (!atAGlanceRoot?.dataset.taskDetailUrl || document.hidden) return;
+      try {
+        const response = await fetch(atAGlanceRoot.dataset.taskDetailUrl, { cache: 'no-store' });
+        if (!response.ok) return;
+        const detail = await response.json();
+        atAGlanceRoot.innerHTML = renderTaskPageAtAGlance(detail.atAGlance || {}, detail.summary || '', detail);
+        const tone = String(detail.atAGlance?.tone || 'waiting');
+        atAGlanceRoot.classList.toggle('blocked', tone === 'blocked');
+        atAGlanceRoot.classList.toggle('ready', tone === 'ready');
+        return detail;
+      } catch {
+        // Keep the last known status visible. The task page should not flicker or
+        // blank the header just because a background status refresh failed.
+      }
+    }
+    if (atAGlanceRoot?.dataset.taskDetailUrl) {
+      window.setInterval(refreshTaskPageAtAGlance, 15000);
+    }
+    async function refreshTaskPageAfterVisibleAction(statusNode, message) {
+      const detail = await refreshTaskPageAtAGlance();
+      refreshTaskPageDrilldowns(detail || {});
+      if (statusNode) statusNode.textContent = message || 'Action recorded. Status refreshed without reloading the page.';
+    }
+    function refreshTaskPageDrilldowns(detail = {}) {
+      const boundaryLabel = document.querySelector('[data-current-boundary-label]');
+      const boundaryDetail = document.querySelector('[data-current-boundary-detail]');
+      const boundaryHumanInput = document.querySelector('[data-current-boundary-human-input]');
+      const filingState = document.querySelector('[data-task-filing-state]');
+      const filingReason = document.querySelector('[data-task-filing-reason]');
+      const messageRoot = document.querySelector('[data-task-page-messages]');
+      const clarificationRoot = document.querySelector('[data-task-page-clarifications]');
+      const timelineRoot = document.querySelector('[data-task-page-timeline]');
+      const timingRoot = document.querySelector('[data-task-page-timing]');
+      const deployment = detail.deploymentReadiness || {};
+      const localSync = detail.localSyncReadiness || {};
+      if (boundaryLabel) boundaryLabel.textContent = detail.currentBoundary?.label || detail.status || 'unknown';
+      if (boundaryDetail) boundaryDetail.textContent = detail.currentBoundary?.detail || detail.summary || 'No boundary detail recorded.';
+      if (boundaryHumanInput) boundaryHumanInput.textContent = detail.needsHumanInput === true ? 'Yes' : 'No';
+      if (filingState) filingState.textContent = detail.taskDisposition?.state || 'active';
+      if (filingReason) filingReason.textContent = detail.taskDisposition?.reason || '';
+      setTaskPageText('[data-deployment-status]', deployment.status || 'not_available');
+      setTaskPageText('[data-deployment-can-refresh]', deployment.canRefreshNow === true ? 'Yes' : 'No');
+      setTaskPageText('[data-deployment-can-proceed]', deployment.canProceedToLocalSync === true ? 'Yes' : 'No');
+      setTaskPageText('[data-local-sync-status]', localSync.status || 'not_available');
+      setTaskPageText('[data-local-sync-can-sync]', localSync.canSyncNow === true ? 'Yes' : 'No');
+      setTaskPageText('[data-local-sync-mutates-git]', localSync.mutatesGitIfRun === true ? 'Yes' : 'No');
+      setTaskPageHtml('[data-deployment-proof-needed]', deployment.expectedNextProof ? '<strong>Deployment proof needed:</strong> ' + escapeTaskPageText(deployment.expectedNextProof) : '');
+      setTaskPageText('[data-deployment-blockers]', Array.isArray(deployment.blockers) && deployment.blockers.length ? 'Deployment blockers: ' + deployment.blockers.join('; ') : 'No deployment blockers are recorded.');
+      setTaskPageText('[data-local-sync-blockers]', Array.isArray(localSync.blockers) && localSync.blockers.length ? 'Local sync blockers: ' + localSync.blockers.join('; ') : 'No local sync blockers are recorded.');
+      setTaskPageText('[data-local-sync-next-proof]', localSync.expectedNextProof || 'Local sync remains unavailable until merge, deployment evidence or waiver, and Git safety checks are all proven.');
+      if (messageRoot) messageRoot.innerHTML = renderTaskPageMessageList(detail.taskMessages || [], 'No task messages recorded yet.');
+      if (clarificationRoot) clarificationRoot.innerHTML = renderTaskPageClarificationList(detail.taskClarifications || []);
+      if (timelineRoot) timelineRoot.innerHTML = renderTaskPageTimelineList(detail.timeline?.events || []);
+      if (timingRoot) timingRoot.innerHTML = renderTaskPageTimingList(detail.timingTracker?.steps || []);
+    }
+    function setTaskPageText(selector, value) {
+      const node = document.querySelector(selector);
+      if (node) node.textContent = value;
+    }
+    function setTaskPageHtml(selector, value) {
+      const node = document.querySelector(selector);
+      if (node) node.innerHTML = value;
+    }
+    function renderTaskPageMessageList(messages = [], emptyText = 'No records yet.') {
+      if (!Array.isArray(messages) || !messages.length) return '<p>' + escapeTaskPageText(emptyText) + '</p>';
+      return '<ol class="task-page-messages">' + messages.map(message => {
+        const author = message.author || message.recordedBy || 'record';
+        const body = message.body || message.summary || message.reason || JSON.stringify(message);
+        const when = message.createdAt || message.recordedAt || message.updatedAt || '';
+        return '<li><span>' + escapeTaskPageText(author) + (when ? ' · ' + escapeTaskPageText(when) : '') + '</span><p>' + escapeTaskPageText(body) + '</p></li>';
+      }).join('') + '</ol>';
+    }
+    function renderTaskPageClarificationList(clarifications = []) {
+      if (!Array.isArray(clarifications) || !clarifications.length) return '<p>No clarifications recorded yet.</p>';
+      return '<ol class="task-page-messages">' + clarifications.map(item => {
+        const question = item.question || item.body || 'Clarification';
+        const answer = item.answer || 'No answer recorded yet.';
+        const when = item.createdAt || item.recordedAt || '';
+        return '<li><span>' + escapeTaskPageText(when || 'clarification') + '</span><p><strong>Question:</strong> ' + escapeTaskPageText(question) + '</p><p><strong>Answer:</strong> ' + escapeTaskPageText(answer) + '</p></li>';
+      }).join('') + '</ol>';
+    }
+    function renderTaskPageTimelineList(events = []) {
+      if (!Array.isArray(events) || !events.length) return '<p>No timeline events recorded yet.</p>';
+      return '<ol class="task-page-events">' + events.map(event => {
+        const label = event.label || event.stage || event.status || 'Event';
+        const detail = event.detail || event.summary || '';
+        const when = event.occurredAt || event.createdAt || event.recordedAt || '';
+        return '<li><span>' + escapeTaskPageText(label) + '</span>' + (when ? '<em>' + escapeTaskPageText(when) + '</em>' : '') + (detail ? '<p>' + escapeTaskPageText(detail) + '</p>' : '') + '</li>';
+      }).join('') + '</ol>';
+    }
+    function renderTaskPageTimingList(steps = []) {
+      if (!Array.isArray(steps) || !steps.length) return '<p>No timing steps are available yet.</p>';
+      return '<ol class="task-page-events">' + steps.map(step => {
+        const status = step.status || 'unknown';
+        const duration = step.durationLabel || 'pending';
+        return '<li><span>' + escapeTaskPageText(step.label || step.stage || 'Step') + '</span><em>' + escapeTaskPageText(status) + '</em><p>Start: ' + escapeTaskPageText(step.startTime || 'unknown') + '; end: ' + escapeTaskPageText(step.endTime || 'pending') + '; time taken: ' + escapeTaskPageText(duration) + '</p></li>';
+      }).join('') + '</ol>';
+    }
     const form = document.querySelector('[data-task-message-form]');
     form?.addEventListener('submit', async event => {
       event.preventDefault();
@@ -1667,7 +1823,8 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        if (textarea) textarea.value = '';
+        await refreshTaskPageAfterVisibleAction(status, 'Task message recorded. Status refreshed without reloading the page.');
       } catch (error) {
         if (status) status.textContent = 'Task message failed: ' + (error?.message || error);
       }
@@ -1693,7 +1850,11 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        const questionInput = clarificationForm.querySelector('textarea[name="question"]');
+        const answerInput = clarificationForm.querySelector('textarea[name="answer"]');
+        if (questionInput) questionInput.value = '';
+        if (answerInput) answerInput.value = '';
+        await refreshTaskPageAfterVisibleAction(status, 'Task clarification recorded. Status refreshed without reloading the page.');
       } catch (error) {
         if (status) status.textContent = 'Task clarification failed: ' + (error?.message || error);
       }
@@ -1719,7 +1880,9 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        const reasonInput = dispositionForm.querySelector('textarea[name="reason"]');
+        if (reasonInput) reasonInput.value = '';
+        await refreshTaskPageAfterVisibleAction(status, 'Task filing recorded. Status refreshed without reloading the page.');
       } catch (error) {
         if (status) status.textContent = 'Task filing failed: ' + (error?.message || error);
       }
@@ -1745,7 +1908,9 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        const answerInput = operatorAnswerForm.querySelector('textarea[name="answer"]');
+        if (answerInput) answerInput.value = '';
+        await refreshTaskPageAfterVisibleAction(status, 'Operator answer recorded. Status refreshed without reloading the page.');
       } catch (error) {
         if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
       }
@@ -1783,7 +1948,7 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        await refreshTaskPageAfterVisibleAction(status, 'Operator decision recorded. Status refreshed without reloading the page.');
       } catch (error) {
         if (status) status.textContent = 'Operator answer failed: ' + (error?.message || error);
       }
@@ -1811,7 +1976,8 @@ export class HttpServer {
             const text = await response.text();
             throw new Error(text || response.statusText);
           }
-          window.location.reload();
+          await refreshTaskPageAfterVisibleAction(statusNode, 'Guarded action completed. Status refreshed without reloading the page.');
+          button.disabled = false;
         } catch (error) {
           button.disabled = false;
           if (statusNode) statusNode.textContent = 'Guarded action failed: ' + (error?.message || error);
@@ -1843,7 +2009,8 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        repairPushResultForm.querySelectorAll('input, textarea').forEach(input => { input.value = ''; });
+        await refreshTaskPageAfterVisibleAction(statusNode, 'Repair push result recorded. Status refreshed without reloading the page.');
       } catch (error) {
         if (statusNode) statusNode.textContent = 'Repair push result failed: ' + (error?.message || error);
       }
@@ -1868,7 +2035,9 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        const textarea = julesMessageForm.querySelector('textarea[name="julesFeedback"]');
+        if (textarea) textarea.value = '';
+        await refreshTaskPageAfterVisibleAction(statusNode, 'Jules feedback sent. Status refreshed without reloading the page.');
       } catch (error) {
         if (statusNode) statusNode.textContent = 'Jules feedback failed: ' + (error?.message || error);
       }
@@ -1894,7 +2063,8 @@ export class HttpServer {
           const text = await response.text();
           throw new Error(text || response.statusText);
         }
-        window.location.reload();
+        if (textarea) textarea.value = '';
+        await refreshTaskPageAfterVisibleAction(statusNode, 'Prepared Jules feedback sent. Status refreshed without reloading the page.');
       } catch (error) {
         if (statusNode) statusNode.textContent = 'Prepared Jules feedback failed: ' + (error?.message || error);
       }
@@ -1902,6 +2072,59 @@ export class HttpServer {
   </script>
 </body>
 </html>`;
+  }
+
+  private renderTaskPageAtAGlance(detail: Record<string, unknown>): string {
+    const atAGlance = this.recordFromUnknown(detail.atAGlance);
+    if (!Object.keys(atAGlance).length) return '';
+
+    const boundary = this.stringFromUnknown(atAGlance.boundary) ?? 'unknown';
+    const boundaryLabel = this.stringFromUnknown(atAGlance.boundaryLabel) ?? boundary;
+    const owner = this.stringFromUnknown(atAGlance.owner) ?? 'Symphony';
+    const summary = this.stringFromUnknown(atAGlance.summary) ?? this.stringFromUnknown(detail.summary) ?? 'Task status is available in the detail cards below.';
+    const nextProof = this.stringFromUnknown(atAGlance.nextProof) ?? this.stringFromUnknown(atAGlance.nextAction) ?? 'Use the current boundary card below.';
+    const freshness = this.stringFromUnknown(atAGlance.freshness) ?? 'Source freshness unavailable.';
+    const tone = this.stringFromUnknown(atAGlance.tone) ?? (detail.needsHumanInput === true ? 'blocked' : 'waiting');
+
+    const detailLinks = this.recordFromUnknown(detail.links);
+    const taskDetailUrl = this.stringFromUnknown(detailLinks.self) ?? '';
+
+    // This card is intentionally derived from the same task-detail response as
+    // the raw packets below. It gives the operator a one-glance answer without
+    // creating a second status ledger that could drift from Jules/GitHub facts.
+    return `<article class="card task-page-at-a-glance ${this.escapeHtml(tone)}" data-task-at-a-glance data-task-detail-url="${this.escapeHtml(taskDetailUrl)}">
+      <div>
+        <span class="badge ${tone === 'blocked' ? 'approval' : tone === 'ready' ? 'running' : 'retrying'}">${this.escapeHtml(boundaryLabel)}</span>
+        <h2>At a glance</h2>
+      </div>
+      <p>${this.escapeHtml(summary)}</p>
+      <dl class="task-page-facts">
+        <div><dt>Boundary</dt><dd><code>${this.escapeHtml(boundary)}</code></dd></div>
+        <div><dt>Owner</dt><dd>${this.escapeHtml(owner)}</dd></div>
+        <div><dt>Source</dt><dd>${this.escapeHtml(freshness)}</dd></div>
+        <div><dt>Next proof</dt><dd>${this.escapeHtml(nextProof)}</dd></div>
+      </dl>
+      ${this.renderTaskPageDrilldownLinks(detail)}
+    </article>`;
+  }
+
+  private renderTaskPageDrilldownLinks(detail: Record<string, unknown>): string {
+    const links = [
+      ['Current boundary', '#task-page-current-boundary'],
+      ['Timeline', '#task-page-timeline'],
+      ['Messages', '#task-page-messages'],
+      ['Scope', '#task-page-scope'],
+      detail.julesStateReconciliation ? ['Jules state', '#task-page-jules-state-reconciliation'] : null,
+      detail.deploymentReadiness ? ['Deployment', '#task-page-deployment-readiness'] : null,
+      detail.localSyncReadiness ? ['Local sync', '#task-page-local-sync-readiness'] : null,
+    ].filter(Boolean) as [string, string][];
+
+    // These links turn the overview into a drilldown hub. The page still keeps
+    // each packet in its own card; the operator no longer has to scroll-hunt for
+    // the relevant Jules/GitHub/local-sync component after reading the status.
+    return `<nav class="task-page-drilldown-links" aria-label="Task drilldowns">
+      ${links.map(([label, href]) => `<a href="${this.escapeHtml(href)}">${this.escapeHtml(label)}</a>`).join('')}
+    </nav>`;
   }
 
   private renderTaskPageCurrentBoundaryAction(
@@ -2326,6 +2549,30 @@ export class HttpServer {
     }).join('')}</ol>`;
   }
 
+  private renderTaskPageTimingTracker(timingTracker: unknown): string {
+    const tracker = this.recordFromUnknown(timingTracker);
+    const steps = this.arrayFromUnknown(tracker.steps);
+    if (!steps.length) return '';
+
+    // This tracker is derived from existing timeline receipts. It gives the
+    // operator start/end/time-taken rows without creating a separate manual
+    // timing ledger that could drift from the task evidence.
+    return `<article id="task-page-timing" class="card task-page-timing">
+      <h2>Timing Tracker</h2>
+      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(tracker.summary) ?? 'Derived from task timeline events.')}</p>
+      <div data-task-page-timing>
+        <ol class="task-page-events">${steps.map(step => {
+          const record = this.recordFromUnknown(step);
+          return `<li>
+            <strong>${this.escapeHtml(this.stringFromUnknown(record.label) ?? this.stringFromUnknown(record.stage) ?? 'Step')}</strong>
+            <span>${this.escapeHtml(this.stringFromUnknown(record.status) ?? 'unknown')}</span>
+            <p>Start: ${this.escapeHtml(this.stringFromUnknown(record.startTime) ?? 'unknown')}; end: ${this.escapeHtml(this.stringFromUnknown(record.endTime) ?? 'pending')}; time taken: ${this.escapeHtml(this.stringFromUnknown(record.durationLabel) ?? 'pending')}</p>
+          </li>`;
+        }).join('')}</ol>
+      </div>
+    </article>`;
+  }
+
   private renderTaskPageRoiEvidence(ledger: unknown): string {
     const record = this.recordFromUnknown(ledger);
     if (!Object.keys(record).length) return '';
@@ -2389,27 +2636,27 @@ export class HttpServer {
     // handoff path. This card translates the existing readiness packets into a
     // human-readable gate summary, while preserving the rule that Symphony does
     // not create deployments or pull local Git from the task page.
-    return `<article class="card task-page-deployment-sync">
+    return `<article id="task-page-deployment-sync" class="card task-page-deployment-sync" data-task-page-deployment-sync>
       <h2>Deployment And Local Sync</h2>
       <p class="usage-summary">Plain-language view of the deployment and local repo return gates. This section reads existing readiness packets only; it does not create deployments, waive proof, merge, pull, or edit local files.</p>
       <dl class="task-page-facts">
-        <div><dt>Deployment status</dt><dd>${this.escapeHtml(this.stringFromUnknown(deployment.status) ?? 'not_available')}</dd></div>
-        <div><dt>Can check deployment</dt><dd>${deployment.canRefreshNow === true ? 'Yes' : 'No'}</dd></div>
-        <div><dt>Can proceed to local sync</dt><dd>${deployment.canProceedToLocalSync === true ? 'Yes' : 'No'}</dd></div>
-        <div><dt>Local sync status</dt><dd>${this.escapeHtml(this.stringFromUnknown(localSync.status) ?? 'not_available')}</dd></div>
-        <div><dt>Can sync local repo</dt><dd>${localSync.canSyncNow === true ? 'Yes' : 'No'}</dd></div>
-        <div><dt>Sync mutates Git</dt><dd>${localSync.mutatesGitIfRun === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Deployment status</dt><dd data-deployment-status>${this.escapeHtml(this.stringFromUnknown(deployment.status) ?? 'not_available')}</dd></div>
+        <div><dt>Can check deployment</dt><dd data-deployment-can-refresh>${deployment.canRefreshNow === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Can proceed to local sync</dt><dd data-deployment-can-proceed>${deployment.canProceedToLocalSync === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Local sync status</dt><dd data-local-sync-status>${this.escapeHtml(this.stringFromUnknown(localSync.status) ?? 'not_available')}</dd></div>
+        <div><dt>Can sync local repo</dt><dd data-local-sync-can-sync>${localSync.canSyncNow === true ? 'Yes' : 'No'}</dd></div>
+        <div><dt>Sync mutates Git</dt><dd data-local-sync-mutates-git>${localSync.mutatesGitIfRun === true ? 'Yes' : 'No'}</dd></div>
       </dl>
-      ${this.stringFromUnknown(deployment.expectedNextProof) ? `<p><strong>Deployment proof needed:</strong> ${this.escapeHtml(this.stringFromUnknown(deployment.expectedNextProof) ?? '')}</p>` : ''}
-      ${deploymentBlockers.length ? `<p class="usage-summary">Deployment blockers: ${this.escapeHtml(deploymentBlockers.join('; '))}</p>` : '<p class="usage-summary">No deployment blockers are recorded.</p>'}
-      ${localSyncBlockers.length ? `<p class="usage-summary">Local sync blockers: ${this.escapeHtml(localSyncBlockers.join('; '))}</p>` : '<p class="usage-summary">No local sync blockers are recorded.</p>'}
+      <p data-deployment-proof-needed>${this.stringFromUnknown(deployment.expectedNextProof) ? `<strong>Deployment proof needed:</strong> ${this.escapeHtml(this.stringFromUnknown(deployment.expectedNextProof) ?? '')}` : ''}</p>
+      <p class="usage-summary" data-deployment-blockers>${deploymentBlockers.length ? `Deployment blockers: ${this.escapeHtml(deploymentBlockers.join('; '))}` : 'No deployment blockers are recorded.'}</p>
+      <p class="usage-summary" data-local-sync-blockers>${localSyncBlockers.length ? `Local sync blockers: ${this.escapeHtml(localSyncBlockers.join('; '))}` : 'No local sync blockers are recorded.'}</p>
       ${this.renderTaskPageDeploymentCommands(deploymentCommands)}
       ${syncCommand ? `<p><strong>Operator-run sync command:</strong> <code>${this.escapeHtml(syncCommand)}</code></p>` : ''}
       ${refreshLocalSyncUrl || syncLocalUrl ? `<ul class="task-page-actions">
         ${refreshLocalSyncUrl ? `<li><button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(refreshLocalSyncUrl)}" data-guarded-safe-method="POST">Check Local Sync</button><p class="usage-summary" data-guarded-safe-status></p></li>` : ''}
         ${syncLocalUrl && localSync.canSyncNow === true ? `<li><button type="button" class="primary-action compact-action" data-guarded-safe-endpoint="${this.escapeHtml(syncLocalUrl)}" data-guarded-safe-method="POST">Sync Local Master</button><p class="usage-summary" data-guarded-safe-status></p></li>` : ''}
       </ul>` : ''}
-      <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(localSync.expectedNextProof) ?? 'Local sync remains unavailable until merge, deployment evidence or waiver, and Git safety checks are all proven.')}</p>
+      <p class="usage-summary" data-local-sync-next-proof>${this.escapeHtml(this.stringFromUnknown(localSync.expectedNextProof) ?? 'Local sync remains unavailable until merge, deployment evidence or waiver, and Git safety checks are all proven.')}</p>
     </article>`;
   }
 
@@ -2495,12 +2742,17 @@ export class HttpServer {
 
   private renderTaskPagePacket(title: string, packet: unknown): string {
     if (!packet) return '';
-    return `<article class="card task-page-packet">
+    const id = this.taskPagePacketId(title);
+    return `<article id="${this.escapeHtml(id)}" class="card task-page-packet">
       <details>
         <summary>${this.escapeHtml(title)}</summary>
         <pre>${this.escapeHtml(JSON.stringify(packet, null, 2))}</pre>
       </details>
     </article>`;
+  }
+
+  private taskPagePacketId(title: string): string {
+    return `task-page-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
   }
 
   private recordFromUnknown(value: unknown): Record<string, unknown> {
@@ -2519,6 +2771,199 @@ export class HttpServer {
 
   private numberFromUnknown(value: unknown): number | null {
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  }
+
+  private buildTaskTimingTracker(events: unknown[]): Record<string, unknown> {
+    const records = events
+      .map(event => this.recordFromUnknown(event))
+      .map(event => {
+        const startTime = this.stringFromUnknown(event.occurredAt)
+          ?? this.stringFromUnknown(event.createdAt)
+          ?? this.stringFromUnknown(event.recordedAt);
+        const startMs = startTime ? Date.parse(startTime) : Number.NaN;
+        return {
+          stage: this.stringFromUnknown(event.stage) ?? this.stringFromUnknown(event.status) ?? this.stringFromUnknown(event.source) ?? 'step',
+          label: this.stringFromUnknown(event.label) ?? this.stringFromUnknown(event.stage) ?? 'Workflow step',
+          startTime,
+          startMs,
+        };
+      })
+      .filter(event => event.startTime && Number.isFinite(event.startMs))
+      .sort((a, b) => a.startMs - b.startMs);
+
+    const steps = records.map((event, index) => {
+      const next = records[index + 1] ?? null;
+      const endTime = next?.startTime ?? null;
+      const durationMs = next ? Math.max(0, next.startMs - event.startMs) : null;
+      return {
+        stage: event.stage,
+        label: event.label,
+        startTime: event.startTime,
+        endTime,
+        durationMs,
+        durationLabel: durationMs === null ? 'pending' : this.formatTimingDuration(durationMs),
+        status: endTime ? 'complete' : 'active_or_latest',
+      };
+    });
+
+    return {
+      status: steps.length ? 'available' : 'unavailable',
+      summary: steps.length
+        ? `${steps.length} timing step(s) derived from existing task timeline events.`
+        : 'No timestamped timeline events are available for timing yet.',
+      steps,
+    };
+  }
+
+  private formatTimingDuration(durationMs: number): string {
+    const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  }
+
+  private buildDraftAtAGlance(
+    draft: TaskDraftSnapshot['drafts'][number],
+    actionLabel: string,
+    needsHumanInput: boolean,
+  ): Record<string, string> {
+    const blocked = draft.status === 'blocked_by_git_sync' || needsHumanInput;
+
+    // Drafts are still pre-Jules. The task page should say that plainly instead
+    // of making the operator infer it from handoff-readiness packets or forms.
+    return {
+      boundary: blocked ? 'draft_blocked' : 'draft_ready',
+      boundaryLabel: blocked ? 'Draft blocked' : 'Draft ready',
+      owner: blocked ? 'Operator/Symphony' : 'Symphony',
+      tone: blocked ? 'blocked' : 'waiting',
+      freshness: draft.updatedAt ? `Symphony updated ${draft.updatedAt}` : 'Symphony local draft state',
+      summary: blocked
+        ? `Draft ${draft.title} needs a local decision or GitHub sync repair before handoff.`
+        : `Draft ${draft.title} is waiting for the next Symphony handoff step.`,
+      nextProof: actionLabel || 'Use the handoff readiness card below.',
+    };
+  }
+
+  private buildHandoffAtAGlance(
+    handoff: TaskDraftSnapshot['handoffs'][number],
+    nextAction: unknown,
+    needsHumanInput: boolean,
+    currentBoundaryLabel: string,
+  ): Record<string, string> {
+    const action = this.recordFromUnknown(nextAction);
+    const actionSummary = this.readStringField(action, 'summary') ?? this.readStringField(action, 'detail');
+    const julesState = handoff.julesState ?? '';
+    const prState = handoff.githubPullRequestState ?? '';
+    const checkConclusion = this.stringFromUnknown(this.recordFromUnknown(handoff.githubPullRequestChecks).conclusion);
+    const localSyncStatus = handoff.localSyncStatus?.status ?? null;
+    const localCurrent = Boolean(handoff.localSyncStatus?.upToDate || handoff.lastLocalSyncAt);
+    const freshness = this.handoffAtAGlanceFreshness(handoff);
+
+    // Handoff state crosses several systems. This derived packet orders the
+    // human-readable boundary without writing new workflow state: operator
+    // input, Jules work, GitHub proof, merge proof, then local return proof.
+    if (needsHumanInput || julesState === 'AWAITING_PLAN_APPROVAL' || julesState === 'AWAITING_USER_FEEDBACK') {
+      return {
+        boundary: julesState === 'AWAITING_PLAN_APPROVAL' ? 'approve_plan' : 'user_feedback',
+        boundaryLabel: julesState === 'AWAITING_PLAN_APPROVAL' ? 'Approve plan' : 'User input',
+        owner: 'Operator',
+        tone: 'blocked',
+        freshness,
+        summary: 'Jules or Symphony is waiting for a human decision before the handoff can continue.',
+        nextProof: currentBoundaryLabel || 'Approve the plan or answer the operator question.',
+      };
+    }
+
+    if (prState === 'MERGED') {
+      if (localCurrent) {
+        return {
+          boundary: 'local_current',
+          boundaryLabel: 'Local current',
+          owner: 'Local workspace',
+          tone: 'ready',
+          freshness,
+          summary: 'GitHub merge proof and local-current proof are recorded for this handoff.',
+          nextProof: 'Close out the package record or select the next package.',
+        };
+      }
+
+      return {
+        boundary: 'merged_remote',
+        boundaryLabel: 'Merged remotely',
+        owner: 'GitHub/local sync',
+        tone: localSyncStatus === 'blocked' ? 'blocked' : 'waiting',
+        freshness,
+        summary: 'The PR is merged on GitHub; local sync or deployment-waiver proof is the next boundary.',
+        nextProof: actionSummary ?? 'Check local sync readiness and record deployment proof or waiver when applicable.',
+      };
+    }
+
+    if (handoff.githubPullRequestUrl) {
+      return {
+        boundary: 'github_checks',
+        boundaryLabel: 'GitHub checks',
+        owner: 'GitHub',
+        tone: checkConclusion === 'failing' || checkConclusion === 'failure' ? 'blocked' : 'waiting',
+        freshness,
+        summary: actionSummary ?? 'A PR is captured; refresh checks, changed files, and review state before deciding the next move.',
+        nextProof: currentBoundaryLabel || 'Refresh GitHub PR checks.',
+      };
+    }
+
+    if (julesState.toUpperCase().includes('COMPLETE')) {
+      return {
+        boundary: 'publish_proof_missing',
+        boundaryLabel: 'Publish proof missing',
+        owner: 'Jules',
+        tone: 'waiting',
+        freshness,
+        summary: 'Jules appears complete, but this task page does not yet have PR or remote branch proof.',
+        nextProof: 'Refresh Jules/GitHub state or ask Jules for the PR/branch proof.',
+      };
+    }
+
+    if (handoff.julesSessionId || handoff.julesSessionUrl || handoff.julesState) {
+      return {
+        boundary: 'jules_working',
+        boundaryLabel: 'Jules working',
+        owner: 'Jules',
+        tone: 'waiting',
+        freshness,
+        summary: `Jules state is ${julesState || 'session created'}; Symphony is waiting for a PR, blocker, or next visible state.`,
+        nextProof: currentBoundaryLabel || 'Refresh Jules status on the measured cadence.',
+      };
+    }
+
+    return {
+      boundary: 'prepared',
+      boundaryLabel: 'Prepared',
+      owner: 'Symphony',
+      tone: 'waiting',
+      freshness,
+      summary: 'The handoff is prepared, but no Jules session or PR proof is visible yet.',
+      nextProof: currentBoundaryLabel || 'Stage or launch the Jules handoff when the normal gates allow it.',
+    };
+  }
+
+  private handoffAtAGlanceFreshness(handoff: TaskDraftSnapshot['handoffs'][number]): string {
+    if (handoff.githubPullRequestState === 'MERGED') {
+      const checkedAt = handoff.localSyncStatus?.checkedAt ?? handoff.lastLocalSyncAt;
+      return checkedAt ? `Local sync fetched ${checkedAt}` : 'Local sync not checked';
+    }
+
+    if (handoff.githubPullRequestUrl) {
+      return handoff.lastPullRequestRefreshAt ? `GitHub fetched ${handoff.lastPullRequestRefreshAt}` : 'GitHub not refreshed';
+    }
+
+    if (handoff.julesSessionId || handoff.julesSessionUrl || handoff.julesState) {
+      return handoff.lastStatusRefreshAt ? `Jules fetched ${handoff.lastStatusRefreshAt}` : 'Jules not refreshed';
+    }
+
+    return handoff.updatedAt ? `Symphony updated ${handoff.updatedAt}` : 'Symphony local handoff state';
   }
 
   private buildDraftTaskDetail(
@@ -2542,6 +2987,7 @@ export class HttpServer {
       id: draft.id,
       title: draft.title,
       status: draft.status,
+      atAGlance: this.buildDraftAtAGlance(draft, actionLabel, clarificationState.status === 'waiting_for_operator'),
       summary: this.readStringField(draft.next_action, 'summary') ?? draft.body,
       currentBoundary: {
         label: actionLabel,
@@ -2640,6 +3086,7 @@ export class HttpServer {
       : this.readStringField(effectiveNextAction, 'label') ?? handoff.status;
     const guardedActions = this.buildHandoffGuardedActions(handoff);
     const approvalCheckpoint = this.buildTaskApprovalCheckpoint(handoff, guardedActions);
+    const atAGlance = this.buildHandoffAtAGlance(handoff, effectiveNextAction, needsHumanInput, currentBoundaryLabel);
 
     // Handoffs are where Linear, Jules, GitHub, deployment, local sync, and ROI
     // evidence meet. This response keeps those records together for future task
@@ -2649,6 +3096,7 @@ export class HttpServer {
       id: handoff.id,
       title: handoff.title,
       status: handoff.status,
+      atAGlance,
       summary: this.readStringField(effectiveNextAction, 'summary')
         ?? handoff.githubPullRequestFeedback?.summary
         ?? 'Handoff is waiting for the next recorded Symphony boundary.',

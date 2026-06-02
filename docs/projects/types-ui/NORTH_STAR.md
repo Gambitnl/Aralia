@@ -56,3 +56,13 @@ Preserve the current type export truth and handoff context for future work on sh
 2. Read `docs/projects/types-ui/TRACKER.md`.
 3. Read `docs/projects/types-ui/GAPS.md`.
 4. Continue from the active follow-up in `TRACKER.md`.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

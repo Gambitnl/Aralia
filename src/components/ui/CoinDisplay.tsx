@@ -1,3 +1,8 @@
+/**
+ * @file CoinDisplay.tsx
+ *
+ * @component-owner Gameplay Team / Core UI
+ */
 import React from 'react';
 import Tooltip from './Tooltip';
 

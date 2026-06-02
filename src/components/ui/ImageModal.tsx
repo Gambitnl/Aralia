@@ -1,10 +1,13 @@
 /**
  * @file ImageModal.tsx
  * A component for displaying a large image in a full-screen modal overlay.
+ *
+ * @component-owner UI Team / Core UI
  */
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface ImageModalProps {
   src: string;
@@ -19,17 +22,10 @@ const modalMotion: MotionProps = {
 };
 
 const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
+  // We use useFocusTrap to capture keyboard focus within the modal.
+  // This automatically keeps focus inside the modal, supports Tab/Shift+Tab wrapping,
+  // and closes the modal on Escape press.
+  const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
 
   return (
     /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
@@ -37,16 +33,11 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
     TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
     */
     <motion.div
+      ref={modalRef}
       {...modalMotion}
-      className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-8`}
+      className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-8 focus:outline-none`}
       onClick={onClose}
-      onKeyDown={(event) => {
-        if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onClose();
-        }
-      }}
-      tabIndex={0}
+      tabIndex={-1}
       aria-modal="true"
       role="dialog"
       aria-label="Image viewer"

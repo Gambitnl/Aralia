@@ -13,24 +13,37 @@
   },
   "characteristics": [
     {
-      "label": "Ancestry Type",
-      "value": "Draconic (Bronze)"
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
     },
     {
-      "label": "Damage Type",
-      "value": "[[lightning_damage|Lightning]]"
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [
     {
-      "name": "Lightning Breath (Bronze)",
-      "icon": "magic",
-      "description": "When you use your [[breath_weapon|Breath Weapon]], it deals [[lightning_damage|Lightning damage]]. You choose whether the breath manifests as a 15-foot cone or a 30-foot line."
-    },
-    {
-      "name": "Lightning Resistance (Bronze)",
+      "name": "Draconic Ancestry",
       "icon": "shield",
       "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]]."
+    },
+    {
+      "name": "Breath Weapon",
+      "icon": "flame",
+      "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[lightning_damage|Lightning damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Draconic Flight",
+      "icon": "wings",
+      "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]]."
     }
   ],
   "tags": [

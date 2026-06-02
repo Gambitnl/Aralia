@@ -80,17 +80,35 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
                 {char.name.split(' ')[0]}
               </span>
 
-              {/* HP bar */}
-              <div className="w-full h-0.5 bg-gray-600 rounded-full min-w-[32px]">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    hpPct > 50 ? (isPlayer ? 'bg-sky-400' : 'bg-red-400')
-                    : hpPct > 25 ? 'bg-yellow-400'
-                    : 'bg-red-600'
-                  }`}
-                  style={{ width: `${hpPct}%` }}
-                />
-              </div>
+              {/* 
+                COMPACT DEATH SAVING THROWS & STABILITY INDICATORS
+                What changed: Conditionally replaces the 0% HP bar with a compact text status.
+                Why: Players need quick reference indicators on the initiative strip to see who is stabilized 
+                     or actively dying at a single glance without opening inspectors.
+                What was preserved: Non-downed characters continue to display their standard HP bar progression.
+              */}
+              {char.deathSaves ? (
+                <div className="flex items-center justify-center min-w-[32px] mt-0.5">
+                  {char.deathSaves.isStable ? (
+                    <span className="text-[8px] leading-none font-bold text-teal-400">Stable</span>
+                  ) : (
+                    <span className="text-[8px] leading-none font-bold text-rose-400" title={`Successes: ${char.deathSaves.successes}, Failures: ${char.deathSaves.failures}`}>
+                      {char.deathSaves.successes}S · {char.deathSaves.failures}F
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="w-full h-0.5 bg-gray-600 rounded-full min-w-[32px]">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      hpPct > 50 ? (isPlayer ? 'bg-sky-400' : 'bg-red-400')
+                      : hpPct > 25 ? 'bg-yellow-400'
+                      : 'bg-red-600'
+                    }`}
+                    style={{ width: `${hpPct}%` }}
+                  />
+                </div>
+              )}
             </button>
           </Tooltip>
         );

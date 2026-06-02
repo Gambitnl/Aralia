@@ -1,12 +1,35 @@
+// @dependencies-start
 /**
- * @file src/components/OllamaDependencyModal.tsx
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 02/06/2026, 01:11:44
+ * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/layout/GameModals.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * @file src/components/ui/OllamaDependencyModal.tsx
+ * @component-owner Narrative Team / Core UI
+ * @status Stable / Maintained
+ * 
  * Modal that explains the Ollama dependency and offers options when Ollama is not available.
+ * 
+ * Called by: src/App.tsx
+ * Depends on: Button.tsx, Input.tsx, zIndex.ts, uiIds.ts
  */
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { Button } from './Button'; // Build failed because bundler can't resolve './ui/Button' from within the ui folder; keep the relative path local.
+import { Button } from './Button'; 
+import { Checkbox } from './Input';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 
@@ -95,16 +118,14 @@ export const OllamaDependencyModal: React.FC<OllamaDependencyModalProps> = ({
               </div>
             </div>
 
-            {/* Checkbox for "Don't show again" */}
-            <label className="flex items-center space-x-2 mb-6 cursor-pointer">
-              <input
-                type="checkbox"
+            {/* Reusable premium Checkbox primitive for tracking user preference */}
+            <div className="mb-6">
+              <Checkbox
+                label="Don't show this again"
                 checked={dontShowAgain}
                 onChange={(e) => setDontShowAgain(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-amber-500 cursor-pointer"
               />
-              <span className="text-sm text-gray-400">Don't show this again</span>
-            </label>
+            </div>
 
             {/* Action buttons */}
             <div className="flex justify-end space-x-3">

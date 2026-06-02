@@ -105,3 +105,17 @@ export function getCellOverlayPercentRect(
     height: Math.max(0.25, bottom - top),
   };
 }
+
+/**
+ * Single-point overlay position (percent) for a normalized world coordinate.
+ * Used by AtlasPlayerMarker to track sub-cell 3D player positions on the Azgaar iframe.
+ */
+export function getWorldPosOverlayPercentPoint(
+  normX: number,
+  normY: number,
+  transform: AzgaarAtlasTransform | null | undefined,
+): { left: number; top: number } {
+  const left = worldNormalizedToOverlayNormalized(normX, 'x', transform) * 100;
+  const top = worldNormalizedToOverlayNormalized(normY, 'y', transform) * 100;
+  return { left, top };
+}

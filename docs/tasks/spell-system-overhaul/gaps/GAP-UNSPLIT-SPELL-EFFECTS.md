@@ -3,6 +3,8 @@ fct7j8nyuh, mg # Spell System Gap: Unsplit Multi-Component Effects
 ## Overview
 An unresolved architectural debt remains in the implementation of spells that possess 2 or more distinct mechanical outcomes within the JSON data layer. 
 
+> Status refresh (2026-06-01): The detection infrastructure described below has partly caught up with this gap. `SpellIntegrityValidator.ts` now normalizes whitespace/punctuation before duplicate-description comparison, and `SpellIntegrityValidator.test.ts` already scans all spell levels and prints monolithic failures as a soft warning. The historic `113` count below should be treated as last-known evidence until the focused integrity test is rerun and captured in `AUDIT_OR_PROOF.md`.
+
 Currently, an audit has confirmed that exactly 113 spells feature a single, monolithic `effects` object.
 
 A monolithic `effects` object is an `effects` array that contains only a single `Effect` element. A spell is flagged as 'monolithic' if it uses this single-element array despite its narrative description implying two or more distinct mechanical events (which are strictly defined as discrete applications of Damage, Healing, Status Conditions, or Terrain manipulation).

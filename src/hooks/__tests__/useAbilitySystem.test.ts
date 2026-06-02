@@ -2,9 +2,10 @@
 import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
-import { CombatCharacter, Ability, BattleMapData } from '../../types/combat';
+import { CombatCharacter, Ability, BattleMapData, LightSource } from '../../types/combat';
 import { Spell } from '../../types/spells';
 import { Item } from '../../types';
+import * as savingThrowUtils from '../../utils/savingThrowUtils';
 
 // Mock dependencies
 vi.mock('../combat/useTargeting', async () => {
@@ -17,21 +18,45 @@ vi.mock('../combat/useTargeting', async () => {
             // then click-target flow used by the battle map.
             const [selectedAbility, setSelectedAbility] = React.useState<unknown | null>(null);
             const [targetingMode, setTargetingMode] = React.useState(false);
+            const [teleportDestinationPreview, setTeleportDestinationPreview] = React.useState<unknown | null>(null);
 
             return {
                 startTargeting: React.useCallback((ability: unknown) => {
                     setSelectedAbility(ability);
                     setTargetingMode(true);
+                    setTeleportDestinationPreview(null);
                 }, []),
                 cancelTargeting: React.useCallback(() => {
                     setSelectedAbility(null);
                     setTargetingMode(false);
+                    setTeleportDestinationPreview(null);
                 }, []),
                 selectedAbility,
                 targetingMode,
                 aoePreview: null,
+                teleportDestinationPreview,
                 params: null,
-                previewAoE: vi.fn()
+                previewAoE: vi.fn(),
+                previewTeleportDestinations: React.useCallback((ability: unknown, caster: CombatCharacter, movedTarget: CombatCharacter = caster) => {
+                    // The real targeting hook derives destination tiles from map
+                    // range, blocking, occupancy, and line of sight. The unit
+                    // tests only need stable destination tiles so the ability
+                    // hook can prove it waits for destinations before casting.
+                    const destination = movedTarget.id === 'second-target'
+                        ? { x: 4, y: 2 }
+                        : { x: 4, y: 1 };
+                    setTeleportDestinationPreview({
+                        origin: movedTarget.position,
+                        targetId: movedTarget.id,
+                        affectedTiles: [destination],
+                        ability
+                    });
+                }, []),
+                isTeleportDestination: React.useCallback((position: { x: number; y: number }) => (
+                    !!teleportDestinationPreview && (teleportDestinationPreview as { affectedTiles: Array<{ x: number; y: number }> }).affectedTiles.some(tile =>
+                        tile.x === position.x && tile.y === position.y
+                    )
+                ), [teleportDestinationPreview])
             };
         }
     };
@@ -54,6 +79,11 @@ vi.mock('../../utils/combatUtils', () => ({
     generateId: () => 'test-id',
     rollDice: () => 15, // Always roll high for testing hits
     rollDamage: () => 5
+}));
+
+vi.mock('../../utils/savingThrowUtils', () => ({
+    calculateSpellDC: () => 17,
+    rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
 }));
 
 // Mock Data Setup
@@ -260,5 +290,1039 @@ describe('useAbilitySystem - Reactions', () => {
             characterId: defender.id,
             message: expect.stringContaining('Attacker is too far away for Short Strike.')
         }));
+    });
+});
+
+// ============================================================================
+// Target-Move Debuff Registration
+// ============================================================================
+// on_target_move effects are delayed spell payloads: the spell cast creates a
+// movement debuff, and the movement executor consumes it later when the target
+// moves. This coverage protects the cast-time registration bridge and the saved
+// spell DC captured for later trigger resolution.
+// ============================================================================
+
+describe('useAbilitySystem - target-move debuff registration', () => {
+    it('registers on_target_move effects with the cast-time save DC', async () => {
+        const onAddMovementDebuff = vi.fn();
+        const boomingSpell: Spell = {
+            id: 'booming-blade',
+            name: 'Booming Blade',
+            level: 0,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'Delayed thunder damage if the target moves.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'distance', distance: 5 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'timed', value: 1, unit: 'round', concentration: false },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'DAMAGE',
+                damage: { dice: '1d8', type: 'thunder' },
+                duration: { type: 'instantaneous' },
+                trigger: { type: 'on_target_move', frequency: 'once', movementType: 'any' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace any with the minimal spell shape once test fixtures expose migrated spell unions.
+        } as unknown as Spell;
+        const boomingAbility: Ability = {
+            id: 'booming-blade-ability',
+            name: 'Booming Blade',
+            description: 'Delayed movement punishment.',
+            type: 'spell',
+            range: 5,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: boomingSpell
+        // TODO(lint-intent): Replace any with the minimal ability shape once spell-backed abilities are typed for tests.
+        } as unknown as Ability;
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onAddMovementDebuff
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                boomingAbility,
+                attacker,
+                defender.position,
+                [defender.id]
+            );
+        });
+
+        expect(onAddMovementDebuff).toHaveBeenCalledWith(expect.objectContaining({
+            spellId: 'booming-blade',
+            casterId: attacker.id,
+            targetId: defender.id,
+            saveDC: 17,
+            effects: expect.arrayContaining([
+                expect.objectContaining({
+                    trigger: expect.objectContaining({ type: 'on_target_move' })
+                })
+            ])
+        }));
+    });
+});
+
+// ============================================================================
+// Spell Command Context Handoff
+// ============================================================================
+// Rich spell commands sometimes need more than the immediate combat targets.
+// This guard proves the ability hook gives the command factory the current map
+// context instead of an empty placeholder, so command creation can make
+// world-aware decisions without guessing later.
+// ============================================================================
+
+describe('useAbilitySystem - command game-state context', () => {
+    it('passes current map context into spell command creation', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const mapData: BattleMapData = {
+            dimensions: { width: 3, height: 3 },
+            tiles: new Map(),
+            theme: 'dungeon',
+            seed: 7
+        } as unknown as BattleMapData;
+        const contextSpell: Spell = {
+            id: 'context-sensitive-spell',
+            name: 'Context Sensitive Spell',
+            level: 1,
+            school: 'Transmutation',
+            classes: ['Wizard'],
+            description: 'Needs current map context at command creation.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'distance', distance: 30 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: { type: 'single', validTargets: ['enemies'] },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'investigate',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace any with the minimal spell shape once utility-effect fixtures are strongly typed.
+        } as unknown as Spell;
+        const contextAbility: Ability = {
+            id: 'context-sensitive-ability',
+            name: 'Context Sensitive Spell',
+            description: 'Uses the command factory.',
+            type: 'spell',
+            range: 30,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: contextSpell
+        // TODO(lint-intent): Replace any with the minimal ability shape once spell-backed abilities are typed for tests.
+        } as unknown as Ability;
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            mapData,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                contextAbility,
+                attacker,
+                defender.position,
+                [defender.id]
+            );
+        });
+
+        // The fifth argument is the game/world context passed to command
+        // creation. It should include the current map data instead of the old
+        // empty placeholder object, otherwise map-aware commands and arbiters
+        // lose context before execution starts.
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[4]).toEqual(
+            expect.objectContaining({ mapData })
+        );
+    });
+});
+
+// ============================================================================
+// Immediate Forced-Movement Repeat Saves
+// ============================================================================
+// Scheduled movement has its own repeat-save bridge in useCombatEngine. Immediate
+// spell casts resolve here through CommandExecutor, so this test protects the
+// matching bridge that gives Compulsion-style statuses their save after a forced
+// movement command actually moves the target.
+// ============================================================================
+
+describe('useAbilitySystem - immediate forced-movement repeat saves', () => {
+    it('removes an after-forced-movement status when the immediate movement repeat save succeeds', async () => {
+        const { SpellCommandFactory, CommandExecutor } = await import('../../commands');
+        const caster = {
+            id: 'caster-immediate-force',
+            name: 'Immediate Force Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 1: { used: 0, total: 1 } },
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const target = {
+            id: 'target-immediate-force',
+            name: 'Immediate Force Target',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: {},
+            statusEffects: [{
+                id: 'compelled',
+                name: 'Charmed',
+                type: 'debuff',
+                duration: 2,
+                repeatSave: {
+                    timing: 'after_forced_movement',
+                    saveType: 'Wisdom',
+                    successEnds: true,
+                    useOriginalDC: true
+                }
+            }],
+            conditions: [{
+                name: 'Charmed',
+                duration: { type: 'rounds', value: 2 },
+                appliedTurn: 0
+            }]
+        } as unknown as CombatCharacter;
+        const forceSpell: Spell = {
+            id: 'immediate-force-test',
+            name: 'Immediate Force Test',
+            level: 1,
+            school: 'Enchantment',
+            classes: ['Wizard'],
+            description: 'Moves a target immediately and grants an after-movement save.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 30 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: { type: 'single', range: 30, validTargets: ['enemies'], lineOfSight: false },
+            effects: [{
+                type: 'MOVEMENT',
+                movementType: 'push',
+                distance: 10,
+                duration: { type: 'instantaneous' },
+                trigger: { type: 'immediate', frequency: 'once', movementType: 'forced' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace any with the minimal movement spell fixture once test builders expose migrated spell unions.
+        } as unknown as Spell;
+        const forceAbility: Ability = {
+            id: 'immediate-force-ability',
+            name: 'Immediate Force Test',
+            description: 'Spell-backed immediate forced movement.',
+            type: 'spell',
+            range: 30,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [],
+            spell: forceSpell
+        } as unknown as Ability;
+        const onCharacterUpdate = vi.fn();
+
+        vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+            total: 18,
+            success: true,
+            modifiersApplied: []
+        } as any);
+        vi.mocked(SpellCommandFactory.createCommands).mockResolvedValueOnce([]);
+        vi.mocked(CommandExecutor.execute).mockResolvedValueOnce({
+            success: true,
+            executedCommands: [],
+            finalState: {
+                isActive: true,
+                characters: [
+                    caster,
+                    {
+                        ...target,
+                        position: { x: 3, y: 0 }
+                    }
+                ],
+                combatLog: []
+            } as any
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster, target],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate,
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                forceAbility,
+                caster,
+                target.position,
+                [target.id]
+            );
+        });
+
+        await _waitFor(() => expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalled());
+        expect(onCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: target.id,
+            position: { x: 3, y: 0 },
+            statusEffects: [],
+            conditions: []
+        }));
+    });
+});
+
+describe('useAbilitySystem - mode-choice input', () => {
+    it('collects a mode choice before creating spell commands', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const caster = {
+            id: 'caster-mode-choice',
+            name: 'Mode Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 2: { used: 0, total: 2 } }
+        } as unknown as CombatCharacter;
+        const target = {
+            id: 'target-mode-choice',
+            name: 'Mode Target',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: {}
+        } as unknown as CombatCharacter;
+        const modeSpell: Spell = {
+            id: 'blindness-deafness',
+            name: 'Blindness/Deafness',
+            level: 2,
+            school: 'Necromancy',
+            classes: ['Wizard'],
+            description: 'Choose whether the target is blinded or deafened.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 30 },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'timed', value: 1, unit: 'minute' },
+            targeting: { type: 'single', range: 30, validTargets: ['enemies'], lineOfSight: false },
+            effects: [],
+            modeChoice: {
+                type: 'choose_one',
+                timing: 'on_cast',
+                optionCount: 2,
+                optionsSource: 'modeChoice.options',
+                options: [
+                    { label: 'Blindness', summary: 'Blind the target.', effectIndices: [0] },
+                    { label: 'Deafness', summary: 'Deafen the target.', effectIndices: [1] }
+                ]
+            }
+        } as unknown as Spell;
+        const modeAbility: Ability = {
+            id: modeSpell.id,
+            name: modeSpell.name,
+            description: modeSpell.description,
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 2 },
+            range: 6,
+            targeting: 'single_enemy',
+            effects: [],
+            spell: modeSpell
+        } as unknown as Ability;
+        const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
+            onConfirm('Deafness');
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster, target],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onRequestInput
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                modeAbility,
+                caster,
+                target.position,
+                [target.id]
+            );
+        });
+
+        // Mode-choice spells must pause for a selected option before command
+        // creation. The selected label becomes playerInput so
+        // SpellCommandFactory can keep only that option's effects.
+        expect(onRequestInput).toHaveBeenCalledWith(modeSpell, expect.any(Function));
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[5]).toBe('Deafness');
+    });
+});
+
+describe('useAbilitySystem - per-target choice input', () => {
+    const createChoiceCaster = (id: string, x: number): CombatCharacter => ({
+        id,
+        name: id,
+        team: 'player',
+        position: { x, y: 0 },
+        actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+        spellSlots: { 2: { used: 0, total: 2 } }
+    } as unknown as CombatCharacter);
+
+    const createChoiceTarget = (id: string, x: number): CombatCharacter => ({
+        id,
+        name: id,
+        team: 'player',
+        position: { x, y: 0 },
+        actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+        spellSlots: {}
+    } as unknown as CombatCharacter);
+
+    const enhanceAbilitySpell = {
+        id: 'enhance-ability',
+        name: 'Enhance Ability',
+        level: 2,
+        school: 'Transmutation',
+        classes: ['Bard'],
+        description: 'Choose an ability for the target.',
+        castingTime: { value: 1, unit: 'action' },
+        range: { type: 'touch', distance: 0 },
+        components: { verbal: true, somatic: true, material: true },
+        duration: { type: 'timed', value: 1, unit: 'hour', concentration: true },
+        targeting: {
+            type: 'multi',
+            range: 5,
+            validTargets: ['creatures'],
+            lineOfSight: false,
+            maxTargets: 1,
+            perTargetChoice: {
+                choiceType: 'ability',
+                scope: 'each_target',
+                options: ['Strength', 'Dexterity', 'Intelligence', 'Wisdom', 'Charisma'],
+                differentChoicesAllowed: true,
+                required: true
+            }
+        },
+        effects: []
+    } as unknown as Spell;
+
+    it('collects a single-target per-target choice before creating spell commands', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const caster = createChoiceCaster('enhancer', 0);
+        const target = createChoiceTarget('ally-one', 1);
+        const ability = {
+            id: enhanceAbilitySpell.id,
+            name: enhanceAbilitySpell.name,
+            description: enhanceAbilitySpell.description,
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 2 },
+            range: 1,
+            targeting: 'single_ally',
+            effects: [],
+            spell: enhanceAbilitySpell
+        } as unknown as Ability;
+        const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
+            onConfirm('Wisdom');
+        });
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster, target],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onRequestInput
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                ability,
+                caster,
+                target.position,
+                [target.id]
+            );
+        });
+
+        // A one-target Enhance Ability cast can safely use the existing modal:
+        // the selected ability belongs to the only selected target and is passed
+        // through as playerInput for command creation.
+        expect(onRequestInput).toHaveBeenCalledWith(enhanceAbilitySpell, expect.any(Function));
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[5]).toBe('Wisdom');
+    });
+
+    it('collects target-indexed choices before multi-target per-target choice commands', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const caster = createChoiceCaster('enhancer', 0);
+        const firstTarget = createChoiceTarget('ally-one', 1);
+        const secondTarget = createChoiceTarget('ally-two', 2);
+        const onExecuteAction = vi.fn(() => true);
+        const choices = ['Strength', 'Wisdom'];
+        const onRequestInput = vi.fn((_spell: Spell, onConfirm: (input: string) => void) => {
+            onConfirm(choices.shift() ?? 'Charisma');
+        });
+        const ability = {
+            id: enhanceAbilitySpell.id,
+            name: enhanceAbilitySpell.name,
+            description: enhanceAbilitySpell.description,
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 3 },
+            range: 1,
+            targeting: 'single_ally',
+            effects: [],
+            spell: enhanceAbilitySpell
+        } as unknown as Ability;
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster, firstTarget, secondTarget],
+            mapData: null,
+            onExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onNotification: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onRequestInput
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                ability,
+                caster,
+                firstTarget.position,
+                [firstTarget.id, secondTarget.id]
+            );
+        });
+
+        // Higher-slot Enhance Ability can choose different abilities for each
+        // target. The hook should request one option per selected target before
+        // spending the action or creating commands, then pass a target-indexed
+        // assignment payload on the spell clone.
+        expect(onRequestInput).toHaveBeenCalledTimes(2);
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+        expect(onExecuteAction).toHaveBeenCalled();
+        const spellPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[0] as Spell & {
+            perTargetChoicesByTargetId?: Record<string, string>
+        };
+        expect(spellPassedToFactory.perTargetChoicesByTargetId).toEqual({
+            [firstTarget.id]: 'Strength',
+            [secondTarget.id]: 'Wisdom'
+        });
+    });
+});
+
+// ============================================================================
+// Self-Teleport Destination Selection
+// ============================================================================
+// Self-target teleport spells are a two-step map interaction: first the player
+// chooses the spell, then they choose a destination tile. This coverage protects
+// that the caster remains the moved target while the clicked tile is passed into
+// the rich movement effect for the command layer.
+// ============================================================================
+
+describe('useAbilitySystem - self-teleport destination selection', () => {
+    it('waits for a destination tile and attaches it to the teleport movement effect', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+        const destination = { x: 4, y: 1 };
+        const mistyStepSpell: Spell = {
+            id: 'misty-step',
+            name: 'Misty Step',
+            level: 2,
+            school: 'Conjuration',
+            classes: ['Wizard'],
+            description: 'Teleport to an unoccupied space you can see.',
+            castingTime: { value: 1, unit: 'bonus_action' },
+            range: { type: 'self', distance: 0 },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'self', validTargets: ['self'], lineOfSight: true },
+            effects: [{
+                type: 'MOVEMENT',
+                movementType: 'teleport',
+                distance: 30,
+                forcedMovement: { direction: 'caster_choice', maxDistance: '30 ft', usesReaction: false },
+                duration: { type: 'rounds', value: 0 },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
+        } as unknown as Spell;
+        const mistyStepAbility: Ability = {
+            id: 'misty-step-ability',
+            name: 'Misty Step',
+            description: 'Teleport before resolving the command.',
+            type: 'spell',
+            range: 0,
+            targeting: 'self',
+            cost: { type: 'bonus' },
+            effects: [{ type: 'teleport', value: 6 }],
+            spell: mistyStepSpell
+        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
+        } as unknown as Ability;
+        const onExecuteAction = vi.fn(() => true);
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [defender],
+            mapData: null,
+            onExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        act(() => {
+            result.current.startTargeting(mistyStepAbility, defender);
+        });
+
+        expect(onExecuteAction).not.toHaveBeenCalled();
+        expect(SpellCommandFactory.createCommands).not.toHaveBeenCalled();
+
+        let didSelect = false;
+        await act(async () => {
+            didSelect = result.current.selectTarget(destination, defender);
+        });
+
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+
+        const spellPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[0] as Spell;
+        const movementEffect = spellPassedToFactory.effects[0] as any;
+
+        expect(didSelect).toBe(true);
+        expect(onExecuteAction).toHaveBeenCalledWith(expect.objectContaining({
+            characterId: defender.id,
+            targetPosition: destination,
+            targetIds: [defender.id]
+        }));
+        expect(movementEffect.destination).toEqual(destination);
+    });
+
+    it('reports invalid self-teleport destinations without falling back to self-target validation', async () => {
+        const mistyStepSpell: Spell = {
+            id: 'misty-step',
+            name: 'Misty Step',
+            level: 2,
+            school: 'Conjuration',
+            classes: ['Wizard'],
+            description: 'Teleport to an unoccupied space you can see.',
+            castingTime: { value: 1, unit: 'bonus_action' },
+            range: { type: 'self', distance: 0 },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'self', validTargets: ['self'], lineOfSight: true },
+            effects: [{
+                type: 'MOVEMENT',
+                movementType: 'teleport',
+                distance: 30,
+                forcedMovement: { direction: 'caster_choice', maxDistance: '30 ft', usesReaction: false },
+                duration: { type: 'rounds', value: 0 },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
+        } as unknown as Spell;
+        const mistyStepAbility: Ability = {
+            id: 'misty-step-ability',
+            name: 'Misty Step',
+            description: 'Teleport before resolving the command.',
+            type: 'spell',
+            range: 0,
+            targeting: 'self',
+            cost: { type: 'bonus' },
+            effects: [{ type: 'teleport', value: 6 }],
+            spell: mistyStepSpell
+        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
+        } as unknown as Ability;
+        const onExecuteAction = vi.fn(() => true);
+        const onLogEntry = vi.fn();
+        const onNotification = vi.fn();
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [defender],
+            mapData: null,
+            onExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry,
+            onNotification,
+            onAbilityEffect: vi.fn()
+        }));
+
+        act(() => {
+            result.current.startTargeting(mistyStepAbility, defender);
+        });
+
+        let didSelect = true;
+        act(() => {
+            didSelect = result.current.selectTarget({ x: 2, y: 2 }, defender);
+        });
+
+        expect(didSelect).toBe(false);
+        expect(onExecuteAction).not.toHaveBeenCalled();
+        expect(onNotification).toHaveBeenCalledWith(
+            'Misty Step needs a visible, unoccupied destination within range.',
+            'error'
+        );
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'action',
+            characterId: defender.id,
+            message: 'Misty Step needs a visible, unoccupied destination within range.',
+            data: expect.objectContaining({ attemptedDestination: { x: 2, y: 2 } })
+        }));
+    });
+});
+
+// ============================================================================
+// Multi-Target Teleport Assignment Guard
+// ============================================================================
+// Scatter-style spells choose creatures first and landing spaces second. The
+// current UI does not yet collect one destination per moved target, so the hook
+// must stop before command creation instead of letting the movement command
+// invent fallback destinations.
+// ============================================================================
+
+describe('useAbilitySystem - multi-target teleport assignment guard', () => {
+    it('collects one destination per selected teleport target before executing', async () => {
+        vi.clearAllMocks();
+        const { SpellCommandFactory } = await import('../../commands');
+        const secondTarget: CombatCharacter = {
+            ...attacker,
+            id: 'second-target',
+            name: 'Second Target',
+            position: { x: 2, y: 0 }
+        };
+        const assignmentMap: BattleMapData = {
+            tiles: new Map([
+                ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['4-1', { id: '4-1', coordinates: { x: 4, y: 1 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }],
+                ['4-2', { id: '4-2', coordinates: { x: 4, y: 2 }, terrain: 'floor', decoration: null, blocksMovement: false, blocksLoS: false, movementCost: 1, elevation: 0, effects: [] }]
+            ]),
+            dimensions: { width: 5, height: 5 },
+            theme: 'forest',
+            seed: 2
+        };
+        const scatterSpell: Spell = {
+            id: 'scatter',
+            name: 'Scatter',
+            level: 6,
+            school: 'Conjuration',
+            classes: ['Wizard'],
+            description: 'Teleport chosen creatures to chosen spaces.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 30 },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'multi', range: 6, validTargets: ['creatures'], lineOfSight: true, maxTargets: 2 },
+            effects: [{
+                type: 'MOVEMENT',
+                movementType: 'teleport',
+                distance: 120,
+                forcedMovement: { direction: 'caster_choice', maxDistance: '120 ft', usesReaction: false },
+                duration: { type: 'rounds', value: 0 },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
+        } as unknown as Spell;
+        const scatterAbility: Ability = {
+            id: 'scatter-ability',
+            name: 'Scatter',
+            description: 'Move multiple creatures to chosen spaces.',
+            type: 'spell',
+            range: 6,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [{ type: 'teleport', value: 24 }],
+            spell: scatterSpell
+        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
+        } as unknown as Ability;
+        const onExecuteAction = vi.fn(() => true);
+        const onNotification = vi.fn();
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [defender, attacker, secondTarget],
+            mapData: assignmentMap,
+            onExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onNotification,
+            onAbilityEffect: vi.fn()
+        }));
+
+        act(() => {
+            result.current.startTargeting(scatterAbility, defender);
+        });
+
+        let selectedTargets = true;
+        act(() => {
+            selectedTargets = result.current.selectTarget(attacker.position, defender);
+        });
+
+        expect(selectedTargets).toBe(false);
+        expect(onExecuteAction).not.toHaveBeenCalled();
+        expect(onNotification).toHaveBeenCalledWith('Choose a teleport destination for Attacker.', 'info');
+
+        let selectedFirstDestination = true;
+        act(() => {
+            selectedFirstDestination = result.current.selectTarget({ x: 4, y: 1 }, defender);
+        });
+
+        expect(selectedFirstDestination).toBe(false);
+        expect(onExecuteAction).not.toHaveBeenCalled();
+        expect(onNotification).toHaveBeenCalledWith('Choose a teleport destination for Second Target.', 'info');
+
+        let selectedSecondDestination = false;
+        await act(async () => {
+            selectedSecondDestination = result.current.selectTarget({ x: 4, y: 2 }, defender);
+        });
+
+        await _waitFor(() => expect(SpellCommandFactory.createCommands).toHaveBeenCalled());
+
+        const spellPassedToFactory = vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[0] as Spell;
+        const movementEffect = spellPassedToFactory.effects[0] as any;
+
+        expect(selectedSecondDestination).toBe(true);
+        expect(onExecuteAction).toHaveBeenCalledWith(expect.objectContaining({
+            characterId: defender.id,
+            targetIds: [attacker.id, secondTarget.id]
+        }));
+        expect(movementEffect.destinationsByTargetId).toEqual({
+            [attacker.id]: { x: 4, y: 1 },
+            [secondTarget.id]: { x: 4, y: 2 }
+        });
+    });
+
+    it('blocks Scatter-style teleports until destination choices exist', async () => {
+        vi.clearAllMocks();
+        const { SpellCommandFactory } = await import('../../commands');
+        const scatterSpell: Spell = {
+            id: 'scatter',
+            name: 'Scatter',
+            level: 6,
+            school: 'Conjuration',
+            classes: ['Wizard'],
+            description: 'Teleport chosen creatures to chosen spaces.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'ranged', distance: 30 },
+            components: { verbal: true, somatic: false, material: false },
+            duration: { type: 'instantaneous', concentration: false },
+            targeting: { type: 'multi', range: 30, validTargets: ['creatures'], lineOfSight: true, maxTargets: 5 },
+            effects: [{
+                type: 'MOVEMENT',
+                movementType: 'teleport',
+                distance: 120,
+                forcedMovement: { direction: 'caster_choice', maxDistance: '120 ft', usesReaction: false },
+                duration: { type: 'rounds', value: 0 },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once test fixtures expose the full migrated spell union shape.
+        } as unknown as Spell;
+        const scatterAbility: Ability = {
+            id: 'scatter-ability',
+            name: 'Scatter',
+            description: 'Move multiple creatures to chosen spaces.',
+            type: 'spell',
+            range: 6,
+            targeting: 'single_enemy',
+            cost: { type: 'action' },
+            effects: [{ type: 'teleport', value: 24 }],
+            spell: scatterSpell
+        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
+        } as unknown as Ability;
+        const onExecuteAction = vi.fn(() => true);
+        const onLogEntry = vi.fn();
+        const onNotification = vi.fn();
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [attacker, defender],
+            mapData: null,
+            onExecuteAction,
+            onCharacterUpdate: vi.fn(),
+            onLogEntry,
+            onNotification,
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                scatterAbility,
+                defender,
+                attacker.position,
+                [attacker.id]
+            );
+        });
+
+        expect(onExecuteAction).not.toHaveBeenCalled();
+        expect(SpellCommandFactory.createCommands).not.toHaveBeenCalled();
+        expect(onNotification).toHaveBeenCalledWith(
+            'Scatter needs destination choices for its teleport targets before it can resolve.',
+            'error'
+        );
+        expect(onLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'action',
+            characterId: defender.id,
+            targetIds: [attacker.id],
+            message: 'Scatter needs destination choices for its teleport targets before it can resolve.',
+            data: expect.objectContaining({ pendingGap: 'SSO-TELEPORT-DESTINATION-SELECTION-001' })
+        }));
+    });
+});
+
+// ============================================================================
+// Active Light Source Live-State Bridge
+// ============================================================================
+// Light spells create map-visible illumination inside command execution. These
+// guards prove the ability hook publishes the final light-source array back to
+// the live combat owner instead of leaving the light trapped in temporary
+// command state.
+// ============================================================================
+
+describe('useAbilitySystem - active light source live-state bridge', () => {
+    it('publishes spell-created light sources from command results', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const createdLight: LightSource = {
+            id: 'light-source-1',
+            sourceSpellId: 'light',
+            casterId: defender.id,
+            brightRadius: 20,
+            dimRadius: 20,
+            attachedTo: 'caster',
+            attachedToCharacterId: defender.id,
+            createdTurn: 0
+        };
+        const lightSpell: Spell = {
+            id: 'light',
+            name: 'Light',
+            level: 0,
+            school: 'Evocation',
+            classes: ['Wizard'],
+            description: 'Creates a glowing light.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'touch', distance: 5 },
+            components: { verbal: true, somatic: false, material: true },
+            duration: { type: 'timed', value: 1, unit: 'hour', concentration: false },
+            targeting: { type: 'self', validTargets: ['self'] },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'light',
+                description: 'Creates bright and dim light.',
+                light: {
+                    brightRadius: 20,
+                    dimRadius: 20,
+                    attachedTo: 'caster'
+                },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        // TODO(lint-intent): Replace this cast once utility-light spell fixtures expose a compact shared shape.
+        } as unknown as Spell;
+        const lightAbility: Ability = {
+            id: 'light-ability',
+            name: 'Light',
+            description: 'Creates a glowing light.',
+            type: 'spell',
+            range: 5,
+            targeting: 'self',
+            cost: { type: 'action' },
+            effects: [],
+            spell: lightSpell
+        // TODO(lint-intent): Replace this cast once spell-backed abilities have a compact shared test builder.
+        } as unknown as Ability;
+        const onActiveLightSourcesUpdate = vi.fn();
+
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [defender],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: [createdLight]
+            }
+        // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [defender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            onActiveLightSourcesUpdate
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                lightAbility,
+                defender,
+                defender.position,
+                [defender.id]
+            );
+        });
+
+        expect(onActiveLightSourcesUpdate).toHaveBeenCalledWith([createdLight]);
+    });
+
+    it('starts command execution from current lights and publishes concentration light cleanup', async () => {
+        const { CommandExecutor } = await import('../../commands');
+        const existingLight: LightSource = {
+            id: 'linked-light',
+            sourceSpellId: 'faerie-fire',
+            casterId: defender.id,
+            brightRadius: 10,
+            dimRadius: 10,
+            attachedTo: 'caster',
+            attachedToCharacterId: defender.id,
+            createdTurn: 0
+        };
+        const concentratingDefender: CombatCharacter = {
+            ...defender,
+            concentratingOn: {
+                spellId: 'faerie-fire',
+                spellName: 'Faerie Fire',
+                spellLevel: 1,
+                startedTurn: 0,
+                effectIds: ['linked-light'],
+                canDropAsFreeAction: true
+            }
+        };
+        const onActiveLightSourcesUpdate = vi.fn();
+
+        vi.mocked(CommandExecutor.execute).mockReturnValueOnce({
+            success: true,
+            finalState: {
+                characters: [{ ...concentratingDefender, concentratingOn: undefined }],
+                combatLog: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            }
+        // TODO(lint-intent): Replace this broad command-result cast once the command test fixtures expose a minimal CombatResult builder.
+        } as any);
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [concentratingDefender],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn(),
+            activeLightSources: [existingLight],
+            onActiveLightSourcesUpdate
+        }));
+
+        await act(async () => {
+            await result.current.dropConcentration(concentratingDefender);
+        });
+
+        // The break-concentration command should receive the existing light
+        // array so linked light cleanup has something real to remove.
+        expect(vi.mocked(CommandExecutor.execute).mock.calls.at(-1)?.[1]).toEqual(expect.objectContaining({
+            activeLightSources: [existingLight]
+        }));
+        expect(onActiveLightSourcesUpdate).toHaveBeenCalledWith([]);
     });
 });

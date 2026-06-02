@@ -150,3 +150,13 @@ Keep durable intent, decisions, and unresolved gaps here. Do not move test logs,
 3. Read `docs/projects/three-d-modal/GAPS.md`.
 4. Verify linked runtime files in `src/components/ThreeDModal`, `src/components/layout/GameModals.tsx`, `src/components/Submap/SubmapPane.tsx`, and `src/state`.
 5. Continue from the highest-priority open gap.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

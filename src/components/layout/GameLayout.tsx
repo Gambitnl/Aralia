@@ -18,7 +18,9 @@ import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import Minimap from '../Minimap';
+import WorldAtlasStrip from '../World3D/WorldAtlasStrip';
 import { UI_ID } from '../../styles/uiIds';
+import type { PlayerWorldPosition } from '../../types';
 
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
@@ -55,6 +57,8 @@ interface GameLayoutProps {
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
     onAction: (action: Action) => void;
+    /** Last known streamed-world position — drives always-visible atlas strip (W3DUI-23). */
+    playerWorldPos?: PlayerWorldPosition | null;
 }
 
 /**
@@ -79,7 +83,9 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     autoSaveEnabled,
     disabled,
     onAction,
+    playerWorldPos = null,
 }) => {
+    const openWorldMap = () => onAction({ type: 'toggle_map', label: 'Open World Map' });
     return (
         <div id={UI_ID.GAME_LAYOUT} data-testid={UI_ID.GAME_LAYOUT} className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
             <VersionDisplay position="game-screen" />
@@ -130,6 +136,11 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                     visible={true} // Always visible in this layout
                     toggleSubmap={() => onAction({ type: 'toggle_submap_visibility', label: 'Open Submap' })}
                     worldSeed={worldSeed}
+                />
+                <WorldAtlasStrip
+                    mapData={mapData}
+                    playerWorldPos={playerWorldPos}
+                    onOpenWorldMap={openWorldMap}
                 />
             </div>
         </div>

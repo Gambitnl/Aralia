@@ -657,6 +657,67 @@ textarea {
   color: var(--muted);
 }
 
+.handoff-status-lanes {
+  /* Lane counts give the operator the whole queue shape before they drill into
+     any one task. They intentionally use the same derived status boundaries as
+     the row summaries below instead of creating a second tracking source. */
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin: 0;
+}
+
+.handoff-status-lanes details {
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 0.9rem;
+  padding: 0.75rem;
+}
+
+.handoff-status-lanes details.empty {
+  opacity: 0.72;
+}
+
+.handoff-status-lanes summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.handoff-status-lanes summary span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.handoff-status-lanes summary strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.handoff-status-lanes ol {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.handoff-status-lanes li {
+  border-left: 2px solid rgba(96, 165, 250, 0.36);
+  display: grid;
+  gap: 0.2rem;
+  padding-left: 0.55rem;
+}
+
+.handoff-status-lanes li small,
+.handoff-status-lanes p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 0.65rem 0 0;
+}
+
 .handoff-status-board ol {
   display: grid;
   gap: 0.75rem;
@@ -1772,10 +1833,71 @@ textarea {
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
 }
 
+.task-page-at-a-glance,
 .task-page-current,
 .task-page-timeline,
 .task-page-terminal {
   grid-column: 1 / -1;
+}
+
+.task-page-at-a-glance {
+  /* The task page can contain a lot of receipts. This card is the single
+     non-technical status layer that tells the operator who owns the next move
+     before they scan timelines, packets, or guarded controls. */
+  border-color: rgba(96, 165, 250, 0.36);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(15, 23, 42, 0.88)),
+    rgba(15, 23, 42, 0.78);
+}
+
+.task-page-at-a-glance.blocked {
+  border-color: rgba(251, 146, 60, 0.5);
+  background:
+    linear-gradient(135deg, rgba(251, 146, 60, 0.18), rgba(15, 23, 42, 0.9)),
+    rgba(15, 23, 42, 0.82);
+}
+
+.task-page-at-a-glance.ready {
+  border-color: rgba(52, 211, 153, 0.48);
+  background:
+    linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(15, 23, 42, 0.88)),
+    rgba(15, 23, 42, 0.8);
+}
+
+.task-page-at-a-glance > div:first-child {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.task-page-at-a-glance h2 {
+  margin: 0;
+}
+
+.task-page-drilldown-links {
+  /* These are the task-page equivalent of dashboard lanes: quick jumps from the
+     status summary to the human-readable component that explains the boundary. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.task-page-drilldown-links a {
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.38rem 0.7rem;
+  text-decoration: none;
+}
+
+.task-page-drilldown-links a:hover {
+  border-color: rgba(96, 165, 250, 0.55);
+  color: var(--accent);
 }
 
 .task-page-facts {

@@ -7,6 +7,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Handles defensive buffs like AC bonuses, Temporary HP, and base AC setting (Mage Armor).
+ * The command keeps the immediate combat-facing AC value in sync while also
+ * preserving structured mechanics on the ActiveEffect so later recalculation,
+ * cleanup, and UI proof can reason about which defensive rule is active.
  */
 export class DefensiveCommand implements SpellCommand {
   readonly id: string;
@@ -44,11 +47,12 @@ export class DefensiveCommand implements SpellCommand {
       const currentCharacter = newState.characters[targetIndex];
       const updatedCharacter = { ...currentCharacter };
       let logMessage = '';
-      const effectValue = this.effect.value ?? 0;
+      const effectValue = this.getStructuredDefenseValue();
 
       switch (this.effect.defenseType) {
         case 'ac_bonus': {
-          // Apply AC Bonus as an active effect
+          // Apply AC Bonus as an active effect. Structured spell data may put
+          // the number in `acBonus` while legacy fixtures still use `value`.
           const activeEffect = this.createActiveEffect(
             updatedCharacter.id,
             this.effect.defenseType,
@@ -64,8 +68,9 @@ export class DefensiveCommand implements SpellCommand {
         }
 
         case 'set_base_ac': {
-          // Set Base AC (e.g. Mage Armor: 13 + Dex)
-          // Calculation: Base Value + Dex Modifier
+          // Set Base AC (e.g. Mage Armor: 13 + Dex). We preserve the formula
+          // on the active effect because recalculation/UI need to know that
+          // this is a base replacement, not a flat bonus.
           const dexMod = getAbilityModifierValue(updatedCharacter.stats.dexterity);
           const newAC = effectValue + dexMod;
 
@@ -79,6 +84,23 @@ export class DefensiveCommand implements SpellCommand {
           updatedCharacter.armorClass = newAC;
 
           logMessage = `${this.context.spellName} sets base AC to ${newAC}`;
+          break;
+        }
+
+        case 'ac_minimum': {
+          // Apply an AC floor such as Barkskin. This is intentionally a floor:
+          // it raises low AC but does not reduce a target whose AC is already
+          // higher from armor, shield, or another valid calculation.
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            effectValue,
+            state.turnState.currentTurn
+          );
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
+          updatedCharacter.armorClass = Math.max(updatedCharacter.armorClass || 10, effectValue);
+
+          logMessage = `${this.context.spellName} sets minimum AC to ${effectValue}`;
           break;
         }
 
@@ -118,6 +140,19 @@ export class DefensiveCommand implements SpellCommand {
     return newState;
   }
 
+  private getStructuredDefenseValue(): number {
+    switch (this.effect.defenseType) {
+      case 'ac_bonus':
+        return this.effect.acBonus ?? this.effect.value ?? 0;
+      case 'ac_minimum':
+        return this.effect.acMinimum ?? this.effect.value ?? 0;
+      case 'set_base_ac':
+      case 'temporary_hp':
+      default:
+        return this.effect.value ?? 0;
+    }
+  }
+
   private createActiveEffect(targetId: string, type: string, value: number, currentTurn: number): ActiveEffect {
     return {
       id: `effect-${this.context.spellId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -129,6 +164,9 @@ export class DefensiveCommand implements SpellCommand {
       startTime: currentTurn,
       mechanics: {
         acBonus: type === 'ac_bonus' ? value : undefined,
+        baseAC: type === 'set_base_ac' ? value : undefined,
+        baseACFormula: type === 'set_base_ac' ? this.effect.baseACFormula : undefined,
+        acMinimum: type === 'ac_minimum' ? value : undefined,
       }
     };
   }

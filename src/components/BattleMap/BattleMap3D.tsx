@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 18:57:37
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 11 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file BattleMap3D.tsx
  * 3D rendering frontend for the tactical combat map, using react-three-fiber.
@@ -24,15 +40,17 @@ import { ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
-import { BattleMapData, CombatCharacter } from '../../types/combat';
+import { BattleMapData, CombatCharacter, CombatState, LightSource } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
+import { useVisibility } from '../../hooks/combat/useVisibility';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer } from './terrain';
 import { CharacterActor } from './characters';
 import { CameraController } from './camera';
 import { VFXSystem, LivingWorld } from './vfx';
+import { selectVisibilityObserver } from './visibilityObserverPolicy';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -253,13 +271,57 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
 
   const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
   const selectedCharacter = characters.find(c => c.id === selectedCharacterId) ?? null;
+  // The viewer policy is shared with the 2D map so the same spell-lit battlefield
+  // does not reveal different tiles purely because the player changed render mode.
+  const visibilityObserverSelection = selectVisibilityObserver({
+    selectedCharacterId,
+    currentCharacterId: turnState.currentCharacterId,
+    characters
+  });
+  const visibilityObserverId = visibilityObserverSelection.observerId;
+  // 3D uses the same visibility calculation as the 2D map. This bridge keeps
+  // the rule source shared while letting the VFX layer decide how dark, dim,
+  // bright, and hidden tiles should look in world space.
+  const visibilityState = useMemo(() => ({
+    isActive: true,
+    characters,
+    turnState,
+    selectedCharacterId,
+    selectedAbilityId: null,
+    actionMode,
+    validTargets: [],
+    validMoves: [],
+    combatLog: [],
+    reactiveTriggers: turnManager.reactiveTriggers || [],
+    activeLightSources: (turnManager.activeLightSources || []) as LightSource[],
+    mapData: mapData ?? undefined
+  } as unknown as CombatState), [actionMode, characters, mapData, selectedCharacterId, turnManager.activeLightSources, turnManager.reactiveTriggers, turnState]);
+  const visibility = useVisibility({
+    combatState: visibilityState,
+    activeCharacterId: visibilityObserverId
+  });
+  const assignedTeleportDestinations = useMemo(() => {
+    const assignment = abilitySystem.pendingTeleportAssignment;
+    if (!assignment) return [];
+
+    return Object.entries(assignment.destinationsByTargetId).map(([targetId, destination]) => {
+      const target = characters.find(character => character.id === targetId);
+      return {
+        targetId,
+        targetName: target?.name ?? targetId,
+        destination,
+        abilityName: assignment.ability.name
+      };
+    });
+  }, [abilitySystem.pendingTeleportAssignment, characters]);
 
   // Target selection — same as 2D BattleMap
-  const { validTargetSet } = useTargetSelection({
+  const { validTargetSet, teleportDestinationSet } = useTargetSelection({
     selectedAbility: abilitySystem.selectedAbility,
     targetingMode: abilitySystem.targetingMode,
     isValidTarget: abilitySystem.isValidTarget,
     aoePreview: abilitySystem.aoePreview,
+    teleportDestinationPreview: abilitySystem.teleportDestinationPreview,
     currentCharacter,
     mapData,
     characters,
@@ -288,9 +350,17 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
   // collapsing into a short, content-sized strip.
   return (
     <div
-      className="h-full min-h-[320px] w-full overflow-hidden rounded-lg bg-slate-950"
+      className="relative h-full min-h-[320px] w-full overflow-hidden rounded-lg bg-slate-950"
       style={{ flex: '1 1 0%' }}
     >
+      {visibilityObserverSelection.sharedSenses && (
+        <div className="pointer-events-none absolute left-3 top-3 z-[var(--z-index-submap-overlay)] rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]">
+          {/* This 3D overlay mirrors the 2D map label so render-mode switching
+              does not hide the fact that visibility is currently being measured
+              from the familiar instead of the caster. */}
+          Viewing through {visibilityObserverSelection.sharedSenses.observerName}
+        </div>
+      )}
       <Canvas
         className="h-full w-full"
         shadows
@@ -400,11 +470,28 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         <VFXSystem
           mapData={mapData}
           characters={characters}
+          spellZones={combatState.turnManager.spellZones || []}
+          scheduledSpellEffects={combatState.turnManager.scheduledSpellEffects || []}
+          movementDebuffs={combatState.turnManager.movementDebuffs || []}
+          activeLightSources={(combatState.turnManager.activeLightSources || []) as LightSource[]}
+          lightLevels={visibility.lightLevels}
+          visibleTiles={visibility.visibleTiles}
+          // Share the same floating combat feedback used by the 2D map so
+          // damage, healing, and miss outcomes remain visible in 3D mode.
+          damageNumbers={combatState.turnManager.damageNumbers || []}
+          spellMovementVisuals={combatState.turnManager.spellMovementVisuals || []}
+          spellDeliveryVisuals={combatState.turnManager.spellDeliveryVisuals || []}
           aoePreviewTiles={abilitySystem.aoePreview?.affectedTiles
             ? new Set(abilitySystem.aoePreview.affectedTiles.map(
                 (p: { x: number; y: number }) => `${p.x}-${p.y}`
               ))
             : undefined}
+          teleportDestinationPreviewTiles={teleportDestinationSet}
+          teleportDestinationPreviewTarget={abilitySystem.teleportDestinationPreview
+            ? characters.find(character => character.id === abilitySystem.teleportDestinationPreview?.targetId)
+            : undefined}
+          teleportDestinationPreviewAbilityName={abilitySystem.teleportDestinationPreview?.ability.name}
+          assignedTeleportDestinations={assignedTeleportDestinations}
           targetingMode={abilitySystem.targetingMode}
         />
 

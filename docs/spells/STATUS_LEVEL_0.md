@@ -1,13 +1,14 @@
 # Spell Integration Status: Cantrips (Level 0)
 
-Last Updated: 2026-03-12
+Last Updated: 2026-06-01
 
 This file is the current level-0 status note. It no longer pretends that every cantrip has been run through a complete end-to-end integration matrix just because the migration-era table once marked them Data Only.
 
 ## Verified Current Inventory Fact
 
-A manual repo check during the 2026-03-12 doc pass confirmed:
-- ../../public/data/spells/level-0 currently contains 44 spell JSON files
+A manual repo check during the 2026-06-01 spell-overhaul gap pass confirmed:
+- ../../public/data/spells/level-0 currently contains 43 spell JSON files
+- ../../public/data/spells_manifest.json currently contains 43 level-0 manifest entries
 - the level-0 lane still exists as the canonical cantrip folder
 - the glossary spell index still includes cantrip entries under ../../public/data/glossary/index/spells.json
 
@@ -32,7 +33,7 @@ The broader spell-overhaul docs already verify several cantrip-backed mechanic l
 - Mind Sliver demonstrates a save-penalty rider in ../../public/data/spells/level-0/mind-sliver.json
 - Mold Earth demonstrates terrain manipulation structure in ../../public/data/spells/level-0/mold-earth.json
 
-Those examples are useful because they show that the cantrip lane is not only bare metadata. They still do not substitute for per-spell gameplay verification across all 44 cantrips.
+Those examples are useful because they show that the cantrip lane is not only bare metadata. They still do not substitute for per-spell gameplay verification across all 43 cantrips.
 
 ## Practical Reading Rule
 

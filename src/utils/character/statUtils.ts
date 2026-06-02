@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 27/02/2026, 09:31:11
- * Dependents: PartyMemberCard.tsx, PreviewCombatSandbox.tsx, SkillSelection.tsx, character/index.ts, characterUtils.ts, combatUtils.ts, npcGenerator.ts, partyStatUtils.ts, quickCharacterGenerator.ts, savingThrowUtils.ts, skillModifierUtils.ts, statUtils.ts
- * Imports: 2 files
+ * Last Sync: 01/06/2026, 17:38:35
+ * Dependents: components/CharacterCreator/SkillSelection.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Party/PartyPane/PartyMemberCard.tsx, utils/character/characterUtils.ts, utils/character/checkUtils.ts, utils/character/index.ts, utils/character/savingThrowUtils.ts, utils/character/skillModifierUtils.ts, utils/combat/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/statUtils.ts
+ * Imports: None
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -112,9 +112,58 @@ export interface ACComponents {
   maxDexBonus?: number;    // If wearing armor with cap
   unarmoredBonus?: number; // Barbarian Con / Monk Wis
   shieldBonus?: number;
-  activeEffects?: { type: string; value?: number; acBonus?: number; acMinimum?: number }[];
+  activeEffects?: ACRelevantActiveEffect[];
   stdBaseIncludesDex?: boolean; // If true, dexMod is not added to standardTotal (but still used for Spell Overrides)
 }
+
+/**
+ * This is the small AC-facing view of an active effect.
+ *
+ * Aralia currently has two active-effect shapes: older character effects store
+ * AC values directly on the effect, while combat spell commands store richer
+ * spell mechanics under `mechanics`. This view lets AC calculation read both
+ * shapes while the broader active-effect model is still being unified.
+ */
+export interface ACRelevantActiveEffect {
+  type: string;
+  value?: number;
+  acBonus?: number;
+  acMinimum?: number;
+  mechanics?: Record<string, unknown>;
+}
+
+// ============================================================================
+// Active Effect AC Normalization
+// ============================================================================
+// Defensive spell commands preserve structured mechanics such as Mage Armor's
+// base AC and Barkskin's minimum AC under `mechanics`. Older character effects
+// still store values directly on the effect. These helpers keep the actual AC
+// formula below readable and prevent every caller from knowing both shapes.
+// ============================================================================
+
+const readNumericMechanic = (effect: ACRelevantActiveEffect, key: string): number | undefined => {
+  const value = effect.mechanics?.[key];
+  return typeof value === 'number' ? value : undefined;
+};
+
+const getBaseAcOverride = (effect: ACRelevantActiveEffect): number | undefined => {
+  if (effect.type === 'set_base_ac') return effect.value;
+  return readNumericMechanic(effect, 'baseAC');
+};
+
+const getAcBonus = (effect: ACRelevantActiveEffect): number | undefined => {
+  if (effect.type === 'ac_bonus') return effect.value ?? effect.acBonus;
+  return readNumericMechanic(effect, 'acBonus');
+};
+
+const getAcMinimum = (effect: ACRelevantActiveEffect): number | undefined => {
+  if (effect.type === 'ac_minimum') return effect.value ?? effect.acMinimum;
+  return readNumericMechanic(effect, 'acMinimum');
+};
+
+const isBaseAcEffect = (effect: ACRelevantActiveEffect): boolean => {
+  return getBaseAcOverride(effect) !== undefined;
+};
 
 /**
  * Core function to calculate AC from components.
@@ -141,14 +190,14 @@ export const calculateFinalAC = (components: ACComponents): number => {
   let spellBaseTotal = 0;
   let hasSpellBase = false;
 
-  const baseAcEffects = activeEffects.filter(e => e.type === 'set_base_ac');
+  const baseAcEffects = activeEffects.filter(isBaseAcEffect);
   if (baseAcEffects.length > 0) {
     // Find highest spell base
     // Helper assumption: Spell overrides assume full Dex unless specified (no schema yet for that)
     // And generally they don't stack with armor/unarmored bonus, they REPLACE the base calculation.
     let maxSpellBase = 0;
     for (const effect of baseAcEffects) {
-      const val = effect.value || 0;
+      const val = getBaseAcOverride(effect) ?? 0;
       if (val > maxSpellBase) maxSpellBase = val;
     }
     if (maxSpellBase > 0) {
@@ -172,9 +221,8 @@ export const calculateFinalAC = (components: ACComponents): number => {
   // Add Bonuses (Shield + Effects)
   let bonusTotal = shieldBonus;
   activeEffects.forEach(e => {
-    if (e.type === 'ac_bonus') {
-      bonusTotal += (e.value || e.acBonus || 0);
-    }
+    const bonus = getAcBonus(e);
+    if (bonus !== undefined) bonusTotal += bonus;
   });
 
   currentTotal += bonusTotal;
@@ -182,10 +230,8 @@ export const calculateFinalAC = (components: ACComponents): number => {
   // Apply Minimum
   let minAC = 0;
   activeEffects.forEach(e => {
-    if (e.type === 'ac_minimum') {
-      const val = e.value || e.acMinimum || 0;
-      if (val > minAC) minAC = val;
-    }
+    const minimum = getAcMinimum(e);
+    if (minimum !== undefined && minimum > minAC) minAC = minimum;
   });
 
   return Math.max(currentTotal, minAC);
@@ -245,9 +291,12 @@ export const calculateArmorClass = (character: PlayerCharacter, activeEffects: A
   // But if effect is present, `calculateFinalAC` will compare values.
   // However, Mage Armor calculation (13+Dex) vs Armor (12+Dex) might favor Mage Armor incorrectly if we don't suppress it while armored.
   // The 'set_base_ac' effects should strictly NOT apply if wearing armor.
-  let validEffects = [...activeEffects];
+  let validEffects: ACRelevantActiveEffect[] = [...activeEffects];
   if (armor && armor.type === 'armor') {
-    validEffects = activeEffects.filter(e => e.type !== 'set_base_ac');
+    // Mage Armor-style effects do not apply while armor is worn. This must
+    // check both legacy direct effects and combat effects that store base AC
+    // under `mechanics.baseAC`.
+    validEffects = activeEffects.filter(effect => !isBaseAcEffect(effect));
   }
 
   // Add racial AC bonus as a virtual effect

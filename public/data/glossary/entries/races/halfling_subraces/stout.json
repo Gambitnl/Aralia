@@ -23,15 +23,10 @@
     },
     {
       "label": "Speed",
-      "value": "25 feet"
+      "value": "30 feet"
     }
   ],
   "traits": [
-    {
-      "name": "Lucky",
-      "icon": "dice",
-      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
-    },
     {
       "name": "Brave",
       "icon": "heart",
@@ -43,9 +38,14 @@
       "description": "You can move through the space of any creature that is of a size larger than yours."
     },
     {
-      "name": "Stout Resilience",
-      "icon": "shield",
-      "description": "You have [[advantage]] on saving throws against [[poison]], and you have resistance to [[poison_damage|poison damage]]."
+      "name": "Luck",
+      "icon": "dice",
+      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+    },
+    {
+      "name": "Naturally Stealthy",
+      "icon": "stealth",
+      "description": "You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you."
     }
   ],
   "tags": [

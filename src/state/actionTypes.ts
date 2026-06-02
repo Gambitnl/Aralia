@@ -29,7 +29,7 @@
  * 
  * @file src/state/actionTypes.ts
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices } from '../types/index.js';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, StaffRole, MissionType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, RichNPC, HitPointDicePool, LevelUpChoices, PlayerWorldPosition, WorldViewMode } from '../types/index.js';
 import { RitualState } from '../types/rituals.js';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -319,4 +319,8 @@ export type AppAction =
   | { type: 'UPDATE_JOURNAL_ENTRY'; payload: { entryId: string; updates: Partial<import('../types/journal.js').JournalEntry> } }
   | { type: 'LOG_JOURNAL_EVENT'; payload: import('../types/journal.js').JournalEvent }
   | { type: 'CLEAR_PENDING_EVENTS' }
-  | { type: 'INCREMENT_SESSION' };
+  | { type: 'INCREMENT_SESSION' }
+  // 3D World Transition (world-3d-ui)
+  | { type: 'SET_PLAYER_WORLD_POS'; payload: PlayerWorldPosition }
+  | { type: 'CLEAR_PLAYER_WORLD_POS' }
+  | { type: 'SET_WORLD_VIEW_MODE'; payload: WorldViewMode };

@@ -1,6 +1,7 @@
 /**
  * @file WindowFrame.tsx
  * A generic, resizable, draggable window frame similar to the Glossary modal.
+ * @component-owner UI Team / Core UI
  */
 import React, { useRef } from 'react';
 import { useResizableWindow } from '../../hooks/useResizableWindow';

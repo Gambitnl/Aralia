@@ -8,6 +8,10 @@ Use this file as the stable scope reference. The active thread goal should point
 here instead of carrying every scenario inline. The audit file records evidence
 and live task status; this spec defines what the system must handle.
 
+For the user-facing dashboard target, component refresh rules, and optional
+Stitch design-aid policy, see
+[`SYMPHONY_DASHBOARD_UX_BRIEF.md`](./SYMPHONY_DASHBOARD_UX_BRIEF.md).
+
 ## Table Of Contents
 
 - 1. [Core Intent](#core-intent)

@@ -1,0 +1,61 @@
+{
+  "id": "abyssal_tiefling",
+  "title": "Abyssal Legacy",
+  "category": "Character Races",
+  "entryLore": "Hailing from the chaos of the Abyss, this legacy grants resistance to poison and innate demonic magic. Those with the Abyssal Legacy often possess physical features like tusks, fur, or animalistic horns, reflecting the entropy and predatory nature of their demonic ancestors.",
+  "lore": {
+    "typicalDwelling": "Abyssal tieflings are drawn to environments of raw, untamed chaos and transition. They often make their homes in shifting landscapes, near portals to chaotic planes, or in areas where nature is reclaiming civilization. Their living spaces tend to be eclectic and asymmetrical, filled with mismatched items and evidence of numerous unfinished projects. They find comfort in the unpredictable and the ever-changing.",
+    "typicalAttire": "Abyssal tieflings favor attire that reflects their chaotic heritage and predatory grace. They wear garments in shades of deep purple, chaotic magenta, and earthy browns, often decorated with fur, bone, or obsidian shards. Their clothing is designed for movement and often features multiple layers or tattered elements that shift as they move. Jewelry is typically made from natural or scavenged materials, sometimes incorporating elements that seem to move or change on their own.",
+    "typicalEnvironment": "Abyssal tieflings gravitate toward places of high entropy and chaotic energy. They're comfortable in wild forests, volcanic regions, and places where the boundaries between planes are weak. Many work as scouts, explorers, or guardians of wild places. They find rigid environments oppressive and prefer spaces where they can express their individuality and adapt to the needs of the moment.",
+    "societyType": "Abyssal tieflings are often individualistic, valuing personal freedom and the pursuit of their own interests above social order. Those who form communities tend to organize around shared goals, survival, or the exploration of chaotic magic. Their communities are fluid and decentralized, with leadership shifting based on competence and immediate need. They value strength, adaptability, and the ability to find opportunity in chaos.",
+    "typicalAssociation": "Abyssal tieflings tend toward chaotic alignments, reflecting their internal connection to the shifting energies of the Abyss. They are often viewed as unpredictable or dangerous by those who value order, but they possess a fierce loyalty to those who earn their trust. They value direct action, emotional honesty, and the search for personal truth. Their connection to poison energy doesn't make them inherently malevolent, but it does give them a pragmatic perspective on survival and power.",
+    "physicalAppearance": "Abyssal tieflings possess a wild and animalistic beauty. They stand 5' to 6' tall with athletic, powerful builds. Their skin ranges from deep purples to olive greens, sometimes featuring patches of fur or toughened, scale-like skin. Their horns are often asymmetrical or animalistic-like those of a goat, bull, or even a stag. Their eyes can be solid colors like yellow, red, or violet, sometimes with vertical pupils that suggest a predatory nature. Hair is typically wild and thick, in dark or vibrant colors. Their presence is energetic and slightly unsettling, as if they are always on the verge of action."
+  },
+  "characteristics": [
+    {
+      "label": "Legacy Type",
+      "value": "Fiendish (Abyssal)"
+    },
+    {
+      "label": "Origin",
+      "value": "The Abyss"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Otherworldly Presence",
+      "icon": "magic",
+      "description": "You know the [[thaumaturgy|Thaumaturgy]] cantrip."
+    },
+    {
+      "name": "Abyssal Resistance",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]]."
+    },
+    {
+      "name": "Abyssal Magic",
+      "icon": "magic",
+      "description": "You know the [[poison_spray|Poison Spray]] cantrip. Starting at 3rd level, you can cast [[ray_of_sickness|Ray of Sickness]] once per long rest. Starting at 5th level, you can cast [[hold_person|Hold Person]] once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    }
+  ],
+  "tags": [
+    "tiefling",
+    "legacy",
+    "abyssal",
+    "chaotic evil",
+    "poison"
+  ],
+  "aliases": [
+    "abyssal legacy"
+  ],
+  "seeAlso": [
+    "tiefling",
+    "poison_damage",
+    "poison_spray",
+    "ray_of_sickness",
+    "hold_person"
+  ],
+  "filePath": "/data/glossary/entries/races/tiefling_legacies/abyssal.json",
+  "maleImageUrl": "/assets/images/races/Tiefling_Abyssal_Male.png",
+  "femaleImageUrl": "/assets/images/races/Tiefling_Abyssal_Female.png"
+}

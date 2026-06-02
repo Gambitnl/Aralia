@@ -1,3 +1,8 @@
+/**
+ * @file SelectionList.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 

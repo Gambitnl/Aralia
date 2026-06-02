@@ -1,6 +1,7 @@
 /**
  * @file RestModal.tsx
  * Short rest modal for spending Hit Point Dice across the party.
+ * @component-owner Gameplay Team / Core UI
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';

@@ -96,3 +96,13 @@ excerpt is needed to preserve a real decision or external proof.
 3. Read `docs/projects/scripts-quality/GAPS.md`.
 4. Confirm `scripts/quality/debt-summary.cjs`, `package.json`, and
    `scripts/git/pre-push-aralia.sh` still match this map.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

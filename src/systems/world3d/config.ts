@@ -18,8 +18,17 @@ export const WORLD3D_CONFIG = {
   METERS_PER_CELL: 1024,
   /** Vertices per chunk edge for the placeholder heightfield (Plan 3 refines per-LOD). */
   HEIGHTFIELD_RESOLUTION: 16,
-  /** WorldData height (0..100) maps linearly to [0, MAX_TERRAIN_HEIGHT_M] meters. */
+  /** WorldData height (0..100) maps linearly to [0, MAX_TERRAIN_HEIGHT_M] meters (before exaggeration). */
   MAX_TERRAIN_HEIGHT_M: 150,
+  /**
+   * Vertical exaggeration applied to the height→meters mapping. The raw world height range
+   * (MAX_TERRAIN_HEIGHT_M=150m) is tiny relative to METERS_PER_CELL (1024m), so unexaggerated
+   * terrain reads as a flat plane from the default near-horizontal camera — hiding the rivers,
+   * roads, and town boxes the engine already builds. Exaggerating Y makes relief legible.
+   * Keep this purely in the height→meters mapping (`heightToMeters`) so water/road ribbons,
+   * which read terrain height, stay locked to the surface.
+   */
+  VERTICAL_EXAGGERATION: 8,
   /** Chunks within this Chebyshev radius of the camera chunk are loaded. */
   LOAD_RADIUS: 4,
   /** Chunks beyond this Chebyshev radius are unloaded (>= LOAD_RADIUS for hysteresis). */
@@ -34,3 +43,18 @@ export const WORLD3D_CONFIG = {
 
 /** Derived: number of chunks spanning one grid cell along each axis. */
 export const CHUNKS_PER_CELL = WORLD3D_CONFIG.METERS_PER_CELL / WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
+
+/**
+ * Maps a WorldData height (0..100) to world-space meters on the Y axis, with vertical
+ * exaggeration applied. This is the single source of truth for the height→meters mapping:
+ * the terrain heightfield, river water ribbons, and road ribbons MUST all route through it so
+ * the ribbons stay welded to the terrain surface (otherwise they float off it when exaggeration
+ * changes). Pure and deterministic.
+ */
+export function heightToMeters(height: number): number {
+  return (
+    (height / 100) *
+    WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M *
+    WORLD3D_CONFIG.VERTICAL_EXAGGERATION
+  );
+}

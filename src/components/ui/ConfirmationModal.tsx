@@ -1,3 +1,8 @@
+/**
+ * @file ConfirmationModal.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React from 'react';
 import { Button } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';

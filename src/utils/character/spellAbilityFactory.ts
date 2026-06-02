@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 23/04/2026, 20:00:21
+ * Last Sync: 01/06/2026, 12:05:13
  * Dependents: utils/character/index.ts, utils/combat/combatUtils.ts
  * Imports: 4 files
  *
@@ -368,7 +368,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
             effects = inferEffectsFromDescription(desc, modifier);
         }
 
-        return {
+        const ability: Ability & { modeChoice?: Spell['modeChoice']; spell?: Spell } = {
             id: spell.id || 'unknown-spell-id',
             name: spell.name || 'Unknown Spell',
             description: spell.description || '',
@@ -379,7 +379,18 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
             targeting: inferTargeting(spell),
             areaOfEffect: inferAoE(spell),
             effects: effects,
+            // Keep the original structured spell on the preview ability so
+            // execution can still reach rich metadata that is not represented
+            // by the lightweight AbilityEffect list.
+            spell,
+            // Mode-choice menus are player-facing metadata, not a damage or
+            // status effect. Preserve them here so the combat UI can ask for
+            // the same choice that SpellCommandFactory later uses to narrow
+            // the command list.
+            modeChoice: spell.modeChoice,
         };
+
+        return ability;
 
     } catch (error) {
         logger.error(`Failed to create ability from spell: ${spell.name || 'Unknown'}`, { error });

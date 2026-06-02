@@ -220,9 +220,11 @@ export class TargetResolver {
     gameState: CombatState
   ): boolean {
     if (!gameState.mapData) {
-      // If map data is missing, assume clear LoS or handle as error?
-      // For now, assuming clear to avoid blocking gameplay in incomplete states.
-      return true
+      // A spell that explicitly requires line of sight needs map evidence to
+      // prove that sight line. The UI validator already rejects mapless LoS
+      // checks, so the resolver now follows the same fail-closed policy instead
+      // of letting runtime casts bypass the battle-map requirement.
+      return false
     }
 
     // Adapt Position to BattleMapTile-like structure expected by hasLineOfSight util

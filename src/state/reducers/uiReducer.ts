@@ -76,6 +76,10 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isSubmapVisible: !state.isSubmapVisible, isMapVisible: false, isThreeDVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_THREE_D_VISIBILITY':
+      // PLAYING uses SET_WORLD_VIEW_MODE via toggle_three_d; legacy modal is for other phases only (W3DUI-22).
+      if (state.phase === GamePhase.PLAYING) {
+        return { isThreeDVisible: false };
+      }
       return { isThreeDVisible: !state.isThreeDVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_PARTY_OVERLAY':

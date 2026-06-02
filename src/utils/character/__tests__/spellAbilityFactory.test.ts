@@ -71,5 +71,43 @@ describe('spellAbilityFactory', () => {
         it('handles null spell gracefully', () => {
              expect(() => createAbilityFromSpell(null as unknown as Spell, baseCaster)).not.toThrow();
         });
+
+        it('preserves mode-choice menus for spell preview and selection parity', () => {
+            const modeChoiceSpell = {
+                ...baseSpell,
+                id: 'blindness-deafness',
+                name: 'Blindness/Deafness',
+                description: 'Choose Blindness or Deafness.',
+                effects: [
+                    {
+                        type: 'STATUS_CONDITION',
+                        statusCondition: { name: 'Blinded', duration: { type: 'minutes', value: 1 } },
+                        trigger: { type: 'immediate' },
+                        condition: { type: 'save', saveType: 'Constitution' }
+                    },
+                    {
+                        type: 'STATUS_CONDITION',
+                        statusCondition: { name: 'Deafened', duration: { type: 'minutes', value: 1 } },
+                        trigger: { type: 'immediate' },
+                        condition: { type: 'save', saveType: 'Constitution' }
+                    }
+                ],
+                modeChoice: {
+                    prompt: 'Choose one condition.',
+                    options: [
+                        { label: 'Blindness', effectIndices: [0] },
+                        { label: 'Deafness', effectIndices: [1] }
+                    ]
+                }
+            } as unknown as Spell;
+
+            const ability = createAbilityFromSpell(modeChoiceSpell, baseCaster);
+
+            // Mode-choice spells are narrowed later by SpellCommandFactory using
+            // player input. The preview/selection ability must keep that menu
+            // visible so the UI can ask for the same choice the command path
+            // expects instead of showing one flattened generic status ability.
+            expect((ability as any).modeChoice).toEqual(modeChoiceSpell.modeChoice);
+        });
     });
 });

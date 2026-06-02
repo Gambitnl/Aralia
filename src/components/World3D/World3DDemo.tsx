@@ -21,7 +21,7 @@ import World3DScene from './World3DScene';
 import { generateMap } from '@/services/mapService';
 import { BIOMES } from '@/constants';
 import { handleChunkRequest } from '@/systems/world3d/chunkWorkerCore';
-import { WORLD3D_CONFIG } from '@/systems/world3d/config';
+import { WORLD3D_CONFIG, heightToMeters } from '@/systems/world3d/config';
 import type { ChunkLoader } from '@/systems/world3d/types';
 
 const DEMO_COLS = 60;
@@ -29,7 +29,7 @@ const DEMO_ROWS = 40;
 const DEMO_SEED = 2026;
 
 const World3DDemo: React.FC = () => {
-  const { loader, start } = useMemo(() => {
+  const { loader, start, startSurfaceY } = useMemo(() => {
     // Run the real world-generation pipeline so the demo renders authentic rivers, roads,
     // towns, and varied biomes rather than a uniform-plains placeholder.
     const map = generateMap(DEMO_ROWS, DEMO_COLS, {}, BIOMES, DEMO_SEED);
@@ -48,7 +48,16 @@ const World3DDemo: React.FC = () => {
     const startGridY = firstTown ? firstTown.position.y : DEMO_ROWS / 2;
     const startX = startGridX * WORLD3D_CONFIG.METERS_PER_CELL;
     const startZ = startGridY * WORLD3D_CONFIG.METERS_PER_CELL;
-    return { loader: inlineLoader, start: [startX, 0, startZ] as const };
+
+    // Terrain is now vertically exaggerated, so the spawn surface can sit hundreds of meters up.
+    // Read the spawn cell's height from WorldData and convert it (via the same exaggerated mapping
+    // the geometry builders use) so the scene can frame the camera on the actual ground, not Y=0.
+    const { cols, rows } = world.gridSize;
+    const cellX = Math.max(0, Math.min(cols - 1, Math.round(startGridX)));
+    const cellY = Math.max(0, Math.min(rows - 1, Math.round(startGridY)));
+    const startSurfaceY = heightToMeters(world.heights[cellY * cols + cellX] ?? 0);
+
+    return { loader: inlineLoader, start: [startX, 0, startZ] as const, startSurfaceY };
   }, []);
 
   return (
@@ -57,7 +66,7 @@ const World3DDemo: React.FC = () => {
       <p style={{ margin: 0, fontSize: '14px', color: '#4a5a6a' }}>
         Right-click and drag to pan the camera across the landscape. Chunks will stream in and out in real time!
       </p>
-      <World3DScene loader={loader} start={start} />
+      <World3DScene loader={loader} start={start} startSurfaceY={startSurfaceY} />
     </div>
   );
 };

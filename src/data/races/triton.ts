@@ -29,4 +29,13 @@ export const TRITON_DATA: Race = {
     maleIllustrationPath: 'assets/images/races/Triton_Male.png',
     femaleIllustrationPath: 'assets/images/races/Triton_Female.png',
   },
+  racialSpellChoice: {
+    traitName: 'Control Air and Water',
+    traitDescription: 'Choose your spellcasting ability for these spells: Intelligence, Wisdom, or Charisma.',
+  },
+  knownSpells: [
+    { minLevel: 1, spellId: 'fog-cloud' },
+    { minLevel: 3, spellId: 'gust-of-wind' },
+    { minLevel: 5, spellId: 'water-walk' }
+  ]
 };

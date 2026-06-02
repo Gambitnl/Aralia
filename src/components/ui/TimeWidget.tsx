@@ -1,3 +1,8 @@
+/**
+ * @file TimeWidget.tsx
+ *
+ * @component-owner Gameplay Team / Core UI
+ */
 import React from 'react';
 import { Season, TimeOfDay, getTimeOfDay, getSeason, getTimeModifiers } from '@/utils/core';
 import { getMoonPhase, MoonPhase, getHoliday, getMonthName } from '@/systems/time/CalendarSystem';

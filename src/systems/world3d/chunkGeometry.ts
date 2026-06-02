@@ -13,11 +13,10 @@
  */
 
 import type { ChunkData, ChunkGeometryArrays, TerrainMesh } from './types';
-import { WORLD3D_CONFIG } from './config';
+import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { biomeColor } from './terrainColor';
 
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
-const MAX_H = WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M;
 
 /**
  * Generates local positions, triangle indices, and lighting normals for a chunk.
@@ -28,14 +27,15 @@ export function buildPlaceholderHeightfield(data: ChunkData): ChunkGeometryArray
   const positions = new Float32Array(vertCount * 3);
   const normals = new Float32Array(vertCount * 3);
 
-  // 1. Compute vertex positions: x/z spread across [0, S], y scaled from height (0..100) -> (0..MAX_H)
+  // 1. Compute vertex positions: x/z spread across [0, S], y from height via the shared
+  //    exaggerated height→meters mapping (kept in lockstep with water/road builders).
   for (let j = 0; j < res; j++) {
     const tz = res === 1 ? 0 : j / (res - 1);
     for (let i = 0; i < res; i++) {
       const tx = res === 1 ? 0 : i / (res - 1);
       const idx = (j * res + i) * 3;
       positions[idx] = tx * S;
-      positions[idx + 1] = (data.heights[j * res + i] / 100) * MAX_H;
+      positions[idx + 1] = heightToMeters(data.heights[j * res + i]);
       positions[idx + 2] = tz * S;
     }
   }

@@ -19,6 +19,7 @@ export const LIZARDFOLK_DATA: Race = {
     'Hold Breath: You can hold your breath for up to 15 minutes.',
     'Hungry Jaws: As a bonus action, you can make a special bite attack that grants temporary hit points equal to your Constitution modifier on a hit.',
     'Natural Armor: While not wearing armor, your AC is 13 + your Dexterity modifier, and you can use it in place of armor when determining AC.',
+    'Nature’s Intuition: Thanks to your mystical connection to nature, you gain proficiency with two of the following skills of your choice: Animal Handling, Medicine, Nature, Perception, Stealth, or Survival.',
   ],
   visual: {
     id: 'lizardfolk',

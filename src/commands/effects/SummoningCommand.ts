@@ -1,7 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { SummoningEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, Position, CharacterStats } from '@/types/combat'
+import { CombatState, CombatCharacter, Position, CharacterStats, Ability } from '@/types/combat'
 import { CLASSES_DATA } from '@/constants'
 import { MONSTERS_DATA } from '../../data/monsters'
 import { generateId } from '../../utils/combatUtils'
@@ -39,6 +39,15 @@ export class SummoningCommand extends BaseEffectCommand {
         // overwritten while the summon schema is still evolving.
         const count = effect.summon?.count ?? effect.count ?? 1
 
+        // Find Familiar has a one-familiar rule rather than ordinary stacking.
+        // This bounded slice replaces an existing familiar from the same spell
+        // before creating the new form, so repeated casts stop accumulating
+        // multiple familiar tokens. Other summon spells keep their existing
+        // multi-creature behavior.
+        if (this.isFamiliarSummon(effect)) {
+            newState = this.removeExistingFamiliar(newState, caster.id)
+        }
+
         for (let i = 0; i < count; i++) {
             const spawnPosition = this.findSpawnPosition(newState, caster.position)
 
@@ -73,7 +82,48 @@ export class SummoningCommand extends BaseEffectCommand {
             })
         }
 
+        if (this.isFamiliarSummon(effect)) {
+            newState = this.ensureFamiliarPocketAbilities(newState, caster.id)
+            newState = this.ensureFamiliarSharedSensesAbility(newState, caster.id, effect)
+        }
+
         return newState
+    }
+
+    private isFamiliarSummon(effect: SummoningEffect): boolean {
+        return effect.summon?.entityType === 'familiar'
+    }
+
+    private removeExistingFamiliar(state: CombatState, casterId: string): CombatState {
+        const existingFamiliars = state.characters.filter(character =>
+            character.isSummon &&
+            character.summonMetadata?.casterId === casterId &&
+            character.summonMetadata?.spellId === this.context.spellId
+        )
+
+        if (existingFamiliars.length === 0) {
+            return state
+        }
+
+        const familiarIds = new Set(existingFamiliars.map(familiar => familiar.id))
+        const familiarNames = existingFamiliars.map(familiar => familiar.name).join(', ')
+
+        // Recasting Find Familiar changes or replaces the existing familiar
+        // rather than leaving duplicates on the map. The remaining familiar
+        // lifecycle work still needs dedicated dismissal, 0-HP disappearance,
+        // pocket-dimension state, and shared-senses behavior.
+        return this.addLogEntry({
+            ...state,
+            characters: state.characters.filter(character => !familiarIds.has(character.id))
+        }, {
+            type: 'action',
+            message: `${this.context.caster.name}'s existing familiar disappears before ${this.context.spellName} creates a new one (${familiarNames})`,
+            characterId: casterId,
+            data: {
+                spellId: this.context.spellId,
+                removedSummonIds: Array.from(familiarIds)
+            }
+        })
     }
 
     private findSpawnPosition(state: CombatState, origin: Position): Position | null {
@@ -127,6 +177,126 @@ export class SummoningCommand extends BaseEffectCommand {
         return true
     }
 
+    private ensureFamiliarPocketAbilities(state: CombatState, casterId: string): CombatState {
+        const currentCaster = state.characters.find(character => character.id === casterId)
+
+        if (!currentCaster) {
+            return state
+        }
+
+        const existingAbilityIds = new Set((currentCaster.abilities || []).map(ability => ability.id))
+        const pocketAbilities = this.createFamiliarPocketAbilities()
+        const missingAbilities = pocketAbilities.filter(ability => !existingAbilityIds.has(ability.id))
+
+        if (missingAbilities.length === 0) {
+            return state
+        }
+
+        // Find Familiar creates a persistent bond, so the caster needs command
+        // actions to move the familiar between the map and pocket dimension.
+        // These abilities are only a runtime foothold: UI disable states,
+        // placement choice, and turn-order policy remain separate tracked gaps.
+        return this.updateCharacter(state, casterId, {
+            abilities: [
+                ...(currentCaster.abilities || []),
+                ...missingAbilities
+            ]
+        })
+    }
+
+    private createFamiliarPocketAbilities(): Ability[] {
+        return [
+            {
+                id: `familiar_dismiss_${this.context.spellId}`,
+                name: 'Dismiss Familiar',
+                description: 'Temporarily dismisses your familiar into its pocket dimension without destroying the bond.',
+                type: 'utility',
+                cost: { type: 'action' },
+                targeting: 'self',
+                range: 0,
+                effects: [{
+                    type: 'familiar_pocket',
+                    familiarPocketAction: 'dismiss'
+                }],
+                tags: ['summon', 'familiar', 'pocket-dimension']
+            },
+            {
+                id: `familiar_recall_${this.context.spellId}`,
+                name: 'Recall Familiar',
+                description: 'Returns your pocketed familiar to the battlefield near its last known position.',
+                type: 'utility',
+                cost: { type: 'action' },
+                targeting: 'self',
+                range: 0,
+                effects: [{
+                    type: 'familiar_pocket',
+                    familiarPocketAction: 'recall'
+                }],
+                tags: ['summon', 'familiar', 'pocket-dimension']
+            }
+        ]
+    }
+
+    private ensureFamiliarSharedSensesAbility(
+        state: CombatState,
+        casterId: string,
+        effect: SummoningEffect
+    ): CombatState {
+        if (!effect.summon?.sharedSenses) {
+            return state
+        }
+
+        const currentCaster = state.characters.find(character => character.id === casterId)
+
+        if (!currentCaster) {
+            return state
+        }
+
+        const abilityId = `familiar_shared_senses_${this.context.spellId}`
+
+        if ((currentCaster.abilities || []).some(ability => ability.id === abilityId)) {
+            return state
+        }
+
+        const sharedSensesAbility: Ability = {
+            id: abilityId,
+            name: 'Use Familiar Senses',
+            description: 'Use your familiar as the observer for sight and hearing until the start of your next turn.',
+            type: 'utility',
+            cost: { type: this.getSharedSensesActionCost(effect) },
+            targeting: 'self',
+            range: 0,
+            effects: [{
+                type: 'familiar_shared_senses',
+                sharedSensesAction: 'activate'
+            }],
+            tags: ['summon', 'familiar', 'shared-senses']
+        }
+
+        // This gives the caster an explicit action surface for shared senses.
+        // A later slice still needs to route the effect into visibility observer
+        // policy and rendered map feedback.
+        return this.updateCharacter(state, casterId, {
+            abilities: [
+                ...(currentCaster.abilities || []),
+                sharedSensesAbility
+            ]
+        })
+    }
+
+    private getSharedSensesActionCost(effect: SummoningEffect): Ability['cost']['type'] {
+        switch (effect.summon?.sharedSensesCost) {
+            case 'bonus_action':
+                return 'bonusAction'
+            case 'free':
+            case 'none':
+                return 'free'
+            case 'action':
+            default:
+                return 'action'
+        }
+    }
+
     private createSummonedCharacter(
         effect: SummoningEffect,
         caster: CombatCharacter,
@@ -136,11 +306,13 @@ export class SummoningCommand extends BaseEffectCommand {
         // Fallback or explicit creature ID
         let creatureId = effect.creatureId ?? 'generic_summon'
         let templateData: SummonTemplate | undefined
+        let chosenFormName: string | undefined
 
         // If the nested spell data offers several forms, choose the first form
         // until the combat UI has a player-facing form picker.
         if (effect.summon?.formOptions && effect.summon.formOptions.length > 0) {
             const chosenForm = effect.summon.formOptions[0] // Default to first form for now
+            chosenFormName = chosenForm
             templateData = getSummonTemplate(chosenForm)
             if (templateData) {
                 creatureId = chosenForm.toLowerCase().replace(/\s+/g, '_')
@@ -213,7 +385,26 @@ export class SummoningCommand extends BaseEffectCommand {
                 movement: { used: 0, total: stats.speed },
                 freeActions: 1,
             },
-            // Tag it as a summon so AI or UI knows
+            // Tag the character as a summon so cleanup, replacement rules, UI,
+            // and future AI policies can distinguish it from normal actors.
+            isSummon: true,
+            summonMetadata: {
+                casterId: caster.id,
+                spellId: this.context.spellId,
+                // Preserve the summon identity that map visuals, lifecycle
+                // cleanup, and future command-economy policies need. This does
+                // not solve player form choice yet; it records the currently
+                // selected/defaulted form so later systems are not forced to
+                // infer it from display names.
+                entityType: effect.summon?.entityType ?? effect.summonType,
+                formName: chosenFormName ?? effect.summon?.statBlock?.name ?? effect.summon?.objectDescription ?? effect.objectDescription,
+                sourceName: this.context.spellName,
+                telepathyRange: effect.summon?.telepathyRange,
+                sharedSenses: effect.summon?.sharedSenses,
+                sharedSensesCost: effect.summon?.sharedSensesCost,
+                durationRemaining: typeof effect.duration?.value === 'number' ? effect.duration.value : undefined,
+                dismissable: effect.summon?.dismissAction !== undefined || effect.summon?.entityType === 'familiar'
+            },
             activeEffects: []
         }
     }

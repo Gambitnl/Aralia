@@ -1,7 +1,7 @@
 # World 3D UI North Star
 
 Status: active
-Last updated: 2026-06-01
+Last updated: 2026-06-02
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative:
 > - `world3d` — the 3D **rendering engine** (chunk streaming, meshes, R3F scene).
@@ -29,28 +29,29 @@ atlas↔3D bridge a clear owner.
 
 ## Current State
 
-Early — mostly unbuilt. What exists today:
+**Plan 4 complete (T7–T11).** Production PLAYING entry path is wired:
 
-- The only entry point is the **sandbox** `GamePhase.WORLD3D_DEMO` → `<World3DDemo />`,
-  reached via the `?phase=world3d` URL slug (`useHistorySync`). There is no real transition
-  from the atlas yet; you jump straight to the sandbox.
-- The only HUD is the demo's static header text; the only control is the orbit/pan camera
-  (`FreeRoamCameraController`, owned by `world3d`). No view-mode toggle, control panel,
-  nameplates, minimap, or marker sync exist.
-- The 2D↔3D transition, marker sync, and `playerWorldPos` game-state anchor (spec §7–§9)
-  are **not started** (this is "Plan 4").
+- **Game-state anchors** (`worldViewMode`, `playerWorldPos`, actions, reducer, hooks) — done (T7).
+- **PLAYING-phase 3D routing** — `TransitionController` cross-fades atlas ↔ `World3DWrapper` by `worldViewMode` (T8/T10).
+- **`World3DWrapper`** — worker-backed `ChunkLoader` from `worldData` (W3DUI-1), throttled position dispatch with terrain height via `getTerrainHeight()`, FPS/chunk debug stats (T8/T9).
+- **`InWorldHUD`** — control panel (Open Map, Exit to Menu), view-mode toggle, dev-only `DebugHUD` (T9).
+- **`AtlasPlayerMarker` + click-to-travel** — marker on MapPane Azgaar overlay; **Enter 3D** interaction mode dispatches position + `worldViewMode`; compass **Enter 3D** routes to streamed world (T10).
+- **Integration tests + perf budget** — RTL lifecycle (W3DUI-3), `worldCoords` unit tests, Playwright HUD round-trip, `docs/projects/world-3d-ui/PERF.md` (T11).
+- **Sandbox** `WORLD3D_DEMO` → `<World3DDemo />` via `?phase=world3d` remains unchanged.
+- **Nameplates, in-3D minimap** — deferred (post–Plan 4 MVP).
+- **`WorldAtlasStrip`** — compact world-map preview with `AtlasPlayerMarker` on PLAYING `GameLayout` when `playerWorldPos` is set (W3DUI-23).
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Author the Plan 4 spec/plan for the 2D↔3D transition + bidirectional Azgaar marker sync (design before build) |
-| Acceptance criteria | A written plan exists covering: entry trigger (atlas zoom/click), camera dive in/out, scene mount/unmount handoff with `world3d`, `playerWorldPos` in game state, and atlas marker projection both directions — with the world3d↔world-3d-ui boundary explicit |
-| Allowed boundaries | `docs/superpowers/plans/`, `docs/projects/world-3d-ui/`. Design only; no implementation in this slice. |
-| Stop condition | Stop when the plan is written and reviewed; do not start implementing the transition. |
-| Verification | Plan doc committed under `docs/superpowers/plans/`; cross-linked from this North Star. |
-| Owner | claude (claimed) |
-| Next action | Resolve the cold-load `?phase=world3d` entry bounce first (it's an entry/transition concern — gap W3DUI-5), then draft Plan 4. |
+| Task | Plan 4 deferred UX: Nameplates or in-3D minimap |
+| Acceptance criteria | Per next plan/slice |
+| Allowed boundaries | `world-3d-ui` surface |
+| Stop condition | Operator prioritizes next slice |
+| Verification | Gap-specific proof |
+| Owner | unassigned |
+| Next action | Operator directs start on HUD polish (nameplates/minimap) or TownCanvas handoff |
 
 ## Scope Boundaries
 
@@ -77,10 +78,17 @@ See `docs/projects/world-3d-ui/GAPS.md`. Headline:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Cold-load `?phase=world3d` bounces to main_menu intermittently | blocked_human_decision | claude | live debug 2026-06-01; app-level phase race | instrument mount-time phase dispatch order; fix entry so it sticks |
-| 2D↔3D transition + marker sync unbuilt (Plan 4) | adjacent_follow_up | claude | spec §8–§9; no code | author Plan 4 |
-| No in-3D HUD (controls/toggle/minimap/nameplates) | adjacent_follow_up | claude | `World3DDemo` has header only | define HUD scope in Plan 4 |
-| No scene mount/unmount + control lifecycle test | adjacent_follow_up | claude | `World3DScene`/`useChunkStreaming` | add one RTL/Playwright lifecycle proof |
+| Cold-load `?phase=world3d` bounces to main_menu intermittently | done | claude | W3DUI-5 | Fixed |
+| 2D↔3D transition animations in PLAYING | done | unassigned | W3DUI-20 | `TransitionController` wraps PLAYING branch (T10) |
+| Bidirectional atlas ↔ 3D marker sync | done | unassigned | W3DUI-7 | T10: marker + Enter 3D mode |
+| Compass "Enter 3D" → `worldViewMode` | done | unassigned | W3DUI-21 | T10: `toggle_three_d` in PLAYING |
+| Transition lifecycle RTL proof | done | unassigned | W3DUI-3 | T11: `TransitionController.lifecycle.test.tsx` |
+| Legacy `ThreeDModal` parallel to streamed entry | done | unassigned | W3DUI-22 | PLAYING uses streamed path only; legacy modal non-PLAYING + submap |
+| Marker only on MapPane modal | done | unassigned | W3DUI-23 | `WorldAtlasStrip` on GameLayout when `playerWorldPos` set |
+| `mapData` cast to `WorldData` (format risk) | done | unassigned | W3DUI-18 | `mapDataToWorldData.ts` adapter |
+| Demo/production loader strategy (inline vs worker) | done | unassigned | W3DUI-1 | PLAYING worker; sandbox inline |
+| `entryPosition` unused on TransitionController | done | unassigned | W3DUI-24 | Removed from controller; `World3DWrapper` only |
+| Atlas marker E2E after 3D movement | done | claude | W3DUI-25 | Playwright test covers pan and marker verification |
 
 ## Global Gap Imports
 
@@ -92,17 +100,21 @@ Checked `docs/projects/GLOBAL_GAPS.md`. None belong to this surface.
 |---|---|---|
 | `?phase=world3d` renders the sandbox (when it sticks) | the entry seam works | live this session |
 | Design spec §7–§9 | the intended transition/marker model | `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` |
+| Plan 4 doc | complete design for transition + marker sync + HUD | `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md` |
+| RTL + Playwright + PERF | T11 verification | `src/components/World3D/__tests__/`, `tests/world-3d-ui-transition.spec.ts`, `PERF.md` |
 
 ## Supporting Files
 
 | File | Purpose | Status |
 |---|---|---|
 | `docs/projects/PROJECT_TRACKER.md` | Registry (World 3D UI row) | active |
-| `docs/projects/world-3d-ui/TRACKER.md` | Active queue | active |
-| `docs/projects/world-3d-ui/GAPS.md` | In-project gaps | active |
+| `docs/projects/world-3d-ui/TRACKER.md` | Active queue (T1, T4-T11) | active |
+| `docs/projects/world-3d-ui/GAPS.md` | In-project gaps (W3DUI-1..25) | active |
+| `docs/projects/world-3d-ui/PERF.md` | Entry/exit/dispatch perf budget | active |
 | `docs/projects/world3d/NORTH_STAR.md` | Sibling: the rendering engine this layer drives | active |
 | `docs/projects/worldsim-service/NORTH_STAR.md` | Sibling: world generation/simulation | active |
 | `docs/superpowers/specs/2026-05-28-azgaar-3d-streamed-world-design.md` | Governing spec (transition §8, marker §9) | active |
+| `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md` | Plan 4: transition + marker sync design | active |
 
 ## Artifact Boundary
 
@@ -112,12 +124,14 @@ Durable: transition/HUD design intent, the entry seam, decisions, gap classifica
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Does the real entry replace `WORLD3D_DEMO`, or layer on top of the live PLAYING phase? | Decides whether the 3D world is a mode or the main view | operator | Plan 4 kickoff |
-| Inline vs worker-backed loader for the live entry? | Affects transition perf budget | operator/claude | Plan 4 |
+| Does the real entry replace `WORLD3D_DEMO`, or layer on top of the live PLAYING phase? | **Resolved:** layer on PLAYING via `worldViewMode` | operator | Plan 4 kickoff |
+| Inline vs worker-backed loader for the live entry? | Affects transition perf budget | operator/claude | Before production hardening (W3DUI-1) |
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
 2. Read `docs/projects/world-3d-ui/TRACKER.md` then `GAPS.md`.
-3. Read spec §7–§9 for the transition/marker model.
-4. Continue from the Active Task: fix the entry bounce, then author Plan 4. Reuse `world3d`'s scene — do not re-implement rendering here.
+3. Read Plan 4: `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md`.
+4. Plan 4 slices T7–T11 are **done**; pick follow-up from Active Task or `GAPS.md`.
+5. Run `npx vitest run src/components/World3D/__tests__` and optionally `npx playwright test tests/world-3d-ui-transition.spec.ts`.
+6. See W3DUI-25 for the highest-impact follow-up (W3DUI-1/18/22/23/24 done).

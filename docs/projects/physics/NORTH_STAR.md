@@ -76,3 +76,14 @@ It is intentionally registered as partial implementation because related physics
 1. Read this file.
 2. Read `docs/projects/physics/TRACKER.md`.
 3. Read `docs/projects/physics/GAPS.md`.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- read the existing project gaps before choosing work
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

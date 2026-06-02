@@ -706,10 +706,256 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
                         </div>
                     )}
 
-                    {/* Variant Comparison Table */}
-                    {race.siblingVariants && race.siblingVariants.length > 1 && (
-                        <VariantComparisonTable variants={race.siblingVariants} currentId={race.id} />
+                    {/* Autognome Specialized Design (required choice) */}
+                    {(race.id === 'autognome' || race.id === 'forgeborn_human') && (
+                        <div className="mt-4 bg-zinc-900/10 border border-zinc-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-zinc-700/40">
+                                <h4 className="text-sm font-semibold text-zinc-300">
+                                    {race.id === 'autognome' ? 'Specialized Design' : "Maker's Gift"} - Choose {race.id === 'autognome' ? 'Two Tools' : 'a Tool'}
+                                </h4>
+                                <p className="text-xs text-gray-400 mt-1">
+                                    {race.id === 'autognome' 
+                                        ? 'You gain proficiency with two tools of your choice.' 
+                                        : 'You gain proficiency with one type of artisan\'s tools of your choice.'}
+                                </p>
+                            </div>
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                {([
+                                    { id: 'alchemists_supplies', name: 'Alchemist\'s Supplies' },
+                                    { id: 'brewers_supplies', name: 'Brewer\'s Supplies' },
+                                    { id: 'calligraphers_supplies', name: 'Calligrapher\'s Supplies' },
+                                    { id: 'carpenters_tools', name: 'Carpenter\'s Tools' },
+                                    { id: 'cartographers_tools', name: 'Cartographer\'s Tools' },
+                                    { id: 'cobblers_tools', name: 'Cobbler\'s Tools' },
+                                    { id: 'cooks_utensils', name: 'Cook\'s Utensils' },
+                                    { id: 'glassblowers_tools', name: 'Glassblower\'s Tools' },
+                                    { id: 'jewelers_tools', name: 'Jeweler\'s Tools' },
+                                    { id: 'leatherworkers_tools', name: 'Leatherworker\'s Tools' },
+                                    { id: 'masons_tools', name: 'Mason\'s Tools' },
+                                    { id: 'painters_supplies', name: 'Painter\'s Supplies' },
+                                    { id: 'potters_tools', name: 'Potter\'s Tools' },
+                                    { id: 'smiths_tools', name: 'Smith\'s Tools' },
+                                    { id: 'tinkers_tools', name: 'Tinker\'s Tools' },
+                                    { id: 'weavers_tools', name: 'Weaver\'s Tools' },
+                                    { id: 'woodcarvers_tools', name: 'Woodcarver\'s Tools' },
+                                    { id: 'disguise_kit', name: 'Disguise Kit' },
+                                    { id: 'forgery_kit', name: 'Forgery Kit' },
+                                    { id: 'herbalism_kit', name: 'Herbalism Kit' },
+                                    { id: 'navigators_tools', name: 'Navigator\'s Tools' },
+                                    { id: 'poisoners_kit', name: 'Poisoner\'s Kit' },
+                                    { id: 'thieves_tools', name: 'Thieves\' Tools' },
+                                ]).map((tool) => {
+                                    const max = race.id === 'autognome' ? 2 : 1;
+                                    const isSelected = racialToolChoices.includes(tool.id);
+                                    const isMaxed = racialToolChoices.length >= max;
+                                    const isDisabled = !isSelected && isMaxed;
+                                    return (
+                                        <button
+                                            key={tool.id}
+                                            type="button"
+                                            onClick={() => onRacialToolChoiceToggle?.(tool.id, max)}
+                                            disabled={isDisabled}
+                                            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-zinc-600/80 text-white border-zinc-400 shadow-lg'
+                                                    : isDisabled
+                                                        ? 'bg-gray-900/40 text-gray-600 border-gray-900 cursor-not-allowed'
+                                                        : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-zinc-500 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {tool.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="px-3 pb-3 text-xs text-gray-400">
+                                Selected: {racialToolChoices.length} / {race.id === 'autognome' ? 2 : 1}
+                            </div>
+                        </div>
                     )}
+
+                    {/* Dwarf Tool Proficiency (required choice) */}
+                    {race.id.includes('dwarf') && race.id !== 'dwarf' && (
+                        <div className="mt-4 bg-yellow-900/10 border border-yellow-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-yellow-700/40">
+                                <h4 className="text-sm font-semibold text-yellow-300">Tool Proficiency - Choose One</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick one: Smith's Tools, Brewer's Supplies, or Mason's Tools.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                {([
+                                    { id: 'smiths_tools', name: 'Smith\'s Tools' },
+                                    { id: 'brewers_supplies', name: 'Brewer\'s Supplies' },
+                                    { id: 'masons_tools', name: 'Mason\'s Tools' },
+                                ]).map((tool) => {
+                                    const isSelected = racialToolChoices.includes(tool.id);
+                                    return (
+                                        <button
+                                            key={tool.id}
+                                            type="button"
+                                            onClick={() => onRacialToolChoiceToggle?.(tool.id, 1)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-yellow-600/80 text-white border-yellow-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-yellow-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {tool.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Warforged Tool Proficiency (required choice) */}
+                    {race.id === 'warforged' && (
+                        <div className="mt-4 bg-slate-800 border border-slate-600/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-slate-600/40">
+                                <h4 className="text-sm font-semibold text-slate-300">Specialized Design - Choose a Tool</h4>
+                                <p className="text-xs text-gray-400 mt-1">You gain one tool proficiency of your choice.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                {([
+                                    { id: 'alchemists_supplies', name: 'Alchemist\'s Supplies' },
+                                    { id: 'brewers_supplies', name: 'Brewer\'s Supplies' },
+                                    { id: 'calligraphers_supplies', name: 'Calligrapher\'s Supplies' },
+                                    { id: 'carpenters_tools', name: 'Carpenter\'s Tools' },
+                                    { id: 'cartographers_tools', name: 'Cartographer\'s Tools' },
+                                    { id: 'cobblers_tools', name: 'Cobbler\'s Tools' },
+                                    { id: 'cooks_utensils', name: 'Cook\'s Utensils' },
+                                    { id: 'glassblowers_tools', name: 'Glassblower\'s Tools' },
+                                    { id: 'jewelers_tools', name: 'Jeweler\'s Tools' },
+                                    { id: 'leatherworkers_tools', name: 'Leatherworker\'s Tools' },
+                                    { id: 'masons_tools', name: 'Mason\'s Tools' },
+                                    { id: 'painters_supplies', name: 'Painter\'s Supplies' },
+                                    { id: 'potters_tools', name: 'Potter\'s Tools' },
+                                    { id: 'smiths_tools', name: 'Smith\'s Tools' },
+                                    { id: 'tinkers_tools', name: 'Tinker\'s Tools' },
+                                    { id: 'weavers_tools', name: 'Weaver\'s Tools' },
+                                    { id: 'woodcarvers_tools', name: 'Woodcarver\'s Tools' },
+                                    { id: 'disguise_kit', name: 'Disguise Kit' },
+                                    { id: 'forgery_kit', name: 'Forgery Kit' },
+                                    { id: 'herbalism_kit', name: 'Herbalism Kit' },
+                                    { id: 'navigators_tools', name: 'Navigator\'s Tools' },
+                                    { id: 'poisoners_kit', name: 'Poisoner\'s Kit' },
+                                    { id: 'thieves_tools', name: 'Thieves\' Tools' },
+                                ]).map((tool) => {
+                                    const isSelected = racialToolChoices.includes(tool.id);
+                                    return (
+                                        <button
+                                            key={tool.id}
+                                            type="button"
+                                            onClick={() => onRacialToolChoiceToggle?.(tool.id, 1)}
+                                            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-slate-600/80 text-white border-slate-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-slate-500 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {tool.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Astral Elf / High Elf / High Half-Elf Cantrip (required choice) */}
+                    {(race.id === 'astral_elf' || race.id === 'high_elf' || race.id === 'half_elf_high') && (
+                        <div className="mt-4 bg-sky-900/10 border border-sky-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-sky-700/40">
+                                <h4 className="text-sm font-semibold text-sky-300">Racial Cantrip - Choose One</h4>
+                                <p className="text-xs text-gray-400 mt-1">
+                                    {race.id === 'astral_elf' 
+                                        ? 'Pick one: Dancing Lights, Light, or Sacred Flame.' 
+                                        : 'Pick one cantrip from the Wizard spell list.'}
+                                </p>
+                            </div>
+                            <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                {(race.id === 'astral_elf' 
+                                    ? [
+                                        { id: 'dancing-lights', name: 'Dancing Lights' },
+                                        { id: 'light', name: 'Light' },
+                                        { id: 'sacred-flame', name: 'Sacred Flame' },
+                                      ]
+                                    : [
+                                        { id: 'acid-splash', name: 'Acid Splash' },
+                                        { id: 'blade-ward', name: 'Blade Ward' },
+                                        { id: 'chill-touch', name: 'Chill Touch' },
+                                        { id: 'dancing-lights', name: 'Dancing Lights' },
+                                        { id: 'fire-bolt', name: 'Fire Bolt' },
+                                        { id: 'friends', name: 'Friends' },
+                                        { id: 'light', name: 'Light' },
+                                        { id: 'mage-hand', name: 'Mage Hand' },
+                                        { id: 'mending', name: 'Mending' },
+                                        { id: 'message', name: 'Message' },
+                                        { id: 'minor-illusion', name: 'Minor Illusion' },
+                                        { id: 'poison-spray', name: 'Poison Spray' },
+                                        { id: 'prestidigitation', name: 'Prestidigitation' },
+                                        { id: 'ray-of-frost', name: 'Ray of Frost' },
+                                        { id: 'shocking-grasp', name: 'Shocking Grasp' },
+                                        { id: 'true-strike', name: 'True Strike' },
+                                      ]
+                                ).map((spell) => {
+                                    const isSelected = racialCantripChoices.includes(spell.id);
+                                    return (
+                                        <button
+                                            key={spell.id}
+                                            type="button"
+                                            onClick={() => onRacialCantripChoiceToggle?.(spell.id, 1)}
+                                            className={`px-2 py-1.5 rounded-lg text-xs font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-sky-600/80 text-white border-sky-400 shadow-lg'
+                                                    : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-sky-500 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {spell.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Lizardfolk Nature's Intuition (required choice) */}
+                    {race.id === 'lizardfolk' && (
+                        <div className="mt-4 bg-emerald-900/10 border border-emerald-700/40 rounded-lg overflow-hidden">
+                            <div className="p-3 border-b border-emerald-700/40">
+                                <h4 className="text-sm font-semibold text-emerald-300">Nature's Intuition - Choose Two Skills</h4>
+                                <p className="text-xs text-gray-400 mt-1">Pick two: Animal Handling, Medicine, Nature, Perception, Stealth, or Survival.</p>
+                            </div>
+                            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {(['animal_handling', 'medicine', 'nature', 'perception', 'stealth', 'survival'] as const).map((skillId) => {
+                                    const skill = SKILLS_DATA[skillId];
+                                    const isSelected = racialSkillChoices.includes(skillId);
+                                    const isMaxed = racialSkillChoices.length >= 2;
+                                    const isDisabled = !isSelected && isMaxed;
+                                    return (
+                                        <button
+                                            key={skillId}
+                                            type="button"
+                                            onClick={() => onRacialSkillChoiceToggle?.(skillId, 2)}
+                                            disabled={isDisabled}
+                                            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all border-2 ${
+                                                isSelected
+                                                    ? 'bg-emerald-600/80 text-white border-emerald-400 shadow-lg'
+                                                    : isDisabled
+                                                        ? 'bg-gray-900/40 text-gray-600 border-gray-900 cursor-not-allowed'
+                                                        : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-emerald-600 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {skill?.name ?? skillId}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="px-3 pb-3 text-xs text-gray-400">
+                                Selected: {racialSkillChoices.length} / 2
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Variant Comparison Table */}
                 </div>
 
 

@@ -1,6 +1,7 @@
 /**
  * Lightweight toast system that replaces browser alerts and provides
  * non-blocking feedback to the player.
+ * @component-owner UI Team / Core UI
  */
 import React, { useEffect, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';

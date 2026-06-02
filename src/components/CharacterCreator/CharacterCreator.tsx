@@ -323,6 +323,16 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       // We apply it to the specific raceId that was selected.
       dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId, patch: { skillIds: choices.genericSkillChoices } } });
     }
+
+    if (choices?.genericToolChoices) {
+      // Handle the generic tool choices for Autognome, Dwarves, Warforged, etc.
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId, patch: { toolIds: choices.genericToolChoices } } });
+    }
+
+    if (choices?.genericCantripChoices) {
+      // Handle the generic cantrip choices for Astral Elf, High Elf, High Half-Elf, etc.
+      dispatch({ type: 'SET_RACIAL_SELECTION', payload: { raceId, patch: { selectedSpellIds: choices.genericCantripChoices } } });
+    }
   }, [dispatch]);
 
   const handleClassSelect = useCallback((classId: string) => dispatch({ type: 'SELECT_CLASS', payload: CLASSES_DATA[classId] }), [dispatch]);

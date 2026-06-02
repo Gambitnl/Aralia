@@ -1,6 +1,7 @@
 /**
  * @file ResizeHandles.tsx
  * Generic resize handle buttons for any resizable window.
+ * @component-owner UI Team / Core UI
  */
 import React from 'react';
 import { Z_INDEX } from '../../styles/zIndex';

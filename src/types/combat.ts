@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 31/05/2026, 22:16:32
- * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/CharacterActor.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/visibility/VisibilitySystem.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
+ * Last Sync: 01/06/2026, 18:57:08
+ * Dependents: commands/base/BaseEffectCommand.ts, commands/base/CommandExecutor.ts, commands/base/SpellCommand.ts, commands/effects/AttackRollModifierCommand.ts, commands/effects/ConcentrationCommands.ts, commands/effects/DamageCommand.ts, commands/effects/DefensiveCommand.ts, commands/effects/EnhanceAbilityCommand.ts, commands/effects/FamiliarPocketCommands.ts, commands/effects/FamiliarSharedSensesCommand.ts, commands/effects/HealingCommand.ts, commands/effects/MovementCommand.ts, commands/effects/NarrativeCommand.ts, commands/effects/ReactiveEffectCommand.ts, commands/effects/RegisterRiderCommand.ts, commands/effects/StatusConditionCommand.ts, commands/effects/SummoningCommand.ts, commands/effects/TerrainCommand.ts, commands/effects/UtilityCommand.ts, commands/factory/AbilityCommandFactory.ts, commands/factory/AbilityEffectMapper.ts, commands/factory/SpellCommandFactory.ts, components/BattleMap/AbilityButton.tsx, components/BattleMap/AbilityPalette.tsx, components/BattleMap/ActionEconomyBar.tsx, components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/BattleMapTile.tsx, components/BattleMap/CharacterToken.tsx, components/BattleMap/CombatCharacterInspector.tsx, components/BattleMap/CombatLog.tsx, components/BattleMap/DamageNumberOverlay.tsx, components/BattleMap/InitiativeTracker.tsx, components/BattleMap/PartyDisplay.tsx, components/BattleMap/camera/CameraController.tsx, components/BattleMap/characters/CharacterActor.tsx, components/BattleMap/terrain/DecorationProps.tsx, components/BattleMap/terrain/EzTreeLayer.tsx, components/BattleMap/terrain/GrassLayer.tsx, components/BattleMap/terrain/GridOverlay.tsx, components/BattleMap/terrain/GroundScatter.tsx, components/BattleMap/terrain/TerrainMesh.tsx, components/BattleMap/terrain/WaterSystem.tsx, components/BattleMap/vfx/LivingWorld.tsx, components/BattleMap/vfx/VFXSystem.tsx, components/BattleMap/visibilityObserverPolicy.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, components/Submap/useQuickTravel.ts, components/demo/CombatMessagingDemo.tsx, data/adapters/5eTools/actionsAdapter.ts, data/adapters/5eTools/index.ts, data/adapters/5eTools/legendaryAdapter.ts, data/adapters/5eTools/reactionsAdapter.ts, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellEffectMapper.ts, data/adapters/5eTools/spellcastingAdapter.ts, data/religion/blessings.ts, hooks/actionUtils.ts, hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionEconomy.ts, hooks/combat/useActionExecutor.ts, hooks/combat/useCombatAI.ts, hooks/combat/useCombatLog.ts, hooks/combat/useCombatOutcome.ts, hooks/combat/useCombatValidation.ts, hooks/combat/useCombatVisuals.ts, hooks/combat/useGridMovement.ts, hooks/combat/useSummons.ts, hooks/combat/useTargetSelection.ts, hooks/combat/useTargetValidator.ts, hooks/combat/useTargeting.ts, hooks/combat/useTurnManager.ts, hooks/combat/useTurnOrder.ts, hooks/combat/useVisibility.ts, hooks/movementUtils.ts, hooks/perTargetChoiceUtils.ts, hooks/teleportUtils.ts, hooks/useAbilitySystem.ts, hooks/useBattleMap.ts, hooks/useBattleMapGeneration.ts, services/battleMapGenerator.ts, systems/combat/AttackRiderSystem.ts, systems/combat/MovementEventEmitter.ts, systems/combat/SavePenaltySystem.ts, systems/combat/SustainActionSystem.ts, systems/combat/reactions/OpportunityAttackSystem.ts, systems/environment/EnvironmentSystem.ts, systems/environment/hazards.ts, systems/events/CombatEvents.ts, systems/logic/ConditionEvaluator.ts, systems/planar/ShadowfellMechanics.ts, systems/puzzles/puzzleSystem.ts, systems/religion/CombatReligionAdapter.ts, systems/rituals/RitualManager.ts, systems/spells/ai/AISpellArbitrator.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/triggerHandler.ts, systems/spells/mechanics/ConcentrationTracker.ts, systems/spells/targeting/TargetAllocator.ts, systems/spells/targeting/TargetValidationUtils.ts, systems/visibility/VisibilitySystem.ts, types/index.ts, types/infernal.ts, utils/character/checkUtils.ts, utils/character/concentrationUtils.ts, utils/character/savingThrowUtils.ts, utils/character/spellAbilityFactory.ts, utils/combat/actionEconomyUtils.ts, utils/combat/aoeCalculations.ts, utils/combat/combatAI.ts, utils/combat/combatLogToMessageAdapter.ts, utils/combat/combatUtils.ts, utils/combat/createEnemyFromMonster.ts, utils/combat/deathSaveUtils.ts, utils/combat/movementUtils.ts, utils/combat/physicsUtils.ts, utils/core/factories.ts, utils/planar/planarTargeting.ts, utils/sandbox/quickCharacterGenerator.ts, utils/spatial/geometry.ts, utils/spatial/lineOfSight.ts, utils/spatial/pathfinding.ts, utils/spatial/targetingUtils.ts, utils/world/religionUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -50,6 +50,11 @@ export interface TargetConditionFilter {
 /**
  * Represents a status effect applied to a character.
  */
+export interface RepeatSaveProgressState {
+  successes: number;
+  failures: number;
+}
+
 export interface StatusEffect {
   id: string;
   name: ConditionName | string;
@@ -68,6 +73,8 @@ export interface StatusEffect {
    * spell payload.
    */
   repeatSave?: RepeatSave;
+  /** Runtime counters for repeat-save progressions such as Flesh to Stone's three successes / three failures. */
+  repeatSaveProgress?: RepeatSaveProgressState;
   escapeCheck?: EscapeCheck;
   breakTriggers?: ConditionBreakTrigger[];
   // Simple effect structure (for spellAbilityFactory compatibility)
@@ -111,7 +118,14 @@ export interface ActiveEffect {
    * Can be used to modify AC, saving throws, etc.
    */
   mechanics?: {
+    /** Flat AC bonus preserved from structured defensive spell data such as Shield of Faith. */
     acBonus?: number;
+    /** Base AC value used by Mage Armor-style effects before adding the relevant ability modifier. */
+    baseAC?: number;
+    /** Human-readable formula kept so later recalculation/UI can explain how the base AC was derived. */
+    baseACFormula?: string;
+    /** Minimum AC floor used by Barkskin-style effects. */
+    acMinimum?: number;
     savingThrowBonus?: number;
     damageResistance?: DamageType[];
     damageImmunity?: DamageType[];
@@ -159,6 +173,16 @@ export interface ActiveEffect {
     savingThrowValue?: number;
     savingThrowDice?: string;
     savingThrowAbility?: "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
+    /**
+     * Find Familiar-style observer handoff. The active effect marks that the
+     * caster is currently using a familiar's senses, while the actual 2D/3D
+     * visibility and camera consumers can decide how to present that observer
+     * change without re-parsing summon metadata.
+     */
+    familiarSharedSenses?: boolean;
+    observerCharacterId?: string;
+    telepathyRange?: number;
+    sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
   };
 }
 
@@ -221,6 +245,13 @@ export interface CombatCharacter {
   team: 'player' | 'enemy';
   currentHP: number;
   maxHP: number;
+  /** Optional death saving throw tracking for downed player characters (at 0 HP). */
+  deathSaves?: {
+    successes: number;
+    failures: number;
+    isStable?: boolean;
+  };
+  savePenaltyRiders?: SavePenaltyRider[];
   /** Optional: tracks remaining/total Hit Point Dice for rest-like mechanics. */
   hitPointDice?: HitPointDicePool[];
   initiative: number;
@@ -250,6 +281,12 @@ export interface CombatCharacter {
   summonMetadata?: {
     casterId: string;
     spellId: string;
+    entityType?: string;
+    formName?: string;
+    sourceName?: string;
+    telepathyRange?: number;
+    sharedSenses?: boolean;
+    sharedSensesCost?: 'action' | 'bonus_action' | 'free' | 'none';
     durationRemaining?: number;
     dismissable: boolean;
   };
@@ -331,12 +368,15 @@ export interface AreaOfEffect {
 }
 
 export interface AbilityEffect {
-  type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport';
+  type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport' | 'familiar_pocket' | 'familiar_shared_senses';
   value?: number;
   dice?: string; // Dice formula (e.g. "1d8+2") to be rolled at execution time
   damageType?: 'physical' | 'bludgeoning' | 'piercing' | 'slashing' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
   statusEffect?: StatusEffect;
   duration?: number;
+  familiarPocketAction?: 'dismiss' | 'recall';
+  familiarId?: string;
+  sharedSensesAction?: 'activate';
 }
 
 export interface Ability {
@@ -556,9 +596,19 @@ export interface BattleMapData {
   seed: number;
 }
 
+export interface PocketedSummon {
+  summon: CombatCharacter;
+  casterId: string;
+  spellId: string;
+  dismissedTurn: number;
+  lastKnownPosition: Position;
+  reason: 'familiar_pocket' | 'manual_dismissal';
+}
+
 export interface CombatState {
   isActive: boolean;
   characters: CombatCharacter[];
+  pocketedSummons?: PocketedSummon[];
   turnState: TurnState;
   selectedCharacterId: string | null;
   selectedAbilityId: string | null;
@@ -640,6 +690,30 @@ export interface DamageNumber {
   type: 'damage' | 'heal' | 'miss';
   startTime: number;
   duration: number;
+}
+
+export interface SpellMovementVisual {
+  id: string;
+  spellId: string;
+  targetId: string;
+  type: 'teleport' | 'forced_movement';
+  from: Position;
+  to: Position;
+  path?: Position[];
+  createdAt: number;
+}
+
+export interface SpellDeliveryVisual {
+  id: string;
+  spellId: string;
+  spellName: string;
+  casterId: string;
+  familiarId: string;
+  targetId: string;
+  from: Position;
+  to: Position;
+  label: string;
+  createdAt: number;
 }
 
 export interface CombatLogData {

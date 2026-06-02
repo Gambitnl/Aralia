@@ -210,7 +210,7 @@ duplicate project.
 | types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
 | Layout | partial | medium | `src/components/layout` | GAPS.md present | implemented | define application shell boundaries |
 | Providers | partial | medium | `src/components/providers` | GAPS.md present | implemented | specify provider dependency graph |
-| UI primitives | partial | high | `src/components/ui` | GAPS.md present | implemented | align component ownership + design tokens |
+| UI primitives | active | high | [NORTH_STAR.md](file:///F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) | GAPS.md (G1-G4) updated | implemented | build visual previews for all stubs |
 
 ## Feature Domains and Runtime Support (`src/features`, `src/commands`, `src/workers`, `src/services`)
 
@@ -303,7 +303,7 @@ duplicate project.
 | types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
 | Layout | partial | medium | `src/components/layout` | GAPS.md present | implemented | define application shell boundaries |
 | Providers | partial | medium | `src/components/providers` | GAPS.md present | implemented | specify provider dependency graph |
-| UI primitives | partial | high | `src/components/ui` | GAPS.md present | implemented | align component ownership + design tokens |
+| UI primitives | active | high | [NORTH_STAR.md](file:///F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) | GAPS.md (G1-G4) updated | implemented | build visual previews for all stubs |
 
 ## Feature Domains and Runtime Support (`src/features`, `src/commands`, `src/workers`, `src/services`)
 

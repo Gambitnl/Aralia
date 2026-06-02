@@ -3,10 +3,10 @@
 Last updated: 2026-05-31
 
 Purpose and scope
-This project is the single source for race-mechanics runtime behavior in the character stack: parser extraction, state materialization, combat math integration, and user-facing sheet visibility for race traits.
+This project is the single source for race-mechanics runtime behavior in the character stack: parser extraction, state materialization, combat math integration, user-facing sheet visibility for race traits, and glossary entry alignment with 2024 standards.
 
 Scope boundary:
-- In scope: race trait parsing and materialization across racial spells, usages, defenses, modifiers, reactions, race resources, and race choices.
+- In scope: race trait parsing and materialization across racial spells, usages, defenses, modifiers, reactions, race resources, and race choices; alignment of race glossary entries with 2024 rule text.
 - Out of scope unless re-accepted: broad UI redesigns, race-grouping redesign, and full spell-list authoring system changes.
 
 Single-project position
@@ -71,9 +71,22 @@ Gaps and uncertainties
 - A true race-hierarchy migration path is intentionally deferred; blueprint remains non-live.
 - Exact parser schema for non-concrete class spell list choices is still a separate domain task.
 
+Verification standards
+- All racial traits must be empiricaly verified via `scripts/audits/trait_analyzer.ts`.
+- Character sheet display must show correctly materialized buckets (defenses, modifiers, etc.).
+- Glossary alignment: Each race must have a corresponding glossary entry in `public/data/glossary/entries/races/` that lists the 2024 version of its racial traits. 2014 text should be purged from glossary entries to ensure player-facing consistency.
+
 Next checks
 - Re-run:
   - `scripts/audits/racialSpellParserAudit.ts`
   - `scripts/audits/trait_analyzer.ts`
 - Validate that tracker entries and `GAPS.md` match evidence before any parser or combat-path changes.
 - If RM-013 or RM-014 become required, promote them out of adjacent-deferred and include acceptance checks in tracker.
+
+
+## Cold-Start Handover Protocol
+Every agent closing a session must:
+- Read `TRACKER.md` and `GAPS.md` first.
+- Close one high-value gap end-to-end (Data + Logic + UI + Tests).
+- Discover and register 2 additional unrelated gaps.
+- Generate a handover prompt for the successor following this same protocol.

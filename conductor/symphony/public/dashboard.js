@@ -931,6 +931,7 @@ async function refreshTaskIntake(options = {}) {
     // task or replace a button while the operator is aiming at it. Manual
     // actions still refresh this section because those clicks are explicit
     // workflow decisions.
+    await refreshTaskIntakeStatusBoardOnly();
     return;
   }
 
@@ -944,7 +945,48 @@ async function refreshTaskIntake(options = {}) {
     ? await fetchJson('/api/v1/task-drafts')
     : snapshot;
 
-  renderTaskIntake(finalSnapshot);
+  renderTaskIntakePreservingView(finalSnapshot);
+}
+
+async function refreshTaskIntakeStatusBoardOnly() {
+  const existingBoard = taskIntakeRoot?.querySelector?.('[data-handoff-status-board]');
+  if (!existingBoard) return;
+
+  try {
+    const openLanes = captureOpenHandoffStatusLanes(existingBoard);
+    const snapshot = await fetchJson('/api/v1/task-drafts');
+    const handoffs = Array.isArray(snapshot.handoffs) ? snapshot.handoffs : [];
+    const nextBoardHtml = renderHandoffStatusBoard(handoffs);
+    if (!nextBoardHtml || existingBoard.outerHTML === nextBoardHtml) return;
+
+    // This is the first isolated dashboard refresh path: when the task intake is
+    // being used, keep forms, open panels, and click targets stable while still
+    // letting the high-level status board update from the API snapshot.
+    existingBoard.outerHTML = nextBoardHtml;
+    restoreOpenHandoffStatusLanes(openLanes);
+  } catch {
+    // Keep the currently visible board. A failed background fetch should not
+    // remove status context or force a full task-intake repaint.
+  }
+}
+
+function captureOpenHandoffStatusLanes(board) {
+  return new Set(
+    Array.from(board.querySelectorAll('[data-handoff-status-lane][open]'))
+      .map(lane => lane.getAttribute('data-handoff-status-lane'))
+      .filter(Boolean),
+  );
+}
+
+function restoreOpenHandoffStatusLanes(openLanes) {
+  if (!openLanes?.size) return;
+  const board = taskIntakeRoot?.querySelector?.('[data-handoff-status-board]');
+  if (!board) return;
+
+  for (const laneName of openLanes) {
+    const lane = board.querySelector(`[data-handoff-status-lane="${escapeCssAttribute(laneName)}"]`);
+    if (lane) lane.open = true;
+  }
 }
 
 function holdTaskIntakeAutoRefresh() {
@@ -994,7 +1036,7 @@ async function createTaskDraft(form) {
     };
     const snapshot = await postJson('/api/v1/task-drafts', payload);
     form.reset();
-    renderTaskIntake(snapshot);
+    renderTaskIntakePreservingView(snapshot);
     setStatus('Saved task draft locally.');
   } catch (err) {
     setStatus(`Task draft failed: ${err.message}`);
@@ -1012,7 +1054,7 @@ async function createPackagePacketDraft(button, packetDraft) {
 
   try {
     const snapshot = await postJson('/api/v1/task-drafts', packetDraft.draft);
-    renderTaskIntake(snapshot);
+    renderTaskIntakePreservingView(snapshot);
     setStatus(`Created ${packetDraft.packageId} task draft from the visible packet button.`);
   } catch (err) {
     setStatus(`${packetDraft.packageId} packet draft failed: ${err.message}`);
@@ -1037,7 +1079,7 @@ async function watchObservedPullRequest(form) {
     };
     const snapshot = await postJson('/api/v1/observed-prs', payload);
     form.reset();
-    renderTaskIntake(snapshot);
+    renderTaskIntakePreservingView(snapshot);
     setStatus('Watching existing PR without changing GitHub, Jules, or local Git.');
   } catch (err) {
     setStatus(`Observed PR watch failed: ${err.message}`);
@@ -1061,7 +1103,7 @@ async function recordGitDisposition(button) {
 
   try {
     const snapshot = await postJson('/api/v1/git-disposition', { category, decision, note });
-    renderTaskIntake(snapshot);
+    renderTaskIntakePreservingView(snapshot);
     setStatus('Recorded Git disposition intent. Git state was not changed.');
   } catch (err) {
     setStatus(`Git disposition was not recorded: ${err.message}`);
@@ -1095,7 +1137,7 @@ async function recordTaskNudge(button) {
       pauseSeconds,
       note: button.getAttribute('data-nudge-note') || '',
     });
-    renderTaskIntake(snapshot);
+    renderTaskIntakePreservingView(snapshot);
     setStatus('Recorded task nudge evidence. No worker or external system was changed.');
   } catch (err) {
     setStatus(`Task nudge was not recorded: ${err.message}`);
@@ -1134,7 +1176,7 @@ async function recordTaskMessage(button) {
     // resume from structured notes instead of terminal scrollback.
     const snapshot = await postJson(taskMessageUrl, { author, body });
     if (textarea) textarea.value = '';
-    renderTaskIntake(snapshot);
+    renderTaskIntakePreservingView(snapshot);
     setStatus('Recorded task message locally.');
   } catch (err) {
     setStatus(`Task message failed: ${err.message}`);
@@ -1908,6 +1950,61 @@ function renderTaskIntake(snapshot) {
   taskIntakeRoot.innerHTML = nextHtml;
 }
 
+function renderTaskIntakePreservingView(snapshot) {
+  const viewState = captureTaskIntakeViewState();
+  renderTaskIntake(snapshot);
+  restoreTaskIntakeViewState(viewState);
+}
+
+function captureTaskIntakeViewState() {
+  if (!taskIntakeRoot) return null;
+
+  // A handoff refresh is useful only if it does not make the operator lose their
+  // place. Capture the open drill-down panels and viewport before replacing the
+  // task intake HTML so routine status checks feel like isolated panel updates.
+  return {
+    scroll: captureDashboardScroll(),
+    openDetails: Array.from(taskIntakeRoot.querySelectorAll('details[open]'))
+      .map(stableDetailsSelector)
+      .filter(Boolean),
+  };
+}
+
+function restoreTaskIntakeViewState(viewState) {
+  if (!viewState || !taskIntakeRoot) return;
+
+  for (const selector of viewState.openDetails || []) {
+    const detail = taskIntakeRoot.querySelector(selector);
+    if (detail) detail.open = true;
+  }
+
+  restoreDashboardScroll(viewState.scroll);
+}
+
+function stableDetailsSelector(detail) {
+  if (!detail) return null;
+  if (detail.id) return `#${escapeCssIdentifier(detail.id)}`;
+
+  for (const attribute of ['data-task-detail-preview', 'data-foreman-group', 'data-handoff-status-lane']) {
+    const value = detail.getAttribute(attribute);
+    if (value) return `details[${attribute}="${escapeCssAttribute(value)}"]`;
+  }
+
+  return null;
+}
+
+function escapeCssIdentifier(value) {
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return CSS.escape(String(value));
+  }
+
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+}
+
+function escapeCssAttribute(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 function renderPackagePacketDraftButtons() {
   // The shortcut list comes from the packet registry near the top of this file
   // so adding the next package no longer requires editing the HTML template and
@@ -2483,6 +2580,7 @@ function renderHandoffStatusBoard(handoffs = []) {
   const activeHandoffs = Array.isArray(handoffs) ? handoffs : [];
   if (!activeHandoffs.length) return '';
 
+  const laneSummary = renderHandoffStatusLaneSummary(activeHandoffs);
   const rows = activeHandoffs.slice(0, 8).map(handoff => {
     const session = describeHandoffSession(handoff);
     const pr = describeHandoffPullRequest(handoff);
@@ -2490,8 +2588,10 @@ function renderHandoffStatusBoard(handoffs = []) {
     const risk = describeHandoffRisk(handoff);
     const scoutCore = describeHandoffScoutCore(handoff);
     const localSync = describeHandoffLocalSync(handoff);
+    const glance = deriveHandoffAtAGlance(handoff, { session, pr, checks, risk, scoutCore, localSync });
+    const freshness = describeHandoffFreshness(handoff, glance);
     const next = handoff.next_action || handoff.githubPullRequestNextAction || handoff.localSyncStatus?.nextAction || null;
-    const tone = boardToneForHandoff(handoff, checks, risk, localSync);
+    const tone = glance.tone || boardToneForHandoff(handoff, checks, risk, localSync);
 
     // This row is the scan-friendly counterpart to the detailed handoff card.
     // It keeps the Jules session, GitHub PR, Scout/Core review, local sync, and
@@ -2502,7 +2602,11 @@ function renderHandoffStatusBoard(handoffs = []) {
         <span class="badge ${tone === 'blocked' ? 'approval' : tone === 'ready' ? 'running' : 'retrying'}">${escapeHtml(tone)}</span>
         <strong>${escapeHtml(handoff.title || handoff.id || 'Untitled handoff')}</strong>
       </div>
+      <p><strong>${escapeHtml(glance.boundaryLabel)}:</strong> ${escapeHtml(glance.summary)}</p>
       <div class="handoff-status-grid">
+        ${statusBoardFact('Boundary', glance.boundary)}
+        ${statusBoardFact('Owner', glance.owner)}
+        ${statusBoardFact('Freshness', freshness.label)}
         ${statusBoardFact('Session', session.label, session.href)}
         ${statusBoardFact('PR', pr.label, pr.href)}
         ${statusBoardFact('Checks', checks.label)}
@@ -2522,15 +2626,71 @@ function renderHandoffStatusBoard(handoffs = []) {
   // The board deliberately summarizes existing handoff facts instead of
   // creating another lifecycle source of truth. The detailed cards remain the
   // editing and command surface; this panel is the dashboard-first overview.
-  return `<div class="handoff-status-board">
+  return `<div class="handoff-status-board" data-handoff-status-board>
     <div>
       <span class="badge running">handoffs</span>
       <strong>Jules handoff status board</strong>
       <small>Session, PR, Scout/Core, and local-sync state for active delegations.</small>
     </div>
+    ${laneSummary}
     <ol>${rows}</ol>
     ${more}
   </div>`;
+}
+
+function renderHandoffStatusLaneSummary(handoffs = []) {
+  const lanes = new Map([
+    ['operator', { label: 'Operator', count: 0, tasks: [] }],
+    ['jules', { label: 'Jules', count: 0, tasks: [] }],
+    ['github', { label: 'GitHub', count: 0, tasks: [] }],
+    ['local_sync', { label: 'Local sync', count: 0, tasks: [] }],
+    ['ready', { label: 'Ready/current', count: 0, tasks: [] }],
+    ['prepared', { label: 'Prepared', count: 0, tasks: [] }],
+  ]);
+
+  for (const handoff of handoffs) {
+    const glance = deriveHandoffAtAGlance(handoff);
+    const lane = laneForHandoffBoundary(glance.boundary);
+    const entry = lanes.get(lane) || lanes.get('prepared');
+    entry.count += 1;
+    entry.tasks.push({
+      id: handoff.id || handoff.title || 'handoff',
+      title: handoff.title || handoff.id || 'Untitled handoff',
+      summary: glance.summary,
+      boundary: glance.boundary,
+    });
+  }
+
+  // Lane counts are the "all tasks at a glance" layer. They are derived from
+  // the same handoff facts as the rows below, so a user can scan workload
+  // ownership without opening every task card or reading raw receipts.
+  return `<div class="handoff-status-lanes">
+    ${Array.from(lanes.values()).map(lane => {
+      const taskList = lane.tasks.length
+        ? `<ol>${lane.tasks.map(task => `<li>
+            <a href="#task-handoff-${escapeAttribute(task.id)}">${escapeHtml(task.title)}</a>
+            <small>${escapeHtml(task.boundary)}: ${escapeHtml(task.summary)}</small>
+          </li>`).join('')}</ol>`
+        : '<p>No tasks in this lane.</p>';
+
+      return `<details data-handoff-status-lane="${escapeAttribute(lane.label)}" ${lane.count ? '' : 'class="empty"'}>
+        <summary>
+          <span>${escapeHtml(lane.label)}</span>
+          <strong>${escapeHtml(String(lane.count))}</strong>
+        </summary>
+        ${taskList}
+      </details>`;
+    }).join('')}
+  </div>`;
+}
+
+function laneForHandoffBoundary(boundary) {
+  if (boundary === 'approve_plan' || boundary === 'user_feedback') return 'operator';
+  if (boundary === 'jules_working' || boundary === 'publish_proof_missing') return 'jules';
+  if (boundary === 'github_checks') return 'github';
+  if (boundary === 'merged_remote') return 'local_sync';
+  if (boundary === 'local_current') return 'ready';
+  return 'prepared';
 }
 
 function statusBoardFact(label, value, href = null) {
@@ -2601,16 +2761,177 @@ function describeHandoffLocalSync(handoff) {
   return { label: status.status || (status.safeToPull ? 'sync_local_master' : status.upToDate ? 'current' : 'blocked') };
 }
 
+function describeHandoffFreshness(handoff, glance = {}) {
+  const boundary = glance.boundary || '';
+  if (boundary === 'local_current' || boundary === 'merged_remote') {
+    const checkedAt = handoff.localSyncStatus?.checkedAt || handoff.lastLocalSyncAt;
+    return {
+      source: 'local_sync',
+      label: checkedAt ? `Local sync fetched ${formatTimestamp(checkedAt)}` : 'Local sync not checked',
+    };
+  }
+
+  if (boundary === 'github_checks') {
+    return {
+      source: 'github',
+      label: handoff.lastPullRequestRefreshAt ? `GitHub fetched ${formatTimestamp(handoff.lastPullRequestRefreshAt)}` : 'GitHub not refreshed',
+    };
+  }
+
+  if (boundary === 'approve_plan' || boundary === 'user_feedback' || boundary === 'jules_working' || boundary === 'publish_proof_missing') {
+    return {
+      source: 'jules',
+      label: handoff.lastStatusRefreshAt ? `Jules fetched ${formatTimestamp(handoff.lastStatusRefreshAt)}` : 'Jules not refreshed',
+    };
+  }
+
+  return {
+    source: 'symphony',
+    label: handoff.updatedAt ? `Symphony updated ${formatTimestamp(handoff.updatedAt)}` : 'Symphony local state',
+  };
+}
+
 function boardToneForHandoff(handoff, checks, risk, localSync) {
   const blockedStates = new Set(['launch_failed', 'status_refresh_failed', 'base_commit_stale', 'blocked_by_git_sync']);
   if (blockedStates.has(handoff.status)) return 'blocked';
   if (handoff.julesState === 'AWAITING_PLAN_APPROVAL' || handoff.julesState === 'AWAITING_USER_FEEDBACK') return 'blocked';
   if (handoff.githubPullRequestMergeable === 'CONFLICTING') return 'blocked';
+
+  // A merged PR has crossed the GitHub decision boundary. If an old broad check
+  // was red but the PR is already merged, the dashboard should move the operator
+  // to deployment/local-sync proof instead of making the package look broken.
+  if (handoff.githubPullRequestState === 'MERGED') {
+    if (/blocked/i.test(localSync.label)) return 'blocked';
+    if (handoff.localSyncStatus?.upToDate || handoff.lastLocalSyncAt) return 'ready';
+    return 'waiting';
+  }
+
   if (/failing|failure|blocked/i.test(checks.label)) return 'blocked';
   if (/high/i.test(risk.label)) return 'blocked';
   if (/blocked/i.test(localSync.label)) return 'blocked';
   if (handoff.localSyncStatus?.upToDate || handoff.lastLocalSyncAt) return 'ready';
   return 'waiting';
+}
+
+function deriveHandoffAtAGlance(handoff, facts = {}) {
+  const checks = facts.checks || describeHandoffChecks(handoff);
+  const localSync = facts.localSync || describeHandoffLocalSync(handoff);
+  const pr = facts.pr || describeHandoffPullRequest(handoff);
+  const state = String(handoff.julesState || '').toUpperCase();
+  const blockedStates = new Set(['launch_failed', 'status_refresh_failed', 'base_commit_stale', 'blocked_by_git_sync']);
+
+  // This packet is deliberately derived from existing API/fetch facts. It is
+  // not another manual status ledger; it translates raw Jules/GitHub/local-sync
+  // fields into the single sentence the dashboard should show first.
+  if (blockedStates.has(handoff.status)) {
+    return {
+      boundary: 'blocked',
+      boundaryLabel: 'Blocked',
+      owner: 'Symphony',
+      tone: 'blocked',
+      summary: 'Symphony cannot safely advance this handoff until the recorded blocker is resolved.',
+      nextAction: 'Resolve the blocker, then refresh the handoff.',
+    };
+  }
+
+  if (handoff.julesState === 'AWAITING_PLAN_APPROVAL') {
+    return {
+      boundary: 'approve_plan',
+      boundaryLabel: 'Approve plan',
+      owner: 'Operator',
+      tone: 'blocked',
+      summary: 'Jules has a plan waiting for human approval.',
+      nextAction: 'Review and approve or respond to the Jules plan.',
+    };
+  }
+
+  if (handoff.julesState === 'AWAITING_USER_FEEDBACK') {
+    return {
+      boundary: 'user_feedback',
+      boundaryLabel: 'User feedback',
+      owner: 'Operator',
+      tone: 'blocked',
+      summary: 'Jules is waiting for a human answer before it can continue.',
+      nextAction: 'Send a bounded answer through the dashboard or Jules.',
+    };
+  }
+
+  if (handoff.githubPullRequestState === 'MERGED') {
+    if (handoff.localSyncStatus?.upToDate || handoff.lastLocalSyncAt) {
+      return {
+        boundary: 'local_current',
+        boundaryLabel: 'Local current',
+        owner: 'Local workspace',
+        tone: 'ready',
+        summary: 'The PR is merged and local sync proof says this workspace is current.',
+        nextAction: 'Close out the package record or choose the next package.',
+      };
+    }
+
+    return {
+      boundary: 'merged_remote',
+      boundaryLabel: 'Merged remotely',
+      owner: 'GitHub/local sync',
+      tone: /blocked/i.test(localSync.label) ? 'blocked' : 'waiting',
+      summary: 'The PR is merged on GitHub; local sync or deployment-waiver proof is the next boundary.',
+      nextAction: 'Check local sync readiness and record deployment proof or waiver when applicable.',
+    };
+  }
+
+  if (handoff.githubPullRequestUrl) {
+    return {
+      boundary: 'github_checks',
+      boundaryLabel: 'GitHub checks',
+      owner: 'GitHub',
+      tone: /failing|failure|blocked/i.test(checks.label) ? 'blocked' : 'waiting',
+      summary: `PR ${pr.label} is captured; checks read as ${checks.label}.`,
+      nextAction: 'Refresh PR state, changed files, checks, and review status.',
+    };
+  }
+
+  if (state.includes('COMPLETE')) {
+    return {
+      boundary: 'publish_proof_missing',
+      boundaryLabel: 'Publish proof missing',
+      owner: 'Jules',
+      tone: 'waiting',
+      summary: 'Jules appears complete, but Symphony has no PR URL or changed remote branch proof yet.',
+      nextAction: 'Ask for PR/branch proof or record the publish blocker.',
+    };
+  }
+
+  if (handoff.julesSessionId || handoff.julesSessionUrl || handoff.julesState) {
+    return {
+      boundary: 'jules_working',
+      boundaryLabel: 'Jules working',
+      owner: 'Jules',
+      tone: 'waiting',
+      summary: `Jules state is ${handoff.julesState || 'session created'}; Symphony is waiting for a PR, blocker, or next state.`,
+      nextAction: 'Refresh status on the measured cadence; do not manually mark complete.',
+    };
+  }
+
+  return {
+    boundary: 'prepared',
+    boundaryLabel: 'Prepared',
+    owner: 'Symphony',
+    tone: 'waiting',
+    summary: 'The handoff is prepared but no Jules session or PR proof is visible yet.',
+    nextAction: 'Stage or launch the Jules handoff when the normal gates allow it.',
+  };
+}
+
+function renderHandoffAtAGlance(handoff) {
+  const glance = deriveHandoffAtAGlance(handoff);
+  const freshness = describeHandoffFreshness(handoff, glance);
+
+  // The full card still exposes raw receipts and controls below. This compact
+  // header exists so a task page can answer "what is happening and who owns the
+  // next move?" before the operator has to scan transcripts or command blocks.
+  return `<div class="handoff-manifest">
+    <p><strong>At a glance:</strong> ${escapeHtml(glance.summary)}</p>
+    <p><strong>Boundary:</strong> <code>${escapeHtml(glance.boundary)}</code>; <strong>owner:</strong> ${escapeHtml(glance.owner)}; <strong>source:</strong> ${escapeHtml(freshness.label)}; <strong>next:</strong> ${escapeHtml(glance.nextAction)}</p>
+  </div>`;
 }
 
 function renderCrossHandoffConflictWatch(conflictWatch, handoffs = []) {
@@ -3676,6 +3997,7 @@ function handoffCard(handoff) {
   const operatorQuestionDetail = renderOperatorQuestion(handoff.operatorQuestion, handoff.id, handoff.operatorAnswers);
   const timelineDetail = renderHandoffTimeline(handoff.handoffTimeline);
   const julesStateReconciliationDetail = renderJulesStateReconciliation(handoff.julesStateReconciliation);
+  const atAGlanceDetail = renderHandoffAtAGlance(handoff);
   const repairPushReadinessDetail = renderRepairPushReadiness(handoff.repairPushReadiness);
   const repairPushResultDetail = renderRepairPushResult(handoff.repairPushResult);
   const julesDetail = handoff.julesSessionId || handoff.julesSessionUrl || handoff.githubPullRequestUrl || handoff.julesState
@@ -3734,6 +4056,7 @@ function handoffCard(handoff) {
     ${lifecycleDetail}
     ${baseDriftDetail}
     ${operatorQuestionDetail}
+    ${atAGlanceDetail}
     ${timelineDetail}
     ${julesStateReconciliationDetail}
     ${repairPushReadinessDetail}

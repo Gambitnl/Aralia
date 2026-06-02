@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 02:23:08
+ * Last Sync: 01/06/2026, 18:46:27
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 3 files
  *
@@ -48,6 +48,55 @@ const formatTileDistance = (distance: number): string => {
 // generic label for empty-ground clicks and malformed map state.
 const getTargetLabel = (targetCharacter: CombatCharacter | null): string => {
     return targetCharacter?.name ?? 'That target';
+};
+
+const isTouchSpell = (ability: Ability): boolean => {
+    return ability.type === 'spell' &&
+        ability.spell?.range?.type?.toLowerCase?.() === 'touch';
+};
+
+const isFamiliarForCaster = (character: CombatCharacter, caster: CombatCharacter): boolean => {
+    return !!character.isSummon &&
+        character.summonMetadata?.casterId === caster.id &&
+        (
+            character.summonMetadata.entityType === 'familiar' ||
+            character.summonMetadata.sourceName === 'Find Familiar'
+        );
+};
+
+export const findFamiliarTouchDelivery = (
+    ability: Ability,
+    caster: CombatCharacter,
+    targetCharacter: CombatCharacter | null,
+    characters: CombatCharacter[]
+): { familiar: CombatCharacter; casterDistance: number; targetDistance: number } | null => {
+    if (!targetCharacter || !isTouchSpell(ability)) {
+        return null;
+    }
+
+    const familiar = characters.find(candidate => {
+        if (!isFamiliarForCaster(candidate, caster)) {
+            return false;
+        }
+
+        const casterDistanceFeet = getCharacterDistance(caster, candidate) * 5;
+        const deliveryRangeFeet = candidate.summonMetadata?.telepathyRange ?? 100;
+        const targetDistanceTiles = getCharacterDistance(candidate, targetCharacter);
+        const reactionAvailable = !candidate.actionEconomy.reaction.used &&
+            candidate.actionEconomy.reaction.remaining > 0;
+
+        return casterDistanceFeet <= deliveryRangeFeet && targetDistanceTiles <= 1 && reactionAvailable;
+    });
+
+    if (!familiar) {
+        return null;
+    }
+
+    return {
+        familiar,
+        casterDistance: getCharacterDistance(caster, familiar),
+        targetDistance: getCharacterDistance(familiar, targetCharacter)
+    };
 };
 
 export function useTargetValidator({ characters, mapData }: UseTargetValidatorProps) {
@@ -96,7 +145,9 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
             ? getCharacterDistance(caster, targetCharacter)
             : getDistance(caster.position, targetPosition);
 
-        if (distance > ability.range) {
+        const familiarDelivery = findFamiliarTouchDelivery(ability, caster, targetCharacter, characters);
+
+        if (distance > ability.range && !familiarDelivery) {
             const targetLabel = getTargetLabel(targetCharacter);
             return {
                 isValid: false,
@@ -106,7 +157,8 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
 
         // 3. Line of Sight Check
         if (ability.type === 'attack' || ability.type === 'spell') {
-            const casterTiles = getOccupiedTiles(caster);
+            const lineOfSightSource = familiarDelivery?.familiar ?? caster;
+            const casterTiles = getOccupiedTiles(lineOfSightSource);
             const targetTiles = targetCharacter 
                 ? getOccupiedTiles(targetCharacter)
                 : [targetPosition];
@@ -124,9 +176,12 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
 
             if (!hasLoS) {
                 const targetLabel = getTargetLabel(targetCharacter).toLowerCase();
+                const sourceLabel = familiarDelivery?.familiar
+                    ? ` from ${familiarDelivery.familiar.name}`
+                    : '';
                 return {
                     isValid: false,
-                    reason: `No clear line of sight to ${targetLabel} for ${ability.name}.`
+                    reason: `No clear line of sight${sourceLabel} to ${targetLabel} for ${ability.name}.`
                 };
             }
         }
@@ -204,7 +259,7 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
                     reason: `${ability.name} does not have a supported targeting rule yet.`
                 };
         }
-    }, [mapData, getCharacterAtPosition]);
+    }, [characters, mapData, getCharacterAtPosition]);
 
     /**
      * Maintains the original boolean API for highlight calculations and older callers.

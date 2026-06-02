@@ -16,8 +16,15 @@ export const useCharacterProficiencies = (character: PlayerCharacter | null): Ch
       return { armor: 'None', weapons: 'None', tools: [], languages: [] };
     }
 
-    const armorProfs = character.class.armorProficiencies?.join(', ') || 'None';
-    const weaponProfs = character.class.weaponProficiencies?.join(', ') || 'None';
+    const armorProfs = Array.from(new Set([
+      ...(character.class.armorProficiencies || []),
+      ...(character.armorProficiencies || [])
+    ])).join(', ') || 'None';
+    
+    const weaponProfs = Array.from(new Set([
+      ...(character.class.weaponProficiencies || []),
+      ...(character.weaponProficiencies || [])
+    ])).join(', ') || 'None';
 
     const toolProfs = new Set<string>();
     const langProfs = new Set<string>();

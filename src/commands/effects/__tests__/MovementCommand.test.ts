@@ -115,3 +115,48 @@ describe('MovementCommand - forced movement routing', () => {
     expect(updatedTarget.position.x).toBeGreaterThan(target.position.x);
   });
 });
+
+// ----------------------------------------------------------------------------
+// Per-Target Teleport Destinations
+// ----------------------------------------------------------------------------
+// Scatter-style spells choose several creatures and then choose a different
+// landing space for each creature. The movement command needs a runtime payload
+// that can carry those assignments without pretending a single shared
+// destination applies to every target.
+// ----------------------------------------------------------------------------
+describe('MovementCommand - per-target teleport destinations', () => {
+  it('uses assigned destinations for each teleported target', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster', position: { x: 0, y: 0 } });
+    const firstTarget = createMockCombatCharacter({ id: 'first', name: 'First', position: { x: 1, y: 0 } });
+    const secondTarget = createMockCombatCharacter({ id: 'second', name: 'Second', position: { x: 2, y: 0 } });
+    const state = createMockCombatState({
+      characters: [caster, firstTarget, secondTarget],
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: 'caster', phase: 'planning', actionsThisTurn: [] }
+    });
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      distance: 20,
+      destinationsByTargetId: {
+        first: { x: 1, y: 2 },
+        second: { x: 2, y: 2 }
+      },
+      duration: { type: 'rounds', value: 0 },
+      trigger: { type: 'immediate', frequency: 'every_time', movementType: 'any' },
+      condition: { type: 'always' }
+    };
+    const context: CommandContext = {
+      spellId: 'scatter',
+      spellName: 'Scatter',
+      castAtLevel: 6,
+      caster,
+      targets: [firstTarget, secondTarget],
+      gameState: createMockGameState()
+    };
+
+    const nextState = new MovementCommand(effect, context).execute(state);
+
+    expect(nextState.characters.find(character => character.id === 'first')?.position).toEqual({ x: 1, y: 2 });
+    expect(nextState.characters.find(character => character.id === 'second')?.position).toEqual({ x: 2, y: 2 });
+  });
+});

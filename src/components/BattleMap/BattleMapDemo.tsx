@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:28:55
+ * Last Sync: 01/06/2026, 09:58:43
  * Dependents: App.tsx, components/BattleMap/index.ts
  * Imports: 19 files
  *
@@ -209,10 +209,13 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     onAbilityEffect: turnManager.addDamageNumber,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
+    activeLightSources: turnManager.activeLightSources,
+    onActiveLightSourcesUpdate: turnManager.setActiveLightSources,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
-    onAddMovementDebuff: turnManager.addMovementDebuff
+    onAddMovementDebuff: turnManager.addMovementDebuff,
+    onAddSpellMovementVisual: turnManager.addSpellMovementVisual
   });
 
   const handleToggleAuto = useCallback((characterId: string) => {

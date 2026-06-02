@@ -64,3 +64,14 @@ Allowed edit area for this task remains `docs/projects/organization/*` only.
 2. Read [TRACKER.md](/F:/Repos/Aralia/docs/projects/organization/TRACKER.md).
 3. Read [GAPS.md](/F:/Repos/Aralia/docs/projects/organization/GAPS.md).
 4. Continue with the next integration checks from the task queue.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- read the existing project gaps before choosing work
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

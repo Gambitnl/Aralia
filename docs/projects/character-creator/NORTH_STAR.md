@@ -81,3 +81,12 @@ The flow is non-destructively navigable, and the reducer intentionally supports 
 - Is `featStepSkipped` intended as a final behavior or transitional UX design?
 - Should sidebar completion visuals remain loose (free navigation + lock messaging) or move to strict sequential gating?
 - Which Character Creator docs should be treated as canonical if old historical notes conflict with current flow files?
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 07/05/2026, 00:02:41
+ * Last Sync: 01/06/2026, 13:30:01
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
  * Imports: 1 files
  *
@@ -17,9 +17,15 @@
 /**
  * @file BattleMapTile.tsx
  * A memoized component for rendering a single tile on the battle map.
+ *
+ * Each tile is the smallest visible unit of the 2D combat map. It shows the
+ * base ground, movement/targeting overlays, light visibility masks, and now
+ * tile-level environmental spell effects such as fire, web, fog, and difficult
+ * terrain. BattleMap.tsx feeds this component live tile data after commands
+ * mutate the map.
  */
 import React from 'react';
-import { BattleMapTile as BattleMapTileData, BattleMapDecoration } from '../../types/combat';
+import { BattleMapTile as BattleMapTileData, BattleMapDecoration, EnvironmentalEffect, LightLevel } from '../../types/combat';
 
 interface BattleMapTileProps {
   tile: BattleMapTileData;
@@ -27,12 +33,79 @@ interface BattleMapTileProps {
   isInPath: boolean;
   isTargetable: boolean;
   isAoePreview: boolean;
+  isTeleportDestinationPreview: boolean;
+  isVisible?: boolean;
+  lightLevel?: LightLevel;
   targetingMode: boolean;
   onTileClick: (tile: BattleMapTileData) => void;
   onTileHover?: (tile: BattleMapTileData) => void;
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, targetingMode, onTileClick, onTileHover }) => {
+// ============================================================================
+// Tile Environmental Effect Visuals
+// ============================================================================
+// This section turns map-mutated environmental effects into compact 2D markers.
+// The 3D map already reads the same tile data in VFXSystem; keeping the mapping
+// here lets the 2D grid show hazards even when no active spell-zone overlay is
+// present.
+// ============================================================================
+
+type EnvironmentalEffectVisual = {
+  label: string;
+  overlayClass: string;
+  textClass: string;
+};
+
+const ENVIRONMENTAL_EFFECT_VISUALS: Record<EnvironmentalEffect['type'], EnvironmentalEffectVisual> = {
+  fire: {
+    label: 'FIRE',
+    overlayClass: 'bg-orange-500/35',
+    textClass: 'text-orange-100 bg-orange-900/80 border-orange-300/60'
+  },
+  ice: {
+    label: 'ICE',
+    overlayClass: 'bg-cyan-300/30',
+    textClass: 'text-cyan-50 bg-cyan-900/80 border-cyan-200/60'
+  },
+  poison: {
+    label: 'POIS',
+    overlayClass: 'bg-lime-500/30',
+    textClass: 'text-lime-50 bg-lime-900/80 border-lime-200/60'
+  },
+  difficult_terrain: {
+    label: 'DIFF',
+    overlayClass: 'bg-amber-500/25',
+    textClass: 'text-amber-50 bg-amber-900/80 border-amber-200/60'
+  },
+  web: {
+    label: 'WEB',
+    overlayClass: 'bg-slate-200/30',
+    textClass: 'text-slate-50 bg-slate-800/85 border-slate-100/70'
+  },
+  fog: {
+    label: 'FOG',
+    overlayClass: 'bg-slate-300/25',
+    textClass: 'text-slate-50 bg-slate-700/85 border-slate-100/60'
+  }
+};
+
+function getEnvironmentalEffectVisual(tile: BattleMapTileData): EnvironmentalEffectVisual | null {
+  // Empty environmental-effect lists mean the tile has no spell-mutated hazard
+  // beyond its normal terrain texture.
+  if (!tile.environmentalEffects?.length) {
+    return null;
+  }
+
+  // Use the first effect as the summary marker for now. This is intentionally
+  // compact for the grid; if stacked effects become common, the next slice
+  // should add a richer stack indicator or tooltip detail instead of crowding
+  // the tile with multiple badges.
+  return ENVIRONMENTAL_EFFECT_VISUALS[tile.environmentalEffects[0].type];
+}
+
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, isTeleportDestinationPreview, isVisible = true, lightLevel = 'bright', targetingMode, onTileClick, onTileHover }) => {
+  // Terrain color is the underlying ground. Spell-mutated environmental effects
+  // are layered later so they can appear on grass, stone, water, or any biome.
   const getTerrainColor = (terrain: string) => {
     switch (terrain) {
       case 'grass': return 'bg-green-800';
@@ -63,9 +136,13 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
   const tileBaseClasses = 'w-full h-full flex items-center justify-center border border-gray-700/50';
   const terrainColor = getTerrainColor(tile.terrain);
   const decoration = getDecoration(tile.decoration);
+  const environmentalVisual = getEnvironmentalEffectVisual(tile);
+  const environmentalSummary = tile.environmentalEffects?.map(effect => effect.type).join(', ') ?? 'none';
 
   let overlayClass = '';
-  if (isAoePreview) {
+  if (isTeleportDestinationPreview) {
+      overlayClass = 'bg-sky-400/55';
+  } else if (isAoePreview) {
       overlayClass = 'bg-red-500/60';
   } else if (isTargetable) {
       overlayClass = 'bg-red-500/40';
@@ -74,8 +151,22 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
   } else if (isValidMove) {
     overlayClass = 'bg-blue-500/40';
   }
+
+  // Visibility is separate from targeting and movement overlays. Hidden tiles
+  // get the strongest mask, while dim/dark tiles remain readable but clearly
+  // communicate that tactical sight is limited.
+  const visibilityOverlayClass = !isVisible
+    ? 'bg-black/85'
+    : lightLevel === 'darkness'
+      ? 'bg-black/45'
+      : lightLevel === 'dim'
+        ? 'bg-slate-950/25'
+        : '';
   
-  const isInteractive = isValidMove || isTargetable;
+  // Teleport destination tiles are selectable even when the spell's real target
+  // is the caster. This keeps Misty Step-style destination picking distinct
+  // from normal enemy/ally targeting.
+  const isInteractive = isValidMove || isTargetable || isTeleportDestinationPreview;
 
   const handleActivate = () => {
     if (!isInteractive) return;
@@ -98,7 +189,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
       aria-disabled={!isInteractive}
       aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}`}
       style={{ cursor: targetingMode ? 'crosshair' : (isInteractive ? 'pointer' : 'default') }}
-      title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain} - Elev: ${tile.elevation}`}
+      title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain} - Elev: ${tile.elevation} - ${isVisible ? lightLevel : 'hidden'} - Effects: ${environmentalSummary}`}
     >
       {tile.elevation > 0 && (
         <div className="absolute top-0 right-1 text-xs font-bold text-gray-400/50 pointer-events-none filter drop-shadow(0 1px 1px black)">
@@ -106,6 +197,15 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
         </div>
       )}
       {decoration && <span className="text-lg pointer-events-none">{decoration}</span>}
+      {environmentalVisual && (
+        <>
+          <div className={`absolute inset-0 ${environmentalVisual.overlayClass} pointer-events-none`}></div>
+          <div className={`absolute bottom-0 left-0 rounded-tr border px-0.5 text-[8px] font-black leading-3 tracking-wide shadow-sm pointer-events-none ${environmentalVisual.textClass}`}>
+            {environmentalVisual.label}
+          </div>
+        </>
+      )}
+      {visibilityOverlayClass && <div className={`absolute inset-0 ${visibilityOverlayClass} pointer-events-none`}></div>}
       {overlayClass && <div className={`absolute inset-0 ${overlayClass} pointer-events-none`}></div>}
     </div>
   );

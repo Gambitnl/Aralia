@@ -12,6 +12,7 @@
  * and FLOATING (detached window).
  *
  * @file src/components/ui/CollapsibleBanterPanel.tsx
+ * @component-owner Narrative Team / Core UI
  */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

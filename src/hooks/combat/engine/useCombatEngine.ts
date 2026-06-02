@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:25:34
+ * Last Sync: 01/06/2026, 12:36:00
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 10 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -52,6 +52,8 @@ import { calculateSpellDC, rollSavingThrow } from '../../../utils/savingThrowUti
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
 import { getAbilityModifierValue } from '../../../utils/statUtils';
 import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
+import { findPath } from '../../../utils/spatial/pathfinding';
+import { applyDamageAndCheckDowned, applyHealingAndRestore } from '../../../utils/combat/deathSaveUtils';
 
 // Repeat-save metadata now lives on StatusEffect, but not every repeat-save
 // shape is a saving throw. Some spell data asks for ability checks such as
@@ -59,7 +61,9 @@ import { hasLineOfSight } from '../../../utils/spatial/lineOfSight';
 // forced through the saving-throw roller.
 type RepeatSaveRollAbility = Parameters<typeof rollSavingThrow>[1];
 type RepeatSaveMetadata = NonNullable<CombatCharacter['statusEffects'][number]['repeatSave']>;
+type RepeatSaveRuntimeStatus = CombatCharacter['statusEffects'][number];
 type RepeatSaveCheckAbility = 'strength_check' | 'wisdom_check';
+type RepeatSaveRuntimeTiming = 'turn_end' | 'turn_start' | 'on_damage' | 'on_action' | 'after_forced_movement';
 type CharacterStatKey = keyof CombatCharacter['stats'];
 
 const REPEAT_SAVE_ROLL_ABILITIES = new Set<string>([
@@ -88,9 +92,148 @@ const hasNoLineOfSightPrerequisite = (repeat: RepeatSaveMetadata): boolean => (
     repeat.prerequisites?.includes('no_line_of_sight_to_caster') === true
 );
 
+// Some spells, such as Tasha's Hideous Laughter, use one normal repeat-save
+// timing and then add a second timing for special events like damage. Keep the
+// match logic in one named helper so the engine does not accidentally treat
+// additional timings as schema-only metadata again.
+const repeatSaveMatchesTiming = (
+    repeat: RepeatSaveMetadata,
+    timing: RepeatSaveRuntimeTiming
+): boolean => (
+    repeat.timing === timing || repeat.additionalTimings?.includes(timing) === true
+);
+
 const getRepeatSaveDc = (repeat: RepeatSaveMetadata): number => {
     const repeatWithRuntimeDc = repeat as RepeatSaveMetadata & { dc?: unknown };
     return typeof repeatWithRuntimeDc.dc === 'number' ? repeatWithRuntimeDc.dc : 10;
+};
+
+// Flesh to Stone and Contagion do not end on a single repeat-save result. They
+// count successes and failures until a configured threshold is reached. The
+// count lives on the status effect because that is the durable runtime object
+// already carried between turns.
+const recordRepeatSaveProgress = (
+    effect: RepeatSaveRuntimeStatus,
+    success: boolean
+): RepeatSaveRuntimeStatus => {
+    const progress = effect.repeatSaveProgress ?? { successes: 0, failures: 0 };
+    const consecutiveRequired = effect.repeatSave?.progression?.consecutiveRequired === true;
+
+    return {
+        ...effect,
+        repeatSaveProgress: {
+            successes: success
+                ? progress.successes + 1
+                : consecutiveRequired ? 0 : progress.successes,
+            failures: success
+                ? consecutiveRequired ? 0 : progress.failures
+                : progress.failures + 1
+        }
+    };
+};
+
+const replaceRepeatSaveStatus = (
+    character: CombatCharacter,
+    updatedEffect: RepeatSaveRuntimeStatus
+): CombatCharacter => ({
+    ...character,
+    statusEffects: character.statusEffects.map(effect =>
+        effect.id === updatedEffect.id ? updatedEffect : effect
+    )
+});
+
+const repeatSaveProgressionReached = (
+    effect: RepeatSaveRuntimeStatus,
+    success: boolean
+): boolean => {
+    const progression = effect.repeatSave?.progression;
+    if (!progression || !effect.repeatSaveProgress) return false;
+
+    if (success && progression.successThreshold) {
+        return effect.repeatSaveProgress.successes >= progression.successThreshold;
+    }
+
+    if (!success && progression.failureThreshold) {
+        return effect.repeatSaveProgress.failures >= progression.failureThreshold;
+    }
+
+    return false;
+};
+
+const progressionSuccessEndsEffect = (repeat: RepeatSaveMetadata): boolean => {
+    const outcome = repeat.progression?.successOutcome;
+    return !outcome || ['spell_ends', 'ends_spell', 'ends_condition', 'not_restrained'].includes(outcome);
+};
+
+const applyRepeatSaveFailureOutcome = (
+    character: CombatCharacter,
+    effect: RepeatSaveRuntimeStatus
+): { character: CombatCharacter; handled: boolean; message?: string } => {
+    const outcome = effect.repeatSave?.progression?.failureOutcome;
+
+    // Flesh to Stone has a second structured effect for Petrified, but the
+    // repeat-save engine owns the threshold moment. Apply both condition mirrors
+    // here so combat rules, cleanup, and map-facing status surfaces agree.
+    if (outcome === 'apply_petrified_condition') {
+        const duration = effect.duration;
+        const source = effect.source || String(effect.name);
+        const sourceCasterId = effect.sourceCasterId;
+        const petrifiedStatus: RepeatSaveRuntimeStatus = {
+            id: generateId(),
+            name: 'Petrified',
+            type: 'debuff',
+            description: `${character.name} is turned to stone after failing repeated saves.`,
+            duration,
+            source,
+            sourceCasterId,
+            effect: { type: 'condition' },
+            visualEffect: 'petrified'
+        };
+        const petrifiedCondition = {
+            name: 'Petrified',
+            duration: { type: 'rounds' as const, value: duration },
+            appliedTurn: 0,
+            source,
+            sourceCasterId
+        };
+
+        return {
+            character: {
+                ...character,
+                statusEffects: [
+                    ...character.statusEffects.filter(status => status.id !== effect.id && status.name !== 'Petrified'),
+                    petrifiedStatus
+                ],
+                conditions: [
+                    ...(character.conditions ?? []).filter(condition => condition.name !== effect.name && condition.name !== 'Petrified'),
+                    petrifiedCondition
+                ]
+            },
+            handled: true,
+            message: `${character.name} is petrified after failing repeated saves against ${effect.name}.`
+        };
+    }
+
+    // Contagion's current spell data already stores the seven-day Poisoned
+    // duration on the status payload. Once the failure threshold is reached,
+    // keep that condition and remove the repeat-save machine so future turns do
+    // not keep rolling against an outcome that has already locked in.
+    if (outcome === 'poisoned_duration_lasts_7_days') {
+        const lockedEffect: RepeatSaveRuntimeStatus = {
+            ...effect,
+            duration: Math.max(effect.duration, 100800),
+            repeatSave: undefined,
+            repeatSaveProgress: undefined
+        };
+
+        return {
+            character: replaceRepeatSaveStatus(character, lockedEffect),
+            handled: true,
+            message: `${character.name}'s ${effect.name} progression locks in for 7 days.`
+        };
+    }
+
+    return { character, handled: false };
 };
 
 const rollRepeatSaveCheck = (
@@ -141,7 +284,7 @@ export const useCombatEngine = ({
 
     const processRepeatSaves = useCallback((
         character: CombatCharacter,
-        timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action',
+        timing: RepeatSaveRuntimeTiming,
         actionEffectId?: string
     ): CombatCharacter => {
         let updatedCharacter = { ...character };
@@ -152,7 +295,7 @@ export const useCombatEngine = ({
             const repeat = effect.repeatSave;
             if (!repeat) return;
             if (timing === 'on_action' && effect.id !== actionEffectId) return;
-            if (repeat.timing !== timing) return;
+            if (!repeatSaveMatchesTiming(repeat, timing)) return;
 
             const dc = getRepeatSaveDc(repeat);
             let hasAdvantage = false;
@@ -217,6 +360,11 @@ export const useCombatEngine = ({
                 });
 
                 if (checkResult.success) {
+                    let resolvedEffect = effect;
+                    if (repeat.progression) {
+                        resolvedEffect = recordRepeatSaveProgress(effect, true);
+                        updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
+                    }
                     onLogEntry({
                         id: generateId(),
                         timestamp: Date.now(),
@@ -224,10 +372,27 @@ export const useCombatEngine = ({
                         message: `${character.name} succeeds on ${checkResult.ability} check against ${effect.name}! (${checkResult.total} vs DC ${dc})`,
                         characterId: character.id
                     });
-                    if (repeat.successEnds) {
+                    if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, true)) {
+                        onLogEntry({
+                            id: generateId(),
+                            timestamp: Date.now(),
+                            type: 'status',
+                            message: `${character.name} reaches ${effect.name}'s repeat-save success threshold.`,
+                            characterId: character.id,
+                            data: { effectId: effect.id, repeatSaveProgress: resolvedEffect.repeatSaveProgress }
+                        });
+                        if (progressionSuccessEndsEffect(repeat)) {
+                            savedEffectIds.push(effect.id);
+                        }
+                    } else if (!repeat.progression && repeat.successEnds) {
                         savedEffectIds.push(effect.id);
                     }
                 } else {
+                    let resolvedEffect = effect;
+                    if (repeat.progression) {
+                        resolvedEffect = recordRepeatSaveProgress(effect, false);
+                        updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
+                    }
                     onLogEntry({
                         id: generateId(),
                         timestamp: Date.now(),
@@ -235,6 +400,23 @@ export const useCombatEngine = ({
                         message: `${character.name} fails ${checkResult.ability} check against ${effect.name}. (${checkResult.total} vs DC ${dc})`,
                         characterId: character.id
                     });
+                    if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, false)) {
+                        const outcome = applyRepeatSaveFailureOutcome(updatedCharacter, resolvedEffect);
+                        updatedCharacter = outcome.character;
+                        onLogEntry({
+                            id: generateId(),
+                            timestamp: Date.now(),
+                            type: 'status',
+                            message: outcome.message || `${character.name} reaches ${effect.name}'s repeat-save failure threshold, but the configured failure outcome is not implemented yet.`,
+                            characterId: character.id,
+                            data: {
+                                effectId: effect.id,
+                                repeatSaveProgress: resolvedEffect.repeatSaveProgress,
+                                failureOutcome: repeat.progression.failureOutcome,
+                                handled: outcome.handled
+                            }
+                        });
+                    }
                 }
                 return;
             }
@@ -285,6 +467,11 @@ export const useCombatEngine = ({
             }
 
             if (finalSuccess) {
+                let resolvedEffect = effect;
+                if (repeat.progression) {
+                    resolvedEffect = recordRepeatSaveProgress(effect, true);
+                    updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
+                }
                 onLogEntry({
                     id: generateId(),
                     timestamp: Date.now(),
@@ -292,10 +479,27 @@ export const useCombatEngine = ({
                     message: `${character.name} succeeds on repeat save against ${effect.name}!`,
                     characterId: character.id
                 });
-                if (repeat.successEnds) {
+                if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, true)) {
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${character.name} reaches ${effect.name}'s repeat-save success threshold.`,
+                        characterId: character.id,
+                        data: { effectId: effect.id, repeatSaveProgress: resolvedEffect.repeatSaveProgress }
+                    });
+                    if (progressionSuccessEndsEffect(repeat)) {
+                        savedEffectIds.push(effect.id);
+                    }
+                } else if (!repeat.progression && repeat.successEnds) {
                     savedEffectIds.push(effect.id);
                 }
             } else {
+                let resolvedEffect = effect;
+                if (repeat.progression) {
+                    resolvedEffect = recordRepeatSaveProgress(effect, false);
+                    updatedCharacter = replaceRepeatSaveStatus(updatedCharacter, resolvedEffect);
+                }
                 onLogEntry({
                     id: generateId(),
                     timestamp: Date.now(),
@@ -303,6 +507,23 @@ export const useCombatEngine = ({
                     message: `${character.name} fails repeat save against ${effect.name}.`,
                     characterId: character.id
                 });
+                if (repeat.progression && repeatSaveProgressionReached(resolvedEffect, false)) {
+                    const outcome = applyRepeatSaveFailureOutcome(updatedCharacter, resolvedEffect);
+                    updatedCharacter = outcome.character;
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: outcome.message || `${character.name} reaches ${effect.name}'s repeat-save failure threshold, but the configured failure outcome is not implemented yet.`,
+                        characterId: character.id,
+                        data: {
+                            effectId: effect.id,
+                            repeatSaveProgress: resolvedEffect.repeatSaveProgress,
+                            failureOutcome: repeat.progression.failureOutcome,
+                            handled: outcome.handled
+                        }
+                    });
+                }
             }
         });
 
@@ -326,8 +547,16 @@ export const useCombatEngine = ({
         // or we don't have the caster object handy here.
         const finalAmount = calculateDamage(amount, null, character, damageType);
 
-        updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - finalAmount);
-        updatedCharacter.damagedThisTurn = true;
+        const updatedTarget = applyDamageAndCheckDowned(character, finalAmount);
+        updatedCharacter = {
+            ...updatedCharacter,
+            currentHP: updatedTarget.currentHP,
+            tempHP: updatedTarget.tempHP,
+            deathSaves: updatedTarget.deathSaves,
+            statusEffects: updatedTarget.statusEffects,
+            conditions: updatedTarget.conditions,
+            damagedThisTurn: updatedTarget.damagedThisTurn
+        };
 
         addDamageNumber(finalAmount, updatedCharacter.position, 'damage');
 
@@ -388,6 +617,7 @@ export const useCombatEngine = ({
                     // teleport, speed-change, collision, and map-bound rules stay aligned
                     // with immediately-cast movement spells instead of growing a second
                     // implementation inside the combat hook.
+                    const positionBeforeMovement = updatedCharacter.position;
                     const caster = characters.find(candidate => candidate.id === scheduledEffect.casterId) || updatedCharacter;
                     const stateCharacters = characters.map(candidate =>
                         candidate.id === updatedCharacter.id ? updatedCharacter : candidate
@@ -439,17 +669,38 @@ export const useCombatEngine = ({
                         updatedCharacter = nextCharacter;
                     }
 
+                    // Compulsion-style effects promise a repeat save after forced
+                    // movement resolves. Only trigger that timing when the shared
+                    // movement command actually changed the target's tile; blocked
+                    // movement should not grant a save for a movement that did not
+                    // happen.
+                    const didMoveTarget = nextCharacter
+                        ? nextCharacter.position.x !== positionBeforeMovement.x || nextCharacter.position.y !== positionBeforeMovement.y
+                        : false;
+                    if (didMoveTarget && effect.trigger?.movementType === 'forced') {
+                        updatedCharacter = processRepeatSaves(updatedCharacter, 'after_forced_movement');
+                    }
+
                     // MovementCommand writes to CombatState.combatLog, while this hook
                     // reports through `onLogEntry`. Forward only the command-generated
                     // entries so scheduled movement stays visible in the normal combat log.
-                    nextState.combatLog.forEach(onLogEntry);
+                    nextState.combatLog.forEach(entry => onLogEntry(entry));
                     didTrigger = true;
                 });
 
                 processedEffects.forEach(effect => {
                     if (effect.type === 'damage' && effect.dice) {
                         const damage = rollDice(effect.dice);
-                        updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+                        const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
+                        updatedCharacter = {
+                            ...updatedCharacter,
+                            currentHP: updatedTarget.currentHP,
+                            tempHP: updatedTarget.tempHP,
+                            deathSaves: updatedTarget.deathSaves,
+                            statusEffects: updatedTarget.statusEffects,
+                            conditions: updatedTarget.conditions,
+                            damagedThisTurn: updatedTarget.damagedThisTurn
+                        };
                         addDamageNumber(damage, updatedCharacter.position, 'damage');
                         didTrigger = true;
                         onLogEntry({
@@ -464,9 +715,15 @@ export const useCombatEngine = ({
 
                     if (effect.type === 'heal' && effect.dice) {
                         const healing = rollDice(effect.dice);
-                        const nextHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + healing);
-                        const actualHealing = nextHP - updatedCharacter.currentHP;
-                        updatedCharacter = { ...updatedCharacter, currentHP: nextHP };
+                        const updatedTarget = applyHealingAndRestore(updatedCharacter, healing);
+                        const actualHealing = updatedTarget.currentHP - updatedCharacter.currentHP;
+                        updatedCharacter = {
+                            ...updatedCharacter,
+                            currentHP: updatedTarget.currentHP,
+                            deathSaves: updatedTarget.deathSaves,
+                            statusEffects: updatedTarget.statusEffects,
+                            conditions: updatedTarget.conditions
+                        };
                         addDamageNumber(actualHealing, updatedCharacter.position, 'heal');
                         didTrigger = true;
                         onLogEntry({
@@ -648,7 +905,16 @@ export const useCombatEngine = ({
             for (const effect of result.effects) {
                 if (effect.type === 'damage' && effect.dice) {
                     const damage = rollDice(effect.dice);
-                    updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+                    const updatedTarget = applyDamageAndCheckDowned(updatedCharacter, damage);
+                    updatedCharacter = {
+                        ...updatedCharacter,
+                        currentHP: updatedTarget.currentHP,
+                        tempHP: updatedTarget.tempHP,
+                        deathSaves: updatedTarget.deathSaves,
+                        statusEffects: updatedTarget.statusEffects,
+                        conditions: updatedTarget.conditions,
+                        damagedThisTurn: updatedTarget.damagedThisTurn
+                    };
                     addDamageNumber(damage, updatedCharacter.position, 'damage');
                     onLogEntry({
                         id: generateId(),
@@ -678,7 +944,14 @@ export const useCombatEngine = ({
                 case 'heal_per_turn': {
                     // TODO(lint-intent): Consider centralizing per-turn healing tick logic for status effects.
                     const heal = effect.effect.value || 0;
-                    updatedCharacter.currentHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + heal);
+                    const updatedTarget = applyHealingAndRestore(updatedCharacter, heal);
+                    updatedCharacter = {
+                        ...updatedCharacter,
+                        currentHP: updatedTarget.currentHP,
+                        deathSaves: updatedTarget.deathSaves,
+                        statusEffects: updatedTarget.statusEffects,
+                        conditions: updatedTarget.conditions
+                    };
                     addDamageNumber(heal, updatedCharacter.position, 'heal');
                     onLogEntry({
                         id: generateId(),

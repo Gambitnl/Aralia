@@ -206,7 +206,7 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
       const skills = state.racialSelections['human']?.skillIds;
       return skills?.length ? skills[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     },
-    isVisible: (state) => state.selectedRace?.id === 'human',
+    isVisible: (state) => state.selectedRace?.id === 'human' || state.selectedRace?.baseRace === 'human',
   },
   {
     step: CreationStep.Skills,
@@ -237,7 +237,7 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
       if (!state.racialFeatId) return null;
       return state.racialFeatId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
-    isVisible: (state) => state.selectedRace?.id === 'human',
+    isVisible: (state) => state.selectedRace?.id === 'human' || state.selectedRace?.baseRace === 'human',
   },
 
   // === FINAL GROUP ===

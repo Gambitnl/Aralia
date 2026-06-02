@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 07/05/2026, 00:02:34
- * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx
- * Imports: 10 files
+ * Last Sync: 01/06/2026, 18:57:35
+ * Dependents: components/BattleMap/BattleMapDemo.tsx, components/BattleMap/index.ts, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -33,9 +33,10 @@
  * - No texture atlas consolidation for sprite batching
  */
 import React, { useMemo, useCallback } from 'react';
-import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData } from '../../types/combat';
+import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData, CombatState, LightSource } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
+import { useVisibility } from '../../hooks/combat/useVisibility';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import BattleMapTile from './BattleMapTile';
@@ -43,6 +44,7 @@ import CharacterToken from './CharacterToken';
 import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { UI_ID } from '../../styles/uiIds';
+import { selectVisibilityObserver } from './visibilityObserverPolicy';
 
 interface BattleMapProps {
   mapData: BattleMapData | null;
@@ -90,6 +92,50 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   }, [mapData]);
 
   const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
+  // The viewer policy is shared with the 3D map so light, darkness, and fog of
+  // war do not accidentally choose different creatures in different renderers.
+  const visibilityObserverSelection = selectVisibilityObserver({
+    selectedCharacterId,
+    currentCharacterId: turnState.currentCharacterId,
+    characters
+  });
+  const visibilityObserverId = visibilityObserverSelection.observerId;
+  // The visibility hook expects a CombatState object because it is also used by
+  // non-map callers. The 2D renderer only needs map, characters, and live light
+  // sources, so this local bridge supplies those fields while preserving the
+  // existing turn-manager ownership of active lights.
+  const visibilityState = useMemo(() => ({
+    isActive: true,
+    characters,
+    turnState,
+    selectedCharacterId,
+    selectedAbilityId: null,
+    actionMode,
+    validTargets: [],
+    validMoves: [],
+    combatLog: [],
+    reactiveTriggers: turnManager.reactiveTriggers || [],
+    activeLightSources: (turnManager.activeLightSources || []) as LightSource[],
+    mapData: mapData ?? undefined
+  } as unknown as CombatState), [actionMode, characters, mapData, selectedCharacterId, turnManager.activeLightSources, turnManager.reactiveTriggers, turnState]);
+  const visibility = useVisibility({
+    combatState: visibilityState,
+    activeCharacterId: visibilityObserverId
+  });
+  const assignedTeleportDestinations = useMemo(() => {
+    const assignment = abilitySystem.pendingTeleportAssignment;
+    if (!assignment) return [];
+
+    return Object.entries(assignment.destinationsByTargetId).map(([targetId, destination]) => {
+      const target = characters.find(character => character.id === targetId);
+      return {
+        targetId,
+        targetName: target?.name ?? targetId,
+        destination,
+        abilityName: assignment.ability.name
+      };
+    });
+  }, [abilitySystem.pendingTeleportAssignment, characters]);
   const primaryAttack = currentCharacter?.abilities[0];
   const canUsePrimaryAttack = currentCharacter && primaryAttack
     ? turnManager.canAffordAction(currentCharacter, primaryAttack.cost)
@@ -100,11 +146,12 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   // IMPROVEMENT OPPORTUNITY: Could implement spatial indexing for faster tile lookups
   // instead of linear searches through character arrays
 
-  const { aoeSet, validTargetSet } = useTargetSelection({
+  const { aoeSet, validTargetSet, teleportDestinationSet } = useTargetSelection({
     selectedAbility: abilitySystem.selectedAbility,
     targetingMode: abilitySystem.targetingMode,
     isValidTarget: abilitySystem.isValidTarget,
     aoePreview: abilitySystem.aoePreview,
+    teleportDestinationPreview: abilitySystem.teleportDestinationPreview,
     currentCharacter,
     mapData,
     characters
@@ -129,6 +176,14 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
 
   return (
     <div id={UI_ID.BATTLE_MAP} data-testid={UI_ID.BATTLE_MAP} className="relative">
+      {visibilityObserverSelection.sharedSenses && (
+        <div className="absolute left-3 top-3 z-[var(--z-index-submap-overlay)] rounded-full border border-cyan-300/80 bg-slate-950/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.38)]">
+          {/* This label makes the 2D map's observer switch legible. Without it,
+              shared senses would silently change fog-of-war math while leaving
+              the player unsure whether they are seeing from the caster or the familiar. */}
+          Viewing through {visibilityObserverSelection.sharedSenses.observerName}
+        </div>
+      )}
        {/* UI for current turn actions */}
        {currentCharacter && isCharacterTurn(currentCharacter.id) && (
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-700 p-2 rounded-md shadow-lg flex gap-2 z-[var(--z-index-submap-overlay)]">
@@ -185,6 +240,9 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
             // off-screen tiles entirely - could reduce render load by 60-80% in large maps
             const isTargetable = validTargetSet.has(tile.id);
             const isAoePreview = aoeSet.has(tile.id);
+            const isTeleportDestinationPreview = teleportDestinationSet.has(tile.id);
+            const isVisible = visibility.visibleTiles.has(tile.id);
+            const lightLevel = visibility.getLightLevel(tile.id);
             const isValidMove = actionMode === 'move' && validMoves.has(tile.id);
             const isInPath = activePathSet.has(tile.id);
           
@@ -196,6 +254,9 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
                 isInPath={isInPath}
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}
+                isTeleportDestinationPreview={isTeleportDestinationPreview}
+                isVisible={isVisible}
+                lightLevel={lightLevel}
                 targetingMode={abilitySystem.targetingMode}
                 onTileClick={handleTileClick}
                 onTileHover={handleTileHover}
@@ -229,7 +290,15 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
             characters={characters}
             damageNumbers={damageNumbers}
             animations={turnManager.animations || []}
+            spellZones={turnManager.spellZones || []}
+            scheduledSpellEffects={turnManager.scheduledSpellEffects || []}
+            movementDebuffs={turnManager.movementDebuffs || []}
+            activeLightSources={(turnManager.activeLightSources || []) as LightSource[]}
+            spellMovementVisuals={turnManager.spellMovementVisuals || []}
+            spellDeliveryVisuals={turnManager.spellDeliveryVisuals || []}
             aoePreview={abilitySystem.aoePreview}
+            teleportDestinationPreview={abilitySystem.teleportDestinationPreview}
+            assignedTeleportDestinations={assignedTeleportDestinations}
           />
         </div>
       </div>

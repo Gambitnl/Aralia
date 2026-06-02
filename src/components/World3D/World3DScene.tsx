@@ -30,6 +30,17 @@ interface World3DSceneProps {
   loader: ChunkLoader;
   /** World-space position to center streaming + the scene origin on at mount. */
   start: readonly [number, number, number];
+  /**
+   * Scene-space Y (meters) of the terrain surface at the spawn point. With vertical
+   * exaggeration the ground can sit hundreds of meters up, so the camera and its look-at
+   * target are lifted by this so they frame the ground instead of looking at empty sky.
+   * Defaults to 0 (flat) when the host doesn't know the spawn elevation.
+   */
+  startSurfaceY?: number;
+  /** Optional override for camera position callback (for terrain height injection). */
+  onPositionChange?: (worldX: number, worldZ: number) => void;
+  /** Optional callback for chunk update notifications (loaded count). */
+  onChunkUpdate?: (loadedCount: number) => void;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -152,8 +163,15 @@ const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ ch
   </>
 );
 
-const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
+const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, onPositionChange: onPositionChangeOverride, onChunkUpdate }) => {
   const { loaded, update } = useChunkStreaming(loader);
+
+  // Notify parent when chunk count changes.
+  React.useEffect(() => {
+    if (onChunkUpdate) {
+      onChunkUpdate(loaded.length);
+    }
+  }, [loaded.length, onChunkUpdate]);
 
   // Fixed scene origin near the player; the scene is drawn relative to it (coords ~0).
   const sceneOrigin: SceneOrigin = useMemo(() => ({ x: start[0], z: start[2] }), [start]);
@@ -163,7 +181,13 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start }) => {
     update(start[0], start[2]);
   }, [update, start]);
 
-  const onPositionChange = useCallback((x: number, z: number) => update(x, z), [update]);
+  // Use the override if provided (for terrain height injection), otherwise default behavior.
+  const onPositionChange = useCallback((x: number, z: number) => {
+    update(x, z);
+    if (onPositionChangeOverride) {
+      onPositionChangeOverride(x, z);
+    }
+  }, [update, onPositionChangeOverride]);
 
   return (
     <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>

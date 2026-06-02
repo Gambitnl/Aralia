@@ -10,16 +10,16 @@ export const FOREST_GNOME_DATA: Race = {
     name: 'Forest Gnome',
     baseRace: 'gnome',
     description:
-        'As a forest gnome, you have a natural knack for illusion and inherent quickness and stealth. In the world\'s forests, a visitor might feel being watched by unseen eyes. Those eyes might belong to a forest gnome. Forest gnomes are rare and secretive. They gather in hidden communities in sylvan forests, using illusions and trickery to conceal themselves from threats or to mask their escape should they be detected. Forest gnomes tend to be friendly with other good-spirited woodland folk, and they regard elves and good fey as their most important allies. These gnomes also befriend small forest animals and rely on them for information about threats that might prowl their lands.',
-    abilityBonuses: [], // Flexible ASIs handled by Point Buy.
+        'As a forest gnome, you have a natural gift for illusion and an inherent quickness. Often found in hidden sylvan communities, you use your trickery to remain unseen and protect the woodland creatures you call friends. Forest gnomes are quick-witted and cautious around strangers, valuing their mossy glades and hidden burrows.',
+    abilityBonuses: [],
     traits: [
         'Creature Type: Humanoid',
         'Size: Small (about 3-4 feet tall)',
-        'Speed: 25 feet',
-        "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
-        'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
-        'Natural Illusionist: You know the Minor Illusion cantrip. Intelligence is your spellcasting ability for it.',
-        'Speak with Small Beasts: Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts. Forest gnomes love animals and often keep squirrels, badgers, rabbits, moles, woodpeckers, and other creatures as beloved pets.',
+        'Speed: 30 feet',
+        "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
+        'Gnomish Cunning: You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.',
+        'Natural Illusionist: You know the [[minor_illusion|Minor Illusion]] cantrip. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this species).',
+        'Speak with Animals: You can cast the [[speak_with_animals|Speak with Animals]] spell. You can cast it a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] without using a spell slot, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this species).',
     ],
     imageUrl: 'assets/images/races/forest_gnome.png',
     visual: {

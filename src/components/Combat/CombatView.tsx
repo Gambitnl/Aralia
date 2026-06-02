@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:28:55
+ * Last Sync: 01/06/2026, 18:57:25
  * Dependents: components/Combat/index.ts
  * Imports: 36 files
  *
@@ -32,7 +32,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import BattleMap from '../BattleMap/BattleMap';
 import BattleMap3D from '../BattleMap/BattleMap3D';
 import { PlayerCharacter, Item } from '../../types';
-import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
+import { BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
@@ -118,6 +118,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // Single source of truth for map and characters
   const [mapData, setMapData] = useState<BattleMapData | null>(initialState.mapData);
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialState.positionedCharacters);
+  // Dismissed familiars leave the visible roster but remain bound to the
+  // caster. CombatView owns this off-map list until a broader combat-state
+  // owner replaces the current character-array-first structure.
+  const [pocketedSummons, setPocketedSummons] = useState<PocketedSummon[]>([]);
 
   // [2026-02-10] Ref for characters to avoid dependency churn in handleLogEntry.
   // The bridge adapter (convertLogEntryToMessage) needs the current characters array to look up
@@ -270,6 +274,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     mapData: mapData,
     onExecuteAction: turnManager.executeAction,
     onCharacterUpdate: handleCharacterUpdate,
+    onCharactersReplace: setCharacters,
     onAbilityEffect: turnManager.addDamageNumber, // Pass the callback to show visual feedback
     // WHAT CHANGED: AbilitySystem now receives the same central combat-log
     // bridge used by the turn manager. This preserves one visible log path
@@ -279,10 +284,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onRequestInput: handleRequestInput,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
+    activeLightSources: turnManager.activeLightSources,
+    onActiveLightSourcesUpdate: turnManager.setActiveLightSources,
+    pocketedSummons,
+    onPocketedSummonsUpdate: setPocketedSummons,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
     onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
     onAddMovementDebuff: turnManager.addMovementDebuff,
+    onAddSpellMovementVisual: turnManager.addSpellMovementVisual,
+    onAddSpellDeliveryVisual: turnManager.addSpellDeliveryVisual,
     currentPlane
   });
 

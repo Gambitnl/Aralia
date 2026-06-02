@@ -5,11 +5,10 @@
  * by half the river width (grid→meters). Output is chunk-local.
  */
 import type { ChunkData, ChunkGeometryArrays, ClippedPolyline } from './types';
-import { WORLD3D_CONFIG } from './config';
+import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
-const MAX_H = WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M;
 const WATER_DROP_M = 0.5;
 
 const EMPTY: ChunkGeometryArrays = {
@@ -83,5 +82,5 @@ function waterHeightAt(data: ChunkData, gx: number, gy: number): number {
   const ty = span === 0 ? 0 : (gy - minGY) / span;
   const i = Math.max(0, Math.min(res - 1, Math.round(tx * (res - 1))));
   const j = Math.max(0, Math.min(res - 1, Math.round(ty * (res - 1))));
-  return (data.heights[j * res + i] / 100) * MAX_H;
+  return heightToMeters(data.heights[j * res + i]);
 }

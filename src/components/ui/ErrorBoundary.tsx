@@ -2,6 +2,7 @@
  * @file ErrorBoundary.tsx
  * This component catches JavaScript errors anywhere in its child component tree,
  * logs those errors, and displays a fallback UI.
+ * @component-owner UI Team / Core UI
  */
 // TODO: Enhance ErrorBoundary component to capture and report error details, stack traces, and user context for better debugging
 import React, { Component, ErrorInfo, ReactNode } from 'react';

@@ -5,10 +5,9 @@
  * tundra/desert vertices are skipped. Pure: randomness comes from a coordinate hash.
  */
 import type { ChunkData, VegetationScatter } from './types';
-import { WORLD3D_CONFIG } from './config';
+import { WORLD3D_CONFIG, heightToMeters } from './config';
 
 const S = WORLD3D_CONFIG.CHUNK_WORLD_SIZE;
-const MAX_H = WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M;
 
 const VEGETATED = new Set(['forest', 'jungle', 'plains', 'grassland', 'wetland', 'swamp']);
 
@@ -45,7 +44,7 @@ export function buildVegetationScatter(data: ChunkData): VegetationScatter {
       const jz = (hash01(i, j, data.cy) - 0.5) * (S / res);
       const x = tx * S + jx;
       const z = tz * S + jz;
-      const y = (data.heights[idx] / 100) * MAX_H;
+      const y = heightToMeters(data.heights[idx]);
 
       positions.push(x, y, z);
       scales.push(0.7 + hash01(i, j, 7) * 0.8);

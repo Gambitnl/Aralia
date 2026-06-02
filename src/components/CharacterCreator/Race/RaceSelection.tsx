@@ -332,8 +332,13 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
           (selectedRace.id === 'changeling' && (selectedChangelingInstinctSkillIds.size !== 2 || !selectedChangelingSize)) ||
           (selectedRace.id === 'kender' && racialSkillChoices.length !== 1) ||
           (selectedRace.id === 'kenku' && racialSkillChoices.length !== 2) ||
-          (selectedRace.id === 'warforged' && racialSkillChoices.length !== 1) ||
-          (selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2)
+          (selectedRace.id === 'warforged' && (racialSkillChoices.length !== 1 || racialToolChoices.length !== 1)) ||
+          (selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2) ||
+          (selectedRace.id === 'autognome' && racialToolChoices.length !== 2) ||
+          (selectedRace.id === 'forgeborn_human' && racialToolChoices.length !== 1) ||
+          (selectedRace.id === 'lizardfolk' && racialSkillChoices.length !== 2) ||
+          (selectedRace.id.includes('dwarf') && selectedRace.id !== 'dwarf' && racialToolChoices.length !== 1) ||
+          ((selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && racialCantripChoices.length !== 1)
         )
       }
       title={
@@ -353,9 +358,19 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
                       ? 'Please select two skills first'
                       : selectedRace.id === 'warforged' && racialSkillChoices.length !== 1
                         ? 'Please select a skill first'
-                        : selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2
-                          ? 'Please select two skills first'
-                          : `Confirm ${selectedRace.name}`
+                        : selectedRace.id === 'warforged' && racialToolChoices.length !== 1
+                          ? 'Please select a tool first'
+                          : selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2
+                            ? 'Please select two skills first'
+                            : selectedRace.id === 'autognome' && racialToolChoices.length !== 2
+                              ? 'Please select two tools first'
+                              : selectedRace.id === 'forgeborn_human' && racialToolChoices.length !== 1
+                                ? 'Please select a tool first'
+                                : selectedRace.id.includes('dwarf') && racialToolChoices.length !== 1
+                                  ? 'Please select a tool first'
+                                  : (selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && racialCantripChoices.length !== 1
+                                    ? 'Please select a cantrip first'
+                                    : `Confirm ${selectedRace.name}`
       }
     >
       Confirm {selectedRace.name}

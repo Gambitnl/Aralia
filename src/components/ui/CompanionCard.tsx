@@ -4,6 +4,7 @@
  *
  * @file src/components/ui/CompanionCard.tsx
  * Displays detailed information about a companion: relationships, approval, and goals.
+ * @component-owner Narrative Team / Core UI
  */
 
 import React from 'react';

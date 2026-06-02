@@ -397,9 +397,10 @@ function assembleCastingProperties(state: CharacterCreationState): {
         spellIds.add(legacy.level5SpellId);
       }
     }
+    // Generic racial spell selection (Cantrips)
+    const racialSpellIds = racialSelections?.[selectedRace.id]?.selectedSpellIds ?? [];
+    racialSpellIds.forEach(id => cantripIds.add(id));
   }
-
-
 
   let knownSpells: string[] = [];
   let preparedSpells: string[] = [];
@@ -477,16 +478,16 @@ function assembleFinalSkills(state: CharacterCreationState): Skill[] {
     const stealthSkill = SKILLS_DATA[BUGBEAR_AUTO_SKILL_ID];
     if (stealthSkill) finalSkillsList.push(stealthSkill);
   }
-  const centaurSkillId = racialSelections['centaur']?.skillIds?.[0];
-  if (selectedRace?.id === 'centaur' && centaurSkillId) {
-    const naturalAffinitySkill = SKILLS_DATA[centaurSkillId];
-    if (naturalAffinitySkill) finalSkillsList.push(naturalAffinitySkill);
-  }
-  const changelingSkillIds = racialSelections['changeling']?.skillIds;
-  if (selectedRace?.id === 'changeling' && changelingSkillIds) {
-    changelingSkillIds.forEach(skillId => {
-      const instinctSkill = SKILLS_DATA[skillId];
-      if (instinctSkill) finalSkillsList.push(instinctSkill);
+  
+  // Generic racial skill selection
+  if (selectedRace) {
+    const currentRaceSkillIds = racialSelections[selectedRace.id]?.skillIds ?? [];
+    currentRaceSkillIds.forEach(skillId => {
+      // Avoid duplicates
+      if (!finalSkillsList.some(s => s.id === skillId)) {
+        const skill = SKILLS_DATA[skillId];
+        if (skill) finalSkillsList.push(skill);
+      }
     });
   }
 
@@ -495,11 +496,23 @@ function assembleFinalSkills(state: CharacterCreationState): Skill[] {
     const background = BACKGROUNDS[selectedBackground];
     background.skillProficiencies.forEach(skillId => {
       const skill = SKILLS_DATA[skillId];
-      if (skill) finalSkillsList.push(skill);
+      if (skill && !finalSkillsList.some(s => s.id === skillId)) finalSkillsList.push(skill);
     });
   }
 
   return [...new Set(finalSkillsList.map(s => s.id))].map(id => finalSkillsList.find(s => s.id === id)!).filter(Boolean);
+}
+
+function assembleFinalTools(state: CharacterCreationState): string[] {
+  const { selectedRace, racialSelections } = state;
+  const tools: string[] = [];
+
+  if (selectedRace) {
+    const racialToolIds = racialSelections[selectedRace.id]?.toolIds ?? [];
+    tools.push(...racialToolIds);
+  }
+
+  return tools;
 }
 
 
@@ -540,6 +553,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       abilityScores: baseAbilityScores,
       finalAbilityScores,
       skills: assembleFinalSkills(currentState),
+      toolProficiencies: assembleFinalTools(currentState),
       hp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
       maxHp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
       // Hit Dice pools are computed after assembly to include class levels.

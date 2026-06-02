@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 01:25:48
+ * Last Sync: 01/06/2026, 18:38:42
  * Dependents: commands/index.ts
- * Imports: 12 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,7 +32,7 @@
  * 
  * @file src/commands/factory/AbilityCommandFactory.ts
  */
-import { CombatCharacter, Ability, CombatState } from '@/types/combat';
+import { CombatCharacter, Ability, CombatState, AbilityEffect } from '@/types/combat';
 import { GameState } from '@/types';
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { DamageCommand } from '../effects/DamageCommand';
@@ -44,6 +44,8 @@ import { SpellEffect, isDamageEffect, isHealingEffect, isStatusConditionEffect }
 import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';
+import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
+import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
 
 /**
  * Command for executing a weapon attack.
@@ -502,6 +504,35 @@ export class AbilityCommandFactory {
     return null;
   }
 
+  private static createDirectAbilityCommand(
+    effect: AbilityEffect,
+    context: CommandContext
+  ): SpellCommand | null {
+    // Familiar pocketing is a combat action, but it is not a normal spell
+    // effect such as damage or healing. Keep it in the command pipeline so the
+    // runtime state change stays centralized instead of being handled by
+    // `useSummons` or local component state.
+    if (effect.type === 'familiar_shared_senses') {
+      return new FamiliarSharedSensesCommand(context, {
+        familiarId: effect.familiarId
+      });
+    }
+
+    if (effect.type === 'familiar_pocket') {
+      if (effect.familiarPocketAction === 'recall') {
+        return new RecallFamiliarFromPocketCommand(context, {
+          familiarId: effect.familiarId
+        });
+      }
+
+      return new DismissFamiliarToPocketCommand(context, {
+        familiarId: effect.familiarId
+      });
+    }
+
+    return null;
+  }
+
   // ==========================================================================
   // Ability To Command Translation
   // ==========================================================================
@@ -531,9 +562,15 @@ export class AbilityCommandFactory {
     }
 
     return ability.effects
-      .map(effect => AbilityEffectMapper.mapToSpellEffect(effect))
-      .filter((effect): effect is SpellEffect => effect !== null)
-      .map(effect => AbilityCommandFactory.createEffectCommand(effect, context))
+      .map(effect => {
+        const directCommand = AbilityCommandFactory.createDirectAbilityCommand(effect, context);
+        if (directCommand) {
+          return directCommand;
+        }
+
+        const spellEffect = AbilityEffectMapper.mapToSpellEffect(effect);
+        return spellEffect ? AbilityCommandFactory.createEffectCommand(spellEffect, context) : null;
+      })
       .filter((command): command is SpellCommand => command !== null);
   }
 }

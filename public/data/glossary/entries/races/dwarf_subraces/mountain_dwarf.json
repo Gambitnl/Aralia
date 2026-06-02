@@ -23,7 +23,7 @@
     },
     {
       "label": "Speed",
-      "value": "25 feet"
+      "value": "30 feet"
     },
     {
       "label": "Vision",
@@ -32,34 +32,19 @@
   ],
   "traits": [
     {
-      "name": "Vision",
-      "icon": "eye",
-      "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray."
-    },
-    {
       "name": "Dwarven Resilience",
       "icon": "shield",
-      "description": "You have [[advantage]] on saving throws against [[poison]], and you have resistance to [[poison_damage|poison damage]]."
+      "description": "You have [[advantage]] on saving throws against being [[poisoned_condition|Poisoned]], and you have [[resistance|Resistance]] to [[poison_damage|Poison damage]]."
     },
     {
-      "name": "Dwarven Combat Training",
-      "icon": "axe",
-      "description": "You have proficiency with the battleaxe, handaxe, light hammer, and warhammer."
-    },
-    {
-      "name": "Tool Proficiency",
-      "icon": "tools",
-      "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools."
+      "name": "Dwarven Toughness",
+      "icon": "heart",
+      "description": "Your [[hit_points|Hit Point]] maximum increases by 1, and it increases by 1 again whenever you gain a level."
     },
     {
       "name": "Stonecunning",
       "icon": "stone",
-      "description": "Whenever you make an Intelligence ([[history|History]]) check related to the origin of stonework, you are considered proficient in the History skill and add double your [[proficiency_bonus|Proficiency Bonus]] to the check, instead of your normal proficiency bonus."
-    },
-    {
-      "name": "Dwarven Armor Training",
-      "icon": "armor",
-      "description": "You have proficiency with light and medium armor."
+      "description": "As a [[bonus_action|Bonus Action]], you can give yourself [[tremorsense]] out to a range of 60 feet for 10 minutes. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
     }
   ],
   "tags": [

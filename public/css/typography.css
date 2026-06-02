@@ -10,6 +10,11 @@
   font-family: 'Quattrocento', serif;
 }
 
+/* Premium clean modern sans-serif body text font */
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
 /* Enhanced Prose Styles for Markdown Content */
 .prose h1 { 
   font-size: 2.5rem !important; 

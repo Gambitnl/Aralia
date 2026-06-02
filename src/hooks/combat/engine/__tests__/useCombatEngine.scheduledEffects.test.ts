@@ -3,6 +3,15 @@ import { describe, expect, it, vi } from 'vitest';
 import { useCombatEngine } from '../useCombatEngine';
 import type { CombatCharacter } from '../../../../types/combat';
 import type { ScheduledSpellEffect } from '../../../../systems/spells/effects';
+import * as savingThrowUtils from '@/utils/savingThrowUtils';
+
+vi.mock('@/utils/savingThrowUtils', async importOriginal => {
+  const actual = await importOriginal<typeof import('@/utils/savingThrowUtils')>();
+  return {
+    ...actual,
+    rollSavingThrow: vi.fn(() => ({ total: 8, success: false, modifiersApplied: [] }))
+  };
+});
 
 /**
  * These tests prove that delayed turn-start / turn-end spell effects use the
@@ -165,6 +174,65 @@ describe('useCombatEngine scheduled spell effects', () => {
       message: expect.stringContaining('pushed 10 feet'),
       characterId: target.id
     }));
+  });
+
+  it('runs after_forced_movement repeat saves after scheduled movement resolves', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 18,
+      success: true,
+      modifiersApplied: []
+    } as any);
+
+    const caster = createCharacter({ id: 'caster', name: 'Caster', team: 'player', position: { x: 0, y: 0 } });
+    const target = createCharacter({
+      id: 'target',
+      name: 'Target',
+      position: { x: 1, y: 0 },
+      statusEffects: [{
+        id: 'compelled',
+        name: 'Charmed',
+        type: 'debuff',
+        duration: 2,
+        repeatSave: {
+          timing: 'after_forced_movement',
+          saveType: 'Wisdom',
+          successEnds: true,
+          useOriginalDC: true
+        }
+      }]
+    });
+    const scheduledEffect: ScheduledSpellEffect = {
+      id: 'scheduled-compulsion-move',
+      spellId: 'compulsion',
+      casterId: caster.id,
+      targetId: target.id,
+      timing: 'turn_start',
+      createdAtRound: 1,
+      effects: [{
+        type: 'MOVEMENT',
+        movementType: 'push',
+        distance: 10,
+        duration: { type: 'instantaneous' },
+        trigger: { type: 'turn_start', frequency: 'once', consumption: 'unlimited', movementType: 'forced' }
+      } as any]
+    };
+    const { result } = renderEngine([caster, target]);
+
+    act(() => {
+      result.current.addScheduledSpellEffect(scheduledEffect);
+    });
+
+    let updatedTarget = target;
+    act(() => {
+      updatedTarget = result.current.processScheduledSpellEffects(target, 'turn_start', 2);
+    });
+
+    // Compulsion-style movement grants the target a save after the forced move.
+    // This test protects the missing bridge between delayed MovementCommand
+    // resolution and repeat-save cleanup.
+    expect(updatedTarget.position).toEqual({ x: 3, y: 0 });
+    expect(updatedTarget.statusEffects).toHaveLength(0);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalled();
   });
 });
 

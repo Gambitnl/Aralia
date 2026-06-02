@@ -109,6 +109,20 @@ export interface ShortRestTracker {
   lastRestEndedAtMs: number | null;
 }
 
+// ---------------------------------------------------------------------------
+// 3D World Transition Types (world-3d-ui)
+// ---------------------------------------------------------------------------
+
+/** View mode within PLAYING phase: 'atlas' (2D map) or '3d' (3D world). */
+export type WorldViewMode = 'atlas' | '3d';
+
+/** 3D world position in world meters. Used as game-state anchor for transition and marker sync. */
+export interface PlayerWorldPosition {
+  x: number;  // world meters (X axis)
+  y: number;  // height (terrain Y)
+  z: number;  // world meters (Z axis; maps to Y in 2D atlas coords)
+}
+
 // -----------------------------------------------------------------------------
 // Game State
 // -----------------------------------------------------------------------------
@@ -299,4 +313,10 @@ export interface GameState {
 
   // Party-level short rest pacing and daily tracking.
   shortRestTracker: ShortRestTracker;
+
+  // 3D World Transition (world-3d-ui)
+  /** Current view mode within PLAYING phase. Defaults to 'atlas'. */
+  worldViewMode: WorldViewMode;
+  /** Player's 3D world position (null when not in 3D mode). */
+  playerWorldPos: PlayerWorldPosition | null;
 }

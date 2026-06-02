@@ -1,6 +1,6 @@
 import { buildPlaceholderHeightfield } from '../chunkGeometry';
 import type { ChunkData } from '../types';
-import { WORLD3D_CONFIG } from '../config';
+import { WORLD3D_CONFIG, heightToMeters } from '../config';
 
 const flatChunk = (resolution: number, height: number): ChunkData => ({
   cx: 0,
@@ -30,13 +30,26 @@ it('spreads vertices across the chunk world size on x and z', () => {
   expect(geo.positions[lastIdx]).toBeCloseTo(WORLD3D_CONFIG.CHUNK_WORLD_SIZE); // x of last vertex
 });
 
-it('maps height 0..100 to 0..MAX_TERRAIN_HEIGHT_M on the y axis', () => {
+it('maps height 0..100 to the exaggerated height→meters range on the y axis', () => {
   const res = 2;
   const geo = buildPlaceholderHeightfield(flatChunk(res, 100));
-  // Every vertex y should equal MAX_TERRAIN_HEIGHT_M.
+  // Height 100 maps to MAX_TERRAIN_HEIGHT_M * VERTICAL_EXAGGERATION via heightToMeters.
+  const expected =
+    WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M * WORLD3D_CONFIG.VERTICAL_EXAGGERATION;
+  expect(expected).toBeCloseTo(heightToMeters(100));
   for (let v = 0; v < res * res; v++) {
-    expect(geo.positions[v * 3 + 1]).toBeCloseTo(WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M);
+    expect(geo.positions[v * 3 + 1]).toBeCloseTo(expected);
   }
+});
+
+it('applies vertical exaggeration so relief is taller than the raw height range', () => {
+  // The exaggeration factor must be > 1, otherwise terrain reads as a flat plane (W3D-G11).
+  expect(WORLD3D_CONFIG.VERTICAL_EXAGGERATION).toBeGreaterThan(1);
+  const raw = (60 / 100) * WORLD3D_CONFIG.MAX_TERRAIN_HEIGHT_M;
+  expect(heightToMeters(60)).toBeCloseTo(raw * WORLD3D_CONFIG.VERTICAL_EXAGGERATION);
+  // A mid-height vertex is lifted well above the un-exaggerated mapping.
+  const geo = buildPlaceholderHeightfield(flatChunk(2, 60));
+  expect(geo.positions[1]).toBeGreaterThan(raw);
 });
 
 it('a flat field yields upward (+Y) normals', () => {

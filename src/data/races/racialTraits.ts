@@ -819,7 +819,18 @@ const extractChoicesFromTrait = (
 
   // 3. Skill Choice Detection
   // Pattern: "one skill of your choice" (Human Skillful)
-  if (/\bone skill of your choice\b/i.test(trait) || /\bproficiency in one skill of your choice\b/i.test(trait)) {
+  // Pattern: "two of the following skills of your choice" (Lizardfolk Nature's Intuition)
+  const skillCountMatch = trait.match(/proficiency with (one|two) of the following skills of your choice/i);
+  if (skillCountMatch || /\bone skill of your choice\b/i.test(trait) || /\bproficiency in one skill of your choice\b/i.test(trait)) {
+    const skillCount = (skillCountMatch && skillCountMatch[1].toLowerCase() === 'two') ? 2 : 1;
+    
+    // Extract available skill list if present
+    let availableSkillIds: string[] | undefined;
+    const skillListMatch = trait.match(/of the following skills of your choice:?\s*([a-z0-9_' -]+?(?:\s*,\s*[a-z0-9_' -]+?)*\s*(?:or|and)\s*[a-z0-9_' -]+)/i);
+    if (skillListMatch) {
+      availableSkillIds = skillListMatch[1].split(/,|\band\b|\bor\b/).map(s => s.trim().toLowerCase().replace(/\s+/g, '_')).filter(Boolean);
+    }
+
     choices.push({
       type: 'skillChoice',
       id: `${race.id}::${normalizeSpellToken(traitName)}::skillChoice`,
@@ -828,7 +839,8 @@ const extractChoicesFromTrait = (
       sourceTraitName: traitName,
       sourceTraitDescription: trait,
       sourceText: trait,
-      skillCount: 1,
+      skillCount,
+      availableSkillIds,
     });
   }
 

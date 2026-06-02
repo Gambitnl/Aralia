@@ -308,4 +308,8 @@ export const initialGameState: GameState = {
     isTradeRouteDashboardVisible: false,
     isEconomyLedgerVisible: false,
     isCourierPouchVisible: false,
+
+    // 3D World Transition (world-3d-ui)
+    worldViewMode: 'atlas' as const,
+    playerWorldPos: null,
 };

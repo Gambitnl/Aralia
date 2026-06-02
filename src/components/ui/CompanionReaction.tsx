@@ -4,6 +4,7 @@
  *
  * @file src/components/ui/CompanionReaction.tsx
  * A component to display transient companion reactions/bubbles.
+ * @component-owner Narrative Team / Core UI
  */
 
 import React, { useEffect, useState } from 'react';

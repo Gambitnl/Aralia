@@ -275,4 +275,107 @@ describe('DamageCommand', () => {
         const nextSaveRider = finalTarget?.savePenaltyRiders?.find(r => r.applies === 'next_save');
         expect(nextSaveRider).toBeUndefined();
     });
+
+    it('applies cover as a flat modifier to Dexterity saving throws', async () => {
+        const effect: SpellEffect = {
+            type: "DAMAGE",
+            damage: { dice: '2d6', type: 'Fire' },
+            trigger: { type: 'immediate' },
+            condition: {
+                type: 'save',
+                saveType: 'Dexterity',
+                saveEffect: 'half'
+            }
+        };
+        const targetBehindCover = {
+            ...mockTarget,
+            position: { x: 2, y: 0 }
+        };
+        const casterAtOrigin = {
+            ...mockCaster,
+            position: { x: 0, y: 0 }
+        };
+        const stateWithCover: CombatState = {
+            ...mockState,
+            characters: [casterAtOrigin, targetBehindCover],
+            mapData: {
+                dimensions: { width: 3, height: 1 },
+                theme: 'forest',
+                seed: 1,
+                tiles: new Map([
+                    ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }],
+                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: 'tree', effects: [], providesCover: true }],
+                    ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }]
+                ])
+            }
+        };
+        const coverContext = {
+            ...mockContext,
+            caster: casterAtOrigin,
+            targets: [targetBehindCover]
+        };
+
+        const command = new DamageCommand(effect, coverContext);
+        const newState = await command.execute(stateWithCover);
+
+        // Dexterity-save spells should use the same map cover signal that
+        // weapon attacks already use. This makes ordinary cover meaningful for
+        // saves, while cover-bypass spells such as Sacred Flame can opt out.
+        const saveLog = newState.combatLog.find(l => l.message.includes('Dexterity save'));
+        expect(saveLog?.message).toContain('[Cover]');
+    });
+
+    it('honors cover-bypass save metadata for Dexterity saving throws', async () => {
+        const effect: SpellEffect = {
+            type: "DAMAGE",
+            damage: { dice: '2d6', type: 'Radiant' },
+            trigger: { type: 'immediate' },
+            condition: {
+                type: 'save',
+                saveType: 'Dexterity',
+                saveEffect: 'negates_condition',
+                saveModifiers: [{
+                    type: 'cover_bypass',
+                    ignoredCover: ['half', 'three_quarters']
+                }]
+            }
+        };
+        const targetBehindCover = {
+            ...mockTarget,
+            position: { x: 2, y: 0 }
+        };
+        const casterAtOrigin = {
+            ...mockCaster,
+            position: { x: 0, y: 0 }
+        };
+        const stateWithCover: CombatState = {
+            ...mockState,
+            characters: [casterAtOrigin, targetBehindCover],
+            mapData: {
+                dimensions: { width: 3, height: 1 },
+                theme: 'forest',
+                seed: 1,
+                tiles: new Map([
+                    ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }],
+                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: 'tree', effects: [], providesCover: true }],
+                    ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksLoS: false, blocksMovement: false, decoration: null, effects: [] }]
+                ])
+            }
+        };
+        const coverContext = {
+            ...mockContext,
+            spellName: 'Sacred Flame',
+            caster: casterAtOrigin,
+            targets: [targetBehindCover]
+        };
+
+        const command = new DamageCommand(effect, coverContext);
+        const newState = await command.execute(stateWithCover);
+
+        // Cover-bypass spells intentionally opt out of the map-cover save bonus.
+        // This protects Sacred Flame-style behavior while ordinary Dexterity saves
+        // still receive cover from the previous test.
+        const saveLog = newState.combatLog.find(l => l.message.includes('Dexterity save'));
+        expect(saveLog?.message).not.toContain('[Cover]');
+    });
 });

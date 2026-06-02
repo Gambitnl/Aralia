@@ -31,9 +31,14 @@ import { AttackRollModifierCommand } from '../effects/AttackRollModifierCommand'
 import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
 import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { NarrativeCommand } from '../effects/NarrativeCommand'
+import { EnhanceAbilityCommand, type EnhanceAbilityChoiceMap } from '../effects/EnhanceAbilityCommand'
 import { GameState } from '@/types'
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils'
 import { Plane } from '@/types/planes'
+
+type SpellWithPerTargetChoices = Spell & {
+  perTargetChoicesByTargetId?: EnhanceAbilityChoiceMap
+}
 
 export class SpellCommandFactory {
   /**
@@ -82,6 +87,15 @@ export class SpellCommandFactory {
         : undefined,
       attackType: spell.attackType,
       currentPlane // Pass to context
+    }
+
+    const perTargetChoicesByTargetId = (spell as SpellWithPerTargetChoices).perTargetChoicesByTargetId
+    if (this.isEnhanceAbilityPerTargetChoice(spell, perTargetChoicesByTargetId)) {
+      // Enhance Ability is a utility spell in data, but it has a real combat
+      // mechanic once the caster has assigned choices. Build one explicit
+      // command before generic utility logging so each target receives the
+      // chosen ability-check advantage.
+      commands.push(new EnhanceAbilityCommand(spell.effects[0], context, perTargetChoicesByTargetId))
     }
 
     if (spell.arbitrationType && spell.arbitrationType !== 'mechanical') {
@@ -210,6 +224,16 @@ export class SpellCommandFactory {
   }
 
   // ... (rest of the file remains same)
+
+  private static isEnhanceAbilityPerTargetChoice(
+    spell: Spell,
+    choicesByTargetId: EnhanceAbilityChoiceMap | undefined
+  ): choicesByTargetId is EnhanceAbilityChoiceMap {
+    return spell.id === 'enhance-ability' &&
+      !!spell.targeting.perTargetChoice &&
+      !!choicesByTargetId &&
+      Object.keys(choicesByTargetId).length > 0
+  }
 
   /**
    * Check if a target matches the filter

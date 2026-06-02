@@ -16,13 +16,21 @@ import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
 import { WindowFrame } from './ui/WindowFrame';
 import { WINDOW_KEYS } from '../styles/uiIds';
+import AtlasPlayerMarker from './World3D/AtlasPlayerMarker';
+import type { PlayerWorldPosition } from '../types';
 
 interface MapPaneProps {
   mapData: MapData;
   worldSeed?: number;
   onTileClick: (x: number, y: number, tile: MapTileType) => void;
+  /** When set, clicking a discovered cell in Enter 3D mode starts streamed world entry. */
+  onEnter3DAtCell?: (x: number, y: number, tile: MapTileType) => void;
+  /** Last known 3D position — draws AtlasPlayerMarker on the Azgaar overlay. */
+  playerWorldPos?: PlayerWorldPosition | null;
   onClose: () => void;
   allowTravel?: boolean;
+  /** Show Enter 3D interaction mode (PLAYING phase atlas click-to-travel). */
+  allow3DEntry?: boolean;
   showGenerationControls?: boolean;
   canRegenerateWorld?: boolean;
   generationLockedReason?: string | null;
@@ -30,7 +38,7 @@ interface MapPaneProps {
 }
 
 type WorldMapViewMode = 'azgaar' | 'grid';
-type WorldMapInteractionMode = 'pan' | 'travel';
+type WorldMapInteractionMode = 'pan' | 'travel' | 'enter3d';
 
 const AZGAAR_EMBED_STYLE_ID = 'aralia-azgaar-embed-style';
 const AZGAAR_EMBED_SCRIPT_ID = 'aralia-azgaar-embed-bridge';
@@ -77,8 +85,11 @@ const MapPane: React.FC<MapPaneProps> = ({
   mapData,
   worldSeed,
   onTileClick,
+  onEnter3DAtCell,
+  playerWorldPos = null,
   onClose,
   allowTravel = true,
+  allow3DEntry = false,
   showGenerationControls = false,
   canRegenerateWorld = false,
   generationLockedReason = null,
@@ -249,7 +260,10 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (!allowTravel && interactionMode === 'travel') {
       setInteractionMode('pan');
     }
-  }, [allowTravel, interactionMode]);
+    if (!allow3DEntry && interactionMode === 'enter3d') {
+      setInteractionMode('pan');
+    }
+  }, [allow3DEntry, allowTravel, interactionMode]);
 
   useEffect(() => {
     setSeedInput(String(azgaarSeed));
@@ -306,14 +320,20 @@ const MapPane: React.FC<MapPaneProps> = ({
   }, [gridSize.cols, gridSize.rows, readAtlasTransform, tiles]);
 
   const handleOverlayClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!allowTravel || interactionMode !== 'travel') return;
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) return;
+
+    if (interactionMode === 'enter3d' && allow3DEntry && onEnter3DAtCell) {
+      onEnter3DAtCell(resolved.x, resolved.y, resolved.tile);
+      return;
+    }
+
+    if (!allowTravel || interactionMode !== 'travel') return;
     onTileClick(resolved.x, resolved.y, resolved.tile);
-  }, [allowTravel, interactionMode, onTileClick, resolveCellFromPointer]);
+  }, [allow3DEntry, allowTravel, interactionMode, onEnter3DAtCell, onTileClick, resolveCellFromPointer]);
 
   const handleOverlayMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!allowTravel || interactionMode !== 'travel') return;
+    if (interactionMode !== 'travel' && interactionMode !== 'enter3d') return;
     setAtlasTransform(readAtlasTransform());
     const resolved = resolveCellFromPointer(event.clientX, event.clientY);
     if (!resolved) {
@@ -321,7 +341,11 @@ const MapPane: React.FC<MapPaneProps> = ({
       return;
     }
     setHoveredCell({ x: resolved.x, y: resolved.y });
-  }, [allowTravel, interactionMode, readAtlasTransform, resolveCellFromPointer]);
+  }, [interactionMode, readAtlasTransform, resolveCellFromPointer]);
+
+  const overlayCapturesClicks =
+    (allowTravel && interactionMode === 'travel')
+    || (allow3DEntry && interactionMode === 'enter3d');
 
   const hoveredTile = useMemo(() => {
     if (!hoveredCell) return null;
@@ -376,6 +400,12 @@ const MapPane: React.FC<MapPaneProps> = ({
     if (viewMode !== 'azgaar' || !isFrameReady) return;
     setAtlasTransform(readAtlasTransform());
   }, [isFrameReady, readAtlasTransform, viewMode]);
+
+  useEffect(() => {
+    // Re-project the 3D player marker when position updates (e.g. after exiting 3D).
+    if (viewMode !== 'azgaar' || !playerWorldPos) return;
+    setAtlasTransform(readAtlasTransform());
+  }, [playerWorldPos, readAtlasTransform, viewMode]);
 
   const handleIframeError = useCallback(() => {
     setFrameError('Azgaar world map could not be loaded. Switched to legacy grid view.');
@@ -467,7 +497,17 @@ const MapPane: React.FC<MapPaneProps> = ({
                     Travel
                   </button>
                 )}
-                {allowTravel && interactionMode === 'travel' && (
+                {allow3DEntry && (
+                  <button
+                    onClick={() => setInteractionMode('enter3d')}
+                    className={`px-2 py-1 rounded ${interactionMode === 'enter3d' ? 'bg-rose-700 text-white' : 'bg-gray-600 text-gray-100'}`}
+                    type="button"
+                    title="Click a discovered cell to enter the streamed 3D world there"
+                  >
+                    Enter 3D
+                  </button>
+                )}
+                {(allowTravel && interactionMode === 'travel') || (allow3DEntry && interactionMode === 'enter3d') ? (
                   <button
                     onClick={() => setShowPrecisionOverlay(current => !current)}
                     className={`px-2 py-1 rounded ${showPrecisionOverlay ? 'bg-cyan-800 text-white' : 'bg-gray-600 text-gray-100'}`}
@@ -476,7 +516,7 @@ const MapPane: React.FC<MapPaneProps> = ({
                   >
                     Precision
                   </button>
-                )}
+                ) : null}
               </>
             )}
             <span className="ml-2 text-gray-800">Seed: {azgaarSeed}</span>
@@ -531,7 +571,7 @@ const MapPane: React.FC<MapPaneProps> = ({
 
             <div
               ref={embedOverlayRef}
-              className={`absolute inset-0 ${allowTravel && interactionMode === 'travel' ? 'cursor-crosshair' : 'pointer-events-none'}`}
+              className={`absolute inset-0 ${overlayCapturesClicks ? 'cursor-crosshair' : 'pointer-events-none'}`}
               onClick={handleOverlayClick}
               onMouseMove={handleOverlayMouseMove}
               onMouseLeave={() => {
@@ -542,7 +582,16 @@ const MapPane: React.FC<MapPaneProps> = ({
               tabIndex={0}
             />
 
-            {allowTravel && interactionMode === 'travel' && showPrecisionOverlay && (
+            {playerWorldPos && viewMode === 'azgaar' && (
+              <AtlasPlayerMarker
+                playerWorldPos={playerWorldPos}
+                gridCols={gridSize.cols}
+                gridRows={gridSize.rows}
+                atlasTransform={atlasTransform}
+              />
+            )}
+
+            {overlayCapturesClicks && showPrecisionOverlay && (
               <div className="absolute inset-0 pointer-events-none z-[1]" aria-hidden="true">
                 {playerCellRect && (
                   <div
@@ -575,9 +624,10 @@ const MapPane: React.FC<MapPaneProps> = ({
               </div>
             )}
 
-            {allowTravel && interactionMode === 'travel' && hoveredCell && hoveredTile && (
+            {overlayCapturesClicks && hoveredCell && hoveredTile && (
               <div className="absolute bottom-3 left-3 rounded bg-black/70 text-white text-xs px-2 py-1 pointer-events-none z-[2]">
                 Cell {hoveredCell.x},{hoveredCell.y} - {hoveredBiome?.name || hoveredTile.biomeId}
+                {interactionMode === 'enter3d' && !hoveredTile.discovered ? ' (undiscovered)' : ''}
                 {showPrecisionOverlay ? ' (precision on)' : ''}
               </div>
             )}
@@ -587,8 +637,8 @@ const MapPane: React.FC<MapPaneProps> = ({
         )}
 
         <p className="text-xs text-center mt-2 text-gray-700">
-          {allowTravel
-            ? 'In Azgaar Atlas: use Pan/Zoom to explore layers and zoom. Switch to Travel to click a destination; enable Precision for cell targeting overlays.'
+          {allowTravel || allow3DEntry
+            ? 'In Azgaar Atlas: use Pan/Zoom to explore. Travel moves on the world grid; Enter 3D jumps into the streamed world at a discovered cell. Enable Precision for cell overlays.'
             : 'In Azgaar Atlas: use Pan/Zoom and layer controls to inspect world generation before starting a game.'}
         </p>
       </div>

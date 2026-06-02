@@ -597,28 +597,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[acid_damage|Acid damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[acid_damage|Acid damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to acid damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[acid_damage|Acid damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to acid damage.",
+        "description": "You have [[resistance|Resistance]] to [[acid_damage|Acid damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -668,28 +676,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[lightning_damage|Lightning damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[lightning_damage|Lightning damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to lightning damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to lightning damage.",
+        "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -739,28 +755,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to fire damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[fire_damage|Fire damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to fire damage.",
+        "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -810,28 +834,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[lightning_damage|Lightning damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 lightning damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[lightning_damage|Lightning damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to lightning damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to lightning damage.",
+        "description": "You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -1188,28 +1220,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[acid_damage|Acid damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 5-foot by 30-foot line. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 acid damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[acid_damage|Acid damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to acid damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[acid_damage|Acid damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to acid damage.",
+        "description": "You have [[resistance|Resistance]] to [[acid_damage|Acid damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -1243,44 +1283,44 @@
         "evidence": "Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts)."
       },
       {
-        "rawText": "Speed: 25 feet",
+        "rawText": "Speed: 30 feet",
         "name": "Speed",
-        "description": "25 feet",
+        "description": "30 feet",
         "status": "Implemented",
         "mechanism": "Movement speed parser",
         "evidence": "calculateCharacterSpeedFromRace parses numeric value from the Speed trait string."
       },
       {
-        "rawText": "Vision: [[darkvision|Superior Darkvision]]. You can see in [[dim_light|dim light]] within 120 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 120 feet.",
         "name": "Vision",
-        "description": "[[darkvision|Superior Darkvision]]. You can see in [[dim_light|dim light]] within 120 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 120 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
       },
       {
-        "rawText": "Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
-        "name": "Gnome Cunning",
-        "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
-        "status": "Implemented",
-        "mechanism": "Racial modifier materializer",
-        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
+        "rawText": "Gnomish Cunning: You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.",
+        "name": "Gnomish Cunning",
+        "description": "You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
-        "rawText": "Stone Camouflage: You have Advantage on Dexterity (Stealth) checks to hide in rocky terrain. You can use this trait a number of times equal to your proficiency bonus. After you use this trait, you must finish a long rest before you can use it again.",
-        "name": "Stone Camouflage",
-        "description": "You have Advantage on Dexterity (Stealth) checks to hide in rocky terrain. You can use this trait a number of times equal to your proficiency bonus. After you use this trait, you must finish a long rest before you can use it again.",
+        "rawText": "Gnomish Camouflage: You have [[advantage]] on Dexterity (Stealth) checks. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]].",
+        "name": "Gnomish Camouflage",
+        "description": "You have [[advantage]] on Dexterity (Stealth) checks. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]].",
         "status": "Implemented",
         "mechanism": "Racial resource materializer",
         "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
-        "rawText": "Gift of the Svirfneblin: Starting at 3rd level, you can cast the Disguise Self spell with this trait. Starting at 5th level, you can also cast the Nondetection spell with it, without requiring a material component. Once you cast either of these spells with this trait, you can't cast that spell with it again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).",
+        "rawText": "Gift of the Svirfneblin: You know the [[disguise_self|Disguise Self]] spell. Starting at 3rd level, you can cast the [[nondetection|Nondetection]] spell with this trait, without requiring a material component. You can cast each of these spells a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] without using a spell slot, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this species).",
         "name": "Gift of the Svirfneblin",
-        "description": "Starting at 3rd level, you can cast the Disguise Self spell with this trait. Starting at 5th level, you can also cast the Nondetection spell with it, without requiring a material component. Once you cast either of these spells with this trait, you can't cast that spell with it again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).",
+        "description": "You know the [[disguise_self|Disguise Self]] spell. Starting at 3rd level, you can cast the [[nondetection|Nondetection]] spell with this trait, without requiring a material component. You can cast each of these spells a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] without using a spell slot, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this species).",
         "status": "Implemented",
         "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait (disguise-self, nondetection, these-spells-using) are resolved and granted via getRacialSpellGrantsForCharacter."
+        "evidence": "Spells from this trait (disguise-self, nondetection) are resolved and granted via getRacialSpellGrantsForCharacter."
       }
     ]
   },
@@ -2036,44 +2076,44 @@
         "evidence": "Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts)."
       },
       {
-        "rawText": "Speed: 25 feet",
+        "rawText": "Speed: 30 feet",
         "name": "Speed",
-        "description": "25 feet",
+        "description": "30 feet",
         "status": "Implemented",
         "mechanism": "Movement speed parser",
         "evidence": "calculateCharacterSpeedFromRace parses numeric value from the Speed trait string."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
       },
       {
-        "rawText": "Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
-        "name": "Gnome Cunning",
-        "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
-        "status": "Implemented",
-        "mechanism": "Racial modifier materializer",
-        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
-      },
-      {
-        "rawText": "Natural Illusionist: You know the Minor Illusion cantrip. Intelligence is your spellcasting ability for it.",
-        "name": "Natural Illusionist",
-        "description": "You know the Minor Illusion cantrip. Intelligence is your spellcasting ability for it.",
-        "status": "Implemented",
-        "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait (minor-illusion) are resolved and granted via getRacialSpellGrantsForCharacter."
-      },
-      {
-        "rawText": "Speak with Small Beasts: Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts. Forest gnomes love animals and often keep squirrels, badgers, rabbits, moles, woodpeckers, and other creatures as beloved pets.",
-        "name": "Speak with Small Beasts",
-        "description": "Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts. Forest gnomes love animals and often keep squirrels, badgers, rabbits, moles, woodpeckers, and other creatures as beloved pets.",
+        "rawText": "Gnomish Cunning: You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.",
+        "name": "Gnomish Cunning",
+        "description": "You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.",
         "status": "Text-Only",
         "mechanism": "",
         "evidence": ""
+      },
+      {
+        "rawText": "Natural Illusionist: You know the [[minor_illusion|Minor Illusion]] cantrip. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this species).",
+        "name": "Natural Illusionist",
+        "description": "You know the [[minor_illusion|Minor Illusion]] cantrip. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this species).",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
+      },
+      {
+        "rawText": "Speak with Animals: You can cast the [[speak_with_animals|Speak with Animals]] spell. You can cast it a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] without using a spell slot, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this species).",
+        "name": "Speak with Animals",
+        "description": "You can cast the [[speak_with_animals|Speak with Animals]] spell. You can cast it a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] without using a spell slot, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for it (choose when you select this species).",
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\Class\\DruidFeatureSelection.tsx: \"* - Automated the inclusion of `Speak with Animals`. This spell is now\"; src\\data\\monsters.generated.ts: \"\"name\": \"Speak with Animals\",\""
       }
     ]
   },
@@ -2142,9 +2182,9 @@
         "rawText": "Maker's Gift: You gain proficiency with one type of artisan's tools of your choice.",
         "name": "Maker's Gift",
         "description": "You gain proficiency with one type of artisan's tools of your choice.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"{race.id === 'autognome' ? 'Specialized Design' : \"Maker's Gift\"} - Choose {race.id === 'autognome' ? 'Two Tools' : 'a Tool'}\""
       },
       {
         "rawText": "Spellsmith: You know the Mending cantrip. You can also cast Magic Weapon with this trait. When you do so, the spell lasts for 1 hour and doesn't require concentration. Once you cast this spell with this trait, you can't do so again until you finish a Long Rest. Intelligence is your spellcasting ability for these spells.",
@@ -2485,28 +2525,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to fire damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[fire_damage|Fire damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to fire damage.",
+        "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -2610,28 +2658,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 poison damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[poison_damage|Poison damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 poison damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[poison_damage|Poison damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to poison damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[poison_damage|Poison damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to poison damage.",
+        "description": "You have [[resistance|Resistance]] to [[poison_damage|Poison damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -3032,7 +3088,7 @@
         "description": "You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it.",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\commands\\__tests__\\combat-pilot\\CombatDeterministicSpells.test.ts: \"describe('fire-bolt (Cantrip Damage)', () => {\"; src\\components\\BattleMap\\AbilityButton.tsx: \"{ability.spell.school} {ability.spell.level === 0 ? 'Cantrip' : `Level ${ability.spell.level} Spell`}\"; src\\components\\CharacterCreator\\Class\\ArtificerFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\BardFeatureSelection.tsx: \"* Bards must select their initial Cantrips and Level 1 spells.\"; src\\components\\CharacterCreator\\Class\\ClericFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\DruidFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\SorcererFeatureSelection.tsx: \"* the Class, Sorcerers must immediately pick their Cantrips and Level 1\"; src\\components\\CharacterCreator\\Class\\WarlockFeatureSelection.tsx: \"* This component manages the 'Warlock Feature' selection (Cantrips and\"; src\\components\\CharacterCreator\\Class\\WizardFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\__tests__\\WizardFeatureSelection.test.tsx: \"knownCantrips: 2,\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"if (state.selectedClass.spellcasting) return state.selectedCantrips.length > 0 || state.selectedSpellsL1.length > 0;\"; src\\components\\CharacterCreator\\FeatSelection.tsx: \"const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';\"; src\\components\\CharacterCreator\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\components\\CharacterCreator\\hooks\\__tests__\\useCharacterAssembly.test.tsx: \"selectedCantrips: [fireBolt, mageHand, minorIllusion] as Spell[],\"; src\\components\\CharacterCreator\\NameAndReview.tsx: \"const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);\"; src\\components\\CharacterCreator\\Race\\GnomeSubraceSelection.tsx: \"(selectedSubraceDetails.grantedCantrip || selectedSubraceDetails.grantedSpell)\"; src\\components\\CharacterCreator\\Race\\RaceDetailModal.tsx: \"// Extract Cantrip\"; src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"genericCantripChoices?: string[];\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"const [racialCantripChoices, setRacialCantripChoices] = useState<string[]>([]);\"; src\\components\\CharacterCreator\\Race\\TieflingLegacySelection.tsx: \"<span className=\"text-amber-400\">❶</span> {allSpells[legacy.level1Benefit.cantripId]?.name || 'Cantrip'}\"; src\\components\\CharacterCreator\\shared\\CharacterCreatorTraitsTable.tsx: \"spells.push({ level: '1st', name: cantripMatch[1].trim(), usage: 'Cantrip' });\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"selectedCantrips?: string[];\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookOverlay.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookTab.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellDetailPane.tsx: \"? `${spell.school} Cantrip`\"; src\\components\\CharacterSheet\\Spellbook\\__tests__\\SpellbookTab.test.tsx: \"expect(screen.getByRole('button', { name: 'Cantrips' })).toBeInTheDocument();\"; src\\components\\CharacterSheet\\__tests__\\SpellbookTab.test.tsx: \"id: 'cantrip-1', name: 'Test Cantrip', level: 0, school: SpellSchool.Evocation,\"; src\\components\\DesignPreview\\steps\\PreviewCombatSandbox.tsx: \"knownCantrips: 3,\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"{ level: '1st', name: 'Light', usage: 'Cantrip' },\"; src\\components\\Glossary\\SpellCardTemplate.tsx: \"* Helper to format the level display (Cantrip vs 1st, 2nd, etc.)\"; src\\data\\classes\\index.ts: \"// Cantrips\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Enspelled Staff (Cantrip)\",\"; src\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\hooks\\useMissingChoice.ts: \"secondaryValue: extraData as { choices?: import('../types').LevelUpChoices; xpGained?: number; isCantrip?: boolean } | undefined,\"; src\\hooks\\__tests__\\useAbilitySystem.package4.test.tsx: \"name: 'Cantrip Target',\"; src\\services\\characterGenerator.ts: \".slice(0, charClass.spellcasting.knownCantrips);\"; src\\state\\actionTypes.d.ts: \"isCantrip?: boolean;\"; src\\state\\actionTypes.ts: \"| { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean } } }\"; src\\state\\reducers\\characterReducer.ts: \"const parsedSecondary = (secondaryValue ?? {}) as { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean };\"; src\\state\\reducers\\__tests__\\characterReducer.test.ts: \"knownCantrips: 3,\"; src\\systems\\spells\\mechanics\\ScalingEngine.ts: \"* ### 2. Character-Level Scaling (Cantrips)\"; src\\types\\character.d.ts: \"canSwapCantrip?: boolean;\"; src\\types\\character.ts: \"canSwapCantrip?: boolean;\"; src\\types\\spells.ts: \"level: number; // 0 for Cantrip\"; src\\utils\\character\\characterUtils.ts: \"selectedCantrips?: string[];\"; src\\utils\\character\\characterValidation.ts: \"const knownCantrips = new Set(spellbook?.cantrips || []);\"; src\\utils\\character\\spellFilterUtils.ts: \"if (level === 0) return 'Cantrip';\"; src\\utils\\character\\spellUtils.ts: \"const finalCantrips = Array.from(cantripSet).sort((a, b) => a.name.localeCompare(b.name));\"; src\\utils\\character\\__tests__\\characterUtils.test.ts: \"knownCantrips: 4,\"; src\\utils\\character\\__tests__\\characterValidation.test.ts: \"label: 'Missing Spell: Cantrip',\"; src\\utils\\combat\\__tests__\\actionEconomyUtils.test.ts: \"const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });\"; src\\utils\\core\\factories.ts: \"knownCantrips: 0,\"; src\\utils\\sandbox\\quickCharacterGenerator.ts: \"cantrips: charClass.spellcasting.spellList?.slice(0, charClass.spellcasting.knownCantrips) || [],\""
+        "evidence": "Referenced in: src\\commands\\__tests__\\combat-pilot\\CombatDeterministicSpells.test.ts: \"describe('fire-bolt (Cantrip Damage)', () => {\"; src\\components\\BattleMap\\AbilityButton.tsx: \"{ability.spell.school} {ability.spell.level === 0 ? 'Cantrip' : `Level ${ability.spell.level} Spell`}\"; src\\components\\CharacterCreator\\CharacterCreator.tsx: \"if (choices?.genericCantripChoices) {\"; src\\components\\CharacterCreator\\Class\\ArtificerFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\BardFeatureSelection.tsx: \"* Bards must select their initial Cantrips and Level 1 spells.\"; src\\components\\CharacterCreator\\Class\\ClericFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\DruidFeatureSelection.tsx: \"* Cantrips, and Level 1 Spells).\"; src\\components\\CharacterCreator\\Class\\SorcererFeatureSelection.tsx: \"* the Class, Sorcerers must immediately pick their Cantrips and Level 1\"; src\\components\\CharacterCreator\\Class\\WarlockFeatureSelection.tsx: \"* This component manages the 'Warlock Feature' selection (Cantrips and\"; src\\components\\CharacterCreator\\Class\\WizardFeatureSelection.tsx: \"const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());\"; src\\components\\CharacterCreator\\Class\\__tests__\\WizardFeatureSelection.test.tsx: \"knownCantrips: 2,\"; src\\components\\CharacterCreator\\config\\sidebarSteps.ts: \"if (state.selectedClass.spellcasting) return state.selectedCantrips.length > 0 || state.selectedSpellsL1.length > 0;\"; src\\components\\CharacterCreator\\FeatSelection.tsx: \"const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';\"; src\\components\\CharacterCreator\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\components\\CharacterCreator\\hooks\\__tests__\\useCharacterAssembly.test.tsx: \"selectedCantrips: [fireBolt, mageHand, minorIllusion] as Spell[],\"; src\\components\\CharacterCreator\\NameAndReview.tsx: \"const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);\"; src\\components\\CharacterCreator\\Race\\GnomeSubraceSelection.tsx: \"(selectedSubraceDetails.grantedCantrip || selectedSubraceDetails.grantedSpell)\"; src\\components\\CharacterCreator\\Race\\RaceDetailModal.tsx: \"// Extract Cantrip\"; src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"genericCantripChoices?: string[];\"; src\\components\\CharacterCreator\\Race\\RaceSelection.tsx: \"const [racialCantripChoices, setRacialCantripChoices] = useState<string[]>([]);\"; src\\components\\CharacterCreator\\Race\\TieflingLegacySelection.tsx: \"<span className=\"text-amber-400\">❶</span> {allSpells[legacy.level1Benefit.cantripId]?.name || 'Cantrip'}\"; src\\components\\CharacterCreator\\shared\\CharacterCreatorTraitsTable.tsx: \"spells.push({ level: '1st', name: cantripMatch[1].trim(), usage: 'Cantrip' });\"; src\\components\\CharacterCreator\\state\\characterCreatorState.ts: \"selectedCantrips?: string[];\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookOverlay.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellbookTab.tsx: \"const pageTitle = currentLevel === 0 ? \"Cantrips\" : `Level ${currentLevel} Spells`;\"; src\\components\\CharacterSheet\\Spellbook\\SpellDetailPane.tsx: \"? `${spell.school} Cantrip`\"; src\\components\\CharacterSheet\\Spellbook\\__tests__\\SpellbookTab.test.tsx: \"expect(screen.getByRole('button', { name: 'Cantrips' })).toBeInTheDocument();\"; src\\components\\CharacterSheet\\__tests__\\SpellbookTab.test.tsx: \"id: 'cantrip-1', name: 'Test Cantrip', level: 0, school: SpellSchool.Evocation,\"; src\\components\\DesignPreview\\steps\\PreviewCombatSandbox.tsx: \"knownCantrips: 3,\"; src\\components\\DesignPreview\\steps\\PreviewTables.tsx: \"{ level: '1st', name: 'Light', usage: 'Cantrip' },\"; src\\components\\Glossary\\SpellCardTemplate.tsx: \"* Helper to format the level display (Cantrip vs 1st, 2nd, etc.)\"; src\\data\\classes\\index.ts: \"// Cantrips\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Enspelled Staff (Cantrip)\",\"; src\\hooks\\useCharacterAssembly.ts: \"if (state.selectedCantrips.length > 0 && selectedClass.id === 'ranger') return false;\"; src\\hooks\\useMissingChoice.ts: \"secondaryValue: extraData as { choices?: import('../types').LevelUpChoices; xpGained?: number; isCantrip?: boolean } | undefined,\"; src\\hooks\\__tests__\\useAbilitySystem.package4.test.tsx: \"name: 'Cantrip Target',\"; src\\services\\characterGenerator.ts: \".slice(0, charClass.spellcasting.knownCantrips);\"; src\\state\\actionTypes.d.ts: \"isCantrip?: boolean;\"; src\\state\\actionTypes.ts: \"| { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean } } }\"; src\\state\\reducers\\characterReducer.ts: \"const parsedSecondary = (secondaryValue ?? {}) as { choices?: LevelUpChoices; xpGained?: number; isCantrip?: boolean };\"; src\\state\\reducers\\__tests__\\characterReducer.test.ts: \"knownCantrips: 3,\"; src\\systems\\spells\\mechanics\\ScalingEngine.ts: \"* ### 2. Character-Level Scaling (Cantrips)\"; src\\types\\character.d.ts: \"canSwapCantrip?: boolean;\"; src\\types\\character.ts: \"canSwapCantrip?: boolean;\"; src\\types\\spells.ts: \"level: number; // 0 for Cantrip\"; src\\utils\\character\\characterUtils.ts: \"selectedCantrips?: string[];\"; src\\utils\\character\\characterValidation.ts: \"const knownCantrips = new Set(spellbook?.cantrips || []);\"; src\\utils\\character\\spellFilterUtils.ts: \"if (level === 0) return 'Cantrip';\"; src\\utils\\character\\spellUtils.ts: \"const finalCantrips = Array.from(cantripSet).sort((a, b) => a.name.localeCompare(b.name));\"; src\\utils\\character\\__tests__\\characterUtils.test.ts: \"knownCantrips: 4,\"; src\\utils\\character\\__tests__\\characterValidation.test.ts: \"label: 'Missing Spell: Cantrip',\"; src\\utils\\combat\\__tests__\\actionEconomyUtils.test.ts: \"const afterCantrip = consumeActionCost(character, { type: 'action', spellSlotLevel: 0 });\"; src\\utils\\core\\factories.ts: \"knownCantrips: 0,\"; src\\utils\\sandbox\\quickCharacterGenerator.ts: \"cantrips: charClass.spellcasting.spellList?.slice(0, charClass.spellcasting.knownCantrips) || [],\""
       }
     ]
   },
@@ -3502,9 +3558,9 @@
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
         "name": "Tool Proficiency",
         "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"{/* Dwarf Tool Proficiency (required choice) */}\""
       },
       {
         "rawText": "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
@@ -4165,6 +4221,14 @@
         "status": "Implemented",
         "mechanism": "Custom system logic",
         "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"{character.modifiers?.baseArmorClass && <p>Natural Armor: <span className=\"font-semibold text-amber-300\">{character.modifiers.baseArmorClass} + Dex</span></p>}\"; src\\types\\ui.ts: \"/** Armor class (e.g. from Natural Armor, Mage Armor, etc.) */\"; src\\utils\\character\\statUtils.ts: \"// If not wearing armor, use the best base (Standard 10 vs Racial Natural Armor)\"; src\\utils\\character\\__tests__\\characterUtils.test.ts: \"it('should correctly parse Tortle Natural Armor and set base AC to 17', () => {\""
+      },
+      {
+        "rawText": "Nature’s Intuition: Thanks to your mystical connection to nature, you gain proficiency with two of the following skills of your choice: Animal Handling, Medicine, Nature, Perception, Stealth, or Survival.",
+        "name": "Nature’s Intuition",
+        "description": "Thanks to your mystical connection to nature, you gain proficiency with two of the following skills of your choice: Animal Handling, Medicine, Nature, Perception, Stealth, or Survival.",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       }
     ]
   },
@@ -4548,9 +4612,9 @@
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
         "name": "Tool Proficiency",
         "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"{/* Dwarf Tool Proficiency (required choice) */}\""
       },
       {
         "rawText": "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
@@ -4600,28 +4664,36 @@
         "evidence": "calculateCharacterSpeedFromRace parses numeric value from the Speed trait string."
       },
       {
-        "rawText": "Adrenaline Rush: You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest. (Note: Mechanical effects like THP gain, usage tracking, and bonus action not yet fully implemented).",
+        "rawText": "Adrenaline Rush: You can take the [[dash|Dash]] action as a [[bonus_action|Bonus Action]]. When you do so, you gain a number of [[temporary_hit_points|Temporary Hit Points]] equal to your [[proficiency_bonus|Proficiency Bonus]]. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]].",
         "name": "Adrenaline Rush",
-        "description": "You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest. (Note: Mechanical effects like THP gain, usage tracking, and bonus action not yet fully implemented).",
+        "description": "You can take the [[dash|Dash]] action as a [[bonus_action|Bonus Action]]. When you do so, you gain a number of [[temporary_hit_points|Temporary Hit Points]] equal to your [[proficiency_bonus|Proficiency Bonus]]. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]].",
         "status": "Implemented",
         "mechanism": "Racial resource materializer",
         "evidence": "Usage limits and reset conditions are extracted and applied to character state."
       },
       {
-        "rawText": "Darkvision (120ft)",
-        "name": "Darkvision (120ft)",
-        "description": "Darkvision (120ft)",
+        "rawText": "Darkvision: You have [[darkvision|Darkvision]] with a range of 120 feet.",
+        "name": "Darkvision",
+        "description": "You have [[darkvision|Darkvision]] with a range of 120 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
       },
       {
-        "rawText": "Relentless Endurance: When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place).",
-        "name": "Relentless Endurance",
-        "description": "When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest. (Note: Mechanical implementation not yet in place).",
+        "rawText": "Powerful Build: You have [[advantage]] on saving throws you make to end the [[grappled_condition|Grappled]] condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
+        "name": "Powerful Build",
+        "description": "You have [[advantage]] on saving throws you make to end the [[grappled_condition|Grappled]] condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Powerful build traits are extracted and applied to character state."
+      },
+      {
+        "rawText": "Relentless Endurance: When you are reduced to 0 [[hit_points|Hit Points]] but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Relentless Endurance",
+        "description": "When you are reduced to 0 [[hit_points|Hit Points]] but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       }
     ]
   },
@@ -5018,28 +5090,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 fire damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to fire damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[fire_damage|Fire damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to fire damage.",
+        "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -5073,44 +5153,44 @@
         "evidence": "Size is mapped to grid occupancy size multiplier (e.g. Large/Huge multiplier in combatUtils.ts)."
       },
       {
-        "rawText": "Speed: 25 feet",
+        "rawText": "Speed: 30 feet",
         "name": "Speed",
-        "description": "25 feet",
+        "description": "30 feet",
         "status": "Implemented",
         "mechanism": "Movement speed parser",
         "evidence": "calculateCharacterSpeedFromRace parses numeric value from the Speed trait string."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
       },
       {
-        "rawText": "Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
-        "name": "Gnome Cunning",
-        "description": "You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.",
-        "status": "Implemented",
-        "mechanism": "Racial modifier materializer",
-        "evidence": "Modifiers are extracted via getRacialModifierBucketsFromTraitText."
-      },
-      {
-        "rawText": "Artificer's Lore: Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.",
-        "name": "Artificer's Lore",
-        "description": "Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.",
+        "rawText": "Gnomish Cunning: You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.",
+        "name": "Gnomish Cunning",
+        "description": "You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.",
         "status": "Text-Only",
         "mechanism": "",
         "evidence": ""
       },
       {
-        "rawText": "Tinker: You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: Clockwork Toy (a clockwork animal, monster, or person that moves 5 feet across solid ground when touched), Fire Starter (produces a miniature flame for lighting candles, torches, or campfires), or Music Box (plays a single song at a moderate volume when opened).",
-        "name": "Tinker",
-        "description": "You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: Clockwork Toy (a clockwork animal, monster, or person that moves 5 feet across solid ground when touched), Fire Starter (produces a miniature flame for lighting candles, torches, or campfires), or Music Box (plays a single song at a moderate volume when opened).",
+        "rawText": "Gnomish Lore: You have proficiency in the [[history|History]] skill. You also have [[advantage]] on Intelligence (History) checks you make to determine the origin and function of magic items, alchemical objects, or technological devices.",
+        "name": "Gnomish Lore",
+        "description": "You have proficiency in the [[history|History]] skill. You also have [[advantage]] on Intelligence (History) checks you make to determine the origin and function of magic items, alchemical objects, or technological devices.",
+        "status": "Implemented",
+        "mechanism": "Racial modifier materializer",
+        "evidence": "Skill, weapon, and armor proficiencies are extracted and applied to character state."
+      },
+      {
+        "rawText": "Tinkering: You know the [[mending|Mending]] and [[prestidigitation|Prestidigitation]] cantrips. Intelligence, Wisdom, or Charisma is your spellcasting ability for them (choose when you select this species). As a part of casting Prestidigitation, you can create a Tiny clockwork device (AC 5, 1 HP), such as a toy, a fire starter, or a music box. The device ceases to function after 8 hours or when you dismantle it as a [[bonus_action|Bonus Action]].",
+        "name": "Tinkering",
+        "description": "You know the [[mending|Mending]] and [[prestidigitation|Prestidigitation]] cantrips. Intelligence, Wisdom, or Charisma is your spellcasting ability for them (choose when you select this species). As a part of casting Prestidigitation, you can create a Tiny clockwork device (AC 5, 1 HP), such as a toy, a fire starter, or a music box. The device ceases to function after 8 hours or when you dismantle it as a [[bonus_action|Bonus Action]].",
         "status": "Implemented",
         "mechanism": "Custom system logic",
-        "evidence": "Referenced in: src\\data\\classes\\index.ts: \"{ id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },\"; src\\data\\items\\generatedGlossaryItems.ts: \"\"name\": \"Tinker's Tools\",\"; src\\data\\monsters.generated.ts: \"\"sourceName\": \"Tinker's Magic\",\"; src\\hooks\\useCharacterProficiencies.ts: \"toolProfs.add(\"Tinker's Tools\");\"; src\\systems\\spells\\validation\\spellValidator.ts: \"// access. Mending is the pilot case: Artificers receive it from Tinker's Magic,\""
+        "evidence": "Referenced in: src\\data\\classes\\index.ts: \"{ id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },\""
       }
     ]
   },
@@ -5163,9 +5243,9 @@
         "rawText": "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
         "name": "Tool Proficiency",
         "description": "You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
-        "status": "Text-Only",
-        "mechanism": "",
-        "evidence": ""
+        "status": "Implemented",
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterCreator\\Race\\RaceDetailPane.tsx: \"{/* Dwarf Tool Proficiency (required choice) */}\""
       },
       {
         "rawText": "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
@@ -5689,28 +5769,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[cold_damage|Cold damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[cold_damage|Cold damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to cold damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[cold_damage|Cold damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to cold damage.",
+        "description": "You have [[resistance|Resistance]] to [[cold_damage|Cold damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",
@@ -6536,7 +6624,7 @@
         "description": "You can cast Fog Cloud with this trait. Starting at 3rd level, you can cast Gust of Wind with it, and starting at 5th level, you can also cast Water Walk with it. Once you cast any of these spells with this trait, you can’t cast that spell with it again until you finish a long rest. You can also cast these spells using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).",
         "status": "Implemented",
         "mechanism": "Racial Spellcasting Engine",
-        "evidence": "Spells from this trait (these-spells-using-any) are resolved and granted via getRacialSpellGrantsForCharacter."
+        "evidence": "Spells from this trait (fog-cloud, gust-of-wind, water-walk, these-spells-using-any) are resolved and granted via getRacialSpellGrantsForCharacter."
       },
       {
         "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
@@ -6933,28 +7021,36 @@
         "evidence": "Referenced in: src\\components\\CharacterCreator\\NameAndReview.tsx: \"<span className=\"text-amber-500/80 font-semibold mr-2\">Draconic Ancestry:</span>\"; src\\components\\CharacterCreator\\Race\\DragonbornAncestrySelection.tsx: \"* It allows the player to choose their Draconic Ancestry (e.g., Red, Blue, Gold dragon),\"; src\\types\\character.ts: \"label: string; // Display label (e.g., \"Draconic Ancestry\")\"; src\\utils\\character\\characterValidation.ts: \"label: 'Draconic Ancestry',\""
       },
       {
-        "rawText": "Breath Weapon: You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "rawText": "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[cold_damage|Cold damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "name": "Breath Weapon",
-        "description": "You can use your Breath Weapon as part of the Attack action. You exhale destructive energy in a 15-foot cone. Each creature in the area must make a Dexterity saving throw (DC 8 + your Constitution modifier + your proficiency bonus). On a failed save, a creature takes 1d10 cold damage. On a successful save, it takes half as much damage. This damage increases to 2d10 at 5th level, 3d10 at 11th level, and 4d10 at 17th level. After using your breath weapon, you can't use it again until you finish a short or long rest.",
+        "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[cold_damage|Cold damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
         "status": "Implemented",
-        "mechanism": "Racial resource materializer",
-        "evidence": "Usage limits and reset conditions are extracted and applied to character state."
+        "mechanism": "Custom system logic",
+        "evidence": "Referenced in: src\\components\\CharacterSheet\\Overview\\CharacterOverview.tsx: \"<p>Breath Weapon: <span className=\"font-semibold text-amber-300\">\"; src\\utils\\combat\\combatUtils.ts: \"// Add Breath Weapon as a Combat Ability\""
       },
       {
-        "rawText": "Damage Resistance: You have resistance to cold damage.",
+        "rawText": "Damage Resistance: You have [[resistance|Resistance]] to [[cold_damage|Cold damage]].",
         "name": "Damage Resistance",
-        "description": "You have resistance to cold damage.",
+        "description": "You have [[resistance|Resistance]] to [[cold_damage|Cold damage]].",
         "status": "Implemented",
         "mechanism": "Damage-type defense materializer",
         "evidence": "Defenses are extracted via getRacialDefenseBucketsFromTraitText and applied to character state."
       },
       {
-        "rawText": "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "rawText": "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "name": "Vision",
-        "description": "You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+        "description": "You have [[darkvision|Darkvision]] with a range of 60 feet.",
         "status": "Implemented",
         "mechanism": "Darkvision range parser",
         "evidence": "calculateCharacterDarkvisionFromRace parses range from the Vision/Darkvision trait string."
+      },
+      {
+        "rawText": "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "name": "Draconic Flight (Level 5)",
+        "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+        "status": "Text-Only",
+        "mechanism": "",
+        "evidence": ""
       },
       {
         "rawText": "Draconic Language: You can speak, read, and write Draconic.",

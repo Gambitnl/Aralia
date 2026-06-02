@@ -18,6 +18,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '@/types/combat'
 import { isHealingEffect } from '../../types/spells'
 import { rollDamage as rollFormula } from '../../utils/combatUtils'
+import { applyHealingAndRestore } from '../../utils/combat/deathSaveUtils'
 
 /**
  * Command to apply healing to targets.
@@ -65,18 +66,23 @@ export class HealingCommand extends BaseEffectCommand {
         }
       } else {
         // Standard Healing
-        const newHP = Math.min(target.maxHP, target.currentHP + healingRoll)
-        const actualHealing = newHP - target.currentHP
+        // We delegate HP addition, consciousness restoration, and death save resetting
+        // to the centralized applyHealingAndRestore utility.
+        const updatedTarget = applyHealingAndRestore(target, healingRoll);
+        const actualHealing = updatedTarget.currentHP - target.currentHP;
 
         // 3. Update character
         currentState = this.updateCharacter(currentState, target.id, {
-          currentHP: newHP
+          currentHP: updatedTarget.currentHP,
+          deathSaves: updatedTarget.deathSaves,
+          statusEffects: updatedTarget.statusEffects,
+          conditions: updatedTarget.conditions
         })
 
         // 4. Add combat log entry
         currentState = this.addLogEntry(currentState, {
           type: 'heal',
-          message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${newHP})`,
+          message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${updatedTarget.currentHP})`,
           characterId: target.id,
           data: { value: actualHealing }
         })

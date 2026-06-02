@@ -1,3 +1,8 @@
+/**
+ * @file SplitPaneLayout.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React from 'react';
 
 interface SplitPaneLayoutProps {

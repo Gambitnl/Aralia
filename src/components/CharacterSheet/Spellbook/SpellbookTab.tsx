@@ -31,7 +31,12 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
 
         const { spellbook, spellSlots } = character;
         const maxSpellLevelCharCanCast = Math.max(0, ...Object.keys(spellSlots ?? {}).map(k => parseInt(k.replace('level_', ''))));
-        const lvls = Array.from({ length: maxSpellLevelCharCanCast + 1 }, (_, i) => i);
+        
+        // Include levels for future racial spell grants
+        const racialFutureLevels = (character.race.knownSpells ?? [])
+            .map(s => allSpellsData[s.spellId]?.level ?? 0);
+        const maxLevel = Math.max(maxSpellLevelCharCanCast, ...racialFutureLevels, 0);
+        const lvls = Array.from({ length: maxLevel + 1 }, (_, i) => i);
 
         const classData = CLASSES_DATA[character.class.id];
         const classSpellList = classData?.spellcasting?.spellList
@@ -41,7 +46,8 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
         const known = new Set([
             ...(spellbook.cantrips ?? []),
             ...(spellbook.preparedSpells ?? []),
-            ...(spellbook.knownSpells ?? [])
+            ...(spellbook.knownSpells ?? []),
+            ...(character.race.knownSpells?.map(s => s.spellId) ?? [])
         ]);
 
         const prepared = new Set(spellbook.preparedSpells ?? []);
@@ -125,13 +131,16 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                         <div className="space-y-1">
                             {spellsToDisplay.map(spell => {
                                 const isAlwaysPrepared = character.class.id === 'druid' && spell.id === 'speak-with-animals';
-                                const isRacialAlwaysPrepared = isRacialSpellLockedForPreparation(character, spell.id);
+                                const racialAlwaysPrepared = isRacialSpellLockedForPreparation(character, spell.id);
+                                const racialGrant = character.race.knownSpells?.find(s => s.spellId === spell.id);
+                                const isFutureRacial = racialGrant && racialGrant.minLevel > (character.level || 1);
+                                
                                 // Known-spell casters choose spells permanently elsewhere, so this sheet should not offer preparation toggles for them.
                                 const isKnownCaster = ['bard', 'sorcerer', 'warlock', 'ranger'].includes(character.class.id.toLowerCase());
-                                const isKnown = knownSpellIds.has(spell.id);
-                                const isPrepared = preparedSpellIds.has(spell.id) || isAlwaysPrepared || isRacialAlwaysPrepared;
+                                const isKnown = knownSpellIds.has(spell.id) && !isFutureRacial;
+                                const isPrepared = (preparedSpellIds.has(spell.id) || isAlwaysPrepared || racialAlwaysPrepared) && !isFutureRacial;
                                 const isSelected = selectedSpellId === spell.id;
-                                const isLocked = isAlwaysPrepared || isRacialAlwaysPrepared;
+                                const isLocked = isAlwaysPrepared || racialAlwaysPrepared;
 
                                 return (
                                     <div
@@ -147,13 +156,18 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                         <div className="flex items-center gap-2 min-w-0">
                                             <span className={`material-symbols-outlined text-base ${isSelected ? 'text-purple-400' : 'text-slate-500 group-hover:text-purple-400'
                                                 }`}>
-                                                auto_fix_high
+                                                {isFutureRacial ? 'lock' : 'auto_fix_high'}
                                             </span>
                                             <span className={`text-sm truncate ${isSelected ? 'text-white font-medium' : 'text-slate-200'
                                                 }`}>
                                                 {spell.name}
                                             </span>
-                                            {isPrepared && (
+                                            {isFutureRacial && (
+                                                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700 font-bold tracking-wider flex-shrink-0">
+                                                    Level {racialGrant.minLevel}
+                                                </span>
+                                            )}
+                                            {isPrepared && !isFutureRacial && (
                                                 <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
                                                     {isAlwaysPrepared || isRacialAlwaysPrepared ? 'Always' : 'Prep'}
                                                 </span>

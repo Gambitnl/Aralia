@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/05/2026, 23:28:55
+ * Last Sync: 01/06/2026, 18:57:10
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 15 files
+ * Imports: 21 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,14 +25,17 @@
  *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability } from '../types/combat';
+import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability, LightSource, PocketedSummon, SpellDeliveryVisual } from '../types/combat';
+
+import { SpellMovementVisualInput } from './movementUtils';
+export type { SpellMovementVisualInput };
 import { GameState } from '../types';
-import type { AreaOfEffect, Spell, SpellEffect } from '../types/spells';
+import type { AreaOfEffect, Spell, SpellEffect, MovementEffect, TerrainEffect } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 import { getDistance, generateId } from '../utils/combatUtils';
-import { calculateSpellDC } from '../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow } from '../utils/savingThrowUtils';
 // TODO(lint-intent): 'hasLineOfSight' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -40,29 +43,79 @@ import { hasLineOfSight as _hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles, type AoEParams } from '../utils/combat/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/spatial/targetingUtils';
+import { findPath } from '../utils/spatial/pathfinding';
 import { Plane } from '../types/planes';
-import { useTargetValidator } from './combat/useTargetValidator';
+import { findFamiliarTouchDelivery, useTargetValidator } from './combat/useTargetValidator';
 import { consumeActionCost } from '../utils/combat/actionEconomyUtils';
 import {
   createMovementDebuff,
   createScheduledSpellEffect,
   createSpellZoneFromAoEParams,
+  createTerrainSpellZoneFromAoEParams,
   type ActiveSpellZone,
   type MovementTriggerDebuff,
   type ScheduledSpellEffect
 } from '../systems/spells/effects/triggerHandler';
+
+import {
+  hasPersistentAreaTrigger,
+  isTerrainEffect,
+  hasScheduledEffectTrigger,
+  hasTargetMovementTrigger,
+  isMovementEffect,
+  getDurationRounds
+} from './spellEffectUtils';
+
+import {
+  getMovementVisualType,
+  resolveImmediateAfterForcedMovementRepeatSaves,
+  buildResolvedMovementVisualPath
+} from './movementUtils';
+
+import {
+  hasTeleportMovementEffect,
+  addTeleportDestinationToSpell,
+  addTeleportDestinationsToSpell,
+  requiresUnassignedTeleportDestination
+} from './teleportUtils';
+
+import {
+  PerTargetChoicesByTargetId,
+  addPerTargetChoicesToSpell,
+  getPerTargetChoicesFromSpell,
+  requestPerTargetChoices
+} from './perTargetChoiceUtils';
+
+import {
+  buildAbilityCombatAction,
+  getZoneAreaFromAoEParams,
+  applyResourceSnapshotToCaster,
+  replaceCasterForCommandState,
+  buildCommandGameState,
+  resolveMultiTargetIds
+} from './actionUtils';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
   mapData: BattleMapData | null;
   onExecuteAction: (action: CombatAction) => boolean;
   onCharacterUpdate: (character: CombatCharacter) => void;
+  /** Replaces the visible combat roster when command results add or remove actors. */
+  onCharactersReplace?: (characters: CombatCharacter[]) => void;
   onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
   onLogEntry?: (entry: CombatLogEntry) => void;
   onNotification?: (message: string, type: 'info' | 'error' | 'warning' | 'success') => void;
   onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
   reactiveTriggers?: ReactiveTrigger[];
   onReactiveTriggerUpdate?: (triggers: ReactiveTrigger[]) => void;
+  /** Current live light-source state so command execution starts from the map's real lights. */
+  activeLightSources?: LightSource[];
+  /** Publishes command-created or command-removed lights back to the live encounter. */
+  onActiveLightSourcesUpdate?: (lightSources: LightSource[]) => void;
+  /** Current off-map summons that remain bound, such as a dismissed familiar. */
+  pocketedSummons?: PocketedSummon[];
+  /** Publishes familiar pocket-state changes created by command execution. */
+  onPocketedSummonsUpdate?: (pocketedSummons: PocketedSummon[]) => void;
   onMapUpdate?: (mapData: BattleMapData) => void;
   /** Registers persistent spell zones created by structured area-trigger effects. */
   onAddSpellZone?: (zone: ActiveSpellZone) => void;
@@ -70,6 +123,10 @@ interface UseAbilitySystemProps {
   onAddScheduledSpellEffect?: (effect: ScheduledSpellEffect) => void;
   /** Registers target movement debuffs such as Booming Blade-style delayed triggers. */
   onAddMovementDebuff?: (debuff: MovementTriggerDebuff) => void;
+  /** Registers resolved forced-movement and teleport cues for combat-map renderers. */
+  onAddSpellMovementVisual?: (visual: SpellMovementVisualInput) => void;
+  /** Registers a familiar-origin cue when a touch spell is delivered through a familiar. */
+  onAddSpellDeliveryVisual?: (visual: Omit<SpellDeliveryVisual, 'id' | 'createdAt'>) => void;
   currentPlane?: Plane; // NEW: Added plane context
 }
 
@@ -81,154 +138,37 @@ export interface PendingReaction {
   onResolve: (usedSpellId: string | null) => void;
 }
 
-// ============================================================================
-// Ability Action Resource Preservation
-// ============================================================================
-// The turn manager spends actions, bonus actions, reactions, movement, and spell
-// slots before command effects resolve. These helpers keep that spent-resource
-// state attached to the caster when command results are replayed back into React
-// state, so an attack or spell cannot restore an older pre-action snapshot.
-// ============================================================================
-
-const buildAbilityCombatAction = (
-  ability: Ability,
-  caster: CombatCharacter,
-  targetPosition: Position,
-  targetCharacterIds: string[]
-): CombatAction => ({
-  id: generateId(),
-  characterId: caster.id,
-  type: 'ability',
-  abilityId: ability.id,
-  targetPosition,
-  targetCharacterIds,
-  cost: ability.cost,
-  timestamp: Date.now()
-});
-
-const AREA_ZONE_TRIGGER_TYPES = new Set([
-  'on_enter_area',
-  'on_exit_area',
-  'on_end_turn_in_area',
-  'on_move_in_area'
-]);
-
-const hasPersistentAreaTrigger = (effect: SpellEffect): boolean => {
-  const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
-  return typeof triggerType === 'string' && AREA_ZONE_TRIGGER_TYPES.has(triggerType);
-};
-
-const SCHEDULED_EFFECT_TRIGGER_TYPES = new Set(['turn_start', 'turn_end']);
-
-const hasScheduledEffectTrigger = (effect: SpellEffect): boolean => {
-  const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
-  return typeof triggerType === 'string' && SCHEDULED_EFFECT_TRIGGER_TYPES.has(triggerType);
-};
-
-const hasTargetMovementTrigger = (effect: SpellEffect): boolean => {
-  const triggerType = (effect as { trigger?: { type?: string } }).trigger?.type;
-  return triggerType === 'on_target_move';
-};
-
-const getDurationRounds = (spell: Spell): number | undefined => {
-  const duration = spell.duration;
-  if (!duration.value || duration.type === 'instantaneous') return undefined;
-
-  switch (duration.unit) {
-    case 'round':
-      return duration.value;
-    case 'minute':
-      return duration.value * 10;
-    case 'hour':
-      return duration.value * 600;
-    case 'day':
-      return duration.value * 14400;
-    default:
-      return undefined;
-  }
-};
-
-const getZoneAreaFromAoEParams = (
-  areaOfEffect: AreaOfEffect,
-  aoeParams: AoEParams
-): { shape: string; size: number } => ({
-  shape: areaOfEffect.shape,
-  // Use the resolved AoE size so persistent zone containment follows the same
-  // unit convention as targeting previews and immediate affected-tile lookup.
-  size: aoeParams.size
-});
-
-const applyResourceSnapshotToCaster = (
-  finalCaster: CombatCharacter,
-  resourceSnapshot: CombatCharacter
-): CombatCharacter => ({
-  ...finalCaster,
-  actionEconomy: resourceSnapshot.actionEconomy,
-  spellSlots: resourceSnapshot.spellSlots
-});
-
-const replaceCasterForCommandState = (
-  characters: CombatCharacter[],
-  casterWithPaidCost: CombatCharacter
-): CombatCharacter[] => {
-  return characters.map(character => character.id === casterWithPaidCost.id ? casterWithPaidCost : character);
-};
-
-// Multi-target spells already encode how many creatures they can affect.
-// The combat selector keeps that structure intact by turning the clicked
-// target into a full, ordered target list instead of collapsing back to one.
-const resolveMultiTargetIds = (
-  ability: Ability,
-  caster: CombatCharacter,
-  clickedTarget: CombatCharacter,
-  characters: CombatCharacter[],
-  getValidTargets: (ability: Ability, caster: CombatCharacter) => Position[]
-): string[] => {
-  const spellTargeting = (ability.spell as Spell | undefined)?.targeting;
-
-  if (spellTargeting?.type !== 'multi') {
-    return [clickedTarget.id];
-  }
-
-  const maxTargets = Math.max(1, resolveScalableNumber(spellTargeting.maxTargets, caster.level));
-  const validTargetKeys = new Set(
-    getValidTargets(ability, caster).map(position => `${position.x}-${position.y}`)
-  );
-
-  const orderedTargets = characters
-    .filter(character => validTargetKeys.has(`${character.position.x}-${character.position.y}`))
-    .sort((left, right) => {
-      const leftDistance = getDistance(caster.position, left.position);
-      const rightDistance = getDistance(caster.position, right.position);
-      if (leftDistance !== rightDistance) {
-        return leftDistance - rightDistance;
-      }
-      return left.id.localeCompare(right.id);
-    });
-
-  const clickedFirst = [
-    clickedTarget,
-    ...orderedTargets.filter(character => character.id !== clickedTarget.id)
-  ];
-
-  return clickedFirst.slice(0, maxTargets).map(character => character.id);
-};
+interface PendingTeleportDestinationAssignment {
+  ability: Ability;
+  casterId: string;
+  targetIds: string[];
+  initialTargetPosition: Position;
+  activeTargetIndex: number;
+  destinationsByTargetId: Record<string, Position>;
+}
 
 export const useAbilitySystem = ({
   characters,
   mapData,
   onExecuteAction,
   onCharacterUpdate,
+  onCharactersReplace,
   onAbilityEffect: _onAbilityEffect,
   onLogEntry,
   onNotification,
   onRequestInput,
   reactiveTriggers,
   onReactiveTriggerUpdate,
+  activeLightSources,
+  onActiveLightSourcesUpdate,
+  pocketedSummons,
+  onPocketedSummonsUpdate,
   onMapUpdate,
   onAddSpellZone,
   onAddScheduledSpellEffect,
   onAddMovementDebuff,
+  onAddSpellMovementVisual,
+  onAddSpellDeliveryVisual,
   currentPlane
 }: UseAbilitySystemProps) => {
 
@@ -237,9 +177,12 @@ export const useAbilitySystem = ({
     selectedAbility,
     targetingMode,
     aoePreview,
+    teleportDestinationPreview,
     startTargeting: baseStartTargeting,
-    cancelTargeting,
-    previewAoE
+    cancelTargeting: baseCancelTargeting,
+    previewAoE,
+    previewTeleportDestinations,
+    isTeleportDestination
   } = useTargeting({ mapData: mapData ?? null, characters });
 
   // Delegate Validation Logic to specialized hook
@@ -250,6 +193,12 @@ export const useAbilitySystem = ({
     getCharacterAtPosition
   } = useTargetValidator({ characters, mapData });
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
+  const [pendingTeleportAssignment, setPendingTeleportAssignment] = useState<PendingTeleportDestinationAssignment | null>(null);
+
+  const cancelTargeting = useCallback(() => {
+    setPendingTeleportAssignment(null);
+    baseCancelTargeting();
+  }, [baseCancelTargeting]);
 
   const requestReaction = useCallback((attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage', reactionSpells: Spell[]): Promise<string | null> => {
     return new Promise(resolve => {
@@ -273,6 +222,7 @@ export const useAbilitySystem = ({
   const mapDataRef = useRef(mapData);
   const reactiveTriggersRef = useRef(reactiveTriggers);
   const currentPlaneRef = useRef(currentPlane);
+  const pocketedSummonsRef = useRef(pocketedSummons);
 
   // Sync refs with props
   useEffect(() => {
@@ -280,7 +230,8 @@ export const useAbilitySystem = ({
     mapDataRef.current = mapData;
     reactiveTriggersRef.current = reactiveTriggers;
     currentPlaneRef.current = currentPlane;
-  }, [characters, mapData, reactiveTriggers, currentPlane]);
+    pocketedSummonsRef.current = pocketedSummons;
+  }, [characters, mapData, reactiveTriggers, currentPlane, pocketedSummons]);
 
   // --- Command Pattern Execution Logic (Actions - Stable) ---
   const executeSpell = useCallback(
@@ -306,11 +257,40 @@ export const useAbilitySystem = ({
         : currentCharacters;
 
       // 0. Check for AI Input Requirements
+      if (spell.modeChoice && !playerInput) {
+        if (onRequestInput) {
+          onRequestInput(spell, (input) => {
+            // Mode-choice spells need the selected option label before command
+            // creation, because SpellCommandFactory uses that label to keep
+            // only the chosen effect branch. Re-enter the same execution path
+            // after the UI supplies the choice.
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration);
+          });
+          return;
+        }
+
+        const message = `${spell.name} needs a mode choice before it can be cast.`;
+        console.warn(message);
+        if (onNotification) onNotification(message, 'error');
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message,
+            characterId: caster.id,
+            targetIds: targets.map(target => target.id),
+            data: { spellId: spell.id, pendingGap: 'SSO-MODECHOICE-UI-INPUT-001' }
+          });
+        }
+        return;
+      }
+
       if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
         if (onRequestInput) {
           onRequestInput(spell, (input) => {
             // Re-trigger execution with the collected input
-            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot);
+            executeSpellImpl(spell, caster, targets, castAtLevel, input, resourceSnapshot, zoneRegistration);
           });
           return; // Halt execution until input is provided
         } else {
@@ -336,12 +316,12 @@ export const useAbilitySystem = ({
         validMoves: [],
         combatLog: [], // Start empty to capture new entries
         reactiveTriggers: currentTriggers || [], // Pass current triggers
-        activeLightSources: [],
+        activeLightSources: activeLightSources || [],
         currentPlane: activePlane,
         mapData: currentMapData ?? undefined // Add mapData to context if needed by commands
       };
 
-      const mockGameState = {} as unknown as GameState;
+      const commandGameState = buildCommandGameState(commandCharacters, currentMapData, activePlane);
 
       try {
         // Asynchronously generate the chain of effect commands
@@ -350,7 +330,7 @@ export const useAbilitySystem = ({
           caster,
           targets,
           castAtLevel,
-          mockGameState,
+          commandGameState,
           playerInput,
           activePlane,
           requestReaction
@@ -360,8 +340,11 @@ export const useAbilitySystem = ({
         const result = await CommandExecutor.execute(commands, currentState);
 
         if (result.success) {
+          const movementEffects = spell.effects.filter(isMovementEffect);
+          const finalState = resolveImmediateAfterForcedMovementRepeatSaves(result.finalState, targets, movementEffects);
+
           // 4. Propagate State Changes
-          result.finalState.characters.forEach(finalChar => {
+          finalState.characters.forEach(finalChar => {
             const isTarget = targets.some(t => t.id === finalChar.id);
             const isCaster = caster.id === finalChar.id;
 
@@ -374,19 +357,48 @@ export const useAbilitySystem = ({
 
           // 5. Propagate Log Entries
           if (onLogEntry) {
-            result.finalState.combatLog.forEach(entry => onLogEntry(entry));
+            finalState.combatLog.forEach(entry => onLogEntry(entry));
           }
 
           // 6. Propagate Reactive Triggers
-          if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
-            onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
+          if (onReactiveTriggerUpdate && finalState.reactiveTriggers !== currentState.reactiveTriggers) {
+            onReactiveTriggerUpdate(finalState.reactiveTriggers);
+          }
+
+          // Light spells mutate CombatState.activeLightSources inside command
+          // execution. Feed that array back to the turn manager so visibility,
+          // 2D map visuals, and 3D VFX all observe the same light state.
+          if (onActiveLightSourcesUpdate && finalState.activeLightSources !== currentState.activeLightSources) {
+            onActiveLightSourcesUpdate(finalState.activeLightSources || []);
           }
 
           // 7. Propagate Map Changes
-          if (onMapUpdate && result.finalState.mapData) {
-            if (result.finalState.mapData !== mapDataRef.current) {
-              onMapUpdate(result.finalState.mapData);
+          if (onMapUpdate && finalState.mapData) {
+            if (finalState.mapData !== mapDataRef.current) {
+              onMapUpdate(finalState.mapData);
             }
+          }
+
+          if (onAddSpellMovementVisual && movementEffects.length > 0) {
+            const movementVisualType = getMovementVisualType(movementEffects);
+            targets.forEach(target => {
+              const finalTarget = finalState.characters.find(candidate => candidate.id === target.id);
+              if (!finalTarget) return;
+              if (target.position.x === finalTarget.position.x && target.position.y === finalTarget.position.y) return;
+
+              // Immediate movement spells resolve through the command factory.
+              // Compare the command result against the original target position
+              // so the map cue shows what actually happened after validation,
+              // blocking, and teleport fallback instead of predicting from data.
+              onAddSpellMovementVisual({
+                spellId: spell.id,
+                targetId: target.id,
+                type: movementVisualType,
+                from: target.position,
+                to: finalTarget.position,
+                path: buildResolvedMovementVisualPath(currentMapData, target.position, finalTarget.position, movementVisualType)
+              });
+            });
           }
 
           // Persistent area triggers need an ActiveSpellZone so movement and
@@ -407,6 +419,22 @@ export const useAbilitySystem = ({
               currentState.turnState.currentTurn,
               getDurationRounds(spell),
               castSaveDC
+            ));
+          }
+
+          if (onAddSpellZone && !mapDataRef.current && zoneRegistration && spell.effects.some(isTerrainEffect)) {
+            // Map-present terrain spells mutate map tiles through TerrainCommand.
+            // Mapless combat has no tile grid, so preserve the affected terrain
+            // area as a durable spell zone that future movement, hazard, or
+            // summary UI can inspect after the combat log scrolls away.
+            onAddSpellZone(createTerrainSpellZoneFromAoEParams(
+              spell.id,
+              caster.id,
+              zoneRegistration.aoeParams,
+              getZoneAreaFromAoEParams(zoneRegistration.areaOfEffect, zoneRegistration.aoeParams),
+              spell.effects.filter(isTerrainEffect),
+              0,
+              getDurationRounds(spell)
             ));
           }
 
@@ -475,7 +503,7 @@ export const useAbilitySystem = ({
         }
       }
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onMapUpdate, onAddSpellZone, onAddScheduledSpellEffect, onAddMovementDebuff]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources]
   );
 
 
@@ -488,7 +516,8 @@ export const useAbilitySystem = ({
     ability: Ability,
     caster: CombatCharacter,
     targetPosition: Position,
-    targetCharacterIds: string[]
+    targetCharacterIds: string[],
+    playerInput?: string
   ) => {
     // Access latest data from refs
     const currentCharacters = charactersRef.current;
@@ -509,6 +538,74 @@ export const useAbilitySystem = ({
         .map(id => currentCharacters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
 
+      const perTargetChoice = ability.spell.targeting.perTargetChoice;
+      const existingPerTargetChoices = getPerTargetChoicesFromSpell(ability.spell);
+      if (perTargetChoice?.required && !playerInput && !existingPerTargetChoices) {
+        if (targetCharacterIds.length === 1 && onRequestInput) {
+          onRequestInput(ability.spell, (input) => {
+            // A one-target cast can reuse the existing spell-input bridge: the
+            // selected option belongs to that one target and is passed into
+            // command creation as playerInput. Multi-target casts use the
+            // sequential assignment flow below instead.
+            executeAbilityInternal(ability, caster, targetPosition, targetCharacterIds, input);
+          });
+          return;
+        }
+
+        if (targetCharacterIds.length > 1 && onRequestInput) {
+          requestPerTargetChoices(ability.spell, targets, onRequestInput, (choicesByTargetId) => {
+            // Higher-slot casts need one option per selected target. Clone the
+            // ability's spell for this cast with the completed assignment map,
+            // then re-enter execution so the action is not spent until every
+            // target has a recorded choice.
+            executeAbilityInternal({
+              ...ability,
+              spell: addPerTargetChoicesToSpell(ability.spell, choicesByTargetId)
+            } as Ability, caster, targetPosition, targetCharacterIds);
+          });
+          return;
+        }
+
+        const message = targetCharacterIds.length > 1
+          ? `${ability.name} needs one choice per selected target before it can resolve.`
+          : `${ability.name} needs a target choice before it can resolve.`;
+        if (onNotification) onNotification(message, 'error');
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message,
+            characterId: liveCaster.id,
+            targetIds: targetCharacterIds,
+            data: { abilityName: ability.name, pendingGap: 'SSO-PER-TARGET-CHOICE-EXECUTION-001' }
+          });
+        }
+        cancelTargeting();
+        return;
+      }
+
+      if (requiresUnassignedTeleportDestination(ability)) {
+        // Direct execution calls still need protection. The map-click flow now
+        // fills destinationsByTargetId first, but tests, AI callers, or future
+        // panels may call executeAbility directly before destination assignment.
+        const message = `${ability.name} needs destination choices for its teleport targets before it can resolve.`;
+        if (onNotification) onNotification(message, 'error');
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message,
+            characterId: liveCaster.id,
+            targetIds: targetCharacterIds,
+            data: { abilityName: ability.name, pendingGap: 'SSO-TELEPORT-DESTINATION-SELECTION-001' }
+          });
+        }
+        cancelTargeting();
+        return;
+      }
+
       const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
 
       if (!onExecuteAction(action)) {
@@ -525,12 +622,60 @@ export const useAbilitySystem = ({
         ? { areaOfEffect: ability.areaOfEffect, aoeParams: zoneAoEParams }
         : undefined;
 
+      const perTargetChoicesForExecution = existingPerTargetChoices
+        ?? (perTargetChoice?.required && playerInput && targetCharacterIds.length === 1
+          ? { [targetCharacterIds[0]]: playerInput }
+          : undefined);
+      const spellWithPerTargetChoices = perTargetChoicesForExecution
+        ? addPerTargetChoicesToSpell(ability.spell, perTargetChoicesForExecution)
+        : ability.spell;
+
+      // Self-teleports use the clicked map tile as a destination, while the
+      // caster remains the affected creature. Clone the spell payload at the
+      // cast boundary so MovementCommand receives the same destination the
+      // preview made selectable without mutating shared spell data.
+      const spellForExecution = ability.targeting === 'self' && hasTeleportMovementEffect(ability)
+        ? addTeleportDestinationToSpell(spellWithPerTargetChoices, targetPosition)
+        : spellWithPerTargetChoices;
+
+      const touchDelivery = targetCharacterIds.length === 1
+        ? findFamiliarTouchDelivery(
+            ability,
+            liveCaster,
+            currentCharacters.find(character => character.id === targetCharacterIds[0]) ?? null,
+            currentCharacters
+          )
+        : null;
+
+      if (touchDelivery) {
+        // Find Familiar delivery uses the familiar's reaction. Spend it at the
+        // same boundary as the caster's spell cost so the action economy cannot
+        // deliver multiple touch spells through one familiar turn. The spell
+        // still resolves as the caster's spell; this only updates the familiar
+        // actor that provided the delivery origin.
+        const updatedFamiliar = consumeActionCost(touchDelivery.familiar, { type: 'reaction' });
+        charactersRef.current = charactersRef.current.map(character =>
+          character.id === updatedFamiliar.id ? updatedFamiliar : character
+        );
+        onCharacterUpdate(updatedFamiliar);
+        onAddSpellDeliveryVisual?.({
+          spellId: spellForExecution.id,
+          spellName: spellForExecution.name,
+          casterId: liveCaster.id,
+          familiarId: updatedFamiliar.id,
+          targetId: targetCharacterIds[0],
+          from: updatedFamiliar.position,
+          to: targetPosition,
+          label: 'FAMILIAR TOUCH'
+        });
+      }
+
       executeSpell(
-        ability.spell,
+        spellForExecution,
         casterAfterCost,
         targets,
-        ability.spell.level,
-        undefined,
+        spellForExecution.level,
+        playerInput,
         casterAfterCost,
         zoneRegistration
       );
@@ -571,27 +716,53 @@ export const useAbilitySystem = ({
       validMoves: [],
       combatLog: [],
       reactiveTriggers: currentTriggers || [],
-      activeLightSources: [],
+      activeLightSources: activeLightSources || [],
+      pocketedSummons: pocketedSummonsRef.current || [],
       currentPlane: activePlane,
       mapData: mapDataRef.current ?? undefined
     };
 
-    const mockGameState = {} as unknown as GameState;
+    const commandGameState = buildCommandGameState(commandCharacters, mapDataRef.current, activePlane);
 
     // Use Factory
     const targets = targetCharacterIds
       .map(id => currentCharacters.find(c => c.id === id))
       .filter((c): c is CombatCharacter => !!c);
 
-    const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, mockGameState);
+    const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, commandGameState);
 
     // Execute
     const result = CommandExecutor.execute(commands, currentState);
 
     if (result.success) {
+      const finalCharacters = result.finalState.characters.map(finalChar =>
+        finalChar.id === liveCaster.id
+          ? applyResourceSnapshotToCaster(finalChar, casterAfterCost)
+          : finalChar
+      );
+      const commandCharacterIds = new Set(commandCharacters.map(character => character.id));
+      const finalCharacterIds = new Set(result.finalState.characters.map(character => character.id));
+      const rosterChanged = commandCharacters.length !== result.finalState.characters.length ||
+        commandCharacters.some(character => !finalCharacterIds.has(character.id)) ||
+        result.finalState.characters.some(character => !commandCharacterIds.has(character.id));
+
+      // Some commands change the encounter roster itself instead of only
+      // changing caster/target fields. Familiar pocketing removes or restores a
+      // summon actor, so publish the full roster when actor IDs change.
+      if (rosterChanged && onCharactersReplace) {
+        onCharactersReplace(finalCharacters);
+      }
+
+      // Pocketed summons are off-map state, not character fields. Publish that
+      // side channel explicitly so dismiss/recall commands can survive beyond
+      // the temporary command-state object used by this hook.
+      if (onPocketedSummonsUpdate && result.finalState.pocketedSummons !== currentState.pocketedSummons) {
+        onPocketedSummonsUpdate(result.finalState.pocketedSummons || []);
+      }
+
       // Propagate State Changes
-      if (commands.length > 0) {
-        result.finalState.characters.forEach(finalChar => {
+      if (commands.length > 0 && !rosterChanged) {
+        finalCharacters.forEach(finalChar => {
           const isTarget = targetCharacterIds.includes(finalChar.id);
           const isCaster = liveCaster.id === finalChar.id;
 
@@ -599,9 +770,7 @@ export const useAbilitySystem = ({
           // action executor's Dash/Disengage mutations when an ability has no
           // command-side effect to apply.
           if (isTarget || isCaster) {
-            onCharacterUpdate(isCaster
-              ? applyResourceSnapshotToCaster(finalChar, casterAfterCost)
-              : finalChar);
+            onCharacterUpdate(finalChar);
           }
         });
       }
@@ -609,6 +778,12 @@ export const useAbilitySystem = ({
       // Propagate Logs
       if (onLogEntry) {
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
+      }
+
+      // Ability-backed utility commands can also create light sources. Publish
+      // the final command-state light array just like the spell-backed path.
+      if (onActiveLightSourcesUpdate && result.finalState.activeLightSources !== currentState.activeLightSources) {
+        onActiveLightSourcesUpdate(result.finalState.activeLightSources || []);
       }
 
       // Handle Cooldowns (Manually for now, could be a command)
@@ -653,7 +828,7 @@ export const useAbilitySystem = ({
 
     cancelTargeting();
   // TODO(lint-intent): Wire the ability-effect callback into the execution path if VFX hooks are needed.
-  }, [onExecuteAction, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry]); // Refs are stable, omitted
+  }, [onExecuteAction, onCharacterUpdate, onCharactersReplace, onPocketedSummonsUpdate, cancelTargeting, executeSpell, onLogEntry, onNotification, onActiveLightSourcesUpdate, onAddSpellDeliveryVisual, activeLightSources]); // Refs are stable, omitted
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);
@@ -662,17 +837,23 @@ export const useAbilitySystem = ({
 
   /**
    * Initiates the targeting flow.
-   * If 'self' targeting, executes immediately.
+   * If 'self' targeting, executes immediately unless the self spell still
+   * needs a destination choice, such as Misty Step.
    */
   const startTargeting = useCallback((ability: Ability, caster: CombatCharacter) => {
     baseStartTargeting(ability);
+
+    if (ability.targeting === 'self' && ability.spell && hasTeleportMovementEffect(ability)) {
+      previewTeleportDestinations(ability, caster, caster);
+      return;
+    }
 
     // Auto-cast for Self abilities
     if (ability.targeting === 'self') {
       executeAbility(ability, caster, caster.position, [caster.id]);
       return;
     }
-  }, [executeAbility, baseStartTargeting]);
+  }, [executeAbility, baseStartTargeting, previewTeleportDestinations]);
 
 
   /**
@@ -683,6 +864,107 @@ export const useAbilitySystem = ({
     // Note: selectedAbility is from hook state (props/reactive), not ref.
     // This is fine as selectTarget is re-created if selectedAbility changes (which is rare during targeting).
     if (!selectedAbility) return false;
+
+    if (pendingTeleportAssignment) {
+      const activeTargetId = pendingTeleportAssignment.targetIds[pendingTeleportAssignment.activeTargetIndex];
+      const activeTarget = charactersRef.current.find(character => character.id === activeTargetId);
+      if (!activeTarget) {
+        cancelTargeting();
+        return false;
+      }
+
+      if (!isTeleportDestination(targetPosition)) {
+        const message = `${selectedAbility.name} needs a visible, unoccupied destination for ${activeTarget.name} within range.`;
+        if (onNotification) onNotification(message, 'error');
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message,
+            characterId: caster.id,
+            targetIds: pendingTeleportAssignment.targetIds,
+            data: { abilityName: selectedAbility.name, activeTargetId, attemptedDestination: targetPosition }
+          });
+        }
+        return false;
+      }
+
+      const destinationsByTargetId = {
+        ...pendingTeleportAssignment.destinationsByTargetId,
+        [activeTargetId]: targetPosition
+      };
+      const nextTargetIndex = pendingTeleportAssignment.activeTargetIndex + 1;
+      const nextTargetId = pendingTeleportAssignment.targetIds[nextTargetIndex];
+      const nextTarget = nextTargetId
+        ? charactersRef.current.find(character => character.id === nextTargetId)
+        : null;
+
+      if (nextTarget) {
+        setPendingTeleportAssignment({
+          ...pendingTeleportAssignment,
+          activeTargetIndex: nextTargetIndex,
+          destinationsByTargetId
+        });
+        previewTeleportDestinations(pendingTeleportAssignment.ability, caster, nextTarget);
+        if (onNotification) {
+          onNotification(`Choose a teleport destination for ${nextTarget.name}.`, 'info');
+        }
+        return false;
+      }
+
+      // Once every moved target has a destination, clone the rich spell payload
+      // with the assignment map and execute the normal spell path. This keeps
+      // the map-click UI simple while giving MovementCommand exact per-target
+      // landing spaces instead of fallback guesses.
+      const assignedAbility = {
+        ...pendingTeleportAssignment.ability,
+        spell: pendingTeleportAssignment.ability.spell
+          ? addTeleportDestinationsToSpell(pendingTeleportAssignment.ability.spell, destinationsByTargetId)
+          : undefined
+      } as Ability;
+
+      setPendingTeleportAssignment(null);
+      executeAbility(
+        assignedAbility,
+        caster,
+        pendingTeleportAssignment.initialTargetPosition,
+        pendingTeleportAssignment.targetIds
+      );
+      return true;
+    }
+
+    // Self-teleports target the caster but ask the player for a destination
+    // tile. This branch lets the destination preview become an executable
+    // choice without pretending the destination tile itself is the spell target.
+    if (
+      selectedAbility.targeting === 'self' &&
+      selectedAbility.spell &&
+      hasTeleportMovementEffect(selectedAbility)
+    ) {
+      if (isTeleportDestination(targetPosition)) {
+        executeAbility(selectedAbility, caster, targetPosition, [caster.id]);
+        return true;
+      }
+
+      // Self-teleport spells are in destination-pick mode, not ordinary
+      // self-target mode. If a future map surface sends an invalid tile click
+      // through this path, explain that the destination is illegal instead of
+      // falling through to the generic "can only target yourself" message.
+      const message = `${selectedAbility.name} needs a visible, unoccupied destination within range.`;
+      if (onNotification) onNotification(message, 'error');
+      if (onLogEntry) {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message,
+          characterId: caster.id,
+          data: { abilityName: selectedAbility.name, attemptedDestination: targetPosition }
+        });
+      }
+      return false;
+    }
 
     // WHAT CHANGED: Target selection now asks the validator for the reason a
     // target failed, not just the old true/false answer.
@@ -735,9 +1017,50 @@ export const useAbilitySystem = ({
       }
     }
 
+    if (requiresUnassignedTeleportDestination(selectedAbility)) {
+      const firstTargetId = targetCharacterIds[0];
+      const firstTarget = firstTargetId
+        ? charactersRef.current.find(character => character.id === firstTargetId)
+        : null;
+
+      if (!firstTarget) {
+        const message = `${selectedAbility.name} needs at least one teleport target before destinations can be chosen.`;
+        if (onNotification) onNotification(message, 'error');
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message,
+            characterId: caster.id,
+            data: { abilityName: selectedAbility.name }
+          });
+        }
+        return false;
+      }
+
+      // Multi-target teleports are target selection followed by destination
+      // assignment. Keep targeting mode alive, preview legal destinations for
+      // the first moved creature, and wait for one destination click per target
+      // before spending the action or creating commands.
+      setPendingTeleportAssignment({
+        ability: selectedAbility,
+        casterId: caster.id,
+        targetIds: targetCharacterIds,
+        initialTargetPosition: targetPosition,
+        activeTargetIndex: 0,
+        destinationsByTargetId: {}
+      });
+      previewTeleportDestinations(selectedAbility, caster, firstTarget);
+      if (onNotification) {
+        onNotification(`Choose a teleport destination for ${firstTarget.name}.`, 'info');
+      }
+      return false;
+    }
+
     executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds);
     return true;
-  }, [selectedAbility, executeAbility, getTargetValidation, getCharacterAtPosition, getValidTargets, onLogEntry]);
+  }, [selectedAbility, pendingTeleportAssignment, executeAbility, getTargetValidation, getCharacterAtPosition, getValidTargets, isTeleportDestination, previewTeleportDestinations, cancelTargeting, onLogEntry, onNotification]);
 
 
   /**
@@ -767,7 +1090,7 @@ export const useAbilitySystem = ({
       validMoves: [],
       combatLog: [],
       reactiveTriggers: currentTriggers || [],
-      activeLightSources: []
+      activeLightSources: activeLightSources || []
     };
 
     // Create Command manually (no Factory needed for simple drop)
@@ -791,8 +1114,14 @@ export const useAbilitySystem = ({
       if (onLogEntry) {
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
       }
+      // Dropping concentration can remove light sources linked to that spell.
+      // Publish the resulting light array so the map glow disappears with the
+      // underlying concentration state.
+      if (onActiveLightSourcesUpdate && result.finalState.activeLightSources !== currentState.activeLightSources) {
+        onActiveLightSourcesUpdate(result.finalState.activeLightSources || []);
+      }
     }
-  }, [onCharacterUpdate, onLogEntry]);
+  }, [onCharacterUpdate, onLogEntry, onActiveLightSourcesUpdate, activeLightSources]);
 
 
   // Expose API
@@ -805,6 +1134,8 @@ export const useAbilitySystem = ({
     selectedAbility,
     targetingMode,
     aoePreview,
+    teleportDestinationPreview,
+    pendingTeleportAssignment,
     getValidTargets,
     startTargeting,
     selectTarget,
@@ -814,13 +1145,14 @@ export const useAbilitySystem = ({
     getTargetValidation,
     executeSpell,
     executeAbility,
-
     dropConcentration,
     pendingReaction,
   }), [
     selectedAbility,
     targetingMode,
     aoePreview,
+    teleportDestinationPreview,
+    pendingTeleportAssignment,
     getValidTargets, // Reactive (Changes with map/chars)
     startTargeting, // Stable
     selectTarget, // Semi-stable (depends on selectedAbility)

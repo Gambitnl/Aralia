@@ -13,15 +13,33 @@
   },
   "characteristics": [
     {
-      "label": "Ancestry Boon",
-      "value": "Frost's Chill (Cold Damage & Slow)"
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "35 feet"
     }
   ],
   "traits": [
     {
+      "name": "Powerful Build",
+      "icon": "fitness_center",
+      "description": "You have [[advantage]] on saving throws you make to end the [[grappled_condition|Grappled]] condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+    },
+    {
       "name": "Frost's Chill",
       "icon": "mountain",
       "description": "When you hit a target with an attack roll, you can deal an extra 1d6 [[cold_damage|Cold damage]] and reduce the target's [[speed|Speed]] by 10 feet until the start of your next turn. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], regaining all uses on a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Large Form",
+      "icon": "expand",
+      "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to become [[size|Large]] for 1 minute. While Large, you have [[advantage]] on Strength checks and your speed increases by 10 feet. You can use this a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] per [[long_rest|Long Rest]]."
     }
   ],
   "tags": [

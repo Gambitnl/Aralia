@@ -1,17 +1,119 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 18:57:37
+ * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/index.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useState } from 'react';
-import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, Position, SpellEffectAnimationData } from '../../types/combat';
+import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber, LightSource, Position, SpellDeliveryVisual, SpellEffectAnimationData, SpellMovementVisual } from '../../types/combat';
 import DamageNumberOverlay from './DamageNumberOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { getStatusEffectIcon } from '../../utils/combatUtils';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
+import {
+  isPositionInArea,
+  type ActiveSpellZone,
+  type MovementTriggerDebuff,
+  type ScheduledSpellEffect
+} from '../../systems/spells/effects/triggerHandler';
+
+type ZoneVisualFamily = 'fire' | 'ice' | 'poison' | 'difficult_terrain' | 'web' | 'fog';
+
+const ZONE_VISUAL_STYLES: Record<ZoneVisualFamily, {
+  className: string;
+  label: string;
+}> = {
+  fire: {
+    className: 'border-orange-200/60 bg-orange-500/18 shadow-[inset_0_0_16px_rgba(249,115,22,0.34)]',
+    label: 'fire zone'
+  },
+  ice: {
+    className: 'border-sky-200/60 bg-sky-300/18 shadow-[inset_0_0_16px_rgba(56,189,248,0.34)]',
+    label: 'ice zone'
+  },
+  poison: {
+    className: 'border-lime-200/60 bg-lime-400/16 shadow-[inset_0_0_16px_rgba(132,204,22,0.34)]',
+    label: 'poison zone'
+  },
+  difficult_terrain: {
+    className: 'border-stone-200/50 bg-amber-900/18 shadow-[inset_0_0_14px_rgba(120,53,15,0.32)]',
+    label: 'difficult terrain zone'
+  },
+  web: {
+    className: 'border-slate-100/60 bg-slate-200/16 shadow-[inset_0_0_14px_rgba(226,232,240,0.32)]',
+    label: 'restraining zone'
+  },
+  fog: {
+    className: 'border-cyan-200/40 bg-cyan-300/10 shadow-[inset_0_0_14px_rgba(34,211,238,0.22)]',
+    label: 'obscuring zone'
+  }
+};
+
+const getZoneVisualFamily = (zone: ActiveSpellZone): ZoneVisualFamily => {
+  // Active zones preserve their original spell effects. Use those declarations
+  // to pick a visual family so the board shows "fire field" versus "fog/web"
+  // instead of treating every persistent spell area as the same cyan square.
+  for (const effect of zone.effects) {
+    if (effect.type === 'DAMAGE') {
+      const damageType = effect.damage.type;
+      if (damageType === 'fire') return 'fire';
+      if (damageType === 'cold') return 'ice';
+      if (damageType === 'poison' || damageType === 'acid') return 'poison';
+    }
+
+    if (effect.type === 'TERRAIN') {
+      if (effect.terrainType === 'difficult') return 'difficult_terrain';
+      if (effect.terrainType === 'obscuring') return 'fog';
+      if (effect.terrainType === 'blocking' || effect.terrainType === 'wall') return 'web';
+      if (effect.damage?.type === 'fire') return 'fire';
+      if (effect.damage?.type === 'cold') return 'ice';
+      if (effect.damage?.type === 'poison' || effect.damage?.type === 'acid') return 'poison';
+    }
+
+    if (effect.type === 'STATUS_CONDITION') {
+      const statusName = effect.statusCondition.name.toLowerCase();
+      if (statusName.includes('restrained') || statusName.includes('grappled')) return 'web';
+      if (statusName.includes('blinded')) return 'fog';
+      if (statusName.includes('poisoned')) return 'poison';
+    }
+  }
+
+  return 'fog';
+};
 
 interface BattleMapOverlayProps {
   mapData: BattleMapData;
   characters: CombatCharacter[];
   damageNumbers: DamageNumber[];
   animations: Animation[];
+  /** Active structured spell zones that should remain visible after targeting preview ends. */
+  spellZones?: ActiveSpellZone[];
+  /** Target-bound delayed spell effects that are waiting for a future turn timing. */
+  scheduledSpellEffects?: ScheduledSpellEffect[];
+  /** Target-bound movement punishments that are waiting for the target to move. */
+  movementDebuffs?: MovementTriggerDebuff[];
+  /** Live light-source records created by structured utility spells. */
+  activeLightSources?: LightSource[];
+  /** Resolved forced-movement and teleport cues created by structured spell payloads. */
+  spellMovementVisuals?: SpellMovementVisual[];
+  /** Familiar-origin touch spell delivery cues. */
+  spellDeliveryVisuals?: SpellDeliveryVisual[];
   aoePreview?: { center: { x: number; y: number }; affectedTiles: { x: number; y: number }[]; ability: Ability } | null;
+  /** Active teleport destination-pick state; labels which creature the blue destination tiles belong to. */
+  teleportDestinationPreview?: { targetId: string; affectedTiles: { x: number; y: number }[]; ability: Ability } | null;
+  /** Destinations already chosen during a multi-target teleport assignment. */
+  assignedTeleportDestinations?: Array<{ targetId: string; targetName: string; destination: Position; abilityName: string }>;
 }
 
 /**
@@ -38,11 +140,92 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
   characters,
   damageNumbers,
   animations,
+  spellZones = [],
+  scheduledSpellEffects = [],
+  movementDebuffs = [],
+  activeLightSources = [],
+  spellMovementVisuals = [],
+  spellDeliveryVisuals = [],
   aoePreview,
+  teleportDestinationPreview,
+  assignedTeleportDestinations = [],
 }) => {
   type SpellEffectOverlayData = SpellEffectAnimationData & { targetPosition?: Position };
   const spellAnimations = animations.filter(anim => anim.type === 'spell_effect');
   const [activeSpells, setActiveSpells] = useState<Record<string, boolean>>({});
+
+  // Active zones are persistent gameplay objects, not just cast previews. The
+  // overlay derives covered tiles from the same area containment helper used by
+  // trigger processing so what the player sees matches what the runtime checks.
+  const activeZoneTiles = spellZones.flatMap(zone => {
+    if (!zone.areaOfEffect) return [];
+    const visualFamily = getZoneVisualFamily(zone);
+
+    return Array.from(mapData.tiles.values())
+      .filter(tile => isPositionInArea(tile.coordinates, zone.position, zone.areaOfEffect!, zone.direction))
+      .map(tile => ({ zone, position: tile.coordinates, visualFamily }));
+  });
+
+  // Target-bound spell state is different from an area zone: it belongs to a
+  // creature rather than a tile template. Mark the target's tile so players can
+  // see which combatants are carrying delayed start/end-turn effects or
+  // movement-triggered punishments before those triggers resolve.
+  const targetBoundSpellMarkers = [
+    ...scheduledSpellEffects.map(effect => ({
+      id: `scheduled-${effect.id}`,
+      targetId: effect.targetId,
+      label: 'DELAY',
+      title: `${effect.spellId} resolves on ${effect.timing.replace('_', ' ')}`
+    })),
+    ...movementDebuffs.map(debuff => ({
+      id: `movement-${debuff.id}`,
+      targetId: debuff.targetId,
+      label: 'MOVE',
+      title: `${debuff.spellId} triggers if this target moves`
+    }))
+  ].flatMap(marker => {
+    const target = characters.find(character => character.id === marker.targetId);
+    return target ? [{ ...marker, position: target.position }] : [];
+  });
+
+  // Attack riders are caster-owned runtime effects, but target-specific riders
+  // like Hex matter to the creature being threatened. Show them on the target
+  // tile when possible, otherwise on the caster, so concentration cleanup has a
+  // visible 2D map artifact that disappears with the underlying rider state.
+  const riderSpellMarkers = characters.flatMap(caster => (
+    (caster.riders || []).map((rider, index) => {
+      const target = rider.targetId
+        ? characters.find(character => character.id === rider.targetId)
+        : null;
+      const markerOwner = target ?? caster;
+
+      return {
+        id: `rider-${caster.id}-${rider.id}`,
+        position: markerOwner.position,
+        label: 'RIDER',
+        title: `${rider.sourceName} rider from ${caster.name}`,
+        offset: index
+      };
+    })
+  ));
+
+  const activeTeleportTarget = teleportDestinationPreview
+    ? characters.find(character => character.id === teleportDestinationPreview.targetId)
+    : null;
+
+  // Light-source commands store attachment metadata rather than direct render
+  // coordinates. Resolve each light back to its current map position so moving
+  // casters/targets carry their glow and concentration cleanup removes the glow
+  // by removing the source record.
+  const lightSourceMarkers = activeLightSources.flatMap(source => {
+    const attachedCharacter = source.attachedToCharacterId
+      ? characters.find(character => character.id === source.attachedToCharacterId)
+      : null;
+    const caster = characters.find(character => character.id === source.casterId);
+    const position = attachedCharacter?.position || source.position || caster?.position;
+    if (!position) return [];
+    return [{ source, position }];
+  });
 
   useEffect(() => {
     const newIds: string[] = [];
@@ -76,6 +259,238 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
     >
       {/* Floating damage/heal numbers */}
       <DamageNumberOverlay damageNumbers={damageNumbers} />
+
+      {/* Live light-source radius markers */}
+      {lightSourceMarkers.map(({ source, position }) => {
+        const brightTiles = Math.max(0.25, source.brightRadius / 5);
+        const totalTiles = Math.max(brightTiles, (source.brightRadius + source.dimRadius) / 5);
+        const centerX = position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const centerY = position.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        return (
+          <React.Fragment key={`light-${source.id}`}>
+            <div
+              className="absolute rounded-full border border-amber-100/30 bg-amber-200/8"
+              title={`${source.sourceSpellId} dim light (${source.dimRadius} ft)`}
+              style={{
+                left: centerX - totalTiles * TILE_SIZE_PX,
+                top: centerY - totalTiles * TILE_SIZE_PX,
+                width: totalTiles * TILE_SIZE_PX * 2,
+                height: totalTiles * TILE_SIZE_PX * 2,
+                boxShadow: '0 0 24px rgba(251, 191, 36, 0.20)',
+                zIndex: Z_INDEX.CONTENT_OVERLAY_LOW,
+              }}
+            />
+            <div
+              className="absolute rounded-full border border-yellow-100/50 bg-yellow-200/14"
+              title={`${source.sourceSpellId} bright light (${source.brightRadius} ft)`}
+              style={{
+                left: centerX - brightTiles * TILE_SIZE_PX,
+                top: centerY - brightTiles * TILE_SIZE_PX,
+                width: brightTiles * TILE_SIZE_PX * 2,
+                height: brightTiles * TILE_SIZE_PX * 2,
+                boxShadow: '0 0 18px rgba(253, 224, 71, 0.28)',
+                zIndex: Z_INDEX.CONTENT_OVERLAY_LOW,
+              }}
+            />
+          </React.Fragment>
+        );
+      })}
+
+      {/* Persistent structured spell zones */}
+      {activeZoneTiles.map(({ zone, position, visualFamily }) => {
+        const zoneStyle = ZONE_VISUAL_STYLES[visualFamily];
+        return (
+        <div
+          key={`active-zone-${zone.id}-${position.x}-${position.y}`}
+          className={`absolute border ${zoneStyle.className}`}
+          title={`${zone.spellId} ${zoneStyle.label}`}
+          style={{
+            left: position.x * TILE_SIZE_PX,
+            top: position.y * TILE_SIZE_PX,
+            width: TILE_SIZE_PX,
+            height: TILE_SIZE_PX,
+            transition: 'opacity 180ms ease-out',
+          }}
+        />
+        );
+      })}
+
+      {/* Target-bound delayed and movement-triggered spell state */}
+      {targetBoundSpellMarkers.map((marker, index) => (
+        <div
+          key={marker.id}
+          className="absolute rounded-md border border-amber-200/70 bg-slate-950/80 px-1 py-0.5 text-[9px] font-bold tracking-wide text-amber-100 shadow-lg"
+          title={marker.title}
+          style={{
+            left: marker.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+            top: marker.position.y * TILE_SIZE_PX + TILE_SIZE_PX + 2 + (index % 2) * 12,
+            transform: 'translateX(-50%)',
+            zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+          }}
+        >
+          {marker.label}
+        </div>
+      ))}
+
+      {/* Attack-rider spell markers */}
+      {riderSpellMarkers.map((marker) => (
+        <div
+          key={marker.id}
+          className="absolute rounded-md border border-fuchsia-200/70 bg-fuchsia-950/82 px-1 py-0.5 text-[9px] font-black tracking-wide text-fuchsia-100 shadow-lg"
+          title={marker.title}
+          style={{
+            left: marker.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+            top: marker.position.y * TILE_SIZE_PX + TILE_SIZE_PX + 18 + (marker.offset % 3) * 12,
+            transform: 'translateX(-50%)',
+            zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+          }}
+        >
+          {marker.label}
+        </div>
+      ))}
+
+      {/* Active teleport destination assignment */}
+      {activeTeleportTarget && teleportDestinationPreview && (
+        <div
+          className="absolute rounded border border-sky-200/80 bg-sky-950/85 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-sky-100 shadow-[0_0_12px_rgba(56,189,248,0.55)]"
+          title={`${teleportDestinationPreview.ability.name} needs a destination for ${activeTeleportTarget.name}`}
+          style={{
+            left: activeTeleportTarget.position.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+            top: activeTeleportTarget.position.y * TILE_SIZE_PX - 22,
+            transform: 'translateX(-50%)',
+            zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+          }}
+        >
+          {/* Multi-target teleports assign landing spaces one creature at a
+              time. This keeps the 2D map explicit about which creature owns
+              the current blue destination preview. */}
+          DEST: {activeTeleportTarget.name}
+        </div>
+      )}
+
+      {/* Chosen teleport destinations during multi-target assignment */}
+      {assignedTeleportDestinations.map((assignment) => (
+        <div
+          key={`assigned-teleport-${assignment.targetId}`}
+          className="absolute rounded-full border border-sky-100/90 bg-sky-700/80 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-[0_0_10px_rgba(56,189,248,0.6)]"
+          title={`${assignment.abilityName} destination chosen for ${assignment.targetName}`}
+          style={{
+            left: assignment.destination.x * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+            top: assignment.destination.y * TILE_SIZE_PX + TILE_SIZE_PX / 2,
+            transform: 'translate(-50%, -50%)',
+            zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+          }}
+        >
+          {/* Previously chosen destinations stay visible while assigning later
+              targets, so Scatter-style setup does not force the player to
+              remember which blue tile was already committed. */}
+          SET: {assignment.targetName}
+        </div>
+      ))}
+
+      {/* Familiar touch-delivery cues */}
+      {spellDeliveryVisuals.map((visual) => {
+        const fromX = visual.from.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const fromY = visual.from.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const toX = visual.to.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const toY = visual.to.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+        const deltaX = toX - fromX;
+        const deltaY = toY - fromY;
+        const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const angle = Math.atan2(deltaY, deltaX);
+
+        return (
+          <React.Fragment key={visual.id}>
+            <div
+              className="absolute"
+              title={`${visual.spellName} delivered through familiar`}
+              style={{
+                left: fromX,
+                top: fromY,
+                width: length,
+                borderTop: '3px dotted rgba(34, 211, 238, 0.95)',
+                transform: `rotate(${angle}rad)`,
+                transformOrigin: '0 50%',
+                filter: 'drop-shadow(0 0 7px rgba(34, 211, 238, 0.9))',
+                zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+              }}
+            />
+            <div
+              className="absolute rounded-full border border-cyan-100/90 bg-cyan-700/82 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide text-white shadow-[0_0_10px_rgba(34,211,238,0.62)]"
+              style={{
+                left: fromX,
+                top: fromY - 16,
+                transform: 'translateX(-50%)',
+                zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+              }}
+            >
+              {/* This is a delivery-origin cue, not movement. It tells the
+                  player that the spell traveled through the familiar's space. */}
+              {visual.label}
+            </div>
+          </React.Fragment>
+        );
+      })}
+
+      {/* Resolved structured spell movement cues */}
+      {spellMovementVisuals.map((visual) => {
+        // Draw the actual resolved movement path when one is available. Teleports
+        // still use a start/end jump, while forced movement can now show routed
+        // turns around blocked terrain.
+        const isTeleport = visual.type === 'teleport';
+        const visualPath = visual.path && visual.path.length > 1 ? visual.path : [visual.from, visual.to];
+        const segments = visualPath.slice(1).map((point, index) => {
+          const previous = visualPath[index];
+          const fromX = previous.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+          const fromY = previous.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+          const toX = point.x * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+          const toY = point.y * TILE_SIZE_PX + TILE_SIZE_PX / 2;
+          const deltaX = toX - fromX;
+          const deltaY = toY - fromY;
+          return {
+            key: `${visual.id}-segment-${index}`,
+            fromX,
+            fromY,
+            length: Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+            angle: Math.atan2(deltaY, deltaX)
+          };
+        });
+
+        return (
+          <React.Fragment key={visual.id}>
+            {segments.map(segment => (
+              <div
+                key={segment.key}
+                className="absolute"
+                title={`${visual.spellId} ${isTeleport ? 'teleport destination' : 'forced movement path'}`}
+                style={{
+                  left: segment.fromX,
+                  top: segment.fromY,
+                  width: segment.length,
+                  borderTop: isTeleport ? '3px dashed rgba(96, 165, 250, 0.9)' : '3px solid rgba(251, 191, 36, 0.9)',
+                  transform: `rotate(${segment.angle}rad)`,
+                  transformOrigin: '0 50%',
+                  filter: isTeleport ? 'drop-shadow(0 0 6px rgba(96, 165, 250, 0.8))' : 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.8))',
+                  zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+                }}
+              />
+            ))}
+            <div
+              className="absolute rounded-full border-2 px-1 text-[8px] font-black tracking-wide"
+              style={{
+                left: visual.to.x * TILE_SIZE_PX + 4,
+                top: visual.to.y * TILE_SIZE_PX + 4,
+                borderColor: isTeleport ? 'rgba(147, 197, 253, 0.95)' : 'rgba(253, 230, 138, 0.95)',
+                background: isTeleport ? 'rgba(30, 64, 175, 0.72)' : 'rgba(120, 53, 15, 0.72)',
+                color: '#fff7ed',
+                zIndex: Z_INDEX.CONTENT_OVERLAY_MEDIUM,
+              }}
+            >
+              {isTeleport ? 'BLINK' : 'PUSH'}
+            </div>
+          </React.Fragment>
+        );
+      })}
 
       {/* Status icons on top of each character token */}
       {characters.map((character) => (

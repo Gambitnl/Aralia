@@ -82,3 +82,13 @@ with `docs/projects/PROJECT_TRACKER.md`.
 3. Read [docs/projects/sideproject-basic-chat/GAPS.md](docs/projects/sideproject-basic-chat/GAPS.md).
 4. Confirm row 123 in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md).
 5. Continue from the active/reference decision and keep edits scoped to the chosen boundary.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

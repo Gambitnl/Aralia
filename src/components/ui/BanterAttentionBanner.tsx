@@ -11,6 +11,7 @@
  *  - A "Dismiss" button to hide the banner without ending banter
  *
  * Auto-fades after 10 seconds of inactivity (the banter panel tab still pulses).
+ * @component-owner Narrative Team / Core UI
  */
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';

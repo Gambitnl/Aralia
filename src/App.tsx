@@ -45,6 +45,7 @@
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
 import React, { useReducer, useCallback, useEffect, lazy, Suspense, useState } from 'react';
+import { resolveWorldDataFor3D } from './utils/mapDataToWorldData';
 // Framer Motion - provides animation components like AnimatePresence for smooth UI transitions
 import { AnimatePresence } from 'framer-motion';
 
@@ -80,6 +81,7 @@ import {
 import { NPCS } from './data/world/npcs';
 import { BIOMES } from './data/biomes';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from './config/mapConfig';
+import { gridCellCenterToWorldMeters, getTerrainHeight } from './utils/worldCoords';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
@@ -111,6 +113,8 @@ const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
+const TransitionController = lazy(() => import('./components/World3D/TransitionController'));
+const World3DWrapper = lazy(() => import('./components/World3D/World3DWrapper'));
 // --- Decoupled Developer Tools Registry ---
 // Some developer tools have been decoupled from the main application bundle to 
 // optimize production builds and prevent build-time dependencies on local-only files.
@@ -379,11 +383,22 @@ const App: React.FC = () => {
     };
   }, [cleanupAudioContext]);
 
+  // Dev dummy auto-start: only fire when there's no URL phase override.
+  // This prevents the legacy auto-start from hijacking deep links like ?phase=world3d
+  // during the initial mount race between useHistorySync and this effect.
   useEffect(() => {
     if (!canUseDevTools()) return;
     if (gameState.phase !== GamePhase.MAIN_MENU) return;
     if (gameState.party.length > 0 || gameState.messages.length > 0) return;
     if (SaveLoadService.hasSaveGame()) return;
+    
+    // Guard: if the URL specifies a phase, let useHistorySync handle it instead
+    // of auto-starting the dummy party. This fixes the cold-load bounce where
+    // ?phase=world3d would intermittently get overridden to MAIN_MENU → PLAYING.
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPhase = urlParams.get('phase');
+    if (urlPhase) return; // URL phase takes precedence
+    
     handleLegacyDummyAutoStart();
   }, [
     gameState.phase,
@@ -567,6 +582,40 @@ const App: React.FC = () => {
 
   }, [gameState.currentLocationId, gameState.mapData, addMessage, dispatch]);
 
+  /**
+   * Atlas "Enter 3D" mode: place the player in the streamed world at the clicked cell.
+   */
+  const handleEnter3DAtCell = useCallback((x: number, y: number, tile: MapTile) => {
+    if (!tile.discovered) {
+      addMessage('You cannot enter the 3D world in undiscovered areas.', 'system');
+      return;
+    }
+
+    const mapData = gameState.mapData;
+    if (!mapData) {
+      addMessage('World map data is not ready for 3D entry.', 'system');
+      return;
+    }
+
+    const { cols, rows } = mapData.gridSize;
+    const { x: wx, z: wz } = gridCellCenterToWorldMeters(x, y, cols, rows);
+    let terrainY = 0;
+    const worldDataForHeight = resolveWorldDataFor3D(mapData, gameState.worldSeed ?? 0);
+    if (worldDataForHeight) {
+      terrainY = getTerrainHeight(wx, wz, worldDataForHeight);
+    }
+
+    dispatch({
+      type: 'SET_PLAYER_WORLD_POS',
+      payload: { x: wx, y: terrainY, z: wz },
+    });
+    dispatch({ type: 'SET_WORLD_VIEW_MODE', payload: '3d' });
+    if (gameState.isMapVisible) {
+      dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
+    }
+    addMessage(`Entering 3D world at map cell (${x}, ${y}).`, 'system');
+  }, [addMessage, dispatch, gameState.isMapVisible, gameState.mapData]);
+
   const handleOpenCharacterSheet = useCallback((character: PlayerCharacter) => {
     dispatch({ type: 'OPEN_CHARACTER_SHEET', payload: character });
   }, [dispatch]);
@@ -578,6 +627,10 @@ const App: React.FC = () => {
   const handleClosePartyOverlay = useCallback(() => {
     dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
   }, [dispatch]);
+
+  const handleTransitionComplete = useCallback(() => {
+    // Transition complete — player now has control in 3D world.
+  }, []);
 
   const hasStoredSaveGame = SaveLoadService.hasSaveGame();
   const hasActiveRunInMemory = gameState.party.length > 0;
@@ -1016,27 +1069,52 @@ const App: React.FC = () => {
   } else if (gameState.phase === GamePhase.PLAYING && gameState.party.length > 0 && gameState.subMapCoordinates) {
     // Render the Main Game Layout (Exploration Mode)
     // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
+    // When worldViewMode === '3d', render the 3D world instead of the 2D atlas.
+    const atlasContent = (
+      <GameLayout
+        currentLocation={currentLocationData}
+        subMapCoordinates={gameState.subMapCoordinates}
+        mapData={gameState.mapData}
+        gameTime={gameState.gameTime}
+        messages={gameState.messages}
+        npcsInLocation={npcs}
+        itemsInLocation={itemsInCurrentLocation}
+        party={gameState.party}
+        geminiGeneratedActions={gameState.geminiGeneratedActions}
+        unreadDiscoveryCount={gameState.unreadDiscoveryCount}
+        hasNewRateLimitError={gameState.hasNewRateLimitError}
+        worldSeed={gameState.worldSeed}
+        isDevDummyActive={canUseDevTools()}
+        isDevModeEnabled={gameState.isDevModeEnabled ?? false}
+        autoSaveEnabled={autoSaveEnabled}
+        disabled={!isUIInteractive}
+        onAction={processAction}
+        playerWorldPos={gameState.playerWorldPos}
+      />
+    );
+
+    // Entry position: use saved 3D position, or default to current location center.
+    const entryPosition = gameState.playerWorldPos ?? {
+      x: (currentLocationData.mapCoordinates?.x ?? 30) * 128,
+      y: 0,
+      z: (currentLocationData.mapCoordinates?.y ?? 20) * 128,
+    };
+
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the main game view.">
-        <GameLayout
-          currentLocation={currentLocationData}
-          subMapCoordinates={gameState.subMapCoordinates}
-          mapData={gameState.mapData}
-          gameTime={gameState.gameTime}
-          messages={gameState.messages}
-          npcsInLocation={npcs}
-          itemsInLocation={itemsInCurrentLocation}
-          party={gameState.party}
-          geminiGeneratedActions={gameState.geminiGeneratedActions}
-          unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-          hasNewRateLimitError={gameState.hasNewRateLimitError}
-          worldSeed={gameState.worldSeed}
-          isDevDummyActive={canUseDevTools()}
-          isDevModeEnabled={gameState.isDevModeEnabled ?? false}
-          autoSaveEnabled={autoSaveEnabled}
-          disabled={!isUIInteractive}
-          onAction={processAction}
-        />
+        <Suspense fallback={<LoadingSpinner />}>
+          <TransitionController
+            mode={gameState.worldViewMode}
+            onComplete={handleTransitionComplete}
+            atlasContent={atlasContent}
+            sceneContent={(
+              <World3DWrapper
+                entryPosition={entryPosition}
+                worldData={resolveWorldDataFor3D(gameState.mapData, gameState.worldSeed ?? 0)}
+              />
+            )}
+          />
+        </Suspense>
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.GAME_OVER) {
@@ -1051,7 +1129,7 @@ const App: React.FC = () => {
         </button>
       </div>
     );
-  } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {
+  } else if (gameState.phase === GamePhase.LOAD_TRANSITION && gameState.party[0]) {
     mainContent = <LoadGameTransition character={gameState.party[0]} />;
   } else if (gameState.phase === GamePhase.NOT_FOUND) {
     mainContent = (
@@ -1109,6 +1187,9 @@ const App: React.FC = () => {
             dispatch={dispatch}
             onAction={processAction}
             onTileClick={handleTileClick}
+            onEnter3DAtCell={handleEnter3DAtCell}
+            playerWorldPos={gameState.playerWorldPos}
+            allow3DEntry={gameState.phase === GamePhase.PLAYING}
             currentLocation={currentLocationData}
             npcsInLocation={npcs}
             itemsInLocation={itemsInCurrentLocation}

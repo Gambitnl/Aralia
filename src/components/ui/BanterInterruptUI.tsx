@@ -1,9 +1,33 @@
+// @dependencies-start
 /**
- * @file BanterInterruptUI.tsx
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 02/06/2026, 01:12:02
+ * Dependents: components/DesignPreview/steps/PreviewComponents.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * @file src/components/ui/BanterInterruptUI.tsx
+ * @component-owner Narrative Team / Core UI
+ * @status Stable / Maintained
+ * 
  * Floating UI that appears during active banter, allowing the player to join the conversation.
+ * 
+ * Called by: src/components/CollapsibleBanterPanel.tsx
+ * Depends on: Input.tsx, zIndex.ts
  */
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Input } from './Input';
+import { Z_INDEX } from '../../styles/zIndex';
 
 interface BanterInterruptUIProps {
     isActive: boolean;
@@ -40,7 +64,7 @@ export const BanterInterruptUI: React.FC<BanterInterruptUIProps> = ({
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 50 }}
-                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-index-modal-background)]"
+                className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[${Z_INDEX.MODAL_BACKGROUND}]`}
             >
                 <div className="bg-gray-800/95 backdrop-blur-sm border border-amber-500/50 rounded-xl shadow-2xl overflow-hidden">
                     {/* Collapsed State: Show countdown + Join button */}
@@ -84,13 +108,13 @@ export const BanterInterruptUI: React.FC<BanterInterruptUIProps> = ({
                             </div>
 
                             <div className="flex gap-2">
-                                <input
+                                <Input
                                     type="text"
                                     value={playerMessage}
                                     onChange={(e) => setPlayerMessage(e.target.value)}
                                     placeholder="Type your reply..."
                                     autoFocus
-                                    className="flex-grow px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-amber-500"
+                                    className="flex-grow"
                                 />
                                 <button
                                     type="submit"

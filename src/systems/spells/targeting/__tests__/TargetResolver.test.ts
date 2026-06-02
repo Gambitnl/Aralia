@@ -149,6 +149,42 @@ describe('TargetResolver', () => {
       expect(TargetResolver.isValidTarget(targeting, caster, enemyBlocked, mockGameState)).toBe(true)
     })
 
+    it('rejects line-of-sight targets when map data is missing', () => {
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['enemies'],
+        lineOfSight: true
+      }
+      const maplessState: CombatState = {
+        ...mockGameState,
+        mapData: undefined
+      }
+
+      // LoS-required spells should not be approved by runtime targeting when
+      // there is no map to prove the sight line. This matches the UI validator
+      // and prevents hidden runtime casts that the combat map would reject.
+      expect(TargetResolver.isValidTarget(targeting, caster, enemyClose, maplessState)).toBe(false)
+    })
+
+    it('keeps non-line-of-sight targeting usable when map data is missing', () => {
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['enemies'],
+        lineOfSight: false
+      }
+      const maplessState: CombatState = {
+        ...mockGameState,
+        mapData: undefined
+      }
+
+      // Only spells that ask for line of sight need map proof. Other targeting
+      // rules keep working in mapless combat states so this policy does not
+      // accidentally shut down every non-map encounter.
+      expect(TargetResolver.isValidTarget(targeting, caster, enemyClose, maplessState)).toBe(true)
+    })
+
     it('validates object targets separately from creature targets', () => {
       const targeting: SpellTargeting = {
         type: 'single',
@@ -208,6 +244,27 @@ describe('TargetResolver', () => {
         name: 'Loose Rock',
         position: { x: 11, y: 10 }
       }, mockGameState)).toBe(true)
+    })
+
+    it('rejects line-of-sight object targets when map data is missing', () => {
+      const targeting: SpellTargeting = {
+        type: 'single',
+        range: 60,
+        validTargets: ['objects'],
+        lineOfSight: true
+      }
+      const maplessState: CombatState = {
+        ...mockGameState,
+        mapData: undefined
+      }
+
+      // Object targeting uses the same LoS helper as creature targeting, so it
+      // must follow the same map-required policy when spell data asks for sight.
+      expect(TargetResolver.isValidObjectTarget(targeting, caster, {
+        id: 'loose-rock',
+        name: 'Loose Rock',
+        position: { x: 11, y: 10 }
+      }, maplessState)).toBe(false)
     })
   })
 

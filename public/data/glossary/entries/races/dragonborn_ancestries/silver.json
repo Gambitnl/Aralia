@@ -1,0 +1,74 @@
+{
+  "id": "silver_dragonborn",
+  "title": "Silver Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Descended from the friendly and helpful silver dragons of the cloud-touched peaks, these dragonborn command the power of cold. They often possess a deep empathy and a love for civilization, reflecting the social and often benevolent nature of their draconic kin.",
+  "lore": {
+    "typicalDwelling": "Those of silver draconic ancestry often dwell in the high-altitude reaches of mountain peaks, floating cloud-cities, or the most vibrant districts of large cosmopolitan hubs. Their homes are designed for social interaction and the exchange of culture, featuring wide balconies, elegant guest suites, and expansive halls for communal gathering. They value hospitality and structural elegance, their dwellings often doubling as museums or cultural centers for their communities.",
+    "typicalAttire": "Silver dragonborn favor attire that is both elegant and practical, reflecting their social and empathetic nature. They wear fine fabrics in shades of sky blue, deep slate, and shimmering silver, often decorated with intricate patterns and jewelry that denotes their friendships and achievements. Their clothing is designed to be comfortable for both high-altitude living and social gatherings. Many wear sashes and belts that denotate their rank or their commitment to social service.",
+    "typicalEnvironment": "Cloud-touched mountain peaks, vast high-altitude plateaus, and any region that rewards social interaction, diplomatic skill, and the pursuit of cultural excellence are the silver dragonborn's preferred habitats. They thrive in environments that reward empathy and the pursuit of collective well-being. Many serve as specialized diplomats, professional historians, scouts in high-altitude terrain, or protectors of civilized lands.",
+    "societyType": "Silver dragonborn society is egalitarian and organized around shared tradition and the joy of social connection. They value honesty, loyalty, and the pursuit of mutual understanding above material wealth. Leadership is often informal, with decisions made through consensus and the guidance of those who have shown the most empathy and wisdom.",
+    "typicalAssociation": "Silver dragonborn tend toward lawful good alignments, driven by a deep-seated desire to help others and a commitment to protecting the social order. They are a gregarious and benevolent people, viewing their natural power as a tool for the preservation of peace and the advancement of civilization. They value sincerity and the search for collective harmony above all else.",
+    "physicalAppearance": "Silver dragonborn possess an imposing and exceptionally elegant appearance, standing 6 to 6.5 feet tall with powerful, athletic builds. Their scales are a vibrant shade of shimmering silver or deep slate gray, often with a brilliant, metallic luster. Their most striking feature is their large, forward-swept horns and a series of crests along their spine that glow with a soft, internal light. Their eyes are large and bright, in shades of silver, blue, or vivid gray. Their faces are characterized by a refined, toothy muzzle and a powerful jaw that seems almost always on the verge of a friendly greeting. They move with a measured, purposeful grace that conveys both immense physical power and a genuine warmth."
+  },
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Silver)"
+    },
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
+    },
+    {
+      "label": "Damage Type",
+      "value": "[[cold_damage|Cold]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Draconic Ancestry",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[cold_damage|Cold damage]]."
+    },
+    {
+      "name": "Breath Weapon",
+      "icon": "magic",
+      "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[cold_damage|Cold damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Draconic Flight",
+      "icon": "wings",
+      "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ancestry",
+    "silver",
+    "cold"
+  ],
+  "aliases": [
+    "silver ancestry"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "cold_damage",
+    "breath_weapon"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/silver.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Silver_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Silver_Female.png"
+}

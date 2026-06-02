@@ -90,6 +90,9 @@ interface GameModalsProps {
     dispatch: React.Dispatch<AppAction>;
     onAction: (action: Action) => void;
     onTileClick: (x: number, y: number, tile: MapTile) => void;
+    onEnter3DAtCell?: (x: number, y: number, tile: MapTile) => void;
+    playerWorldPos?: GameState['playerWorldPos'];
+    allow3DEntry?: boolean;
     currentLocation: Location;
     npcsInLocation: NPC[];
     itemsInLocation: Item[];
@@ -125,6 +128,9 @@ const GameModals: React.FC<GameModalsProps> = ({
     dispatch,
     onAction,
     onTileClick,
+    onEnter3DAtCell,
+    playerWorldPos,
+    allow3DEntry = false,
     currentLocation,
     npcsInLocation,
     itemsInLocation,
@@ -166,6 +172,9 @@ const GameModals: React.FC<GameModalsProps> = ({
                             mapData={gameState.mapData}
                             worldSeed={gameState.worldSeed}
                             onTileClick={onTileClick}
+                            onEnter3DAtCell={onEnter3DAtCell}
+                            playerWorldPos={playerWorldPos}
+                            allow3DEntry={allow3DEntry}
                             onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
                             allowTravel={gameState.phase === GamePhase.PLAYING}
                             showGenerationControls={gameState.phase === GamePhase.MAIN_MENU}
@@ -221,8 +230,12 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </Suspense>
             )}
 
-            {/* Global 3D Overlay (from main screen button) */}
-            {gameState.isThreeDVisible && gameState.party[0] && gameState.subMapCoordinates && currentLocation.mapCoordinates && (
+            {/* Legacy submap 3D modal — not used in PLAYING (streamed world uses worldViewMode + TransitionController, W3DUI-22). */}
+            {gameState.phase !== GamePhase.PLAYING &&
+                gameState.isThreeDVisible &&
+                gameState.party[0] &&
+                gameState.subMapCoordinates &&
+                currentLocation.mapCoordinates && (
                 <Suspense fallback={<LoadingSpinner />}>
                     <ThreeDModal
                         isOpen={gameState.isThreeDVisible}

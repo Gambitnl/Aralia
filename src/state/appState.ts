@@ -572,9 +572,28 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const loadedFactions = loadedState.factions || getAllFactions(loadedState.worldSeed || Date.now());
             const loadedStandings = loadedState.playerFactionStandings || INITIAL_FACTION_STANDINGS;
 
+            // Validate and preserve 3D view state (world-3d-ui).
+            // Legacy saves may not have these fields, so provide safe defaults.
+            const loadedWorldViewMode = loadedState.worldViewMode ?? 'atlas';
+            const loadedPlayerWorldPos = loadedState.playerWorldPos ?? null;
+
+            // If loading into 3D mode, validate that position is complete.
+            const validatedPlayerWorldPos = loadedPlayerWorldPos &&
+                typeof loadedPlayerWorldPos.x === 'number' &&
+                typeof loadedPlayerWorldPos.y === 'number' &&
+                typeof loadedPlayerWorldPos.z === 'number'
+                ? loadedPlayerWorldPos
+                : null;
+
             return {
                 ...loadedState,
                 phase: GamePhase.LOAD_TRANSITION,
+                // Preserve 3D view state from save (with validation).
+                worldViewMode: loadedWorldViewMode,
+                playerWorldPos: validatedPlayerWorldPos,
+                // Streamed 3D and legacy ThreeDModal must not both be active after load (W3DUI-22).
+                isThreeDVisible:
+                    loadedWorldViewMode === '3d' ? false : (loadedState.isThreeDVisible ?? false),
                 // Keep preference from the current session (user-level), not the save slot payload.
                 autoSaveEnabled: state.autoSaveEnabled ?? loadedState.autoSaveEnabled ?? true,
                 isLoading: false, loadingMessage: null, isImageLoading: false, error: null,
@@ -810,6 +829,21 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     ...state.banterCooldowns,
                     [action.payload.banterId]: action.payload.timestamp
                 }
+            };
+
+        // 3D World Transition (world-3d-ui)
+        case 'SET_PLAYER_WORLD_POS':
+            return { ...state, playerWorldPos: action.payload };
+
+        case 'CLEAR_PLAYER_WORLD_POS':
+            return { ...state, playerWorldPos: null };
+
+        case 'SET_WORLD_VIEW_MODE':
+            // PLAYING streamed 3D owns the canvas; never stack legacy ThreeDModal on top (W3DUI-22).
+            return {
+                ...state,
+                worldViewMode: action.payload,
+                ...(action.payload === '3d' ? { isThreeDVisible: false } : {}),
             };
 
         // 2. Delegate to slice reducers for single-domain actions

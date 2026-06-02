@@ -10,16 +10,16 @@ export const ROCK_GNOME_DATA: Race = {
     name: 'Rock Gnome',
     baseRace: 'gnome',
     description:
-        'As a rock gnome, you have a natural inventiveness and hardiness beyond that of other gnomes. Most gnomes in the worlds of D&D are rock gnomes, including the tinker gnomes of the Dragonlance setting. Rock gnomes are inquisitive and vivacious, and their love of jokes, pranks, and all things mechanical makes them an endearing, if sometimes frustrating, presence. They see engineering, alchemy, and similar pursuits as natural outgrowths of their boundless curiosity and drive to discover the world\'s wonders. Rock gnomes create delightful toys and practical gadgets, from music boxes and mechanical birds to complex devices and peculiar inventions.',
-    abilityBonuses: [], // Flexible ASIs handled by Point Buy.
+        'Rock gnomes possess a natural gift for invention and a hardiness that allows them to thrive in varied environments. Most gnomes in the worlds of D&D are rock gnomes, known for their inquisitive nature and boundless curiosity. They see engineering and alchemy as natural ways to explore the wonders of the multiverse.',
+    abilityBonuses: [],
     traits: [
         'Creature Type: Humanoid',
         'Size: Small (about 3-4 feet tall)',
-        'Speed: 25 feet',
-        "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
-        'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
-        'Artificer\'s Lore: Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply.',
-        'Tinker: You have proficiency with artisan\'s tools (tinker\'s tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time. When you create a device, choose one of the following options: Clockwork Toy (a clockwork animal, monster, or person that moves 5 feet across solid ground when touched), Fire Starter (produces a miniature flame for lighting candles, torches, or campfires), or Music Box (plays a single song at a moderate volume when opened).',
+        'Speed: 30 feet',
+        "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
+        'Gnomish Cunning: You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.',
+        'Gnomish Lore: You have proficiency in the [[history|History]] skill. You also have [[advantage]] on Intelligence (History) checks you make to determine the origin and function of magic items, alchemical objects, or technological devices.',
+        'Tinkering: You know the [[mending|Mending]] and [[prestidigitation|Prestidigitation]] cantrips. Intelligence, Wisdom, or Charisma is your spellcasting ability for them (choose when you select this species). As a part of casting Prestidigitation, you can create a Tiny clockwork device (AC 5, 1 HP), such as a toy, a fire starter, or a music box. The device ceases to function after 8 hours or when you dismantle it as a [[bonus_action|Bonus Action]].',
     ],
     imageUrl: 'assets/images/races/rock_gnome.png',
     visual: {

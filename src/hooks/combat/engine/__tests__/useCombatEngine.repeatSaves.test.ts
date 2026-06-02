@@ -135,6 +135,41 @@ describe('useCombatEngine repeat-save timings', () => {
     expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(2);
   });
 
+  it('runs repeat saves when the current lifecycle is listed in additionalTimings', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 18,
+      success: true,
+      modifiersApplied: []
+    } as any);
+
+    const character = makeCharacter({
+      statusEffects: [{
+        id: 'hideous-laughter',
+        name: 'Hideous Laughter',
+        type: 'debuff',
+        duration: 2,
+        repeatSave: {
+          timing: 'turn_end',
+          additionalTimings: ['on_damage'],
+          saveType: 'Wisdom',
+          successEnds: true,
+          useOriginalDC: true,
+          modifiers: { advantageOnDamage: true }
+        }
+      }]
+    });
+
+    const { result } = renderEngine(character);
+
+    // Tasha-style effects save at the normal end-of-turn timing and also when
+    // damage happens. This assertion captures the missing fan-out before the
+    // runtime change, so the later production fix has a precise target.
+    const updated = result.current.handleDamage(character, 4, 'test damage', 'psychic');
+
+    expect(updated.statusEffects).toHaveLength(0);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalled();
+  });
+
   it('runs on_action repeat saves only for the requested effect id', () => {
     vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
       total: 18,
@@ -216,6 +251,148 @@ describe('useCombatEngine repeat-save timings', () => {
     } finally {
       randomSpy.mockRestore();
     }
+  });
+
+  it('keeps thresholded repeat-save effects until enough successes are recorded', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 18,
+      success: true,
+      modifiersApplied: []
+    } as any);
+
+    const character = makeCharacter({
+      statusEffects: [{
+        id: 'flesh-to-stone-restraint',
+        name: 'Restrained',
+        type: 'debuff',
+        duration: 3,
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Constitution',
+          successEnds: false,
+          useOriginalDC: true,
+          progression: {
+            successThreshold: 3,
+            failureThreshold: 3,
+            consecutiveRequired: false,
+            successOutcome: 'spell_ends',
+            failureOutcome: 'apply_petrified_condition'
+          }
+        }
+      }]
+    });
+
+    const { result } = renderEngine(character);
+
+    // Flesh to Stone-style saves should not end on the first success. The
+    // runtime needs to remember each success until the configured threshold is
+    // met, then apply the success outcome to remove or transform the effect.
+    let updated = result.current.processRepeatSaves(character, 'turn_end');
+    expect(updated.statusEffects).toHaveLength(1);
+
+    updated = result.current.processRepeatSaves(updated, 'turn_end');
+    expect(updated.statusEffects).toHaveLength(1);
+
+    updated = result.current.processRepeatSaves(updated, 'turn_end');
+    expect(updated.statusEffects).toHaveLength(0);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(3);
+  });
+
+  it('applies Petrified when a progression reaches the configured failure threshold', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 4,
+      success: false,
+      modifiersApplied: []
+    } as any);
+
+    const character = makeCharacter({
+      statusEffects: [{
+        id: 'flesh-to-stone-restraint',
+        name: 'Restrained',
+        type: 'debuff',
+        duration: 3,
+        source: 'Flesh to Stone',
+        sourceCasterId: 'caster',
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Constitution',
+          successEnds: false,
+          useOriginalDC: true,
+          progression: {
+            successThreshold: 3,
+            failureThreshold: 3,
+            consecutiveRequired: false,
+            successOutcome: 'spell_ends',
+            failureOutcome: 'apply_petrified_condition'
+          }
+        }
+      }],
+      conditions: [{
+        name: 'Restrained',
+        duration: { type: 'rounds', value: 3 },
+        appliedTurn: 1,
+        source: 'Flesh to Stone',
+        sourceCasterId: 'caster'
+      }]
+    });
+
+    const { result } = renderEngine(character);
+
+    // Three failed saves should transform Flesh to Stone from Restrained into
+    // Petrified. The status and condition mirrors both need to change because
+    // combat logic and UI surfaces still read from both arrays.
+    let updated = result.current.processRepeatSaves(character, 'turn_end');
+    expect(updated.statusEffects.map(effect => effect.name)).toEqual(['Restrained']);
+
+    updated = result.current.processRepeatSaves(updated, 'turn_end');
+    expect(updated.statusEffects.map(effect => effect.name)).toEqual(['Restrained']);
+
+    updated = result.current.processRepeatSaves(updated, 'turn_end');
+    expect(updated.statusEffects.map(effect => effect.name)).toEqual(['Petrified']);
+    expect(updated.conditions?.map(condition => condition.name)).toEqual(['Petrified']);
+    expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(3);
+  });
+
+  it('locks Contagion-style Poisoned duration after enough progression failures', () => {
+    vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({
+      total: 4,
+      success: false,
+      modifiersApplied: []
+    } as any);
+
+    const character = makeCharacter({
+      statusEffects: [{
+        id: 'contagion-poisoned',
+        name: 'Poisoned',
+        type: 'debuff',
+        duration: 3,
+        repeatSave: {
+          timing: 'turn_end',
+          saveType: 'Constitution',
+          successEnds: false,
+          useOriginalDC: true,
+          progression: {
+            successThreshold: 3,
+            failureThreshold: 3,
+            consecutiveRequired: false,
+            successOutcome: 'spell_ends_on_target',
+            failureOutcome: 'poisoned_duration_lasts_7_days'
+          }
+        }
+      }]
+    });
+
+    const { result } = renderEngine(character);
+
+    let updated = result.current.processRepeatSaves(character, 'turn_end');
+    updated = result.current.processRepeatSaves(updated, 'turn_end');
+    updated = result.current.processRepeatSaves(updated, 'turn_end');
+
+    expect(updated.statusEffects).toHaveLength(1);
+    expect(updated.statusEffects[0].name).toBe('Poisoned');
+    expect(updated.statusEffects[0].duration).toBe(100800);
+    expect(updated.statusEffects[0].repeatSave).toBeUndefined();
+    expect(updated.statusEffects[0].repeatSaveProgress).toBeUndefined();
   });
 
   it('does not grant repeat saves when a line-of-sight prerequisite cannot be evaluated yet', () => {

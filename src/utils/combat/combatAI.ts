@@ -99,25 +99,37 @@ export function evaluateCombatTurn(
   mapData: BattleMapData
 ): CombatAction {
   // TODO(FEATURES): Extend AI planning to cover allied party members (auto-battle companions) with player-configurable tactics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
-  // 1. Identify Potential Targets
-  const enemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
-  const allies = characters.filter(c => c.team === character.team && c.currentHP > 0);
+  
+  // 1. Identify Potential Targets (Active vs. Downed)
+  // DOWNED AWARENESS & TARGETING HEURISTICS
+  // What changed: Explicit separation of active threats (HP > 0) and downed player characters (HP === 0 with deathSaves).
+  // Why: Allows the AI to make intelligent tactical decisions, such as ally healers prioritizing downed targets
+  //      to revive them, and enemy attackers prioritizing active players over downed targets.
+  // What was preserved: Base target filtering and path planning structure.
+  const activeEnemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
+  const downedEnemies = characters.filter(c => c.team !== character.team && c.currentHP === 0 && c.deathSaves);
+  const allEnemies = [...activeEnemies, ...downedEnemies];
+
+  const activeAllies = characters.filter(c => c.team === character.team && c.currentHP > 0);
+  const downedAllies = characters.filter(c => c.team === character.team && c.currentHP === 0 && c.deathSaves);
+  const allAllies = [...activeAllies, ...downedAllies];
 
   logger.debug(`[AI] evaluating turn for ${character.name}`, {
     hp: `${character.currentHP}/${character.maxHP}`,
-    enemiesCount: enemies.length,
-    alliesCount: allies.length
+    activeEnemiesCount: activeEnemies.length,
+    downedEnemiesCount: downedEnemies.length,
+    activeAlliesCount: activeAllies.length,
+    downedAlliesCount: downedAllies.length
   });
 
-  if (enemies.length === 0) {
-    logger.debug(`[AI] No enemies found. Ending turn.`);
+  if (activeEnemies.length === 0) {
+    logger.debug(`[AI] No active enemies found. Ending turn.`);
     return createEndTurnAction(character);
   }
 
   // Pre-compute occupied spaces so movement plans do not move an AI creature
-  // onto another living combatant. The executor also guards this, but keeping
-  // the planner aware avoids choosing obviously illegal movement in the first
-  // place.
+  // onto another living combatant. Unconscious downed player characters block movement
+  // grid positions, which is handled correctly by including them in occupied tiles.
   const occupiedTileIds = buildOccupiedTileSet(characters, character.id);
 
   // Pre-compute reachability once so scoring can reuse it.
@@ -155,32 +167,43 @@ export function evaluateCombatTurn(
     } else if (ability.targeting === 'single_enemy') {
       // Filter by creature-type constraint (e.g. Hold Person: Humanoid only)
       const validTargets = ability.validCreatureTypes?.length
-        ? enemies.filter(e => ability.validCreatureTypes!.some(t =>
+        ? allEnemies.filter(e => ability.validCreatureTypes!.some(t =>
             e.stats.creatureTypes?.some(ct => ct.toLowerCase() === t.toLowerCase())
           ))
-        : enemies;
+        : allEnemies;
       for (const target of validTargets) {
-        const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles);
+        const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles, activeEnemies);
         if (plan) possiblePlans.push(plan);
       }
     } else if (ability.targeting === 'single_ally') {
       const validTargets = ability.validCreatureTypes?.length
-        ? allies.filter(a => ability.validCreatureTypes!.some(t =>
+        ? allAllies.filter(a => ability.validCreatureTypes!.some(t =>
             a.stats.creatureTypes?.some(ct => ct.toLowerCase() === t.toLowerCase())
           ))
-        : allies;
+        : allAllies;
       for (const target of validTargets) {
         const plan = evaluateSupportPlan(character, target, ability, mapData, reachableTiles);
         if (plan) possiblePlans.push(plan);
       }
     } else if (ability.targeting === 'area' || resolveAreaDefinition(ability)) {
-      const plan = evaluateAoEPlan(character, ability, enemies, allies, mapData, reachableTiles, turnAoECache, castPositionCache);
+      const plan = evaluateAoEPlan(
+        character,
+        ability,
+        activeEnemies,
+        downedEnemies,
+        activeAllies,
+        downedAllies,
+        mapData,
+        reachableTiles,
+        turnAoECache,
+        castPositionCache
+      );
       if (plan) possiblePlans.push(plan);
     }
   }
 
   // Evaluate pure repositioning for survival when low HP.
-  const safeRetreat = evaluateRetreatPlan(character, enemies, mapData, reachableTiles);
+  const safeRetreat = evaluateRetreatPlan(character, activeEnemies, mapData, reachableTiles);
   if (safeRetreat) {
     possiblePlans.push(safeRetreat);
   }
@@ -228,12 +251,12 @@ export function evaluateCombatTurn(
     };
   }
 
-  // Fallback: Move towards nearest enemy if no ability is useful
-  const nearestEnemy = getNearestEnemy(character, enemies);
+  // Fallback: Move towards nearest active enemy if no ability is useful
+  const nearestEnemy = getNearestEnemy(character, activeEnemies);
   if (nearestEnemy) {
     const moveAction = planMovement(character, nearestEnemy.position, 1, mapData, reachableTiles, occupiedTileIds);
     if (moveAction) {
-      logger.info(`[AI] No good abilities. Moving towards nearest enemy.`);
+      logger.info(`[AI] No good abilities. Moving towards nearest active enemy.`);
       return moveAction;
     }
   }
@@ -325,7 +348,8 @@ function evaluateAttackPlan(
   target: CombatCharacter,
   ability: Ability,
   mapData: BattleMapData,
-  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
+  activeEnemies: CombatCharacter[]
 ): AIPlan | null {
   const dist = getDistance(caster.position, target.position);
 
@@ -342,12 +366,26 @@ function evaluateAttackPlan(
     score += damage * WEIGHTS.DAMAGE;
 
     // Kill potential
-    if (target.currentHP <= damage) {
+    if (target.currentHP <= damage && target.currentHP > 0) {
       score += WEIGHTS.KILL_TARGET;
     }
 
     // Focus fire bonus (lower HP % is better target)
-    score += (1 - target.currentHP / target.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
+    if (target.currentHP > 0) {
+      score += (1 - target.currentHP / target.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
+    }
+  }
+
+  // Downed Target check: Prioritize active threats
+  // What changed: Downed targets are heavily penalized when active threats are present.
+  // Why: Enemies should not waste basic attacks executing unconscious player characters
+  //      when active threats are still fighting them.
+  if (target.currentHP === 0 && target.deathSaves) {
+    if (activeEnemies.length > 0) {
+      score -= 150; // Heavily penalize attacking downed targets while active threats exist
+    } else {
+      score += 10; // Moderate value to finish them off if no active enemies remain
+    }
   }
 
   // Distance bonus when already in range (saves actions)
@@ -362,7 +400,7 @@ function evaluateAttackPlan(
       targetPosition: target.position,
       targetCharacterIds: [target.id],
       score,
-      description: `Attack ${target.name} with ${ability.name}`,
+      description: target.currentHP === 0 ? `Execute downed ${target.name} with ${ability.name}` : `Attack ${target.name} with ${ability.name}`,
     };
   }
 
@@ -407,7 +445,13 @@ function evaluateSupportPlan(
   if (isHeal) {
     const missingHP = target.maxHP - target.currentHP;
     const healAmount = ability.effects.find(e => e.type === 'heal')?.value || 0;
-    if (missingHP > 0) {
+
+    // Reviving downed allies check
+    // What changed: Downed allies at 0 HP get massive priority boost for healing spells.
+    // Why: Keeping teammates alive and in the action economy is the highest priority for AI healers.
+    if (target.currentHP === 0 && target.deathSaves) {
+      score += 150; // Massively boost score for saving/reviving a downed ally
+    } else if (missingHP > 0) {
       score += Math.min(missingHP, healAmount) * WEIGHTS.HEAL;
       if (target.currentHP < target.maxHP * 0.3) score += 25; // Save ally
     }
@@ -416,7 +460,10 @@ function evaluateSupportPlan(
   // Buffs keep allies safe/efficient
   const isBuff = ability.effects.some(e => e.type === 'status' && e.statusEffect?.type === 'buff');
   if (isBuff) {
-    score += 8;
+    // Only buff active allies
+    if (target.currentHP > 0) {
+      score += 8;
+    }
   }
 
   if (score <= 0) return null;
@@ -429,7 +476,7 @@ function evaluateSupportPlan(
       targetPosition: target.position,
       targetCharacterIds: [target.id],
       score,
-      description: `Heal/Buff ${target.name} with ${ability.name}`,
+      description: target.currentHP === 0 ? `Revive downed ${target.name} with ${ability.name}` : `Heal/Buff ${target.name} with ${ability.name}`,
     };
   }
 
@@ -464,8 +511,10 @@ function evaluateSupportPlan(
 function evaluateAoEPlan(
   caster: CombatCharacter,
   ability: Ability,
-  enemies: CombatCharacter[],
-  allies: CombatCharacter[],
+  activeEnemies: CombatCharacter[],
+  downedEnemies: CombatCharacter[],
+  activeAllies: CombatCharacter[],
+  downedAllies: CombatCharacter[],
   mapData: BattleMapData,
   reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
   /** Cross-ability tile cache: keyed by (shape, size, cx, cy, castTileId). Passed from decideTurn. */
@@ -479,6 +528,9 @@ function evaluateAoEPlan(
   const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
   const startTile = mapData.tiles.get(`${caster.position.x}-${caster.position.y}`);
   if (!startTile) return null;
+
+  const allEnemies = [...activeEnemies, ...downedEnemies];
+  const allAllies = [...activeAllies, ...downedAllies];
 
   // Candidate centers: enemy positions for offensive casts plus ally clusters for
   // supportive AoEs. We sample a 1-tile ring to let cones/lines slightly offset
@@ -501,7 +553,7 @@ function evaluateAoEPlan(
     }
   };
 
-  enemies.forEach(enemy => {
+  allEnemies.forEach(enemy => {
     addCandidate(enemy.position);
     // Sample a ring around each enemy to catch partial overlaps with cones/lines.
     for (let dx = -1; dx <= 1; dx++) {
@@ -516,7 +568,7 @@ function evaluateAoEPlan(
   // even in the absence of nearby hostiles (e.g., mid-combat regrouping).
   const canHeal = ability.effects.some(e => e.type === 'heal');
   if (canHeal) {
-    allies.forEach(ally => {
+    allAllies.forEach(ally => {
       addCandidate(ally.position);
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
@@ -563,13 +615,25 @@ function evaluateAoEPlan(
       aoeTiles = computeAoETiles(area, center, mapData, castTile.coordinates);
       aoeCache.set(cacheKey, aoeTiles);
     }
-    const impactedEnemies = enemies.filter(e => {
+    const impactedActiveEnemies = activeEnemies.filter(e => {
       const occupied = getOccupiedTiles(e);
       return aoeTiles.some(tile => 
         occupied.some(ot => ot.x === tile.x && ot.y === tile.y)
       );
     });
-    const impactedAllies = allies.filter(a => {
+    const impactedDownedEnemies = downedEnemies.filter(e => {
+      const occupied = getOccupiedTiles(e);
+      return aoeTiles.some(tile => 
+        occupied.some(ot => ot.x === tile.x && ot.y === tile.y)
+      );
+    });
+    const impactedActiveAllies = activeAllies.filter(a => {
+      const occupied = getOccupiedTiles(a);
+      return aoeTiles.some(tile => 
+        occupied.some(ot => ot.x === tile.x && ot.y === tile.y)
+      );
+    });
+    const impactedDownedAllies = downedAllies.filter(a => {
       const occupied = getOccupiedTiles(a);
       return aoeTiles.some(tile => 
         occupied.some(ot => ot.x === tile.x && ot.y === tile.y)
@@ -581,54 +645,71 @@ function evaluateAoEPlan(
 
     // For healing spells, we must only consider allies. For pure damage, only enemies.
     // Mixed spells will consider both but need careful target selection.
-    const healableAllies = healEffect ? impactedAllies.filter(ally => ally.currentHP < ally.maxHP) : [];
+    const healableActiveAllies = healEffect ? impactedActiveAllies.filter(ally => ally.currentHP < ally.maxHP) : [];
+    const healableDownedAllies = healEffect ? impactedDownedAllies : []; // All downed allies can be healed/revived
 
-    // If it's a pure healing spell, it must have healable allies.
-    if (healEffect && !damageEffect && healableAllies.length === 0) continue;
-    // If it's a pure damage spell, it must have enemies.
-    if (damageEffect && !healEffect && impactedEnemies.length === 0) continue;
+    // If it's a pure healing spell, it must have healable allies/downed allies.
+    if (healEffect && !damageEffect && healableActiveAllies.length === 0 && healableDownedAllies.length === 0) continue;
+    // If it's a pure damage spell, it must have active enemies.
+    if (damageEffect && !healEffect && impactedActiveEnemies.length === 0) continue;
     // If it's a mixed spell, it must have at least one valid target.
-    if (damageEffect && healEffect && impactedEnemies.length === 0 && healableAllies.length === 0) continue;
-
+    if (damageEffect && healEffect && impactedActiveEnemies.length === 0 && healableActiveAllies.length === 0 && healableDownedAllies.length === 0) continue;
 
     let score = 0;
 
     if (damageEffect) {
       const dmgValue = damageEffect.value || 0;
-      impactedEnemies.forEach(enemy => {
+      impactedActiveEnemies.forEach(enemy => {
         score += dmgValue * WEIGHTS.DAMAGE;
         if (enemy.currentHP <= dmgValue) score += WEIGHTS.KILL_TARGET;
         score += (1 - enemy.currentHP / enemy.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
       });
 
-      if (impactedEnemies.length > 1) {
-        score += (impactedEnemies.length - 1) * WEIGHTS.AOE_MULTI_TARGET;
+      // Downed enemies hit adds minimal value if active threats exist
+      impactedDownedEnemies.forEach(enemy => {
+        if (activeEnemies.length > 0) {
+          score += dmgValue * WEIGHTS.DAMAGE * 0.1;
+        } else {
+          score += dmgValue * WEIGHTS.DAMAGE;
+        }
+      });
+
+      if (impactedActiveEnemies.length > 1) {
+        score += (impactedActiveEnemies.length - 1) * WEIGHTS.AOE_MULTI_TARGET;
       }
 
       // Penalize friendly fire ONLY IF the ability does damage.
-      score += impactedAllies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY;
+      score += impactedActiveAllies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY;
+      score += impactedDownedAllies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY * 2.0; // Double penalty for hitting dying allies
     }
 
     if (healEffect) {
       const healValue = healEffect.value || 0;
-      healableAllies.forEach(ally => {
+      healableActiveAllies.forEach(ally => {
         const missing = ally.maxHP - ally.currentHP;
         score += Math.min(missing, healValue) * WEIGHTS.HEAL;
         if (ally.currentHP < ally.maxHP * 0.35) score += WEIGHTS.SELF_PRESERVATION;
       });
 
-      if (healableAllies.length > 1) {
-        score += (healableAllies.length - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
+      // Massively boost score for healing downed allies (reviving them)
+      healableDownedAllies.forEach(ally => {
+        score += 150;
+      });
+
+      const totalHealed = healableActiveAllies.length + healableDownedAllies.length;
+      if (totalHealed > 1) {
+        score += (totalHealed - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
       }
 
-      // NEW: Add a penalty for healing enemies if the spell has a healing component.
-      // This prevents using an AoE heal offensively when enemies are in the blast zone.
-      const healedEnemies = impactedEnemies.filter(e => e.currentHP < e.maxHP);
-      score += healedEnemies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY * 1.5; // Make it even more punishing
+      // Add a penalty for healing enemies if the spell has a healing component.
+      const healedActiveEnemies = impactedActiveEnemies.filter(e => e.currentHP < e.maxHP);
+      const healedDownedEnemies = impactedDownedEnemies;
+      const totalHealedEnemies = healedActiveEnemies.length + healedDownedEnemies.length;
+      score += totalHealedEnemies * WEIGHTS.FRIENDLY_FIRE_PENALTY * 1.5;
     }
 
     // Prefer keeping some standoff distance when setting up the cast.
-    const closestEnemy = getNearestEnemy({ ...caster, position: castTile.coordinates }, enemies);
+    const closestEnemy = getNearestEnemy({ ...caster, position: castTile.coordinates }, activeEnemies);
     if (closestEnemy) {
       const spacing = getDistance(castTile.coordinates, closestEnemy.position);
       score += spacing * WEIGHTS.POSITIONING_BONUS;
@@ -639,19 +720,24 @@ function evaluateAoEPlan(
     score += WEIGHTS.DISTANCE_PENALTY * movementCost;
 
     if (!bestPlan || score > bestPlan.score) {
-      const allyCountForDescription = healEffect ? healableAllies.length : impactedAllies.length;
+      const activeEnemiesCount = impactedActiveEnemies.length;
+      const activeAlliesCount = healEffect ? healableActiveAllies.length : impactedActiveAllies.length;
+      const downedAlliesCount = healEffect ? healableDownedAllies.length : impactedDownedAllies.length;
 
       bestPlan = {
         actionType: 'ability',
         abilityId: ability.id,
         targetPosition: center,
-        // Only include allies who can benefit in the target list so downstream effects
-        // (animations, logs) reflect the filtered heal targets.
-        targetCharacterIds: [...impactedEnemies.map(e => e.id), ...healableAllies.map(a => a.id)],
+        targetCharacterIds: [
+          ...impactedActiveEnemies.map(e => e.id),
+          ...impactedDownedEnemies.map(e => e.id),
+          ...healableActiveAllies.map(a => a.id),
+          ...healableDownedAllies.map(a => a.id)
+        ],
         score,
-        description: `Cast ${ability.name} to affect ${impactedEnemies.length} enemies${
-          allyCountForDescription ? ` and ${allyCountForDescription} allies` : ''
-        }`,
+        description: `Cast ${ability.name} to affect ${activeEnemiesCount} active enemies${
+          activeAlliesCount ? ` and ${activeAlliesCount} active allies` : ''
+        }${downedAlliesCount ? ` and ${downedAlliesCount} downed allies` : ''}`,
       };
     }
   }
@@ -688,7 +774,11 @@ function buildOccupiedTileSet(characters: CombatCharacter[], movingCharacterId: 
   const occupied = new Set<string>();
 
   characters.forEach(character => {
-    if (character.id !== movingCharacterId && character.currentHP > 0) {
+    // DOWNED CHARACTER MAP OCCUPATION
+    // What changed: Downed player characters (HP === 0 with deathSaves) now occupy grid tiles.
+    // Why: Unconscious characters remain on the field and block movement grid coordinates in standard D&D rules.
+    // What was preserved: Caster ID filtering and standard alive-character checks.
+    if (character.id !== movingCharacterId && (character.currentHP > 0 || character.deathSaves)) {
       const tiles = getOccupiedTiles(character);
       tiles.forEach(tile => {
         occupied.add(`${tile.x}-${tile.y}`);

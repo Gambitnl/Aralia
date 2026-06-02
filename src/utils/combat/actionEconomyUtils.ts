@@ -26,6 +26,7 @@
 import { CombatCharacter, ActionEconomyState, AbilityCost } from '../../types/combat';
 import { SpellSlots } from '../../types';
 import { resolveRacialSpellLimitedUseId } from '../character/characterUtils';
+import { isIncapacitated, isMovementBlocked } from './deathSaveUtils';
 
 const canAffordActionByType = (economy: ActionEconomyState, cost: AbilityCost): boolean => {
     switch (cost.type) {
@@ -120,6 +121,16 @@ export function resetEconomy(character: CombatCharacter): CombatCharacter {
  */
 export function canAffordActionCost(character: CombatCharacter | undefined, cost: AbilityCost): boolean {
     if (!character) return false;
+
+    // Incapacitated creatures cannot take actions, bonus actions, reactions, or free actions in D&D 5e
+    if (isIncapacitated(character) && cost.type !== 'movement-only') {
+        return false;
+    }
+
+    // Unconscious or movement-blocked characters cannot move
+    if (isMovementBlocked(character) && ((cost.movementCost || 0) > 0 || cost.type === 'movement-only')) {
+        return false;
+    }
 
     const economy = character.actionEconomy;
     const castSource = cost.castSource;

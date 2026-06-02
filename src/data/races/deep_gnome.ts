@@ -10,16 +10,16 @@ export const DEEP_GNOME_DATA: Race = {
     name: 'Deep Gnome (Svirfneblin)',
     baseRace: 'gnome',
     description:
-        'Deep gnomes, or svirfneblin, are natives of the Underdark and are suffused with that subterranean realm\'s magic. They can supernaturally camouflage themselves, and their svirfneblin magic renders them difficult to locate. Forest gnomes and rock gnomes are the gnomes most commonly encountered in the lands of the surface world. There is another subrace of gnomes rarely seen by any surface-dweller: deep gnomes, also known as svirfneblin. Guarded, and suspicious of outsiders, svirfneblin are cunning and taciturn, but can be just as kind-hearted, loyal, and compassionate as their surface cousins. When svirfneblin befriend someone, it is a friendship that lasts a lifetime.',
-    abilityBonuses: [], // Flexible ASIs handled by Point Buy.
+        'Deep gnomes, or svirfneblin, are natives of the Underdark and are suffused with that subterranean realm\'s magic. They can supernaturally camouflage themselves, and their svirfneblin magic renders them difficult to locate. Deep gnomes are guarded and suspicious of outsiders, but intensely loyal to their friends.',
+    abilityBonuses: [],
   traits: [
         'Creature Type: Humanoid',
         'Size: Small (about 3 feet tall)',
-        'Speed: 25 feet',
-        "Vision: [[darkvision|Superior Darkvision]]. You can see in [[dim_light|dim light]] within 120 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
-    'Gnome Cunning: You have Advantage on all Intelligence, Wisdom, and Charisma saving throws against magic.',
-    'Stone Camouflage: You have Advantage on Dexterity (Stealth) checks to hide in rocky terrain. You can use this trait a number of times equal to your proficiency bonus. After you use this trait, you must finish a long rest before you can use it again.',
-    'Gift of the Svirfneblin: Starting at 3rd level, you can cast the Disguise Self spell with this trait. Starting at 5th level, you can also cast the Nondetection spell with it, without requiring a material component. Once you cast either of these spells with this trait, you can\'t cast that spell with it again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).',
+        'Speed: 30 feet',
+        "Vision: You have [[darkvision|Darkvision]] with a range of 120 feet.",
+    'Gnomish Cunning: You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws.',
+    'Gnomish Camouflage: You have [[advantage]] on Dexterity (Stealth) checks. You can use this trait a number of times equal to your [[proficiency_bonus|Proficiency Bonus]], and you regain all expended uses when you finish a [[long_rest|Long Rest]].',
+    'Gift of the Svirfneblin: You know the [[disguise_self|Disguise Self]] spell. Starting at 3rd level, you can cast the [[nondetection|Nondetection]] spell with this trait, without requiring a material component. You can cast each of these spells a number of times equal to your [[proficiency_bonus|Proficiency Bonus]] without using a spell slot, and you regain all expended uses when you finish a [[long_rest|Long Rest]]. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this species).',
   ],
   imageUrl: 'assets/images/races/deep_gnome.png',
     visual: {

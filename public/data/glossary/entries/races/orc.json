@@ -1,0 +1,67 @@
+{
+  "id": "orc",
+  "title": "Orc",
+  "category": "Character Races",
+  "entryLore": "Orcs trace their creation to Gruumsh, a powerful god who roamed the wide open spaces of the Material Plane. Gruumsh equipped his children with gifts to help them wander great plains, vast caverns, and churning seas and to face the monsters that lurk there. Even when they turn their devotion to other gods, orcs retain Gruumsh's gifts: endurance, determination, and the ability to see in darkness.",
+  "lore": {
+    "typicalDwelling": "Orcs find homes wherever their strength and determination earn them a place. Many live in frontier towns where their physical prowess is valued for defense and labor. Others make their way in cities, working as guards, laborers, or soldiers. Their homes are typically practical rather than comfortable-an orc values security and function over decoration.",
+    "typicalAttire": "Orc clothing prioritizes durability and freedom of movement. Leather, canvas, and heavy wool are preferred over delicate fabrics. Many dress to project strength and capability: well-maintained equipment, practical boots, and garments that show off their muscular builds. Jewelry, when worn, tends toward bold pieces-heavy chains, thick rings, or trophies from battles and hunts.",
+    "typicalEnvironment": "Orcs gravitate toward places that value physical ability and direct action. Frontier settlements, military outposts, mining towns, and other rugged environments suit them well. They often prefer environments where they're judged by their actions rather than their appearance-places where proving oneself through deeds is the primary social currency.",
+    "societyType": "Orc society is decentralized and organized around shared determination and the pursuit of adventure. They value independence, honesty, and the pursuit of strength. Leadership is held by those who have demonstrated the greatest competence or the most successful application of logic and power in their chosen field.",
+    "typicalAssociation": "Orcs tend toward neutral alignments, driven by a deep respect for strength and the belief that absolute clarity is the only path to progress. They are an honest and straightforward people, often approaching social interactions with a directness that can be both admirable and intimidating. They value consistency and the objective truth above all else.",
+    "physicalAppearance": "Orcs are imposing figures, typically standing 6 to 7 feet tall with powerful, muscular builds. Their skin ranges from gray to olive green. Facial features include prominent lower canines resembling small tusks, sharply pointed ears, and sloping foreheads. Hair is usually black or dark brown, often coarse, worn in practical styles. Their eyes can be human colors or more unusual shades like yellow or red."
+  },
+  "characteristics": [
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Vision",
+      "value": "[[darkvision|120 feet]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Adrenaline Rush",
+      "icon": "bolt",
+      "description": "You can take the [[dash|Dash]] action as a [[bonus_action|Bonus Action]]. When you do so, you gain a number of [[temporary_hit_points|Temporary Hit Points]] equal to your [[proficiency_bonus|Proficiency Bonus]]. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Powerful Build",
+      "icon": "fitness_center",
+      "description": "You have [[advantage]] on saving throws you make to end the [[grappled_condition|Grappled]] condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+    },
+    {
+      "name": "Relentless Endurance",
+      "icon": "favorite",
+      "description": "When you are reduced to 0 [[hit_points|Hit Points]] but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "race",
+    "orc",
+    "humanoid",
+    "strong",
+    "resilient"
+  ],
+  "aliases": [
+    "gruumsh-kin"
+  ],
+  "seeAlso": [
+    "darkvision",
+    "relentless_endurance",
+    "powerful_build"
+  ],
+  "filePath": "/data/glossary/entries/races/orc.json",
+  "maleImageUrl": "/assets/images/races/Orc_Male.png",
+  "femaleImageUrl": "/assets/images/races/Orc_Female.png"
+}

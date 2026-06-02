@@ -40,9 +40,11 @@ Corpus-wide JSON structure is currently green (`459 / 459` in
 - structured->json lane still has open mismatch buckets
 - canonical retrieval is complete for supported spells
 
-Current implementation package is in-flight as Package 18 in
-`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` with an active Jules wait
-state and follow-up PR gate noted there.
+Current implementation package has reached Package 18 remote merge proof in
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Package 18 safe-replacement
+PR #1143 merged on 2026-06-01, so the active project boundary is now
+local sync/package-history closeout and next-package selection from current
+`master`.
 
 ## Active Task
 
@@ -111,7 +113,7 @@ Out of scope:
 
 | Gap | Classification | Evidence | Next action |
 |---|---|---|---|
-| Package 18 is still in wait state, so this project cannot be marked package-closed | in_scope_now | `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md` | Refresh Jules session and PR boundary before advancing this folder to a closed package state. |
+| Package 18 remote merge proof is present, but local sync/package-history closeout is not yet recorded | in_scope_now | `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`; PR #1143 | Complete local closeout evidence and then select the next Spell Phase package from current `master`. |
 | No automated Atlas drift check between tracker values and Atlas row counts | support_needed_now | `docs/tasks/spells/ATLAS_GAPS_REGISTRY.md` | Capture a one-shot count alignment check on each major package transition. |
 
 ## Supporting Files

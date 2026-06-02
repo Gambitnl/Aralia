@@ -3,6 +3,7 @@
  * This component displays a loading spinner overlay, typically shown
  * when the application is waiting for an asynchronous operation to complete,
  * such as an API call to Gemini. It now accepts an optional message prop.
+ * @component-owner UI Team / Core UI
  */
 import React from 'react';
 import { motion, MotionProps } from 'framer-motion';

@@ -1,3 +1,8 @@
+/**
+ * @file Tooltip.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:

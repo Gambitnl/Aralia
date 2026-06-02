@@ -116,6 +116,77 @@ export const CombatCharacterInspector: React.FC<Props> = ({ character, onClose }
           )}
         </div>
 
+        {/* 
+          DEATH SAVING THROWS & STABILIZATION PANEL
+          What changed: Added a dedicated card to display successes, failures, or a 'Stable' badge.
+          Why: When player characters hit 0 HP, they enter a downed state. Tracking their death save
+               progress or stabilization status is essential for players to make tactical healing decisions.
+          What was preserved: Standard AC and HP bar metrics are left intact; this card only renders when
+               character.deathSaves is defined, avoiding clutter for active allies or enemies.
+        */}
+        {character.deathSaves && (
+          <Card>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase text-amber-400 font-bold tracking-widest">Death Saving Throws</p>
+                {character.deathSaves.isStable ? (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-900/40 text-teal-300 border border-teal-700/50 shadow-sm shadow-teal-500/20 uppercase tracking-wider">
+                    Stable
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-900/40 text-rose-300 border border-rose-700/50 shadow-sm shadow-rose-500/20 uppercase tracking-wider animate-pulse">
+                    Dying
+                  </span>
+                )}
+              </div>
+
+              {!character.deathSaves.isStable && (
+                <div className="grid grid-cols-2 gap-4 mt-1">
+                  {/* Successes row with 3 dots */}
+                  <div className="flex items-center justify-between bg-gray-800/40 rounded px-2.5 py-1.5 border border-gray-600/30">
+                    <span className="text-[10px] font-semibold text-green-400 uppercase tracking-wider">Successes</span>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3].map(i => {
+                        const isFilled = character.deathSaves!.successes >= i;
+                        return (
+                          <div
+                            key={`success-${i}`}
+                            className={`w-3 h-3 rounded-full border transition-all duration-300 ${
+                              isFilled
+                                ? 'bg-green-500 border-green-400 shadow-sm shadow-green-500/40'
+                                : 'bg-gray-900/60 border-gray-600'
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Failures row with 3 dots */}
+                  <div className="flex items-center justify-between bg-gray-800/40 rounded px-2.5 py-1.5 border border-gray-600/30">
+                    <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wider">Failures</span>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3].map(i => {
+                        const isFilled = character.deathSaves!.failures >= i;
+                        return (
+                          <div
+                            key={`failure-${i}`}
+                            className={`w-3 h-3 rounded-full border transition-all duration-300 ${
+                              isFilled
+                                ? 'bg-red-500 border-red-400 shadow-sm shadow-red-500/40'
+                                : 'bg-gray-900/60 border-gray-600'
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
         {/* Ability scores */}
         <Card>
           <SectionHeader label="Ability Scores" />

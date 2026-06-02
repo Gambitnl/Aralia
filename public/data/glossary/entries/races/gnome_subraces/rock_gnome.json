@@ -13,20 +13,32 @@
   },
   "characteristics": [
     {
-      "label": "Lineage Type",
-      "value": "Tinker"
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [
     {
+      "name": "Gnomish Cunning",
+      "icon": "psychology",
+      "description": "You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws."
+    },
+    {
       "name": "Tinker",
       "icon": "magic",
       "description": "You know the [[mending|Mending]] and [[prestidigitation|Prestidigitation]] cantrips. You also have [[proficiency|proficiency]] with [[tinkers_tools|Tinker's Tools]]."
-    },
-    {
-      "name": "Clockwork Creation",
-      "icon": "magic",
-      "description": "You can spend 10 minutes and 10 GP of materials to create a Tiny clockwork device (toy, fire starter, or music box) that functions for 24 hours or until you dismantle it."
     }
   ],
   "tags": [

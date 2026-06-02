@@ -1,3 +1,8 @@
+/**
+ * @file VersionDisplay.tsx
+ *
+ * @component-owner UI Team / Core UI
+ */
 import React from 'react'
 import packageInfo from '../../../package.json';
 import './VersionDisplay.css'

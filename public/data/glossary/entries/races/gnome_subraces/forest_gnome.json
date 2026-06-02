@@ -13,11 +13,28 @@
   },
   "characteristics": [
     {
-      "label": "Lineage Type",
-      "value": "Fey-Touched"
+      "label": "Creature Type",
+      "value": "[[humanoid|Humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "[[size|Small]]"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
     }
   ],
   "traits": [
+    {
+      "name": "Gnomish Cunning",
+      "icon": "psychology",
+      "description": "You have [[advantage]] on Intelligence, Wisdom, and Charisma saving throws."
+    },
     {
       "name": "Natural Illusionist",
       "icon": "magic",

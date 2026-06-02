@@ -23,6 +23,11 @@
   ],
   "traits": [
     {
+      "name": "Otherworldly Presence",
+      "icon": "magic",
+      "description": "You know the [[thaumaturgy|Thaumaturgy]] cantrip."
+    },
+    {
       "name": "Chthonic Resistance",
       "icon": "shield",
       "description": "You have [[resistance|Resistance]] to [[necrotic_damage|Necrotic damage]]."

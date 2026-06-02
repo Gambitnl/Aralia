@@ -1,0 +1,74 @@
+{
+  "id": "gold_dragonborn",
+  "title": "Gold Dragonborn",
+  "category": "Character Races",
+  "entryLore": "Descended from the majestic and wise gold dragons of the high mountains and hidden valleys, these dragonborn command the power of fire. They often possess a deep sense of justice and a dedication to duty, reflecting the noble and disciplined nature of their draconic kin.",
+  "lore": {
+    "typicalDwelling": "Those of gold draconic ancestry often dwell in the serene reaches of high mountain peaks, secluded monasteries, or the heart of ancient, well-ordered cities. Their homes are constructed of durable stone and feature elegant, harmonious designs with high ceilings, meditative gardens, and expansive libraries. They value structural permanence and spiritual tranquility, their settlements often serving as beacons of wisdom and justice for the surrounding lands.",
+    "typicalAttire": "Gold dragonborn favor attire that is both majestic and functional, reflecting their noble and disciplined nature. They wear fine fabrics in shades of deep gold, vibrant yellow, and rich white, often decorated with intricate embroidery and metallic filigree. Their clothing is designed to be elegant but allows for ease of movement in martial or spiritual practices. Many wear simple, practical sashes and belts that denote their station or their commitment to a specific path of discipline.",
+    "typicalEnvironment": "High-altitude mountains, peaceful lakesides, and any region that rewards contemplation, tactical planning, and the pursuit of justice are the gold dragonborn's preferred habitats. They thrive in environments that reward patience and the pursuit of excellence. Many serve as specialized sentries, military strategists, professional mediators, or guardians of ancient knowledge.",
+    "societyType": "Gold dragonborn society is hierarchical and organized around shared tradition and the pursuit of a righteous order. They value wisdom, discipline, and the fulfillment of duty above all else. Leadership is held by those who have demonstrated the greatest spiritual maturity or the most successful application of their natural gifts in the service of the common good.",
+    "typicalAssociation": "Gold dragonborn tend toward lawful good alignments, driven by a deep-seated sense of justice and a commitment to protecting the weak. They are a stoic and benevolent people, viewing their natural power as a responsibility to be used for the benefit of the world. They value integrity and honor above all else, and they are legendary for their commitment to their oaths and their friends.",
+    "physicalAppearance": "Gold dragonborn possess an imposing and majestic appearance, standing 6 to 6.5 feet tall with powerful, athletic builds. Their scales are a vibrant shade of deep gold or burnished yellow, often with a brilliant, metallic luster. Their most striking feature is their elegant, swept-back horns and a series of crests along their spine that glow with a warm, internal light. Their eyes are bright and wise, often in shades of gold, amber, or deep blue. Their faces are characterized by a refined, toothy muzzle and a powerful jaw that conveys a sense of calm authority. They move with a measured, purposeful gait that conveys both immense physical power and a lifetime of self-discipline."
+  },
+  "characteristics": [
+    {
+      "label": "Ancestry Type",
+      "value": "Draconic (Gold)"
+    },
+    {
+      "label": "Creature Type",
+      "value": "[[humanoid]]"
+    },
+    {
+      "label": "Size",
+      "value": "Medium"
+    },
+    {
+      "label": "Speed",
+      "value": "30 feet"
+    },
+    {
+      "label": "Vision",
+      "value": "[[darkvision|60 feet]]"
+    },
+    {
+      "label": "Damage Type",
+      "value": "[[fire_damage|Fire]]"
+    }
+  ],
+  "traits": [
+    {
+      "name": "Draconic Ancestry",
+      "icon": "shield",
+      "description": "You have [[resistance|Resistance]] to [[fire_damage|Fire damage]]."
+    },
+    {
+      "name": "Breath Weapon",
+      "icon": "flame",
+      "description": "When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[fire_damage|Fire damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]]."
+    },
+    {
+      "name": "Draconic Flight",
+      "icon": "wings",
+      "description": "Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]]."
+    }
+  ],
+  "tags": [
+    "dragonborn",
+    "ancestry",
+    "gold",
+    "fire"
+  ],
+  "aliases": [
+    "gold ancestry"
+  ],
+  "seeAlso": [
+    "dragonborn",
+    "fire_damage",
+    "breath_weapon"
+  ],
+  "filePath": "/data/glossary/entries/races/dragonborn_ancestries/gold.json",
+  "maleImageUrl": "/assets/images/races/Dragonborn_Gold_Male.png",
+  "femaleImageUrl": "/assets/images/races/Dragonborn_Gold_Female.png"
+}

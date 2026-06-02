@@ -9,6 +9,7 @@ import {
   resetZoneTurnTracking,
   type ActiveSpellZone
 } from '../triggerHandler'
+import { AoECalculator } from '@/systems/spells/targeting/AoECalculator'
 import type { CombatCharacter, Position } from '@/types/combat'
 import type { SpellEffect } from '@/types/spells'
 
@@ -69,6 +70,31 @@ describe('isPositionInArea', () => {
 
     expect(isPositionInArea({ x: 2, y: 0 }, { x: 0, y: 0 }, cone, { x: 1, y: 0 })).toBe(true)
     expect(isPositionInArea({ x: -2, y: 0 }, { x: 0, y: 0 }, cone, { x: 1, y: 0 })).toBe(false)
+  })
+
+  it('matches AoECalculator containment for persistent zone shapes', () => {
+    // Persistent spell zones and targeting previews must agree about covered
+    // tiles. This parity guard keeps future geometry changes from fixing the
+    // preview while leaving delayed area triggers on a different footprint.
+    const center = { x: 0, y: 0 }
+    const east = { x: 1, y: 0 }
+    const cases = [
+      { area: { shape: 'cube', size: 10 }, direction: undefined, samples: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 0 }] },
+      { area: { shape: 'sphere', size: 10 }, direction: undefined, samples: [{ x: 0, y: 0 }, { x: 2, y: 2 }, { x: 3, y: 0 }] },
+      { area: { shape: 'cone', size: 15 }, direction: east, samples: [{ x: 2, y: 0 }, { x: -2, y: 0 }, { x: 1, y: 1 }] },
+      { area: { shape: 'line', size: 15 }, direction: east, samples: [{ x: 1, y: 0 }, { x: 3, y: 0 }, { x: 0, y: 1 }] }
+    ]
+
+    for (const testCase of cases) {
+      for (const sample of testCase.samples) {
+        expect(isPositionInArea(sample, center, testCase.area, testCase.direction)).toBe(
+          AoECalculator.containsTile(sample, center, {
+            ...testCase.area,
+            shape: testCase.area.shape === 'sphere' ? 'Sphere' : testCase.area.shape === 'cube' ? 'Cube' : testCase.area.shape === 'cone' ? 'Cone' : 'Line'
+          }, testCase.direction)
+        )
+      }
+    }
   })
 })
 

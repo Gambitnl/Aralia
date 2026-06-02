@@ -1,11 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { SpellCommandFactory } from '../SpellCommandFactory'
-import { createMockCombatCharacter, createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 import alarm from '../../../../public/data/spells/level-1/alarm.json'
 import chromaticOrb from '../../../../public/data/spells/level-1/chromatic-orb.json'
 import alterSelf from '../../../../public/data/spells/level-2/alter-self.json'
 import blindnessDeafness from '../../../../public/data/spells/level-2/blindness-deafness.json'
 import dragonsBreath from '../../../../public/data/spells/level-2/dragons-breath.json'
+import enhanceAbility from '../../../../public/data/spells/level-2/enhance-ability.json'
 import enlargeReduce from '../../../../public/data/spells/level-2/enlarge-reduce.json'
 import plantGrowth from '../../../../public/data/spells/level-3/plant-growth.json'
 import { SpellSchool, type Spell, type SpellEffect, type DamageEffect, type StatusConditionEffect } from '@/types/spells'
@@ -23,6 +24,10 @@ import { SpellSchool, type Spell, type SpellEffect, type DamageEffect, type Stat
 
 type TestCommandWithEffect = {
   effect: SpellEffect
+}
+
+type SpellWithPerTargetChoices = Spell & {
+  perTargetChoicesByTargetId: Record<string, string>
 }
 
 const modeChoiceSpells = [
@@ -213,5 +218,59 @@ describe('SpellCommandFactory - Choice and Mode Integration', () => {
       const damageEffects = spell.effects.filter((effect): effect is DamageEffect => effect.type === 'DAMAGE')
       expect(damageEffects.some(effect => effect.damage.damageTypeSource === 'chosen_damage_type'), `${spell.id} should mark chosen damage typing`).toBe(true)
     }
+  })
+
+  it('applies Enhance Ability per-target choices as ability-check advantage', async () => {
+    // Enhance Ability is the first per-target-choice spell whose chosen labels
+    // need to become real mechanics. This test protects the handoff from the
+    // target-indexed prompt payload into the character modifier channel that
+    // ability checks already inspect.
+    const firstTarget = createMockCombatCharacter({
+      id: 'first-target',
+      name: 'First Target',
+      modifiers: { advantage: [], disadvantage: [], bonuses: [] },
+      statusEffects: []
+    })
+    const secondTarget = createMockCombatCharacter({
+      id: 'second-target',
+      name: 'Second Target',
+      modifiers: { advantage: [], disadvantage: [], bonuses: [] },
+      statusEffects: []
+    })
+    const spellWithChoices: SpellWithPerTargetChoices = {
+      ...(enhanceAbility as unknown as Spell),
+      perTargetChoicesByTargetId: {
+        [firstTarget.id]: 'Strength',
+        [secondTarget.id]: 'Wisdom'
+      }
+    }
+
+    const commands = await SpellCommandFactory.createCommands(
+      spellWithChoices,
+      caster,
+      [firstTarget, secondTarget],
+      2,
+      gameState
+    )
+
+    // Execute every command so this proves the real factory path, not only the
+    // presence of a command object. The generic UtilityCommand and concentration
+    // command may also run, but only the Enhance Ability command should write
+    // ability-check advantage and visible buff statuses.
+    let currentState = createMockCombatState({
+      characters: [caster, firstTarget, secondTarget],
+      combatLog: []
+    })
+    for (const command of commands) {
+      currentState = await command.execute(currentState)
+    }
+
+    const updatedFirstTarget = currentState.characters.find(character => character.id === firstTarget.id)!
+    const updatedSecondTarget = currentState.characters.find(character => character.id === secondTarget.id)!
+
+    expect(updatedFirstTarget.modifiers?.advantage).toContain('advantage on Strength ability checks from Enhance Ability')
+    expect(updatedSecondTarget.modifiers?.advantage).toContain('advantage on Wisdom ability checks from Enhance Ability')
+    expect(updatedFirstTarget.statusEffects.some(effect => effect.name === 'Enhance Ability (Strength)')).toBe(true)
+    expect(updatedSecondTarget.statusEffects.some(effect => effect.name === 'Enhance Ability (Wisdom)')).toBe(true)
   })
 })

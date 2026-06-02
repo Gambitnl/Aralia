@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 01/06/2026, 09:49:45
+ * Dependents: components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React, { useEffect, useState } from 'react';
 import { DamageNumber } from '../../types/combat';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
@@ -27,6 +43,29 @@ interface DamageNumberOverlayProps {
 
 const DamageNumberOverlay: React.FC<DamageNumberOverlayProps> = ({ damageNumbers }) => {
   const [activeMap, setActiveMap] = useState<Record<string, boolean>>({});
+
+  // These labels are the shared 2D combat-map language for outcomes that do not
+  // change hit points. They mirror the 3D VFX labels so a save or immunity reads
+  // the same no matter which battle-map renderer is active.
+  const getFeedbackLabel = (dn: DamageNumber): string => {
+    if (dn.type === 'miss') return 'MISS';
+    if (dn.type === 'save') return 'SAVE';
+    if (dn.type === 'resist') return 'RESIST';
+    if (dn.type === 'immune') return 'IMMUNE';
+    return dn.value.toString();
+  };
+
+  // Keep outcome colors distinct without introducing a new renderer. Damage and
+  // healing retain their old colors; avoided spell outcomes use cool/bright tones
+  // so they stand apart from ordinary attack misses.
+  const getFeedbackColor = (type: DamageNumber['type']): string => {
+    if (type === 'heal') return '#4ade80';
+    if (type === 'miss') return '#9ca3af';
+    if (type === 'save') return '#60a5fa';
+    if (type === 'resist') return '#facc15';
+    if (type === 'immune') return '#c084fc';
+    return '#ef4444';
+  };
 
   // Trigger CSS transitions on the next frame for any newly added damage number.
   useEffect(() => {
@@ -71,13 +110,13 @@ const DamageNumberOverlay: React.FC<DamageNumberOverlayProps> = ({ damageNumbers
               // benefit from transform3d() for better GPU acceleration
               transform: active ? 'translate(-50%, -42px)' : 'translate(-50%, 0px)',
               opacity: active ? 0 : 1,
-              color: dn.type === 'heal' ? '#4ade80' : dn.type === 'miss' ? '#9ca3af' : '#ef4444',
+              color: getFeedbackColor(dn.type),
               textShadow: '2px 2px 0 #000',
               transition: `transform ${dn.duration}ms ease-out, opacity ${dn.duration}ms ease-out`,
               willChange: 'transform, opacity',
             }}
           >
-            {dn.type === 'miss' ? 'MISS' : dn.value}
+            {getFeedbackLabel(dn)}
           </div>
         );
       })}

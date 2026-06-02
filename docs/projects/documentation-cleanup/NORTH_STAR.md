@@ -67,3 +67,13 @@ Out of scope:
 3. Read `docs/projects/documentation-cleanup/GAPS.md`.
 4. Review ignored `docs/tasks/documentation-cleanup` files only as evidence if present.
 5. Continue from: stale/duplicate documentation curation pass.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first, then read the existing project gaps
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count

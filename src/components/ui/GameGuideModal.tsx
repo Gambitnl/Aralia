@@ -1,7 +1,8 @@
-
 /**
  * @file GameGuideModal.tsx
  * A modal containing a chatbot powered by Gemini-3-Pro.
+ *
+ * @component-owner Narrative Team / Core UI
  */
 // TODO(lint-intent): 'useContext' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -10,6 +11,7 @@ import React, { useState, useRef, useEffect, useContext as _useContext } from 'r
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { generateGuideResponse } from '../../services/ollamaTextService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../services/characterGenerator';
 import { PlayerCharacter, NPCMemory, GoalStatus } from '../../types';
@@ -67,16 +69,19 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
 
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // We use the useFocusTrap hook to handle keyboard navigation (trapping focus),
+    // closing on Escape, and restoring focus to the opening element when closed.
+    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+
     useEffect(() => {
-        const handleEsc = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
-        };
         if (isOpen) {
-            window.addEventListener('keydown', handleEsc);
-            inputRef.current?.focus();
+            // Keep focusing the input on open for optimal query entry UX
+            const timer = setTimeout(() => {
+                inputRef.current?.focus();
+            }, 0);
+            return () => clearTimeout(timer);
         }
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [isOpen, onClose]);
+    }, [isOpen]);
 
     const performGuideQuery = async (userQuery: string) => {
         if (!userQuery.trim() || loading) return;
@@ -171,7 +176,11 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
             role="dialog"
             aria-labelledby="game-guide-title"
         >
-            <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-500/50 w-full max-w-lg flex flex-col max-h-[90vh]">
+            <div
+                ref={modalRef}
+                className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-500/50 w-full max-w-lg flex flex-col max-h-[90vh] focus:outline-none"
+                tabIndex={-1}
+            >
                 <div className="flex justify-between items-center mb-4">
                     <h2 id="game-guide-title" className="text-2xl font-bold text-blue-300 font-cinzel">
                         {t('game_guide.title')}

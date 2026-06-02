@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:21:02
+ * Last Sync: 01/06/2026, 10:28:01
  * Dependents: commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
  * Imports: 7 files
  *
@@ -419,8 +419,14 @@ export class MovementCommand extends BaseEffectCommand {
         maxTiles: number,
         effect: MovementEffect
     ): Position | null {
+        // Multi-target teleports need separate landing spaces. Prefer the
+        // destination assigned to this specific target before using the legacy
+        // single-destination fields so Scatter-style spells can resolve each
+        // creature independently once the UI collects those assignments.
+        const assignedDestination = effect.destinationsByTargetId?.[target.id]
+
         // Safe access via new type properties
-        const explicit = effect.destination ?? effect.targetPosition
+        const explicit = assignedDestination ?? effect.destination ?? effect.targetPosition
         if (explicit && typeof explicit.x === 'number' && typeof explicit.y === 'number') {
             // Verify the explicit destination is within allowed range
             // (If distance is missing/0, we enforce 0 range; if intended to be infinite, it must be set to very high value or handled differently)

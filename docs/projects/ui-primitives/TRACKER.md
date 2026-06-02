@@ -1,7 +1,7 @@
 # UI primitives Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-01
 
 ## Status Vocabulary
 
@@ -19,16 +19,20 @@ Last updated: 2026-05-31
 |---|---|---|---|---|---|---|---|
 | T1 | done | Create initial project docs scaffold from registry evidence | Worker B | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Keep files in `docs/projects/ui-primitives/` and confirm protocol files are complete | `Get-ChildItem docs/projects/ui-primitives/NORTH_STAR.md,docs/projects/ui-primitives/TRACKER.md,docs/projects/ui-primitives/GAPS.md` |
 | T2 | done | Capture shared-token and ownership evidence for cold-start handoff | Worker B | 2026-05-31 | `src/components/ui`, `src/styles`, `src/components/layout/GameModals.tsx` | Cross-walk actual primitive usage and add unresolved items | Verify this doc set matches findings in `GAPS.md` |
-| T3 | active | Add adjacent follow-up planning gaps for next implementation window | Worker B | 2026-05-31 | `NORTH_STAR.md` + `GAPS.md` | Keep project gap list explicit and evidence-based | Reconcile `TRACKER.md` gap IDs with `GAPS.md` rows |
+| T3 | done | Reconcile adjacent follow-up planning gaps (G1-G4) and align tracker checklist | Gemini | 2026-06-01 | `NORTH_STAR.md` + `GAPS.md` | Keep project gap checklist aligned and evidence-based | Reconcile `TRACKER.md` gap IDs with `GAPS.md` rows |
+| T4 | done | Implement interactive live visual previews for all table-only components in Atomic UI Step (`PreviewComponents.tsx`) | Gemini | 2026-06-01 | `src/components/DesignPreview/steps/PreviewComponents.tsx` | Ensure interactive sandboxes, spinners, budget sliders, and modal triggers compile and behave smoothly | Verified via local dev server checks and tsc compilation |
+| T5 | done | Audit and implement focus traps in remaining dynamic modals (G6) and align component ownership contracts (G1) | Gemini | 2026-06-01 | `src/components/ui/MissingChoiceModal.tsx`, `RestModal.tsx` | Integrate `useFocusTrap` hook into MissingChoiceModal and RestModal, and add component owner header to remaining files in `src/components/ui` | Verified modal overlays trap keyboard focus properly and build compiles cleanly |
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | Worker B | `docs/projects/ui-primitives/GAPS.md` | registry-to-scaffold upgrade | Align component ownership + design tokens | `docs/projects/PROJECT_TRACKER.md` | Preserves long-lived scope signal for implementation handoff | Move to active implementation tracker with owner decision | evidence added to feature-level planning |
-| G2 | not_started | support_needed_now | Worker B | `docs/projects/ui-primitives/GAPS.md` | direct source review | Missing shared form-input primitive | `src/components/ui/*Modals.tsx`, `src/components/BanterInterruptUI.tsx` | New modal work can duplicate behavior and validation without a shared baseline | Add shared input abstraction plan before the next modal expansion slice | Confirm usage of shared primitive replacement points |
-| G3 | not_started | support_needed_now | Worker B | `docs/projects/ui-primitives/GAPS.md` | direct source review | Mixed modal layering token usage (`Z_INDEX` + direct CSS vars) | `src/styles/zIndex.ts`, `src/components/ui/*`, `src/styles/__tests__/zIndex.test.ts` | Weakens style consistency and reviewability across overlays | Define migration rule and target-order checklist | Verify no regression in modal overlay ordering |
-| G4 | not_started | adjacent_follow_up | Worker B | `docs/projects/ui-primitives/GAPS.md` | ownership scan | No explicit ownership field in core UI primitives | `src/components/ui/*`, `src/styles/uiIds.ts` | Ownership is implicit, limiting team handoff clarity and future ownership audits | Add project-level ownership convention for UI primitives | Confirm convention is accepted and documented in code comments or tracker |
+| G1 | done | adjacent_follow_up | Gemini | `docs/projects/ui-primitives/GAPS.md` | registry-to-scaffold upgrade | Align component ownership + design tokens | `docs/projects/PROJECT_TRACKER.md` | Preserves long-lived scope signal for implementation handoff | Move to active implementation tracker with owner decision | evidence added to feature-level planning |
+| G2 | done | support_needed_now | Gemini | `docs/projects/ui-primitives/GAPS.md` | direct source review | No shared form input primitive in src/components/ui | `src/components/ui/Input.tsx` | Modal and form-heavy screens still define duplicate `<input>/<select>` handling | Implemented reusable input primitives and integrated in modals | Confirm usage of shared primitive replacement points |
+| G3 | done | support_needed_now | Gemini | `docs/projects/ui-primitives/GAPS.md` | direct source review | Mixed modal layering token usage (`Z_INDEX` + direct CSS vars) | `src/styles/zIndex.ts`, `src/components/ui/BanterInterruptUI.tsx` | Weakens style consistency and reviewability across overlays | Migrated key elements to type-safe Z_INDEX constants | Verify no regression in modal overlay ordering |
+| G4 | done | adjacent_follow_up | Gemini | `docs/projects/ui-primitives/GAPS.md` | ownership scan | No explicit ownership field in core UI primitives | `src/components/ui/*`, `src/styles/uiIds.ts` | Ownership is implicit, limiting team handoff clarity and future ownership audits | Established `@component-owner` header contract across modified files | Confirm convention is accepted and documented in code comments or tracker |
+| G5 | not_started | adjacent_follow_up | Worker B | `docs/projects/ui-primitives/GAPS.md` | G2 implementation | Lack of standard form validation cues across custom inputs | `src/components/ui/Input.tsx` | Inputs have standard error props but lack dynamic schema-based validation integrations | Define shared form validation and feedback specs | Review validation error states in sandboxes |
+| G6 | done | support_needed_now | Gemini | `docs/projects/ui-primitives/GAPS.md` | modal review | Incomplete keyboard focus trap coverage in dynamic modals | `src/components/ui/MissingChoiceModal.tsx`, `RestModal.tsx` | Lack of active focus trap hooks in some modals presents accessibility and keyboard navigation risks | Apply `useFocusTrap` hook to remaining in-scope modal surfaces | Verify keyboard tab focus wraps inside active modals |
 
 ## Update Rules
 

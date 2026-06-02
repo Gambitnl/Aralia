@@ -23,15 +23,10 @@
     },
     {
       "label": "Speed",
-      "value": "25 feet"
+      "value": "30 feet"
     }
   ],
   "traits": [
-    {
-      "name": "Lucky",
-      "icon": "dice",
-      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
-    },
     {
       "name": "Brave",
       "icon": "heart",
@@ -41,6 +36,11 @@
       "name": "Halfling Nimbleness",
       "icon": "dodge",
       "description": "You can move through the space of any creature that is of a size larger than yours."
+    },
+    {
+      "name": "Luck",
+      "icon": "dice",
+      "description": "When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
     },
     {
       "name": "Naturally Stealthy",

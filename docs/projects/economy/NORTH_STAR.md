@@ -88,3 +88,13 @@ This project is a coupling layer between world simulation, merchants, factions, 
 - Confirm type alignment for `TradeRoute.status` and all market event payload shapes before adding new gameplay effects.
 - Add an explicit route-to-region integrity check (origin and destination must exist in `REGIONAL_ECONOMIES`) and link to failure logging.
 - Create a compact exchange/rule audit section for pricing inputs, route transitions, and merchant transaction outcomes with evidence proof files for future acceptance checks.
+
+
+## Cold-Start Gap Routing
+
+The next cold-start agent must:
+- read `TRACKER.md` and `GAPS.md` first, then read the existing project gaps
+- tackle one real, evidence-backed project gap in the same pass
+- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
+- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy the count
