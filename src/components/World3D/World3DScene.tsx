@@ -163,8 +163,18 @@ const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ ch
   </>
 );
 
-const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, onPositionChange: onPositionChangeOverride, onChunkUpdate }) => {
+const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, startSurfaceY = 0, onPositionChange: onPositionChangeOverride, onChunkUpdate }) => {
   const { loaded, update } = useChunkStreaming(loader);
+
+  // Lift the camera + its look-at target to the spawn ground elevation. With vertical
+  // exaggeration the terrain can rise hundreds of meters, so a fixed low camera ends up
+  // below/behind the hills, framing only sky. The horizontal offset is wide (oblique cross-view,
+  // ~55° from vertical) so the now-exaggerated hill silhouettes read against the sky rather than
+  // being viewed near-top-down (which flattens relief). Sized to the ~1km streamed window.
+  const camPosition = useMemo<[number, number, number]>(
+    () => [380, startSurfaceY + 260, 380],
+    [startSurfaceY],
+  );
 
   // Notify parent when chunk count changes.
   React.useEffect(() => {
@@ -193,7 +203,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, onPositionCh
     <div style={{ width: '100%', height: '78vh', minHeight: '520px', flex: '1 1 auto', background: '#9fb8d0', borderRadius: '12px', overflow: 'hidden' }}>
       <Canvas
         shadows={SHADOWS}
-        camera={{ fov: 55, near: 1, far: 2000, position: [120, 160, 120] }}
+        camera={{ fov: 55, near: 1, far: 6000, position: camPosition }}
         onCreated={({ gl }) => {
           const el = gl.domElement;
           el.addEventListener(
@@ -217,8 +227,8 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, onPositionCh
       >
         <hemisphereLight args={[0x88bbff, 0x556644, 0.9]} />
         <directionalLight position={[120, 200, 80]} intensity={1.6} />
-        <fog attach="fog" args={[0x9fb8d0, 300, 1200]} />
-        <FreeRoamCameraController initialTarget={[0, 0, 0]} sceneOrigin={sceneOrigin} onPositionChange={onPositionChange} />
+        <fog attach="fog" args={[0x9fb8d0, 900, 4500]} />
+        <FreeRoamCameraController initialTarget={[0, startSurfaceY, 0]} sceneOrigin={sceneOrigin} onPositionChange={onPositionChange} />
         {loaded.map((c) => (
           <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
         ))}

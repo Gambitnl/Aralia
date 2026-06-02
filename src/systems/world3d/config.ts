@@ -28,7 +28,7 @@ export const WORLD3D_CONFIG = {
    * Keep this purely in the height→meters mapping (`heightToMeters`) so water/road ribbons,
    * which read terrain height, stay locked to the surface.
    */
-  VERTICAL_EXAGGERATION: 8,
+  VERTICAL_EXAGGERATION: 12,
   /** Chunks within this Chebyshev radius of the camera chunk are loaded. */
   LOAD_RADIUS: 4,
   /** Chunks beyond this Chebyshev radius are unloaded (>= LOAD_RADIUS for hysteresis). */

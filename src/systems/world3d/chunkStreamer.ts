@@ -114,6 +114,11 @@ export class ChunkStreamer {
     return [...this.loaded.values()];
   }
 
+  /** True once dispose() has run. A disposed streamer ignores update() and drops in-flight loads. */
+  isDisposed(): boolean {
+    return this.disposed;
+  }
+
   get pendingCount(): number {
     return this.pending.size + this.queue.length;
   }

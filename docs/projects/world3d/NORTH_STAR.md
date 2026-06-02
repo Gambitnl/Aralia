@@ -1,7 +1,7 @@
 # World 3D System North Star
 
 Status: active
-Last updated: 2026-06-01
+Last updated: 2026-06-02
 
 > The **3D rendering engine** for Aralia's Azgaar-driven streamed 3D world: chunk streaming,
 > per-chunk mesh generation, and the R3F scene. One of three distinct surfaces (not
@@ -46,23 +46,34 @@ Implemented and rendering. As of 2026-06-01:
   pipeline (varied biomes, flow-traced rivers, MST roads, ~30 towns) and spawns the camera on
   the first town. Live screenshot confirms biome variety renders (ocean meeting a landmass)
   instead of uniform plains.
+- **T8 done (2026-06-02):** **vertical exaggeration** added. `config.VERTICAL_EXAGGERATION=12`
+  feeds a single pure `heightToMeters(height)` helper that the terrain, water, road, **and**
+  vegetation builders all route their Y-mapping through (lockstep — ribbons/trees stay welded to
+  the surface). The camera and the demo spawn lift to the ground elevation (demo now spawns on
+  the highest-*local-relief* town). Live `?phase=world3d` shows a clear peaked ridge against the
+  sky where it was a near-flat plane. **While verifying, fixed a separate blocker (W3D-G17):**
+  `useChunkStreaming` disposed its `useMemo`-pinned streamer on StrictMode's dev double-mount, so
+  the live scene silently streamed **0 chunks** (blank/sky); the streamer is now created per-mount
+  inside the effect (StrictMode-safe), and 81 chunks load live. 76 world3d tests pass.
 
-**Known visibility limitation (→ T8 / W3D-G11):** terrain relief is near-flat at world scale
-(`MAX_TERRAIN_HEIGHT_M=150` over `METERS_PER_CELL=1024`), so the rivers/roads/town-boxes the
-engine builds are hard to *see* from a near-horizontal camera. Vertical exaggeration is the
-highest visual-value next task.
+**Residual relief limitation (→ W3D-G16):** the streamed window (`LOAD_RADIUS×CHUNK_WORLD_SIZE`
+≈ 512 m) is smaller than one `METERS_PER_CELL` (1024 m) height cell, so the camera sees ≤ ~1 cell
+and relief reads as a single smooth ridge rather than rolling hills. Widening the visible window
+(without exploding chunk count, and without touching the `METERS_PER_CELL` world↔grid contract
+owned with `world-3d-ui`) is the deeper follow-up. Also discovered: town boxes are buried under
+the exaggerated terrain (→ W3D-G15, next task) and duplicate site React keys (→ W3D-G18).
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | T8 — add **vertical exaggeration** so terrain relief (and thus the rivers/roads/town-boxes the engine already builds) is legible (W3D-G11) |
-| Acceptance criteria | A clean load of `?phase=world3d` shows hills with visible relief, and the water/road ribbons read as rivers/roads from the default camera — not a flat plane |
-| Allowed boundaries | `src/systems/world3d/chunkGeometry.ts`, `src/systems/world3d/config.ts`, optionally `World3DScene.tsx` camera. Do NOT touch entry/transition (owned by `world-3d-ui`) or `worldSim` generation (owned by `worldsim-service`). |
-| Stop condition | Stop when relief is legible; do not build LOD detail (T7), lakes (T6), or biome blending (T9) in the same slice. |
-| Verification | dev-start, navigate `?phase=world3d` (may take 2-3 tries due to the world-3d-ui entry bounce), screenshot shows relief + legible ribbons. |
+| Task | T10 — seat **site/town boxes on the terrain surface** so they are visible (W3D-G15). They currently render at `Y=radius*0.5` (a few meters up), so with the new vertical exaggeration they are buried hundreds of meters under the ground. |
+| Acceptance criteria | A clean load of `?phase=world3d` shows a town box sitting *on* the terrain surface in a town-containing chunk (not buried, not floating). |
+| Allowed boundaries | `src/systems/world3d/siteGeometry.ts` (+ its sampler input), `src/systems/world3d/chunkSampler.ts`, `src/components/World3D/World3DScene.tsx` `SitePieces`. Reuse the shared `heightToMeters` so boxes track the same exaggerated surface as terrain. Do NOT touch entry/transition (`world-3d-ui`) or `worldSim` generation (`worldsim-service`). |
+| Stop condition | Stop when town boxes sit on the ground; do not also do biome blending (T9), lakes (T6), LOD (T7), or the view-window widening (W3D-G16) in the same slice. |
+| Verification | dev-start, navigate `?phase=world3d` (the demo spawns on the highest-relief town; may take 2-3 tries due to the world-3d-ui entry bounce; the Ollama modal overlay can be hidden via DOM for screenshots), screenshot shows a town box on the surface. |
 | Owner | unassigned |
-| Next action | Introduce a vertical-exaggeration factor (e.g., multiply the height→meters mapping in `chunkGeometry`, or expose a config knob); re-verify content legibility. The cold-load `?phase=world3d` bounce that blocks *reaching* the scene is owned by `world-3d-ui` (W3DUI-5/6) — not this slice. |
+| Next action | Add a sampled surface Y to `ChunkSite` (sample `world.heights` at the site cell → `heightToMeters`) and seat the box center at `surfaceY + radius*0.5` in `SitePieces`. Fold in W3D-G18 (chunk-scope the React key) if cheap. |
 
 ## Scope Boundaries
 
@@ -94,11 +105,15 @@ See `docs/projects/world3d/GAPS.md`. Headline rendering-owned gaps:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| **Flat terrain relief → rivers/roads/towns hard to see (W3D-G11)** | adjacent_follow_up | unassigned | T4 screenshot: flat plane; `MAX_TERRAIN_HEIGHT_M` vs `METERS_PER_CELL` | **active task (T8)** — add vertical exaggeration |
+| Flat terrain relief (W3D-G11) | **done** | claude | T8: `VERTICAL_EXAGGERATION=12` + `heightToMeters`; live ridge | resolved by T8 |
+| **Site/town boxes buried under exaggerated terrain (W3D-G15)** | adjacent_follow_up | unassigned | `SitePieces` Y=`radius*0.5`; `ChunkSite` has no surface Y | **active task (T10)** — seat boxes on the surface |
+| Sub-cell view window flattens relief (W3D-G16) | adjacent_follow_up | unassigned | window ≈512 m vs `METERS_PER_CELL=1024` → ≤1 cell visible | widen visible window w/o exploding chunk count |
+| StrictMode-killed streamer → blank live scene (W3D-G17) | **done** | claude | live `loadOk=4, chunks=0` → fixed → `chunks=81` | resolved during T8 (per-mount streamer) |
+| Duplicate site React keys (W3D-G18) | adjacent_follow_up | unassigned | console "two children with same key" | chunk-scope the key / de-dupe sites (T11) |
 | Hard biome-color seams (no blending) (W3D-G12) | adjacent_follow_up | unassigned | `sampleBiomeNearest` + per-vertex color | feather biome colors across boundaries |
-| Demo world all-`plains` → uniform terrain | done | claude | resolved by T4: real `generateMap` world | — |
 | `WorldData.lakes` polygons not meshed (only river ribbons) | adjacent_follow_up | unassigned | `waterGeometry.ts` | add lake-fill geometry behind the bundle |
 | Per-LOD geometry detail (LOD only tints) | adjacent_follow_up | unassigned | `lod.ts` unused by sampler resolution | lower resolution for mid/low tiers |
+| `culled` LOD tier unreachable / floating-origin never rebases (W3D-G13/G14) | adjacent_follow_up | unassigned | prior scan 2026-06-01 | see GAPS.md |
 | Worker loader unused by demo (inline path) | adjacent_follow_up | unassigned | `World3DDemo.tsx` inline `handleChunkRequest` | decide inline vs worker (with `world-3d-ui` entry choice) |
 | Cold-load `?phase=world3d` bounce | — | `world-3d-ui` | live debug 2026-06-01 | **owned by `world-3d-ui`** (entry/transition); see its GAPS |
 
@@ -150,5 +165,5 @@ screenshots, preview IDs, the temporary `[world3d-debug]` logs from diagnosis (r
 1. Read this file.
 2. Read `docs/projects/world3d/TRACKER.md` then `docs/projects/world3d/GAPS.md`.
 3. Skim `docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md` for the latest fixes.
-4. Verify: `npx vitest run src/systems/world3d src/components/World3D` (expect green), then dev-start + `?phase=world3d`.
-5. Continue from the Active Task: feed the demo a varied biome world so rivers/roads/towns render. Entry/transition issues belong to `world-3d-ui`; generation issues to `worldsim-service`.
+4. Verify: `npx vitest run src/systems/world3d src/components/World3D` (expect green ~76), then dev-start + `?phase=world3d`. To screenshot the scene, hide the Ollama modal overlay via DOM rather than clicking "Continue" (clicking it can trigger the `world-3d-ui` entry bounce).
+5. Continue from the Active Task (T10): seat town boxes on the terrain surface — they're buried under the exaggerated terrain. Reuse `heightToMeters`. Entry/transition issues belong to `world-3d-ui`; generation + the `METERS_PER_CELL` world↔grid scale to `worldsim-service`/shared contract.

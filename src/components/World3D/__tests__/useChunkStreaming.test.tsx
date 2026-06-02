@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChunkStreaming } from '../useChunkStreaming';
 import type { ChunkMeshBundle, ChunkLoader } from '@/systems/world3d/types';
@@ -18,6 +19,17 @@ const loader: ChunkLoader = async (cx, cy) => fakeBundle(cx, cy);
 it('exposes loaded chunks after an update', async () => {
   const { result } = renderHook(() => useChunkStreaming(loader, { loadRadius: 1, unloadRadius: 2 }));
   expect(result.current.loaded).toHaveLength(0);
+  act(() => { result.current.update(0, 0); });
+  await waitFor(() => expect(result.current.loaded.length).toBe(9));
+});
+
+it('still streams after a StrictMode double-mount (does not reuse a disposed streamer)', async () => {
+  // StrictMode dev double-invokes effects: mount → cleanup(dispose) → mount. Regression guard
+  // for the bug where the streamer was pinned by useMemo and the cleanup permanently disposed it,
+  // leaving the remounted tree with a dead streamer that dropped the first load batch forever.
+  const { result } = renderHook(() => useChunkStreaming(loader, { loadRadius: 1, unloadRadius: 2 }), {
+    wrapper: ({ children }) => <React.StrictMode>{children}</React.StrictMode>,
+  });
   act(() => { result.current.update(0, 0); });
   await waitFor(() => expect(result.current.loaded.length).toBe(9));
 });

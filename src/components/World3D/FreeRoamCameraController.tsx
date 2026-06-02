@@ -60,7 +60,7 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
       ref={controlsRef}
       target={[initialTarget[0], initialTarget[1], initialTarget[2]]}
       minDistance={20}
-      maxDistance={400}
+      maxDistance={2000}
       minPolarAngle={Math.PI * 0.1}
       maxPolarAngle={Math.PI * 0.48}
       enableDamping

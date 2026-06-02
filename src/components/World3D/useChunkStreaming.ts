@@ -9,11 +9,16 @@
  * - Snapshots are cached referentially using `snapshotRef` because React requires referential
  *   stability for `getSnapshot` when no actual loaded set change occurred, preventing
  *   infinite re-render loops.
- * - `.dispose()` is called on unmount inside `useEffect` to safely cancel all in-flight loaders,
- *   preventing memory leaks.
+ * - The streamer is created *inside* the mount effect (not `useMemo`) and disposed in that same
+ *   effect's cleanup. This is the StrictMode-safe disposable-resource pattern: under React's dev
+ *   double-mount (setup → cleanup → setup) each setup builds a fresh streamer and each cleanup
+ *   disposes the very instance it created, so the remounted tree always gets a *live* streamer.
+ *   A `useMemo`-pinned streamer would instead be permanently disposed by the simulated-unmount
+ *   cleanup, leaving the scene with a dead streamer that drops its first load batch and never
+ *   streams again (observed live as a stuck, empty 3D world).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ChunkStreamer, type ChunkStreamerOptions } from '@/systems/world3d/chunkStreamer';
 import type { ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
 
@@ -23,27 +28,41 @@ export interface UseChunkStreamingResult {
   pendingCount: number;
 }
 
+const EMPTY_LOADED: LoadedChunk[] = [];
+
 /**
- * Custom React hook that hosts a persistent ChunkStreamer instance and exposes its loaded state.
+ * Custom React hook that hosts a per-mount ChunkStreamer instance and exposes its loaded state.
  */
 export function useChunkStreaming(
   loader: ChunkLoader,
   options?: ChunkStreamerOptions,
 ): UseChunkStreamingResult {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const streamer = useMemo(() => new ChunkStreamer(loader, options), []);
+  // `streamer` is null between initial render and the mount effect; the effect owns its lifecycle.
+  const [streamer, setStreamer] = useState<ChunkStreamer | null>(null);
+  // Latest loader/options without forcing streamer re-creation when their identity changes.
+  const loaderRef = useRef(loader);
+  const optionsRef = useRef(options);
+  loaderRef.current = loader;
+  optionsRef.current = options;
 
   useEffect(() => {
-    return () => streamer.dispose();
-  }, [streamer]);
+    const s = new ChunkStreamer(loaderRef.current, optionsRef.current);
+    setStreamer(s);
+    return () => s.dispose();
+  }, []);
 
-  // Keep a stable snapshot reference to avoid infinite re-renders when React compares state
-  const snapshotRef = useRef<LoadedChunk[]>([]);
-  const subscribe = useCallback((cb: () => void) => streamer.onChange(cb), [streamer]);
-  
+  // Keep a stable snapshot reference to avoid infinite re-renders when React compares state.
+  const snapshotRef = useRef<LoadedChunk[]>(EMPTY_LOADED);
+
+  const subscribe = useCallback(
+    (cb: () => void) => (streamer ? streamer.onChange(cb) : () => {}),
+    [streamer],
+  );
+
   const getSnapshot = useCallback(() => {
+    if (!streamer) return EMPTY_LOADED;
     const next = streamer.getLoaded();
-    // Verify structural equality so we only swap the array reference when content changed
+    // Verify structural equality so we only swap the array reference when content changed.
     const current = snapshotRef.current;
     if (
       current.length === next.length &&
@@ -57,7 +76,10 @@ export function useChunkStreaming(
 
   const loaded = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-  const update = useCallback((worldX: number, worldZ: number) => streamer.update(worldX, worldZ), [streamer]);
+  const update = useCallback(
+    (worldX: number, worldZ: number) => streamer?.update(worldX, worldZ),
+    [streamer],
+  );
 
-  return { loaded, update, pendingCount: streamer.pendingCount };
+  return { loaded, update, pendingCount: streamer?.pendingCount ?? 0 };
 }
