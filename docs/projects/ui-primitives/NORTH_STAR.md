@@ -1,7 +1,7 @@
 # UI Primitives North Star
 
 Status: active  
-Last updated: 2026-06-01
+Last updated: 2026-06-03
 
 ## Why this project exists
 UI primitives are the shared foundation for gameplay and feature interfaces. This project tracks how far `src/components/ui` is already covering reusable controls, overlays, and modal surfaces, and what must stay stable before expansion work proceeds.
@@ -17,6 +17,7 @@ UI primitives are the shared foundation for gameplay and feature interfaces. Thi
 - App shell + overlays: `LoadingSpinner.tsx`, `NotificationSystem.tsx`, `WindowFrame.tsx`, `ResizeHandles.tsx`, `ErrorBoundary.tsx`, `ErrorOverlay.tsx`.
 - Utility and shared data surfaces: `CoinDisplay.tsx`, `CoinPurseDisplay.tsx`, `TimeWidget.tsx`, `VersionDisplay.tsx`.
 - Style tokens and IDs: `src/styles/buttonStyles.ts`, `src/styles/zIndex.ts`, `src/styles/uiIds.ts`.
+- Hooks: `src/hooks/useFocusTrap.ts` (focus trap + Escape + unmount restoration).
 - Lifecycle/reference surface: `src/components/layout/GameModals.tsx`, `src/components/DesignPreview/steps/PreviewComponents.tsx`.
 
 ## Implemented state
@@ -25,6 +26,8 @@ UI primitives are the shared foundation for gameplay and feature interfaces. Thi
 - Modal orchestration already lives in `GameModals.tsx`, so most feature modals render through a single integration point.
 - UI primitives are now strictly integrated: shared input primitives exist, and key stubs use proper `Z_INDEX` constants with explicit ownership declarations.
 - Focus traps are fully integrated and verified across all dynamic modals (`MissingChoiceModal`, `RestModal`, `GameGuideModal`, `ImageModal`, `ConfirmationModal`, `OllamaDependencyModal`) using the unified `useFocusTrap` hook. All custom components under `src/components/ui/` now strictly align with the `@component-owner` header contract for clean module and team ownership mapping.
+- **Focus trap restoration (G7):** `useFocusTrap` now properly restores focus on component unmount (common when GameModals conditionally removes a modal while `isOpen` is still `true`). Added optional `restoreFocusTo` parameter for custom restoration targets and `requestAnimationFrame` deferral for DOM stability.
+- **Fallback Escape handler (G8):** `GameModals.tsx` now registers a capture-phase Escape key listener that closes the topmost visible modal when child components haven't already handled the event (checked via `defaultPrevented`).
 
 ## Integrations and ownership shape
 - `src/App.tsx` is the global composition point for shell-level primitives (`LoadingSpinner`, `NotificationSystem`, reaction/UI error surfaces).
@@ -37,11 +40,16 @@ UI primitives are the shared foundation for gameplay and feature interfaces. Thi
 - [RESOLVED] Mixed modal layering is resolved for key stubs (e.g. `BanterInterruptUI.tsx` migrated to type-safe `Z_INDEX` constants).
 - [RESOLVED] Explicit component-owner header contract has been introduced and applied across all UI components in `src/components/ui/`.
 - [RESOLVED] Focus traps have been audited and fully implemented across all dynamic modals.
-- Standard form validation triggers and wider responsive scaling remains informal.
+- [RESOLVED] Focus trap restoration on unmount/programmatic close is now fixed with cleanup and deferred restoration.
+- [RESOLVED] Fallback Escape handler at GameModals level ensures all modals are closeable via keyboard.
+- Standard form validation triggers and wider responsive scaling remains informal (G5).
+- ~16 modals rendered via GameModals still lack `useFocusTrap` coverage (G9).
+- Inconsistent ARIA dialog labeling across modal surfaces (G10).
 
 ## Next checks
-- Audit edge case restoration in `useFocusTrap` when closing modals programmatically rather than via user clicks.
-- Ensure newly introduced input validation standards are documented and reused.
+- G9: Audit and integrate `useFocusTrap` into the ~16 modals rendered by GameModals that currently lack focus trapping.
+- G10: Define and apply a standard ARIA labeling convention (`role="dialog"`, `aria-modal`, `aria-labelledby`/`aria-label`) across all modal surfaces.
+- G5: Define shared form validation and feedback specs for `Input.tsx`.
 
 
 ## Cold-Start Gap Routing
