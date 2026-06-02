@@ -272,9 +272,8 @@ describe('Death Saving Throws & Unconsciousness logic', () => {
       timing: 'turn_start',
       createdAtRound: 1,
       effects: [{
-        type: 'damage',
-        dice: '3d6', // Average 10.5 damage, guaranteed to drop 5 HP to 0
-        damageType: 'radiant',
+        type: 'DAMAGE',
+        damage: { dice: '3d6', type: 'radiant' }, // Average 10.5 damage, guaranteed to drop 5 HP to 0
         trigger: { type: 'turn_start', frequency: 'once' }
       }]
     };
@@ -300,9 +299,11 @@ describe('Death Saving Throws & Unconsciousness logic', () => {
     expect(updatedPlayer).toBeDefined();
     expect(updatedPlayer?.concentratingOn).toBeUndefined();
 
-    // Verify ally is updated and has lost Bless status effect
+    // Find the LAST update for the ally, which should have the Bless effect removed
+    // (earlier calls from resetEconomy during initialization still have the old state)
     const updatedAlly = onCharacterUpdate.mock.calls
       .map(call => call[0] as CombatCharacter)
+      .reverse()
       .find(c => c.id === 'player2');
 
     expect(updatedAlly).toBeDefined();
