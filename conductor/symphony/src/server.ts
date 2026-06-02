@@ -4443,7 +4443,21 @@ export class HttpServer {
     });
 
     const firstDraft = drafts[0] ?? null;
-    const firstHandoff = this.pickQueueHandoff(handoffs, firstDraft);
+    const newestLiveExternalHandoff = handoffs.find(handoff => {
+      if (!handoff.next_action) return false;
+
+      const actionCode = this.readStringField(handoff.next_action, 'code');
+      if (actionCode === 'complete' || actionCode === 'local_master_current') return false;
+
+      return Boolean(
+        handoff.julesSessionId
+        || handoff.julesSessionUrl
+        || handoff.julesState
+        || handoff.githubPullRequestUrl
+        || handoff.githubPullRequestState,
+      );
+    }) ?? null;
+    const firstHandoff = newestLiveExternalHandoff ?? this.pickQueueHandoff(handoffs, firstDraft);
     const waitForPostedFeedbackHandoff = conflictWatch.status === 'attention'
       ? handoffs.find(handoff => {
           const actionCode = this.readStringField(handoff.next_action, 'code');
@@ -4554,13 +4568,15 @@ export class HttpServer {
           && !handoff.julesState
           && !handoff.githubPullRequestUrl;
         const actionCode = this.readStringField(handoff.next_action, 'code');
+        const isPostLaunchDriftHistory = actionCode === 'record_post_launch_update_path'
+          && newestDraftTime > handoffTime;
         const isCompletedNoPrDriftHistory = actionCode === 'record_post_launch_update_path'
           && handoff.julesState === 'COMPLETED'
           && !handoff.githubPullRequestUrl;
         const isClosedPrHistory = handoff.githubPullRequestState === 'CLOSED'
           && Boolean(handoff.githubPullRequestUrl);
 
-        return !((isUnlaunchedStaleHandoff || isCompletedNoPrDriftHistory || isClosedPrHistory) && newestDraftTime > handoffTime);
+        return !((isUnlaunchedStaleHandoff || isPostLaunchDriftHistory || isCompletedNoPrDriftHistory || isClosedPrHistory) && newestDraftTime > handoffTime);
       })
       .map((handoff, index) => ({
         handoff,

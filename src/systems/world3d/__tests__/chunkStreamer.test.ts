@@ -59,6 +59,33 @@ it('notifies subscribers when the loaded set changes', async () => {
   expect(notifications).toBeGreaterThan(0);
 });
 
+it('adopts a swapped loader and requeues requests stranded on a dead loader', async () => {
+  // Simulate the live bug: the first loader (its Web Worker terminated) never resolves.
+  const deadLoader: ChunkLoader = () => new Promise<ChunkMeshBundle>(() => {/* never resolves */});
+  const streamer = new ChunkStreamer(deadLoader, { loadRadius: 1, unloadRadius: 2, maxConcurrent: 4 });
+  streamer.update(0, 0);
+  // Nothing can load while bound to the dead loader.
+  expect(streamer.getLoaded()).toHaveLength(0);
+  expect(streamer.pendingCount).toBeGreaterThan(0);
+
+  // Host recreates the worker → swap in a live loader. Stranded in-flight requests must be retried.
+  streamer.setLoader(instantLoader);
+  await streamer.whenSettled();
+  expect(streamer.getLoaded()).toHaveLength(9); // 3x3 window now fully loaded
+});
+
+it('setLoader is a no-op for the same loader or a disposed streamer', async () => {
+  const streamer = new ChunkStreamer(instantLoader, { loadRadius: 1, unloadRadius: 2, maxConcurrent: 8 });
+  streamer.update(0, 0);
+  await streamer.whenSettled();
+  const before = streamer.getLoaded().length;
+  streamer.setLoader(instantLoader); // same identity → no churn
+  expect(streamer.getLoaded()).toHaveLength(before);
+  streamer.dispose();
+  streamer.setLoader(async (cx, cy) => fakeBundle(cx, cy)); // disposed → ignored, no throw
+  expect(streamer.isDisposed()).toBe(true);
+});
+
 it('tags loaded chunks with an LOD tier', async () => {
   const streamer = new ChunkStreamer(instantLoader, { loadRadius: 2, unloadRadius: 3, maxConcurrent: 16 });
   streamer.update(0, 0);

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 03/06/2026, 00:43:01
+ * Dependents: components/ActionPane/SystemMenu.tsx, components/CharacterSheet/LevelUpModal.tsx, components/Combat/ReactionPrompt.tsx, components/Dialogue/DialogueInterface.tsx, components/Economy/CourierPouch.tsx, components/Economy/InvestmentBoard.tsx, components/Economy/LedgerBook.tsx, components/Religion/TempleModal.tsx, components/Town/PassTimeModal.tsx, components/Trade/MerchantModal.tsx, components/puzzles/LockpickingModal.tsx, components/ui/ConfirmationModal.tsx, components/ui/GameGuideModal.tsx, components/ui/ImageModal.tsx, components/ui/LongRestModal.tsx, components/ui/MissingChoiceModal.tsx, components/ui/RestModal.tsx
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useEffect, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
 

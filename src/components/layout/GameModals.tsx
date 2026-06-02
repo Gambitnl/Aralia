@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:24:08
+ * Last Sync: 03/06/2026, 00:43:23
  * Dependents: App.tsx
- * Imports: 37 files
+ * Imports: 38 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
