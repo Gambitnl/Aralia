@@ -112,7 +112,7 @@ const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
       {chunk.bundle.sites.map((s) => (
-        <mesh key={s.id} position={[s.localX, s.radius * 0.5, s.localZ]} castShadow={SHADOWS}>
+        <mesh key={`${chunk.cx}|${chunk.cy}|${s.id}`} position={[s.localX, s.surfaceY + s.radius * 0.5, s.localZ]} castShadow={SHADOWS}>
           <boxGeometry args={[s.radius, s.radius, s.radius]} />
           <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : '#888888'} />
         </mesh>

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/06/2026, 18:57:10
+ * Last Sync: 02/06/2026, 11:57:33
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 21 files
  *
@@ -30,7 +30,7 @@ import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, Co
 import { SpellMovementVisualInput } from './movementUtils';
 export type { SpellMovementVisualInput };
 import { GameState } from '../types';
-import type { AreaOfEffect, Spell, SpellEffect, MovementEffect, TerrainEffect } from '../types/spells';
+import type { Spell, SpellEffect, MovementEffect, TerrainEffect } from '../types/spells';
 import { resolveScalableNumber } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
@@ -98,7 +98,7 @@ import {
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
   mapData: BattleMapData | null;
-  onExecuteAction: (action: CombatAction) => boolean;
+  onExecuteAction: (action: CombatAction) => boolean | Promise<boolean>;
   onCharacterUpdate: (character: CombatCharacter) => void;
   /** Replaces the visible combat roster when command results add or remove actors. */
   onCharactersReplace?: (characters: CombatCharacter[]) => void;
@@ -133,9 +133,10 @@ interface UseAbilitySystemProps {
 export interface PendingReaction {
   attackerId: string;
   targetId: string;
-  triggerType: 'on_hit' | 'on_cast' | 'on_move';
-  reactionSpells: Spell[]; // Spells available to cast
-  onResolve: (usedSpellId: string | null) => void;
+  triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack';
+  reactionSpells?: Spell[]; // Spells available to cast
+  reactionWeapons?: Ability[]; // Weapons/attacks available to swing
+  onResolve: (choiceId: string | null) => void;
 }
 
 interface PendingTeleportDestinationAssignment {
@@ -200,13 +201,20 @@ export const useAbilitySystem = ({
     baseCancelTargeting();
   }, [baseCancelTargeting]);
 
-  const requestReaction = useCallback((attackerId: string, targetId: string, triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage', reactionSpells: Spell[]): Promise<string | null> => {
+  const requestReaction = useCallback((
+    attackerId: string,
+    targetId: string,
+    triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
+    reactionSpells: Spell[] = [],
+    reactionWeapons: Ability[] = []
+  ): Promise<string | null> => {
     return new Promise(resolve => {
       setPendingReaction({
         attackerId,
         targetId,
-        triggerType: triggerType as any,
+        triggerType,
         reactionSpells,
+        reactionWeapons,
         onResolve: (choice) => {
           setPendingReaction(null);
           resolve(choice);
@@ -242,7 +250,7 @@ export const useAbilitySystem = ({
       castAtLevel: number,
       playerInput?: string,
       resourceSnapshot?: CombatCharacter,
-      zoneRegistration?: { areaOfEffect: AreaOfEffect; aoeParams: AoEParams }
+      zoneRegistration?: { areaOfEffect: { shape: string }; aoeParams: AoEParams }
     ) {
       // RALPH: Stability Pattern.
       // We access `charactersRef.current` instead of `characters` from props to avoid re-creating this function on every render.
@@ -608,7 +616,7 @@ export const useAbilitySystem = ({
 
       const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
 
-      if (!onExecuteAction(action)) {
+      if (!await onExecuteAction(action)) {
         cancelTargeting();
         return;
       }
@@ -690,7 +698,7 @@ export const useAbilitySystem = ({
     // command results from restoring a stale caster.
     const action = buildAbilityCombatAction(ability, liveCaster, targetPosition, targetCharacterIds);
 
-    if (!onExecuteAction(action)) {
+    if (!await onExecuteAction(action)) {
       cancelTargeting();
       return;
     }
@@ -732,7 +740,7 @@ export const useAbilitySystem = ({
     const commands = AbilityCommandFactory.createCommands(ability, casterAfterCost, targets, commandGameState);
 
     // Execute
-    const result = CommandExecutor.execute(commands, currentState);
+    const result = await CommandExecutor.execute(commands, currentState);
 
     if (result.success) {
       const finalCharacters = result.finalState.characters.map(finalChar =>
@@ -1147,6 +1155,7 @@ export const useAbilitySystem = ({
     executeAbility,
     dropConcentration,
     pendingReaction,
+    requestReaction,
   }), [
     selectedAbility,
     targetingMode,
@@ -1163,7 +1172,8 @@ export const useAbilitySystem = ({
     executeSpell, // Stable
     executeAbility, // Stable
     dropConcentration, // Stable
-    pendingReaction // Reactive
+    pendingReaction, // Reactive
+    requestReaction // Stable
   ]);
 };
 

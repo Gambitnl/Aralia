@@ -169,9 +169,10 @@ export class EnhanceAbilityCommand extends BaseEffectCommand {
     // factory normalizes unsupported units such as hours into `special`, so this
     // branch converts each special value as one hour worth of ten-round minutes.
     if (!duration) return 600
-    if (duration.type === 'rounds') return duration.value
-    if (duration.type === 'minutes') return duration.value * 10
+    const durationValue = duration.value ?? 1
+    if (duration.type === 'rounds') return durationValue
+    if (duration.type === 'minutes') return durationValue * 10
 
-    return Math.max(1, duration.value) * 600
+    return Math.max(1, durationValue) * 600
   }
 }

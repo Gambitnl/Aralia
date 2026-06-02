@@ -139,6 +139,7 @@ const transformRaceData = (race: Race): RaceDetailData => {
     furtherChoicesNote,
     racialSpellChoice: raceSpellAbilityChoice,
     spellsOfTheMark: race.spellsOfTheMark,
+    modernizationStatus: race.modernizationStatus,
   };
 };
 

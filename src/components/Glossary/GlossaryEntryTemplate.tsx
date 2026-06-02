@@ -67,8 +67,17 @@ export const GlossaryEntryTemplate: React.FC<GlossaryEntryTemplateProps> = ({
         <>
             <div className="glossary-card">
                 {/* Header Section matching SpellCardTemplate */}
-                <div className="spell-card-header">
+                <div className="spell-card-header flex items-center justify-between gap-4">
                     <h1 className="spell-card-title">{entry.title}</h1>
+                    {entry.modernizationStatus && (
+                        <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border font-bold flex-shrink-0 ${
+                            entry.modernizationStatus === 'official_2024'
+                                ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400'
+                                : 'bg-sky-900/40 border-sky-500/50 text-sky-400'
+                        }`}>
+                            {entry.modernizationStatus === 'official_2024' ? 'Official 2024' : '2024 Modernized'}
+                        </span>
+                    )}
                 </div>
 
                 <div className="spell-card-divider"></div>

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 09:49:45
+ * Last Sync: 02/06/2026, 23:51:29
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 8 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -32,6 +32,7 @@ import {
   ReactiveTrigger,
   Ability
 } from '../../types/combat';
+import { Spell } from '../../types/spells';
 import {
   generateId,
   getActionMessage,
@@ -57,7 +58,7 @@ export interface UseActionExecutorProps {
   mapData: BattleMapData | null;
   onCharacterUpdate: (character: CombatCharacter) => void;
   onLogEntry: (entry: CombatLogEntry) => void;
-  endTurn: () => void;
+  endTurn: () => void | Promise<void>;
 
   // Economy
   canAfford: (c: CombatCharacter, cost: AbilityCost) => boolean;
@@ -78,6 +79,15 @@ export interface UseActionExecutorProps {
   movementDebuffs: MovementTriggerDebuff[];
   reactiveTriggers: ReactiveTrigger[];
   setMovementDebuffs: React.Dispatch<React.SetStateAction<MovementTriggerDebuff[]>>;
+
+  // Reaction Selection Helper
+  requestReaction?: (
+    attackerId: string,
+    targetId: string,
+    triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
+    reactionSpells?: Spell[],
+    reactionWeapons?: Ability[]
+  ) => Promise<string | null>;
 }
 
 interface ImmediateAbilityEffectResult {
@@ -268,7 +278,8 @@ export const useActionExecutor = ({
   spellZones,
   movementDebuffs,
   reactiveTriggers,
-  setMovementDebuffs
+  setMovementDebuffs,
+  requestReaction
 }: UseActionExecutorProps) => {
 
   // Singleton AreaEffectTracker — created once per hook mount, zones updated each use.
@@ -282,11 +293,11 @@ export const useActionExecutor = ({
   // movement executor. Returns the mover's character after absorbing any damage.
   // TODO(Warlord): Allow selecting which weapon to use for OA if multiple exist.
   // ============================================================================
-  const handleOpportunityAttacks = useCallback((
+  const handleOpportunityAttacks = useCallback(async (
     movedCharacter: CombatCharacter,
     previousPosition: { x: number; y: number },
     targetPosition: { x: number; y: number }
-  ): CombatCharacter => {
+  ): Promise<CombatCharacter> => {
     let updatedCharacter = movedCharacter;
     const oaSystem = new OpportunityAttackSystem();
     const oaResults = oaSystem.checkOpportunityAttacks(
@@ -298,15 +309,58 @@ export const useActionExecutor = ({
       const attacker = characters.find(c => c.id === result.attackerId);
       if (!attacker) continue;
 
-      // Logic: Must be a melee weapon (range 1) or reach weapon (range 2).
-      // Exclude ranged weapons (range >= 5 without specific reach property). Fallback to Unarmed Strike.
-      const weaponAbility = attacker.abilities.find(a =>
+      // Filter the attacker's abilities to find all equipped melee weapons (range 1 or 2).
+      // If the attacker can strike with their fists, we include Unarmed Strike as an option.
+      const meleeWeapons = attacker.abilities.filter(a =>
         a.type === 'attack' && a.weapon && (a.range <= 2)
-      ) || attacker.abilities.find(a => a.id === 'unarmed_strike') || attacker.abilities[0];
+      );
+      const unarmedStrike = attacker.abilities.find(a => a.id === 'unarmed_strike');
 
+      // Create a list of available weapons/strikes for the reaction prompt.
+      const reactionWeapons: Ability[] = [...meleeWeapons];
+      if (unarmedStrike) {
+        reactionWeapons.push(unarmedStrike);
+      }
+
+      // If no valid weapon ability is found, fall back to the first available ability as a default.
+      if (reactionWeapons.length === 0 && attacker.abilities[0]) {
+        reactionWeapons.push(attacker.abilities[0]);
+      }
+
+      let chosenWeaponId: string | null = null;
+      if (attacker.team === 'player' && requestReaction) {
+        // Ask the player to choose which weapon to swing or to skip the Opportunity Attack reaction entirely.
+        chosenWeaponId = await requestReaction(
+          attacker.id,
+          updatedCharacter.id,
+          'opportunity_attack',
+          [], // No spells for Opportunity Attack
+          reactionWeapons
+        );
+
+        // If the player chooses to skip, log the decision and move to the next possible Opportunity Attack.
+        // This does not spend the character's reaction resource.
+        if (!chosenWeaponId) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message: `${attacker.name} declines the Opportunity Attack reaction.`,
+            characterId: attacker.id,
+            targetIds: [updatedCharacter.id]
+          });
+          continue;
+        }
+      } else {
+        // Enemies and auto-run characters automatically strike with their first valid melee attack.
+        chosenWeaponId = reactionWeapons[0]?.id || null;
+        if (!chosenWeaponId) continue;
+      }
+
+      const weaponAbility = reactionWeapons.find(a => a.id === chosenWeaponId) || reactionWeapons[0];
       if (!weaponAbility) continue;
 
-      // Mark reaction used
+      // Mark the attacker's reaction resource as used for this round of combat.
       onCharacterUpdate({
         ...attacker,
         actionEconomy: {
@@ -329,7 +383,8 @@ export const useActionExecutor = ({
         disadvantage: hasDisadvantage && !hasAdvantage
       });
 
-      // Dynamic modifier: Finesse → Dex, ranged → Dex, otherwise Str
+      // Calculate which modifier to use: finesse weapons use the higher of Strength or Dexterity.
+      // Other weapons use Strength, while ranged weapons default to Dexterity.
       let abilityScore = attacker.stats.strength;
       if (weaponAbility.weapon?.properties?.includes('finesse')) {
         abilityScore = Math.max(attacker.stats.strength, attacker.stats.dexterity);
@@ -347,7 +402,7 @@ export const useActionExecutor = ({
       if (isHit) {
         onLogEntry({
           id: generateId(), timestamp: Date.now(), type: 'action',
-          message: `${attacker.name} hits ${updatedCharacter.name} with Opportunity Attack! (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
+          message: `${attacker.name} hits ${updatedCharacter.name} with Opportunity Attack using ${weaponAbility.name}! (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
           characterId: attacker.id, targetIds: [updatedCharacter.id]
         });
         const damageFormula = getOpportunityAttackDamageFormula(weaponAbility);
@@ -363,7 +418,7 @@ export const useActionExecutor = ({
       } else {
         onLogEntry({
           id: generateId(), timestamp: Date.now(), type: 'action',
-          message: `${attacker.name} misses Opportunity Attack against ${updatedCharacter.name}. (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
+          message: `${attacker.name} misses Opportunity Attack against ${updatedCharacter.name} using ${weaponAbility.name}. (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
           characterId: attacker.id, targetIds: [updatedCharacter.id]
         });
         addDamageNumber(0, updatedCharacter.position, 'miss');
@@ -371,7 +426,7 @@ export const useActionExecutor = ({
     }
 
     return updatedCharacter;
-  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber]);
+  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction]);
 
   // ============================================================================
   // Movement Execution
@@ -382,10 +437,10 @@ export const useActionExecutor = ({
   // synchronous engine we resolve damage retroactively after the move commits.
   // (Sentinel feat stop-in-place is not yet implemented.)
   // ============================================================================
-  const handleMoveExecution = useCallback((
+  const handleMoveExecution = useCallback(async (
     character: CombatCharacter,
     action: CombatAction
-  ): CombatCharacter => {
+  ): Promise<CombatCharacter> => {
     if (action.type !== 'move' || !action.targetPosition) return character;
 
     const previousPosition = character.position;
@@ -401,7 +456,7 @@ export const useActionExecutor = ({
     });
 
     updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
-    updatedCharacter = handleOpportunityAttacks(updatedCharacter, previousPosition, action.targetPosition);
+    updatedCharacter = await handleOpportunityAttacks(updatedCharacter, previousPosition, action.targetPosition);
 
     // Movement-debuff triggers (e.g., Entangle)
     const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
@@ -645,9 +700,9 @@ export const useActionExecutor = ({
   // TODO(lint-intent): If map data can churn frequently, wrap executeAction with
   //   a map snapshot to reduce recalculations.
   // ============================================================================
-  const executeAction = useCallback((action: CombatAction): boolean => {
+  const executeAction = useCallback(async (action: CombatAction): Promise<boolean> => {
     if (action.type === 'end_turn') {
-      endTurn();
+      await endTurn();
       return true;
     }
 
@@ -735,7 +790,7 @@ export const useActionExecutor = ({
 
     // Movement: delegate to full movement handler
     if (action.type === 'move' && action.targetPosition) {
-      updatedCharacter = handleMoveExecution(updatedCharacter, action);
+      updatedCharacter = await handleMoveExecution(updatedCharacter, action);
     }
 
     onCharacterUpdate(updatedCharacter);

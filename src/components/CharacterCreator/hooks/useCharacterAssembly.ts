@@ -64,6 +64,10 @@ interface AgeData {
   };
 }
 
+function assembleSelectedFeats(state: CharacterCreationState) {
+  return [state.backgroundFeatId, state.racialFeatId].filter((id): id is string => !!id);
+}
+
 // Age ranges and categories for different races (mechanical effects)
 const getAgeDataForAssembly = (raceId: string): AgeData => {
   switch (raceId) {
@@ -563,7 +567,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
-      feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
+      feats: assembleSelectedFeats(currentState),
       featChoices: (currentState.featChoices as unknown as Record<string, import('../../../types/character').FeatChoice>) || {},
       equippedItems: {},
       statusEffects: [],

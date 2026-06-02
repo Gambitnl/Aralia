@@ -207,6 +207,7 @@ export interface Race {
   };
   spellsOfTheMark?: { minLevel: number; spells: string[] }[];
   knownSpells?: RacialSpell[];
+  modernizationStatus?: 'official_2024' | 'modified_legacy';
   // TODO(Taxonomist): Add languages: Language[] to Race interface once usage is confirmed
 }
 
@@ -539,7 +540,9 @@ export interface PlayerCharacter {
   ignoreDifficultTerrain?: boolean;
   hp: number;
   maxHp: number;
+  tempHP?: number;
   heroicInspiration?: boolean;
+  isFlying?: boolean;
   /**
    * Hit Point Dice (Hit Dice) available for spending during Short Rests.
    * 2024 rules: a character has 1 at level 1 and gains 1 each level thereafter.
@@ -566,6 +569,7 @@ export interface PlayerCharacter {
   selectedDruidOrder?: 'Magician' | 'Warden';
   selectedWarlockPatron?: string;
   racialSelections?: Record<string, RacialSelectionData>;
+  racialRestChoices?: Record<string, RacialRestChoiceData>;
   featChoices?: {
     // Store choices made for feats (e.g., selected ability score, spells, etc.)
     [featId: string]: FeatChoice;

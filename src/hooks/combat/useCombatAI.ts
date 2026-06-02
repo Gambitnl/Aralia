@@ -37,7 +37,7 @@ interface UseCombatAIProps {
     /** The ID of the character currently taking their turn */
     currentCharacterId: string | null;
     /** Callback to execute a chosen action */
-    executeAction: (action: CombatAction) => boolean;
+    executeAction: (action: CombatAction) => Promise<boolean> | boolean;
     /** Callback to execute an ability (needed for damage/commands) */
     executeAbility: (ability: any, caster: CombatCharacter, targetPos: any, targetIds: string[]) => void;
     /** Callback to end the turn */
@@ -185,7 +185,7 @@ export const useCombatAI = ({
                 // 5. Execute Action
                 // Attempt to perform the chosen action (Move/Attack/etc).
                 // executeAction handles the game engine updates.
-                const success = executeAction(action);
+                const success = await executeAction(action);
 
                 if (success) {
                     // Increment counter to eventually hit determining condition (max actions or end_turn decision)

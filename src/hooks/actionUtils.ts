@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:25
+ * Last Sync: 02/06/2026, 11:58:02
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 6 files
  *
@@ -15,7 +15,7 @@
 // @dependencies-end
 
 import { Ability, CombatCharacter, Position, CombatAction, BattleMapData } from '../types/combat';
-import { AreaOfEffect, resolveScalableNumber } from '../types/spells';
+import { resolveScalableNumber } from '../types/spells';
 import { AoEParams } from '../utils/combat/aoeCalculations';
 import { GameState } from '../types';
 import { Plane } from '../types/planes';
@@ -38,7 +38,7 @@ export const buildAbilityCombatAction = (
 });
 
 export const getZoneAreaFromAoEParams = (
-  areaOfEffect: AreaOfEffect,
+  areaOfEffect: { shape: string },
   aoeParams: AoEParams
 ): { shape: string; size: number } => ({
   shape: areaOfEffect.shape,

@@ -1,4 +1,5 @@
 import { clipPolylineToChunk } from '../polylineClip';
+import { chunkGridAABB } from '../coords';
 
 it('returns empty when the polyline does not intersect the chunk', () => {
   const out = clipPolylineToChunk(
@@ -36,4 +37,33 @@ it('clips a polyline that enters and exits the chunk into an inside segment', ()
       expect(p.x).toBeLessThanOrEqual(0.125 + 1e-6);
     }
   }
+});
+
+it('owns a boundary-coincident polyline by exactly one of two vertically-adjacent chunks (half-open max edge)', () => {
+  // A horizontal polyline lying exactly on the shared edge between chunk (0,0)
+  // and chunk (0,1): (0,0).maxGY === (0,1).minGY. With a half-open max edge it
+  // must belong to (0,1) (its inclusive min edge), not (0,0).
+  const sharedY = chunkGridAABB(0, 0).maxGY;
+  expect(sharedY).toBe(chunkGridAABB(0, 1).minGY);
+
+  const points = [{ x: 0.01, y: sharedY }, { x: 0.05, y: sharedY }];
+  const width = [1, 1];
+
+  const inLower = clipPolylineToChunk(points, width, 0, 0); // touches its max edge
+  const inUpper = clipPolylineToChunk(points, width, 0, 1); // sits on its min edge
+
+  expect(inLower).toEqual([]); // max edge is half-open → excluded
+  expect(inUpper).toHaveLength(1);
+  expect(inUpper[0].points).toHaveLength(2);
+});
+
+it('still admits a polyline lying exactly on the inclusive min edge', () => {
+  const minY = chunkGridAABB(0, 0).minGY;
+  const out = clipPolylineToChunk(
+    [{ x: 0.01, y: minY }, { x: 0.05, y: minY }],
+    [1, 1],
+    0,
+    0,
+  );
+  expect(out).toHaveLength(1);
 });

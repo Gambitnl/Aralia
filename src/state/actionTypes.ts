@@ -137,7 +137,8 @@ export type AppAction =
   | { type: 'CAST_SPELL'; payload: CastSpellPayload }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
-  | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[] } }
+  | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[]; racialRestChoices?: Record<string, Record<string, import('../types/character.js').RacialRestChoiceData>> } }
+  | { type: 'TOGGLE_LONG_REST_MODAL' }
   // Short rest updates can include healing, Hit Dice pool adjustments, and party-level rest tracking.
   | { type: 'SHORT_REST'; payload?: { healingByCharacterId?: Record<string, number>; hitPointDiceUpdates?: Record<string, HitPointDicePool[]>; shortRestTracker?: GameState['shortRestTracker'] } }
   // Religion Actions

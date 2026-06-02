@@ -27,19 +27,19 @@ Create a visual sandbox inside Aralia's design dashboard (`misc/design.html`) wh
 
 ---
 
-## Bounded Active Task: Verification & Visual Polish
+## Bounded Active Task: Prone & Grappled States Sandbox
 
-Since the core execution layer is finished, the current active slice is focused on visual parity alignment and testing.
+We are moving forward with implementing the Prone and Grappled states playground to isolate and verify martial/positional rules.
 
 | Field | Value |
 |---|---|
-| Task | Run manual validation of cover AC calculation, vision visibility thresholds, and detour routing. |
-| Acceptance criteria | The three sandbox templates execute turn rotations correctly on both 2D and 3D map views. |
+| Task | Implement the Prone & Grappled States test sandbox. |
+| Acceptance criteria | The new sandbox template mounts in the selector, populating an adjacent target that can be knocked Prone to verify melee advantage and ranged disadvantage mechanics. |
 | Allowed boundaries | `src/components/DesignPreview/steps/PreviewCombatScenarios.tsx` only |
-| Stop condition | Do not add more visual scenarios (e.g. flying, falling) in this slice. |
+| Stop condition | Do not implement the underlying grapple check resolver; isolate using transient properties. |
 | Verification | Manual inspection on `/misc/design.html`. |
-| Owner | Gemini |
-| Next action | Create the living project task documentation and register in the global registry. |
+| Owner | Next Agent |
+| Next action | Build the programmatic layout and character presets for T7. |
 
 ---
 
@@ -73,6 +73,8 @@ Out of scope:
 |---|---|---|---|---|
 | 3D map lighting does not dynamically update when changing biomes | adjacent_follow_up | UI Developer | `BattleMap3D.tsx` | Ensure R3F lights hot-reload when loading new themes |
 | Human Wizard cannot see target but is not visually blocked in 2D grid overlay | adjacent_follow_up | Combat UI | `PreviewCombatScenarios.tsx` | Add a visual Fog of War shader or hidden opacity toggle on the 2D tiles |
+| Environmental spell zones that grant damage resistance/immunity are not dynamically applied to damage calculations | adjacent_follow_up | Next Agent | `ResistanceCalculator` | Update `ResistanceCalculator` to check target's tile overlap with active spell zones |
+| Damage resistances, vulnerabilities, and immunities are not visually exposed in the 2D/3D map overlays | adjacent_follow_up | Next Agent | `BattleMap.tsx` | Add small elemental badges or tooltips displaying active traits |
 
 ---
 

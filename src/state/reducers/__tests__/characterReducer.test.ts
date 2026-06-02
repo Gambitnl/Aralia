@@ -98,6 +98,68 @@ describe('characterReducer', () => {
         expect(updated?.hitPointDice?.[0].current).toBe(2);
     });
 
+    it('should apply racial rest choices (e.g. Astral Knowledge) on long rest', () => {
+        const character = createMockPlayerCharacter({
+            id: 'long-rest-githyanki',
+            skills: [{ name: 'Athletics', proficiencyLevel: 'proficient' }],
+            weaponProficiencies: ['Shortsword']
+        });
+        const state = { ...initialState, party: [character] } as GameState;
+        
+        const action: AppAction = { 
+            type: 'LONG_REST', 
+            payload: { 
+                deniedCharacterIds: [],
+                racialRestChoices: {
+                    'long-rest-githyanki': {
+                        'astral_knowledge': {
+                            skillIds: ['Arcana'],
+                            weaponIds: ['Longsword']
+                        }
+                    }
+                }
+            } 
+        };
+
+        const newState = characterReducer(state, action);
+        const updated = newState.party?.[0];
+
+        // Should have old skill + new skill
+        expect(updated?.skills.some(s => s.name === 'Athletics')).toBe(true);
+        expect(updated?.skills.some(s => s.name === 'Arcana')).toBe(true);
+        // Should have old weapon + new weapon
+        expect(updated?.weaponProficiencies).toContain('Shortsword');
+        expect(updated?.weaponProficiencies).toContain('Longsword');
+
+        // And it should have stored the choices so they can be removed next time
+        expect(updated?.racialRestChoices?.['astral_knowledge'].skillIds).toEqual(['Arcana']);
+
+        // Now do ANOTHER long rest with different choices, to verify old ones are removed
+        const secondAction: AppAction = {
+            type: 'LONG_REST', 
+            payload: { 
+                deniedCharacterIds: [],
+                racialRestChoices: {
+                    'long-rest-githyanki': {
+                        'astral_knowledge': {
+                            skillIds: ['History'],
+                            toolIds: ["Thieves' Tools"]
+                        }
+                    }
+                }
+            } 
+        };
+
+        const finalState = characterReducer(newState as GameState, secondAction);
+        const finalChar = finalState.party?.[0];
+
+        // Should have removed Arcana and Longsword, added History and Thieves' Tools
+        expect(finalChar?.skills.some(s => s.name === 'Arcana')).toBe(false);
+        expect(finalChar?.skills.some(s => s.name === 'History')).toBe(true);
+        expect(finalChar?.weaponProficiencies).not.toContain('Longsword');
+        expect(finalChar?.toolProficiencies).toContain("Thieves' Tools");
+    });
+
     it('should consume deep gnome race spells from long-rest resources first', () => {
         const wizardClass: Class = {
             id: 'wizard',

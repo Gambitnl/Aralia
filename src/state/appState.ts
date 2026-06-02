@@ -729,6 +729,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase
                 currentEnemies: combatants,
                 isEncounterModalVisible: false,
+                isLongRestModalVisible: false,
                 isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
             };
         }

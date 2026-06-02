@@ -45,17 +45,24 @@ function clipSegment(
   let t0 = 0;
   let t1 = 1;
 
-  const edges: Array<[number, number]> = [
-    [-dx, a.x - minX], // left:   x >= minX
-    [dx, maxX - a.x], //  right:  x <= maxX
-    [-dy, a.y - minY], // bottom: y >= minY
-    [dy, maxY - a.y], //  top:    y <= maxY
+  // [p, q, isMax]. The two max edges are half-open (x < maxX, y < maxY) so a
+  // segment lying exactly on a shared chunk boundary is owned by exactly one
+  // chunk — the neighbour, where the same line sits on its inclusive min edge.
+  // This mirrors the half-open site filter in chunkSampler (W3D-G20) and stops
+  // boundary-coincident river/road geometry being meshed/drawn by both chunks.
+  const edges: Array<[number, number, boolean]> = [
+    [-dx, a.x - minX, false], // left:   x >= minX (inclusive)
+    [dx, maxX - a.x, true], //   right:  x <  maxX (half-open)
+    [-dy, a.y - minY, false], // bottom: y >= minY (inclusive)
+    [dy, maxY - a.y, true], //   top:    y <  maxY (half-open)
   ];
 
-  for (const [p, q] of edges) {
+  for (const [p, q, isMax] of edges) {
     if (Math.abs(p) < EPS) {
-      // Line parallel to this edge: if it's outside the slab, reject entirely.
-      if (q < 0) return null;
+      // Line parallel to this edge. Reject if it lies outside the slab. Min
+      // edges are inclusive (reject only when strictly outside, q < 0); max
+      // edges are half-open (reject when on or outside the edge, q <= 0).
+      if (isMax ? q <= 0 : q < 0) return null;
       continue;
     }
     const r = q / p;

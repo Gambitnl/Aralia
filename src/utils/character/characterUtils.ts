@@ -936,7 +936,6 @@ export const applyRacialSpellGrantsByLevel = (character: PlayerCharacter, target
       }
     });
 
-    next.limitedUses = next.limitedUses && Object.keys(next.limitedUses).length > 0 ? next.limitedUses : undefined;
     next.spellbook.knownSpells = Array.from(knownSpellsSet);
     next.spellbook.preparedSpells = Array.from(preparedSpellsSet);
     next.spellbook.racialSpellGrants = Array.from(grantsBySpell.values());

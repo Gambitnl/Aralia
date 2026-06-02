@@ -40,11 +40,10 @@ Corpus-wide JSON structure is currently green (`459 / 459` in
 - structured->json lane still has open mismatch buckets
 - canonical retrieval is complete for supported spells
 
-Current implementation package has reached Package 18 remote merge proof in
-`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Package 18 safe-replacement
-PR #1143 merged on 2026-06-01, so the active project boundary is now
-local sync/package-history closeout and next-package selection from current
-`master`.
+Current implementation package has moved past Package 18 remote merge proof in
+`docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`. Package 19 now promotes the
+`created_object_or_structure` mechanics bucket as the next concrete early-game
+slice, with Package 18 preserved as remote merge proof in package history.
 
 ## Active Task
 
@@ -56,7 +55,7 @@ local sync/package-history closeout and next-package selection from current
 | Stop condition | No boundary drift: do not expand into engine code work or replace execution records in unrelated trackers. |
 | Verification | Re-read this file, `TRACKER.md`, and `GAPS.md`, then compare to `docs/projects/PROJECT_TRACKER.md`, `SPELL_PHASE_1_TASK_TRACKER.md`, and `SPELL_DATA_VALIDATION_PLAN.md`. |
 | Owner | Worker D |
-| Next action | Continue from the first queue row marked active/waiting in `TRACKER.md`, then reconcile any changed package gates in `SPELL_PHASE_1_TASK_TRACKER.md`. |
+| Next action | Continue from the first queue row marked active/waiting in `TRACKER.md`, then dispatch or refine the active package row in `SPELL_PHASE_1_TASK_TRACKER.md`. |
 
 ## File Map
 
@@ -113,7 +112,7 @@ Out of scope:
 
 | Gap | Classification | Evidence | Next action |
 |---|---|---|---|
-| Package 18 remote merge proof is present, but local sync/package-history closeout is not yet recorded | in_scope_now | `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`; PR #1143 | Complete local closeout evidence and then select the next Spell Phase package from current `master`. |
+| Package 19 package packet is ready but not yet visibly dispatched | in_scope_now | `docs/tasks/spells/SPELL_PHASE_1_TASK_TRACKER.md`; `docs/tasks/spells/PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_TASK.md` | Launch or refine the Package 19 `created_object_or_structure` slice through the visible Symphony/Jules workflow. |
 | No automated Atlas drift check between tracker values and Atlas row counts | support_needed_now | `docs/tasks/spells/ATLAS_GAPS_REGISTRY.md` | Capture a one-shot count alignment check on each major package transition. |
 
 ## Supporting Files

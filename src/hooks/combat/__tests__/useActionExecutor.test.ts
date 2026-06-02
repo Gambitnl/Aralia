@@ -104,7 +104,7 @@ describe('useActionExecutor', () => {
         mockProcessRepeatSaves.mockReturnValue(mockCharacter);
     });
 
-    it('should handle end_turn action', () => {
+    it('should handle end_turn action', async () => {
         const { result } = renderHook(() => useActionExecutor(defaultProps));
 
         const action: CombatAction = {
@@ -115,13 +115,13 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(true);
         expect(mockEndTurn).toHaveBeenCalled();
     });
 
-    it('should fail if character cannot afford action', () => {
+    it('should fail if character cannot afford action', async () => {
         mockCanAfford.mockReturnValue(false);
         const { result } = renderHook(() => useActionExecutor(defaultProps));
 
@@ -134,7 +134,7 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(false);
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
@@ -142,7 +142,7 @@ describe('useActionExecutor', () => {
         }));
     });
 
-    it('should consume resources and update character position on move', () => {
+    it('should consume resources and update character position on move', async () => {
         // Setup updated character returned by consumeAction
         const movedCharacter = { ...mockCharacter, position: { x: 1, y: 1 } };
         mockConsumeAction.mockReturnValue(movedCharacter);
@@ -160,7 +160,7 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(true);
         expect(mockConsumeAction).toHaveBeenCalledWith(expect.objectContaining({ id: 'char1' }), action.cost);
@@ -183,7 +183,7 @@ describe('useActionExecutor', () => {
         expect(mockRecordAction).toHaveBeenCalledWith(action);
     });
 
-    it('should reject movement onto an occupied combatant tile before spending movement', () => {
+    it('should reject movement onto an occupied combatant tile before spending movement', async () => {
         const blocker: CombatCharacter = {
             ...mockCharacter,
             id: 'blocker',
@@ -206,7 +206,7 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(false);
         expect(mockConsumeAction).not.toHaveBeenCalled();
@@ -215,7 +215,7 @@ describe('useActionExecutor', () => {
         }));
     });
 
-    it('should let Dash spend an action and add current-turn movement without making an attack', () => {
+    it('should let Dash spend an action and add current-turn movement without making an attack', async () => {
         const dash: Ability = {
             id: 'dash',
             name: 'Dash',
@@ -252,7 +252,7 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(true);
         expect(mockOnCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
@@ -269,7 +269,7 @@ describe('useActionExecutor', () => {
         }));
     });
 
-    it('should spend an enemy reaction and log an opportunity attack when movement leaves reach', () => {
+    it('should spend an enemy reaction and log an opportunity attack when movement leaves reach', async () => {
         const scimitar: Ability = {
             id: 'scimitar',
             name: 'Scimitar',
@@ -311,7 +311,7 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(true);
         expect(mockOnCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
@@ -325,7 +325,7 @@ describe('useActionExecutor', () => {
         }));
     });
 
-    it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', () => {
+    it('should omit proficiency bonus from opportunity attacks with non-proficient weapons', async () => {
         const unproficientWeapon = {
             id: 'unproficient_weapon',
             name: 'Heavy Club',
@@ -373,11 +373,136 @@ describe('useActionExecutor', () => {
             timestamp: Date.now()
         };
 
-        const success = result.current.executeAction(action);
+        const success = await result.current.executeAction(action);
 
         expect(success).toBe(true);
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
             message: expect.stringMatching(/\+\s*2\s*=\s*\d+ vs AC/)
+        }));
+    });
+
+    it('should prompt player for Opportunity Attack weapon choice and execute swing with selected weapon properties', async () => {
+        const rapier: Ability = {
+            id: 'rapier',
+            name: 'Rapier',
+            description: 'A finesse melee attack.',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
+            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: 'weapon', properties: ['finesse'] },
+            range: 1,
+            effects: [{ type: 'damage' as const, value: 8, damageType: 'physical' as const, dice: '1d8' }]
+        };
+        const mover = { ...mockCharacter, id: 'goblin', team: 'enemy' as const, position: { x: 0, y: 1 } };
+        const playerAttacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'player_hero',
+            team: 'player' as const,
+            position: { x: 0, y: 0 },
+            abilities: [rapier],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue(mover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+        mockHandleDamage.mockImplementation((char) => char);
+
+        const mockRequestReaction = vi.fn().mockResolvedValue('rapier');
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, playerAttacker],
+            requestReaction: mockRequestReaction
+        }));
+
+        const action = {
+            id: 'mover-leaves-reach',
+            characterId: mover.id,
+            type: 'move' as const,
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockRequestReaction).toHaveBeenCalledWith(
+            playerAttacker.id,
+            mover.id,
+            'opportunity_attack',
+            [],
+            expect.arrayContaining([expect.objectContaining({ id: 'rapier' })])
+        );
+        expect(mockOnCharacterUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            id: 'player_hero',
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true })
+            })
+        }));
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('Opportunity Attack using Rapier')
+        }));
+    });
+
+    it('should log and not spend reaction if player declines the Opportunity Attack reaction prompt', async () => {
+        const rapier: Ability = {
+            id: 'rapier',
+            name: 'Rapier',
+            description: 'A finesse melee attack.',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
+            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: 'weapon', properties: ['finesse'] },
+            range: 1,
+            effects: [{ type: 'damage' as const, value: 8, damageType: 'physical' as const, dice: '1d8' }]
+        };
+        const mover = { ...mockCharacter, id: 'goblin', team: 'enemy' as const, position: { x: 0, y: 1 } };
+        const playerAttacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'player_hero',
+            team: 'player' as const,
+            position: { x: 0, y: 0 },
+            abilities: [rapier],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue(mover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+
+        const mockRequestReaction = vi.fn().mockResolvedValue(null); // declines
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, playerAttacker],
+            requestReaction: mockRequestReaction
+        }));
+
+        const action = {
+            id: 'mover-leaves-reach',
+            characterId: mover.id,
+            type: 'move' as const,
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockRequestReaction).toHaveBeenCalled();
+        expect(mockOnCharacterUpdate).not.toHaveBeenCalledWith(expect.objectContaining({
+            id: 'player_hero',
+            actionEconomy: expect.objectContaining({
+                reaction: expect.objectContaining({ used: true })
+            })
+        }));
+        expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+            message: expect.stringContaining('declines the Opportunity Attack reaction')
         }));
     });
 });

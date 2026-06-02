@@ -129,6 +129,7 @@ export interface RacialChoiceRequirement {
   availableSpellIds?: string[];
   availableAbilities?: AbilityScoreName[];
   skillCount?: number;
+  availableSkillIds?: string[];
   featId?: string;
 }
 

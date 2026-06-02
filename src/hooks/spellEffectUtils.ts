@@ -1,4 +1,20 @@
-import { SpellEffect, TerrainEffect, MovementEffect, Spell } from '../../../types/spells';
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 02/06/2026, 11:58:45
+ * Dependents: hooks/useAbilitySystem.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+import { SpellEffect, TerrainEffect, MovementEffect, Spell } from '../types/spells';
 
 const AREA_ZONE_TRIGGER_TYPES = new Set([
   'on_enter_area',

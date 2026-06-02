@@ -1,19 +1,13 @@
 /**
- * ARCHITECTURAL CONTEXT:
- * This command is the 'Heavy Lifter' of the combat system. It handles 
- * the complexity of 5e damage resolution, including dice rolling, 
- * saving throw reductions, planar modifiers, and feat-based overrides.
+ * This file resolves damage applications on characters during combat.
  *
- * Recent updates focus on 'Feat System Integration'.
- * - Added `Heavy Armor Master` (HAM) logic to reduce incoming physical 
- *   damage by Proficiency Bonus.
- * - Integrated `Great Weapon Master` (GWM) to add Proficiency Bonus 
- *   damage when using 'heavy' weapons.
- * - Implemented `Slasher` feat logic, creating a 'Slasher Slow' status 
- *   and applying disadvantage on critical hits.
- * - These changes leverage the `weaponProperties` passed in the context 
- *   to differentiate between magical spells and physical weapon strikes.
- * 
+ * It is the core damage engine of the combat system. It handles applying damage numbers,
+ * checking damage type resistances or vulnerabilities, rolling saving throws, running feat checks,
+ * logging damage events, removing defeated summons, and prompting/checking spell concentration.
+ *
+ * Called by: useAbilitySystem.ts and various spell/ability command factories.
+ * Depends on: deathSaveUtils for applying damage, resistanceUtils for resistances, and ConcentrationCommands to break spell maintenance.
+ *
  * @file src/commands/effects/DamageCommand.ts
  */
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
@@ -254,13 +248,15 @@ export class DamageCommand extends BaseEffectCommand {
             const chosenReaction = validReactions.find(r => r.id === choice);
             if (chosenReaction) {
               if (chosenReaction.effect?.type === 'DEFENSIVE' && chosenReaction.effect.defenseType === 'damage_reduction') {
-                const dice = chosenReaction.effect.damageReduction.dice || '1d12';
+                const damageReduction = chosenReaction.effect.damageReduction;
+                if (!damageReduction) continue;
+                const dice = damageReduction.dice || '1d12';
                 const drRoll = rollDamageUtil(dice, false, 1);
                 let modifier = 0;
-                if (chosenReaction.effect.damageReduction.abilityModifier === 'Constitution') {
+                if (damageReduction.abilityModifier === 'Constitution') {
                   modifier = Math.floor((target.stats.constitution - 10) / 2);
                 }
-                if (chosenReaction.effect.damageReduction.addProficiencyBonus) {
+                if (damageReduction.addProficiencyBonus) {
                   modifier += Math.ceil((target.level || 1) / 4) + 1;
                 }
                 const totalReduction = drRoll + modifier;
@@ -317,12 +313,11 @@ export class DamageCommand extends BaseEffectCommand {
       // --- Step 6: Check Concentration ---
       // If the target is concentrating on a spell and took damage,
       // they must make a Constitution save (DC = 10 or half damage, whichever is higher).
+      // If the damage drops them to 0 HP (downed/unconscious), they automatically fail and drop concentration immediately.
       // Failure breaks concentration and ends their maintained spell.
       if (target.concentratingOn && damageRoll > 0) {
-        const check = checkConcentration(target, damageRoll);
-
-        if (!check.success) {
-          // Concentration broken - execute command to clean up the spell's effects
+        if (updatedTarget.currentHP === 0) {
+          // Downed characters automatically lose concentration without rolling.
           const breakCommand = new BreakConcentrationCommand({
             ...this.context,
             caster: target,
@@ -331,20 +326,41 @@ export class DamageCommand extends BaseEffectCommand {
             targets: []
           });
 
-          currentState = breakCommand.execute(currentState);
+          currentState = await breakCommand.execute(currentState);
 
           currentState = this.addLogEntry(currentState, {
             type: 'status',
-            message: `${target.name} fails concentration save (${check.roll} vs DC ${check.dc})`,
+            message: `${target.name} falls unconscious and automatically loses concentration on ${target.concentratingOn.spellName}`,
             characterId: target.id
           });
         } else {
-          // Concentration maintained
-          currentState = this.addLogEntry(currentState, {
-            type: 'status',
-            message: `${target.name} maintains concentration (${check.roll} vs DC ${check.dc})`,
-            characterId: target.id
-          });
+          const check = checkConcentration(target, damageRoll);
+
+          if (!check.success) {
+            // Concentration broken - execute command to clean up the spell's effects
+            const breakCommand = new BreakConcentrationCommand({
+              ...this.context,
+              caster: target,
+              spellId: target.concentratingOn.spellId,
+              spellName: target.concentratingOn.spellName,
+              targets: []
+            });
+
+            currentState = await breakCommand.execute(currentState);
+
+            currentState = this.addLogEntry(currentState, {
+              type: 'status',
+              message: `${target.name} fails concentration save (${check.roll} vs DC ${check.dc})`,
+              characterId: target.id
+            });
+          } else {
+            // Concentration maintained
+            currentState = this.addLogEntry(currentState, {
+              type: 'status',
+              message: `${target.name} maintains concentration (${check.roll} vs DC ${check.dc})`,
+              characterId: target.id
+            });
+          }
         }
       }
 

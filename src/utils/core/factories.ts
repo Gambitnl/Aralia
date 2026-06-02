@@ -1,13 +1,16 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file is part of a complex dependency web.
- * 
- * Last Sync: 26/01/2026, 01:19:56
- * Dependents: core/index.ts, factories.ts
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 02/06/2026, 11:58:59
+ * Dependents: utils/core/index.ts, utils/factories.ts
  * Imports: 7 files
- * 
- * Tool: Codebase Visualizer (Headless Sync)
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
  */
 // @dependencies-end
 
@@ -611,6 +614,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
       townState: null,
       townEntryDirection: null,
+      worldViewMode: 'atlas',
+      playerWorldPos: null,
 
       // TODO: Fix TS2322 - missing or incompatible archivedBanters
       archivedBanters: [],
@@ -751,7 +756,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       underdark: { currentDepth: 0, currentBiomeId: 'cavern_standard', lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
       isQuestLogVisible: false,
       townState: null,
-      townEntryDirection: null
+      townEntryDirection: null,
+      worldViewMode: 'atlas',
+      playerWorldPos: null
     };
   }
 }

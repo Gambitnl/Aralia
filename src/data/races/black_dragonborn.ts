@@ -29,4 +29,5 @@ export const BLACK_DRAGONBORN_DATA: Race = {
     maleIllustrationPath: 'assets/images/races/Dragonborn_Black_Male.png',
     femaleIllustrationPath: 'assets/images/races/Dragonborn_Black_Female.png',
   },
+  modernizationStatus: 'official_2024',
 };

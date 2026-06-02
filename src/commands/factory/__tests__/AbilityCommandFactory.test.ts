@@ -352,6 +352,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
     const rapierAttack: Ability = {
       id: 'rapier_attack',
       name: 'Rapier Attack',
+      description: 'A finesse weapon attack used to validate Sneak Attack.',
       type: 'attack',
       cost: { type: 'action' },
       targeting: 'single_enemy',
@@ -407,6 +408,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
     const rapierAttack: Ability = {
       id: 'rapier_attack',
       name: 'Rapier Attack',
+      description: 'A finesse weapon attack used to validate Sneak Attack limits.',
       type: 'attack',
       cost: { type: 'action' },
       targeting: 'single_enemy',
@@ -461,6 +463,7 @@ describe('WeaponAttackCommand: Sneak Attack (G9)', () => {
     const unarmedStrike: Ability = {
       id: 'unarmed_strike',
       name: 'Unarmed Strike',
+      description: 'A plain melee attack without finesse or ranged properties.',
       type: 'attack',
       cost: { type: 'action' },
       targeting: 'single_enemy',

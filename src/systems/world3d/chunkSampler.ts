@@ -8,6 +8,7 @@ import type { WorldData } from '@/services/worldSim/types';
 import type { ChunkData } from './types';
 import { chunkGridAABB } from './coords';
 import { clipPolylineToChunk } from './polylineClip';
+import { heightToMeters } from './config';
 
 function sampleHeightBilinear(world: WorldData, gx: number, gy: number): number {
   const { cols, rows } = world.gridSize;
@@ -61,11 +62,15 @@ export function sampleChunk(
 
   const sites = world.sites
     .filter(
+      // Half-open interval [min, max): a site whose position lands exactly on a
+      // chunk boundary (position.x === maxGX, shared with the next chunk's minGX)
+      // is owned by exactly one chunk — the lower one — instead of both. This is
+      // what kept producing duplicate site React keys after T10 chunk-scoped them.
       (s) =>
         s.position.x >= aabb.minGX &&
-        s.position.x <= aabb.maxGX &&
+        s.position.x < aabb.maxGX &&
         s.position.y >= aabb.minGY &&
-        s.position.y <= aabb.maxGY,
+        s.position.y < aabb.maxGY,
     )
     .map((s) => ({
       id: s.id,
@@ -73,6 +78,7 @@ export function sampleChunk(
       position: s.position,
       footprint: s.footprint,
       walled: s.walled ?? false,
+      surfaceY: heightToMeters(sampleHeightBilinear(world, s.position.x, s.position.y)),
     }));
 
   return { cx, cy, resolution, heights, biomeIds, rivers, roads, sites };

@@ -34,6 +34,7 @@
 
 import type { MapData } from '@/types/world';
 import { runWorldSim } from '@/services/worldSim';
+import { heightFromBiomes } from '@/services/worldSim/heightFromBiomes';
 
 /**
  * Migrates a MapData object to WorldData v2 if worldData is missing.
@@ -53,8 +54,13 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
   }
 
   const az = mapData.azgaarWorld;
-  // Reconstruct arrays from azgaarWorld or backfill with sensible baseline defaults
-  const heights = az?.heights ?? new Array(rows * cols).fill(30);
+  // Reconstruct arrays from azgaarWorld, or — when no Azgaar terrain exists (legacy save or the
+  // legacy-generator fallback) — DERIVE a real heightfield from the per-cell biomes instead of
+  // backfilling a constant. The old behaviour silently shipped a flat pancake in 3D (WSS-004);
+  // `heightFromBiomes` gives band-correlated relief (mountains high, oceans below sea level) that
+  // is deterministic for a given seed. Track this so the DebugHUD reflects the true (coarser) source.
+  const usedBiomeDerivedHeights = !az?.heights;
+  const heights = az?.heights ?? heightFromBiomes(biomeIds, cols, rows, worldSeed);
   const temperatures = az?.temperatures ?? new Array(rows * cols).fill(15);
   const moisture = az?.moisture ?? new Array(rows * cols).fill(20);
   const templateId = az?.templateId ?? 'unknown';
@@ -71,5 +77,19 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
     biomeIds,
   });
 
-  return { ...mapData, worldData };
+  const migrated: MapData = { ...mapData, worldData };
+
+  // Record provenance only when we derived heights from biomes (no Azgaar terrain), and only if a
+  // generator upstream (e.g. mapService legacy fallback) has not already recorded a more specific
+  // reason. This is lower-fidelity than the Azgaar path, so it stays flagged in the DebugHUD.
+  if (usedBiomeDerivedHeights && !migrated.generation) {
+    migrated.generation = {
+      source: 'biome-derived',
+      reason:
+        'No Azgaar terrain available (legacy save or fallback map) — heightfield derived from biome elevation bands.',
+      at: Date.now(),
+    };
+  }
+
+  return migrated;
 }

@@ -41,7 +41,6 @@ const buildWizardPreviewState = (): CharacterCreationState => {
     characterAge: 25,
     selectedBackground: null,
     selectedWeaponMasteries: [],
-    selectedFeat: null,
     featChoices: {},
     racialSelections: {}
   };

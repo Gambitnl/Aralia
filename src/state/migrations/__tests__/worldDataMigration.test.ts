@@ -33,6 +33,105 @@ it('populates worldData when missing using azgaarWorld payload', () => {
   expect(after.worldData!.version).toBe(2);
 });
 
+it('records biome-derived provenance when no azgaarWorld terrain is present', () => {
+  const cols = 8;
+  const rows = 6;
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+    // no azgaarWorld, no worldData → migration must derive heights from biomes
+  };
+  const after = migrateMapDataToWorldDataV2(before, 7);
+  expect(after.worldData).toBeDefined();
+  expect(after.generation).toBeDefined();
+  expect(after.generation!.source).toBe('biome-derived');
+  expect(after.generation!.reason).toMatch(/biome/i);
+});
+
+it('derives a heightfield with real variance from biomes (no flat pancake)', () => {
+  const cols = 8;
+  const rows = 6;
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+  };
+  const after = migrateMapDataToWorldDataV2(before, 7);
+  const heights = after.worldData!.heights;
+  // The defect (WSS-004) was a constant heightfield. Assert it now varies.
+  expect(new Set(heights).size).toBeGreaterThan(1);
+  expect(Math.max(...heights)).toBeGreaterThan(Math.min(...heights));
+});
+
+it('relief correlates with biome elevation bands (mountains > plains > ocean)', () => {
+  // 3 rows: row 0 ocean (aquatic), row 1 plains (low), row 2 mountains (high).
+  const cols = 4;
+  const rows = 3;
+  const rowBiomes = ['ocean', 'plains_prairie', 'mountain_alpine'];
+  const tiles = rowBiomes.map((biomeId, y) =>
+    Array.from({ length: cols }, (_, x) => ({
+      x,
+      y,
+      biomeId,
+      discovered: false,
+      isPlayerCurrent: false,
+    })),
+  );
+  const before: MapData = { gridSize: { rows, cols }, tiles };
+  const after = migrateMapDataToWorldDataV2(before, 99);
+  const h = after.worldData!.heights; // row-major, length cols*rows
+  const rowAvg = (r: number) =>
+    h.slice(r * cols, (r + 1) * cols).reduce((s, v) => s + v, 0) / cols;
+  const ocean = rowAvg(0);
+  const plains = rowAvg(1);
+  const mountains = rowAvg(2);
+  expect(ocean).toBeLessThan(plains);
+  expect(plains).toBeLessThan(mountains);
+  expect(ocean).toBeLessThan(20); // below SEA_LEVEL → water
+});
+
+it('biome-derived heightfield is deterministic for a given seed', () => {
+  const cols = 6;
+  const rows = 5;
+  const mk = (): MapData => ({ gridSize: { rows, cols }, tiles: fakeTiles(cols, rows) });
+  const a = migrateMapDataToWorldDataV2(mk(), 12345);
+  const b = migrateMapDataToWorldDataV2(mk(), 12345);
+  const c = migrateMapDataToWorldDataV2(mk(), 54321);
+  expect(a.worldData!.heights).toEqual(b.worldData!.heights);
+  // Different seed → different heightfield (jitter is seed-driven).
+  expect(a.worldData!.heights).not.toEqual(c.worldData!.heights);
+});
+
+it('does NOT record biome-derived provenance when azgaarWorld heights exist', () => {
+  const cols = 6;
+  const rows = 6;
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+    azgaarWorld: {
+      version: 1,
+      templateId: 'continents',
+      heights: new Array(cols * rows).fill(45),
+      temperatures: new Array(cols * rows).fill(10),
+      moisture: new Array(cols * rows).fill(20),
+      rivers: new Array(cols * rows).fill(false),
+    },
+  };
+  const after = migrateMapDataToWorldDataV2(before, 7);
+  expect(after.generation).toBeUndefined();
+});
+
+it('does not clobber an existing generation reason', () => {
+  const cols = 4;
+  const rows = 4;
+  const before: MapData = {
+    gridSize: { rows, cols },
+    tiles: fakeTiles(cols, rows),
+    generation: { source: 'legacy-fallback', reason: 'boom', at: 123 },
+  };
+  const after = migrateMapDataToWorldDataV2(before, 7);
+  expect(after.generation).toEqual({ source: 'legacy-fallback', reason: 'boom', at: 123 });
+});
+
 it('is a no-op when worldData already exists and is v2', () => {
   const cols = 6;
   const rows = 6;

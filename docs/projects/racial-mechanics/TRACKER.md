@@ -1,6 +1,6 @@
 # Racial Mechanics / Race Hierarchy Tracker
 
-Last updated: 2026-05-31
+Last updated: 2026-06-02
 Owner: Racial mechanics project agent
 
 This tracker is the operational surface for this project.
@@ -40,9 +40,14 @@ All rows below are required for the shared parser/materializer path and are comp
 | RM-031 | done | 2026-05-31 | [F:/Repos/Aralia/src/data/races/index.ts](F:/Repos/Aralia/src/data/races/index.ts) | Traits flagged as 'implemented' in data may lack reducer logic or UI visibility (e.g., Human Resourceful). | Audit all traits for mechanical and UI completeness. Fix gaps. |
 | RM-036 | done | 2026-06-01 | [F:/Repos/Aralia/src/data/races/triton.ts](F:/Repos/Aralia/src/data/races/triton.ts) | Triton is missing `racialSpellChoice` in data file. | Added `racialSpellChoice` and `knownSpells` to Triton data. |
 | RM-037 | done | 2026-06-01 | [F:/Repos/Aralia/src/data/races/lizardfolk.ts](F:/Repos/Aralia/src/data/races/lizardfolk.ts) | Lizardfolk is missing `Nature's Intuition` choice in data file. | Added `Nature's Intuition` trait to Lizardfolk data and updated `racialTraits.ts` parser to handle multi-skill choices. |
-| RM-038 | active | 2026-06-01 | [F:/Repos/Aralia/public/data/glossary/entries/races/](F:/Repos/Aralia/public/data/glossary/entries/races/) | Race glossary entries may use outdated 2014 trait descriptions instead of the 2024 versions. | Audit all race glossary entries and update to 2024 versions. Black Dragonborn updated (TS + JSON). |
+| RM-038 | active | 2026-06-01 | [F:/Repos/Aralia/public/data/glossary/entries/races/](F:/Repos/Aralia/public/data/glossary/entries/races/) | Race glossary entries may use outdated 2014 trait descriptions instead of the 2024 versions. | Audit all race glossary entries and update to 2024 versions. Core species updated. |
 | RM-SYNC-001 | open | support_needed_now | Systemic sync gap between TS data and glossary JSONs. | Identify and fix misalignments. |
-| RM-DRAGON-001 | active | in_scope_now | Dragonborn sub-races lack 2024 mechanics in TS files. | Update all Dragonborn ancestry files. |
+| RM-DRAGON-001 | done | in_scope_now | Dragonborn sub-races lack 2024 mechanics in TS files. | Verified: `dragonbornRacialTraits.test.ts` passed. |
+| RM-MODERN-001 | done | in_scope_now | Implement UI indicators for 2024 rule versions vs modernized legacy. | Interface extended; badges added to CC and Glossary. |
+| RM-ORC-001 | done | in_scope_now | Orc traits lack mechanical implementation. | Verified: `orcRacialTraits.test.ts` passed. |
+| RM-SPEED-001 | done | in_scope_now | Systemic audit needed for 30ft speed on all core species. | 8 remaining races updated (Halfling/Dwarf/Gnome). Grep check clean. |
+| RM-CRASH-001 | done | support_needed_now | Premature cleanup of `limitedUses` causing crashes during character assembly. | Fixed in `characterUtils.ts`; verified with `regression_RM-CRASH-001.test.ts`. |
+| RM-LR-CHOICE-001 | active | in_scope_now | Lack of support for racial traits requiring choices during a Long Rest. | Audit traits needing LR choices (e.g. Githyanki). |
 | RM-013 | in_progress | adjacent-deferred | `Spells of the Mark` traits still require table/list-based list access into class spell lists. | Build a class spell-list source model and promote if scope allows. |
 | RM-014 | in_progress | adjacent-deferred | Some traits use open spell choice text without concrete spell IDs (`...one cantrip ... of your choice...`). | Define race-choice schema and UI selection flow before implementation. |
 | RM-006 | deferred | adjacent-deferred | Heuristic feature-type inference is brittle across multiple race text forms. | Replace with explicit schema tags only when parser touchpoints are stable. |

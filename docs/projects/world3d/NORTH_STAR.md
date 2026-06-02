@@ -1,7 +1,7 @@
 # World 3D System North Star
 
 Status: active
-Last updated: 2026-06-02
+Last updated: 2026-06-02 (T13)
 
 > The **3D rendering engine** for Aralia's Azgaar-driven streamed 3D world: chunk streaming,
 > per-chunk mesh generation, and the R3F scene. One of three distinct surfaces (not
@@ -46,6 +46,33 @@ Implemented and rendering. As of 2026-06-01:
   pipeline (varied biomes, flow-traced rivers, MST roads, ~30 towns) and spawns the camera on
   the first town. Live screenshot confirms biome variety renders (ocean meeting a landmass)
   instead of uniform plains.
+- **T13 done (2026-06-02):** **river/road polyline clip is now half-open on its max edges** (W3D-G21),
+  the line-geometry sibling of T12's site fix. `clipSegment` rejected boundary-coincident segments
+  only when strictly outside (`q < 0`), so a segment lying exactly on a shared edge (`q === 0`) was
+  kept by **both** adjacent chunks. Fix: the two max edges (`x < maxX`, `y < maxY`) now reject with
+  `q <= 0` while min edges stay inclusive (`q < 0`) — a segment merely touching the min edge is still
+  admitted. Discovery: road points sit at cell-center `.5` coords (e.g. `10.5`), and `0.5` is an exact
+  multiple of the chunk grid step (`CHUNK_WORLD_SIZE/METERS_PER_CELL = 0.125`), so axis-aligned roads
+  routinely lie exactly on boundaries. Verified by **deterministic in-page replay** of the demo world
+  (seed 2026): 116 boundary-coincident road segments exist; the old inclusive clipper double-counted
+  **31 of 34** roads (total clipped length up to 2.0× the original — whole roads drawn twice), the
+  half-open clipper yields exactly 1.0× for all 34. 2 new unit tests; 67 world3d tests pass; tsc clean;
+  live `?phase=world3d` re-verified (terrain + site render intact, no regression). New gaps: W3D-G23
+  (roads drawn at a hardcoded uniform width — `road.type` ignored), W3D-G24 (no spatial pre-filter —
+  every polyline clipped against every chunk).
+- **T12 done (2026-06-02):** **chunkSampler site filter is now half-open `[min, max)`** (W3D-G20),
+  which also resolves the residual duplicate-key warnings (W3D-G18). The filter used `<=` on both
+  `maxGX`/`maxGY`, double-including any site on a shared chunk edge. Discovery: this was not a rare
+  corner case — **every** site sits on a boundary because site positions are integer grid coords and
+  `METERS_PER_CELL`(1024) is an exact multiple of `CHUNK_WORLD_SIZE`(128), so `(x·1024)%128===0` for
+  all sites; the `<=` bug duplicated essentially every site. Fix: `s.position.x < aabb.maxGX` (and Y).
+  Verified by a **deterministic in-page replay** of the demo world (seed 2026) against the live edited
+  module: all 58 sites land in exactly one chunk (`sitesInMultipleChunks: []`), no generator-duplicate
+  IDs. (The preview console buffer never clears across reloads, so the in-page replay — not the noisy
+  console — is the authoritative proof here.) 2 new boundary unit tests; 9 chunkSampler tests pass; tsc
+  clean. New gaps: W3D-G21 (polyline clip still `<=` on both edges → boundary rivers/roads double-drawn),
+  W3D-G22 (sites quantized to integer grid → always seat at owning chunk's NW corner).
+- **T10 done (2026-06-02):** **town boxes seat on terrain surface** (W3D-G15). `surfaceY` carried on `ChunkSite` (bilinear sample at site grid coords, `heightToMeters` applied); box seated at `surfaceY + radius*0.5` in `SitePieces`; chunk-scoped React key (`T11/W3D-G18` folded in). Discovered Voronoi footprint radii hit ~785m, putting camera inside box (back-face culling invisible) — capped at `MAX_RADIUS_M=80`. Live screenshot: golden town box visible on terrain surface. 76 tests pass; tsc clean. New gaps: W3D-G19 (footprint-radius formula) W3D-G20 (boundary half-open interval).
 - **T8 done (2026-06-02):** **vertical exaggeration** added. `config.VERTICAL_EXAGGERATION=12`
   feeds a single pure `heightToMeters(height)` helper that the terrain, water, road, **and**
   vegetation builders all route their Y-mapping through (lockstep — ribbons/trees stay welded to
@@ -67,13 +94,13 @@ the exaggerated terrain (→ W3D-G15, next task) and duplicate site React keys (
 
 | Field | Value |
 |---|---|
-| Task | T10 — seat **site/town boxes on the terrain surface** so they are visible (W3D-G15). They currently render at `Y=radius*0.5` (a few meters up), so with the new vertical exaggeration they are buried hundreds of meters under the ground. |
-| Acceptance criteria | A clean load of `?phase=world3d` shows a town box sitting *on* the terrain surface in a town-containing chunk (not buried, not floating). |
-| Allowed boundaries | `src/systems/world3d/siteGeometry.ts` (+ its sampler input), `src/systems/world3d/chunkSampler.ts`, `src/components/World3D/World3DScene.tsx` `SitePieces`. Reuse the shared `heightToMeters` so boxes track the same exaggerated surface as terrain. Do NOT touch entry/transition (`world-3d-ui`) or `worldSim` generation (`worldsim-service`). |
-| Stop condition | Stop when town boxes sit on the ground; do not also do biome blending (T9), lakes (T6), LOD (T7), or the view-window widening (W3D-G16) in the same slice. |
-| Verification | dev-start, navigate `?phase=world3d` (the demo spawns on the highest-relief town; may take 2-3 tries due to the world-3d-ui entry bounce; the Ollama modal overlay can be hidden via DOM for screenshots), screenshot shows a town box on the surface. |
+| Task | T14 — fix the town footprint radius formula (W3D-G19). `siteGeometry.buildSiteMeshes` derives each box half-width from the site's Voronoi cell footprint `(vertex − center)·METERS_PER_CELL`, which yields ~785 m cubes (a typical town footprint spans ~0.7 grid cells); T10 capped it at a stopgap `MAX_RADIUS_M = 80`. The visual size of a town bears no relation to the settlement — it's a bounding volume, not a building cluster. |
+| Acceptance criteria | Town box diameter is visually plausible (< ~100 m) and ideally scales with site importance (population/kind), with no back-face culling from the camera being inside the box; the `MAX_RADIUS_M` stopgap clamp is no longer the thing doing the work. |
+| Allowed boundaries | `src/systems/world3d/siteGeometry.ts` (radius formula) + its test file. Do **not** touch the half-open clip rules (T12/T13, done), `surfaceY` seating (T10, done), biome blending (T9), lakes (T6), LOD (T7), or site quantization W3D-G22 (likely `worldsim-service`). |
+| Stop condition | Stop when town boxes render at a plausible scale from a sensible formula (not the cap) and a test pins the formula. |
+| Verification | Unit test on the radius formula (small/large site → bounded plausible radius). Then live `?phase=world3d`: a town box reads as a building cluster, not a horizon-spanning volume; describe-first per the Visual Verification Protocol. Run `npx vitest run src/systems/world3d`. |
 | Owner | unassigned |
-| Next action | Add a sampled surface Y to `ChunkSite` (sample `world.heights` at the site cell → `heightToMeters`) and seat the box center at `surfaceY + radius*0.5` in `SitePieces`. Fold in W3D-G18 (chunk-scope the React key) if cheap. |
+| Next action | Replace the Voronoi-footprint radius in `siteGeometry.ts` with a fixed visual scale (e.g. 20–60 m) or a population/kind-based formula; add a unit test; re-verify live. Candidate alternatives if T14 is not chosen: T15 (road width by `type`, W3D-G23) or T16 (polyline clip spatial pre-filter, W3D-G24). |
 
 ## Scope Boundaries
 
@@ -106,10 +133,17 @@ See `docs/projects/world3d/GAPS.md`. Headline rendering-owned gaps:
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
 | Flat terrain relief (W3D-G11) | **done** | claude | T8: `VERTICAL_EXAGGERATION=12` + `heightToMeters`; live ridge | resolved by T8 |
-| **Site/town boxes buried under exaggerated terrain (W3D-G15)** | adjacent_follow_up | unassigned | `SitePieces` Y=`radius*0.5`; `ChunkSite` has no surface Y | **active task (T10)** — seat boxes on the surface |
+| **Site/town boxes buried under exaggerated terrain (W3D-G15)** | **done** | claude | T10 fix: `surfaceY` on `ChunkSite`; box at `surfaceY+radius*0.5`; `MAX_RADIUS_M=80` cap | resolved by T10 |
 | Sub-cell view window flattens relief (W3D-G16) | adjacent_follow_up | unassigned | window ≈512 m vs `METERS_PER_CELL=1024` → ≤1 cell visible | widen visible window w/o exploding chunk count |
 | StrictMode-killed streamer → blank live scene (W3D-G17) | **done** | claude | live `loadOk=4, chunks=0` → fixed → `chunks=81` | resolved during T8 (per-mount streamer) |
-| Duplicate site React keys (W3D-G18) | adjacent_follow_up | unassigned | console "two children with same key" | chunk-scope the key / de-dupe sites (T11) |
+| Duplicate site React keys (W3D-G18) | **done** | claude | T10/T11 chunk-scoped key + T12 half-open filter remove the underlying duplicate | resolved by T12 |
+| Voronoi footprint radii → camera inside box (W3D-G19) | adjacent_follow_up | unassigned | Footprint spans ~0.7 cells → ~785m radius; capped at 80m; needs real formula | Replace with fixed visual scale or population-based formula |
+| Boundary sites in multiple chunks → dup keys (W3D-G20) | **done** | claude | `chunkSampler` half-open `[min, max)`; replay: 58/58 sites in exactly one chunk | resolved by T12 |
+| Boundary rivers/roads double-drawn (W3D-G21) | **done** | claude | T13: `clipSegment` max edges half-open (`q <= 0`); replay: 31/34 roads double-counted → 0/34 | resolved by T13 |
+| Roads drawn at hardcoded uniform width (W3D-G23) | adjacent_follow_up | unassigned | `chunkSampler` uses `0.04` for every road point; `road.type` ignored | map `road.type` → width (T15) |
+| No spatial pre-filter on polyline clip (W3D-G24) | adjacent_follow_up | unassigned | every river/road clipped against every chunk; no bbox reject | add bbox-overlap reject before `clipPolylineToChunk` (T16) |
+| Vegetation scatter no instanced-mesh caching (W3D-G25, imported from GG-4) | adjacent_follow_up | unassigned | `vegetationScatter.ts` recomputes layout per viewport shift → GC spikes | cache/instance scatter; recompute only on chunk-set change |
+| Sites quantized to integer grid → seat at chunk NW corner (W3D-G22) | adjacent_follow_up | unassigned | T12 replay: all 58 sites integer-grid → `localX=localZ=0` | sub-cell placement (likely `worldsim-service`) or document as intended |
 | Hard biome-color seams (no blending) (W3D-G12) | adjacent_follow_up | unassigned | `sampleBiomeNearest` + per-vertex color | feather biome colors across boundaries |
 | `WorldData.lakes` polygons not meshed (only river ribbons) | adjacent_follow_up | unassigned | `waterGeometry.ts` | add lake-fill geometry behind the bundle |
 | Per-LOD geometry detail (LOD only tints) | adjacent_follow_up | unassigned | `lod.ts` unused by sampler resolution | lower resolution for mid/low tiers |
@@ -119,11 +153,12 @@ See `docs/projects/world3d/GAPS.md`. Headline rendering-owned gaps:
 
 ## Global Gap Imports
 
-Checked `docs/projects/GLOBAL_GAPS.md`.
+Checked `docs/projects/GLOBAL_GAPS.md` (last reviewed 2026-06-02, T13).
 
 | Global gap ID | Imported? | Project destination | Scope rationale |
 |---|---|---|---|
-| GG-1 (stale `SKILL_DATA` import) | no | none | Character/data module crash, not rendering. Stays global. |
+| GG-1 (stale `SKILL_DATA` import) | no | none (left `untriaged` for its owner) | Character/data module crash, not rendering. world3d is not the owner, so per the GLOBAL_GAPS scoped-status rule we leave the global row `untriaged` rather than declining it on the owner's behalf. |
+| GG-4 (vegetationScatter no instanced-mesh caching) | yes | `world3d/GAPS.md` W3D-G25 | Rendering perf; the file lives in `src/systems/world3d/`. Global row marked `imported → world3d`. |
 
 ## Evidence And Proof
 
@@ -166,4 +201,16 @@ screenshots, preview IDs, the temporary `[world3d-debug]` logs from diagnosis (r
 2. Read `docs/projects/world3d/TRACKER.md` then `docs/projects/world3d/GAPS.md`.
 3. Skim `docs/superpowers/plans/2026-05-31-world3d-rendering-hardening.md` for the latest fixes.
 4. Verify: `npx vitest run src/systems/world3d src/components/World3D` (expect green ~76), then dev-start + `?phase=world3d`. To screenshot the scene, hide the Ollama modal overlay via DOM rather than clicking "Continue" (clicking it can trigger the `world-3d-ui` entry bounce).
-5. Continue from the Active Task (T10): seat town boxes on the terrain surface — they're buried under the exaggerated terrain. Reuse `heightToMeters`. Entry/transition issues belong to `world-3d-ui`; generation + the `METERS_PER_CELL` world↔grid scale to `worldsim-service`/shared contract.
+5. Continue from the Active Task section above. Entry/transition issues belong to `world-3d-ui`; generation + the `METERS_PER_CELL` world↔grid scale to `worldsim-service`/shared contract.
+
+## Visual Verification Protocol (MANDATORY)
+
+When taking screenshots to verify rendering work, **do not pre-assume what you expect to see**. Vision models are prone to confirmation bias — if you ask yourself "is the town box on the terrain?" you will tend to find it whether it is there or not ("pink elephant" effect).
+
+Instead, follow this discipline for every screenshot:
+
+1. **Describe first, conclude second.** Before checking acceptance criteria, write out exactly what you see: colours, shapes, positions, what fills the frame. Treat it like describing a photo to someone who cannot see it.
+2. **Name the unexpected.** If something looks wrong, odd, or absent — say so explicitly before deciding whether it matters.
+3. **Be a hostile witness to your own work.** Assume the feature is broken until the raw description proves otherwise. "I see a grey slope and a small golden cube sitting flush with the surface in the centre-frame" beats "I can confirm the town box is on the terrain."
+4. **Watch for world-edge artifacts.** The terrain is a finite grid. A sharp "ridge" or "cliff" at the frame edge is the world boundary, not terrain relief. Do not count it as evidence of vertical exaggeration working.
+5. **Screenshot more than once.** A single frame may catch a transient state (chunks still loading, WebGL not settled). Take at least two screenshots a few seconds apart and compare.

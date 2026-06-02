@@ -93,7 +93,7 @@ describe('MovementCommand - forced movement routing', () => {
       forcedMovement: {
         usesReaction: false,
         direction: 'away_from_caster',
-        maxDistance: 15
+        maxDistance: '15'
       },
       trigger: { type: 'immediate', frequency: 'every_time', movementType: 'any' },
       condition: { type: 'always' }

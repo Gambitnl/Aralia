@@ -38,20 +38,20 @@ atlas↔3D bridge a clear owner.
 - **`AtlasPlayerMarker` + click-to-travel** — marker on MapPane Azgaar overlay; **Enter 3D** interaction mode dispatches position + `worldViewMode`; compass **Enter 3D** routes to streamed world (T10).
 - **Integration tests + perf budget** — RTL lifecycle (W3DUI-3), `worldCoords` unit tests, Playwright HUD round-trip, `docs/projects/world-3d-ui/PERF.md` (T11).
 - **Sandbox** `WORLD3D_DEMO` → `<World3DDemo />` via `?phase=world3d` remains unchanged.
-- **Nameplates, in-3D minimap** — deferred (post–Plan 4 MVP).
+- **In-3D minimap** — `World3DMinimap` paints a top-down view from `WorldData.biomeIds` with the live `AtlasPlayerMarker`, mounted bottom-left of `InWorldHUD` (W3DUI-26). **Nameplates** still deferred (W3DUI-27).
 - **`WorldAtlasStrip`** — compact world-map preview with `AtlasPlayerMarker` on PLAYING `GameLayout` when `playerWorldPos` is set (W3DUI-23).
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Plan 4 deferred UX: Nameplates or in-3D minimap |
-| Acceptance criteria | Per next plan/slice |
+| Task | Plan 4 deferred UX: in-3D **nameplates** (minimap done — W3DUI-26) |
+| Acceptance criteria | Billboarded labels over visible `WorldData.sites`, distance/LOD gated; no perf regression |
 | Allowed boundaries | `world-3d-ui` surface |
 | Stop condition | Operator prioritizes next slice |
-| Verification | Gap-specific proof |
+| Verification | Labels track sites as camera moves; vitest green |
 | Owner | unassigned |
-| Next action | Operator directs start on HUD polish (nameplates/minimap) or TownCanvas handoff |
+| Next action | Build nameplates (W3DUI-27) or operator directs TownCanvas handoff |
 
 ## Scope Boundaries
 
@@ -89,10 +89,21 @@ See `docs/projects/world-3d-ui/GAPS.md`. Headline:
 | Demo/production loader strategy (inline vs worker) | done | unassigned | W3DUI-1 | PLAYING worker; sandbox inline |
 | `entryPosition` unused on TransitionController | done | unassigned | W3DUI-24 | Removed from controller; `World3DWrapper` only |
 | Atlas marker E2E after 3D movement | done | claude | W3DUI-25 | Playwright test covers pan and marker verification |
+| In-3D minimap (deferred Plan 4 UX) | done | claude | W3DUI-26 | `World3DMinimap` in HUD; `World3DMinimap.test.tsx` |
+| In-3D nameplates over sites | active | unassigned | W3DUI-27 | Remaining deferred half of Plan 4 HUD UX |
 
 ## Global Gap Imports
 
-Checked `docs/projects/GLOBAL_GAPS.md`. None belong to this surface.
+Checked `docs/projects/GLOBAL_GAPS.md` on **2026-06-02**.
+
+| Global gap | Pertains to this surface? | Imported? | Destination | Scope rationale |
+|---|---|---|---|---|
+| GG-1..GG-3, GG-5..GG-13 | No | no | — | Character/economy/combat/inventory surfaces — not transition/HUD |
+| GG-4 (vegetation scatter perf) | No | no | already routed → `world3d` | Rendering-engine perf; owned by sibling `world3d`, not this layer |
+| GG-14 (jsdom canvas getContext) | Partially (touches `World3DMinimap`/`WorldAtlasStrip` tests) | no | — | Repo-wide test-infra fix (`vitest-canvas-mock`); not a transition/HUD feature — left global for tooling owner |
+| GG-15 (Ollama proxy log flood) | No | no | — | Vite dev-tooling config; unrelated to this surface |
+
+None imported this cycle: no global gap is owned by the 2D↔3D transition + in-3D HUD surface.
 
 ## Evidence And Proof
 
@@ -109,7 +120,7 @@ Checked `docs/projects/GLOBAL_GAPS.md`. None belong to this surface.
 |---|---|---|
 | `docs/projects/PROJECT_TRACKER.md` | Registry (World 3D UI row) | active |
 | `docs/projects/world-3d-ui/TRACKER.md` | Active queue (T1, T4-T11) | active |
-| `docs/projects/world-3d-ui/GAPS.md` | In-project gaps (W3DUI-1..25) | active |
+| `docs/projects/world-3d-ui/GAPS.md` | In-project gaps (W3DUI-1..28) | active |
 | `docs/projects/world-3d-ui/PERF.md` | Entry/exit/dispatch perf budget | active |
 | `docs/projects/world3d/NORTH_STAR.md` | Sibling: the rendering engine this layer drives | active |
 | `docs/projects/worldsim-service/NORTH_STAR.md` | Sibling: world generation/simulation | active |
@@ -134,4 +145,4 @@ Durable: transition/HUD design intent, the entry seam, decisions, gap classifica
 3. Read Plan 4: `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md`.
 4. Plan 4 slices T7–T11 are **done**; pick follow-up from Active Task or `GAPS.md`.
 5. Run `npx vitest run src/components/World3D/__tests__` and optionally `npx playwright test tests/world-3d-ui-transition.spec.ts`.
-6. See W3DUI-25 for the highest-impact follow-up (W3DUI-1/18/22/23/24 done).
+6. W3DUI-1/18/22/23/24/25/26 done. Highest-impact remaining follow-up: **W3DUI-27 in-3D nameplates** over `WorldData.sites`.

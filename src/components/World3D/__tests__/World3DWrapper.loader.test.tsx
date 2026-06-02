@@ -8,16 +8,23 @@ import type { ChunkLoader } from '@/systems/world3d/types';
 import type { WorldData } from '@/services/worldSim/types';
 
 const mockCreateWorkerChunkLoader = vi.fn(
-  (_world: WorldData): ChunkLoader => async (cx, cy) => ({
+  (_world: WorldData, _resolution?: number, _workerFactory?: () => Worker): ChunkLoader =>
+    async (cx, cy) => ({
     cx,
     cy,
-    terrain: { positions: new Float32Array(0), indices: new Uint32Array(0) },
+    terrain: {
+      positions: new Float32Array(0),
+      indices: new Uint32Array(0),
+      normals: new Float32Array(0),
+      colors: new Float32Array(0),
+    },
     sites: [],
   }),
 );
 
 vi.mock('../createWorkerChunkLoader', () => ({
-  createWorkerChunkLoader: (...args: unknown[]) => mockCreateWorkerChunkLoader(...args),
+  createWorkerChunkLoader: (world: WorldData, resolution: number, workerFactory: () => Worker) =>
+    mockCreateWorkerChunkLoader(world, resolution, workerFactory),
 }));
 
 vi.mock('../World3DScene', () => ({

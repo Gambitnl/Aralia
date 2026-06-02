@@ -75,7 +75,7 @@ const spellbook: Record<string, Spell> = {
     duration: { duration: '1 minute', concentration: false },
     effects: [],
   },
-} as Record<string, Spell>;
+} as unknown as Record<string, Spell>;
 
 // The selector only needs a thin layout shell in tests. We keep the real spell
 // picking logic mounted, but replace the surrounding page chrome with a small

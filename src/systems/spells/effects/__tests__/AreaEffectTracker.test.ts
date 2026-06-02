@@ -309,7 +309,7 @@ describe('AreaEffectTracker source context', () => {
         }
         const tracker = new AreaEffectTracker([zone])
 
-        const results = tracker.processEntry(makeCharacter({ x: 0, y: 0 }), { x: 0, y: 0 }, { x: 2, y: 0 })
+        const results = tracker.processEntry(makeCharacter({ x: 0, y: 0 }), { x: 0, y: 0 }, { x: 2, y: 0 }, 0)
 
         expect(results[0].effects[0].sourceContext).toEqual({
             spellId: 'web-zone',

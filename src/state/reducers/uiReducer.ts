@@ -112,6 +112,9 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
     case 'TOGGLE_LOGBOOK':
       return { isLogbookVisible: !state.isLogbookVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
 
+    case 'TOGGLE_LONG_REST_MODAL':
+      return { isLongRestModalVisible: !state.isLongRestModalVisible, isPartyOverlayVisible: false, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
+
     case 'TOGGLE_QUEST_LOG':
       return { isQuestLogVisible: !state.isQuestLogVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false };
 

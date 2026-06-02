@@ -33,7 +33,7 @@ export interface ChunkData {
   /** Road polylines clipped to this chunk (grid space). */
   roads: ClippedPolyline[];
   /** Sites whose center falls within this chunk (grid space). */
-  sites: { id: string; kind: 'town' | 'dungeon' | 'ruin' | 'landmark'; position: { x: number; y: number }; footprint: { x: number; y: number }[]; walled: boolean }[];
+  sites: { id: string; kind: 'town' | 'dungeon' | 'ruin' | 'landmark'; position: { x: number; y: number }; footprint: { x: number; y: number }[]; walled: boolean; surfaceY: number }[];
 }
 
 /** Transferable geometry buffers for a chunk mesh, local to the chunk origin. */
@@ -68,6 +68,8 @@ export interface ChunkSite {
   kind: 'town' | 'dungeon' | 'ruin' | 'landmark';
   localX: number;
   localZ: number;
+  /** Surface Y in world-space meters (heightToMeters applied), matching terrain exaggeration. */
+  surfaceY: number;
   radius: number;
   walled: boolean;
 }

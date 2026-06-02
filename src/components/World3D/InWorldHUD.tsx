@@ -15,16 +15,24 @@ import React from 'react';
 import HUDControlPanel from './HUDControlPanel';
 import ViewModeToggle from './ViewModeToggle';
 import DebugHUD from './DebugHUD';
+import World3DMinimap from './World3DMinimap';
+import type { WorldData } from '../../services/worldSim/types';
+import type { PlayerWorldPosition } from '../../types';
+import type { WorldGenDiagnostics } from '../../types/world';
 
 interface InWorldHUDProps {
   /** Whether dev mode is enabled (controls DebugHUD visibility). */
   isDevModeEnabled: boolean;
+  /** World source for the in-3D minimap (null hides it). */
+  worldData?: WorldData | null;
+  /** World generation provenance (primary vs fallback) for the DebugHUD. */
+  worldGen?: WorldGenDiagnostics | null;
   /** Current chunk count loaded (for DebugHUD). */
   chunkCount?: number;
   /** FPS counter value (for DebugHUD). */
   fps?: number;
-  /** Player world position (for DebugHUD). */
-  playerPos?: { x: number; y: number; z: number } | null;
+  /** Player world position (for DebugHUD and minimap). */
+  playerPos?: PlayerWorldPosition | null;
   /** Streamer stats (for DebugHUD). */
   streamerStats?: {
     chunksLoaded: number;
@@ -39,6 +47,8 @@ interface InWorldHUDProps {
 
 const InWorldHUD: React.FC<InWorldHUDProps> = ({
   isDevModeEnabled,
+  worldData,
+  worldGen,
   chunkCount,
   fps,
   playerPos,
@@ -91,6 +101,18 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
         <ViewModeToggle onOpenMap={onOpenMap} />
       </div>
 
+      {/* Bottom left: in-3D minimap (deferred Plan 4 UX) */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '12px',
+          left: '12px',
+          pointerEvents: 'none',
+        }}
+      >
+        <World3DMinimap worldData={worldData ?? null} playerWorldPos={playerPos ?? null} />
+      </div>
+
       {/* Debug overlay (dev-only) */}
       {isDevModeEnabled && (
         <div
@@ -104,8 +126,9 @@ const InWorldHUD: React.FC<InWorldHUDProps> = ({
           <DebugHUD
             chunkCount={chunkCount ?? 0}
             fps={fps ?? 0}
-            playerPos={playerPos}
+            playerPos={playerPos ?? null}
             streamerStats={streamerStats}
+            worldGen={worldGen}
           />
         </div>
       )}

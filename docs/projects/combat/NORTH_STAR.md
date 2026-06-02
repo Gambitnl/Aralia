@@ -1,7 +1,7 @@
 # Combat System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-02
 
 ## Why This Project Exists
 Combat has a live implementation split across systems, hooks, and UI surfaces that were added in different slices. This project doc keeps ownership, execution paths, and unresolved behavior gaps visible for next agents so future work does not restart discovery or collapse unfinished intent.
@@ -75,16 +75,22 @@ These are direct code/docs observations, not guesses:
 
 - Existing split contracts (`useTurnOrder`, `useCombatEngine`, `useActionExecutor`) are active dependencies.
 - 3D/2D combat rendering logic is a separate layer under `src/components/BattleMap` and should not be treated as the rule owner.
-- `GLOBAL_GAPS.md` was empty on read, so no project migration has been performed yet.
+- `GLOBAL_GAPS.md` contains historical logs of cross-project tracking gaps.
 
-## Active Task (Current Documentation Slice)
+## Global Gap Imports
+
+| Global ID | Target ID | Import Date | Status | Notes |
+|---|---|---|---|---|
+| GG-13 | G23 | 2026-06-02 | imported | Combat log state is transient and cleared upon page reload. |
+
+## Active Task (Current Combat Mechanic Slice)
 
 | Field | Value |
 |---|---|
-| Task | Document current Combat implementation topology + concrete in-scope gaps with evidence for cold-start continuity. |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` each contain file-scoped evidence and next-action guidance. |
-| Allowed boundaries | `docs/projects/combat/` only (plus read-only evidence files). |
-| Stop condition | All combat-facing slices in scope have documented evidence-backed owners and gaps with next checks. |
+| Task | Unconscious or downed characters (at 0 HP) do not automatically drop concentration on active spells (G22). |
+| Acceptance criteria | Update turn manager or combat engine to drop concentration immediately when a character is downed (hits 0 HP). |
+| Allowed boundaries | `src/hooks/combat/`, `src/hooks/combat/engine/`, and nearby combat systems. |
+| Stop condition | Verified with unit tests that downed characters lose active spell concentration automatically. |
 
 ## Resume Path for Cold Start
 

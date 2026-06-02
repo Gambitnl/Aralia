@@ -1,4 +1,5 @@
 import { sampleChunk } from '../chunkSampler';
+import { chunkGridAABB } from '../coords';
 import type { WorldData, River, Site } from '@/services/worldSim/types';
 
 const makeWorld = (cols: number, rows: number, fill: (x: number, y: number) => number): WorldData => {
@@ -104,4 +105,50 @@ it('includes sites whose center falls within the chunk', () => {
   expect(data.sites).toHaveLength(1);
   expect(data.sites[0].id).toBe('t0');
   expect(data.sites[0].walled).toBe(true);
+});
+
+// A site sitting exactly on a chunk boundary must belong to exactly one chunk,
+// not both — the half-open interval [min, max). Otherwise the same site id is
+// emitted by two adjacent chunks and React logs duplicate-key warnings (W3D-G20).
+const worldWithSiteAt = (x: number, y: number): WorldData => {
+  const cols = 64;
+  const rows = 64;
+  const site: Site = {
+    id: 'edge',
+    kind: 'town',
+    position: { x, y },
+    footprint: [],
+    walled: false,
+  };
+  return {
+    version: 2, seed: 1, templateId: 't',
+    gridSize: { rows, cols },
+    heights: new Array(cols * rows).fill(40),
+    temperatures: [], moisture: [],
+    biomeIds: new Array(cols * rows).fill('forest'),
+    rivers: [], roads: [], sites: [site],
+    coastlines: [], lakes: [], biomeZones: [],
+  };
+};
+
+it('assigns a site on a shared X boundary to exactly one chunk (half-open)', () => {
+  // The boundary between chunk (0,0) and (1,0) is chunk0's maxGX === chunk1's minGX.
+  const boundaryX = chunkGridAABB(0, 0).maxGX;
+  const world = worldWithSiteAt(boundaryX, 0.01);
+  const left = sampleChunk(world, 0, 0, 4);
+  const right = sampleChunk(world, 1, 0, 4);
+  // Owned by the upper chunk (>= min), excluded from the lower chunk (< max).
+  expect(left.sites).toHaveLength(0);
+  expect(right.sites).toHaveLength(1);
+  expect(right.sites[0].id).toBe('edge');
+});
+
+it('assigns a site on a shared Y boundary to exactly one chunk (half-open)', () => {
+  const boundaryY = chunkGridAABB(0, 0).maxGY;
+  const world = worldWithSiteAt(0.01, boundaryY);
+  const top = sampleChunk(world, 0, 0, 4);
+  const bottom = sampleChunk(world, 0, 1, 4);
+  expect(top.sites).toHaveLength(0);
+  expect(bottom.sites).toHaveLength(1);
+  expect(bottom.sites[0].id).toBe('edge');
 });

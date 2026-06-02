@@ -137,4 +137,79 @@ describe('ResistanceCalculator', () => {
     const damageCold = ResistanceCalculator.applyResistances(10, 'Cold', mockCharacter)
     expect(damageCold).toBe(20) // 10 * 2
   })
+
+  it('should apply temporary resistance from activeEffects (active spell effects)', () => {
+    const mockCharacter = {
+      resistances: [],
+      vulnerabilities: [],
+      immunities: [],
+      activeEffects: [
+        {
+          id: 'protection_from_energy_fire',
+          spellId: 'protection_from_energy',
+          casterId: 'caster-1',
+          sourceName: 'Protection from Energy',
+          type: 'buff',
+          duration: { type: 'rounds', value: 10 },
+          startTime: 1,
+          mechanics: {
+            damageResistance: ['Fire']
+          }
+        }
+      ]
+    } as unknown as CombatCharacter
+
+    const damageFire = ResistanceCalculator.applyResistances(10, 'Fire', mockCharacter)
+    expect(damageFire).toBe(5) // floor(10 / 2)
+  })
+
+  it('should apply temporary immunity from activeEffects', () => {
+    const mockCharacter = {
+      resistances: [],
+      vulnerabilities: [],
+      immunities: [],
+      activeEffects: [
+        {
+          id: 'spell_immunity_acid',
+          spellId: 'acid_shield',
+          casterId: 'caster-1',
+          sourceName: 'Acid Shield',
+          type: 'buff',
+          duration: { type: 'rounds', value: 10 },
+          startTime: 1,
+          mechanics: {
+            damageImmunity: ['Acid']
+          }
+        }
+      ]
+    } as unknown as CombatCharacter
+
+    const damageAcid = ResistanceCalculator.applyResistances(100, 'Acid', mockCharacter)
+    expect(damageAcid).toBe(0)
+  })
+
+  it('should apply temporary vulnerability from activeEffects', () => {
+    const mockCharacter = {
+      resistances: [],
+      vulnerabilities: [],
+      immunities: [],
+      activeEffects: [
+        {
+          id: 'vulnerability_curse',
+          spellId: 'curse',
+          casterId: 'caster-1',
+          sourceName: 'Curse',
+          type: 'debuff',
+          duration: { type: 'rounds', value: 10 },
+          startTime: 1,
+          mechanics: {
+            damageVulnerability: ['Cold']
+          }
+        }
+      ]
+    } as unknown as CombatCharacter
+
+    const damageCold = ResistanceCalculator.applyResistances(10, 'Cold', mockCharacter)
+    expect(damageCold).toBe(20) // 10 * 2
+  })
 })

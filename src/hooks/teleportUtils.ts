@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:21
+ * Last Sync: 02/06/2026, 11:57:48
  * Dependents: hooks/useAbilitySystem.ts
  * Imports: 2 files
  *
@@ -15,16 +15,16 @@
 // @dependencies-end
 
 import { Ability, Position } from '../types/combat';
-import { Spell } from '../types/spells';
+import { Spell, SpellEffect } from '../types/spells';
 
 export const hasTeleportMovementEffect = (ability: Ability): boolean => (
   ability.effects.some(effect => effect.type === 'teleport') ||
-  (ability.spell?.effects ?? []).some(effect => effect.type === 'MOVEMENT' && effect.movementType === 'teleport')
+  (ability.spell?.effects ?? []).some((effect: SpellEffect) => effect.type === 'MOVEMENT' && effect.movementType === 'teleport')
 );
 
 export const addTeleportDestinationToSpell = (spell: Spell, destination: Position): Spell => ({
   ...spell,
-  effects: spell.effects.map(effect => (
+  effects: spell.effects.map((effect: SpellEffect) => (
     effect.type === 'MOVEMENT' && effect.movementType === 'teleport'
       ? { ...effect, destination }
       : effect
@@ -33,7 +33,7 @@ export const addTeleportDestinationToSpell = (spell: Spell, destination: Positio
 
 export const addTeleportDestinationsToSpell = (spell: Spell, destinationsByTargetId: Record<string, Position>): Spell => ({
   ...spell,
-  effects: spell.effects.map(effect => (
+  effects: spell.effects.map((effect: SpellEffect) => (
     effect.type === 'MOVEMENT' && effect.movementType === 'teleport'
       ? { ...effect, destinationsByTargetId }
       : effect
@@ -43,7 +43,7 @@ export const addTeleportDestinationsToSpell = (spell: Spell, destinationsByTarge
 export const requiresUnassignedTeleportDestination = (ability: Ability): boolean => {
   if (!ability.spell || ability.targeting === 'self') return false;
 
-  return ability.spell.effects.some(effect => (
+  return ability.spell.effects.some((effect: SpellEffect) => (
     effect.type === 'MOVEMENT' &&
     effect.movementType === 'teleport' &&
     !effect.destination &&

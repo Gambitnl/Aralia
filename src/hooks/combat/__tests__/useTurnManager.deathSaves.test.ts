@@ -214,4 +214,105 @@ describe('Death Saving Throws & Unconsciousness logic', () => {
 
     randomSpy.mockRestore();
   });
+
+  it('drops concentration and cleans up status effects on other characters when a character is downed', () => {
+    const player = makeCharacter('player1', {
+      currentHP: 5,
+      maxHP: 10,
+      team: 'player',
+      stats: {
+        strength: 10,
+        dexterity: 12,
+        constitution: 12,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 8,
+        baseInitiative: 10,
+        speed: 30,
+        cr: '0'
+      },
+      concentratingOn: {
+        spellId: 'bless',
+        spellName: 'Bless',
+        spellLevel: 1,
+        startedTurn: 0,
+        effectIds: ['bless-effect-ally'],
+        canDropAsFreeAction: true
+      }
+    });
+
+    const ally = makeCharacter('player2', {
+      currentHP: 10,
+      maxHP: 10,
+      team: 'player',
+      statusEffects: [{
+        id: 'bless-effect-ally',
+        name: 'Bless',
+        duration: 10,
+        type: 'buff'
+      }]
+    });
+
+    const onCharacterUpdate = vi.fn();
+    const onLogEntry = vi.fn();
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: [player, ally],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry
+    }));
+
+    // Register a scheduled damage effect that will trigger on turn start and deal enough damage to down the player
+    const scheduledEffect = {
+      id: 'test-scheduled-damage',
+      spellId: 'bless',
+      casterId: 'player1',
+      targetId: 'player1',
+      timing: 'turn_start',
+      createdAtRound: 1,
+      effects: [{
+        type: 'damage',
+        dice: '3d6', // Average 10.5 damage, guaranteed to drop 5 HP to 0
+        damageType: 'radiant',
+        trigger: { type: 'turn_start', frequency: 'once' }
+      }]
+    };
+
+    act(() => {
+      result.current.addScheduledSpellEffect(scheduledEffect as any);
+    });
+
+    // Mock Math.random for initiative and dice rolling (so dice roll doesn't fail to deal damage)
+    // We want the damage to be high, so let's mock Math.random to return 0.9 (high damage rolls)
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.9);
+
+    act(() => {
+      // Initialize combat and start turn (which triggers turn_start scheduled effects)
+      result.current.initializeCombat([player, ally]);
+    });
+
+    // Verify player is updated to 0 HP and has lost concentration
+    const updatedPlayer = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .find(c => c.id === 'player1' && c.currentHP === 0);
+
+    expect(updatedPlayer).toBeDefined();
+    expect(updatedPlayer?.concentratingOn).toBeUndefined();
+
+    // Verify ally is updated and has lost Bless status effect
+    const updatedAlly = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .find(c => c.id === 'player2');
+
+    expect(updatedAlly).toBeDefined();
+    expect(updatedAlly?.statusEffects.some(se => se.id === 'bless-effect-ally')).toBe(false);
+
+    // Verify concentration loss is logged
+    const logMessages = onLogEntry.mock.calls.map(call => call[0].message);
+    expect(logMessages.some(msg => msg.includes('falls unconscious and loses concentration on Bless'))).toBe(true);
+
+    randomSpy.mockRestore();
+  });
 });
+

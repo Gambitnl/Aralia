@@ -200,14 +200,51 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                     }
                 }
 
-                // Apply damage/healing, clamping between 0 and maxHp
-                let newHp = char.hp + amount;
-                newHp = Math.max(0, Math.min(newHp, char.maxHp));
+                let updatedChar = { ...char };
+                let remainingAmount = amount;
 
-                return { ...char, hp: newHp };
+                // Handle damage (negative amount)
+                if (remainingAmount < 0) {
+                    let damageToApply = Math.abs(remainingAmount);
+
+                    // 1. Apply to Temporary Hit Points first
+                    if (updatedChar.tempHP && updatedChar.tempHP > 0) {
+                        const absorbed = Math.min(updatedChar.tempHP, damageToApply);
+                        updatedChar.tempHP -= absorbed;
+                        damageToApply -= absorbed;
+                    }
+
+                    // 2. Apply remaining damage to actual HP
+                    if (damageToApply > 0) {
+                        const potentialNewHp = updatedChar.hp - damageToApply;
+
+                        // 3. Relentless Endurance check (Orc trait)
+                        // Trigger if reduced to 0 but not killed, and has the resource.
+                        const reResourceId = `racial_feature_orc__relentless_endurance__resource`;
+                        const hasRelentlessEndurance = updatedChar.limitedUses?.[reResourceId] && updatedChar.limitedUses[reResourceId].current > 0;
+
+                        if (potentialNewHp <= 0 && updatedChar.hp > 0 && hasRelentlessEndurance) {
+                            updatedChar.hp = 1;
+                            updatedChar.limitedUses = {
+                                ...updatedChar.limitedUses,
+                                [reResourceId]: {
+                                    ...updatedChar.limitedUses![reResourceId],
+                                    current: 0
+                                }
+                            };
+                        } else {
+                            updatedChar.hp = Math.max(0, potentialNewHp);
+                        }
+                    }
+                } else if (remainingAmount > 0) {
+                    // Handle healing (positive amount)
+                    updatedChar.hp = Math.min(updatedChar.hp + remainingAmount, updatedChar.maxHp);
+                }
+
+                return updatedChar;
             });
 
-            return { party: newParty };
+            return { ...state, party: newParty };
         }
 
         case 'EQUIP_ITEM': {
@@ -476,10 +513,35 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         case 'USE_LIMITED_ABILITY': {
             const { characterId, abilityId } = action.payload;
             const newParty = state.party.map(char => {
-                if (char.id === characterId && char.limitedUses?.[abilityId] && char.limitedUses[abilityId].current > 0) {
-                    return { ...char, limitedUses: { ...char.limitedUses, [abilityId]: { ...char.limitedUses[abilityId], current: char.limitedUses[abilityId].current - 1 } } };
+                if (char.id !== characterId) return char;
+                if (!char.limitedUses?.[abilityId] || char.limitedUses[abilityId].current <= 0) return char;
+
+                let updatedChar = {
+                    ...char,
+                    limitedUses: {
+                        ...char.limitedUses,
+                        [abilityId]: {
+                            ...char.limitedUses[abilityId],
+                            current: char.limitedUses[abilityId].current - 1
+                        }
+                    }
+                };
+
+                // Adrenaline Rush Logic
+                if (abilityId.includes('adrenaline_rush')) {
+                    const pb = updatedChar.proficiencyBonus || 2;
+                    // Temporary hit points do not stack; they are replaced if higher.
+                    if ((updatedChar.tempHP || 0) < pb) {
+                        updatedChar.tempHP = pb;
+                    }
                 }
-                return char;
+
+                // Draconic Flight Logic
+                if (abilityId.includes('draconic_flight')) {
+                    updatedChar.isFlying = true;
+                }
+
+                return updatedChar;
             });
             return { party: newParty };
         }
@@ -534,6 +596,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
         case 'LONG_REST': {
             const deniedIds = action.payload?.deniedCharacterIds || [];
+            const racialChoices = action.payload?.racialRestChoices || {};
 
             const newParty = state.party.map(char => {
                 const charId = char.id;
@@ -546,6 +609,44 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
                 // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
                 const _hasChanged = true; // Assume change for simplicity
+
+                // Process Racial Rest Choices
+                if (charId && racialChoices[charId]) {
+                    const newChoicesForChar = racialChoices[charId];
+                    // Revert old choices
+                    if (charCopy.racialRestChoices) {
+                        for (const choiceId in charCopy.racialRestChoices) {
+                            const oldChoice = charCopy.racialRestChoices[choiceId];
+                            if (oldChoice.skillIds) {
+                                charCopy.skills = charCopy.skills.filter(s => !oldChoice.skillIds?.includes(s.name));
+                            }
+                            if (oldChoice.toolIds) {
+                                charCopy.toolProficiencies = (charCopy.toolProficiencies || []).filter(t => !oldChoice.toolIds?.includes(t));
+                            }
+                            if (oldChoice.weaponIds) {
+                                charCopy.weaponProficiencies = (charCopy.weaponProficiencies || []).filter(w => !oldChoice.weaponIds?.includes(w));
+                            }
+                        }
+                    }
+                    
+                    // Apply new choices
+                    charCopy.racialRestChoices = { ...charCopy.racialRestChoices, ...newChoicesForChar };
+                    for (const choiceId in newChoicesForChar) {
+                        const newChoice = newChoicesForChar[choiceId];
+                        if (newChoice.skillIds) {
+                            const skillsToAdd = newChoice.skillIds.filter(id => !charCopy.skills.some(s => s.name === id));
+                            charCopy.skills = [...charCopy.skills, ...skillsToAdd.map(id => ({ name: id, proficiencyLevel: 'proficient' as const }))];
+                        }
+                        if (newChoice.toolIds) {
+                            const toolsToAdd = newChoice.toolIds.filter(id => !(charCopy.toolProficiencies || []).includes(id));
+                            charCopy.toolProficiencies = [...(charCopy.toolProficiencies || []), ...toolsToAdd];
+                        }
+                        if (newChoice.weaponIds) {
+                            const weaponsToAdd = newChoice.weaponIds.filter(id => !(charCopy.weaponProficiencies || []).includes(id));
+                            charCopy.weaponProficiencies = [...(charCopy.weaponProficiencies || []), ...weaponsToAdd];
+                        }
+                    }
+                }
 
                 // Restore Spell Slots
                 if (charCopy.spellSlots) {
@@ -571,6 +672,9 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
                 // Restore HP
                 charCopy.hp = charCopy.maxHp;
+
+                // Reset flight status
+                charCopy.isFlying = false;
 
                 // Restore Hit Point Dice (2024 rules: Long Rest restores all spent dice).
                 const restoredHitPointDice = buildHitPointDicePools(charCopy).map(pool => ({

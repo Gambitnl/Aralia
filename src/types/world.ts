@@ -237,6 +237,26 @@ export interface AzgaarWorldRenderData {
   rivers: boolean[];
 }
 
+/**
+ * Provenance of a generated world, used to surface degraded/fallback generation in the
+ * (dev) DebugHUD instead of silently shipping a flat world. See worldsim-service WSS-004.
+ */
+export interface WorldGenDiagnostics {
+  /**
+   * Which generator produced this world:
+   * - `azgaar-derived`: primary, faithful path (real heightfield + biomes).
+   * - `legacy-fallback`: Azgaar generation threw; legacy generator used instead.
+   * - `biome-derived`: no Azgaar terrain was available, so heights were derived from the
+   *   per-cell biome elevation bands (coarser relief than Azgaar, but not flat). Reachable
+   *   via legacy fallback or loading an old save. See `heightFromBiomes`.
+   */
+  source: 'azgaar-derived' | 'legacy-fallback' | 'biome-derived';
+  /** Human-readable reason the non-primary path was taken (fallback/backfill only). */
+  reason?: string;
+  /** Epoch ms when this provenance was recorded. */
+  at: number;
+}
+
 export interface MapData {
   gridSize: { rows: number; cols: number };
   tiles: MapTile[][];
@@ -244,6 +264,8 @@ export interface MapData {
   azgaarWorld?: AzgaarWorldRenderData;
   /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
   worldData?: WorldData;
+  /** How this world was generated (primary vs fallback). Surfaced in the DebugHUD. */
+  generation?: WorldGenDiagnostics;
 }
 
 export interface PointOfInterest {

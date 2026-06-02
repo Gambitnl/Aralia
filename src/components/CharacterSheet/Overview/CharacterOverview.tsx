@@ -273,7 +273,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                         <span className="text-sm">❤️</span> Vitals
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
-                        <p className="text-sm">Hit Points: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}</p>
+                        <p className="text-sm">Hit Points: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}
+                            {character.tempHP ? <span className="text-sky-300 ml-1"> (+{character.tempHP} temp)</span> : ''}
+                        </p>
                         {hitPointDiceDisplay && (
                             <p className="text-sm col-span-2">Hit Dice: <span className="font-semibold text-amber-300">{hitPointDiceDisplay}</span></p>
                         )}
@@ -282,7 +284,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character }) => {
                                 Armor Class: <span className="font-semibold text-blue-400">{character.armorClass}</span>
                             </p>
                         </Tooltip>
-                        <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span></p>
+                        <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span>
+                            {character.isFlying ? <span className="text-sky-300 ml-1"> (Flying)</span> : ''}
+                        </p>
                         <p className="text-sm">Prof. Bonus: <span className="font-semibold text-amber-300">+{profBonus}</span></p>
                         {character.darkvisionRange > 0 && <p className="text-sm col-span-2">Darkvision: {character.darkvisionRange}ft</p>}
                     </div>

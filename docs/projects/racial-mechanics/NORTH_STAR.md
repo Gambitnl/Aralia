@@ -1,9 +1,24 @@
 # Racial Mechanics / Race Hierarchy North Star
 
-Last updated: 2026-05-31
+Last updated: 2026-06-02
 
 Purpose and scope
 This project is the single source for race-mechanics runtime behavior in the character stack: parser extraction, state materialization, combat math integration, user-facing sheet visibility for race traits, and glossary entry alignment with 2024 standards.
+
+## Design Pillars
+- **D&D 2024 Alignment:** All core races (Aarakocra to Yuan-ti) must eventually prioritize 2024 mechanics (e.g., 30ft base speed, Proficiency Bonus uses).
+- **Rule-Version Transparency:** The UI must clearly distinguish between official D&D 2024 content and legacy content that has been modernized to fit 2024 standards.
+- **Single Source of Truth:** `src/data/races/*.ts` is the master for runtime behavior; `public/data/glossary/entries/races/*.json` must stay in sync for flavor.
+
+## Global Gap Imports
+| Gap ID | Imported? | Destination | Scope Rationale | Checked |
+|---|---|---|---|---|
+| GG-5 | yes | RM-GG5-001 | Racial skill proficiency choices belong to the character creator assembly path. | 2026-06-02 |
+| GG-6 | yes | RM-GG6-001 | Powerful Build is a racial trait modifier that must be wired into combat/inventory math. | 2026-06-02 |
+| GG-7 | yes | RM-GG7-001 | Movement speed visibility is a core racial trait display requirement. | 2026-06-02 |
+| GG-9 | yes | RM-GG9-001 | Condition immunities are racial trait materialization outputs. | 2026-06-02 |
+| GG-18 | no | n/a | Character Creator draft persistence is out of scope for mechanical traits. | 2026-06-02 |
+| GG-19 | no | n/a | Heavy Armor UI feedback is a general UI concern, not race-specific. | 2026-06-02 |
 
 Scope boundary:
 - In scope: race trait parsing and materialization across racial spells, usages, defenses, modifiers, reactions, race resources, and race choices; alignment of race glossary entries with 2024 rule text.

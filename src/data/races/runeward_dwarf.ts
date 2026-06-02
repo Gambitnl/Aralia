@@ -15,7 +15,7 @@ export const MARK_OF_WARDING_DWARF_DATA: Race = {
     traits: [
         'Creature Type: Humanoid',
         'Size: Medium (about 4-5 feet tall)',
-        'Speed: 25 feet. Your speed is not reduced by wearing heavy armor.',
+        'Speed: 30 feet. Your speed is not reduced by wearing heavy armor.',
         "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
         'Dwarven Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.',
         'Tool Proficiency: You gain proficiency with the artisan\'s tools of your choice: smith\'s tools, brewer\'s supplies, or mason\'s tools.',
@@ -31,4 +31,5 @@ export const MARK_OF_WARDING_DWARF_DATA: Race = {
         maleIllustrationPath: 'assets/images/races/Dwarf_Runeward_Male.png',
         femaleIllustrationPath: 'assets/images/races/Dwarf_Runeward_Female.png',
     },
+    modernizationStatus: 'modified_legacy',
 };

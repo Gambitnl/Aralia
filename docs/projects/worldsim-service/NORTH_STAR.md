@@ -1,7 +1,7 @@
 # NORTH_STAR: WorldSim Service
 
 Status: active
-Last updated: 2026-06-01
+Last updated: 2026-06-02 (WSS-004 remediated — biome-derived heightfield)
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
 > (not consolidated):
@@ -101,6 +101,17 @@ Out of scope (owned elsewhere):
 - Runtime performance envelope for very large map seeds is not fully measured (sync generation + migration fallback path).
 - Migration behavior for future `WorldData` versions (v3+) is not defined yet.
 - River/road and site features are generated but downstream render contracts are partially coupled to placeholder 3D mesh builders.
+- **WSS-004 (REMEDIATED 2026-06-02):** the `generateLegacyMap` fallback omits `azgaarWorld`/`worldData`, so migration previously backfilled flat constant heights → a featureless flat 3D world. **Fixed (policy A — derive from biomes):** `src/services/worldSim/heightFromBiomes.ts` maps each cell's biome `elevation` band → height + seeded jitter (deterministic per seed); `migrateMapDataToWorldDataV2` calls it instead of `fill(30)`. Provenance literal renamed `flat-backfill`→`biome-derived` (`world.ts`/`world.d.ts`/`DebugHUD.tsx`), still flagged amber as lower-fidelity. Empirical proof: real `generateMap` legacy-fallback now yields heights `distinct=38 min=25 max=88` (was constant 30). Residual fidelity follow-ups split to WSS-006 (flat fallback climate) and WSS-007 (no smoothing → cliff seams).
+- **WSS-005:** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and can diverge for the same seed; source of truth is undecided.
+
+## Global Gap Imports
+
+Triage of `docs/projects/GLOBAL_GAPS.md` for gaps belonging to this surface (world
+generation + first-build simulation).
+
+| Date checked | Reviewed rows | Imported | Decision |
+|---|---|---|---|
+| 2026-06-02 | GG-1..GG-15 + physical-object registry note | none | None pertain to world generation/simulation. GG-1 (character data import), GG-2/3 (economy), GG-5..GG-13 (character/combat/inventory/racial), GG-10/11 (character/inventory), GG-14 (canvas test infra), GG-15 (Ollama proxy) are owned elsewhere. GG-16/GG-17 were *authored* here during this pass but are cross-cutting tooling/type-hygiene issues, left in GLOBAL_GAPS for their owners. |
 
 ## Next Checks
 

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 01:25:18
+ * Last Sync: 02/06/2026, 15:48:55
  * Dependents: commands/effects/DamageCommand.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
  * Imports: 2 files
  *
@@ -106,15 +106,11 @@ export class ResistanceCalculator {
    * Check if character is immune to damage type.
    * When isMagical is explicitly false, also checks nonMagicalImmunities
    * (e.g. lycanthropes are immune to nonmagical bludgeoning/piercing/slashing).
-   */
-  /**
-   * Check if character is immune to damage type.
-   * When isMagical is explicitly false, also checks nonMagicalImmunities
-   * (e.g. lycanthropes are immune to nonmagical bludgeoning/piercing/slashing).
    * 
-   * WHAT CHANGED: Added status effect modifiers check for immunities.
-   * WHY IT CHANGED: Status effects (like spells or special temporary abilities)
-   * can grant temporary immunities that are registered in statusEffects[].modifiers.immunity.
+   * WHAT CHANGED: Added status effect and active effect modifiers check for immunities.
+   * WHY IT CHANGED: Both status effects and active spell effects (such as Protection
+   * from Energy or temporary spell shielding) can grant temporary damage immunities,
+   * which are registered under statusEffects[].modifiers.immunity and activeEffects[].mechanics.damageImmunity.
    */
   private static isImmune(
     character: CombatCharacter,
@@ -128,6 +124,9 @@ export class ResistanceCalculator {
     // Check for temporary immunity modifiers applied by active status effects
     if (character.statusEffects?.some(se => se.modifiers?.immunity?.some(dt => dt.toLowerCase() === lowerType))) return true;
     
+    // Check for temporary immunity modifiers applied by active spell effects (activeEffects)
+    if (character.activeEffects?.some(ae => ae.mechanics?.damageImmunity?.some(dt => dt.toLowerCase() === lowerType))) return true;
+
     return false;
   }
 
@@ -135,9 +134,10 @@ export class ResistanceCalculator {
    * Check if character is resistant to damage type.
    * When isMagical is explicitly false, also checks nonMagicalResistances.
    * 
-   * WHAT CHANGED: Added status effect modifiers check for resistances.
-   * WHY IT CHANGED: Active status effects such as a Barbarian's Rage grant
-   * temporary damage resistance registered in statusEffects[].modifiers.resistance.
+   * WHAT CHANGED: Added status effect and active effect modifiers check for resistances.
+   * WHY IT CHANGED: Active status effects (like Barbarian Rage) and active spell
+   * effects (like Warding or Resist Elements) can grant temporary damage resistances,
+   * registered in statusEffects[].modifiers.resistance or activeEffects[].mechanics.damageResistance.
    */
   private static isResistant(
     character: CombatCharacter,
@@ -151,15 +151,18 @@ export class ResistanceCalculator {
     // Check for temporary resistance modifiers applied by active status effects (e.g., Rage)
     if (character.statusEffects?.some(se => se.modifiers?.resistance?.some(dt => dt.toLowerCase() === lowerType))) return true;
     
+    // Check for temporary resistance modifiers applied by active spell effects (activeEffects)
+    if (character.activeEffects?.some(ae => ae.mechanics?.damageResistance?.some(dt => dt.toLowerCase() === lowerType))) return true;
+
     return false;
   }
 
   /**
    * Check if character is vulnerable to damage type.
    * 
-   * WHAT CHANGED: Added status effect modifiers check for vulnerabilities.
-   * WHY IT CHANGED: Active status effects can impose temporary damage vulnerabilities
-   * registered in statusEffects[].modifiers.vulnerability.
+   * WHAT CHANGED: Added status effect and active effect modifiers check for vulnerabilities.
+   * WHY IT CHANGED: Active status effects and active spell effects can impose temporary damage vulnerabilities
+   * registered in statusEffects[].modifiers.vulnerability or activeEffects[].mechanics.damageVulnerability.
    */
   private static isVulnerable(
     character: CombatCharacter,
@@ -171,6 +174,9 @@ export class ResistanceCalculator {
     // Check for temporary vulnerability modifiers applied by active status effects
     if (character.statusEffects?.some(se => se.modifiers?.vulnerability?.some(dt => dt.toLowerCase() === lowerType))) return true;
     
+    // Check for temporary vulnerability modifiers applied by active spell effects (activeEffects)
+    if (character.activeEffects?.some(ae => ae.mechanics?.damageVulnerability?.some(dt => dt.toLowerCase() === lowerType))) return true;
+
     return false;
   }
 }

@@ -72,6 +72,7 @@ export interface RaceDetailData {
         source?: 'parser' | 'legacy';
     };
     spellsOfTheMark?: { minLevel: number; spells: string[] }[];
+    modernizationStatus?: 'official_2024' | 'modified_legacy';
 }
 
 
@@ -387,9 +388,20 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps & { children?: React.R
 
                     {/* Title & Description */}
                     <div className="flex-grow">
-                        <h2 className="text-3xl font-bold text-amber-400 font-cinzel mb-3 border-b border-gray-700 pb-2">
-                            {race.name}
-                        </h2>
+                        <div className="flex items-center gap-3 mb-3 border-b border-gray-700 pb-2">
+                            <h2 className="text-3xl font-bold text-amber-400 font-cinzel">
+                                {race.name}
+                            </h2>
+                            {race.modernizationStatus && (
+                                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border font-bold ${
+                                    race.modernizationStatus === 'official_2024'
+                                        ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400'
+                                        : 'bg-sky-900/40 border-sky-500/50 text-sky-400'
+                                }`}>
+                                    {race.modernizationStatus === 'official_2024' ? 'Official 2024' : '2024 Modernized'}
+                                </span>
+                            )}
+                        </div>
                         <div className="mt-4">
                             <p className="text-gray-300 text-sm leading-relaxed">{race.description}</p>
                         </div>

@@ -1,11 +1,14 @@
 import { buildSiteMeshes } from '../siteGeometry';
+import { heightToMeters } from '../config';
 import type { ChunkData } from '../types';
+
+const SITE_RAW_HEIGHT = 40;
 
 const chunkWithTown = (): ChunkData => ({
   cx: 0,
   cy: 0,
   resolution: 4,
-  heights: new Float32Array(16).fill(40),
+  heights: new Float32Array(16).fill(SITE_RAW_HEIGHT),
   biomeIds: new Array(16).fill('plains'),
   rivers: [],
   roads: [],
@@ -21,6 +24,7 @@ const chunkWithTown = (): ChunkData => ({
         { x: 0.04, y: 0.06 },
       ],
       walled: true,
+      surfaceY: heightToMeters(SITE_RAW_HEIGHT),
     },
   ],
 });
@@ -41,4 +45,7 @@ it('converts a contained site to a local placement with a positive radius', () =
   expect(s.radius).toBeGreaterThan(0);
   expect(Number.isFinite(s.localX)).toBe(true);
   expect(Number.isFinite(s.localZ)).toBe(true);
+  expect(s.surfaceY).toBeCloseTo(heightToMeters(SITE_RAW_HEIGHT));
+  expect(s.radius).toBeGreaterThanOrEqual(8);
+  expect(s.radius).toBeLessThanOrEqual(80);
 });

@@ -10,7 +10,7 @@ import { generateId } from '../../utils/combatUtils';
 
 interface ActionEconomyBarProps {
   character: CombatCharacter;
-  onExecuteAction: (action: CombatAction) => boolean;
+  onExecuteAction: (action: CombatAction) => boolean | Promise<boolean>;
 }
 
 const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecuteAction }) => {

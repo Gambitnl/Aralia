@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 12:36:00
+ * Last Sync: 02/06/2026, 11:58:16
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 12 files
  *
@@ -592,7 +592,8 @@ export const useCombatEngine = ({
         }
 
         return scheduledEffect.effects.some(effect => {
-            const frequency = effect.trigger?.frequency;
+            const trigger = effect.trigger as { frequency?: string } | undefined;
+            const frequency = trigger?.frequency;
             return !frequency || frequency === 'every_time' || frequency === 'first_per_turn';
         });
     }, []);
@@ -648,10 +649,16 @@ export const useCombatEngine = ({
                         targets: [updatedCharacter],
                         gameState: { mapData } as any
                     });
-                    const commandState = {
+                    const commandState: CombatState = {
                         isActive: true,
                         characters: stateCharacters,
-                        turnState: { currentTurn: currentTurnNumber },
+                        turnState: {
+                            currentTurn: currentTurnNumber,
+                            turnOrder: stateCharacters.map(candidate => candidate.id),
+                            currentCharacterId: updatedCharacter.id,
+                            phase: 'planning',
+                            actionsThisTurn: []
+                        },
                         selectedCharacterId: null,
                         selectedAbilityId: null,
                         actionMode: 'select',
@@ -661,7 +668,7 @@ export const useCombatEngine = ({
                         reactiveTriggers: [],
                         activeLightSources: [],
                         mapData: mapData || undefined
-                    } as CombatState;
+                    };
                     const nextState = command.execute(commandState) as CombatState;
                     const nextCharacter = nextState.characters.find(candidate => candidate.id === updatedCharacter.id);
 

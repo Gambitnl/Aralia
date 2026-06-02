@@ -29,6 +29,7 @@ export interface GlossaryEntry {
    * that can be rendered without relying on markdown files.
    */
   entryLore?: string;
+  modernizationStatus?: 'official_2024' | 'modified_legacy';
   /** @deprecated Use maleImageUrl/femaleImageUrl instead for race entries. Single image fallback for legacy entries. */
   imageUrl?: string;
   /** 

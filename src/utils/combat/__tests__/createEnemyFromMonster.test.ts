@@ -34,7 +34,9 @@ describe('createEnemyFromMonster', () => {
 
     const monsterTemplate: Monster = {
       name: 'Mock Goblin',
-      cr: '1/4'
+      cr: '1/4',
+      quantity: 1,
+      description: 'Runtime registry test monster'
     };
 
     // 2. Convert to CombatCharacter
@@ -53,7 +55,9 @@ describe('createEnemyFromMonster', () => {
   it('gracefully falls back to generic enemy with default AC 10 when monster data is missing', () => {
     const missingMonsterTemplate: Monster = {
       name: 'Non Existent Dragon',
-      cr: '10'
+      cr: '10',
+      quantity: 1,
+      description: 'Missing registry fallback monster'
     };
 
     const enemy = createEnemyFromMonster(missingMonsterTemplate, 2);

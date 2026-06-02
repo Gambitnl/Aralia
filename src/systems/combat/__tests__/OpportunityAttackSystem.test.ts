@@ -52,12 +52,13 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
     // Attacker has a melee weapon (reach 1) and the OA suppressed condition.
     const attacker = createMockCombatCharacter({ id: 'attacker', position: { x: 0, y: 0 }, team: 'player' });
     attacker.abilities.push({
-      id: 'melee_attack', name: 'Melee', type: 'attack', range: 1, weapon: createMockItem({
+      id: 'melee_attack', name: 'Melee', description: 'A melee opportunity attack fixture.', type: 'attack', targeting: 'single_enemy', range: 1, weapon: createMockItem({
         id: 'melee_weapon',
         name: 'Melee Weapon',
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
+      effects: [{ type: 'damage', value: 1, damageType: 'slashing' }],
       cost: { type: 'action' }
     });
     attacker.statusEffects.push({
@@ -83,12 +84,13 @@ describe('OpportunityAttackSystem and Reaction Rules', () => {
 
     const attacker = createMockCombatCharacter({ id: 'attacker', position: { x: 0, y: 0 }, team: 'player' });
     attacker.abilities.push({
-      id: 'melee_attack', name: 'Melee', type: 'attack', range: 1, weapon: createMockItem({
+      id: 'melee_attack', name: 'Melee', description: 'A melee opportunity attack fixture.', type: 'attack', targeting: 'single_enemy', range: 1, weapon: createMockItem({
         id: 'melee_weapon',
         name: 'Melee Weapon',
         description: 'A simple melee weapon',
         type: 'weapon'
       }), isProficient: true,
+      effects: [{ type: 'damage', value: 1, damageType: 'slashing' }],
       cost: { type: 'action' }
     });
     attacker.statusEffects.push({

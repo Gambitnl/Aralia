@@ -50,6 +50,7 @@ export interface CraftingResult {
     timeSpentMinutes: number;
     isNat20: boolean;
     isNat1: boolean;
+    modifiersApplied?: { source: string; value: number }[];
 }
 
 // Crafting time in minutes per workday

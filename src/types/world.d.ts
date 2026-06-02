@@ -209,6 +209,11 @@ export interface AzgaarWorldRenderData {
     moisture: number[];
     rivers: boolean[];
 }
+export interface WorldGenDiagnostics {
+    source: 'azgaar-derived' | 'legacy-fallback' | 'biome-derived';
+    reason?: string;
+    at: number;
+}
 export interface MapData {
     gridSize: {
         rows: number;
@@ -219,6 +224,8 @@ export interface MapData {
     azgaarWorld?: AzgaarWorldRenderData;
     /** Rich world artifact — produced by worldSim. Required for new saves; populated by migration on load for old saves. */
     worldData?: WorldData;
+    /** How this world was generated (primary vs fallback). Surfaced in the DebugHUD. */
+    generation?: WorldGenDiagnostics;
 }
 export interface PointOfInterest {
     /** Unique ID to reference this POI within UI elements. */

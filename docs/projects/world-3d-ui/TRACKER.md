@@ -38,8 +38,10 @@ overlays the `world3d` rendering engine. Gaps are authoritative in
 | T15 | done | W3DUI-24: remove unused `entryPosition` from TransitionController API | unassigned | 2026-06-02 | `TransitionController.tsx`, `App.tsx`, lifecycle test | — | Entry coords only on `World3DWrapper`; Vitest green |
 | T16 | done | W3DUI-1: worker-backed chunk loader for PLAYING `World3DWrapper` | unassigned | 2026-06-02 | `World3DWrapper.tsx`, `World3DWrapper.loader.test.tsx`, `PERF.md` | — | Vitest green; demo sandbox still inline |
 | T17 | done | W3DUI-25: E2E marker sync after 3D movement (MapPane/Azgaar harness) | claude | 2026-06-02 | `tests/world-3d-ui-transition.spec.ts` | — | Playwright test updated to simulate 3D pan and verify marker movement |
+| T18 | done | W3DUI-26: in-3D minimap (deferred Plan 4 UX) — compact WorldData top-down view + live player marker in HUD | claude | 2026-06-02 | `World3DMinimap.tsx`, `InWorldHUD.tsx`, `World3DWrapper.tsx`, `World3DMinimap.test.tsx` | — | Vitest green (29/29 in suite); minimap mounts bottom-left of HUD when worldData + playerWorldPos present; nameplates still deferred |
+| T19 | done | DebugHUD world-generation provenance indicator (consumes worldsim-service WSS-004 `MapData.generation`) — shows world source + ⚠ fallback reason | claude | 2026-06-02 | `DebugHUD.tsx`, `InWorldHUD.tsx`, `World3DWrapper.tsx`, `DebugHUD.worldGen.test.tsx` | — | Vitest 30/30 in World3D suite; live: DebugHUD renders in 3D dev mode, hides world line gracefully when `generation` absent. Diagnostic source/policy owned by worldsim-service |
 
-Gaps are tracked in `docs/projects/world-3d-ui/GAPS.md` (W3DUI-1..25) — see it for the full gap log, including the routed entry/transition gaps from `world3d`.
+Gaps are tracked in `docs/projects/world-3d-ui/GAPS.md` (W3DUI-1..28) — see it for the full gap log, including the routed entry/transition gaps from `world3d`.
 
 ## Update Rules
 

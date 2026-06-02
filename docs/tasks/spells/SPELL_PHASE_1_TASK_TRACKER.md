@@ -58,7 +58,7 @@ Statuses:
 
 See [SPELL_PHASE_1_PR_HANDOFF_INDEX.md](SPELL_PHASE_1_PR_HANDOFF_INDEX.md) for the moved package lineage and durable PR/handoff references. Keep this tracker focused on active queue state, current blockers, and update rules.
 
-Completed Package 0-17 rows moved to [SPELL_PHASE_1_PACKAGE_HISTORY.md](SPELL_PHASE_1_PACKAGE_HISTORY.md).
+Completed Package 0-18 rows moved to [SPELL_PHASE_1_PACKAGE_HISTORY.md](SPELL_PHASE_1_PACKAGE_HISTORY.md).
 Keep this live tracker focused on the current package, nearby blockers, and update rules.
 
 
@@ -68,6 +68,7 @@ Keep this live tracker focused on the current package, nearby blockers, and upda
 |---|---|---|---|---|---|
 | P17-repair | done | Codex foreman repair, GitHub checks | Package 17 reaction/opportunity repair follow-up | `PACKAGE_17_REACTION_OPPORTUNITY_JULES_TASK.md`, `PACKAGE_17_REACTION_OPPORTUNITY_JULES_PROMPT.md` | PR [#1141](https://github.com/Gambitnl/Aralia/pull/1141) merged on 2026-05-31 at 20:26:53Z from `jules-13268515864136262879-f3e5d873`. Package-relevant GitHub checks passed: Tests, Lint, Quality Scan, Poison File Check, and CodeQL. Build remained red on broad existing type debt outside the PR scope. This is no longer a Package 18 blocker; keep the broad type debt tracked separately from the package closeout. |
 | P18 | merged-remotely | Jules implementation, Codex foreman monitoring | Reaction and opportunity safe replacement after continuation reconciliation | `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_TASK.md`, `PACKAGE_18_REACTION_OPPORTUNITY_CONTINUATION_JULES_PROMPT.md` | The earlier clean-dashboard launch through Linear `ARA-28`, draft `draft-1780188254648-brkhdf`, handoff `handoff-1780188354283-yposds`, and Jules session `12854522108539821255` was superseded in this thread by visible Jules session `5273090409493546069`. After the `Approve plan?` gate, Jules produced PR [#1143](https://github.com/Gambitnl/Aralia/pull/1143), `Package 18: Reaction Opportunity Safe Replacement`, changing only `docs/tasks/spells/mechanics-discovery/buckets/reaction_or_opportunity_restriction.md` (+1/-1) to defer the Counterspell broader interruption model. PR #1143 merged on 2026-06-01 at 13:38:41Z as merge commit `4f9b1ffbcec048630905d2cb809c942fdf280356`. Package-relevant checks passed; Build remained red from unrelated existing type debt. Next proof target is local sync/package-history closeout and then selecting the next Spell Phase package from current `master`, not asking Jules to repair Package 18 for unrelated typecheck debt. |
+| P19 | active | Jules implementation, Codex foreman package setup | Created objects and structures early-game mechanics bucket | `PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_TASK.md`, `PACKAGE_19_CREATED_OBJECT_STRUCTURE_JULES_PROMPT.md` | Package 19 promotes `created_object_or_structure` because the bucket has `44` open findings and a concrete cantrip/level 1-3 subset. The package is ready for visible Symphony/Jules dispatch after the operator chooses to launch it. It should classify all listed early-game rows first, implement the largest safe multi-row subset through existing utility/spatial/terrain/schema patterns, and defer broad object lifecycle, destructible-wall, summon-control, AI-arbitration, and level 4-9 work. |
 
 ## Current Local Change Classification
 

@@ -169,7 +169,7 @@ const SpellbookTab: React.FC<SpellbookTabProps> = ({ character, onAction }) => {
                                             )}
                                             {isPrepared && !isFutureRacial && (
                                                 <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold tracking-wider flex-shrink-0">
-                                                    {isAlwaysPrepared || isRacialAlwaysPrepared ? 'Always' : 'Prep'}
+                                                    {isAlwaysPrepared || racialAlwaysPrepared ? 'Always' : 'Prep'}
                                                 </span>
                                             )}
                                             {!isPrepared && isKnown && spell.level > 0 && (

@@ -81,6 +81,7 @@ const HeistPlanningModal = lazy(() => import('../Crime/ThievesGuild/HeistPlannin
 const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
+const LongRestModal = lazy(() => import('../ui/LongRestModal'));
 const OllamaDependencyModal = lazy(() => import('../ui/OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
 const TradeRouteDashboard = lazy(() => import('../Trade/TradeRouteDashboard'));
 const NobleHouseList = lazy(() => import('../debug/NobleHouseList'));
@@ -301,9 +302,26 @@ const GameModals: React.FC<GameModalsProps> = ({
                             party={gameState.party}
                             onViewCharacterSheet={handleOpenCharacterSheet}
                             onFixMissingChoice={onFixMissingChoice}
-                            onLongRest={() => onAction({ type: 'LONG_REST', label: 'Long Rest' })}
+                            onLongRest={() => onAction({ type: 'TOGGLE_LONG_REST_MODAL', label: 'Long Rest' })}
                             onShortRest={() => onAction({ type: 'SHORT_REST', label: 'Short Rest' })}
                             shortRestTracker={gameState.shortRestTracker}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Long Rest Modal */}
+            {gameState.isLongRestModalVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Long Rest Modal.">
+                        <LongRestModal
+                            isOpen={gameState.isLongRestModalVisible}
+                            party={gameState.party}
+                            onClose={() => dispatch({ type: 'TOGGLE_LONG_REST_MODAL' })}
+                            onConfirm={(choices) => {
+                                onAction({ type: 'LONG_REST', label: 'Long Rest', payload: { racialRestChoices: choices } });
+                                dispatch({ type: 'TOGGLE_LONG_REST_MODAL' });
+                            }}
                         />
                     </ErrorBoundary>
                 </Suspense>

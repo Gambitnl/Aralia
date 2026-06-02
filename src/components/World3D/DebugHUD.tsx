@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import type { WorldGenDiagnostics } from '../../types/world';
 
 interface DebugHUDProps {
   /** Number of chunks currently loaded. */
@@ -25,9 +26,21 @@ interface DebugHUDProps {
     chunksUnloaded: number;
     pendingRequests: number;
   };
+  /** How the current world was generated (primary vs fallback). */
+  worldGen?: WorldGenDiagnostics | null;
 }
 
-const DebugHUD: React.FC<DebugHUDProps> = ({ chunkCount, fps, playerPos, streamerStats }) => {
+/** Maps a generation source to a label + color (amber/red for degraded paths). */
+const WORLD_SOURCE_META: Record<
+  WorldGenDiagnostics['source'],
+  { label: string; color: string; isFallback: boolean }
+> = {
+  'azgaar-derived': { label: 'Azgaar-derived', color: '#5bd66f', isFallback: false },
+  'legacy-fallback': { label: 'LEGACY FALLBACK', color: '#ff6b6b', isFallback: true },
+  'biome-derived': { label: 'BIOME-DERIVED', color: '#f0ad4e', isFallback: true },
+};
+
+const DebugHUD: React.FC<DebugHUDProps> = ({ chunkCount, fps, playerPos, streamerStats, worldGen }) => {
   const posStr = playerPos
     ? `X: ${playerPos.x.toFixed(1)}  Y: ${playerPos.y.toFixed(1)}  Z: ${playerPos.z.toFixed(1)}`
     : 'X: —  Y: —  Z: —';
@@ -58,6 +71,41 @@ const DebugHUD: React.FC<DebugHUDProps> = ({ chunkCount, fps, playerPos, streame
       <div>
         <span style={{ color: 'var(--text-secondary, #8a9aaa)' }}>Pos:</span> {posStr}
       </div>
+
+      {/* World generation provenance — surfaces silent fallback/flat worlds (WSS-004). */}
+      {worldGen && (() => {
+        const meta = WORLD_SOURCE_META[worldGen.source];
+        return (
+          <div
+            data-testid="debug-world-gen"
+            style={{
+              marginTop: '4px',
+              borderTop: '1px solid var(--border-color, #3a4a5a)',
+              paddingTop: '4px',
+            }}
+          >
+            <div>
+              <span style={{ color: 'var(--text-secondary, #8a9aaa)' }}>World:</span>{' '}
+              <span style={{ color: meta.color, fontWeight: 600 }}>{meta.label}</span>
+            </div>
+            {meta.isFallback && (
+              <div
+                data-testid="debug-world-gen-reason"
+                style={{
+                  marginTop: '2px',
+                  color: meta.color,
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  maxWidth: '260px',
+                }}
+              >
+                ⚠ {worldGen.reason ?? 'Fallback generator active (reason not recorded).'}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {streamerStats && (
         <>
           <div style={{ marginTop: '4px', borderTop: '1px solid var(--border-color, #3a4a5a)', paddingTop: '4px' }}>

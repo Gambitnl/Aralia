@@ -171,7 +171,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             disabled={disabled}
           />
           <ActionButton
-            action={{ type: 'LONG_REST', label: 'Long Rest' }}
+            action={{ type: 'TOGGLE_LONG_REST_MODAL', label: 'Long Rest' }}
             onClick={onAction}
             disabled={disabled}
           />

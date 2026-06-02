@@ -43,10 +43,17 @@ export function generateMap(
   // New default: Azgaar-source template + biome world layout.
   // Safety fallback: if this pipeline throws, keep the game bootable via legacy generator.
   try {
-    return generateAzgaarDerivedMap(rows, cols, locations, biomes, worldSeed);
+    const map = generateAzgaarDerivedMap(rows, cols, locations, biomes, worldSeed);
+    return { ...map, generation: { source: 'azgaar-derived', at: Date.now() } };
   } catch (error) {
+    // Capture WHY we fell back so it can be surfaced in the DebugHUD (worldsim-service WSS-004),
+    // not just logged to a console nobody reads.
+    const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     console.error('[mapService] Azgaar-source generation failed. Falling back to legacy generator.', error);
-    return generateLegacyMap(rows, cols, locations, biomes, worldSeed);
+    const map = generateLegacyMap(rows, cols, locations, biomes, worldSeed);
+    // Overrides the `biome-derived` provenance set inside generateLegacyMap's migration call,
+    // because the *root cause* here is the Azgaar generation failure, not merely missing terrain.
+    return { ...map, generation: { source: 'legacy-fallback', reason, at: Date.now() } };
   }
 }
 

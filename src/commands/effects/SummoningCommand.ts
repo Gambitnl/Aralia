@@ -287,7 +287,7 @@ export class SummoningCommand extends BaseEffectCommand {
     private getSharedSensesActionCost(effect: SummoningEffect): Ability['cost']['type'] {
         switch (effect.summon?.sharedSensesCost) {
             case 'bonus_action':
-                return 'bonusAction'
+                return 'bonus'
             case 'free':
             case 'none':
                 return 'free'

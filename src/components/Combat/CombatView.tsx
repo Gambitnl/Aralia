@@ -207,6 +207,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     const richMessage = convertLogEntryToMessage(entry, charactersRef.current);
     messaging.addMessage(richMessage);
   }, [baseLogEntry, dispatch, messaging.addMessage]);
+  const requestReactionRef = useRef<any>(null);
+
   const turnManager = useTurnManager({
     characters,
     mapData,
@@ -219,7 +221,19 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
     // TODO: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
-    difficulty: 'normal'
+    difficulty: 'normal',
+    requestReaction: useCallback((
+      attackerId: string,
+      targetId: string,
+      triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
+      spells?: import('../../types/spells').Spell[],
+      weapons?: import('../../types/combat').Ability[]
+    ) => {
+      if (requestReactionRef.current) {
+        return requestReactionRef.current(attackerId, targetId, triggerType, spells, weapons);
+      }
+      return Promise.resolve(null);
+    }, [])
   });
 
   // Initialize turn manager when characters are ready.
@@ -296,6 +310,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onAddSpellDeliveryVisual: turnManager.addSpellDeliveryVisual,
     currentPlane
   });
+
+  requestReactionRef.current = abilitySystem.requestReaction;
 
   const handleToggleAuto = useCallback((characterId: string) => {
     setAutoCharacters(prev => {
@@ -438,7 +454,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       {abilitySystem.pendingReaction && (
         <ReactionPrompt
           attackerName={characters.find(c => c.id === abilitySystem.pendingReaction!.attackerId)?.name || 'Unknown'}
-          reactionSpells={abilitySystem.pendingReaction.reactionSpells}
+          targetName={characters.find(c => c.id === abilitySystem.pendingReaction!.targetId)?.name || 'Unknown'}
+          reactionSpells={abilitySystem.pendingReaction.reactionSpells || []}
+          reactionWeapons={abilitySystem.pendingReaction.reactionWeapons || []}
           triggerType={abilitySystem.pendingReaction.triggerType}
           onResolve={abilitySystem.pendingReaction.onResolve}
         />

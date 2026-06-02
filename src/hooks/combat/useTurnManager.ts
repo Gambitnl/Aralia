@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 31/05/2026, 23:02:40
+ * Last Sync: 02/06/2026, 23:59:23
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 11 files
  *
@@ -15,17 +15,20 @@
 // @dependencies-end
 
 /**
+ * This hook acts as the central coordinator for turn-based combat encounters.
+ *
+ * It manages initiative rolling, round boundary transitions, starting and ending turns,
+ * running death saving throws for downed players, ticking down active effect durations,
+ * and driving the combat AI loop. It decouples turn scheduling (via useTurnOrder) from
+ * damage application and status triggers (via useCombatEngine) and action execution semantics (via useActionExecutor).
+ *
+ * Called by: CombatView.tsx and BattleMapDemo.tsx during combat encounters.
+ * Depends on: useTurnOrder, useCombatEngine, useActionExecutor, useActionEconomy, and useCombatVisuals.
+ *
  * @file hooks/combat/useTurnManager.ts
- * Manages the turn-based combat state using the new action economy system.
- * Now integrates AI decision making, Damage Numbers, and Spell Effect Triggers.
- * REFACTORED:
- * - Turn Order logic extracted to `useTurnOrder`.
- * - Combat Engine logic extracted to `useCombatEngine`.
- * - Action Execution logic extracted to `useActionExecutor`.
- * - Remains the "Combat Coordinator" handling AI and orchestrating actions.
  */
-import { useCallback, useMemo, useRef } from 'react';
-import { CombatCharacter, CombatLogEntry, BattleMapData } from '../../types/combat';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
@@ -47,6 +50,13 @@ interface UseTurnManagerProps {
   onRoundElapsed?: (seconds: number) => void;
   autoCharacters?: Set<string>;
   onMapUpdate?: (mapData: BattleMapData) => void;
+  requestReaction?: (
+    attackerId: string,
+    targetId: string,
+    triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
+    reactionSpells?: import('../../types/spells').Spell[],
+    reactionWeapons?: import('../../types/combat').Ability[]
+  ) => Promise<string | null>;
 }
 
 export const useTurnManager = ({
@@ -57,7 +67,8 @@ export const useTurnManager = ({
   onRoundElapsed,
   autoCharacters,
   onMapUpdate,
-  difficulty = 'normal'
+  difficulty = 'normal',
+  requestReaction
 }: UseTurnManagerProps) => {
 
   // --- Decomposed Sub-Systems ---
@@ -71,12 +82,76 @@ export const useTurnManager = ({
     recordAction
   } = useTurnOrder({ characters });
 
-  const { damageNumbers, animations, addDamageNumber, queueAnimation } = useCombatVisuals();
+  const {
+    damageNumbers,
+    animations,
+    addDamageNumber,
+    queueAnimation,
+    spellMovementVisuals,
+    addSpellMovementVisual,
+    spellDeliveryVisuals,
+    addSpellDeliveryVisual
+  } = useCombatVisuals();
+  const [activeLightSources, setActiveLightSources] = useState<LightSource[]>([]);
   const { canAfford, consumeAction } = useActionEconomy();
 
-  // Ref to executeAction — set after useActionExecutor initializes.
+  // Wrapped character update callback to handle immediate concentration drop when a character is downed (0 HP)
+  const handleCharacterUpdateWrapped = useCallback((updatedChar: CombatCharacter) => {
+    const originalChar = characters.find(c => c.id === updatedChar.id);
+    let finalChar = updatedChar;
+
+    if (originalChar && originalChar.currentHP > 0 && updatedChar.currentHP === 0 && originalChar.concentratingOn) {
+      const previousSpell = originalChar.concentratingOn.spellName;
+      const previousSpellId = originalChar.concentratingOn.spellId;
+      const trackedEffectIds = new Set(originalChar.concentratingOn.effectIds || []);
+
+      // 1. Clear concentration on the downed character
+      finalChar = {
+        ...updatedChar,
+        concentratingOn: undefined
+      };
+
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${finalChar.name} falls unconscious and loses concentration on ${previousSpell}`,
+        characterId: finalChar.id
+      });
+
+      // 2. Clean up status effects and conditions on all OTHER characters
+      characters.forEach(char => {
+        if (char.id === finalChar.id) return;
+
+        const hasTrackedEffect = (char.statusEffects || []).some(eff => trackedEffectIds.has(eff.id));
+        const hasTrackedCondition = (char.conditions || []).some(cond =>
+          cond.source === previousSpellId || cond.source === previousSpell
+        );
+
+        if (hasTrackedEffect || hasTrackedCondition) {
+          const newStatusEffects = (char.statusEffects || []).filter(eff => !trackedEffectIds.has(eff.id));
+          const newConditions = (char.conditions || []).filter(cond =>
+            cond.source !== previousSpellId && cond.source !== previousSpell
+          );
+
+          onCharacterUpdate({
+            ...char,
+            statusEffects: newStatusEffects,
+            conditions: newConditions
+          });
+        }
+      });
+
+      // 3. Clean up light sources linked to this concentration spell
+      setActiveLightSources(prev => prev.filter(ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)));
+    }
+
+    onCharacterUpdate(finalChar);
+  }, [characters, onCharacterUpdate, onLogEntry]);
+
+  // Ref to executeActionRef — set after useActionExecutor initializes.
   // Allows endTurn to trigger legendary actions without a circular useCallback dependency.
-  const executeActionRef = useRef<((action: import('../../types/combat').CombatAction) => boolean) | null>(null);
+  const executeActionRef = useRef<((action: import('../../types/combat').CombatAction) => Promise<boolean>) | null>(null);
 
   const {
     spellZones,
@@ -101,7 +176,7 @@ export const useTurnManager = ({
   } = useCombatEngine({
     characters,
     mapData,
-    onCharacterUpdate,
+    onCharacterUpdate: handleCharacterUpdateWrapped,
     onLogEntry,
     onMapUpdate,
     addDamageNumber
@@ -120,11 +195,121 @@ export const useTurnManager = ({
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
     let updatedChar = resetEconomy(character);
-    // TODO: Also tick down conditions/activeEffects here and clean up expired AC/resistance/tempHP effects so defensive math stays accurate.
+
+    // Roll Death Saving Throw for downed player character at start of turn
+    if (character.currentHP === 0 && character.team === 'player' && character.deathSaves && !character.deathSaves.isStable) {
+      const roll = Math.floor(Math.random() * 20) + 1;
+      let successes = character.deathSaves.successes || 0;
+      let failures = character.deathSaves.failures || 0;
+      let isStable = character.deathSaves.isStable || false;
+      let hp = character.currentHP;
+      let newStatusEffects = [...character.statusEffects];
+      let newConditions = [...(character.conditions || [])];
+
+      if (roll === 20) {
+        hp = 1;
+        newStatusEffects = newStatusEffects.filter(se => se.name.toLowerCase() !== 'unconscious');
+        newConditions = newConditions.filter(c => c.name.toLowerCase() !== 'unconscious');
+        
+        updatedChar = {
+          ...updatedChar,
+          currentHP: hp,
+          deathSaves: undefined,
+          statusEffects: newStatusEffects,
+          conditions: newConditions
+        };
+
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${character.name} rolls a 20 on Death Saving Throw and revives with 1 HP!`,
+          characterId: character.id
+        });
+      } else {
+        if (roll === 1) {
+          failures = Math.min(3, failures + 2);
+        } else if (roll >= 10) {
+          successes = Math.min(3, successes + 1);
+        } else {
+          failures = Math.min(3, failures + 1);
+        }
+
+        if (successes >= 3) {
+          isStable = true;
+        }
+
+        updatedChar = {
+          ...updatedChar,
+          deathSaves: {
+            successes,
+            failures,
+            isStable
+          }
+        };
+
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${character.name} rolls a ${roll} on Death Saving Throw (${successes} successes, ${failures} failures).`,
+          characterId: character.id
+        });
+      }
+    }
+    
+    // Tick down round-based activeEffects
+    const tickedActiveEffects = (updatedChar.activeEffects || [])
+      .map(effect => {
+        if (effect.duration && effect.duration.type === 'rounds' && typeof effect.duration.value === 'number') {
+          return {
+            ...effect,
+            duration: {
+              ...effect.duration,
+              value: effect.duration.value - 1
+            }
+          };
+        }
+        return effect;
+      })
+      .filter(effect => !effect.duration || effect.duration.type !== 'rounds' || (typeof effect.duration.value === 'number' && effect.duration.value > 0));
+
+    // Tick down round-based conditions
+    const tickedConditions = (updatedChar.conditions || [])
+      .map(cond => {
+        if (cond.duration && cond.duration.type === 'rounds' && typeof cond.duration.value === 'number') {
+          return {
+            ...cond,
+            duration: {
+              ...cond.duration,
+              value: cond.duration.value - 1
+            }
+          };
+        }
+        return cond;
+      })
+      .filter(cond => !cond.duration || cond.duration.type !== 'rounds' || (typeof cond.duration.value === 'number' && cond.duration.value > 0));
+
+    // Dynamic AC recalculation to keep defensive stats in sync with active effects.
+    let baseAC = updatedChar.baseAC ?? 10;
+    let acBonusSum = 0;
+    tickedActiveEffects.forEach(effect => {
+      if (effect.mechanics?.acBonus !== undefined) {
+        acBonusSum += effect.mechanics.acBonus;
+      }
+      if (effect.mechanics?.baseAC !== undefined) {
+        baseAC = effect.mechanics.baseAC;
+      }
+    });
+    const finalAC = baseAC + acBonusSum;
+
     updatedChar = {
       ...updatedChar,
-      statusEffects: character.statusEffects.map(effect => ({ ...effect, duration: effect.duration - 1 })).filter(effect => effect.duration > 0),
-      abilities: character.abilities.map(ability => {
+      statusEffects: updatedChar.statusEffects.map(effect => ({ ...effect, duration: effect.duration - 1 })).filter(effect => effect.duration > 0),
+      activeEffects: tickedActiveEffects,
+      conditions: tickedConditions,
+      armorClass: finalAC,
+      abilities: updatedChar.abilities.map(ability => {
         if (ability.recharge?.threshold && ability.isRecharging) {
           const roll = Math.floor(Math.random() * 6) + 1;
           if (roll >= ability.recharge.threshold) {
@@ -137,12 +322,11 @@ export const useTurnManager = ({
           currentCooldown: Math.max(0, (ability.currentCooldown || 0) - 1)
         };
       }),
-      concentratingOn: character.concentratingOn ? {
-        ...character.concentratingOn,
+      concentratingOn: updatedChar.concentratingOn ? {
+        ...updatedChar.concentratingOn,
         sustainedThisTurn: false
       } : undefined,
-      riders: character.riders?.map(r => ({ ...r, usedThisTurn: false })),
-      // Reset per-turn feat usage tracking (e.g., Slasher's once-per-turn speed reduction)
+      riders: updatedChar.riders?.map(r => ({ ...r, usedThisTurn: false })),
       featUsageThisTurn: []
     };
 
@@ -153,7 +337,7 @@ export const useTurnManager = ({
     updatedChar = processRepeatSaves(updatedChar, 'turn_start');
     updatedChar = processScheduledSpellEffects(updatedChar, 'turn_start', turnState.currentTurn);
 
-    onCharacterUpdate(updatedChar);
+    handleCharacterUpdateWrapped(updatedChar);
 
     onLogEntry({
       id: generateId(),
@@ -163,7 +347,7 @@ export const useTurnManager = ({
       characterId: character.id
     });
     // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
-  }, [onCharacterUpdate, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
+  }, [handleCharacterUpdateWrapped, onLogEntry, processRepeatSaves, processScheduledSpellEffects, turnState.currentTurn]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     // 1. Roll initiatives
@@ -177,7 +361,7 @@ export const useTurnManager = ({
 
     // 3. Reset economy for everyone
     charactersWithInitiative.forEach(char => {
-      onCharacterUpdate(resetEconomy(char));
+      handleCharacterUpdateWrapped(resetEconomy(char));
     });
 
     // 4. Start turn for the first character
@@ -196,14 +380,14 @@ export const useTurnManager = ({
       data: { turnOrder: sorted.map(c => c.id), initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
     // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
-  }, [onCharacterUpdate, onLogEntry, rollInitiative, startTurnFor, initializeTurnOrder]);
+  }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, startTurnFor, initializeTurnOrder]);
 
   const joinCombat = useCallback((character: CombatCharacter, options: { initiative?: number } = {}) => {
     const initiative = options.initiative ?? rollInitiative(character);
     const charWithInit = { ...character, initiative };
 
     const readyChar = resetEconomy(charWithInit);
-    onCharacterUpdate(readyChar);
+    handleCharacterUpdateWrapped(readyChar);
 
     joinTurnOrder(readyChar.id);
 
@@ -216,11 +400,11 @@ export const useTurnManager = ({
       data: { initiative }
     });
     // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
-  }, [onCharacterUpdate, onLogEntry, rollInitiative, joinTurnOrder]);
+  }, [handleCharacterUpdateWrapped, onLogEntry, rollInitiative, joinTurnOrder]);
 
 
   // --- End of Turn Logic ---
-  const endTurn = useCallback(() => {
+  const endTurn = useCallback(async () => {
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
     if (!currentCharacter) return;
 
@@ -271,7 +455,7 @@ export const useTurnManager = ({
         if (fullPlan.type === 'ability' && fullPlan.abilityId) {
           const ability = legendary.abilities.find(a => a.id === fullPlan.abilityId);
           if (ability?.cost.type !== 'legendary') continue;
-          executeActionRef.current(fullPlan);
+          await executeActionRef.current(fullPlan);
           onLogEntry({
             id: generateId(),
             timestamp: Date.now(),
@@ -323,7 +507,7 @@ export const useTurnManager = ({
     characters,
     turnState,
     mapData,
-    onCharacterUpdate,
+    onCharacterUpdate: handleCharacterUpdateWrapped,
     onLogEntry,
     endTurn,
     canAfford,
@@ -337,7 +521,8 @@ export const useTurnManager = ({
     spellZones,
     movementDebuffs,
     reactiveTriggers,
-    setMovementDebuffs
+    setMovementDebuffs,
+    requestReaction
   });
 
   // Keep the ref in sync so endTurn can invoke executeAction without a circular dependency.
@@ -376,6 +561,12 @@ export const useTurnManager = ({
     movementDebuffs,
     reactiveTriggers,
     addScheduledSpellEffect,
-    removeScheduledSpellEffect
+    removeScheduledSpellEffect,
+    activeLightSources,
+    setActiveLightSources,
+    spellMovementVisuals,
+    addSpellMovementVisual,
+    spellDeliveryVisuals,
+    addSpellDeliveryVisual
   };
 };

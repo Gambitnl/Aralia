@@ -14,7 +14,7 @@
  */
 // @dependencies-end
 
-import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect, StatusConditionEffect } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect, StatusConditionEffect, isUtilityEffect } from '@/types/spells'
 import { CombatCharacter } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
@@ -90,12 +90,13 @@ export class SpellCommandFactory {
     }
 
     const perTargetChoicesByTargetId = (spell as SpellWithPerTargetChoices).perTargetChoicesByTargetId
-    if (this.isEnhanceAbilityPerTargetChoice(spell, perTargetChoicesByTargetId)) {
+    const enhanceAbilityEffect = spell.effects.find(isUtilityEffect)
+    if (enhanceAbilityEffect && this.isEnhanceAbilityPerTargetChoice(spell, perTargetChoicesByTargetId)) {
       // Enhance Ability is a utility spell in data, but it has a real combat
       // mechanic once the caster has assigned choices. Build one explicit
       // command before generic utility logging so each target receives the
       // chosen ability-check advantage.
-      commands.push(new EnhanceAbilityCommand(spell.effects[0], context, perTargetChoicesByTargetId))
+      commands.push(new EnhanceAbilityCommand(enhanceAbilityEffect, context, perTargetChoicesByTargetId))
     }
 
     if (spell.arbitrationType && spell.arbitrationType !== 'mechanical') {

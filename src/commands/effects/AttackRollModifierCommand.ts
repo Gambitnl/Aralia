@@ -47,7 +47,7 @@ import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 // ============================================================================
 
 export class AttackRollModifierCommand extends BaseEffectCommand {
-  execute(state: CombatState): CombatState {
+  async execute(state: CombatState): Promise<CombatState> {
     if (!isAttackRollModifierEffect(this.effect)) {
       return state;
     }
@@ -122,7 +122,7 @@ export class AttackRollModifierCommand extends BaseEffectCommand {
           isCritical: false,
         });
 
-        currentState = damageCommand.execute(currentState);
+        currentState = await damageCommand.execute(currentState);
       }
 
 

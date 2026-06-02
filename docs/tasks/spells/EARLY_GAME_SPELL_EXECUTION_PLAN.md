@@ -353,12 +353,11 @@ Priority bucket families for levels 0-3:
 The order can change when a concrete player-facing test path proves that another
 bucket blocks more spells.
 
-Package 16 `sustain_or_recast_action` closed the safe granted-action subset
-through PR #1135. The next queued mechanics bucket is
-`reaction_or_opportunity_restriction`; before dispatch, scope it into a
-Jules-sized package with a concrete `Jules value: ...` line, a safe multi-row
-subset, and explicit deferrals for summon-control, AI arbitration, or broader
-reaction-engine work.
+Packages through Package 18 have now moved the first mechanics-bucket sequence
+past `reaction_or_opportunity_restriction`. The next queued mechanics bucket is
+Package 19 `created_object_or_structure`, scoped as an early-game cantrip/level
+1-3 Jules-sized slice with explicit deferrals for broad object lifecycle,
+destructible-wall, summon-control, AI-arbitration, and level 4-9 work.
 
 Each bucket slice should produce:
 
@@ -881,10 +880,10 @@ to Open `61`, Closed `185`, Deferred flavor `7`, and merged as
 
 Immediate action:
 
-1. Land the Package 17 `reaction_or_opportunity_restriction` packet/prompt and
-   continue from the live tracker for visible Symphony/Jules launch state.
-2. Before dispatch, preserve a concrete `Jules value: ...` line that explains why
-   the package is large enough for a Jules handoff instead of local Codex work.
+1. Use the Package 19 `created_object_or_structure` packet/prompt and continue
+   from the live tracker for visible Symphony/Jules launch state.
+2. Keep the concrete `Jules value: ...` line in the packet so the handoff remains
+   a real multi-row mechanics-bucket slice instead of local Codex micro-work.
 3. Use the visible Symphony dashboard path for draft, Linear, handoff,
    manifest, Jules launch, and visual Jules-page inspection.
 4. If a PR appears, review it against the approved plan before accepting:

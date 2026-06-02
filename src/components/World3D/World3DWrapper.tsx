@@ -205,6 +205,8 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
       {/* InWorldHUD overlay — always mounted so exit controls work without a loader */}
       <InWorldHUD
         isDevModeEnabled={isDevModeEnabled}
+        worldData={worldData}
+        worldGen={state.mapData?.generation ?? null}
         chunkCount={chunkCount}
         fps={fps}
         playerPos={position}

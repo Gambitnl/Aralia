@@ -25,7 +25,7 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import type { AreaOfEffect, SpellEffect, TerrainEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
 import type { CombatCharacter, Position } from '../../../types/combat';
-import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spellStatusMetadata';
+import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spells';
 import type { AoEParams } from '../../../utils/combat/aoeCalculations';
 import { AoECalculator } from '../targeting/AoECalculator';
 

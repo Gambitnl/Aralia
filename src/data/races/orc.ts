@@ -28,4 +28,5 @@ export const ORC_DATA: Race = {
     maleIllustrationPath: 'assets/images/races/Orc_Male.png',
     femaleIllustrationPath: 'assets/images/races/Orc_Female.png',
   },
+  modernizationStatus: 'official_2024',
 };

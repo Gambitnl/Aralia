@@ -15,7 +15,7 @@ export const HILL_DWARF_DATA: Race = {
     traits: [
         'Creature Type: Humanoid',
         'Size: Medium (about 4-5 feet tall)',
-        'Speed: 25 feet. Your speed is not reduced by wearing heavy armor.',
+        'Speed: 30 feet. Your speed is not reduced by wearing heavy armor.',
         "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
         'Dwarven Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.',
         'Dwarven Combat Training: You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.',
@@ -30,4 +30,5 @@ export const HILL_DWARF_DATA: Race = {
         maleIllustrationPath: 'assets/images/races/Dwarf_Hill_Male.png',
         femaleIllustrationPath: 'assets/images/races/Dwarf_Hill_Female.png',
     },
+    modernizationStatus: 'modified_legacy',
 };

@@ -15,7 +15,7 @@ import type { BattleMapData, CombatCharacter, LightLevel, LightSource } from '..
  */
 
 const mockUseVisibility = vi.fn();
-const mockVFXSystem = vi.fn(() => null);
+const mockVFXSystem = vi.fn((_props: unknown) => null);
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>

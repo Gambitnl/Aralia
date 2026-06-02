@@ -11,6 +11,9 @@ import { gridPointToLocal } from './coords';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
 const MIN_RADIUS_M = 8;
+// Cap visual placeholder boxes — Voronoi footprints can span hundreds of meters (a full grid cell)
+// which puts the camera inside the box. 80m gives a visible town-sized cluster at world scale.
+const MAX_RADIUS_M = 80;
 
 export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
   return data.sites.map((s) => {
@@ -26,7 +29,8 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       kind: s.kind,
       localX: local.x,
       localZ: local.z,
-      radius: Math.max(MIN_RADIUS_M, maxR),
+      surfaceY: s.surfaceY,
+      radius: Math.min(MAX_RADIUS_M, Math.max(MIN_RADIUS_M, maxR)),
       walled: s.walled,
     };
   });

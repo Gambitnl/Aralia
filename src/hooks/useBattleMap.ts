@@ -139,7 +139,7 @@ export function useBattleMap(
     }
   }, [abilitySystem, selectCharacter, turnManager]);
 
-  const handleTileClick = useCallback((tile: BattleMapTile) => {
+  const handleTileClick = useCallback(async (tile: BattleMapTile) => {
     if (!mapData) return;
 
     // Ability targeting handles both creature clicks and ground/area clicks.
@@ -177,7 +177,7 @@ export function useBattleMap(
         const moveCost = calculatePathMovementCost(path);
         const moveActionCost: AbilityCost = { type: 'movement-only', movementCost: moveCost };
 
-        if (turnManager.executeAction({
+        if (await turnManager.executeAction({
           id: Math.random().toString(),
           characterId: resolvedSelectedCharacterId,
           type: 'move',

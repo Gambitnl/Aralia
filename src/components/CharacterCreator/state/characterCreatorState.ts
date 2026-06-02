@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 11/03/2026, 20:48:33
- * Dependents: CharacterCreator.tsx, CreationSidebar.tsx, FeatSelection.tsx, LevelUpModal.tsx, NameAndReview.tsx, sidebarSteps.ts, useCharacterAssembly.ts
- * Imports: 4 files
+ * Last Sync: 02/06/2026, 11:58:31
+ * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/CreationSidebar.tsx, components/CharacterCreator/FeatSelection.tsx, components/CharacterCreator/NameAndReview.tsx, components/CharacterCreator/config/sidebarSteps.ts, components/CharacterCreator/hooks/useCharacterAssembly.ts, components/CharacterSheet/LevelUpModal.tsx, hooks/useCharacterAssembly.ts
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -51,6 +51,7 @@ export enum CreationStep {
   ClassFeatures,
   WeaponMastery,
   RacialFeatSelection,
+  FeatSelection = RacialFeatSelection,
   NameAndReview,
 }
 

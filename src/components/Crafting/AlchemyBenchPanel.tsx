@@ -42,7 +42,8 @@ import {
     calculateBatchCraftability,
     attemptBatchCraft,
     generateBatchCraftActions,
-    getBatchDCDisplay
+    getBatchDCDisplay,
+    DEFAULT_BATCH_CONFIG
 } from '../../systems/crafting/batchCrafting';
 import {
     CRAFTING_LOCATIONS,
