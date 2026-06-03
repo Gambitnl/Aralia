@@ -450,6 +450,45 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.focus-ci-classification {
+  background: color-mix(in srgb, var(--approval-bg) 36%, transparent);
+  border: 1px solid color-mix(in srgb, var(--approval-text) 22%, var(--border));
+  border-radius: 8px;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.55rem;
+}
+
+.focus-ci-classification > span,
+.focus-ci-classification small {
+  color: var(--muted);
+}
+
+.focus-ci-classification > strong {
+  color: var(--approval-text);
+  overflow-wrap: anywhere;
+}
+
+.focus-ci-classification dl {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.focus-ci-classification dt {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.focus-ci-classification dd {
+  font-weight: 700;
+  margin: 0;
+}
+
 .focus-metrics {
   display: grid;
   gap: 0.45rem;
@@ -1155,6 +1194,43 @@ textarea {
   color: var(--muted);
 }
 
+.queue-ci-classification {
+  /* This mirrors the worker-facing CI classification packet on the visible
+     queue card. Keep it compact but distinct so a red GitHub check does not
+     read as an automatic Jules repair when the PR scope is clean. */
+  background: color-mix(in srgb, var(--approval-bg) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--approval-text) 24%, var(--border));
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+}
+
+.queue-ci-classification > strong {
+  color: var(--approval-text);
+}
+
+.queue-ci-classification dl {
+  display: grid;
+  gap: 0.4rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin: 0;
+}
+
+.queue-ci-classification div {
+  min-width: 0;
+}
+
+.queue-ci-classification dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.queue-ci-classification dd {
+  font-weight: 700;
+  margin: 0;
+}
+
 .action-session-link,
 .action-pr-link,
 .action-command {
@@ -1225,6 +1301,53 @@ textarea {
 }
 
 .queue-conflict-context code {
+  overflow-wrap: anywhere;
+}
+
+.task-page-pr-repair .task-page-subcard {
+  /* The task page is where operators drill into the queue-level status. Keep
+     CI classification visually grouped with PR checks so ambient failures do
+     not look like generic repair instructions or detached prose. */
+  background: color-mix(in srgb, var(--approval-bg) 34%, transparent);
+  border: 1px solid color-mix(in srgb, var(--approval-text) 20%, var(--border));
+  border-radius: 8px;
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+}
+
+.task-page-pr-repair .task-page-subcard h3 {
+  color: var(--approval-text);
+  margin: 0;
+}
+
+.task-page-blocker-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.task-page-inline-note {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.6rem;
+}
+
+.task-page-inline-note p {
+  margin: 0;
+}
+
+.task-page-inline-note ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.task-page-inline-note a {
   overflow-wrap: anywhere;
 }
 

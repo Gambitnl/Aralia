@@ -2021,6 +2021,7 @@ function renderDashboardFocusStrip({ drafts, handoffs, operatorPlan, path, pendi
   const actionLabel = action.label || queueNextAction?.label || taskRouting?.nextAction?.label || operatorPlan?.title || 'Review dashboard state';
   const proof = path?.nextExpectedProof || action.expectedProof || 'Record the next durable receipt.';
   const runControl = renderForemanRunControl(action);
+  const focusCiClassification = renderFocusCiClassification(queueNextAction);
   const preflightLabel = preflight?.ok ? 'GitHub synced' : 'Git sync blocked';
   const prCount = handoffs.filter(handoff => Boolean(handoff.githubPullRequestUrl)).length;
   const runningHandoffs = handoffs.filter(handoff => !['MERGED', 'CLOSED', 'ARCHIVED'].includes(String(handoff.githubPullRequestState || handoff.status || '').toUpperCase())).length;
@@ -2043,6 +2044,7 @@ function renderDashboardFocusStrip({ drafts, handoffs, operatorPlan, path, pendi
       <strong>${escapeHtml(proof)}</strong>
       ${runControl ? `<div class="focus-action">${runControl}</div>` : ''}
     </div>
+    ${focusCiClassification}
     <dl class="focus-metrics">
       <div><dt>Git</dt><dd>${escapeHtml(preflightLabel)}</dd></div>
       <div><dt>Drafts</dt><dd>${escapeHtml(String(drafts.length))}</dd></div>
@@ -2051,6 +2053,32 @@ function renderDashboardFocusStrip({ drafts, handoffs, operatorPlan, path, pendi
       <div><dt>Active</dt><dd>${escapeHtml(String(runningHandoffs))}</dd></div>
     </dl>
   </section>`;
+}
+
+function renderFocusCiClassification(queueNextAction) {
+  const classification = queueNextAction?.pull_request_ci_classification || queueNextAction?.pullRequestCiClassification || null;
+
+  if (!classification) {
+    return '';
+  }
+
+  const checkEvidence = classification.checkEvidence || {};
+  const fileScope = classification.fileScopeEvidence || {};
+  const failed = Number.isFinite(Number(checkEvidence.failed)) ? Number(checkEvidence.failed) : 0;
+  const outOfScopeCount = Array.isArray(fileScope.outOfScopeFiles) ? fileScope.outOfScopeFiles.length : 0;
+
+  // The focus strip is the first viewport. Keep CI ownership visible here so
+  // the operator sees "ambient CI classification" before any detailed drawer.
+  return `<div class="focus-ci-classification">
+    <span>CI classification</span>
+    <strong>${escapeHtml(classification.status || 'unknown')}</strong>
+    <small>${escapeHtml(classification.summary || '')}</small>
+    <dl>
+      <div><dt>Failed</dt><dd>${escapeHtml(String(failed))}</dd></div>
+      <div><dt>File risk</dt><dd>${escapeHtml(fileScope.risk || 'unknown')}</dd></div>
+      <div><dt>Out-of-scope</dt><dd>${escapeHtml(String(outOfScopeCount))}</dd></div>
+    </dl>
+  </div>`;
 }
 
 function renderForemanConsole(parts) {
@@ -3645,6 +3673,7 @@ function renderQueueNextAction(action) {
   const conflictContext = renderQueueConflictContext(action);
   const sessionContext = renderActionJulesSession(action);
   const pullRequestContext = renderActionPullRequest(action);
+  const ciClassificationContext = renderActionCiClassification(action);
   const commandContext = renderActionCommand(action);
   const requestBodyContext = renderActionRequestBody(action);
 
@@ -3661,6 +3690,7 @@ function renderQueueNextAction(action) {
     ${endpoint}
     ${sessionContext}
     ${pullRequestContext}
+    ${ciClassificationContext}
     ${commandContext}
     ${requestBodyContext}
     ${conflictContext}
@@ -3936,6 +3966,35 @@ function renderActionPullRequest(action) {
   // state. Showing the PR beside the endpoint keeps those two surfaces tied
   // together for both browser operators and worker foremen.
   return `<p class="action-pr-link"><strong>GitHub PR:</strong> <a href="${escapeAttribute(pullRequestUrl)}" target="_blank" rel="noreferrer">${escapeHtml(pullRequestUrl)}</a></p>`;
+}
+
+function renderActionCiClassification(action) {
+  const classification = action.pull_request_ci_classification || action.pullRequestCiClassification || null;
+
+  if (!classification) {
+    return '';
+  }
+
+  const checkEvidence = classification.checkEvidence || {};
+  const fileScope = classification.fileScopeEvidence || {};
+  const failed = Number.isFinite(Number(checkEvidence.failed)) ? Number(checkEvidence.failed) : 0;
+  const pending = Number.isFinite(Number(checkEvidence.pending)) ? Number(checkEvidence.pending) : 0;
+  const outOfScopeCount = Array.isArray(fileScope.outOfScopeFiles) ? fileScope.outOfScopeFiles.length : 0;
+
+  // Queue next action is the dashboard's fastest status read. Showing this
+  // compact classification there prevents operators from opening raw JSON or
+  // assuming a scoped PR needs Jules feedback just because GitHub checks are
+  // red.
+  return `<div class="queue-ci-classification">
+    <strong>CI classification:</strong> ${escapeHtml(classification.status || 'unknown')}
+    <span class="usage-summary">${escapeHtml(classification.summary || '')}</span>
+    <dl>
+      <div><dt>Failed</dt><dd>${escapeHtml(String(failed))}</dd></div>
+      <div><dt>Pending</dt><dd>${escapeHtml(String(pending))}</dd></div>
+      <div><dt>File risk</dt><dd>${escapeHtml(fileScope.risk || 'unknown')}</dd></div>
+      <div><dt>Out-of-scope</dt><dd>${escapeHtml(String(outOfScopeCount))}</dd></div>
+    </dl>
+  </div>`;
 }
 
 function renderActionCommand(action) {

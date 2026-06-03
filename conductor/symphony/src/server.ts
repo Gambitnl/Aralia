@@ -287,7 +287,7 @@ type DeploymentReadinessPacket = {
 type ScoutCoreReadinessPacket = {
   handoffId: string;
   title: string;
-  status: 'waiting' | 'waiting_for_checks_rerun' | 'blocked_by_pr' | 'blocked_by_scout' | 'ready_for_core' | 'merged' | 'observed';
+  status: 'waiting' | 'waiting_for_checks_rerun' | 'blocked_by_pr' | 'blocked_by_ambient_ci' | 'blocked_by_scout' | 'ready_for_core' | 'merged' | 'observed';
   nextBoundary: 'github_pr' | 'scout_core' | 'core_merge' | 'local_sync';
   canRefreshNow: boolean;
   canScoutReviewNow: boolean;
@@ -2300,6 +2300,7 @@ export class HttpServer {
     const result = this.recordFromUnknown(detail.repairPushResult);
     const scoutCore = this.recordFromUnknown(detail.scoutCoreReadiness);
     const feedback = this.recordFromUnknown(detail.githubPullRequestFeedback);
+    const ciClassification = this.recordFromUnknown(detail.githubPullRequestCiClassification);
     if (
       !Object.keys(checks).length
       && !Object.keys(nextAction).length
@@ -2307,6 +2308,7 @@ export class HttpServer {
       && !Object.keys(result).length
       && !Object.keys(scoutCore).length
       && !Object.keys(feedback).length
+      && !Object.keys(ciClassification).length
     ) return '';
 
     const changedFiles = this.arrayFromUnknown(readiness.changedFiles);
@@ -2329,6 +2331,14 @@ export class HttpServer {
     const latestJulesFeedback = julesFeedback.at(-1) ?? {};
     const latestJulesFeedbackUrl = this.stringFromUnknown(latestJulesFeedback.url);
     const feedbackSummary = this.stringFromUnknown(feedback.summary);
+    const ciFileScope = this.recordFromUnknown(ciClassification.fileScopeEvidence);
+    const ciCheckEvidence = this.recordFromUnknown(ciClassification.checkEvidence);
+    const ciRationale = this.arrayFromUnknown(ciClassification.routingRationale)
+      .map(item => String(item))
+      .filter(Boolean);
+    const ciBlockers = this.arrayFromUnknown(ciCheckEvidence.blockers)
+      .map(item => this.recordFromUnknown(item))
+      .filter(item => Object.keys(item).length > 0);
 
     // The PR check and repair card is the operator-facing bridge between a
     // failing GitHub PR and the later Scout/Core gate. It does not rerun checks
@@ -2350,6 +2360,36 @@ export class HttpServer {
         <div><dt>Repair freshness</dt><dd>${this.escapeHtml(this.stringFromUnknown(readiness.freshnessStatus) ?? 'unknown')}</dd></div>
       </dl>
       ${this.stringFromUnknown(nextAction.label) ? `<p><strong>${this.escapeHtml(this.stringFromUnknown(nextAction.label) ?? '')}</strong>: ${this.escapeHtml(this.stringFromUnknown(nextAction.summary) ?? '')}</p>` : ''}
+      ${Object.keys(ciClassification).length ? `
+        <section class="task-page-subcard">
+          <h3>CI Classification</h3>
+          <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(ciClassification.summary) ?? 'Symphony has classified the current PR check boundary.')}</p>
+          <dl class="task-page-facts">
+            <div><dt>Status</dt><dd>${this.escapeHtml(this.stringFromUnknown(ciClassification.status) ?? 'unknown')}</dd></div>
+            <div><dt>Failed checks</dt><dd>${this.escapeHtml(String(this.numberFromUnknown(ciCheckEvidence.failed) ?? 0))}</dd></div>
+            <div><dt>Pending checks</dt><dd>${this.escapeHtml(String(this.numberFromUnknown(ciCheckEvidence.pending) ?? 0))}</dd></div>
+            <div><dt>File risk</dt><dd>${this.escapeHtml(this.stringFromUnknown(ciFileScope.risk) ?? 'unknown')}</dd></div>
+            <div><dt>Out-of-scope files</dt><dd>${this.escapeHtml(String(this.arrayFromUnknown(ciFileScope.outOfScopeFiles).length))}</dd></div>
+          </dl>
+          ${ciRationale.length ? `<ul>${ciRationale.map(reason => `<li>${this.escapeHtml(reason)}</li>`).join('')}</ul>` : ''}
+          ${ciBlockers.length ? `<div class="task-page-blocker-list">
+            ${ciBlockers.map(blocker => {
+              const checkNames = this.arrayFromUnknown(blocker.checkNames).map(name => String(name)).filter(Boolean);
+              const evidence = this.arrayFromUnknown(blocker.evidence).map(item => String(item)).filter(Boolean);
+              return `<article class="task-page-inline-note">
+                <p><strong>${this.escapeHtml(this.stringFromUnknown(blocker.category) ?? 'check_blocker')}</strong>: ${this.escapeHtml(this.stringFromUnknown(blocker.summary) ?? 'GitHub check blocker needs classification.')}</p>
+                ${checkNames.length ? `<p class="usage-summary">Checks: ${this.escapeHtml(checkNames.join(', '))}</p>` : ''}
+                ${evidence.length ? `<ul>${evidence.map(item => {
+                  const [label, url] = item.split(/:\s+(https?:\/\/\S+)/);
+                  return url ? `<li><a href="${this.escapeHtml(url)}">${this.escapeHtml(label)}</a></li>` : `<li>${this.escapeHtml(item)}</li>`;
+                }).join('')}</ul>` : ''}
+                <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(blocker.nextAction) ?? 'Inspect failed check logs before routing repair work.')}</p>
+              </article>`;
+            }).join('')}
+          </div>` : ''}
+          <p class="usage-summary">${this.escapeHtml(this.stringFromUnknown(ciClassification.nextExpectedProof) ?? 'Record failed-check ownership before routing repair or merge decisions.')}</p>
+        </section>
+      ` : ''}
       ${failedChecks.length ? `<ul>${failedChecks.map(check => `<li>${check.detailsUrl ? `<a href="${this.escapeHtml(check.detailsUrl)}">${this.escapeHtml(check.name)}</a>` : this.escapeHtml(check.name)}</li>`).join('')}</ul>` : ''}
       ${feedbackSummary ? `<p class="usage-summary">PR feedback captured: ${this.escapeHtml(feedbackSummary)}</p>` : ''}
       ${julesFeedback.length ? `<p class="usage-summary">Marked feedback proves a GitHub PR comment exists${latestJulesFeedbackUrl ? ` (<a href="${this.escapeHtml(latestJulesFeedbackUrl)}">latest comment</a>)` : ''}. If the active Jules session does not visibly show the latest feedback, open the Jules session and send or confirm the same bounded repair request there before assuming a repair is underway.</p>` : ''}
@@ -2995,7 +3035,9 @@ export class HttpServer {
       summary: this.readStringField(draft.next_action, 'summary') ?? draft.body,
       currentBoundary: {
         label: actionLabel,
-        detail: draft.handoff_readiness?.nextOperatorAction.detail ?? null,
+        detail: draft.handoff_readiness?.nextOperatorAction.detail
+          ?? this.readStringField(draft.next_action, 'summary')
+          ?? null,
         endpoint: draft.handoff_readiness?.nextOperatorAction.endpoint ?? null,
         method: draft.handoff_readiness?.nextOperatorAction.method ?? null,
       },
@@ -3108,7 +3150,7 @@ export class HttpServer {
         label: currentBoundaryLabel,
         detail: needsHumanInput
           ? operatorQuestion?.plainLanguageQuestion ?? operatorQuestion?.question ?? null
-          : this.readStringField(effectiveNextAction, 'detail'),
+          : this.readStringField(effectiveNextAction, 'detail') ?? this.readStringField(effectiveNextAction, 'summary'),
         endpoint: this.readStringField(effectiveNextAction, 'endpoint') ?? this.readStringField(effectiveNextAction, 'url'),
         method: this.readStringField(effectiveNextAction, 'method'),
       },
@@ -3156,6 +3198,7 @@ export class HttpServer {
       githubPullRequestChecks: handoff.githubPullRequestChecks ?? null,
       githubPullRequestFeedback: handoff.githubPullRequestFeedback ?? null,
       githubPullRequestNextAction: handoff.githubPullRequestNextAction ?? null,
+      githubPullRequestCiClassification: this.buildPullRequestCiClassification(handoff),
       pullRequestChecksCommand: handoff.pullRequestChecksCommand ?? null,
       pullRequestViewCommand: handoff.pullRequestViewCommand ?? null,
       githubPullRequestState: handoff.githubPullRequestState ?? null,
@@ -4957,6 +5000,7 @@ export class HttpServer {
             ...pullRequestContext,
             command: prAction.command,
             pull_request_next_action: prAction,
+            pull_request_ci_classification: this.buildPullRequestCiClassification(handoff),
           });
       }
 
@@ -5184,6 +5228,7 @@ export class HttpServer {
           ...pullRequestContext,
           command: prAction.command,
           pull_request_next_action: prAction,
+          pull_request_ci_classification: this.buildPullRequestCiClassification(handoff),
         });
     }
 
@@ -5829,6 +5874,79 @@ export class HttpServer {
     };
   }
 
+  private buildPullRequestCiClassification(
+    handoff: TaskDraftSnapshot['handoffs'][number],
+  ): Record<string, unknown> | null {
+    const action = handoff.githubPullRequestNextAction;
+    if (action?.code !== 'classify_ambient_ci_blocker') return null;
+
+    const checks = handoff.githubPullRequestChecks;
+    const files = handoff.githubPullRequestFiles;
+    const failedChecksAreScopedAwayFromThePr = checks?.conclusion === 'failing'
+      && files?.risk === 'low'
+      && (files.outOfScopeFiles?.length ?? 0) === 0;
+    const checkBlockers = failedChecksAreScopedAwayFromThePr
+      ? (checks?.blockers?.length ? checks.blockers : [{
+          category: 'unknown',
+          severity: 'blocking',
+          checkNames: [],
+          evidence: [],
+          summary: 'GitHub checks are failing, but Symphony has no captured failed-check names yet.',
+          nextAction: 'Refresh or inspect GitHub checks, then route the blocker separately from the scoped Jules PR.',
+          mutatesExternalSystems: false,
+        }]).map(blocker => {
+          // The generic check-name classifier cannot infer ownership from names
+          // like Build or Tests. Once the PR scope evidence is low-risk and
+          // in-scope, the ambient-CI packet can safely explain that this is a
+          // repo-debt routing blocker, not automatic Jules repair feedback.
+          if (blocker.category !== 'unknown') return blocker;
+
+          return {
+            ...blocker,
+            category: 'ambient_repo_debt',
+            summary: 'GitHub checks are failing, but the low-risk in-scope PR file list points away from a Jules implementation repair.',
+            nextAction: 'Route the failed Build/Tests ownership separately, or make an explicit merge decision that acknowledges the unrelated red checks.',
+          };
+        })
+      : checks?.blockers ?? [];
+
+    // This packet is deliberately separate from the repair-decision prompt.
+    // A scoped PR can be blocked by CI without needing Jules feedback; exposing
+    // that distinction on the task detail page keeps the dashboard from
+    // collapsing every red check into "ask Jules to fix it."
+    return {
+      status: 'ambient_ci_blocker',
+      generatedAt: handoff.lastPullRequestRefreshAt ?? null,
+      summary: action.summary,
+      pr: {
+        url: handoff.githubPullRequestUrl ?? null,
+        state: handoff.githubPullRequestState ?? null,
+        mergeable: handoff.githubPullRequestMergeable ?? null,
+        headRef: handoff.githubPullRequestHeadRef ?? null,
+      },
+      checkEvidence: {
+        conclusion: checks?.conclusion ?? null,
+        failed: checks?.failed ?? null,
+        pending: checks?.pending ?? null,
+        blockers: checkBlockers,
+      },
+      fileScopeEvidence: {
+        risk: files?.risk ?? null,
+        outOfScopeFiles: files?.outOfScopeFiles ?? [],
+        riskReasons: files?.riskReasons ?? [],
+      },
+      routingRationale: [
+        'The PR is still blocked because GitHub checks are failing.',
+        'The changed files are low-risk and inside the declared Jules write scope.',
+        'Symphony should classify or route the ambient CI debt before asking Jules to repair this package.',
+      ],
+      nextExpectedProof: 'Failed-check ownership classification, separate CI repair routing if needed, or an explicit merge decision that acknowledges the unrelated red checks.',
+      mutatesGit: false,
+      mutatesLocalFiles: false,
+      mutatesExternalSystems: false,
+    };
+  }
+
   private buildScoutCoreReadinessPacket(
     baseUrl: string,
     handoff: TaskDraftSnapshot['handoffs'][number],
@@ -5911,6 +6029,7 @@ export class HttpServer {
     if (handoff.repairPushResult?.status === 'pushed') return 'waiting_for_checks_rerun';
     if (actionCode === 'core_validate_and_merge') return 'ready_for_core';
     if (actionCode === 'wait_for_checks') return 'waiting';
+    if (actionCode === 'classify_ambient_ci_blocker') return 'blocked_by_ambient_ci';
     if (
       actionCode === 'scout_bridge_risk'
       || handoff.githubPullRequestFiles?.risk === 'medium'
@@ -5936,7 +6055,7 @@ export class HttpServer {
   private scoutCoreNextBoundary(status: ScoutCoreReadinessPacket['status']): ScoutCoreReadinessPacket['nextBoundary'] {
     if (status === 'ready_for_core') return 'core_merge';
     if (status === 'merged') return 'local_sync';
-    if (status === 'waiting' || status === 'waiting_for_checks_rerun' || status === 'blocked_by_pr') return 'github_pr';
+    if (status === 'waiting' || status === 'waiting_for_checks_rerun' || status === 'blocked_by_pr' || status === 'blocked_by_ambient_ci') return 'github_pr';
     return 'scout_core';
   }
 
@@ -5969,6 +6088,14 @@ export class HttpServer {
       if (handoff.githubPullRequestState === 'CLOSED') blockers.push('GitHub reports this PR closed before merge.');
       if (handoff.githubPullRequestMergeable === 'CONFLICTING') blockers.push('GitHub reports merge conflicts.');
       if (handoff.githubPullRequestChecks?.conclusion === 'failing') blockers.push('GitHub checks are failing.');
+    }
+
+    if (status === 'blocked_by_ambient_ci') {
+      // This blocker distinguishes "cannot merge yet" from "Jules must repair
+      // its package." The package can remain scoped while shared TypeScript,
+      // test, or workflow debt blocks the normal green-check merge path.
+      blockers.push('GitHub checks are failing while the PR files remain inside the declared low-risk write scope.');
+      blockers.push('Classify failed check logs before routing the work to Jules; ambient repo debt should become a separate repair lane.');
     }
 
     if (status === 'blocked_by_scout') {

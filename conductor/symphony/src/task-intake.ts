@@ -1308,6 +1308,18 @@ export function buildPullRequestNextAction(input: {
         ['Inspect the failed automation logs.', primaryBlocker.nextAction, 'Fix or route the workflow configuration before asking Jules to change task code.', 'Refresh PR checks after repair.']);
     }
 
+    const changedFilesStayInsideScope = input.files?.risk === 'low'
+      && (input.files.outOfScopeFiles?.length ?? 0) === 0;
+    if (changedFilesStayInsideScope) {
+      // A scoped low-risk PR with failing repo-wide checks should not be
+      // treated as an automatic Jules implementation repair. Symphony still
+      // blocks merge, but the next visible boundary becomes check ownership
+      // classification so ambient debt can be routed as its own repair lane.
+      return action('classify_ambient_ci_blocker', 'blocked', 'Classify Ambient CI Blocker', input.scoutReviewCommand, null, input.refreshPullRequestUrl,
+        'GitHub checks are failing, but the PR changed only low-risk files inside the declared Jules write scope.',
+        ['Inspect failed check logs and compare failing files to this PR write scope.', 'If failures are ambient repo debt, record that boundary instead of asking Jules to repair scoped work.', 'If a failed check does implicate this PR, send a focused Jules feedback comment.', 'Refresh PR checks after the routed repair or merge decision.']);
+    }
+
     return action('repair_failed_checks', 'blocked', 'Repair Failed Checks', input.scoutReviewCommand, input.julesFeedbackCommand ?? null, input.refreshPullRequestUrl,
       'GitHub checks are failing.',
       ['Inspect failed checks.', 'Leave a GitHub PR comment for Jules with the failing-check course correction.', 'Send focused repair work to Jules or fix the PR.', 'Refresh PR checks after repair.']);
@@ -3167,6 +3179,7 @@ export interface PullRequestNextAction {
   code:
     | 'refresh_pull_request'
     | 'wait_for_checks'
+    | 'classify_ambient_ci_blocker'
     | 'repair_failed_checks'
     | 'resolve_conflicts'
     | 'scout_bridge_risk'
