@@ -163,10 +163,19 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     setPosition(position);
   }, [setPosition, worldData, entryPosition.y]);
 
-  // Convert entry position to the format World3DScene expects.
+  // FREEZE the scene origin / spawn at the value present when 3D was entered.
+  //
+  // `entryPosition` is `gameState.playerWorldPos` (App.tsx), which THIS component drives via
+  // `setPosition` as the camera moves. Deriving `start` from it live created a feedback loop:
+  //   camera pans → onPositionChange → SET_PLAYER_WORLD_POS → entryPosition → start →
+  //   World3DScene re-derives its floating `sceneOrigin` → the whole world shifts under the camera →
+  //   the camera reports a new position → … (repeats every frame)
+  // The visible result was the map "sliding through space" and never stopping. The floating origin
+  // must stay fixed for the session, so we capture the entry coords once and ignore later updates.
+  const frozenEntry = useRef(entryPosition);
   const startPos: readonly [number, number, number] = useMemo(
-    () => [entryPosition.x, entryPosition.y, entryPosition.z],
-    [entryPosition],
+    () => [frozenEntry.current.x, frozenEntry.current.y, frozenEntry.current.z],
+    [],
   );
 
   return (

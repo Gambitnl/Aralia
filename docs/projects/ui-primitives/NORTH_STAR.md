@@ -60,3 +60,10 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+
+## Global Gap Imports
+
+| GG ID | Imported? | Destination | Scope rationale | Checked |
+|---|---|---|---|---|
+| GG-20 | no | — | GameModals.tsx architectural split is out of scope; ui-primitives covers reusable controls/surfaces, not file-level decomposition of the orchestrator | 2026-06-03 |
+| GG-21 | no | — | ActionPane local state fragmentation belongs to state/architecture project, not ui-primitives surface | 2026-06-03 |

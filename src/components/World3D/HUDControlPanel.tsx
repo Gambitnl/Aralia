@@ -74,6 +74,50 @@ const HUDControlPanel: React.FC<HUDControlPanelProps> = ({ onOpenMap, onExitToMe
             zIndex: 20,
           }}
         >
+          {/* Movement help — how to drive the map camera (MapControls bindings). */}
+          <div
+            data-testid="hud-movement-help"
+            style={{
+              padding: '8px 12px',
+              borderBottom: '1px solid var(--border-color, #3a4a5a)',
+              fontFamily: 'Outfit, sans-serif',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: 'var(--text-secondary, #8a9aaa)',
+                marginBottom: '6px',
+              }}
+            >
+              Move the Map
+            </div>
+            {[
+              ['Pan', 'Left-click + drag'],
+              ['Rotate / tilt', 'Right-click + drag'],
+              ['Zoom', 'Mouse wheel / scroll'],
+              ['Touch', 'One finger pan · two fingers zoom & rotate'],
+            ].map(([label, hint]) => (
+              <div
+                key={label}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  fontSize: '12px',
+                  color: 'var(--text-primary, #e8e8e8)',
+                  lineHeight: 1.6,
+                }}
+              >
+                <span style={{ color: 'var(--text-secondary, #8a9aaa)' }}>{label}</span>
+                <span style={{ textAlign: 'right' }}>{hint}</span>
+              </div>
+            ))}
+          </div>
+
           <button
             type="button"
             data-testid="hud-open-map"
