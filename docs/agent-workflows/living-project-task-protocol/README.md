@@ -28,12 +28,15 @@ Supporting files exist only to make the North Star operational:
 ```text
 PROJECT_NORTH_STAR.md   <- main cold-start entry point
 PROJECT_TRACKER.md      <- active queue, statuses, blockers, next actions
+COLD_START_AGENT_PROMPT.md <- project-specific current handoff for the next agent
+ITERATION_AGENT_WORKFLOW.md <- shared workflow instructions for all iterations
+WORKFLOW_GAPS.md        <- process-level ambiguity and workflow-refinement gaps
 PROJECT_REGISTRY.md     <- repo/workspace project inventory if one exists
 TASK_SLICE.md           <- bounded task definition and verification plan
 GAPS.md                 <- unresolved findings if too large for the tracker
 GLOBAL_GAPS.md          <- repo/workspace gap surfacing and routing tracker
 DECISIONS.md            <- meaningful path choices only
-AUDIT_OR_PROOF.md       <- verification summaries when needed
+AUDIT_OR_PROOF.md       <- verification summaries and proof ledger when needed
 RUNBOOK.md              <- repeatable commands or operator workflow when needed
 ```
 
@@ -48,9 +51,14 @@ Follow this system as the project architecture:
 2. Treat the North Star as the main file. It should preserve the objective,
    intended outcome, current state, active task, scope boundaries, critical
    evidence, known gaps, artifact rules, and exact resume path.
-3. Create or link only the supporting files needed for operational continuity:
-   tracker, task docs, gap registry, decision log, audit/proof record,
-   architecture note, or runbook.
+3. Create or refresh the required operational files: tracker, gap registry,
+   and project-specific cold-start handoff. Keep shared workflow rules in
+   ITERATION_AGENT_WORKFLOW.md instead of duplicating them in every project.
+   Check WORKFLOW_GAPS.md for process-level ambiguity before launching into
+   implementation, and update it only when the workflow itself needs
+   clarification across projects.
+   Create or link optional supporting files only when they have a clear job:
+   task docs, decision log, audit/proof record, architecture note, or runbook.
 4. Keep clear pointers between the North Star, tracker, task docs, gap records,
    decision logs, proof records, architecture notes, and runbooks.
 5. Continue the actual task after the project surface exists. Documentation
@@ -255,6 +263,7 @@ docs/projects/<project-slug>/
   NORTH_STAR.md
   TRACKER.md
   GAPS.md
+  COLD_START_AGENT_PROMPT.md
   DECISIONS.md
   AUDIT_OR_PROOF.md
   RUNBOOK.md
@@ -262,7 +271,11 @@ docs/projects/<project-slug>/
     <task-slice>.md
 ```
 
-Only create supporting files that are needed. If a project already has a shared
+COLD_START_AGENT_PROMPT.md is required for every living project. It should be
+project-specific handoff context that references
+`docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`.
+Only create supporting files such as DECISIONS.md, AUDIT_OR_PROOF.md, and RUNBOOK.md when
+those roles are needed. If a project already has a shared
 gap registry, decision log, audit record, or runbook elsewhere, link to that
 owning file instead of creating a duplicate.
 
@@ -349,6 +362,8 @@ their jobs.
 | Living tracker | Operational queue and status surface | Active tasks, statuses, owners, blockers, gaps, evidence, next actions, next checks | Long transcripts, every tool event, raw artifacts |
 | Package/task doc | Bounded slice definition | Scope, acceptance criteria, allowed files, verification, owner, stop condition | Whole-project scope, unrelated follow-ups |
 | Gap registry | Durable unresolved findings | Gap, classification, evidence/source, owning tracker, owner, next action, next proof, status | Issues already handled in the active task |
+| Iteration workflow | Shared rules for all project iteration agents | Read order, work selection, scoped verification, bounded gap sweep, closeout rules, final report and handoff format | Project-specific current state or prior-agent handoff context |
+| Cold-start agent prompt | Project-specific next-agent handoff | Iteration number, active task, acceptance criteria, key files, scoped verification, blockers, previous-agent context, recent progress, and link to ITERATION_AGENT_WORKFLOW.md | Full project history, raw logs, vague generic instructions, or duplicated workflow text |
 | Decision log | Inspectable choices | Options, chosen path, rationale, mutation/skips, next proof | Raw receipts, unresolved work without tracker entries |
 | Audit/proof doc | Evidence ledger | Verification commands, screenshots or proof references, result summaries, known limits | Unfiltered terminal output or generated dumps |
 | Architecture note | System map | Ownership, file map, contracts, boundaries | Task status that belongs in the tracker |
@@ -385,6 +400,12 @@ Use these classifications when new work appears.
 | `out_of_scope` | It should not be part of this project/task. | Record only if useful for future boundary clarity. |
 | `blocked_human_decision` | A real owner/operator choice is needed. | Ask or leave a clear decision request. |
 | `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. | Record evidence and next refresh/check condition. |
+
+Every iteration must perform a bounded gap sweep. Check the active task
+surface, touched files, nearby integration points, this project GAPS.md, and
+GLOBAL_GAPS.md. Record real gaps found. If fewer than two related or unrelated
+gaps are real, the final report must name the checked surfaces and state that no
+additional real gap was found. Do not invent filler gaps to satisfy a count.
 
 Every durable gap should include:
 
@@ -428,6 +449,38 @@ Routing rules:
 6. Preserve the global row as routing history after import or routing. Do not
    silently delete it unless local instructions explicitly say to prune routed
    rows.
+
+## Iteration Pass Closing Rule
+
+Every agent iteration that moves a living project forward must close by updating
+or explicitly reporting on the project files. This keeps the dashboard honest
+and prevents the North Star from drifting away from operational files.
+
+Minimum closeout for every project iteration:
+
+1. Refresh NORTH_STAR.md with current state, resume path, scope changes,
+   evidence, and anything that must not be lost.
+2. Refresh TRACKER.md with active task status, owner or actor, last updated
+   date, blockers, next action, and evidence or next proof.
+3. Refresh GAPS.md with every durable gap discovered or closed during the
+   iteration, including classification, owner, next action, and next proof.
+4. Refresh COLD_START_AGENT_PROMPT.md with project-specific handoff context:
+   next iteration number, previous-agent summary, active task, acceptance
+   criteria, key files, scoped verification, blockers, and recent progress.
+   Do not duplicate the shared workflow; link to ITERATION_AGENT_WORKFLOW.md.
+5. Review optional supporting files and update any that are relevant:
+   DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md, and bounded task docs under
+   tasks/.
+6. If an optional supporting file exists but was not updated, say why in the
+   final report. If it does not exist and is not needed, report it as not needed
+   instead of creating filler documentation.
+7. Set the written Last updated: YYYY-MM-DD line on every touched project file.
+   The dashboard uses those dates to show whether supporting files are aligned
+   with the North Star.
+
+The final report must include: files updated, files intentionally not updated,
+verification performed or skipped, bounded gap sweep surfaces checked, gaps
+recorded, assumptions made, and the next safe resume action.
 
 ## Durable Evidence Boundary
 
@@ -527,6 +580,8 @@ tracker. Add the other files only when the project needs that supporting role.
 | [LIVING_TRACKER.md](./templates/LIVING_TRACKER.md) | The project needs an active queue, blockers, and next actions. |
 | [TASK_SLICE.md](./templates/TASK_SLICE.md) | A bounded task needs acceptance criteria, allowed boundaries, and verification. |
 | [GAPS.md](./templates/GAPS.md) | Durable unresolved findings are too large for the tracker alone. |
+| [ITERATION_AGENT_WORKFLOW.md](./ITERATION_AGENT_WORKFLOW.md) | Shared workflow all project iteration agents must follow. |
+| [COLD_START_AGENT_PROMPT.md](./templates/COLD_START_AGENT_PROMPT.md) | Every living project needs project-specific next-agent handoff context. |
 | [GLOBAL_GAPS.md](./templates/GLOBAL_GAPS.md) | The workspace needs a shared surfacing tracker for cross-project or orphaned gaps. |
 | [DECISIONS.md](./templates/DECISIONS.md) | The project has meaningful path choices to preserve. |
 | [AUDIT_OR_PROOF.md](./templates/AUDIT_OR_PROOF.md) | Verification summaries or non-regenerable proof need a focused record. |

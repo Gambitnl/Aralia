@@ -56,10 +56,31 @@ export const devHubApiManager = () => ({
       nextStep?: string;
     };
 
+    type WorkflowGapSummary = {
+      href: string;
+      totalCount: number;
+      activeCount: number;
+      blockingCount: number;
+      highSeverityCount: number;
+      lastUpdated: string;
+      activeGaps: Array<{
+        id: string;
+        status: string;
+        severity: string;
+        area: string;
+        issue: string;
+        testimonies: number;
+        nextAction: string;
+        owner: string;
+        lastUpdated: string;
+      }>;
+    };
+
     const projectDocRoles: ProjectDocRole[] = [
       { key: 'northStar', token: 'N', label: 'North Star', fileName: 'NORTH_STAR.md', required: true },
       { key: 'tracker', token: 'T', label: 'Tracker', fileName: 'TRACKER.md', required: true },
       { key: 'gaps', token: 'G', label: 'Gaps', fileName: 'GAPS.md', required: true },
+      { key: 'agentPrompt', token: 'A', label: 'Agent Prompt', fileName: 'COLD_START_AGENT_PROMPT.md', required: true },
       { key: 'decisions', token: 'D', label: 'Decisions', fileName: 'DECISIONS.md', required: false },
       { key: 'proof', token: 'P', label: 'Proof', fileName: 'AUDIT_OR_PROOF.md', required: false },
       { key: 'runbook', token: 'R', label: 'Runbook', fileName: 'RUNBOOK.md', required: false },
@@ -143,6 +164,52 @@ export const devHubApiManager = () => ({
       return match ? stripMarkdownInline(match[1]).trim() : '';
     };
 
+    const markdownSectionFields = (content: string, headingName: string) => {
+      // Agents fill dashboard-facing values in a named markdown section. This
+      // parser lets the dashboard read those explicit fields first, while older
+      // projects can still fall back to inferred values until they are upgraded.
+      const fields: Record<string, string> = {};
+      const lines = content.split(/\r?\n/);
+      const headingPattern = new RegExp('^##\\s+' + headingName + '\\s*$', 'i');
+      const startIndex = lines.findIndex((line) => headingPattern.test(stripMarkdownInline(line).trim()));
+      if (startIndex < 0) return fields;
+
+      for (const line of lines.slice(startIndex + 1)) {
+        if (/^##\s+/.test(line)) break;
+        const match = line.match(/^\s*([^:]+?)\s*:\s*(.+)\s*$/);
+        if (!match) continue;
+        const key = toProjectSlug(match[1]).replace(/-/g, '');
+        fields[key] = stripMarkdownInline(match[2]).trim();
+      }
+
+      return fields;
+    };
+
+    const readProjectCardJson = (projectDir: string) => {
+      // PROJECT_CARD.json remains a backward-compatible override, but markdown
+      // schema fields are preferred because they keep dashboard state inside the
+      // human-readable living project docs.
+      const cardPath = path.join(projectDir, 'PROJECT_CARD.json');
+      if (!fs.existsSync(cardPath)) return {};
+      try {
+        return JSON.parse(fs.readFileSync(cardPath, 'utf-8'));
+      } catch {
+        return {};
+      }
+    };
+
+    const projectCardSchemaField = (schema: Record<string, any>, ...keys: string[]) => {
+      // Markdown schema keys are normalized to lowercase words, while older JSON
+      // overrides used camelCase. This helper lets both contracts work during the
+      // migration instead of forcing every project to change at once.
+      for (const key of keys) {
+        const value = schema[key];
+        if (Array.isArray(value)) return value.join(', ');
+        if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+      }
+      return '';
+    };
+
     const normalizeProjectDate = (value: string) => {
       // Written project dates are more durable than filesystem modification times,
       // which can change during Git operations or generated rewrites.
@@ -214,7 +281,7 @@ export const devHubApiManager = () => ({
     const readProjectDocSignal = (projectDir: string, slug: string, role: ProjectDocRole, northStarDate: string): ProjectDocSignal => {
       // Each token reports both existence and freshness. Required files drive the
       // complete/current counts; optional files are shown so agents know whether
-      // decisions, proof, or runbook docs exist for the project.
+      // agent prompts, decisions, proof, or runbook docs exist for the project.
       const filePath = path.join(projectDir, role.fileName);
       const exists = fs.existsSync(filePath);
       const content = exists ? fs.readFileSync(filePath, 'utf-8') : '';
@@ -261,6 +328,63 @@ export const devHubApiManager = () => ({
       return 'GAPS.md present';
     };
 
+    const readWorkflowGapSummary = (): WorkflowGapSummary => {
+      // Workflow gaps are process-health issues, not project blockers. The
+      // dashboard reads this central file so dispatchers can notice unclear
+      // agent instructions before sending more iteration agents into projects.
+      const workflowGapPath = path.resolve(
+        process.cwd(),
+        'docs',
+        'agent-workflows',
+        'living-project-task-protocol',
+        'WORKFLOW_GAPS.md',
+      );
+      const href = '/Aralia/docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md';
+      const emptySummary: WorkflowGapSummary = {
+        href,
+        totalCount: 0,
+        activeCount: 0,
+        blockingCount: 0,
+        highSeverityCount: 0,
+        lastUpdated: '',
+        activeGaps: [],
+      };
+
+      if (!fs.existsSync(workflowGapPath)) return emptySummary;
+
+      const content = fs.readFileSync(workflowGapPath, 'utf-8');
+      const lastUpdated = normalizeProjectDate(markdownField(content, 'Last updated'));
+      const gaps = content.split(/\r?\n/).flatMap((line) => {
+        if (!/^\|\s*WFG-\d+/i.test(line)) return [];
+        const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+        if (cells.length < 9) return [];
+        const testimonies = Number(cells[5].replace(/[^\d]/g, '')) || 0;
+        return [{
+          id: cells[0],
+          status: cells[1],
+          severity: cells[2],
+          area: cells[3],
+          issue: cells[4],
+          testimonies,
+          nextAction: cells[6],
+          owner: cells[7],
+          lastUpdated: cells[8],
+        }];
+      });
+      const activeGaps = gaps.filter((gap) => !/\b(resolved|closed|superseded|rejected)\b/i.test(gap.status));
+      const severeGaps = activeGaps.filter((gap) => /\b(high|blocking|critical)\b/i.test(gap.severity));
+
+      return {
+        href,
+        totalCount: gaps.length,
+        activeCount: activeGaps.length,
+        blockingCount: activeGaps.filter((gap) => /\b(blocking|critical)\b/i.test(gap.severity)).length,
+        highSeverityCount: severeGaps.length,
+        lastUpdated,
+        activeGaps: activeGaps.slice(0, 5),
+      };
+    };
+
     const buildProjectDashboardCard = (projectsDir: string, slug: string, trackerFallback: ProjectTrackerMetadata = {}) => {
       // This is the canonical project-card builder. Dashboard and detail routes
       // both use it so shared UI cards stay aligned.
@@ -268,6 +392,11 @@ export const devHubApiManager = () => ({
       const northStarContent = readOptionalProjectText(projectDir, 'NORTH_STAR.md');
       const trackerContent = readOptionalProjectText(projectDir, 'TRACKER.md');
       const gapsContent = readOptionalProjectText(projectDir, 'GAPS.md');
+      const dashboardSchema = {
+        ...readProjectCardJson(projectDir),
+        ...markdownSectionFields(trackerContent, 'Dashboard Card Schema'),
+        ...markdownSectionFields(northStarContent, 'Dashboard Card Schema'),
+      };
       const northStarDate = normalizeProjectDate(markdownField(northStarContent, 'Last updated'));
       const docSet = projectDocRoles.map((role) => readProjectDocSignal(projectDir, slug, role, northStarDate));
       const docs = Object.fromEntries(docSet.map((doc) => [doc.key, doc]));
@@ -281,14 +410,19 @@ export const devHubApiManager = () => ({
 
       return {
         slug,
-        name: trackerFallback.project || projectTitleFromDocs(slug, northStarContent, trackerContent),
-        category: trackerFallback.category || 'Unregistered Project Folder',
-        status: markdownField(northStarContent, 'Status') || markdownField(trackerContent, 'Status') || trackerFallback.status || 'tracked',
-        confidence: trackerFallback.confidence || 'unknown',
-        evidence: trackerFallback.evidence || 'docs/projects/' + slug,
-        gapSignal: gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || trackerFallback.gapSignal || 'See project gap file',
-        protocol: trackerFallback.protocol || (docsComplete ? 'living project doc set' : 'incomplete project doc set'),
-        nextStep: trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
+        name: projectCardSchemaField(dashboardSchema, 'project') || trackerFallback.project || projectTitleFromDocs(slug, northStarContent, trackerContent),
+        category: projectCardSchemaField(dashboardSchema, 'category') || trackerFallback.category || 'Unregistered Project Folder',
+        status: projectCardSchemaField(dashboardSchema, 'status') || markdownField(northStarContent, 'Status') || markdownField(trackerContent, 'Status') || trackerFallback.status || 'tracked',
+        confidence: projectCardSchemaField(dashboardSchema, 'confidence') || trackerFallback.confidence || 'unknown',
+        evidence: projectCardSchemaField(dashboardSchema, 'evidence') || trackerFallback.evidence || 'docs/projects/' + slug,
+        gapSignal: projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || trackerFallback.gapSignal || 'See project gap file',
+        protocol: projectCardSchemaField(dashboardSchema, 'protocol') || trackerFallback.protocol || (docsComplete ? 'living project doc set' : 'incomplete project doc set'),
+        nextStep: projectCardSchemaField(dashboardSchema, 'nextstep', 'nextStep') || trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
+        requiredVerification: projectCardSchemaField(dashboardSchema, 'requiredverification', 'requiredVerification'),
+        completedVerification: projectCardSchemaField(dashboardSchema, 'completedverification', 'completedVerification'),
+        lastProof: projectCardSchemaField(dashboardSchema, 'lastproof', 'lastProof'),
+        workflowGapsReviewed: projectCardSchemaField(dashboardSchema, 'workflowgapsreviewed', 'workflowGapsReviewed'),
+        dashboardSchemaPresent: Object.keys(dashboardSchema).length > 0,
         docsComplete,
         docsCurrent,
         staleDocCount: staleDocs.length,
@@ -333,6 +467,7 @@ export const devHubApiManager = () => ({
             projectCount: projects.length,
             docsCompleteCount: projects.filter((project: any) => project.docsComplete).length,
             docsCurrentCount: projects.filter((project: any) => project.docsCurrent).length,
+            workflowGaps: readWorkflowGapSummary(),
             statusCounts: countBy('status'),
             categoryCounts: countBy('category'),
             projects,
