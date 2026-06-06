@@ -1,7 +1,7 @@
 # Character Sheet North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -12,6 +12,28 @@ Character Sheet is an implemented UI feature with modal and tabbed character dat
 - Confirm and document existing Character Sheet surfaces under `src/components/CharacterSheet`.
 - Track state integration points that keep sheet visibility, character payload, inventory, and actions in sync.
 - Capture durable gaps from implementation state and keep adjacency scope explicit.
+
+## Active Task Acceptance Criteria
+
+- Produce a field-by-field map for `PlayerCharacter` and any journal, spell, or item payloads used by Character Sheet tabs.
+- Record any missing, mismatched, or ambiguous fields in `docs/projects/character-sheet/GAPS.md`.
+- Keep `TRACKER.md` and this handoff aligned on the same open slice; do not mark T2 complete without a documented mapping note.
+
+## Dashboard Card Schema
+
+Project: Character Sheet  
+Slug: character-sheet  
+Category: Feature/UI Projects  
+Status: active  
+Confidence: medium  
+Evidence: docs/projects/character-sheet  
+Gap signal: 1 active gap, 3 open follow-ups  
+Protocol: living project doc set  
+Next step: Complete the T2 schema mapping against `src/types/character.ts` and log any drift in `GAPS.md`.  
+Required verification: docs_consistency  
+Completed verification: docs_consistency  
+Last proof: 2026-06-05  
+Workflow gaps reviewed: 2026-06-05
 
 ## Concrete File Map (Owner Surface)
 
@@ -95,6 +117,7 @@ Character Sheet is an implemented UI feature with modal and tabbed character dat
 - Schema alignment remains an explicit open item from the tracker: sheet fields do not have one authoritative mapping pass documented in one place.
 - Journal input shape and integration points are present but still need schema stability verification.
 - Action payload typing and casing consistency for item use/management actions needs a clean-up to avoid future drift.
+- Component README intent notes may drift from runtime behavior, so they need periodic spot checks before future expansion.
 
 ## Next Checks for Cold Start
 

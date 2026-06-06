@@ -1,7 +1,7 @@
 # SaveLoad Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -19,7 +19,7 @@ Last updated: 2026-05-31
 |---|---|---|---|---|---|---|---|---|
 | T1 | done | Document current SaveLoad runtime scope in NORTH_STAR.md | Worker B | 2026-05-31 | `docs/projects/saveload/NORTH_STAR.md` | Validate tracker and gaps reflect runtime evidence | `Get-Content` on NORTH_STAR, TRACKER, GAPS |
 | T2 | done | Record implementation-aligned gaps and integration seams | Worker B | 2026-05-31 | `docs/projects/saveload/NORTH_STAR.md`, `src/services/saveLoadService.ts` | Keep GAPS updated with next checks | GAPS row verification |
-| T3 | active | Decide runtime bootstrap path for storage migration and version policy before code changes | Worker B | 2026-05-31 | `src/services/saveLoadService.ts`, `docs/projects/saveload/GAPS.md` | Confirm owner, then implement in code only when scope resumes | Add startup call or mark blocked by approval |
+| T3 | active | Decide runtime bootstrap path for storage migration and version policy before code changes | Worker B | 2026-06-05 | `src/services/saveLoadService.ts`, `docs/projects/saveload/GAPS.md` | Confirm owner, then implement in code only when scope resumes | Add startup call or mark blocked by approval |
 
 ## Gap Log
 

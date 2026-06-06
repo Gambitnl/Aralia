@@ -1,7 +1,7 @@
 # Dialogue Tracker
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 - `not_started`
@@ -15,7 +15,7 @@ Last updated: 2026-05-31
 | ID | Status | Task | Owner | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|
 | D1 | done | Replace scaffold docs with concrete Dialogue implementation snapshot in NORTH_STAR.md | aralia-dialogue | `src/components/Dialogue/DialogueInterface.tsx`, `src/hooks/useDialogueSystem.ts`, `src/services/dialogueService.ts` | Keep files in `docs/projects/dialogue/` only | `docs/projects/dialogue/NORTH_STAR.md` reflects topic flow and integration |
-| D2 | active | Track unresolved dialogue gaps and keep this project-level gap list aligned | aralia-dialogue | `docs/projects/dialogue/GAPS.md` | Add and prioritize follow-up gaps tied to evidence | Keep gap status and next proof in GAPS.md |
+| D2 | active | Track unresolved dialogue gaps and keep this project-level gap list aligned | aralia-dialogue | `docs/projects/dialogue/GAPS.md`, `docs/projects/dialogue/NORTH_STAR.md` | Keep the gap log aligned with the current resume path and only add evidence-backed Dialogue gaps | Keep gap status and next proof in GAPS.md |
 | D3 | active | Validate current session persistence and memory update path | aralia-dialogue | `src/state/reducers/npcReducer.ts`, `src/state/reducers/dialogueReducer.ts` | Confirm `START/UPDATE/END_DIALOGUE_SESSION` and `DISCUSS_TOPIC` behavior are documented | Re-check reducer/action mapping from action handler to modal closure |
 
 ## Change Log
@@ -25,6 +25,7 @@ Last updated: 2026-05-31
 | 2026-05-31 | `docs/projects/dialogue/NORTH_STAR.md` | Replaced scaffold with concrete runtime facts | Documentation now reflects implemented system state | Keep synced with future feature changes |
 | 2026-05-31 | `docs/projects/dialogue/GAPS.md` | Added implementation-backed gap log and status labels | Preserve unresolved items for cold handoff | Review blocked/human-decision items before next scope expansion |
 | 2026-05-31 | `docs/projects/dialogue/TRACKER.md` | Added active tasks for continuity and checks | Make next steps explicit for cold starts | Retire completed tasks in place |
+| 2026-06-05 | `docs/projects/dialogue/NORTH_STAR.md`, `docs/projects/dialogue/TRACKER.md`, `docs/projects/dialogue/GAPS.md`, `docs/projects/dialogue/COLD_START_AGENT_PROMPT.md` | Refreshed the cold-start resume state and expanded the project gap inventory with Dialogue-specific follow-ups | Keep the handoff compact, current, and evidence-backed | Resume from D2 and keep D3 visible |
 
 ## Update Rules
 - Update active tasks when behavior or tests change.

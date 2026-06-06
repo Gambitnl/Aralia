@@ -1,10 +1,26 @@
 # Glossary UI North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose
 Keep the glossary feature discoverable as a working project surface. The feature is already implemented; this folder now captures current behavior, integration points, and open risks before further extension.
+
+## Dashboard Card Schema
+
+Project: Glossary UI
+Slug: glossary-ui
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/glossary-ui/NORTH_STAR.md
+Gap signal: 3 open gaps
+Protocol: living project doc set
+Next step: Document the non-dev glossary rebuild contract and keep the proof path explicit.
+Required verification: docs_consistency
+Completed verification: not run this pass
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Scope
 This project covers the glossary modal and content browsing experience under:
@@ -43,9 +59,14 @@ This project covers the glossary modal and content browsing experience under:
 - `docs/projects/PROJECT_TRACKER.md` is the registry anchor and cross-project handoff point.
 
 ## Open Issues and Next Checks
-- Confirm a non-dev rebuild contract for glossary index generation in standard build/CI paths.
+- Confirm a non-dev rebuild contract for glossary index generation in standard build/CI paths, and keep the command path and proof file named in the tracker.
 - Decide whether Equipment grouping taxonomy should stay based on `itemType` strings or move to a curated canonical list.
 - Validate whether all generated glossary fields consumed by UI, including `itemMetadata`, are consistently typed and preserved in all item pipelines.
+
+## Current Focus
+- T2 is the active slice: capture the non-dev glossary rebuild contract as a stable project-level check.
+- Keep the source -> index -> bundle path visible in docs so the next agent can resume without reading runtime code first.
+- Preserve the item-categorization boundary: this folder records the dependency, but `docs/projects/item_categorization` owns the taxonomy decision.
 
 ## Resume Path
 1. Read `TRACKER.md` for active tasks.

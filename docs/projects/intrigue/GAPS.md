@@ -1,7 +1,7 @@
 # Intrigue System Gap Registry
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Gap Log
 
@@ -14,3 +14,8 @@ Last updated: 2026-05-31
 | G-005 | not_started | implementation | `src/systems/intrigue/LeverageSystem.ts` defines full apply/resolve flow; production code only references it in tests. | Core intrigue economics has no in-game action path, so blackmail/leverage outcomes remain offline. | Define action/reducer entry points for leverage attempts and UI invocation points. | Add at least one integration test where a known secret leads to nontrivial `GameMessage` and faction/standing change. |
 | G-006 | in_progress | workflow | `src/systems/world/WorldEventManager.ts`, `src/systems/world/NobleIntrigueManager.ts`, `src/systems/world/FactionManager.ts` contain meaningful TODO and placeholder comments around switch scope, rumor shape, and imported types. | Several production-risky branches remain intent-heavy without explicit ownership comments. | Convert TODO list into task-bound gap slices before adding deeper intrigue expansion. | Include TODO coverage in periodic scan for `src/systems/intrigue` and `src/systems/world` before each handoff. |
 | G-007 | in_progress | integration | `src/components/Town/Intrigue/RumorMill.tsx` converts purchased rumor content into note items with `type: 'note'` and `item.id = rumor_...`. | Item typing and storage behavior works, but this path is a generic service item and has no dedicated intrigue receipt schema. | Decide whether to introduce explicit intrigue item/flag or keep note shim with parser rule. | Keep `RumorMill` behavior stable and add assertions for persistence of purchased note id/content. |
+
+Current triage alignment
+- `I2` still maps to `G-005` and remains the next leverage wiring decision.
+- `I3` still maps to `G-002` and needs a lead payload contract before it can become actionable.
+- `I4` still maps to `G-003` and should stay on hold until a canonical generator is chosen.

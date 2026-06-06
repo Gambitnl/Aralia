@@ -1,7 +1,7 @@
 # NORTHSTAR: RealmSmith Service Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/realmsmith-service/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: NORTHSTAR: RealmSmith Service
 Project folder: docs/projects/realmsmith-service
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/realmsmith-service/NORTH_STAR.md
 Tracker: docs/projects/realmsmith-service/TRACKER.md
@@ -24,9 +24,10 @@ Gaps: docs/projects/realmsmith-service/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the initial project packet. This pass refreshed the
+dashboard schema, compacted the tracker/gap wording, and recorded the shared
+workflow path mismatch as a workflow testimony. No source or code changes were
+made.
 
 ## Current Mission
 
@@ -34,29 +35,37 @@ Active task:
 T2 - Confirm RealmSmith service contract and retry policy before next implementation change
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+- TRACKER.md and NORTH_STAR.md agree on the active contract/retry state.
+- The next agent can point to the named source files and explain the current
+  service contract surface.
+- Any new ambiguity found during source review is recorded in GAPS.md or
+  routed to the shared workflow / global gap docs.
 
 Key files to touch:
 - docs/projects/realmsmith-service/NORTH_STAR.md
 - docs/projects/realmsmith-service/TRACKER.md
 - docs/projects/realmsmith-service/GAPS.md
 - docs/projects/realmsmith-service/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md if the
+  workflow-path ambiguity recurs
+- Any source/docs named by T2
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+- Docs consistency is already refreshed.
+- The next agent should perform the source scan or documented proof named by
+  TRACKER.md / NORTH_STAR.md before claiming T2 is ready.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+- Stay inside this project's docs and source boundaries.
+- Do not broaden into sibling project docs unless a real cross-project gap is
+  found.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+- Dashboard Card Schema added to NORTH_STAR.md.
+- TRACKER.md and GAPS.md were compacted to the current active contract/retry
+  gap set.
+- Workflow-level path ambiguity was encountered and testified in
+  WORKFLOW_GAPS.md.
 
 ## Required End State For This Iteration
 

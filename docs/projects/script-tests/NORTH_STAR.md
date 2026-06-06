@@ -1,7 +1,7 @@
 # NORTH_STAR: Script Tests
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose And Scope
 
@@ -9,6 +9,22 @@ This project tracks test-only verification for script-layer behavior in `scripts
 Coverage is currently focused on script helpers used by validation, reporting, and Dev Hub data tooling, with tests run through the shared Vitest suite.
 
 Primary objective: preserve test continuity for script behavior that guards migration safety and runtime-facing data contracts.
+
+## Dashboard Card Schema
+
+Project: Script Tests  
+Slug: script-tests  
+Category: Test Infrastructure  
+Status: partial  
+Confidence: medium  
+Evidence: docs/projects/script-tests  
+Gap signal: 4 open gaps; ST-GAP-001 is the safest next slice  
+Protocol: living project doc set  
+Next step: Close one deterministic script test gap or record why it stays deferred.  
+Required verification: scoped_tests, docs_consistency  
+Completed verification: docs_consistency  
+Last proof: 2026-06-05  
+Workflow gaps reviewed: 2026-06-05
 
 ## File Map (Narrow Scope)
 
@@ -60,7 +76,8 @@ Primary objective: preserve test continuity for script behavior that guards migr
 1. Read this file.
 2. Read `docs/projects/script-tests/TRACKER.md`.
 3. Read `docs/projects/script-tests/GAPS.md`.
-4. Continue from the `tracked gaps` list and align new tests to any uncovered behavior before expanding script coverage.
+4. If a gap looks cross-project or workflow-level, check `docs/projects/GLOBAL_GAPS.md` before adding a new project-local row.
+5. Continue from the tracked gaps list and align new tests to any uncovered behavior before expanding script coverage.
 
 ## Next Checks
 

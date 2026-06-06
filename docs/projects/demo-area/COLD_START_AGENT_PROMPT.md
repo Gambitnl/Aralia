@@ -1,7 +1,7 @@
 # Demo Area Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/demo-area/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Demo Area
 Project folder: docs/projects/demo-area
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/demo-area/NORTH_STAR.md
 Tracker: docs/projects/demo-area/TRACKER.md
@@ -24,9 +24,10 @@ Gaps: docs/projects/demo-area/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+The prior pass refreshed the Demo Area handoff docs, added the dashboard schema
+to `NORTH_STAR.md`, and kept the retention decision open. Use
+`NORTH_STAR.md` for scope and current state, `TRACKER.md` for the active queue,
+and `GAPS.md` for unresolved findings.
 
 ## Current Mission
 
@@ -55,13 +56,13 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+Demo Area docs were compacted for resume clarity. The active blocker remains the
+retention decision for `src/components/demo/CombatMessagingDemo.tsx`.
 
 ## Required End State For This Iteration
 
 Before ending, update this handoff with the next iteration number, previous
-agent context, active task, acceptance criteria, key files, verification method,
-blockers, and recent progress. End the response with the refreshed handoff
-between the same BEGIN/END markers.
+agent context, active task, acceptance criteria, key files, verification
+method, blockers, and recent progress. End the response with the refreshed
+handoff between the same BEGIN/END markers.
 ---END NEXT AGENT HANDOFF---

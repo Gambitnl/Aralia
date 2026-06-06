@@ -1,7 +1,7 @@
 # Environment System Gap Registry
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Gap Log
 
@@ -17,3 +17,4 @@ Last updated: 2026-05-31
 
 - The above gaps are aligned with `docs/projects/environment/TRACKER.md` and should be treated as the local default scope unless re-routed by a stricter domain owner.
 - No cross-project or orphaned gaps were added to `docs/projects/GLOBAL_GAPS.md` yet.
+- This pass did not add new blockers; the registry still points at `G1` for runtime wiring and `G3` for the next architecture decision after that.

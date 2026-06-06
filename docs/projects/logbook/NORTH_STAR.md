@@ -1,7 +1,7 @@
 # Logbook Project
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -13,6 +13,22 @@ explicit for handoffs.
 
 Keep one cold-start checkpoint for all active Logbook work: what is implemented,
 how it integrates, and what must still be decided.
+
+## Dashboard Card Schema
+
+Project: Logbook
+Slug: logbook
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/logbook
+Gap signal: 4 open gaps (G1-G4)
+Protocol: living project doc set
+Next step: Start implementation planning from G1 and keep G2 as the follow-up UI question.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Purpose and Scope
 
@@ -27,6 +43,8 @@ how it integrates, and what must still be decided.
 - `docs/projects/logbook/TRACKER.md`: task queue, active status, and evidence
   checkpoints.
 - `docs/projects/logbook/GAPS.md`: durable unresolved Logbook decisions.
+- `docs/projects/logbook/COLD_START_AGENT_PROMPT.md`: current handoff packet
+  for the next cold-start agent.
 
 ## Implemented State
 
@@ -111,10 +129,11 @@ Out of scope:
 
 ## Resume Path For A Cold Agent
 
-1. Read `docs/projects/logbook/NORTH_STAR.md` (this file).
-2. Read `docs/projects/logbook/TRACKER.md`.
-3. Read `docs/projects/logbook/GAPS.md`.
-4. Continue from gap G1 in `GAPS.md` and confirm retention/pagination before
+1. Read `docs/projects/logbook/COLD_START_AGENT_PROMPT.md`.
+2. Read `docs/projects/logbook/NORTH_STAR.md` (this file).
+3. Read `docs/projects/logbook/TRACKER.md`.
+4. Read `docs/projects/logbook/GAPS.md`.
+5. Continue from gap G1 in `GAPS.md` and confirm retention/pagination before
    implementation planning.
 
 

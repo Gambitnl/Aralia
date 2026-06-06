@@ -1,7 +1,7 @@
 # Organization Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that genuinely belong to this project.
 
@@ -13,6 +13,7 @@ Use this file for durable unresolved findings that genuinely belong to this proj
 | G2 | not_started | support_needed_now | Worker B | [Organization Tracker](/F:/Repos/Aralia/docs/projects/organization/TRACKER.md) | this refresh | No app-level lifecycle integration for organization state and persistence | [src/components/Organization/OrganizationDashboard.tsx](/F:/Repos/Aralia/src/components/Organization/OrganizationDashboard.tsx), [src/state/initialState.ts](/F:/Repos/Aralia/src/state/initialState.ts) | Current flow works only as an isolated component | Define state slice, launch path, and save/load boundaries | End-to-end proof: open UI, mutate org, serialize/restore |
 | G3 | not_started | adjacent_follow_up | Worker B | [Organization Tracker](/F:/Repos/Aralia/docs/projects/organization/TRACKER.md) | this refresh | No explicit faction or grouping contract in Organization model | [src/types/organizations.ts](/F:/Repos/Aralia/src/types/organizations.ts), [src/services/organizationService.ts](/F:/Repos/Aralia/src/services/organizationService.ts), [src/services/legacyService.ts](/F:/Repos/Aralia/src/services/legacyService.ts) | Rivalry and allegiance behavior has no authoritative link to wider social systems | Capture affiliation mapping and decide boundary with faction/world systems | Decision log plus integration plan before mission/rival expansion |
 | G4 | active | in_scope_now | Worker B | [Organization Tracker](/F:/Repos/Aralia/docs/projects/organization/TRACKER.md) | this refresh | Membership identity source is local-only and not tied to world character identity contract | [src/types/organizations.ts](/F:/Repos/Aralia/src/types/organizations.ts), [src/components/Organization/OrgMembersList.tsx](/F:/Repos/Aralia/src/components/Organization/OrgMembersList.tsx) | Local `memberId` values are opaque and not validated against player/world state | Add character identity/ownership contract before permission model completion | Add a minimal schema test proving IDs resolve to character records |
+| G5 | not_started | adjacent_follow_up | Worker B | [Organization Tracker](/F:/Repos/Aralia/docs/projects/organization/TRACKER.md) | this refresh | Organization succession transfer is hardcoded in legacy service instead of using an org-specific authority rule | [src/services/legacyService.ts](/F:/Repos/Aralia/src/services/legacyService.ts) | Death/retirement can move org control by a flat chance, which can drift from the intended ownership model | Define the transfer rule and add a test for the chosen authority path | Succession transfer test or decision note |
 
 ## Classification Reference
 

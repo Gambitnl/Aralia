@@ -1,7 +1,23 @@
 # NORTH_STAR: Scripts: Spell Runtime Template Audit
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Scripts: Spell Runtime Template Audit
+Slug: scripts-spell-runtime-template-audit
+Category: Scripts / Audit Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md
+Gap signal: 2 open gaps
+Protocol: living project doc set
+Next step: Decide whether the recurring-mechanics labels join the strict vocabulary or move to the spell-system-overhaul lane, then rerun `npm run audit:spell-template`.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why This Project Exists
 
@@ -29,6 +45,8 @@ for recurring-label and parity issues that impact template stability.
 - Most recent baseline (`2026-05-31`): `459` spells, `28` warnings, `0` errors.
 - All open warnings come from `structured-unregistered-label` on:
   `Recurring Mechanics` and `Recurring Mechanic Timing`.
+- The project is in doc-handoff mode for the recurring-mechanics label path;
+  no runtime behavior changed in this pass.
 
 ## Active Task
 
@@ -124,7 +142,7 @@ Keep generated noise, full run logs, and temporary CI/Jules/runtime artifacts ou
 2. Read `docs/projects/scripts-spell-runtime-template-audit/TRACKER.md`.
 3. Read `docs/projects/scripts-spell-runtime-template-audit/GAPS.md`.
 4. Confirm current report baseline in `docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md`.
-5. Continue from: register one concrete remediation decision in `TRACKER.md` and re-run the audit.
+5. Continue from: register one concrete remediation decision in `TRACKER.md`, mirror it in `GAPS.md`, and re-run the audit.
 
 
 ## Cold-Start Gap Routing

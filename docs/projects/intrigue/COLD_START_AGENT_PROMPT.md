@@ -1,7 +1,7 @@
 # Intrigue System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/intrigue/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Intrigue System
 Project folder: docs/projects/intrigue
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/intrigue/NORTH_STAR.md
 Tracker: docs/projects/intrigue/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/intrigue/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the project handoff docs and active queue. This pass
+refreshed the dashboard schema, tracker alignment, and gap registry so the next
+agent can resume directly from the active queue.
 
 ## Current Mission
 
@@ -55,8 +55,9 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now has an explicit Dashboard Card Schema, the tracker references
+the current gap registry, and the gap registry carries a short triage alignment
+note for I2/I3/I4. No source code was changed in this pass.
 
 ## Required End State For This Iteration
 

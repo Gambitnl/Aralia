@@ -1,11 +1,9 @@
-# Scripts: Audits Cold Start Agent Handoff
+﻿# Scripts: Audits Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
-This file is the project-specific handoff for the next cold-start agent. It
-does not duplicate the workflow rules. The agent must follow the shared workflow
-file and use this file only for the current project context.
+This file is the project-specific handoff for the next cold-start agent. It does not duplicate the workflow rules. The agent must follow the shared workflow file and use this file only for the current project context.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -16,7 +14,7 @@ docs/projects/scripts-audits/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Scripts: Audits
 Project folder: docs/projects/scripts-audits
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/scripts-audits/NORTH_STAR.md
 Tracker: docs/projects/scripts-audits/TRACKER.md
@@ -24,9 +22,9 @@ Gaps: docs/projects/scripts-audits/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the project handoff files and pointed the work at the
+scripts/audits surface. This pass refreshed the durable docs so the dashboard
+can read the current state directly from the project folder.
 
 ## Current Mission
 
@@ -34,9 +32,9 @@ Active task:
 T2 - Validate command and report paths against live docs references
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Use the active TRACKER.md row and the active gap list in GAPS.md. Confirm that
+the command and report paths named in NORTH_STAR.md still resolve to live docs
+or source files, and record any stale references explicitly.
 
 Key files to touch:
 - docs/projects/scripts-audits/NORTH_STAR.md
@@ -46,17 +44,20 @@ Key files to touch:
 - Any source/docs named by the active tracker task
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Run the Next Checks listed in NORTH_STAR.md or a narrower equivalent file/path
+check if the listed commands are too broad. If any path is stale, record the
+mismatch before claiming the task is done.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Route any workflow-level ambiguity
+to docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md rather
+than hiding it in project-local docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+The project docs now include a dashboard card schema, the tracker and gap log
+have been compacted, and the shared workflow path mismatch was resolved by
+using the canonical moved protocol files. No runtime checks were run in this
+pass.
 
 ## Required End State For This Iteration
 

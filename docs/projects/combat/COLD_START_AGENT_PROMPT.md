@@ -1,7 +1,7 @@
 # Combat System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/combat/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Combat System
 Project folder: docs/projects/combat
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/combat/NORTH_STAR.md
 Tracker: docs/projects/combat/TRACKER.md
@@ -24,39 +24,41 @@ Gaps: docs/projects/combat/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 created the initial Combat living-project packet. This pass
+refreshed the durable docs, added the dashboard schema, and selected G11 as
+the active combat resume slice.
 
 ## Current Mission
 
 Active task:
-No open task selected. Read TRACKER.md and choose the highest-value open task.
+G11 - Class feature generation gap in `src/utils/combat/combatUtils.ts`.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Add the missing class-specific combat ability generation, then verify the
+target classes named in G11. Minimum proof is that monk gains Flurry of Blows
+and warlock gains Pact features in the combat palette.
 
 Key files to touch:
 - docs/projects/combat/NORTH_STAR.md
 - docs/projects/combat/TRACKER.md
 - docs/projects/combat/GAPS.md
-- docs/projects/combat/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/utils/combat/combatUtils.ts
+- related combat tests under `src/utils/combat/**/__tests__` or neighboring
+  combat test surfaces
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Run the focused combat unit tests or equivalent proof named by the tracker
+row. If the active slice changes, update the tracker before doing
+implementation work.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+Combat docs now include the Dashboard Card Schema, the North Star scope
+explicitly includes `src/utils/combat/*`, and G11 is marked active in both
+TRACKER.md and GAPS.md.
 
 ## Required End State For This Iteration
 

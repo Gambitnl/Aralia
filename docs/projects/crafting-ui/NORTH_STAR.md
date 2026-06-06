@@ -1,7 +1,23 @@
 # Crafting UI North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Crafting UI
+Slug: crafting-ui
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/crafting-ui
+Gap signal: 5 open gaps (3 current blockers, 2 follow-ups)
+Protocol: living project doc set
+Next step: Resume with G1 or G3 in GAPS.md and keep the UI/system contract boundary explicit.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why this project exists
 
@@ -84,6 +100,7 @@ It does not own recipe math, location rules, or economy core calculations.
 
 ## Active project-level gaps
 
+- Current resume blockers are G1, G2, and G3. G4 and G5 stay as follow-up work unless the next slice re-opens them.
 - UI and systems contract boundary is still split: registry now explicitly marks this project as needing reconciliation with systems/crafting.
 - Some flows still rely on simplified placeholders:
   - Gathering and creature harvest use mock crafter objects rather than full character skill model.
@@ -110,10 +127,10 @@ The systems project (`Crafting System` row) owns gameplay logic; this project ow
 ## Resume path
 
 1. Read this file.
-2. Read `docs/projects/crafting-ui/TRACKER.md`.
-3. Read `docs/projects/crafting-ui/GAPS.md`.
-4. Compare contracts in `docs/projects/PROJECT_TRACKER.md` and decide if the unresolved systems gap is now being handled.
-5. Continue with whichever first in-scope gap is blocking implementation confidence.
+2. Read `docs/projects/crafting-ui/TRACKER.md` and `docs/projects/crafting-ui/GAPS.md`.
+3. Start with G1 or G3, depending on whether the next slice should first resolve the shared crafter contract or the experiment damage contract.
+4. Check `docs/projects/PROJECT_TRACKER.md` only if a gap needs routing back to `Crafting System`.
+5. Keep scope narrow; if neither blocker is safe to address, preserve the docs state and record the reason instead of widening the slice.
 
 
 

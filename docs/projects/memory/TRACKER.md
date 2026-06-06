@@ -1,14 +1,16 @@
 # Memory System Living Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+Current state: Docs-only refresh on 2026-06-05. The implementation queue is unchanged, with T2 still carrying the tracker-level gap-registry work and the GAPS table still exposing the runtime slice order.
 
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Replace scaffold-only docs with concrete cold-start Memory System context and implemented-state mapping. | Worker A | 2026-05-31 | `src/types/world.ts`, `src/state/reducers/npcReducer.ts`, `src/hooks/actions/handleWorldEvents.ts`, `src/hooks/actions/handleResourceActions.ts` | Keep this tracker as the owned handoff surface and update `GAPS.md` with concrete implementation blockers. | Verify updated docs include concrete file map, boundaries, and gap proofs. |
-| T2 | in_progress | Finalize Memory System gap registry for schema unification and gameplay wiring coverage. | Worker A | 2026-05-31 | `src/types/memory.ts`, `src/types/world.ts`, `src/services/gemini/items.ts`, `src/hooks/actions/handleGeminiCustom.ts`, `src/systems/memory/MemorySystem.ts` | Confirm each gap has a stable owner, proof source, and follow-up check. | Add explicit "done" markers only when each gap receives resolution action. |
+| T2 | in_progress | Finalize Memory System gap registry for schema unification and gameplay wiring coverage. | Worker A | 2026-06-05 | `src/types/memory.ts`, `src/types/world.ts`, `src/services/gemini/items.ts`, `src/hooks/actions/handleGeminiCustom.ts`, `src/systems/memory/MemorySystem.ts` | Confirm each gap has a stable owner, proof source, and follow-up check. | Add explicit "done" markers only when each gap receives resolution action. |
 
 ## Status Vocabulary
 

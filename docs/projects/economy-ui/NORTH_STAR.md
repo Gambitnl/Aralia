@@ -1,7 +1,7 @@
 # Economy UI North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose and scope
 
@@ -15,6 +15,28 @@ In scope:
 Out of scope:
 - Economy simulation math, route updates, and pricing model changes.
 - Business rule changes outside user-visible economy UI.
+
+## Current state
+
+- Active slice: T2 is the primary resume path. The next agent should plan the missing modal wiring before trying to widen scope.
+- Secondary open slices: T3 and T4 remain open, but they are follow-ups to the modal wiring slice rather than the next action.
+- Resume path: start with `src/components/layout/GameModals.tsx`, then trace the open/close dispatch path for `LedgerBook` and `CourierPouch`, and keep `InvestmentBoard` callback wiring aligned with the existing economy actions.
+
+## Dashboard Card Schema
+
+Project: Economy UI
+Slug: economy-ui
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: `docs/projects/economy-ui`
+Gap signal: 3 open gaps (G1-G3)
+Protocol: living project doc set
+Next step: Resume T2 by wiring modal host mounts and open/close dispatch paths for LedgerBook and CourierPouch.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File map
 
@@ -90,6 +112,12 @@ This project owns where and how that state is surfaced to the player.
 - Confirm UI entry points for all three economy modal surfaces.
 - Verify no duplicate or dead economy flags remain after wiring.
 - Add doc check pass for cross-project references between economy and economy-ui.
+
+## Resume path
+
+1. Re-read `TRACKER.md` row T2 and the matching G1/G2 entries in `GAPS.md`.
+2. Confirm the modal host surface in `src/components/layout/GameModals.tsx`.
+3. Wire the LedgerBook and CourierPouch open/close paths before revisiting T3 and T4.
 
 ## Resume path
 

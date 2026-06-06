@@ -1,7 +1,7 @@
 # GAPS: Command Base Runtime
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use only durable unresolved findings that belong to this command-runtime project.
 
@@ -17,4 +17,6 @@ Use only durable unresolved findings that belong to this command-runtime project
 ## Notes
 
 - If future work confirms rollback is not required for this runtime, import `G1` + `G2` as closure actions with an explicit rationale.
+- `T3` is the decision gate for `G1` and `G2`; do not assume rollback is adopted until the policy is recorded in the project docs.
+- `G3` remains the test follow-up regardless of which execution path is chosen.
 - Keep these gaps here unless scope is reassigned in `docs/projects/GLOBAL_GAPS.md`.

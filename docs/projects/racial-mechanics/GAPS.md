@@ -1,7 +1,9 @@
 # Racial Mechanics / Race Hierarchy Gaps
 
 Status: active
-Last updated: 2026-06-03
+Last updated: 2026-06-05
+
+Iteration note: this docs-only pass opened no new project-local gaps; the only new ambiguity was workflow-level and is recorded in shared `WORKFLOW_GAPS.md`.
 
 ## Gap Log
 

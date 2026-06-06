@@ -1,7 +1,7 @@
 # Battle Map North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -14,9 +14,25 @@ Maintain a cold-start handoff for Battle Map by documenting:
 - integration boundaries into combat orchestration,
 - concrete gaps that must not be dropped during future slices.
 
+## Dashboard Card Schema
+
+Project: Battle Map
+Slug: battle-map
+Category: Feature/UI Projects
+Status: partial
+Confidence: medium
+Evidence: docs/projects/battle-map
+Gap signal: 4 open gaps, with map state/events sync still the active blocker
+Protocol: living project doc set
+Next step: Confirm map state/events sync scope before any new movement/targeting/overlay renderer changes
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
+
 ## Current State
 
-- Registry anchor is in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) under Feature/UI Projects with gap signal `GAPS.md present` and the specific follow-up `Define map state/events sync spec`.
+- Registry anchor is in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) under Feature/UI Projects with gap signal `GAPS.md present`, status `partial`, confidence `medium`, and the specific follow-up `define map state/events sync spec`.
 - The active combat host is `src/components/Combat/CombatView.tsx`. It owns mode selection and orchestrates:
   - `useTurnManager`,
   - `useAbilitySystem`,

@@ -1,8 +1,24 @@
 # Memory System North Star
 
 Status: partial
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 Owner: Worker A
+
+## Dashboard Card Schema
+
+Project: Memory System
+Slug: memory
+Category: Gameplay Systems
+Status: partial
+Confidence: medium
+Evidence: docs/projects/memory
+Gap signal: 5 open gaps (3 active, 2 in_progress)
+Protocol: living project doc set
+Next step: Resume G5 unless the schema decision makes G1 the prerequisite.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why this project exists
 The Memory System is the live social state layer behind NPC interaction, suspicion, gossip, and goal effects. This project owns the cold-start context for what is implemented today and what is still unresolved.

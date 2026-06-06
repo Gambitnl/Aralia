@@ -1,9 +1,11 @@
 # Conversation Panel Gaps
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that genuinely belong to this project.
+
+Current backlog is unchanged after the resume-pass refresh: CP-001 through CP-003 remain the live project-specific gaps.
 
 ## Gap Log
 

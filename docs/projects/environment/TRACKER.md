@@ -1,7 +1,7 @@
 # Environment System Living Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -17,8 +17,9 @@ Last updated: 2026-05-31
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Create/refresh living-project documentation trio and capture required evidence paths. | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`, `src/systems/environment/*` | Continue with implementation-facing backlog in `GAPS.md`. | Confirm docs now capture concrete gaps + file map + resume path. |
-| T2 | active | Complete deterministic-enablement pass in handoff docs before runtime edits. | Worker A | 2026-05-31 | `src/systems/environment/WeatherSystem.ts`, `src/state/reducers/worldReducer.ts`, `src/systems/world/WorldEventManager.ts`, `src/state/reducers/navalReducer.ts` | Prioritize G1, G3 in `GAPS.md`; propose first implementation slice boundaries. | Evidence-backed decisions recorded in `docs/projects/environment/GAPS.md`. |
+| T1 | done | Create/refresh living-project documentation trio and capture required evidence paths. | Worker A | 2026-06-05 | `docs/projects/PROJECT_TRACKER.md`, `src/systems/environment/*` | Continue with implementation-facing backlog in `GAPS.md`. | Confirm docs now capture concrete gaps + file map + resume path. |
+| T2 | done | Complete deterministic-enablement pass in handoff docs before runtime edits. | Worker A | 2026-06-05 | `docs/projects/environment/NORTH_STAR.md`, `docs/projects/environment/TRACKER.md`, `docs/projects/environment/GAPS.md` | Route the next agent into `G1` from `GAPS.md`. | Dashboard schema present; resume path and gap ordering are explicit. |
+| T3 | active | Begin the first runtime slice by wiring weather progression from `G1` into a real runtime call path. | Worker A | 2026-06-05 | `src/systems/environment/WeatherSystem.ts`, `src/state/reducers/worldReducer.ts`, `src/systems/world/WorldEventManager.ts`, `src/state/reducers/navalReducer.ts` | Prioritize `G1` in `GAPS.md`; decide the scheduler integration point and add proof. | Production call path added and state-change proof captured. |
 
 ## Gap Log
 
@@ -33,4 +34,5 @@ Last updated: 2026-05-31
 ## Notes
 
 - All entries above are local to this project unless moved explicitly to another owning tracker.
+- `T3` now names the first runtime slice directly so the next cold start can move from docs to implementation without guesswork.
 - Keep updates documentation-first until execution approval; this file is evidence of the intended next slice.

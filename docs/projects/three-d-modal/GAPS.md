@@ -1,7 +1,7 @@
 # ThreeD Modal Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that genuinely belong to this project.
 

@@ -1,7 +1,7 @@
-# Scripts: Audits Tracker
+﻿# Scripts: Audits Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -17,17 +17,18 @@ Last updated: 2026-05-31
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
-| T1 | done | Document project continuity for `scripts/audits` in project docs | User-facing maintainer | 2026-05-31 | `docs/projects/scripts-audits/NORTH_STAR.md` | Keep tracker and gap registry aligned to this state | `docs/projects/scripts-audits` files exist and match map |
-| T2 | active | Validate command and report paths against live docs references | User-facing maintainer | 2026-05-31 | `docs/portraits/race_portrait_regen_handoff.md`, `docs/guides/RACE_ENRICHMENT_WORKFLOW.md` | Confirm references map to real files under `scripts/audits` | run listed next checks and update evidence fields |
-| T3 | active | Capture durable unresolved audit-project gaps | User-facing maintainer | 2026-05-31 | `docs/projects/scripts-audits/GAPS.md` | Move only valid project-level gaps into `GAPS.md` | one follow-up entry per gap with proof path |
+| T1 | done | Document project continuity for `scripts/audits` in project docs | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/NORTH_STAR.md` | Keep tracker and gap registry aligned to this state | `docs/projects/scripts-audits` files exist and match the current map |
+| T2 | active | Validate command and report paths against live docs references | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/NORTH_STAR.md`, `docs/projects/scripts-audits/GAPS.md` | Confirm the command/report paths named in the North Star still resolve or record any stale references explicitly | Run the next checks in `NORTH_STAR.md` and update evidence paths |
+| T3 | active | Capture durable unresolved audit-project gaps | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/GAPS.md` | Keep the durable gap list compact, actionable, and aligned with the tracker | One follow-up entry per gap with proof path |
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
-|---|---|---|---|---|---|---|---|---|---|
-| G1 | active | support_needed_now | scripts-audits maintainer | scripts/audits | docs scan | The project has no canonical "run all audits" entry in package.json or docs guide | `scripts/audits` scripts exist; no top-level command invokes the full suite | Hard to reproduce end-to-end checks consistently across check families | Add/declare a canonical command list in docs and confirm in next checks | run commands listed in NORTH_STAR next-check list |
-| G2 | active | adjacent_follow_up | scripts-audits maintainer | scripts/audits/qa-batches | docs scan | Historical generated `.json/.md` artifacts in `scripts/audits/qa-batches` may no longer represent current portrait state | many dated files under `scripts/audits/qa-batches` | Stale evidence can hide regressions in review workflows | add date stamps and source batch ID in `TRACKER.md` or remove stale files intentionally | compare latest `slice-of-life-settings.json` against newest batch id |
-| G3 | active | adjacent_follow_up | scripts-audits maintainer | scripts/audits/verify-cc-glossary-race-sync.ts | execution | Non-selectable base race IDs are hardcoded in verifier, so race policy edits can silently drift from sync logic | `NON_SELECTABLE_BASE_RACE_IDS` in `scripts/audits/verify-cc-glossary-race-sync.ts` | Rule drift creates false pass/fail in race image/paths checks | confirm base-race policy source of truth and keep verifier and glossary docs aligned | rerun verify after any base-race policy change |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | active | support_needed_now | scripts-audits maintainer | scripts/audits execution | docs scan + current docs refresh | No canonical full-audit entrypoint is documented | `GAPS.md` S1; `package.json` exposes separate audit commands | Hard to reproduce end-to-end checks consistently | Document the ordered local audit path and keep it in the North Star | Next agent can run the listed checks in order without guessing |
+| G2 | active | adjacent_follow_up | scripts-audits maintainer | scripts/audits/qa-batches | docs scan + current docs refresh | Old dated QA batch files can be mistaken for active output | `GAPS.md` S2; dated files under `scripts/audits/qa-batches` | Stale evidence can hide regressions | Add a retention or refresh rule in the project docs | Latest batch id is called out in the refreshed handoff |
+| G3 | active | support_needed_now | scripts-audits maintainer | audit/report cadence | docs scan + current docs refresh | Generated reports do not define freshness policy | `GAPS.md` S3; `base-trait-coverage.report.json`, `base-trait-key-coverage.report.json`, `race-image-byte-audit.json`, `slice-of-life-settings.json` | Owners may trust stale snapshots as live truth | Add run cadence and ownership in this tracker or North Star | Reports have named freshness guidance before reuse |
+| G4 | active | blocked_human_decision | project owner | audit policy | docs scan + current docs refresh | The project still has no decision on mandatory CI checks versus optional/manual audits | `GAPS.md` S4; `docs/guides/RACE_ENRICHMENT_WORKFLOW.md`; `docs/portraits/race_portrait_regen_handoff.md` | Automation scope can block contributors or miss regressions | Record the policy decision before turning any new audit into a gate | The owner decision is written down in project docs or a follow-up note |
 
 ## Update Rules
 

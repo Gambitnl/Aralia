@@ -1,11 +1,11 @@
 # Dice Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
-does not duplicate the workflow rules. The agent must follow the shared workflow
-file and use this file only for the current project context.
+does not duplicate the workflow rules. The agent must follow the shared
+workflow file and use this file only for the current project context.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -16,7 +16,7 @@ docs/projects/dice/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Dice
 Project folder: docs/projects/dice
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/dice/NORTH_STAR.md
 Tracker: docs/projects/dice/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/dice/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 created the initial Dice handoff packet and established the current
+doc set. This refresh adds the dashboard schema and aligns the active task with
+the current project gaps.
 
 ## Current Mission
 
@@ -34,9 +34,9 @@ Active task:
 D-2 - Add deterministic RNG + roll history plan
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+- Define one deterministic roll policy that covers silent and visual Dice paths.
+- Decide the roll-history scope: session-only, persisted, or export-only.
+- Record any unresolved project blocker in `GAPS.md` before implementation starts.
 
 Key files to touch:
 - docs/projects/dice/NORTH_STAR.md
@@ -47,21 +47,23 @@ Key files to touch:
 
 Scoped verification:
 Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+NORTH_STAR.md. If none is named, add one before claiming the task is done. For
+this planning slice, keep verification docs-only unless the task moves into
+runtime changes.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now includes the dashboard card schema and the current resume
+target. Tracker and gaps were refreshed to match the active D-2 planning
+slice. No new project-specific blocker was discovered in this pass.
 
 ## Required End State For This Iteration
 
 Before ending, update this handoff with the next iteration number, previous
-agent context, active task, acceptance criteria, key files, verification method,
-blockers, and recent progress. End the response with the refreshed handoff
-between the same BEGIN/END markers.
+agent context, active task, acceptance criteria, key files, verification
+method, blockers, and recent progress. End the response with the refreshed
+handoff between the same BEGIN/END markers.
 ---END NEXT AGENT HANDOFF---

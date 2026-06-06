@@ -1,7 +1,7 @@
 # Quest Log North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose and Scope
 
@@ -23,6 +23,22 @@ What is out of scope:
 - The source already has Quest Log code spread across UI, actions, reducers, and quest systems.
 - This folder captures the project boundary and keeps future work from re-inventing or shrinking the feature.
 - It also preserves explicit links to `docs/projects/quests` so domain-wide decisions stay centralized.
+
+## Dashboard Card Schema
+
+Project: Quest Log
+Slug: quest-log
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/quest-log/AUDIT_OR_PROOF.md
+Gap signal: 5 open gaps; current focus is journal/event coupling and deadline UX
+Protocol: living project doc set
+Next step: Verify quest/journal transitions and deadline handling in source before code edits.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Implemented State Snapshot
 
@@ -94,7 +110,7 @@ What is out of scope:
 - Quest acceptance and objective updates are hardcoded by IDs, not metadata-driven hooks.
 - Quest log history and journal event models both exist, but event logging is not fully unified.
 - NPC dialogue-based quest starts are incomplete and still marked as TODO in handler code.
-- Some TODO TODOs mention richer typing cleanup and dead imports across touched files.
+- Some TODOs still point at richer typing cleanup and dead imports across touched files.
 
 ## Next Checks
 
@@ -107,7 +123,8 @@ What is out of scope:
 1. Read this file.
 2. Read `docs/projects/quest-log/TRACKER.md`.
 3. Read `docs/projects/quest-log/GAPS.md`.
-4. Read `docs/projects/quests/NORTH_STAR.md` for domain context before scope decisions.
+4. Read `docs/projects/quest-log/AUDIT_OR_PROOF.md` for the last durable proof note.
+5. Read `docs/projects/quests/NORTH_STAR.md` for domain context before scope decisions.
 
 
 ## Cold-Start Gap Routing

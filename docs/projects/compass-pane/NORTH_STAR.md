@@ -1,7 +1,7 @@
 # Compass Pane North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose And Scope
 
@@ -17,6 +17,22 @@ It is no longer a scaffold. The feature currently includes:
 
 Scope is Feature/UI for `src/components/CompassPane` and its action/state wiring
 through `src/hooks/actions/*` and `src/state/*`.
+
+## Dashboard Card Schema
+
+Project: Compass Pane  
+Slug: compass-pane  
+Category: Feature/UI Projects  
+Status: active  
+Confidence: medium  
+Evidence: docs/projects/compass-pane  
+Gap signal: 4 open gaps; movement proof and affordance semantics still need validation  
+Protocol: living project doc set  
+Next step: Resume T2 by adding focused movement/action regression proof  
+Required verification: scoped_tests, docs_consistency  
+Completed verification: docs_consistency  
+Last proof: 2026-06-05  
+Workflow gaps reviewed: 2026-06-05
 
 ## Concrete File Map
 
@@ -36,7 +52,7 @@ through `src/hooks/actions/*` and `src/state/*`.
 | `src/state/reducers/uiReducer.ts` | UI state contract | Applies map/submap/3D visibility transitions and closes conflicting panes. |
 | `src/types/actions.ts` | Compass action schema | Defines `move`, `look_around`, `toggle_map`, `toggle_submap_visibility`, `toggle_three_d`, `wait`. |
 | `src/types/ui.ts` | Toggle routing | `UIToggleAction` includes map/submap/3D toggles used by `useGameActions`. |
-| `src/components/CompassPane/README.md` | Historical surface docs | Already describes compass, now partially stale on some wording. |
+| `src/components/CompassPane/README.md` | Historical surface docs | Useful as an older narrative, but stale on the current file name, prop surface, and pass-time/submap wiring. |
 
 ## Implemented State (Verified)
 
@@ -70,15 +86,16 @@ through `src/hooks/actions/*` and `src/state/*`.
   folder and says gap signal is `define navigation affordances`.
 - `docs/projects/compass-pane/GAPS.md` should remain the durable gap home until scope
   is assigned to implementation owners.
+- `src/components/CompassPane/README.md` is a historical surface doc, not the
+  current authority for component behavior.
 
-## Next Checks
+## Resume Path
 
-1. Confirm whether current "look-around + movement action ordering" should be
-   treated as a single UX pattern for all movement actions.
-2. Add explicit proof for edge/wrap movement behavior in tests (existing tests are
-   time-display only).
-3. Decide whether to formalize compass affordance semantics for submap-embedded mode
-   and 3D entry availability.
+1. Resume T2 in `TRACKER.md`; the active slice is still movement/action surface validation.
+2. Add explicit proof for direction dispatch, `look_around`, and pass-time `wait`
+   behavior before widening movement logic.
+3. Keep the submap/main-layout affordance question open until the gap log says it
+   has been accepted or closed.
 
 
 ## Cold-Start Gap Routing

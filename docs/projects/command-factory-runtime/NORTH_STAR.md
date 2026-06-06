@@ -1,7 +1,23 @@
 # NORTH_STAR: Command Factory Runtime
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Command Factory Runtime
+Slug: command-factory-runtime
+Category: Runtime / Systems
+Status: active
+Confidence: medium
+Evidence: docs/projects/command-factory-runtime
+Gap signal: 4 open project gaps
+Protocol: living project doc set
+Next step: Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the next source edit, then update `GAPS.md` if drift appears.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Purpose
 
@@ -76,12 +92,12 @@ Out of scope:
 
 | Field | Value |
 |---|---|
-| Task | Keep command-factory runtime docs as a cold-start-safe contract handoff for factory, validation, and integration boundaries |
-| Acceptance criteria | Documentation includes file map, integrations, implemented state, gap log, and clear resume path |
+| Task | Keep command-factory runtime docs as a cold-start-safe contract handoff for factory, validation, integration boundaries, and dashboard state |
+| Acceptance criteria | Documentation includes file map, integrations, implemented state, gap log, dashboard card schema, and clear resume path |
 | Allowed files | `docs/projects/command-factory-runtime/*` |
 | Next check | Re-validate references against `src/commands/factory`, `src/commands/base`, and `src/commands/index.ts` after any factory refactor |
 | Owner | Worker C |
-| Stop condition | docs remain source-anchored and update next check evidence list when factory wiring changes |
+| Stop condition | docs remain source-anchored, dashboard schema stays current, and the next check evidence list updates when factory wiring changes |
 
 ## Known uncertainties and gap watch
 
@@ -95,6 +111,7 @@ Out of scope:
 2. Read `docs/projects/command-factory-runtime/TRACKER.md`.
 3. Read `docs/projects/command-factory-runtime/GAPS.md`.
 4. Confirm factory files plus integration call-sites in `src/commands/factory` and `src/hooks/useAbilitySystem.ts`.
+5. Start with `T2` in `TRACKER.md` and only widen scope if a real factory drift or blocker appears.
 
 
 ## Cold-Start Gap Routing

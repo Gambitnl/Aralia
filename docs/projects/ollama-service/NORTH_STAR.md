@@ -1,7 +1,7 @@
 # NORTH_STAR: Ollama Service
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -17,6 +17,22 @@ paths.
   callers that use `OllamaService` or local Ollama task services.
 - Adjacent but out of scope for docs-only work: implementation rewrites, model
   pull/check tooling, and remote-provider rollout work.
+
+## Dashboard Card Schema
+
+Project: Ollama Service
+Slug: ollama-service
+Category: Service / AI Integration
+Status: partial
+Confidence: medium
+Evidence: docs/projects/ollama-service
+Gap signal: 4 open project gaps; local/remote boundary and `/api/ollama` ownership remain unresolved
+Protocol: living project doc set
+Next step: Confirm the shared provider adapter and `/api/ollama` owner, then record the verification path in the tracker.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File Map
 
@@ -59,7 +75,7 @@ paths.
 
 ## Open Checks
 
-1. Verify endpoint contract for `/api/ollama` (proxy or backend implementation).
+1. Verify endpoint contract for `/api/ollama` and confirm whether the Vite proxy or a backend owner is the canonical source of retry/auth/timeout policy.
 2. Confirm whether `retryAttempts` is now required in `OllamaConfig` or should
    be removed.
 3. Align task profiles/params with current gameplay tuning by running a small

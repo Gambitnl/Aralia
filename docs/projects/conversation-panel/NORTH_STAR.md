@@ -1,7 +1,23 @@
 # Conversation Panel North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Conversation Panel
+Slug: conversation-panel
+Category: Feature/UI Projects
+Status: partial
+Confidence: medium
+Evidence: docs/projects/conversation-panel
+Gap signal: 3 open gaps
+Protocol: living project doc set
+Next step: Decide and wire the `START_CONVERSATION` trigger path, then resolve `isPlayerTurn` gating.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why This Project Exists
 
@@ -27,16 +43,17 @@ Create a project-introduced map of the implemented conversation subsystem and cu
   - `activeConversation?: ActiveConversation | null` is declared in `src/types/state.ts`
   - Conversation reducer is part of the app reducer pipeline in `src/state/appState.ts`
 - Existing focus/occupancy checks already treat conversation as a blocking UI mode in `src/utils/world/sceneUtils.ts`.
+- The remaining open runtime questions are the gameplay trigger path and turn-gating semantics; those stay tracked in `GAPS.md`.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
 | Task | Document concrete Conversation Panel scope, state map, integration points, and live gaps for cold start |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` under `docs/projects/conversation-panel/` contain concrete implementation evidence and clear unresolved items |
+| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, and the dashboard card schema contain concrete implementation evidence and clear unresolved items |
 | Allowed boundaries | Only `docs/projects/conversation-panel/NORTH_STAR.md`, `docs/projects/conversation-panel/TRACKER.md`, `docs/projects/conversation-panel/GAPS.md` |
 | Stop condition | Stop after doc updates are complete and evidence-backed gaps are recorded |
-| Verification | `Get-Content` and `rg` evidence reads completed against `src/components/ConversationPanel`, `src/hooks/useConversation.ts`, `src/state/appState.ts`, `src/types/state.ts`, `src/utils/world/sceneUtils.ts`, `src/components/Dialogue/DialogueInterface.tsx`, `src/components/layout/GameModals.tsx` |
+| Verification | `Get-Content` and `rg` evidence reads completed against `src/components/ConversationPanel`, `src/hooks/useConversation.ts`, `src/state/appState.ts`, `src/types/state.ts`, `src/utils/world/sceneUtils.ts`, `src/components/Dialogue/DialogueInterface.tsx`, `src/components/layout/GameModals.tsx`, and `docs/projects/PROJECT_CARD_SCHEMA.md` |
 | Owner | Project worker |
 | Next action | Address integration/start-up gap for `START_CONVERSATION` and confirm whether it must be tied to an action handler or NPC interaction path |
 
@@ -136,15 +153,14 @@ Do not promote runtime logs, full local run output, or temporary diagnostics.
 2. Read `docs/projects/conversation-panel/TRACKER.md`.
 3. Read `docs/projects/conversation-panel/GAPS.md`.
 4. Read `docs/projects/PROJECT_TRACKER.md` row for Conversation Panel and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue from: Resolve trigger/turning semantics for `START_CONVERSATION` and decide cross-flow exclusivity with `activeDialogueSession`.
+5. Continue from: T2 in `TRACKER.md`. Resolve trigger/turning semantics for `START_CONVERSATION` and decide cross-flow exclusivity with `activeDialogueSession`.
 
 
-## Cold-Start Gap Routing
+## Cold-Start Resume Notes
 
-The next cold-start agent must:
+The next cold-start agent should:
 - read `TRACKER.md` and `GAPS.md` first
-- read the existing project gaps before choosing work
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- start from tracker task `T2` and the current open gaps
+- use the schema and evidence above to confirm the resume path
+- add any newly discovered real gaps to `GAPS.md` only if they are evidence-backed
+- keep the existing gap count honest; do not invent filler work to satisfy a quota

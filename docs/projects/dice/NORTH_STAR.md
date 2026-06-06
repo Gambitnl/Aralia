@@ -1,12 +1,28 @@
 # Dice North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose and scope
 
 Dice is an implemented feature set with modal controls and 3D visual rolling used by gameplay UI.
 This project exists as a cold-start checkpoint: what is already shipped, where it lives, and what remains uncertain.
+
+## Dashboard Card Schema
+
+Project: Dice  
+Slug: dice  
+Category: Feature/UI Projects  
+Status: active  
+Confidence: medium  
+Evidence: docs/projects/dice  
+Gap signal: 3 open gaps in project scope  
+Protocol: living project doc set  
+Next step: Resume D-2 and define the deterministic RNG and roll-history acceptance criteria.  
+Required verification: docs_consistency, scoped_tests  
+Completed verification: not run  
+Last proof: 2026-06-05  
+Workflow gaps reviewed: 2026-06-05
 
 ## File map
 
@@ -41,6 +57,12 @@ This project exists as a cold-start checkpoint: what is already shipped, where i
 - No persisted roll history/log is present in Dice UI or service layer.
 - Silent and visual roll codepaths do not currently share a single deterministic policy.
 - `useDiceBox` contains runtime-oriented guard logic and differs from service defaults in a few config points, which should be reconciled before broad changes.
+
+## Current focus
+
+- Active task: `D-2 - Add deterministic RNG + roll history plan`
+- Resume target: define one deterministic roll policy, then decide whether roll history is session-only, persisted, or export-only before touching runtime code.
+- Current blocker surface: the project still has three documented Dice gaps, but none require a shared-workflow change.
 
 ## Next checks
 

@@ -1,7 +1,7 @@
 # GAPS: WorldSim Service
 
 Status: active
-Last updated: 2026-06-02 (WSS-004 remediated; WSS-006, WSS-007 added)
+Last updated: 2026-06-05 (WSS-004 remediated; WSS-006, WSS-007 added)
 
 ## Durable Gaps
 

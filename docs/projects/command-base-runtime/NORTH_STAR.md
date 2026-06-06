@@ -1,7 +1,7 @@
 # NORTH_STAR: Command Base Runtime
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -26,18 +26,36 @@ It is the layer that spell/ability factories and combat hooks rely on for sequen
 - `CommandExecutor` executes command chains, returns `ExecutionResult`, and includes `executeWithRollback(...)`.
 - `useAbilitySystem.ts` is a primary integration point: it creates command lists via `SpellCommandFactory`/`AbilityCommandFactory` and applies them through `CommandExecutor.execute`.
 - Architecture framing in `docs/architecture/domains/commands.md` treats this as a broader lane for spell JSON and combat ability execution, not a spell-only pipeline.
+- The active rollback-policy decision is still open, so `T3` remains blocked until the production path is explicitly chosen.
+- Durable open findings are still tracked in `GAPS.md` as `G1`-`G4`.
+
+## Dashboard Card Schema
+
+Project: Command Base Runtime
+Slug: command-base-runtime
+Category: Runtime Infrastructure
+Status: active
+Confidence: high
+Evidence: docs/projects/command-base-runtime
+Gap signal: 4 open gaps (G1-G4); T3 blocked on rollback policy decision
+Protocol: living project doc set
+Next step: Decide whether `executeWithRollback` is the production path, then align tests and call sites to that decision.
+Required verification: docs_consistency, scoped_tests
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Expand protocol scaffold into implementation-aware project handoff for `src/commands/base` |
-| Acceptance criteria | Protocol docs now include: contract inventory, integration points, proof sources, and durable gaps |
-| Allowed boundaries | `docs/projects/command-base-runtime/*`, `src/commands/base`, `src/hooks/useAbilitySystem.ts`, `docs/architecture/domains/commands.md` |
-| Stop condition | current contract/gap handoff is documented without changing source behavior |
-| Verification | file inventory + call-site/tests checked against evidence sources |
+| Task | Decide rollback execution policy for `CommandExecutor` (`executeWithRollback` adoption vs explicit fallback) |
+| Acceptance criteria | The decision is recorded in `TRACKER.md` and `GAPS.md`; if rollback is adopted, the next implementation slice has call-site and test follow-up; if not, `G1`/`G2` are closed with rationale and `G3` stays as regression coverage for the chosen execution path |
+| Allowed boundaries | `docs/projects/command-base-runtime/*`, `src/commands/base`, `src/hooks/useAbilitySystem.ts`, `src/commands/__tests__/CommandExecutor.test.ts` |
+| Stop condition | a cold-start agent can resume from one explicit rollback policy and one explicit test plan |
+| Verification | docs consistency against `TRACKER.md`/`GAPS.md` and targeted `CommandExecutor` tests when implementation resumes |
 | Owner | Worker C |
-| Next action | decide and ticket rollback/undo execution behavior in implementation work |
+| Next action | write down the rollback decision, then align the tracker, gap log, and implementation plan |
 
 ## Scope Boundaries
 
@@ -68,6 +86,8 @@ Out of scope:
 | No concrete `undo` implementations are visible in `src/commands/effects` | support_needed_now | Worker C | `src/commands/base/CommandExecutor.ts`, `src/commands/effects` | add implementations or remove rollback dependency with explicit rationale |
 | Test coverage is strong on command creation/effects, but light on rollback and failure-recovery behavior | support_needed_now | Worker C | `src/commands/__tests__/CommandExecutor.test.ts`, `src/commands/__tests__/combat-pilot/CombatDeterministicSpells.test.ts` | expand test coverage before touching rollback semantics |
 | Partial/uncertain: contract-level state freshness guarantees (`context` vs live state) are not formally specified | adjacent_follow_up | Worker C | `src/commands/base/BaseEffectCommand.ts`, `src/commands/base/SpellCommand.ts` | add an explicit interpretation note in implementation planning |
+- `G1` through `G3` are the decision gate for `T3`; do not assume rollback is adopted until the policy is written down.
+- `G4` stays as the lower-priority state-freshness follow-up once the rollback decision is resolved.
 
 ## Global Gap Imports
 
@@ -93,6 +113,7 @@ Check `docs/projects/GLOBAL_GAPS.md` before adding cross-project gaps.
 
 | File | Purpose | Status |
 |---|---|---|
+| `docs/projects/command-base-runtime/COLD_START_AGENT_PROMPT.md` | Current cold-start handoff packet | active |
 | `docs/projects/PROJECT_TRACKER.md` | Registry anchor | active |
 | `docs/projects/GLOBAL_GAPS.md` | Cross-project routing evidence | active |
 | `docs/projects/command-base-runtime/TRACKER.md` | Active queue and status | active |
@@ -105,13 +126,14 @@ Do not store raw logs, temporary test runs, or one-off notes.
 
 ## Resume Path For A Cold Agent
 
-1. Read this file.
-2. Read `docs/projects/command-base-runtime/TRACKER.md`.
-3. Read `docs/projects/command-base-runtime/GAPS.md`.
-4. Confirm `src/commands/base` in `docs/projects/PROJECT_TRACKER.md`.
-5. Read integration wiring in `src/hooks/useAbilitySystem.ts`.
-6. Read domain framing in `docs/architecture/domains/commands.md`.
-7. Continue from: `Expand command-runtime handoff and resolve rollback/undo status`.
+1. Read `docs/projects/command-base-runtime/COLD_START_AGENT_PROMPT.md`.
+2. Read this file.
+3. Read `docs/projects/command-base-runtime/TRACKER.md`.
+4. Read `docs/projects/command-base-runtime/GAPS.md`.
+5. Confirm `src/commands/base` in `docs/projects/PROJECT_TRACKER.md`.
+6. Read integration wiring in `src/hooks/useAbilitySystem.ts`.
+7. Read domain framing in `docs/architecture/domains/commands.md`.
+8. Continue from: `Decide rollback execution policy for CommandExecutor`.
 
 
 ## Cold-Start Gap Routing

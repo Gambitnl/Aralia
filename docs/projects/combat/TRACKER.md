@@ -1,7 +1,7 @@
 # Combat System Living Tracker
 
 Status: active
-Last updated: 2026-06-03
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -12,6 +12,10 @@ Last updated: 2026-06-03
 - `done`
 - `superseded`
 - `out_of_scope`
+
+## Current Resume Target
+
+- G11: class feature generation gap in `src/utils/combat/combatUtils.ts`.
 
 ## Active Task Queue
 
@@ -44,7 +48,7 @@ Last updated: 2026-06-03
 | G8 | done | adjacent_follow_up | Worker A | `src/utils/combat/` | combat docs enrichment | Rage resistance modifiers are ignored by ResistanceCalculator. | `src/utils/combat/resistanceUtils.ts:126` | Barbarian Rage status effects do not reduce incoming slashing/piercing/bludgeoning damage. | Modify `applyResistances` to check status effect modifiers. | Verified using new `resistanceUtils.test.ts` status effects tests. |
 | G9 | done | adjacent_follow_up | Worker A | `src/commands/factory/` | combat docs enrichment | Sneak Attack automatic trigger logic is completely absent. | `src/commands/factory/AbilityCommandFactory.ts` | Rogue Sneak Attack mechanics cannot be resolved or logged during active combat. | Implement Sneak Attack validation and trigger hooks. | Verified Rogue triggers sneak attack bonus damage in `AbilityCommandFactory.test.ts`. |
 | G10 | done | support_needed_now | Worker A | `src/utils/combat/` | combat docs enrichment | Enemy / Monster `armorClass` / `baseAC` are not mapped in `createEnemyFromMonster.ts`. | `src/utils/combat/createEnemyFromMonster.ts` | Enemies enter combat with undefined AC, defaulting to AC 10 and bypassing bestiary definitions. | Map `monsterData.armorClass` in fallback and standard paths. | Verified using new `createEnemyFromMonster.test.ts`. |
-| G11 | not_started | adjacent_follow_up | Next Agent | `src/utils/combat/` | combat docs enrichment | Class features are not auto-generated for most classes. | `src/utils/combat/combatUtils.ts:930` | Barbarian Rage, Monk Flurry, Bardic Inspiration, and Divine Smite are absent from the ability palette. | Create class-specific combat ability generators in `combatUtils.ts`. | Verify monk possesses Flurry of Blows and warlock possesses Pact features. |
+| G11 | active | adjacent_follow_up | Next Agent | `src/utils/combat/` | combat docs enrichment | Class features are not auto-generated for most classes. | `src/utils/combat/combatUtils.ts:930` | Barbarian Rage, Monk Flurry, Bardic Inspiration, and Divine Smite are absent from the ability palette. | Create class-specific combat ability generators in `combatUtils.ts`. | Verify monk possesses Flurry of Blows and warlock possesses Pact features. |
 | G12 | not_started | adjacent_follow_up | Next Agent | `public/premade-characters/` | combat docs enrichment | Weaponless premade character data configuration. | `public/premade-characters/` | All 13 premade characters have `"equippedItems": {}`, causing martial characters to fall back to Unarmed Strike. | Update the JSON templates in `public/premade-characters/` to contain standard equipped starting weapons. | Verify fighter premade character possesses attack_main Rapier/Longsword. |
 | G13 | done | in_scope_now | Gemini | `src/hooks/combat/` | combat docs enrichment | Death Saving Throws system is completely absent. | `src/hooks/combat/__tests__/useTurnManager.deathSaves.test.ts` | Characters at 0 HP are simply skipped by turn ordering indefinitely instead of rolling death saves or dying. | Implement a comprehensive downed condition state and death-saving throw d20 execution loop in `advanceTurn`. | Verified with 8 comprehensive unit tests. |
 | G14 | done | adjacent_follow_up | Gemini | `src/components/BattleMap/` | death saves implementation | UI panels do not render death save successes or failures. | `src/components/BattleMap/CombatCharacterInspector.tsx`, `src/components/BattleMap/InitiativeTracker.tsx` | Downed player's stabilization/death progress is invisible to the user in combat UI. | Add successes/failures indicators to the combat inspector and initiative tracker UI elements. | Verified visually in Inspector and InitiativeTracker panels. |

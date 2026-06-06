@@ -1,7 +1,7 @@
 # NORTH_STAR: WorldSim Service
 
 Status: active
-Last updated: 2026-06-02 (WSS-004 remediated — biome-derived heightfield)
+Last updated: 2026-06-05 (WSS-004 remediated — biome-derived heightfield)
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
 > (not consolidated):
@@ -10,6 +10,24 @@ Last updated: 2026-06-02 (WSS-004 remediated — biome-derived heightfield)
 > - `world3d` — the 3D rendering engine that consumes this surface's `WorldData`.
 > - `world-3d-ui` — the 2D↔3D transition + in-3D HUD.
 > Owner: claude.
+
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | Worldsim Service |
+| Slug | worldsim-service |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
 
 ## Why This Project Exists
 

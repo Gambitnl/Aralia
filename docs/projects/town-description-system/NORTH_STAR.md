@@ -1,7 +1,25 @@
 # Town Description System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | Town Description System |
+| Slug | town-description-system |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/town-description-system/TRACKER.md; docs/projects/town-description-system/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
 
 ## Purpose
 

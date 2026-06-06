@@ -1,7 +1,7 @@
 # Economy System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose and scope
 
@@ -14,6 +14,28 @@ Economy is a partial but active gameplay system. It models:
 - merchant pricing.
 
 This project is a coupling layer between world simulation, merchants, factions, and UI. A future agent should treat this as a live system with multiple daily loops and avoid rewriting it as a single isolated feature.
+
+## Current state
+
+- Active slice: T3 verifies route-region id validity for seed routes before any broader economy tuning work.
+- Secondary open slice: T4 keeps the `'booming'` route-status union question visible, but it is not the next resume action.
+- Resume path: validate every seed route against `REGIONAL_ECONOMIES`, repair invalid mappings in `src/data/tradeRoutes.ts`, and keep a CI-safe assertion or test around the catalog.
+
+## Dashboard Card Schema
+
+Project: Economy System
+Slug: economy
+Category: Feature/System Projects
+Status: active
+Confidence: high
+Evidence: `docs/projects/economy`
+Gap signal: 5 open gaps
+Protocol: living project doc set
+Next step: Resume T3 by validating and repairing seed route IDs against `REGIONAL_ECONOMIES`.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## What is implemented today
 
@@ -86,7 +108,7 @@ This project is a coupling layer between world simulation, merchants, factions, 
 ## Next useful checks
 
 - Confirm type alignment for `TradeRoute.status` and all market event payload shapes before adding new gameplay effects.
-- Add an explicit route-to-region integrity check (origin and destination must exist in `REGIONAL_ECONOMIES`) and link to failure logging.
+- Add an explicit route-to-region integrity check (origin and destination must exist in `REGIONAL_ECONOMIES`) and use it as the acceptance gate for T3.
 - Create a compact exchange/rule audit section for pricing inputs, route transitions, and merchant transaction outcomes with evidence proof files for future acceptance checks.
 
 

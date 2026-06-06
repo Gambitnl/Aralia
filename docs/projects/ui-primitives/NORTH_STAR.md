@@ -1,7 +1,25 @@
 # UI Primitives North Star
 
 Status: active  
-Last updated: 2026-06-03
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | Ui Primitives |
+| Slug | ui-primitives |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/ui-primitives/TRACKER.md; docs/projects/ui-primitives/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
 
 ## Why this project exists
 UI primitives are the shared foundation for gameplay and feature interfaces. This project tracks how far `src/components/ui` is already covering reusable controls, overlays, and modal surfaces, and what must stay stable before expansion work proceeds.

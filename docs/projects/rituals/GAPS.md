@@ -1,9 +1,11 @@
 # Rituals System Gaps
 
 Status: active  
-Last updated: 2026-05-31  
+Last updated: 2026-06-05  
 Owner: Rituals Worker  
 Parent tracker: `docs/projects/rituals/TRACKER.md`
+
+Current focus: RG-1 through RG-4 are the active investigation surface for the tracker slice; RG-5 through RG-8 remain the stable follow-up set.
 
 ## Gap Log
 

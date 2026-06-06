@@ -1,7 +1,7 @@
 # NORTH_STAR: Scripts: Quality
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -16,6 +16,22 @@ Create a compact continuation surface that tells a future agent:
 - how it is wired into push workflow policy,
 - what is still unknown or unverified,
 - and where to continue next.
+
+## Dashboard Card Schema
+
+Project: Scripts: Quality
+Slug: scripts-quality
+Category: Documentation
+Status: active
+Confidence: medium
+Evidence: docs/projects/scripts-quality
+Gap signal: 2 open in-scope gaps, 1 adjacent follow-up
+Protocol: living project doc set
+Next step: Run `npm run quality:debt` and decide whether the current lint scope is intentional or should be documented.
+Required verification: build_typecheck, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File Map
 
@@ -37,7 +53,8 @@ Create a compact continuation surface that tells a future agent:
 - Implemented:
   - single debt-report script in `scripts/quality/debt-summary.cjs`,
   - npm script wiring in `package.json`,
-  - policy integration in `scripts/git/pre-push-aralia.sh`.
+  - policy integration in `scripts/git/pre-push-aralia.sh`,
+  - dashboard-facing schema section in this North Star file.
 - Not yet implemented:
   - automated verification that debt summaries are produced and reviewed on a fixed cadence,
   - persisted debt summaries for trend tracking.
@@ -80,7 +97,7 @@ Do not edit outside `docs/projects/scripts-quality/` in this task.
 | Task | Refresh `scripts-quality` docs into a cold-start handoff with integration and gap clarity |
 | Acceptance criteria | NORTH_STAR, TRACKER, GAPS define purpose, file map, implemented state, integrations, active follow-ups, and next checks with specific evidence references |
 | Allowed boundaries | `docs/projects/scripts-quality/*` |
-| Stop condition | docs are internally consistent and reference current script/push-policy wiring |
+| Stop condition | docs are internally consistent, include the dashboard card schema, and reference current script/push-policy wiring |
 | Next checks | `Get-Content package.json`, `Get-Content scripts/git/pre-push-aralia.sh`, `npm run quality:debt` |
 
 ## Artifact Boundary
@@ -96,6 +113,7 @@ excerpt is needed to preserve a real decision or external proof.
 3. Read `docs/projects/scripts-quality/GAPS.md`.
 4. Confirm `scripts/quality/debt-summary.cjs`, `package.json`, and
    `scripts/git/pre-push-aralia.sh` still match this map.
+5. Keep the `Dashboard Card Schema` section current before the next handoff.
 
 
 ## Cold-Start Gap Routing

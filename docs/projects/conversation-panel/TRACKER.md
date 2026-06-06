@@ -1,7 +1,7 @@
 # Conversation Panel Tracker
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -18,7 +18,7 @@ Last updated: 2026-05-31
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Document concrete Conversation Panel state map, integrations, and gaps in `docs/projects/conversation-panel/` | Worker | 2026-05-31 | `src/components/ConversationPanel`, `src/hooks/useConversation.ts`, `src/state/appState.ts`, `src/utils/world/sceneUtils.ts` | Start/continue implementation slice for startability semantics | `NORTH_STAR.md` + `GAPS.md` updated |
-| T2 | not_started | Resolve trigger and exclusivity behavior between `activeConversation` and `activeDialogueSession` | Project owner | 2026-05-31 | `src/hooks/useConversation.ts`, `src/hooks/useDialogueSystem.ts`, `src/components/layout/GameModals.tsx`, `src/state/reducers` | Decide whether `START_CONVERSATION` is initiated from action handlers and whether both conversation lanes can be active at once | run focused slice task + targeted checks |
+| T2 | not_started | Resolve trigger and exclusivity behavior between `activeConversation` and `activeDialogueSession` | Project owner | 2026-06-05 | `src/hooks/useConversation.ts`, `src/hooks/useDialogueSystem.ts`, `src/components/layout/GameModals.tsx`, `src/state/reducers` | Decide whether `START_CONVERSATION` is initiated from action handlers and whether both conversation lanes can be active at once | run focused slice task + targeted checks |
 
 ## Gap Log
 

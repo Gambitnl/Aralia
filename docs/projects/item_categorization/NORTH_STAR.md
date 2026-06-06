@@ -1,66 +1,65 @@
-# NORTH STAR: Item Categorization
+﻿# NORTH STAR: Item Categorization
+
+## Dashboard Card Schema
+Project: Item Categorization
+Slug: item_categorization
+Category: Feature/UI Projects
+Status: active
+Confidence: high
+Evidence: docs/projects/item_categorization
+Gap signal: 6 open project gaps; itemMetadata parity is the current resume target
+Protocol: living project doc set
+Next step: Resolve `itemMetadata` parity in the type surface, then decide whether `itemGroup` should become a first-class grouping primitive.
+Required verification: docs_consistency, build_typecheck
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Objective
 Keep Equipment glossary entries consistently organized by source type (`itemType`) so the Glossary sidebar renders as a nested hierarchy instead of a large flat list, preserving rulebook-like grouping where possible.
 
 ## Intended Outcome
-When a user opens the “Equipment” section in the Glossary, they see grouped buckets (e.g., Adventuring Gear, Weapons, Armor, Magic Item classes), with items nested as children, and the same existing recursion/search behavior used by the rest of the Glossary.
+When a user opens the "Equipment" section in the Glossary, they see grouped buckets such as Adventuring Gear, Weapons, Armor, and Magic Item classes, with items nested as children, and the same recursion/search behavior used by the rest of the Glossary.
 
 ## Current State
-As of the latest inspected build-state, this has already been implemented:
+The Equipment grouping pipeline is already in place:
+- `public/data/glossary/entries/equipment/` contains 810 item JSON files.
+- `scripts/ingestPhbGlossary.ts` writes `itemType:*` tags and `itemMetadata`.
+- `scripts/generateGlossaryIndex.js` builds hierarchical Equipment buckets from those tags.
+- The Glossary UI already renders nested entries recursively.
 
-- `public/data/glossary/entries/equipment/` currently contains 810 item JSON files.
-- Ingestion now writes `tags` including `itemType:...` to each Equipment entry and persists `itemMetadata` (type, rarity, value, weight, damage, properties, etc.) in `scripts/ingestPhbGlossary.ts`.
-- `scripts/generateGlossaryIndex.js` now builds an Equipment category tree from those `itemType` tags and emits parent nodes with `subEntries` (top-level Equipment index now has 30 groups).
-- The recursive Glossary rendering path already supports nested nodes (`GlossarySidebar.tsx`, `useGlossarySearch.ts`, and the `buildGlossaryDisplayIndex` pass).
-
-What still looks partially open:
-
-- The grouping labels are as generated (`itemType` text) rather than a curated canonical list yet.
-- Some 5e source fields such as `itemGroup` are not yet explicitly preserved as a separate grouping primitive.
-- `itemMetadata` is typed in `src/types/ui.ts` but missing in `src/types/ui.d.ts`.
+The remaining open work is mostly contract and taxonomy cleanup:
+- `src/types/ui.d.ts` still lacks `itemMetadata`.
+- `itemGroup`-style grouping is not yet modeled separately.
+- Group labels still mirror generated `itemType` text instead of a curated canonical list.
 
 ## Scope Boundaries
-- **In Scope:** Confirming and documenting the Equipment grouping pipeline (ingest → index -> UI tree), then preserving intent by capturing remaining gaps in mechanical integration and schema parity.
-- **Out of Scope:** Broad item/economy simulation redesign, Spell/Feat migration, or non-Glossary inventory system rewrites.
+- In scope: confirm and document the Equipment grouping pipeline, then preserve intent by capturing remaining gaps in mechanical integration and schema parity.
+- Out of scope: broad item/economy simulation redesign, Spell/Feat migration, or non-Glossary inventory system rewrites.
 
 ## Resume Path
-Check `TRACKER.md` for active tasks and `GAPS.md` for evidence-backed open work.
-
-For missing files in this project folder: there is no `implementation_plan.md` present at the moment.
-
-If you are extending the work, also verify:
-- `scripts/ingestPhbGlossary.ts` for tag/metadata extraction behavior.
-- `scripts/generateGlossaryIndex.js` for Equipment grouping behavior.
-- `public/data/glossary/index/equipment.json` for grouped shape and missing-type exposure.
-- `src/components/Glossary/*` for recursion/search and `subEntries` handling.
-- `src/data/items/generatedGlossaryItems.ts` and `src/data/items/index.ts` for item registry merge behavior.
+Read `TRACKER.md` first, then `GAPS.md`.
+Start with the type-surface drift gap in `GAPS.md`, then use `DECISIONS.md` if you need the canonical stance on `itemMetadata`, `itemGroup`, or the glossary grouping path.
 
 ## Registry Evidence
-
 - `docs/projects/PROJECT_TRACKER.md` (project row: Item Categorization)
+- `docs/projects/item_categorization/DECISIONS.md`
 - `public/data/glossary/index/equipment.json` (30 group buckets; 810 item leaves)
 - `public/data/glossary/entries/equipment/` (source item entries)
-- `docs/projects/item_categorization` (NORTH_STAR, TRACKER, GAPS, DECISIONS)
 
-## Operational Protocol (For Future Agents)
-- **Ever-Widening Scope**: Treat the task as a discovery process. The goal is an ever-widening scope, not artificial shrinkage just to complete the task.
-- **Track Gaps**: Discover gaps as you work, classify them, and add them to the `GAPS.md` tracker without letting discovery swallow the active task.
-- **Preserve intent**: Preserve durable intent, decisions, and evidence. Keep raw process exhaust external or summarized.
-- **UI Generation**: Use Stitch MCP (`/stitch-generate`) only if new UI components are required. Current changes for this project can be mostly documented and verified via existing glossary tree behavior.
+## Operational Protocol
+- Preserve intent and future feature space before pruning anything.
+- Track gaps in `GAPS.md`; route cross-project findings to `docs/projects/GLOBAL_GAPS.md`.
+- Keep raw process exhaust external unless a short excerpt is needed for a real handoff decision.
+- Reuse the existing glossary recursion/search path instead of introducing a parallel UI tree.
 
 ## Registry Links
-
 - [Project registry](../../projects/PROJECT_TRACKER.md)
 - [Global gaps](../../projects/GLOBAL_GAPS.md)
 
-
 ## Cold-Start Gap Routing
-
-The next cold-start agent must:
+The next cold-start agent should:
 - read `TRACKER.md` and `GAPS.md` first
-- read the existing project gaps in `GAPS.md` before choosing work
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- start with gap 1 in `GAPS.md`
+- use `DECISIONS.md` for the canonical stance on `itemMetadata`, `itemGroup`, and the glossary grouping path
+- if no valid in-scope project gaps exist, route new cross-project findings to `docs/projects/GLOBAL_GAPS.md` instead

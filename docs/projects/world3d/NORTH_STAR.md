@@ -1,7 +1,7 @@
 # World 3D System North Star
 
 Status: active
-Last updated: 2026-06-02 (T13)
+Last updated: 2026-06-05 (T13)
 
 > The **3D rendering engine** for Aralia's Azgaar-driven streamed 3D world: chunk streaming,
 > per-chunk mesh generation, and the R3F scene. One of three distinct surfaces (not
@@ -10,6 +10,24 @@ Last updated: 2026-06-02 (T13)
 > - `worldsim-service` — world generation + simulation; produces the `WorldData` this consumes.
 > - `world-3d-ui` — the 2D↔3D transition + in-3D HUD that drives this engine.
 > Owner: claude.
+
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | World3d |
+| Slug | world3d |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/world3d/TRACKER.md; docs/projects/world3d/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
 
 ## Why This Project Exists
 

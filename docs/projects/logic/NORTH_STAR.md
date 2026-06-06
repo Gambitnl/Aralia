@@ -1,25 +1,39 @@
 # Logic System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Logic System
+Slug: logic
+Category: Systems
+Status: partial
+Confidence: high
+Evidence: `docs/projects/logic`
+Gap signal: 5 open gaps (1 active, 2 support-needed, 2 adjacent follow-up)
+Protocol: living project doc set
+Next step: Decide the first runtime callsite for `ConditionEvaluator`, then bridge the predicate contract and status source.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why This Project Exists
 
-The Logic System is registered in `docs/projects/PROJECT_TRACKER.md`, but its runtime usage is split across spell targeting and trigger surfaces. This project preserves the real implementation point (`ConditionEvaluator`) and the current integration gap so future work can continue without losing context.
+The Logic System is registered in `docs/projects/PROJECT_TRACKER.md`, but its runtime usage is still split across spell targeting and trigger surfaces. This project preserves the real implementation point (`ConditionEvaluator`) and the current integration gap so future work can continue without losing context.
 
 ## Intended Outcome
 
-Create a concrete handoff for logic-rule ownership: what exists, what is wired, what is not wired yet, and what checks should happen next.
+Keep a concrete handoff for logic-rule ownership: what exists, what is wired, what is not wired yet, and what checks should happen next.
 
 ## Current State (Evidence-Backed)
 
-- `src/systems/logic/ConditionEvaluator.ts` implements rule evaluation for:
-  - composite logic (`AND`, `OR`, `NOT`)
-  - state leaf checks (`status`, `attribute`, `stat`, `creature_type`)
-  - target selection (`self`, `target`, `source`) and comparison operators
-- `src/types/logic.ts` defines the rule data model consumed by the evaluator.
+- `src/systems/logic/ConditionEvaluator.ts` is the canonical rule evaluator for composite logic, state leaf checks, target selection, and comparison operators.
+- `src/types/logic.ts` defines the condition data model consumed by the evaluator.
 - `src/systems/logic/__tests__/ConditionEvaluator.test.ts` covers composite rules, status checks, and creature type checks.
-- Repo search confirms no production callsites to `ConditionEvaluator` outside its own test and implementation file.
+- Repo search still shows no production callsites to `ConditionEvaluator` outside its own test and implementation file.
+- Spell targeting and trigger logic still lives in split runtime paths, so the first integration point remains a decision, not an implementation detail.
 
 ## Concrete File Map
 
@@ -37,22 +51,23 @@ Create a concrete handoff for logic-rule ownership: what exists, what is wired, 
 
 ## Integration Notes
 
-- Intended use in comments suggests spell AI/contingency/trigger use, but no active runtime wiring is visible in current search output.
+- Intended use in comments suggests spell AI, contingency, and trigger use, but no active runtime wiring is visible in current search output.
 - Predicate evaluation today is implemented in runtime split points:
   - `TargetValidationUtils.matchesFilter`
   - `triggerHandler.matchesTargetFilter`
   - manual/ability target logic in `hooks/combat/useTargetValidator.ts` and `TargetResolver`
 - `TargetConditionFilter` in spells has broader fields than `Condition` in `types/logic.ts`, so direct reuse would currently lose fidelity.
+- The canonical status source is still split between `statusEffects` and `conditions`, which needs a decision before the first runtime bridge lands.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Complete a documentation-only cold-start pass for Logic with concrete state and gap evidence. |
+| Task | Keep the Logic living-project doc surface current and hand the next agent a clean first-integration decision. |
 | Allowed files | `docs/projects/logic/*` |
-| Evidence | `src/systems/logic/*`, `src/types/logic.ts`, `src/systems/spells/*`, `src/types/spells.ts` |
-| Acceptance | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` contain clear scope, integration map, gap inventory, owner routing, and next checks. |
-| Stop condition | All three docs updated and no non-document file edits. |
+| Evidence | `docs/projects/logic/NORTH_STAR.md`, `docs/projects/logic/TRACKER.md`, `docs/projects/logic/GAPS.md`, `docs/projects/logic/COLD_START_AGENT_PROMPT.md`, `src/systems/logic/*`, `src/types/logic.ts`, `src/systems/spells/*`, `src/types/spells.ts` |
+| Acceptance | `NORTH_STAR.md` carries the dashboard card schema, `TRACKER.md` is compact and status-accurate, and `GAPS.md` keeps the in-scope integration path and follow-ups explicit. |
+| Stop condition | All four Logic docs are refreshed and no non-document file edits were made. |
 | Owner | Worker A |
 
 ## Scope Boundaries
@@ -90,11 +105,10 @@ Out of scope:
 ## Resume Path
 
 1. Read this file.
-2. Read `docs/projects/logic/TRACKER.md`.
-3. Read `docs/projects/logic/GAPS.md`.
-4. Check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue with implementation planning in `src/systems/logic` before touching production wiring.
-
+2. Read `TRACKER.md` and `GAPS.md`.
+3. Decide the first runtime callsite for `ConditionEvaluator`.
+4. Keep integration logic inside `src/systems/logic` until the contract mapping is pinned.
+5. Route creature-type or spell-schema follow-up work to the owning project instead of widening this slice.
 
 ## Cold-Start Gap Routing
 

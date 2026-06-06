@@ -1,7 +1,7 @@
 # NORTH_STAR: Gemini Service
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose And Scope
 
@@ -18,6 +18,22 @@ Out of scope:
 
 - new AI feature implementation.
 - redesign of UI prompt flows.
+
+## Dashboard Card Schema
+
+Project: Gemini Service  
+Slug: gemini-service  
+Category: Service Systems  
+Status: active  
+Confidence: medium  
+Evidence: docs/projects/gemini-service  
+Gap signal: 5 tracked gaps; G1 and G2 are the priority follow-ups  
+Protocol: living project doc set  
+Next step: Start with G2 in `src/services/gemini/encounters.ts`, then re-check G1 and G3.  
+Required verification: docs_consistency, scoped_tests  
+Completed verification: docs_consistency  
+Last proof: 2026-06-05  
+Workflow gaps reviewed: 2026-06-05
 
 ## Implemented State
 
@@ -63,22 +79,22 @@ Out of scope:
 ## Known Gaps And Uncertainties
 
 - Cost and quota policy is still implicit; there is no central token/cost accounting or budget-aware strategy.
-- Encounter generation does not use the same fallback delay/backoff flow used by `core.generateText`.
+- Encounter generation still diverges from the shared fallback delay/backoff flow used by `core.generateText`.
 - Adaptive rate-limit timestamp handling is uneven across paths.
-- `geminiService.ts` and README comments contain unresolved TODO debt around model selection and facade imports.
+- `geminiService.ts` and README comments still carry unresolved TODO debt around model selection and facade imports.
 - Prompt strategy is function-scattered and not centrally versioned.
-- Logging metadata stores full prompt text in some paths before complete redaction hardening.
+- Logging metadata still stores full prompt text in some paths before complete redaction hardening.
 
 ## Active Task
 
-- Keep this project docs focused on continuity and next checks until the service owner opens a code slice.
+- T2 in `TRACKER.md` remains the open slice; keep the docs aligned to the live source files until the next code pass starts.
 
 ## Resume Path
 
 1. Read this file.
 2. Read `docs/projects/gemini-service/TRACKER.md`.
 3. Read `docs/projects/gemini-service/GAPS.md`.
-4. Re-open `src/services/gemini/core.ts` and `src/services/gemini/encounters.ts` for current behavior.
+4. Re-open `src/services/gemini/encounters.ts` first, then compare it with `src/services/gemini/core.ts` and the action-handler propagation path before changing behavior.
 
 
 ## Cold-Start Gap Routing

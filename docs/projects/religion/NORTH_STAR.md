@@ -1,7 +1,7 @@
 # Religion System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose
 This project covers implemented religion systems in the current codebase:
@@ -10,6 +10,22 @@ This project covers implemented religion systems in the current codebase:
 - temple generation and service handling
 - favor changes from prayer, combat events, and temple actions
 - ritual side effects where they currently intersect the ritual runtime
+
+## Dashboard Card Schema
+
+Project: Religion System
+Slug: religion
+Category: Gameplay Systems
+Status: active
+Confidence: medium
+Evidence: docs/projects/religion
+Gap signal: 5 open gaps
+Protocol: living project doc set
+Next step: Resume implementation from G1, then G2, in order.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why this folder exists
 Religion is already a registered project in `docs/projects/PROJECT_TRACKER.md`, but behavior is spread across system files, reducers, action types, and UI. This folder consolidates a practical cold-start map of what exists, how it is wired, and what is uncertain.
@@ -38,25 +54,25 @@ Religion is already a registered project in `docs/projects/PROJECT_TRACKER.md`, 
 
 ## Current gaps and next checks
 
-- Most temple effects are still string-keyed and partially typed (`TempleService.effect` supports object forms but handler branches are narrow).
-- A legacy dual-write path exists: `state.religion` plus `state.divineFavor` (and `state.temples`).
-- Trigger coverage from combat is narrow and hard-coded; deities with broader trigger intent are likely underrepresented.
-- Ritual interruption and backlash handling in `RitualManager`/`ritualReducer` is placeholder-first.
-- Temple/action payload typing remains partly loose at action boundaries.
+- Highest-risk seam: dual writes still hit `state.religion` and legacy `state.divineFavor`/`state.temples`.
+- Temple effects still depend on string keys with only partial typed-object handling.
+- Combat trigger coverage is narrow and hard-coded compared with deity doctrine intent.
+- Ritual interruption and backlash handling in `RitualManager`/`ritualReducer` is still placeholder-first.
+- Faith action payload typing remains loose at UI and handler boundaries.
 
 ## Concrete next checks
 
-1. Reconcile trigger and effect taxonomies (`DEITIES`, `TempleService.effect`, `CombatReligionAdapter`) against a single owned schema.
-2. Decide migration sequence for legacy religion state duplication and remove cross-field drift risk.
-3. Expand `TempleSystem` effect handling from string heuristics to typed service outcomes.
-4. Validate ritual interrupt -> consequence behavior (especially UI and messaging expectations) in an explicit follow-up tracker.
+1. Resolve the migration order for G1 and keep compatibility writes fenced until the canonical state path is clear.
+2. Define the G2 service-effect union and add at least one structured non-heal regression test.
+3. Expand the combat trigger taxonomy after G1/G2 are stable enough to make the trigger map reliable.
+4. Keep ritual consequence and UI typing follow-ups queued behind the state/effect contracts instead of widening now.
 
 ## Cold-start resume path
 
 1. Read this file.
 2. Read `docs/projects/religion/TRACKER.md`.
 3. Read `docs/projects/religion/GAPS.md`.
-4. Resume from highest-priority open gap in the tracker.
+4. Resume from G1, then G2, and only widen after those seams are stable.
 
 
 ## Cold-Start Gap Routing

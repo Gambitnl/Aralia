@@ -1,7 +1,7 @@
 # Providers North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -19,18 +19,35 @@ Document provider scope, current composition, and cross-cutting integration poin
 - `AppProviders` currently composes `GlossaryProvider`, `SpellProvider`, and `DiceProvider`.
 - `DataLoaderGate` blocks non-main-menu UI until spell and glossary contexts are non-null.
 - `GameProvider` is a separate global-state context in `src/state/GameContext.tsx`.
+- The dashboard card schema is kept in this file so the project card can stay in sync with the tracked provider state.
+
+## Dashboard Card Schema
+
+Project: Providers
+Slug: providers
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/providers
+Gap signal: 4 open gaps (G2 and G3 active, G4 support-needed, G1 follow-up)
+Protocol: living project doc set
+Next step: Start with G2 and keep G3 paired in the next implementation slice.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Publish a providers project cold-start document set with current state and dependency map |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` describe provider composition, file map, runtime integration points, and current gaps |
+| Task | Decide and document the provider startup behavior for degraded states, then keep the dependency boundary explicit |
+| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` stay aligned on provider order, `G2`, `G3`, and the current gap signal |
 | Allowed boundaries | `docs/projects/providers/` only |
-| Stop condition | Docs are complete and no further source edits are required in this pass |
-| Verification | `Get-ChildItem docs/projects/providers/NORTH_STAR.md,docs/projects/providers/TRACKER.md,docs/projects/providers/GAPS.md` |
+| Stop condition | The provider doc set is refreshed and ready for the next implementation slice |
+| Verification | docs consistency review against the current provider order and gate behavior |
 | Owner | Worker B |
-| Next action | Update Tracker and Gaps with the provider dependency graph status and follow-up checks |
+| Next action | Start with `G2`, keep `G3` paired, and only widen scope if the decision requires source-doc sync |
 
 ## Scope Boundaries
 

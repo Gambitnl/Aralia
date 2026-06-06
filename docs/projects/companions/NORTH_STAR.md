@@ -1,7 +1,7 @@
 # Companions System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 The project tracker already marks Companions as implemented (`docs/projects/PROJECT_TRACKER.md`), but ownership context was still scaffold-only. This project now captures the current behavior and risk surface so future agents can continue without re-deriving intent.
@@ -33,7 +33,24 @@ Create a durable, evidence-backed handoff for the companion social stack (relati
   - `src/data/companions.ts` and `src/data/banter.ts` are seeded and typed via `src/types/companions.ts`.
   - Tests exist in `src/systems/companions/__tests__/*` and in `src/hooks/__tests__/useCompanionBanter.test.ts`, `src/hooks/__tests__/useCompanionCommentary.test.ts`.
 - `src/systems/companions/Companions_Ralph.md` keeps historical notes about unresolved behavior issues.
+- Historical notes in `src/systems/companions/Companions_Ralph.md` also validate two higher-priority follow-ups (romance lock-in and runtime-safe IDs); this pass imported both into `GAPS.md`.
 - No source code changes were made in this pass; docs-only updates only.
+
+## Dashboard Card Schema
+
+Project: Companions System
+Slug: companions
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/companions/NORTH_STAR.md
+Gap signal: 7 open gaps, including 1 human-decision blocker
+Protocol: living project doc set
+Next step: Route `G6` (romance lock-in) and keep `G1`/`G7` visible for the next implementation slice.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Active Task
 
@@ -45,7 +62,7 @@ Create a durable, evidence-backed handoff for the companion social stack (relati
 | Stop condition | Documentation package is complete, internally consistent, and reviewable without code edits. |
 | Verification | Evidence mapping in docs references explicit source files/tests and project trackers. |
 | Owner | Worker A |
-| Next action | Use `TRACKER.md` + `GAPS.md` to prioritize next execution slice. |
+| Next action | Use `TRACKER.md` + `GAPS.md` to prioritize the next execution slice; start with the imported `G6` blocker and keep `G1`/`G7` visible. |
 
 ## Scope Boundaries
 
@@ -73,8 +90,10 @@ Out of scope:
 |---|---|---|---|---|
 | `CompanionReactionSystem` declares requirement fields but does not enforce them during evaluation. | support_needed_now | Worker A | `src/systems/companions/CompanionReactionSystem.ts`, `src/types/companions.ts` | Add/verify requirement filtering + tests before adding new reaction content. |
 | `RelationshipManager.checkLoyalty` and several type/import TODOs are placeholders. | support_needed_now | Worker A | `src/systems/companions/RelationshipManager.ts` | Decide contract and either implement or mark intentional de-scope. |
-| `CompanionReaction.tsx` only tracks a single dismissed message; concurrent reaction bubbles are not queued. | adjacent_follow_up | Worker A | `src/components/ui/CompanionReaction.tsx` | Decide queue strategy (global/companion) and add regression for parallel events. |
+| Romance state lock-in: once a companion reaches `romance`, approval can collapse without the state downgrading or breaking. | blocked_human_decision | Worker A | `src/systems/companions/Companions_Ralph.md`, `src/systems/companions/RelationshipManager.ts` | Choose automatic, event-driven, or hysteresis breakup semantics and encode them in `RelationshipManager`. |
+| `RelationshipManager` uses direct `crypto.randomUUID()` calls instead of the shared `generateId()` helper. | adjacent_follow_up | Worker A | `src/systems/companions/Companions_Ralph.md`, `src/systems/companions/RelationshipManager.ts`, `src/utils/core/idGenerator.ts` | Swap the helper and keep the existing compatibility fallback centralized. |
 | Relationship scale inconsistency: type/comments still imply legacy `-100..100` while runtime uses `-500..500`. | support_needed_now | Worker A | `src/types/companions.ts`, `src/systems/companions/RelationshipManager.ts`, `src/components/ui/CompanionCard.tsx` | Reconcile type comments and any dependent UI assumptions. |
+| `CompanionReaction.tsx` only tracks a single dismissed message; concurrent reaction bubbles are not queued. | adjacent_follow_up | Worker A | `src/components/ui/CompanionReaction.tsx` | Decide queue strategy (global/companion) and add regression for parallel events. |
 | Party-facing and AI flow coupling remains broad; some fields are optional and guarded by runtime checks. | adjacent_follow_up | Worker A | `src/hooks/useCompanionCommentary.ts`, `src/hooks/useCompanionBanter.ts`, `src/components/ui/CollapsibleBanterPanel.tsx` | Tighten flow contracts while preserving backward compatibility. |
 
 ## Global Gap Imports
@@ -94,8 +113,9 @@ Check the global gap tracker before creating this project surface:
 | Relationship system implementation | Approval math, clamps, unlock checks, event history | `src/systems/companions/RelationshipManager.ts` |
 | Reaction engine implementation | Tag matching and approval aggregation path | `src/systems/companions/CompanionReactionSystem.ts` |
 | Banter selection logic | Cooldown/location/participant/relationship/chance filtering | `src/systems/companions/BanterManager.ts` |
+| Historical note validation | Additional validated follow-ups: romance lock-in and runtime-safe IDs | `src/systems/companions/Companions_Ralph.md` |
 | Hook-level orchestration | Ambient banter, commentary triggers, interactive talk loop | `src/hooks/useCompanionBanter.ts`, `src/hooks/useCompanionCommentary.ts`, `src/hooks/useConversation.ts` |
-| Reducer/state wiring | Action surface and update paths for companion state/memory/conversation | `src/state/actionTypes.ts`, `src/state/reducers/companionReducer.ts`, `src/state/reducers/conversationReducer.ts`, `src/state/appState.ts` |
+| Reducer-state wiring | Action surface and update paths for companion state/memory/conversation | `src/state/actionTypes.ts`, `src/state/reducers/companionReducer.ts`, `src/state/reducers/conversationReducer.ts`, `src/state/appState.ts` |
 | UI integration | Banter/conversation/reaction surfaces are rendered and controlled | `src/App.tsx`, `src/components/ui/CollapsibleBanterPanel.tsx`, `src/components/ConversationPanel/ConversationPanel.tsx`, `src/components/ui/CompanionReaction.tsx` |
 | Data seeds | Initial companions and banter definitions are data-backed | `src/data/companions.ts`, `src/data/banter.ts` |
 | Test evidence | Existing suite validates reaction, banter, and approval behaviors | `src/systems/companions/__tests__/`, `src/hooks/__tests__/useCompanionBanter.test.ts`, `src/hooks/__tests__/useCompanionCommentary.test.ts` |
@@ -116,8 +136,7 @@ Check the global gap tracker before creating this project surface:
 2. Read `docs/projects/companions/TRACKER.md`.
 3. Read `docs/projects/companions/GAPS.md`.
 4. Verify evidence by opening referenced `src` files + tests.
-5. Continue from the highest `support_needed_now` gap row and update this folder when behavior changes.
-
+5. Continue from the highest-priority open gap row, starting with `G6` if you need the relationship-policy decision and `G1` if you are taking the first implementation slice.
 
 ## Cold-Start Gap Routing
 
@@ -127,3 +146,4 @@ The next cold-start agent must:
 - identify and register 2 additional real project gaps tied to this project in `GAPS.md`
 - if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
 - do not invent gaps just to satisfy the count
+

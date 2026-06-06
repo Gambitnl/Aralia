@@ -1,7 +1,7 @@
 # Trade UI Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable findings that belong to trade-ui and may outlive the docs pass.
 

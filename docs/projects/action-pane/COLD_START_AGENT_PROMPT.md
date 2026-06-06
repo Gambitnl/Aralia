@@ -1,7 +1,7 @@
-# Action Pane Cold Start Agent Handoff
+﻿# Action Pane Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/action-pane/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Action Pane
 Project folder: docs/projects/action-pane
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/action-pane/NORTH_STAR.md
 Tracker: docs/projects/action-pane/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/action-pane/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 created the first cold-start packet and established the living
+project doc set. This pass refreshed the dashboard schema and resume metadata
+without changing runtime code.
 
 ## Current Mission
 
@@ -55,8 +55,9 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+NORTH_STAR.md now has a Dashboard Card Schema section, the tracker dates
+are current, and the open Action Pane gaps still point at contract coverage,
+prop contract cleanup, and move.targetId normalization.
 
 ## Required End State For This Iteration
 
@@ -64,4 +65,10 @@ Before ending, update this handoff with the next iteration number, previous
 agent context, active task, acceptance criteria, key files, verification method,
 blockers, and recent progress. End the response with the refreshed handoff
 between the same BEGIN/END markers.
+
+## Resume Reminder
+
+Start with TRACKER.md, then GAPS.md, then the runtime contract surfaces in
+NORTH_STAR.md before changing behavior. Keep the next pass on T2 unless a
+real blocker or new evidence changes the queue.
 ---END NEXT AGENT HANDOFF---

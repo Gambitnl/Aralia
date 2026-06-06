@@ -1,7 +1,7 @@
 # Spells System Gap Registry
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that are in-scope for this project.
 

@@ -1,9 +1,25 @@
 # Racial Mechanics / Race Hierarchy North Star
 
-Last updated: 2026-06-03
+Last updated: 2026-06-05
 
 Purpose and scope
 This project is the single source for race-mechanics runtime behavior in the character stack: parser extraction, state materialization, combat math integration, user-facing sheet visibility for race traits, and glossary entry alignment with 2024 standards.
+
+## Dashboard Card Schema
+
+Project: Racial Mechanics / Race Hierarchy
+Slug: racial-mechanics
+Category: Feature/Systems Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/racial-mechanics
+Gap signal: Open items remain in glossary sync, long-rest choice follow-up, and adjacent parser/UI debt.
+Protocol: living project doc set
+Next step: Keep RM-032 moving by auditing Character Creator choice coverage against every race and recording any skipped steps.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Design Pillars
 - **D&D 2024 Alignment:** All core races (Aarakocra to Yuan-ti) must eventually prioritize 2024 mechanics (e.g., 30ft base speed, Proficiency Bonus uses).
@@ -27,6 +43,11 @@ This project is the single source for race-mechanics runtime behavior in the cha
 Scope boundary:
 - In scope: race trait parsing and materialization across racial spells, usages, defenses, modifiers, reactions, race resources, and race choices; alignment of race glossary entries with 2024 rule text.
 - Out of scope unless re-accepted: broad UI redesigns, race-grouping redesign, and full spell-list authoring system changes.
+
+Current state:
+- RM-032 remains the active implementation focus in `TRACKER.md`.
+- RM-038 and RM-SYNC-001 still capture the glossary sync workstream.
+- This iteration refreshed the dashboard-facing docs only; runtime behavior was not changed.
 
 Single-project position
 - Treat this as the cold-start file for race mechanics and deferred race hierarchy evolution.

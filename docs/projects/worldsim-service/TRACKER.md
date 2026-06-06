@@ -1,7 +1,7 @@
 # TRACKER: WorldSim Service
 
 Status: active
-Last updated: 2026-06-02
+Last updated: 2026-06-05
 
 North Star: `docs/projects/worldsim-service/NORTH_STAR.md`
 Scope (clarified 2026-06-01): world **generation + simulation** — the geometry pipeline

@@ -1,11 +1,11 @@
-# Creatures System Cold Start Agent Handoff
+﻿# Creatures System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
-This file is the project-specific handoff for the next cold-start agent. It
-does not duplicate the workflow rules. The agent must follow the shared workflow
-file and use this file only for the current project context.
+This file is the project-specific handoff for the next cold-start agent. It keeps
+current project context only; shared workflow rules live in
+`docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -16,7 +16,7 @@ docs/projects/creatures/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Creatures System
 Project folder: docs/projects/creatures
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/creatures/NORTH_STAR.md
 Tracker: docs/projects/creatures/TRACKER.md
@@ -24,44 +24,39 @@ Gaps: docs/projects/creatures/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+The iteration-1 docs refresh pass completed on 2026-06-05. NORTH_STAR.md now
+has the dashboard card schema, TRACKER.md reflects the current queue order, and
+GAPS.md remains the durable blocker registry.
 
 ## Current Mission
 
 Active task:
-CT-1 - Refresh living-project docs for Creatures with evidence-backed state, ownership map, gap set, and resume path.
+CT-3 - Resolve the creature-type schema policy before deeper validator refactors.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Document the canonical read/write rules for `creatureType` / `creatureTypes`,
+`size` / `sizes`, and `alignment` / `alignments`, then record the migration
+boundary in the project docs so CT-2 can proceed without guessing.
 
 Key files to touch:
 - docs/projects/creatures/NORTH_STAR.md
 - docs/projects/creatures/TRACKER.md
 - docs/projects/creatures/GAPS.md
 - docs/projects/creatures/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/types/spells.ts
+- src/types/creatures.ts
+- any validator or test file named by the active tracker task
 
 Scoped verification:
 Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+NORTH_STAR.md. If none is named, add one before claiming the task is done.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+CT-2 stays deferred until the schema policy is explicit. Stay inside this
+project's scope boundaries and route sibling-project blockers instead of
+editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
-
-## Required End State For This Iteration
-
-Before ending, update this handoff with the next iteration number, previous
-agent context, active task, acceptance criteria, key files, verification method,
-blockers, and recent progress. End the response with the refreshed handoff
-between the same BEGIN/END markers.
+The docs refresh is complete. The next safe resume path is schema policy first,
+then validator wiring.
 ---END NEXT AGENT HANDOFF---

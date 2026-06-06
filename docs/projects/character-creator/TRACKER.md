@@ -1,7 +1,7 @@
 # Character Creator Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -19,7 +19,7 @@ Last updated: 2026-05-31
 |---|---|---|---|---|---|---|---|
 | T1 | done | Create initial living-project scaffold for character-creator docs | codex-spark worker | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`, `docs/projects/character-creator/*` | Initial files now exist | Verified in docs set and scope-only constraint |
 | T2 | done | Replace scaffold-only registry surface with implementation-grounded NORTH_STAR + align TRACKER/GAPS | codex-spark worker | 2026-05-31 | `src/components/CharacterCreator/CharacterCreator.tsx`; `src/components/CharacterCreator/state/characterCreatorState.ts`; `src/components/CharacterCreator/hooks/useCharacterAssembly.ts` | Keep project docs synchronized with observed runtime structure and navigation behavior | Compare docs against live code and reducer tests |
-| T3 | not_started | Decide whether feature docs should shift from permissive sidebar navigation to strict gating behavior (if product decision changes) | Worker B | 2026-05-31 | `src/components/CharacterCreator/CreationSidebar.tsx`, `src/components/CharacterCreator/config/sidebarSteps.ts`, `src/components/CharacterCreator/CharacterCreator.tsx` | Align navigation semantics in docs and any UI tests | Resolve product intent and update tests/docs together |
+| T3 | active | Decide whether feature docs should shift from permissive sidebar navigation to strict gating behavior (if product decision changes) | Worker B | 2026-06-05 | `src/components/CharacterCreator/CreationSidebar.tsx`, `src/components/CharacterCreator/config/sidebarSteps.ts`, `src/components/CharacterCreator/CharacterCreator.tsx` | Use the active G2 gap and the current code-backed flow as the source of truth | Confirm whether permissive sidebar navigation is intentional before any gating change |
 | T4 | not_started | Reconcile source documentation drift (README/feature notes vs implementation) | Worker B | 2026-05-31 | `src/components/CharacterCreator/CharacterCreator.README.md`, `docs/architecture/domains/character-creator.md`, `docs/tasks/feature-capabilities/character-creator.md` | Validate which document is canonical and adjust/update notes | Document evidence-backed source-of-truth and remaining diffs |
 | T5 | not_started | Track and prioritize wizard/validation edge-case follow-up in project workflow | Worker B | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Promote into local gap planning and close on implementation handoff | Confirm with registry evidence and product owner |
 

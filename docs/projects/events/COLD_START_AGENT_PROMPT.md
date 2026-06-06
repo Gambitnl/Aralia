@@ -1,7 +1,7 @@
 # Events System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/events/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Events System
 Project folder: docs/projects/events
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/events/NORTH_STAR.md
 Tracker: docs/projects/events/TRACKER.md
@@ -24,9 +24,11 @@ Gaps: docs/projects/events/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 was a docs-only living-project refresh. It updated the Events
+North Star with the dashboard card schema, rechecked the tracker and gap set,
+and kept the active objective unchanged. Use NORTH_STAR.md for project scope
+and intent, TRACKER.md for the active queue, and GAPS.md for unresolved
+findings.
 
 ## Current Mission
 
@@ -55,8 +57,13 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now includes the Dashboard Card Schema section required by the
+shared project-card schema.
+TRACKER.md and GAPS.md still carry the five evidence-backed replay/scheduling
+gaps for event priority, dispatch ordering, replay persistence, lane split, and
+hit/crit fidelity.
+The bounded gap sweep also reviewed docs/projects/GLOBAL_GAPS.md and
+WORKFLOW_GAPS.md; no new project-specific or workflow-level gaps were added.
 
 ## Required End State For This Iteration
 

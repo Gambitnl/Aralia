@@ -1,7 +1,7 @@
 # Documentation Cleanup Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/documentation-cleanup/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Documentation Cleanup
 Project folder: docs/projects/documentation-cleanup
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/documentation-cleanup/NORTH_STAR.md
 Tracker: docs/projects/documentation-cleanup/TRACKER.md
@@ -24,19 +24,19 @@ Gaps: docs/projects/documentation-cleanup/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the durable project surface and aligned the project
+docs with the living-project workflow. This pass refreshed the resume path and
+pulled the real cleanup gaps forward from the ignored task evidence.
 
 ## Current Mission
 
 Active task:
-No open task selected. Read TRACKER.md and choose the highest-value open task.
+T2 in `TRACKER.md`: curate stale/duplicate docs with evidence-backed decisions.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Use the active `TRACKER.md` row, the three gap rows in `GAPS.md`, and any
+acceptance criteria listed in `NORTH_STAR.md`. If the active task still lacks a
+source-backed path, record the missing evidence as a blocker before continuing.
 
 Key files to touch:
 - docs/projects/documentation-cleanup/NORTH_STAR.md
@@ -55,13 +55,15 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+`NORTH_STAR.md` now has the dashboard card schema. `TRACKER.md` still points to
+the evidence-backed cleanup task. `GAPS.md` now captures the real project gaps
+from the ignored task evidence, so the next agent can start from a concrete
+resume point instead of rebuilding context.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous
-agent context, active task, acceptance criteria, key files, verification method,
-blockers, and recent progress. End the response with the refreshed handoff
-between the same BEGIN/END markers.
+Before ending, keep the handoff current with the next iteration number,
+previous-agent context, active task, acceptance criteria, key files,
+verification method, blockers, and recent progress. End the response with the
+refreshed handoff between the same BEGIN/END markers.
 ---END NEXT AGENT HANDOFF---

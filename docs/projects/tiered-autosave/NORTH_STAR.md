@@ -1,5 +1,23 @@
 # NORTH STAR: Tiered Autosave Checkpoint System
 
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | Tiered Autosave |
+| Slug | tiered-autosave |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/tiered-autosave/TRACKER.md; docs/projects/tiered-autosave/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
+
 ## Purpose
 Document the state, scope, and next actions for the autosave checkpoint work so future work can continue without re-locating implementation intent.
 

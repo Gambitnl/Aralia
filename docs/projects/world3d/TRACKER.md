@@ -1,7 +1,7 @@
 # World 3D System Living Tracker
 
 Status: active
-Last updated: 2026-06-02 (T13)
+Last updated: 2026-06-05 (T13)
 
 North Star: `docs/projects/world3d/NORTH_STAR.md`
 Gap registry: `docs/projects/world3d/GAPS.md`

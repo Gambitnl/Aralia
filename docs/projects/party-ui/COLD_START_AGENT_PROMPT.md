@@ -1,7 +1,7 @@
 # Party UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/party-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Party UI
 Project folder: docs/projects/party-ui
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/party-ui/NORTH_STAR.md
 Tracker: docs/projects/party-ui/TRACKER.md
@@ -24,19 +24,22 @@ Gaps: docs/projects/party-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the initial Party UI handoff. This refresh adds the
+dashboard card schema, clarifies the active resume target, and records two
+additional UI gaps so the next agent can resume without guessing.
 
 ## Current Mission
 
 Active task:
-No open task selected. Read TRACKER.md and choose the highest-value open task.
+T2 - Preserve/define companion-party membership boundary. Read TRACKER.md
+first, then use NORTH_STAR.md and GAPS.md to keep the canonical party rule
+explicit.
 
 Acceptance criteria:
 Use the active TRACKER.md row and any acceptance criteria listed in
 NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+criteria before implementation and record that documentation gap. Keep T3 as
+the follow-up verification task for rest/tracker persistence.
 
 Key files to touch:
 - docs/projects/party-ui/NORTH_STAR.md
@@ -55,8 +58,9 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+Iteration 1 established the project handoff, and this refresh added the
+dashboard card schema, clarified the T2 resume target, and recorded two new UI
+gaps. Workflow rules still live in ITERATION_AGENT_WORKFLOW.md.
 
 ## Required End State For This Iteration
 

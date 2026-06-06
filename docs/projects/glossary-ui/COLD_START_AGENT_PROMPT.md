@@ -1,7 +1,7 @@
 # Glossary UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/glossary-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Glossary UI
 Project folder: docs/projects/glossary-ui
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/glossary-ui/NORTH_STAR.md
 Tracker: docs/projects/glossary-ui/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/glossary-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 created the initial glossary-ui cold-start packet and established
+the active T2/T3 queue. This pass refreshed the project docs so the next agent
+can resume T2 without re-deriving the dashboard schema or the gap list.
 
 ## Current Mission
 
@@ -34,34 +34,35 @@ Active task:
 T2 - Capture non-dev glossary rebuild contract as a stable project-level check
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+- NORTH_STAR.md includes the dashboard card schema and current focus.
+- TRACKER.md names the non-dev refresh command and proof artifact clearly.
+- GAPS.md keeps the rebuild-contract blocker and adjacent assumptions evidence-backed.
+- The next agent can resume from docs alone without guessing the source -> index -> bundle path.
 
 Key files to touch:
 - docs/projects/glossary-ui/NORTH_STAR.md
 - docs/projects/glossary-ui/TRACKER.md
 - docs/projects/glossary-ui/GAPS.md
 - docs/projects/glossary-ui/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- Any source/docs named by the active tracker task if the work widens beyond docs
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Docs-only pass. Runtime verification still belongs to the task that actually
+changes source or build outputs.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+Dashboard Card Schema added/refreshed in NORTH_STAR.md. Tracker and gaps were
+updated to make the T2 resume path explicit. No workflow-level ambiguity was
+found in the shared workflow review.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous
-agent context, active task, acceptance criteria, key files, verification method,
-blockers, and recent progress. End the response with the refreshed handoff
-between the same BEGIN/END markers.
+Before ending, keep the handoff current with the next iteration number,
+previous agent context, active task, acceptance criteria, key files,
+verification method, blockers, and recent progress. End the response with the
+refreshed handoff between the same BEGIN/END markers.
 ---END NEXT AGENT HANDOFF---

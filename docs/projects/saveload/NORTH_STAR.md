@@ -1,7 +1,23 @@
 # SaveLoad North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: SaveLoad
+Slug: saveload
+Category: Feature Domains and Runtime Support
+Status: partial
+Confidence: high
+Evidence: docs/projects/saveload
+Gap signal: 1 active gap, 4 open gaps
+Protocol: living project doc set
+Next step: Resolve storage bootstrap and version-policy decisions before code changes resume.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why This Project Exists
 
@@ -51,7 +67,7 @@ Observed behavior:
 | Field | Value |
 |---|---|
 | Task | Document implemented SaveLoad runtime behavior for next-session continuity |
-| Acceptance criteria | NORTH_STAR, TRACKER, GAPS describe current scope, file map, integrations, gaps, and resume checks |
+| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS describe the current scope, file map, integrations, gaps, and resume checks |
 | Allowed boundaries | `docs/projects/saveload/*` only |
 | Stop condition | A cold agent can resume without reopening unrelated code files |
 | Verification | `Get-Content docs/projects/saveload/NORTH_STAR.md`, `Get-Content docs/projects/saveload/TRACKER.md`, `Get-Content docs/projects/saveload/GAPS.md` |
@@ -160,15 +176,12 @@ transient process logs unless a future doc entry requires them.
 1. Read this file.
 2. Read `docs/projects/saveload/TRACKER.md`.
 3. Read `docs/projects/saveload/GAPS.md`.
-4. Continue from: `save storage bootstrap and checkpoint/schema decisions`.
+4. Continue from the SaveLoad runtime decision slice: storage bootstrap and version policy.
 
 
 ## Cold-Start Gap Routing
 
-The next cold-start agent must:
-- read `TRACKER.md` and `GAPS.md` first
-- read the existing project gaps before choosing work
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- Read `TRACKER.md` and `GAPS.md` first.
+- Keep new SaveLoad findings in `GAPS.md` with evidence and next proof.
+- Route cross-project findings to `docs/projects/GLOBAL_GAPS.md`.
+- If no new real gaps are found, say so explicitly in the closeout instead of inventing filler rows.

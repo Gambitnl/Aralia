@@ -1,7 +1,7 @@
 # Rituals System North Star
 
 Status: active  
-Last updated: 2026-05-31  
+Last updated: 2026-06-05  
 Owner: Rituals Worker  
 Evidence seed: `docs/projects/PROJECT_TRACKER.md` row 54
 
@@ -16,6 +16,22 @@ This project documents one bounded ritual lane:
 The scope is intentionally read-only and discovery-first: preserve what currently works,
 what is stubbed, and what is still unlinked to execution so next workers can continue
 without losing intent.
+
+## Dashboard Card Schema
+
+Project: Rituals System  
+Slug: rituals  
+Category: Gameplay Systems  
+Status: active  
+Confidence: high  
+Evidence: `docs/projects/rituals`  
+Gap signal: 8 open gaps remain; start-path wiring, typed events, interruption branches, and ritual economy math are still open  
+Protocol: living project doc set  
+Next step: Keep RIT-3 evidence current by mapping the first live `startRitual(...)` caller and confirming the caller contract.  
+Required verification: `scoped_tests`, `docs_consistency`  
+Completed verification: `docs_consistency`  
+Last proof: 2026-06-05  
+Workflow gaps reviewed: 2026-06-05
 
 ## Concrete File Map
 

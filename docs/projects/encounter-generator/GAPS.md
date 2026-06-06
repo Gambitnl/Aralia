@@ -1,9 +1,10 @@
 # Encounter Generator Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that belong directly to encounter generation in this project.
+Reviewed during the 2026-06-05 cold-start refresh; no new project-specific blockers were added.
 
 ## Gap Log
 
@@ -21,4 +22,3 @@ Use this file for durable unresolved findings that belong directly to encounter 
 - `out_of_scope`: Explicitly excluded.
 - `blocked_human_decision`: Requires owner/product decision.
 - `blocked_external_state`: Waiting on external dependency.
-

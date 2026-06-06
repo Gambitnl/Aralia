@@ -41,6 +41,22 @@ Out of scope:
   - terrain mesh, grid overlay, grass layer, water, trees/obstacles layer, VFX and particle layer, character actors, lights.
 - Engine references already define the stack: three.js WebGL (`three`), `@react-three/fiber`, `@react-three/drei`, `@react-three/postprocessing`.
 
+## Dashboard Card Schema
+
+Project: 3D Combat Map
+Slug: 3d-combat-map
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/3d-combat-map
+Gap signal: 4 open gaps; G1 closed this pass
+Protocol: living project doc set
+Next step: Keep the tracker aligned while T4 adds the next verification checklist.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
+
 ## Engine Constraints and MVP Boundary
 
 - MVP is a parity and quality gate, not a rules rewrite: 3D should be the visual front-end swap for combat while hooks keep logic.
@@ -53,6 +69,23 @@ Out of scope:
   - Implement all required 3D combat-map quality outcomes only within combat flow.
   - Keep 2D/3D behavior parity for movement, targeting, AoE, turn flow, and combat messages.
   - Do not merge unrelated 3D pathways.
+
+## MVP Acceptance Criteria
+
+The next implementation slice can treat the MVP boundary as stable when:
+
+- `BattleMap3D` stays inside combat flow and does not absorb exploration-path behavior.
+- 2D and 3D modes preserve movement, targeting, AoE, turn flow, and combat messages.
+- `CombatView` pop-out and return preserve the active render mode and lifecycle state.
+- The renderer stays inside the 60 fps target on GTX 1060+ class desktop hardware for the documented combat map size.
+- Any enabled post-processing path is explicit about its budget and stability tradeoffs.
+
+Not required for MVP:
+
+- `World3D` exploration, chunk streaming, or world-scale traversal behavior.
+- `ThreeDModal` travel and modal-exploration behavior.
+- Combat rule changes, action economy changes, or spell logic changes.
+- Shared renderer standardization across the combat, exploration, and modal 3D surfaces.
 
 ## Relationships to Nearby 3D Systems
 

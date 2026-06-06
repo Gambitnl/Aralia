@@ -1,7 +1,25 @@
 # Trade UI North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | Trade Ui |
+| Slug | trade-ui |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/trade-ui/TRACKER.md; docs/projects/trade-ui/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
 
 ## Why This Project Exists
 

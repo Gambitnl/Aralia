@@ -1,7 +1,23 @@
 # Naval UI North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Naval UI
+Slug: naval-ui
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/naval-ui
+Gap signal: 5 open gaps remain in the project handoff set; ShipPane is still read-only and the voyage/action surface is unresolved
+Protocol: living project doc set
+Next step: Resume TRACKER task U2 and confirm the ShipPane action contract before adding new controls.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Purpose And Scope
 
@@ -52,7 +68,7 @@ This project only carries the UI-facing slice of that work.
 
 ## Next Checks For Handoff
 
-1. Confirm whether ShipPane should dispatch naval actions directly or stay read-only and route actions to another modal.
+1. Confirm whether ShipPane should stay read-only or become the naval action surface before any new controls are added.
 2. Trace one practical voyage start path from movement to `NAVAL_START_VOYAGE`.
 3. Confirm expected handoff contract when `VoyageState.status` becomes `Combat` or `Storm`.
 4. Reconcile action contract vs reducer behavior for `NAVAL_REPAIR_SHIP`.

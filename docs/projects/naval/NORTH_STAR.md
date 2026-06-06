@@ -1,7 +1,7 @@
 # Naval System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -16,6 +16,23 @@ Preserve the current naval implementation as the baseline, define verified file 
 - Core systems exist and are runnable in isolation (reducer + utilities + tests).
 - UI exists for ship inspection through `src/components/Naval/ShipPane.tsx`.
 - Core gaps are in orchestration: voyage events do not consistently drive combat/encounter systems, and sea travel is not hooked into movement flows.
+- The dashboard-facing project card now has an explicit schema in this file, so the next agent does not have to infer card fields from prose.
+
+## Dashboard Card Schema
+
+Project: Naval System
+Slug: naval
+Category: Gameplay / World Systems
+Status: partial
+Confidence: high
+Evidence: docs/projects/naval/NORTH_STAR.md
+Gap signal: 6 open gaps; voyage coupling, combat handoff, action wiring, and legacy ownership remain unresolved.
+Protocol: living project doc set
+Next step: Resolve T2 by wiring sea travel into movement, routing combat handoff, and closing NAVAL_REPAIR_SHIP handling.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Active Task
 
@@ -120,6 +137,7 @@ Out of scope:
 | File | Purpose | Status |
 |---|---|---|
 | `docs/projects/PROJECT_TRACKER.md` | Project registry row and global next-step signal. | active |
+| `docs/projects/PROJECT_CARD_SCHEMA.md` | Shared dashboard card schema source. | active |
 | `docs/projects/naval/TRACKER.md` | Active queue and bounded follow-up tracking. | active |
 | `docs/projects/naval/GAPS.md` | Durable unresolved findings for this project. | active |
 | `docs/projects/GLOBAL_GAPS.md` | Cross-project routing only. | active monitor |
@@ -132,8 +150,8 @@ Keep concrete gameplay intent and unresolved integration gaps in this project tr
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Should `VOYAGE_EVENTS` be consolidated into a single catalog before adding new events? | Duplicate schemas are likely to create non-deterministic behavior drift. | Naval Worker | Before adding encounter-linked events. |
-| Should voyage Combat status start full battle-map encounters or a dedicated naval combat reducer path? | Directly determines save/load shape and UI handoff behavior. | Naval Worker | Next implementation slice. |
+| Should `VOYAGE_EVENTS` be consolidated into a single catalog before adding new events? | Duplicate catalogs are still present and can drift across import paths. | Naval Worker | Before adding encounter-linked events. |
+| Should voyage `Combat` status start full battle-map encounters or a dedicated naval combat reducer path? | This determines the combat handoff shape and the UI transition contract. | Naval Worker | Next implementation slice. |
 
 ## Resume Path For A Cold Agent
 
@@ -141,7 +159,7 @@ Keep concrete gameplay intent and unresolved integration gaps in this project tr
 2. Read `docs/projects/naval/TRACKER.md`.
 3. Read `docs/projects/naval/GAPS.md`.
 4. Read `docs/projects/PROJECT_TRACKER.md` row for naval for cross-project status.
-5. Continue with: implement voyage + encounter coupling, then reconcile event catalog and dashboard action wiring.
+5. Continue with T2: implement voyage + encounter coupling, then reconcile event catalog and dashboard action wiring.
 
 
 ## Cold-Start Gap Routing

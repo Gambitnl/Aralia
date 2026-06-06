@@ -1,9 +1,12 @@
 # GAPS: Command Effects Runtime
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that belong to command-effects-runtime.
+
+Current focus: `G1`, `G2`, and `G4` are the active T2 slice. `G3` and `G5`
+remain parked as follow-ups until the command path or ownership evidence changes.
 
 ## Gap Log
 

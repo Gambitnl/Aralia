@@ -1,7 +1,7 @@
 # GAPS: Scripts: Spell Runtime Template Audit
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file only for durable unresolved findings that belong to this project
 through the lens of runtime-template auditing.

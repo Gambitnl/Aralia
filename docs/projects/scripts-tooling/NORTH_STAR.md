@@ -1,7 +1,23 @@
 # NORTH_STAR: Scripts: Tooling
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Scripts: Tooling
+Slug: scripts-tooling
+Category: Developer Tooling
+Status: active
+Confidence: medium
+Evidence: docs/projects/scripts-tooling
+Gap signal: 3 open gaps
+Protocol: living project doc set
+Next step: Review ST-2 in TRACKER.md and decide whether `trackRun()` coverage should stay selective or be expanded.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Why this project exists
 
@@ -62,13 +78,13 @@ Allowed scope for this documentation pass:
 
 | Field | Value |
 |---|---|
-| Task | Refresh this project surface for scripts/tooling as a concise cold-start reference. |
-| Acceptance criteria | The three project files state scope, file map, integration points, evidence, and open gaps clearly. |
+| Task | ST-2: Decide whether to align script-tracker adoption for more tooling scripts. |
+| Acceptance criteria | The docs record whether `trackRun()` adoption should expand or remain intentionally selective, and the gap file reflects that decision. |
 | Allowed boundaries | `docs/projects/scripts-tooling/*` only. |
 | Stop condition | Do not edit tooling code or add new script behavior. |
-| Verification | Re-scan `scripts/tooling`, `vite.config.ts`, `misc/tooling.html`, and workflow markdown references. |
+| Verification | Re-scan `scripts/tooling`, `script-tracker.ts`, and `.run-log.json` coverage, then record the decision in tracker/gaps. |
 | Owner | Worker C |
-| Next action | Resolve/route gaps in `GAPS.md` and keep tracker row current. |
+| Next action | Re-read ST-2 evidence and confirm whether the folder is intentionally selective or under-tracked. |
 
 ## Scope boundaries
 
@@ -95,6 +111,7 @@ Out of scope:
 ## Known gaps and follow-ups
 
 - Gaps are registered in `docs/projects/scripts-tooling/GAPS.md` and should be reviewed at the next resume point.
+- The shared-path workflow ambiguity is tracked centrally in `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`, not here.
 
 ## Evidence and proof
 

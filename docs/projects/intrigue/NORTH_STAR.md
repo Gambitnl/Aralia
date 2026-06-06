@@ -1,7 +1,23 @@
 # Intrigue System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Intrigue System
+Slug: intrigue
+Category: Feature/System Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/intrigue
+Gap signal: 7 open gaps in `GAPS.md`
+Protocol: living project doc set
+Next step: Continue `I2` by deciding whether `LeverageSystem` gets production wiring or a documented deferment.
+Required verification: docs_consistency, scoped_tests
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 Purpose
 Intrigue connects social intelligence, faction politics, and rumor-driven world state with the rest of Aralia. It is implemented as three layers:
@@ -70,14 +86,11 @@ Current gaps and uncertainties to carry forward
 - `TavernGossipSystem` and two noble/secret generator families show partial overlap and different payload conventions.
 - Reputation/rumor hooks are present, but there is no complete player-facing chain for applying discovered secret leverage in social resolution.
 
-Next checks for any continuation
-- Confirm whether `leverage` and `intrigue checks` should be added to action payloads and reducers before narrative expansion.
-- Decide a canonical secret generation path (systems intrigue vs utils/world) and lock tag/value schema.
-- Confirm lead handling contract: quest start, map marker, or world objective trigger.
-- Re-run focused tests for:
-  - intrigue unit coverage (`src/systems/intrigue/__tests__`)
-  - world simulation coverage (`src/systems/world/__tests__`)
-- Cross-check this project's active gap IDs against `docs/projects/GLOBAL_GAPS.md` before adding new cross-project routing.
+Resume path
+1. Start with `TRACKER.md` row `I2`.
+2. Resolve whether leverage is wired into a gameplay path or deliberately deferred.
+3. If `I2` is deferred, convert that decision into a concise gap update and move to `I3`.
+4. Keep the active gap list aligned with `GAPS.md` before opening any new work.
 
 
 ## Cold-Start Gap Routing

@@ -1,7 +1,7 @@
 # Logbook Project Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/logbook/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Logbook Project
 Project folder: docs/projects/logbook
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/logbook/NORTH_STAR.md
 Tracker: docs/projects/logbook/TRACKER.md
@@ -24,9 +24,10 @@ Gaps: docs/projects/logbook/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+This pass refreshed the Logbook handoff docs, added the North Star dashboard
+schema, and kept G1 as the resume anchor for implementation work. Use
+NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue,
+and GAPS.md for unresolved findings.
 
 ## Current Mission
 
@@ -55,8 +56,9 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now carries a dashboard card schema, tracker/gap timestamps were
+refreshed, and the cold-start path now starts from this handoff before the
+project docs. No code changes were made in this pass.
 
 ## Required End State For This Iteration
 

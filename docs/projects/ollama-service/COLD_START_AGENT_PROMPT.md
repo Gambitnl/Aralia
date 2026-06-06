@@ -1,7 +1,7 @@
 # NORTHSTAR: Ollama Service Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/ollama-service/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: NORTHSTAR: Ollama Service
 Project folder: docs/projects/ollama-service
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/ollama-service/NORTH_STAR.md
 Tracker: docs/projects/ollama-service/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/ollama-service/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the project packet and the docs-only dashboard schema
+refresh. Use NORTH_STAR.md for current state, TRACKER.md for the active queue,
+and GAPS.md for unresolved findings.
 
 ## Current Mission
 
@@ -48,15 +48,18 @@ Key files to touch:
 Scoped verification:
 Use the verification command or evidence source named by TRACKER.md or
 NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+the change is observable, collect empirical proof. This iteration did not run
+runtime verification; the next agent should add the missing proof before
+closing T2.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+Dashboard card schema is now present in NORTH_STAR.md, tracker/gap wording has
+been compacted, and the shared workflow gaps file was reviewed but not
+modified.
 
 ## Required End State For This Iteration
 

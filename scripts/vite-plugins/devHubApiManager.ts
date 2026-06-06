@@ -198,6 +198,42 @@ export const devHubApiManager = () => ({
       }
     };
 
+    const markdownFrontmatterFields = (content: string) => {
+      // YAML frontmatter is the preferred project schema because it gives agents
+      // explicit fields to maintain and gives the dashboard stable keys to read.
+      // This lightweight parser intentionally supports the simple scalar and
+      // list shapes used by PROJECT_CARD_SCHEMA.md instead of trying to become a
+      // full YAML engine.
+      const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+      if (!match) return {};
+      const fields: Record<string, any> = {};
+      const lines = match[1].split(/\r?\n/);
+      let activeListKey = '';
+
+      for (const line of lines) {
+        const listItem = line.match(/^\s*-\s+(.+)\s*$/);
+        if (listItem && activeListKey) {
+          fields[activeListKey] = [...(fields[activeListKey] || []), stripMarkdownInline(listItem[1]).replace(/^["']|["']$/g, '')];
+          continue;
+        }
+
+        const scalar = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)\s*$/);
+        if (!scalar) continue;
+        activeListKey = '';
+        const key = scalar[1].toLowerCase().replace(/[^a-z0-9]+/g, '');
+        const rawValue = scalar[2].trim();
+        if (!rawValue) {
+          fields[key] = [];
+          activeListKey = key;
+          continue;
+        }
+
+        fields[key] = stripMarkdownInline(rawValue).replace(/^["']|["']$/g, '');
+      }
+
+      return fields;
+    };
+
     const projectCardSchemaField = (schema: Record<string, any>, ...keys: string[]) => {
       // Markdown schema keys are normalized to lowercase words, while older JSON
       // overrides used camelCase. This helper lets both contracts work during the
@@ -396,10 +432,14 @@ export const devHubApiManager = () => ({
         ...readProjectCardJson(projectDir),
         ...markdownSectionFields(trackerContent, 'Dashboard Card Schema'),
         ...markdownSectionFields(northStarContent, 'Dashboard Card Schema'),
+        ...markdownFrontmatterFields(trackerContent),
+        ...markdownFrontmatterFields(northStarContent),
       };
       const northStarDate = normalizeProjectDate(markdownField(northStarContent, 'Last updated'));
       const docSet = projectDocRoles.map((role) => readProjectDocSignal(projectDir, slug, role, northStarDate));
       const docs = Object.fromEntries(docSet.map((doc) => [doc.key, doc]));
+      const declaredDocDates = docSet.map((doc) => doc.declaredUpdated).filter(Boolean).sort();
+      const inferredLastUpdated = declaredDocDates[declaredDocDates.length - 1] || northStarDate;
       const requiredDocs = docSet.filter((doc) => doc.required);
       const docsComplete = requiredDocs.every((doc) => doc.exists);
       const docsCurrent = requiredDocs.every((doc) => doc.exists && ['current', 'dated'].includes(doc.freshness));
@@ -413,6 +453,7 @@ export const devHubApiManager = () => ({
         name: projectCardSchemaField(dashboardSchema, 'project') || trackerFallback.project || projectTitleFromDocs(slug, northStarContent, trackerContent),
         category: projectCardSchemaField(dashboardSchema, 'category') || trackerFallback.category || 'Unregistered Project Folder',
         status: projectCardSchemaField(dashboardSchema, 'status') || markdownField(northStarContent, 'Status') || markdownField(trackerContent, 'Status') || trackerFallback.status || 'tracked',
+        lastUpdated: projectCardSchemaField(dashboardSchema, 'lastupdated', 'lastUpdated') || inferredLastUpdated || '',
         confidence: projectCardSchemaField(dashboardSchema, 'confidence') || trackerFallback.confidence || 'unknown',
         evidence: projectCardSchemaField(dashboardSchema, 'evidence') || trackerFallback.evidence || 'docs/projects/' + slug,
         gapSignal: projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || trackerFallback.gapSignal || 'See project gap file',
@@ -422,6 +463,10 @@ export const devHubApiManager = () => ({
         completedVerification: projectCardSchemaField(dashboardSchema, 'completedverification', 'completedVerification'),
         lastProof: projectCardSchemaField(dashboardSchema, 'lastproof', 'lastProof'),
         workflowGapsReviewed: projectCardSchemaField(dashboardSchema, 'workflowgapsreviewed', 'workflowGapsReviewed'),
+        agentComments: projectCardSchemaField(dashboardSchema, 'agentcomments', 'agentComments'),
+        requiredDocs: projectCardSchemaField(dashboardSchema, 'requireddocs', 'requiredDocs'),
+        optionalDocs: projectCardSchemaField(dashboardSchema, 'optionaldocs', 'optionalDocs'),
+        compactionStatus: projectCardSchemaField(dashboardSchema, 'compactionstatus', 'compactionStatus'),
         dashboardSchemaPresent: Object.keys(dashboardSchema).length > 0,
         docsComplete,
         docsCurrent,

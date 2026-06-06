@@ -1,7 +1,7 @@
 # TRACKER: Scripts: Spell Runtime Template Audit
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -18,7 +18,7 @@ Last updated: 2026-05-31
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Create protocol files in `docs/projects/scripts-spell-runtime-template-audit/` | Worker C | 2026-05-31 | [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) | Keep files aligned and add active remediations | `Test-Path docs/projects/scripts-spell-runtime-template-audit/{NORTH_STAR.md,TRACKER.md,GAPS.md}` |
-| T2 | active | Resolve recurring warning follow-up by deciding the schema path for `Recurring Mechanics` labels and documenting execution handoff | Worker C | 2026-05-31 | `docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md` | Choose one path (`vocabulary` vs `migrations`) and update `GAPS.md` + this queue | Re-run `npm run audit:spell-template` and confirm warning family status changes |
+| T2 | active | Resolve recurring warning follow-up by deciding the schema path for `Recurring Mechanics` labels and documenting execution handoff | Worker C | 2026-06-05 | `docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md` | Choose one path (`vocabulary` vs `migrations`), reflect it in `GAPS.md` and the cold-start handoff, then rerun the audit | Re-run `npm run audit:spell-template` and confirm warning family status changes or explicit deferral |
 
 ## Gap Log
 

@@ -21,7 +21,10 @@ whole workflow into every project handoff file.
    `tasks/`.
 5. Read `docs/projects/PROJECT_CARD_SCHEMA.md` so dashboard-facing fields are
    updated from the documented schema instead of guessed from prose.
-6. Treat `NORTH_STAR.md` as the durable scope and intent file. Treat
+6. Read the `required_docs` and `optional_docs` lists from the project schema.
+   Account for every required doc in the final report, even when a supporting
+   doc was not changed because it was not relevant this iteration.
+7. Treat `NORTH_STAR.md` as the durable scope and intent file. Treat
    `COLD_START_AGENT_PROMPT.md` as the current handoff packet.
 
 ## Choose The Work
@@ -101,7 +104,7 @@ When you encounter a workflow gap:
 Before ending the iteration, update or explicitly report on:
 
 1. `NORTH_STAR.md`: current state, scope changes, resume path, key evidence,
-   and the `Dashboard Card Schema` section from
+   and the structured dashboard schema from
    `docs/projects/PROJECT_CARD_SCHEMA.md`.
 2. `TRACKER.md`: task status, owner/actor, last updated date, blockers, next
    action, evidence or next proof.
@@ -115,6 +118,10 @@ Before ending the iteration, update or explicitly report on:
 If an optional file exists but was not updated, say why in the final report. If
 it does not exist and is not needed, say it was not needed instead of creating
 filler documentation.
+
+Use the schema `agent_comments` field only for concise notes that sit outside
+the normal closeout flow. If the note identifies reusable workflow ambiguity,
+also update `WORKFLOW_GAPS.md`; do not hide workflow gaps inside comments.
 
 ## Documentation Size Discipline
 
@@ -151,9 +158,12 @@ End with a concise report covering:
 5. gaps recorded
 6. workflow gaps read or updated
 7. dashboard schema fields updated
-8. documentation compaction performed or not needed
-9. assumptions made
-10. next safe resume action
+8. required docs accounted for
+9. optional docs touched, skipped, or not present
+10. documentation compaction performed or not needed
+11. agent comments added or intentionally left empty
+12. assumptions made
+13. next safe resume action
 
 Then output the refreshed project handoff between these markers:
 

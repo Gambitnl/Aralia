@@ -1,7 +1,7 @@
 # Combat System North Star
 
 Status: active
-Last updated: 2026-06-02
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 Combat has a live implementation split across systems, hooks, and UI surfaces that were added in different slices. This project doc keeps ownership, execution paths, and unresolved behavior gaps visible for next agents so future work does not restart discovery or collapse unfinished intent.
@@ -14,12 +14,29 @@ Preserve a working cold-start map for the Combat domain that stays implementatio
 - where open gaps are located,
 - what to read next without scanning the full repo.
 
+## Dashboard Card Schema
+
+Project: Combat System
+Slug: combat
+Category: Gameplay Systems
+Status: active
+Confidence: medium
+Evidence: docs/projects/combat
+Gap signal: 14 open gaps, 1 imported from global
+Protocol: living project doc set
+Next step: Implement G11 class feature generation in `src/utils/combat/combatUtils.ts`.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
+
 ## Project Scope (Evidence-Bound)
 
 Evidence-verified implementation homes:
 
 - `src/systems/combat`: combat subsystems (riders, events, penalties, OA support, sustain actions)
 - `src/hooks/combat/*`: orchestration and runtime state (`useTurnManager`, `useTurnOrder`, `useActionExecutor`, `useCombatEngine`, `useCombatAI`, etc.)
+- `src/utils/combat/*`: combat conversion and rules utilities (`combatUtils.ts`, `createEnemyFromMonster.ts`, `resistanceUtils.ts`, `combatAI.ts`)
 - `src/components/Combat`: active combat screen and encounter builder (`CombatView.tsx`, `ReactionPrompt.tsx`, `EncounterModal.tsx`, `MonsterPicker.tsx`)
 - nearby tests in `src/systems/combat/__tests__`, `src/hooks/combat/**/__tests__`, and `src/components/Combat/__tests__` for these surfaces
 
@@ -56,6 +73,11 @@ The combat runtime is now clearly split:
 - `ReactionPrompt.tsx` provides ARIA dialog + spell selection UI for reaction prompts.
 - `EncounterModal.tsx` and `MonsterPicker.tsx` support AI/custom/bestiary encounter building and live difficulty recalculation.
 
+### Combat utilities (implemented, partial)
+
+- `src/utils/combat/combatUtils.ts` converts player and monster state into combat-facing data, but class-feature generation is still partial and does not yet cover the broader class palette tracked in G11.
+- `src/utils/combat/createEnemyFromMonster.ts`, `src/utils/combat/resistanceUtils.ts`, and `src/utils/combat/combatAI.ts` remain supporting utility surfaces with their own open gaps in `GAPS.md`.
+
 ## Known Partial / Open Areas (Evidence-Backed)
 
 These are direct code/docs observations, not guesses:
@@ -64,6 +86,7 @@ These are direct code/docs observations, not guesses:
 - Event/sustain singletons are shared via `getInstance()` and may require explicit reset hooks for strict unit isolation (noted in file comments and `Combat_Ralph.md`).
 - `docs/architecture/domains/combat.md` records known mechanics omissions (for example, death-save sequencing and some class feature conversions), so implementation behavior should be validated before assuming full D&D parity.
 - `useCombatAI.ts` still has explicit TODOs to cover state-machine transition tests in test suite terms.
+- Class-feature generation is still incomplete outside the existing fighter and rogue paths; G11 remains the active follow-up slice for that gap.
 
 ## Uncertain / Open Questions (Needs Follow-Up)
 
@@ -87,10 +110,10 @@ These are direct code/docs observations, not guesses:
 
 | Field | Value |
 |---|---|
-| Task | Unconscious or downed characters (at 0 HP) do not automatically drop concentration on active spells (G22). |
-| Acceptance criteria | Update turn manager or combat engine to drop concentration immediately when a character is downed (hits 0 HP). |
-| Allowed boundaries | `src/hooks/combat/`, `src/hooks/combat/engine/`, and nearby combat systems. |
-| Stop condition | Verified with unit tests that downed characters lose active spell concentration automatically. |
+| Task | Class feature generation gap (G11): Barbarian Rage, Monk Flurry, Bardic Inspiration, and Divine Smite are absent from the combat palette. |
+| Acceptance criteria | Add missing class-specific combat ability generation and verify the target classes named in G11. |
+| Allowed boundaries | `src/utils/combat/` and related combat tests; expand to premade character data only if the generator needs it. |
+| Stop condition | Verified with focused tests or evidence that Monk has Flurry of Blows and Warlock has Pact features in the palette. |
 
 ## Resume Path for Cold Start
 
@@ -98,7 +121,7 @@ These are direct code/docs observations, not guesses:
 2. Read `docs/projects/combat/TRACKER.md`.
 3. Read `docs/projects/combat/GAPS.md`.
 4. Cross-check architecture boundaries in `docs/architecture/domains/combat.md` and `docs/architecture/COMBAT_MAP_ENGINE.md`.
-5. Continue with the highest `not_started` gap row in `TRACKER.md` or `GAPS.md`.
+5. Continue with the active `TRACKER.md` row. If no row is active, take the highest `not_started` gap row in `TRACKER.md` or `GAPS.md`.
 
 
 ## Cold-Start Gap Routing

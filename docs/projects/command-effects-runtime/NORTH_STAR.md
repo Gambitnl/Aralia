@@ -1,7 +1,7 @@
 # NORTH_STAR: Command Effects Runtime
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -27,13 +27,29 @@ Keep a concise cold-start handoff for:
 
 | Field | Value |
 |---|---|
-| Task | Document command-effects runtime behavior and durable gaps without changing source |
-| Acceptance criteria | North Star includes file map, state flow, integration points, and next checks |
+| Task | Track and close core execution gaps: reactive execution, teleport/budget behavior, ability movement mapping |
+| Acceptance criteria | G1, G2, and G4 stay evidence-backed in `GAPS.md`, and the resume path stays explicit for the next cold-start agent |
 | Allowed boundaries | `docs/projects/command-effects-runtime/*`, `src/commands/effects`, `src/commands/factory/*`, `src/commands/base/*`, `src/hooks/useAbilitySystem.ts`, `src/types/spells.ts` |
-| Stop condition | source-anchored docs are complete and not overbroad |
-| Verification | compare this file with source and current tests |
+| Stop condition | the current gap slice is clearly documented and the next agent can resume without re-triaging scope |
+| Verification | docs consistency review against `TRACKER.md`, `GAPS.md`, and source-anchored evidence |
 | Owner | Worker C |
-| Next action | keep docs aligned if source changes to effects, factories, or payload types |
+| Next action | continue from G1/G2/G4 and update the gap log with any new source-backed evidence |
+
+## Dashboard Card Schema
+
+Project: Command Effects Runtime
+Slug: command-effects-runtime
+Category: Feature Domains and Runtime Support
+Status: partial
+Confidence: high
+Evidence: docs/projects/command-effects-runtime
+Gap signal: 5 open gaps, with G1/G2/G4 as the active slice and G3/G5 parked as follow-ups
+Protocol: living project doc set
+Next step: Continue T2 by closing reactive execution, teleport/budget, and movement-mapping gaps.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Scope Boundaries
 
@@ -134,6 +150,7 @@ Keep raw logs, temporary run state, and test artifacts out unless promoted with 
 ## Next Checks
 
 - Re-check mappings if `src/commands/factory/AbilityEffectMapper.ts`, `MovementCommand.ts`, or `ReactiveEffectCommand.ts` change.
+- Keep G1, G2, and G4 as the active slice for T2; leave G3 and G5 parked unless new evidence changes their status.
 - Confirm G1 and G2 behavior before considering this runtime stable for closed-loop effects.
 
 ## Resume Path For A Cold Agent
@@ -142,7 +159,7 @@ Keep raw logs, temporary run state, and test artifacts out unless promoted with 
 2. Read `docs/projects/command-effects-runtime/TRACKER.md`.
 3. Read `docs/projects/command-effects-runtime/GAPS.md`.
 4. Confirm registry row in `docs/projects/PROJECT_TRACKER.md`.
-5. Continue from: close the reactive execution and movement/teleport semantics gaps.
+5. Continue from: close the reactive execution, teleport/budget, and ability-mapping gaps from T2.
 
 
 ## Cold-Start Gap Routing

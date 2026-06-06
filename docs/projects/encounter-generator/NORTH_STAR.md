@@ -1,7 +1,23 @@
 # Encounter Generator North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Encounter Generator
+Slug: encounter-generator
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/encounter-generator
+Gap signal: 3 open gaps (G1 seedability, G2 difficulty policy, G3 scope naming)
+Protocol: living project doc set
+Next step: Resume T2 from the tracker and keep the first implementation slice focused on the seed and difficulty contract.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Purpose and scope
 
@@ -44,6 +60,12 @@ This doc captures source reality so future work can continue without guessing in
 - Seedability and deterministic replay are not in place across bestiary, fallback, or AI paths.
 - Difficulty behavior is partially duplicated across AI/custom/bestiary paths and can diverge in edge cases.
 - Current evidence suggests future intent may be wider than currently documented, since registry points are narrower than runtime spread.
+
+## Resume path
+
+- Start from `TRACKER.md` task T2 and keep the handoff compact.
+- Treat G1 and G2 as the next implementation decision points.
+- Re-check the source path for difficulty math before any code change so the docs do not drift further from runtime reality.
 
 ## Next checks
 

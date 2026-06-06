@@ -1,7 +1,7 @@
 # Demo Area North Star
 
 Status: reference-only-due-to-orphaned-component
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Project classification for this cycle: Reference-only, with retention/removal decision pending.
 
@@ -50,12 +50,36 @@ Runtime references checked for this update:
 - Why does registry evidence path remain `src/components/demo` while active demo flow now renders from `components/BattleMap` and `components/World3D`?
 - Does the demo area include `Design Preview` as a scoped sample surface, given the code comment about `/Aralia/misc/design.html`?
 
-## Next Checks
+## Current State
 
-1. Confirm retention/removal decision for `src/components/demo/CombatMessagingDemo.tsx`.
-2. If retained, decide ownership and add a mount path so it is no longer orphaned.
-3. If removal is chosen, route this decision through `GAPS.md` and update any owning docs before deletion.
-4. Re-run a quick scan across `src/components/demo`, `DevMenu`, and `App.tsx` after any state/action updates.
+- T3 is still active: decide whether `src/components/demo/CombatMessagingDemo.tsx` should be retained, moved, or removed.
+- The component is still orphaned in runtime terms; no import path or route points to it.
+- The registry row in `docs/projects/PROJECT_TRACKER.md` still points at `src/components/demo`, so registry evidence and runtime evidence remain out of sync.
+- This pass refreshed the handoff docs only. No runtime files were changed.
+
+## Resume Path
+
+1. Re-read `TRACKER.md` and `GAPS.md`.
+2. Decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx`.
+3. If keeping, add a mount path so it is no longer orphaned.
+4. If removing, record the decision in `GAPS.md` before deletion or re-homing.
+5. If registry alignment becomes in-scope, update `docs/projects/PROJECT_TRACKER.md`; otherwise keep the mismatch visible here.
+
+## Dashboard Card Schema
+
+Project: Demo Area
+Slug: demo-area
+Category: Feature/UI Projects
+Status: partial
+Confidence: medium
+Evidence: `docs/projects/demo-area`
+Gap signal: 2 open gaps, 1 blocker
+Protocol: living project doc set
+Next step: Decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx`.
+Required verification: docs_consistency
+Completed verification: not run
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 
 

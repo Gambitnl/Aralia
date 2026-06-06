@@ -1,7 +1,7 @@
 # Logbook Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -18,7 +18,7 @@ Last updated: 2026-05-31
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Refresh Logbook project docs (NORTH_STAR/TRACKER/GAPS) after implementation scan | Current thread | 2026-05-31 | `docs/projects/logbook/*.md` | None for this docs pass | Confirm new docs include scope, file map, state, integrations, gaps |
-| T2 | active | Carry forward Logbook gaps before implementation | Current thread | 2026-05-31 | `docs/projects/logbook/GAPS.md` | Clarify retention and pagination ownership and acceptance criteria | Review implementation slice scope |
+| T2 | active | Carry forward Logbook gaps before implementation | Current thread | 2026-06-05 | `docs/projects/logbook/NORTH_STAR.md`, `docs/projects/logbook/GAPS.md` | Resume from G1 with the refreshed handoff and confirm retention scope before code changes | Define the implementation slice from G1, then revisit G2 as the follow-up UI task | Review implementation slice scope |
 
 ## Gap Log
 

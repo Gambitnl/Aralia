@@ -1,7 +1,7 @@
 # Living Project Workflow Gaps
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file tracks gaps in the living-project workflow itself. It is not a
 project blocker list. Use it only when an agent finds ambiguity, unsafe
@@ -62,7 +62,80 @@ Do not add anonymous vote counts. The testimony is the evidence.
 ## Active Workflow Gaps
 
 | ID | Status | Severity | Workflow Area | Issue | Testimonies | Next Action | Owner | Last Updated |
-|---|---|---|---|---|---:|---|---|---|
+|---|---|---|---|---|---|---|---|---|
+| WFG-001 | open | medium | Start Of Iteration | Shared living-project docs still point at moved or stale canonical paths, so first-read agents have to search manually before they can follow the workflow. | 6 | Update the shared instructions and cold-start prompts to name the canonical moved paths explicitly. | Codex | 2026-06-05 |
+
+### WFG-001 - Living-project file paths still point at moved or stale locations
+
+Status: open
+Severity: medium
+Workflow area: Start Of Iteration
+Opened: 2026-06-05
+Last updated: 2026-06-05
+
+#### Problem
+
+The living-project instructions and some cold-start prompts still name shared
+workflow files at stale top-level paths, but the canonical files now live under
+`docs/agent-workflows/living-project-task-protocol/` and
+`docs/projects/PROJECT_CARD_SCHEMA.md`. A first-read agent has to hunt for the
+actual files before it can follow the workflow.
+
+#### Why This Is Workflow-Level
+
+This affects every project that uses the living-project iteration workflow, not
+just one project handoff.
+
+#### Current Safe Handling
+
+If a named top-level path is missing, resolve the canonical moved path and keep
+going. Do not assume the workflow itself is broken; log the mismatch here so it
+can be cleaned up centrally.
+
+#### Testimonies
+
+- 2026-06-05 | docs/projects/puzzles iteration pass | Codex: I was told to read
+  shared workflow files at top-level paths that do not exist, had to locate the
+  moved protocol package manually, and avoided assuming the prompt was only a
+  project-local issue.
+- 2026-06-05 | docs/projects/racial-mechanics docs-only iteration | Codex: I
+  hit the same stale-path problem while following the living-project rollout,
+  resolved it by using the canonical
+  `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`
+  path, and avoided assuming the missing top-level path meant the workflow was
+  broken.
+- 2026-06-05 | docs/projects/religion docs-only iteration | Codex: I was
+  asked to read the shared workflow files by their moved canonical locations,
+  had to correct the stale-path mismatch before proceeding, and avoided
+  assuming the missing top-level path meant the project docs themselves were
+  broken.
+- 2026-06-05 | docs/projects/roadmap-maintenance docs-only iteration | Codex: I
+  was asked to read the shared workflow files by stale top-level names, had to
+  resolve the moved `docs/agent-workflows/living-project-task-protocol/` paths
+  manually, and avoided assuming the project-local docs were at fault.
+- 2026-06-05 | docs/projects/scripts-workflows docs-only iteration | Codex: I
+  was refreshing the living-project packet and again hit the stale top-level
+  path mismatch before using the canonical
+  `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`
+  and `docs/projects/PROJECT_CARD_SCHEMA.md` paths; I treated it as the same
+  workflow-level gap and avoided assuming the project docs were broken.
+- 2026-06-05 | docs/projects/realmsmith-service docs-only iteration | Codex: I
+  was asked to follow top-level shared workflow paths that do not exist in this
+  workspace, resolved the canonical moved paths manually, and avoided assuming
+  the project packet or workflow package was broken before I found the
+  relocated files.
+- 2026-06-05 | docs/projects/scripts-quality docs-only iteration | Codex: I
+  was asked to read the shared living-project files, had to resolve the moved
+  `docs/agent-workflows/living-project-task-protocol/` and
+  `docs/projects/PROJECT_CARD_SCHEMA.md` paths before continuing, and avoided
+  assuming the project docs were wrong when the workflow references were
+  stale.
+
+#### Proposed Workflow Refinement
+
+Update the shared instructions and cold-start prompts to name the canonical
+paths explicitly, and note that the entry-point file is a pointer rather than a
+replacement for the moved workflow package.
 
 ## Resolved Workflow Gaps
 

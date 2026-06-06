@@ -1,7 +1,7 @@
 # GAPS: Sideproject: Basic Chat
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that are specific to this sideproject
 and important enough to preserve at this level.

@@ -1,7 +1,7 @@
 # Naval UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/naval-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Naval UI
 Project folder: docs/projects/naval-ui
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/naval-ui/NORTH_STAR.md
 Tracker: docs/projects/naval-ui/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/naval-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 created the initial Naval UI cold-start handoff. This pass refreshed
+the durable docs, added an explicit dashboard card schema, and kept the active
+project gaps unchanged.
 
 ## Current Mission
 
@@ -47,16 +47,17 @@ Key files to touch:
 
 Scoped verification:
 Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+NORTH_STAR.md. If none is named, add one before claiming the task is done. For
+docs-only refreshes, a compact consistency check across the three Naval UI docs
+is enough; if the task moves into source work, collect empirical proof.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now has an explicit Dashboard Card Schema. TRACKER and GAPS were
+refreshed to 2026-06-05, and no new project-specific blocker was added.
 
 ## Required End State For This Iteration
 

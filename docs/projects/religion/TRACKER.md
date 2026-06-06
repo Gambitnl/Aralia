@@ -1,7 +1,7 @@
 # Religion System Living Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -20,7 +20,7 @@ Last updated: 2026-05-31
 | T1 | done | Create the religion living-project folder and seed documentation files. | Spark Worker | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Completed. | Folder contains NORTH_STAR, TRACKER, GAPS with focused evidence. |
 | T2 | done | Capture concrete implementation map and runtime wiring for religion systems. | Spark Worker | 2026-05-31 | `src/systems/religion`, `src/state/reducers/religionReducer.ts`, `src/components/layout/GameModals.tsx`, `src/utils/world/templeUtils.ts` | Completed. | NORTH_STAR file points to concrete file map and flow list. |
 | T3 | done | Record prioritized implementation gaps with evidence and follow-up checks. | Spark Worker | 2026-05-31 | `src/systems/religion/TempleSystem.ts`, `src/systems/religion/CombatReligionAdapter.ts`, `src/systems/rituals/RitualManager.ts` | Completed. | GAPS rows include evidence and next proof checks. |
-| T4 | active | Prepare a cold-start pass checklist for follow-up implementation. | Spark Worker | 2026-05-31 | `docs/projects/religion/NORTH_STAR.md` | Keep this tracker and gap list aligned with immediate follow-up owner decisions. | Validate next worker starts from row G1 and G2 in order. |
+| T4 | done | Prepare a cold-start pass checklist for follow-up implementation. | Spark Worker | 2026-06-05 | `docs/projects/religion/NORTH_STAR.md`, `docs/projects/religion/TRACKER.md`, `docs/projects/religion/GAPS.md`, `docs/projects/religion/COLD_START_AGENT_PROMPT.md` | Completed. | Next agent starts from row G1, then G2, using the refreshed handoff. |
 
 ## Gap Log
 

@@ -1,15 +1,15 @@
 # Events System Living Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Capture source-backed events-system map and ownership boundary in this living folder. | Worker A | 2026-05-31 | `docs/projects/events/NORTH_STAR.md`, `docs/projects/PROJECT_TRACKER.md` | Populate concrete gap rows from implementation evidence. | Confirm file map and integration points in this folder are complete. |
-| T2 | active | Define and document replay/scheduling gaps for `src/systems/events` and adjacent combat event lanes. | Worker A | 2026-05-31 | `src/systems/events/CombatEvents.ts`, `src/hooks/combat/useActionExecutor.ts`, `src/systems/spells/effects/AreaEffectTracker.ts`, `src/systems/world/WorldEventManager.ts`, `src/state/reducers/worldReducer.ts` | Add 3-5 evidence-backed gap rows in `docs/projects/events/GAPS.md` and a sequence-aware next check list. | Confirm gaps include event priority, dispatch ordering, and replay persistence scope. |
-| T3 | active | Add implementation-ready test plan for event semantics verification. | Worker A | 2026-05-31 | `src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts`, `src/systems/world/__tests__/WorldEventManager.test.ts`, `src/state/reducers/__tests__/worldReducer.test.ts` | Add next-check checklist in TRACKER and map each check to test files or new test files. | Add explicit proofs for event order, replay trace, and consumer registration behavior. |
+| T2 | active | Define and document replay/scheduling gaps for `src/systems/events` and adjacent combat event lanes. | Worker A | 2026-06-05 | `src/systems/events/CombatEvents.ts`, `src/hooks/combat/useActionExecutor.ts`, `src/systems/spells/effects/AreaEffectTracker.ts`, `src/systems/world/WorldEventManager.ts`, `src/state/reducers/worldReducer.ts` | Keep the existing gap set aligned with current source evidence and preserve the sequence-aware next-check list. | Confirm the gap set still covers event priority, dispatch ordering, replay persistence, lane split, and hit/crit fidelity. |
+| T3 | active | Add implementation-ready test plan for event semantics verification. | Worker A | 2026-06-05 | `src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts`, `src/systems/world/__tests__/WorldEventManager.test.ts`, `src/state/reducers/__tests__/worldReducer.test.ts` | Map each check to test files or new test files and keep the proof list tied to the active event lanes. | Add explicit proofs for event order, replay trace, and consumer registration behavior. |
 
 ## Status Vocabulary
 

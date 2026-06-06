@@ -1,7 +1,7 @@
 # World 3D UI Tracker
 
 Status: active
-Last updated: 2026-06-02
+Last updated: 2026-06-05
 
 North Star: `docs/projects/world-3d-ui/NORTH_STAR.md`
 Scope (clarified 2026-06-01): the **2D↔3D transition + in-3D HUD** layer that drives and

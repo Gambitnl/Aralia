@@ -1,7 +1,7 @@
 # Quests System Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 - `not_started`
@@ -17,8 +17,8 @@ Last updated: 2026-05-31
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
 | QTS-1 | done | Create project-level living docs from registry and bounded scan evidence | Worker A | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Keep this file, NORTH_STAR.md, and GAPS.md aligned as handoff artifacts | Verify file map and links are resolvable |
-| QTS-2 | active | Document concrete implemented state and integration boundaries in living docs | Worker A | 2026-05-31 | `src/systems/quests/QuestManager.ts`, `src/state/reducers/questReducer.ts`, `src/components/QuestLog/` | Complete evidence tables for NORTH_STAR and GAPS | Validate against current scan evidence |
-| QTS-3 | not_started | Decide migration path for richer quest schema (`QuestDefinition`) against legacy reducer contract | Worker A | 2026-05-31 | `src/types/quests.ts`, `src/state/reducers/questReducer.ts` | Add migration plan and owner when implementation resumes | Confirm reducer and type contract compatibility checks |
+| QTS-2 | done | Document concrete implemented state and integration boundaries in living docs | Worker A | 2026-06-05 | `src/systems/quests/QuestManager.ts`, `src/state/reducers/questReducer.ts`, `src/components/QuestLog/`, `docs/projects/quests/NORTH_STAR.md`, `docs/projects/quests/GAPS.md` | Living docs now capture the observed runtime boundaries and dashboard schema | Close out the docs refresh and hand the migration decision to QTS-3 |
+| QTS-3 | active | Decide migration path for richer quest schema (`QuestDefinition`) against legacy reducer contract | Worker A | 2026-06-05 | `src/types/quests.ts`, `src/state/reducers/questReducer.ts`, `docs/projects/quests/NORTH_STAR.md` | Add migration plan and owner when implementation resumes | Confirm reducer and type contract compatibility checks |
 | QTS-4 | not_started | Confirm quest trigger authoring strategy (hardcoded vs metadata-driven) | Worker A | 2026-05-31 | `src/hooks/actions/handleMovement.ts`, `src/hooks/actions/handleItemInteraction.ts` | Add decision log once ownership and acceptance criteria set | Check for data-driven alternatives in nearby systems |
 
 ## Gap Log

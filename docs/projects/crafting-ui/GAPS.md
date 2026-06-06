@@ -1,9 +1,11 @@
 # Crafting UI Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Gap Log
+
+Current resume priority: G1, G2, and G3. G4 and G5 remain real follow-ups, but they do not need to block the next slice unless scope expands into them.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|
@@ -24,4 +26,3 @@ Last updated: 2026-05-31
 - This project stays focused on UI surface continuity and contract gaps.
 - Cross-project ownership of core mechanics remains in `docs/projects/PROJECT_TRACKER.md` under `Crafting System`.
 - If a gap is fully accepted by systems owners, import or route it there and keep this project's status aligned.
-

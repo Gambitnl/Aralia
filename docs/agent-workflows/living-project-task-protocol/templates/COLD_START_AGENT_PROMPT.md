@@ -49,7 +49,18 @@ Key files to touch:
 - TRACKER.md
 - GAPS.md
 - COLD_START_AGENT_PROMPT.md
+- DECISIONS.md
+- AUDIT_OR_PROOF.md
+- RUNBOOK.md
+- docs/projects/PROJECT_CARD_SCHEMA.md
+- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 - <source/docs named by active task>
+
+Optional docs to check when present or named by tracker:
+- tasks/
+- architecture notes
+- migration notes
+- project-specific proof or design notes
 
 Scoped verification:
 <exact command/evidence source plus empirical proof if observable>
@@ -65,6 +76,8 @@ Recent progress:
 Before ending, update this handoff with the next iteration number, previous
 agent context, active task, acceptance criteria, key files, verification method,
 blockers, recent progress, workflow-gap review result, and dashboard-schema
-updates. Keep only the current handoff between the same BEGIN/END markers; do
-not preserve old handoff transcripts in this file.
+updates. Account for every required doc, mention optional docs touched or
+skipped, update `agent_comments` only when an out-of-flow note is useful, and
+keep only the current handoff between the same BEGIN/END markers; do not
+preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---

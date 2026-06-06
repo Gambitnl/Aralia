@@ -1,7 +1,7 @@
 # Religion System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/religion/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Religion System
 Project folder: docs/projects/religion
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/religion/NORTH_STAR.md
 Tracker: docs/projects/religion/TRACKER.md
@@ -24,39 +24,44 @@ Gaps: docs/projects/religion/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 seeded the project docs and current gap registry. This pass refreshed
+the dashboard-facing North Star schema, marked the cold-start checklist task
+complete, and tightened the next-resume order so the next agent starts from G1,
+then G2.
 
 ## Current Mission
 
 Active task:
-T4 - Prepare a cold-start pass checklist for follow-up implementation.
+Resume implementation from G1, then G2, using the refreshed handoff and the
+compact gap order in TRACKER.md.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Keep the dual-state migration decision and the service-effect typing decision
+aligned. If a blocker appears, record it in GAPS.md with evidence instead of
+widening into unrelated religion work.
 
 Key files to touch:
 - docs/projects/religion/NORTH_STAR.md
 - docs/projects/religion/TRACKER.md
 - docs/projects/religion/GAPS.md
 - docs/projects/religion/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+- docs/projects/PROJECT_CARD_SCHEMA.md
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Use the tracker or North Star verification path for the active gap being worked.
+For this docs pass, the durable proof is the refreshed project documentation and
+the shared workflow-gap testimony.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now carries the dashboard card schema. TRACKER and GAPS are trimmed
+to the current queue, and WFG-001 received another testimony because the stale
+shared-path issue recurred during this pass.
 
 ## Required End State For This Iteration
 

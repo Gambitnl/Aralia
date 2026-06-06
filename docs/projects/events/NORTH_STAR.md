@@ -1,7 +1,7 @@
 # Events System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -27,6 +27,24 @@ event ordering or replay work.
 - `combatEvents.emit` is used by combat action flow and spell area transitions.
 - `on`, `off`, and `emit` are available for runtime subscriptions, but there is no priority queue,
   pre/post phase model, or durable dispatch log in this bus.
+- The current project docs now carry a compact dashboard card schema, and the open gap set remains
+  evidence-backed rather than speculative.
+
+## Dashboard Card Schema
+
+Project: Events System
+Slug: events
+Category: Gameplay Systems
+Status: active
+Confidence: medium
+Evidence: docs/projects/events
+Gap signal: 5 open project gaps; 0 imported global gaps
+Protocol: living project doc set
+Next step: Keep the replay/scheduling gap set aligned with source evidence and preserve the proof map.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Concrete File Map
 
@@ -62,15 +80,16 @@ event ordering or replay work.
 
 ## Known Gaps
 
-- No explicit event priority model (ordering is currently registration order in a plain array listener list).
+- No explicit event priority or phase model; listener registration order is still the only ordering rule.
 - No dispatch queue, replay log, or canonical persistence format for combat/zone event traces.
-- No unified cross-system scheduler currently ties combat events to daily world-sim scheduling.
-- Combat attack event payloads are currently under-specified (`unit_attack` hardcodes `isHit` and `isCrit` in action flow paths).
+- Event lanes are split across `CombatEvents`, `MovementEventEmitter`, and `AttackEventEmitter`.
+- Turn sequencing and day-event sequencing still lack a shared scheduling contract.
+- Combat attack event payloads are under-specified (`unit_attack` hardcodes `isHit` and `isCrit` in action flow paths).
 
 ## Next Checks for Future Agents
 
 1. Map event contracts in code to an explicit envelope (`type`, `priority`, `phase`, `source`, `seq`, `tick`) before any sequencing changes.
-2. Decide whether combat events should flow through one centralized scheduler shared with daily world events and turn-order transitions.
+2. Decide whether combat events should flow through one centralized scheduler or remain split with an explicit bridge to daily world events and turn-order transitions.
 3. Add tests that prove event order, event replay determinism, and consumer correctness across producers.
 
 ## Evidence and Proof
@@ -89,10 +108,9 @@ event ordering or replay work.
 ## Resume Path
 
 1. Read this file.
-2. Read `docs/projects/events/TRACKER.md`.
-3. Read `docs/projects/events/GAPS.md`.
-4. Confirm registry anchor and global-gap routing rules.
-5. Continue from: define explicit event ordering and replay contract.
+2. Read `docs/projects/events/TRACKER.md` and `docs/projects/events/GAPS.md`.
+3. Confirm the five existing gap rows still match source evidence and global-gap routing rules.
+4. Continue from: keep the event ordering/replay contract explicit, or move to proof mapping if T3 becomes the next active slice.
 
 
 ## Cold-Start Gap Routing

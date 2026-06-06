@@ -1,9 +1,11 @@
 # GAPS: Gemini Service
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Gap Log
+
+Iteration note (2026-06-05): no new Gemini-specific blocker surfaced in this docs pass; G1 and G2 remain the highest-priority follow-up gaps, with G3-G5 staying as tracked follow-ups.
 
 | ID | Classification | Gap | Source | Owner | Next action | Next proof/check |
 |---|---|---|---|---|---|---|

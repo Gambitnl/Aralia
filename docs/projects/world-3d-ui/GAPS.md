@@ -1,7 +1,7 @@
 # World 3D UI Gaps
 
 Status: active
-Last updated: 2026-06-02 (W3DUI-26 minimap done; W3DUI-27 nameplates open; W3DUI-28 test repair; W3DUI-6 closed)
+Last updated: 2026-06-05 (W3DUI-26 minimap done; W3DUI-27 nameplates open; W3DUI-28 test repair; W3DUI-6 closed)
 
 North Star: `docs/projects/world-3d-ui/NORTH_STAR.md`
 

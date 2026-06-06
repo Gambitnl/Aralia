@@ -1,15 +1,20 @@
 # Design Preview North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
-Design Preview is a standalone developer-facing UI surface for visual checks, style comparisons, and glossary/spell content review outside the main gameplay flow.
+Design Preview is a standalone developer-facing UI surface for visual checks,
+style comparisons, and glossary/spell content review outside the main gameplay
+flow.
 
 ## Purpose and Scope
 
-This project preserves implementation knowledge for a decoupled preview system so future agents can continue work without re-deriving intent from scattered code references. Scope is docs-only in this pass, with implementation read-only by policy.
+This project preserves implementation knowledge for a decoupled preview system
+so future agents can continue work without re-deriving intent from scattered
+code references. Scope is docs-only in this pass, with implementation read-only
+by policy.
 
 ## Current State
 
@@ -17,6 +22,23 @@ This project preserves implementation knowledge for a decoupled preview system s
 - Runtime path: `misc/design.html -> src/design-preview.tsx -> src/components/DesignPreview/DesignPreviewPage.tsx`.
 - The page exposes lane selection, style-variant switching, window-frame controls, and local codebase-visualizer actions.
 - The project evidence path in `docs/projects/PROJECT_TRACKER.md` is `src/components/DesignPreview` with registry status `in-progress`.
+- This pass refreshed the cold-start handoff so the next agent can resume from the doc set without re-deriving the workflow.
+
+## Dashboard Card Schema
+
+Project: Design Preview
+Slug: design-preview
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/design-preview
+Gap signal: 3 open gaps
+Protocol: living project doc set
+Next step: Keep lane-owner notes current and add the manual launch/checklist pass.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File Map
 
@@ -30,8 +52,8 @@ This project preserves implementation knowledge for a decoupled preview system s
 | `src/components/DesignPreview/VariantSwitcher.tsx` | Style variant dropdown with live-production marker |
 | `src/components/DesignPreview/StyleVariants.tsx` | Shared style-layout primitives for variants |
 | `src/components/DesignPreview/CreationComponents.tsx`, `src/components/DesignPreview/LegacyComponents.tsx` | Reusable preview primitives for creation/legacy UI patterns |
-| `src/components/DesignPreview/steps/*` | Lane implementations (race, class, style, icons, 3D, components, tables, glossary, spell flow, etc.) |
-| `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx` | Spell pipeline atlas preview surface (also referenced by `src/spell-pipeline-atlas.tsx`) |
+| `src/components/DesignPreview/steps/*` | Lane implementations for race, class, style, icons, 3D, components, tables, glossary, spell flow, and related preview surfaces |
+| `src/components/DesignPreview/steps/PreviewSpellDataFlow.tsx` | Spell pipeline atlas preview surface, also referenced by `src/spell-pipeline-atlas.tsx` |
 | `src/components/DesignPreview/steps/PreviewSpellGlossary.tsx` | Spell glossary preview with local glossary provider wrapper |
 | `src/components/DesignPreview/steps/PreviewGlossaryRedirectSurfaces.tsx` | Glossary redirect surface gallery |
 | `src/components/DesignPreview/steps/PreviewComponents.tsx` | Atomic UI inventory and usage showcase |
@@ -39,12 +61,10 @@ This project preserves implementation knowledge for a decoupled preview system s
 ## Implemented State
 
 - `DesignPreviewPage` currently declares and routes many lanes from one place, including `environment`, `spell_data_flow`, `tables`, `icons`, and `components`.
-- At least 25 named steps are available via `currentStep` (the list currently includes design, creation, gameplay, and system surfaces).
-- Variant system is production-aware:
-  - selectable variants like unified, legacy, split, modal, glossary, alchemy, combat, trade, window, etc.
-  - per-step live marker map marks which variant is expected in production for each lane.
-- Local visualizer integration is present with host/kill/health functions against `localhost:3847` endpoints.
-- Several preview surfaces intentionally rebind providers locally because the main app providers are not active in this standalone host (for example glossary surfaces).
+- At least 25 named steps are available via `currentStep`, spanning design, creation, gameplay, and system surfaces.
+- The variant system is production-aware with selectable variants such as unified, legacy, split, modal, glossary, alchemy, combat, trade, and window, plus a per-step live marker map.
+- Local visualizer integration is present with host, kill, and health functions against `localhost:3847` endpoints.
+- Several preview surfaces intentionally rebind providers locally because the main app providers are not active in this standalone host.
 
 ## Integrations
 
@@ -54,21 +74,27 @@ This project preserves implementation knowledge for a decoupled preview system s
 - Visualizer control and status checks are integrated in the preview header.
 - Spell data flow is integrated with atlas tooling via a shared component source.
 
+## Workflow And Ownership
+
+- Current doc steward: Worker B.
+- Lane and variant owners are still provisional; do not assume they are settled until a later pass writes them down in `GAPS.md` or a linked task slice.
+- Refresh `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` in the same pass when lane, variant, or launch behavior changes.
+
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Replace scaffold-only docs with implementation-grounded project cold-start docs |
-| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS describe implemented state, scope, integrations, gaps, and next checks |
+| Task | Capture design workflow and owners in a durable place |
+| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS describe the workflow, provisional owners, gaps, and next checks |
 | Allowed boundaries | `docs/projects/design-preview/*.md` only |
-| Verification | Validate this doc + TRACKER + GAPS against implementation files above |
+| Verification | `docs_consistency` against `docs/projects/PROJECT_CARD_SCHEMA.md` and current gap rows |
 | Owner | Worker B |
-| Stop condition | Task complete when continuity-safe implementation map is present and ready for warm handoff |
+| Stop condition | Task stays active until the workflow and owner notes are clear enough for a cold-start resume without the shared workflow open |
 
 ## Scope Boundaries
 
 In scope:
-- Purpose, scope, file map, current implementation state, integrations, gaps, and next checks.
+- Purpose, scope, file map, current implementation state, integrations, gaps, next checks, and resume path.
 - Maintaining project continuity and preventing accidental scope shrink.
 
 Adjacent but not in scope:
@@ -76,7 +102,7 @@ Adjacent but not in scope:
 - Implementation decisions on style taxonomy, QA policy, or production rollout.
 
 Out of scope:
-- Editing docs/projects/PROJECT_TRACKER.md or non-doc runtime files.
+- Editing `docs/projects/PROJECT_TRACKER.md` or non-doc runtime files.
 
 ## What Must Not Be Lost
 
@@ -89,9 +115,9 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next action |
 |---|---|---|---|---|
-| Capture design workflow and owners | adjacent_follow_up | Worker B | `docs/projects/PROJECT_TRACKER.md` | Assign owners and review cadence for new lanes, variants, and glossary surfaces |
-| Add launch + visual-check playbook | support_needed_now | Worker B | `misc/design.html`, `src/components/DesignPreview/DesignPreviewPage.tsx` | Add explicit check commands for open/load, step navigation, and one snapshot target per major lane |
-| Step ownership routing is not documented | adjacent_follow_up | Worker B | `src/components/DesignPreview/DesignPreviewPage.tsx` | Add per-lane steward notes in project tracker or a linked task slice |
+| G1 | adjacent_follow_up | Worker B | `docs/projects/PROJECT_TRACKER.md` | Keep provisional steward notes visible until a named lane owner map is approved |
+| G2 | support_needed_now | Worker B | `misc/design.html`, `src/components/DesignPreview/DesignPreviewPage.tsx` | Add explicit check commands for open/load, step navigation, and one snapshot target per major lane |
+| G3 | adjacent_follow_up | Worker B | `src/components/DesignPreview/DesignPreviewPage.tsx` | Add per-lane steward notes in a project doc or linked task slice |
 
 ## Global Gap Imports
 
@@ -100,12 +126,13 @@ Check the global gap tracker before expanding cross-project:
 
 | Global gap ID | Imported? | Project destination | Scope rationale |
 |---|---|---|---|
-| GG-XXX | no | none | Gaps are project-local and should stay in this folder for now |
+| none imported | no | none | Checked for Design Preview scope; no cross-project gap was claimed |
 
 ## Evidence And Proof
 
 | Evidence | What it proves | Location |
 |---|---|---|
+| Docs refresh | Cold-start schema and ownership notes are now explicit | `docs/projects/design-preview/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, `COLD_START_AGENT_PROMPT.md` |
 | Standalone entry point | Tool is decoupled from app routing | `misc/design.html`, `src/design-preview.tsx` |
 | Step router and styles | Multi-surface preview logic is implemented | `src/components/DesignPreview/DesignPreviewPage.tsx` |
 | Variant metadata and live state | Style comparison workflow is present | `src/components/DesignPreview/VariantSwitcher.tsx`, `src/components/DesignPreview/StyleVariants.tsx` |
@@ -131,14 +158,14 @@ Check the global gap tracker before expanding cross-project:
 
 ## Open Questions
 
-- What is the owner for approving new lanes and for changing the live marker map?
-- What is the acceptance criterion for variant migration (manual review only vs automated screenshot checks)?
-- What check set should be required before this folder gets marked clean for a live handoff?
+- Which lane owners are authoritative versus provisional?
+- Which smoke checks are mandatory for a cold-start handoff?
+- Should the live marker map be owned by a named steward or by the tracker row?
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
 2. Read [TRACKER.md](docs/projects/design-preview/TRACKER.md).
 3. Read [GAPS.md](docs/projects/design-preview/GAPS.md).
-4. Verify key implementation anchors: `misc/design.html`, `src/design-preview.tsx`, `src/components/DesignPreview/DesignPreviewPage.tsx`.
-5. Continue with `T2` in tracker.
+4. Review the `Dashboard Card Schema` and the current gap rows against `docs/projects/PROJECT_CARD_SCHEMA.md`.
+5. Continue with `T2` in tracker unless the owner map is settled, then move to `T3`.

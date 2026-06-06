@@ -1,7 +1,7 @@
 # Naval System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/naval/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Naval System
 Project folder: docs/projects/naval
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/naval/NORTH_STAR.md
 Tracker: docs/projects/naval/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/naval/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the baseline Naval living-project docs. This pass
+refreshed the dashboard card schema, tightened the tracker and gap summaries,
+and kept the implementation slice unchanged.
 
 ## Current Mission
 
@@ -55,8 +55,9 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now exposes an explicit Dashboard Card Schema. TRACKER.md and
+GAPS.md were compacted for the next implementation pass. No workflow-level
+ambiguity was found during this iteration.
 
 ## Required End State For This Iteration
 

@@ -7,25 +7,89 @@ This file documents how top-level Project Tracker cards get their content and
 what agents must keep current when they finish a project iteration.
 
 The dashboard treats each project folder as the primary source of truth. Agents
-should fill the `Dashboard Card Schema` section in `NORTH_STAR.md` so the
-dashboard reads explicit project state instead of guessing from prose.
+should fill structured frontmatter in `NORTH_STAR.md` first. The older
+`Dashboard Card Schema` markdown section remains supported while projects are
+migrated, but frontmatter is the preferred contract because it is harder for
+agents to partially follow without being detected.
 
 ## Source Order
 
-1. `docs/projects/<slug>/NORTH_STAR.md` section named
+1. `docs/projects/<slug>/NORTH_STAR.md` YAML frontmatter.
+2. `docs/projects/<slug>/TRACKER.md` YAML frontmatter, only if the North Star
+   frontmatter is missing a field.
+3. `docs/projects/<slug>/NORTH_STAR.md` section named
    `Dashboard Card Schema`.
-2. `docs/projects/<slug>/TRACKER.md` section named
+4. `docs/projects/<slug>/TRACKER.md` section named
    `Dashboard Card Schema`, only if the North Star section is missing a field.
-3. `docs/projects/<slug>/PROJECT_CARD.json`, if present for older projects or
+5. `docs/projects/<slug>/PROJECT_CARD.json`, if present for older projects or
    exact override needs.
-4. `docs/projects/<slug>/NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md`
+6. `docs/projects/<slug>/NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md`
    inferred fields.
-5. `docs/projects/PROJECT_TRACKER.md`, as a fallback for older projects.
-6. Folder-derived placeholder text, only when the project is incomplete.
+7. `docs/projects/PROJECT_TRACKER.md`, as a fallback for older projects.
+8. Folder-derived placeholder text, only when the project is incomplete.
+
+## Preferred YAML Frontmatter Schema
+
+Add this block at the top of `NORTH_STAR.md` and update it in place every
+iteration.
+
+```yaml
+---
+schema_version: 1
+project: Readable Project Name
+slug: readable-project-name
+category: Feature/UI Projects
+status: active
+last_updated: 2026-06-04
+confidence: medium
+evidence: docs/projects/readable-project-name
+gap_signal: "3 open gaps"
+protocol: living project doc set
+next_step: Define the next concrete handoff action.
+agent_comments: "Optional note outside the normal flow; keep empty when not needed."
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-04
+workflow_gaps_reviewed: 2026-06-04
+compaction_status: not_needed
+---
+```
+
+`agent_comments` is reserved for things that do not fit the default flow. Use
+it for a brief agent note about workflow friction, unusual assumptions, or a
+specific warning for the next agent. If the note is a reusable workflow problem,
+also register or `+1` it in
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
+
+`required_docs` should list the full canonical living-project surface, including
+supporting docs. If a supporting doc is not relevant for a project yet, the
+agent should keep it listed and explain "not needed this iteration" in the final
+report instead of forgetting the file exists.
+
+`optional_docs` is for project-specific extras such as task slices, migration
+notes, architecture notes, generated proof summaries, or domain-specific docs.
+The point is awareness: agents should scan whether these exist or are named by
+the tracker before claiming the project docs are current.
 
 ## Required `Dashboard Card Schema` Section
 
-Add this section to `NORTH_STAR.md` and update it in place every iteration.
+This markdown section is still supported for projects that have not migrated to
+frontmatter yet.
 
 ```markdown
 ## Dashboard Card Schema
@@ -34,6 +98,7 @@ Project: Readable Project Name
 Slug: readable-project-name
 Category: Feature/UI Projects
 Status: active
+Last updated: 2026-06-04
 Confidence: medium
 Evidence: docs/projects/readable-project-name
 Gap signal: 3 open gaps
@@ -43,6 +108,10 @@ Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-04
 Workflow gaps reviewed: 2026-06-04
+Agent comments: Optional note outside the normal flow; keep empty when not needed.
+Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
+Optional docs: tasks/, architecture notes, migration notes
+Compaction status: not_needed
 ```
 
 Field meanings:
@@ -53,6 +122,7 @@ Field meanings:
 | Slug | Folder slug. This should match `docs/projects/<slug>`. |
 | Category | Dashboard grouping/filter label. |
 | Status | Current project state: `active`, `planned`, `blocked`, `partial`, `done`, or a clearly explained local status. |
+| Last updated | Date the project docs were last intentionally refreshed. Prefer the North Star `Last updated` date. |
 | Confidence | Low/medium/high confidence in the current handoff state. |
 | Evidence | Primary durable source path for the card. |
 | Gap signal | Compact summary from `GAPS.md`; do not hide open gaps. |
@@ -62,6 +132,10 @@ Field meanings:
 | Completed verification | Comma-separated verification types completed for the current active slice. |
 | Last proof | Date of the most recent durable proof update. |
 | Workflow gaps reviewed | Date the agent checked `WORKFLOW_GAPS.md`. |
+| Agent comments | Brief note for unusual workflow friction, assumptions, or out-of-flow concerns. |
+| Required docs | Canonical living-project docs the agent must account for. |
+| Optional docs | Project-specific extras the agent must be aware of when present. |
+| Compaction status | Whether anti-bloat cleanup was `not_needed`, `done`, or `needed`. |
 
 ## Optional `PROJECT_CARD.json` Fields
 
@@ -70,6 +144,7 @@ Field meanings:
   "project": "Readable Project Name",
   "category": "Feature/UI Projects",
   "status": "active",
+  "lastUpdated": "2026-06-04",
   "confidence": "medium",
   "evidence": "docs/projects/readable-project-name",
   "gapSignal": "3 open gaps",
@@ -78,7 +153,11 @@ Field meanings:
   "requiredVerification": ["scoped_tests", "docs_consistency"],
   "completedVerification": ["docs_consistency"],
   "lastProof": "2026-06-04",
-  "workflowGapsReviewed": "2026-06-04"
+  "workflowGapsReviewed": "2026-06-04",
+  "agentComments": "Optional out-of-flow note.",
+  "requiredDocs": ["NORTH_STAR.md", "TRACKER.md", "GAPS.md", "COLD_START_AGENT_PROMPT.md", "DECISIONS.md", "AUDIT_OR_PROOF.md", "RUNBOOK.md"],
+  "optionalDocs": ["tasks/", "architecture notes", "migration notes"],
+  "compactionStatus": "not_needed"
 }
 ```
 

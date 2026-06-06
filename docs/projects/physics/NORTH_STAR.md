@@ -1,13 +1,29 @@
 # Physics System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why this project exists
 
 This project covers movement, terrain, environmental effects, and elemental-state mechanics used by combat movement validation, pathfinding, area effects, and weather/terrain interactions.
 
 It is intentionally registered as partial implementation because related physics behavior is split across system, utility, and hook layers.
+
+## Dashboard Card Schema
+
+Project: Physics System
+Slug: physics
+Category: Core Simulation / Combat
+Status: partial
+Confidence: medium
+Evidence: docs/projects/physics
+Gap signal: 8 open gaps; G7 needs a human decision
+Protocol: living project doc set
+Next step: Implement the elemental state wiring slice from T4, then return to the tile-effect schema split.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Scope
 
@@ -61,29 +77,19 @@ It is intentionally registered as partial implementation because related physics
 - Engine tile effect handling is partly inconsistent: commands write `environmentalEffects[]`, while cleanup/effects code still reads `(tile as any).environmentalEffect` in some paths.
 - Line of sight ignores elevation even though weather/terrain data includes height in tiles.
 - Opportunity-attack timing is documented as retroactive after move commit.
-- Physics utility TODOs remain for suffocation and throw-distance integration with inventory flow.
 - Object-level collision/AC/HP hooks exist as utility stubs but are not fully connected to combat target flow.
+- Physics utility TODOs remain for suffocation integration with combat or environment resolution.
+- Physics utility TODOs remain for throw-distance flow into inventory and forced-movement handling.
 
 ## Next checks for next handoff
 
 - Verify state transition wiring from elemental damage/status effects into `stateTags` without regressions.
 - Resolve `environmentalEffects` versus `environmentalEffect` handling into a single stable tile effect model.
-- Add tests for element reaction recursion and turn-ordered movement collision interactions.
 - Confirm `useTurnManager` round timing assumptions against world-time consumers outside combat.
+- Add tests for element reaction recursion and turn-ordered movement collision interactions.
 
 ## Resume path
 
 1. Read this file.
 2. Read `docs/projects/physics/TRACKER.md`.
 3. Read `docs/projects/physics/GAPS.md`.
-
-
-## Cold-Start Gap Routing
-
-The next cold-start agent must:
-- read `TRACKER.md` and `GAPS.md` first
-- read the existing project gaps before choosing work
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count

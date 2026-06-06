@@ -1,7 +1,23 @@
 # Party UI North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Party UI
+Slug: party-ui
+Category: Feature/UI Projects
+Status: partial
+Confidence: medium
+Evidence: docs/projects/party-ui
+Gap signal: 5 open gaps
+Protocol: living project doc set
+Next step: Lock the companion-party boundary, then resume short-rest persistence verification.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Purpose and scope
 
@@ -74,16 +90,19 @@ This is a cold-start implementation snapshot, not a scaffold placeholder.
 ## Companion / party relationship boundary
 
 - Companion browsing and metadata are clearly available in `RelationshipsPane`.
-- Party UI itself does not currently define recruit/leave business logic for companions.
+- Party UI itself does not currently define recruit/leave business logic for companions or the acceptance rule for non-companion NPC party entities.
 - Companion and party membership rules remain external to this project and are the primary unresolved area.
 
 ## Gaps carried forward
 
 - Define companion-party membership rules that determine whether and how companion records and `PlayerCharacter` party entries share identity and lifecycle rules.
-- Clarify which missing-choice warnings should be surfaced in the overlay path versus only inside compact cards if richer card variants are introduced later.
+- Clarify which missing-choice warnings should be surfaced in the overlay path versus compact cards if richer card variants are introduced later.
+- Decide whether party roster membership can include non-companion NPC party entities and, if so, what acceptance rule governs them.
+- Keep the Party UI README artifacts aligned with current behavior instead of leaving old card and overlay guidance in place.
 
 ## Next checks for the next agent
 
+- Start with `TRACKER.md` task T2 and write down the canonical companion-party rule before broadening scope.
 - Validate persistence behavior for `shortRestTracker` after load/save and day rollover.
 - Validate that character-sheet companion context stays correct when party is rebuilt via `SET_FULL_PARTY` and when encounter temp party changes.
 - Confirm if party roster should include non-companion NPC party entities and document the acceptance rule.

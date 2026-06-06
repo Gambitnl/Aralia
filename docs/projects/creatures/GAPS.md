@@ -1,7 +1,9 @@
-# Creatures System Gap Registry
+﻿# Creatures System Gap Registry
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+Reviewed during the 2026-06-05 docs refresh. No new project-specific gaps were added; the registry still points at CT-3 as the schema-policy gate before CT-2.
 
 ## Gap Log
 

@@ -1,7 +1,7 @@
 # Puzzles System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 This project owns the existing puzzle-family runtime in `src/systems/puzzles` and the lockpicking UI bridge. It was previously represented in the registry but had only a scaffold-level project doc. This pass preserves the actual working boundaries so future work does not erase partial systems.
@@ -10,6 +10,10 @@ This project owns the existing puzzle-family runtime in `src/systems/puzzles` an
 Create a documentation-first cold-start pack for Puzzles System that preserves what is already implemented, what is currently wired into state/UI, and what remains unresolved before full puzzle progression work resumes.
 
 ## Current State
+
+This project has a living-project doc set in place. This iteration refreshed
+the dashboard-facing schema, compacted the tracker and gaps, and kept the next
+implementation slice pointed at the first production lockpicking entry path.
 
 ### Implemented Runtime
 
@@ -51,17 +55,33 @@ Create a documentation-first cold-start pack for Puzzles System that preserves w
 - `src/systems/puzzles/__tests__/puzzleSystem.test.ts`
 - `src/systems/puzzles/__tests__/skillChallengeSystem.test.ts`
 
+## Dashboard Card Schema
+
+Project: Puzzles System
+Slug: puzzles
+Category: Gameplay Systems
+Status: active
+Confidence: medium
+Evidence: docs/projects/puzzles
+Gap signal: 6 open project gaps
+Protocol: living project doc set
+Next step: Take T2 and define the first production lockpicking dispatch path.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
+
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Replace scaffold docs with evidence-backed Puzzles System cold-start context. |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` contain file-level scope, integration map, and concrete unresolved gaps tied to evidence. |
-| Allowed boundaries | `docs/projects/puzzles/*` only |
-| Stop condition | Documentation complete and bounded to evidence, with no gameplay edits. |
-| Verification | Source and state scans under `src/systems/puzzles`, `src/components/puzzles`, `src/state`, `src/types`, and `docs/architecture/domains/puzzles-quests-rituals.md`. |
+| Task | Implement the first production lockpicking dispatch path from a real world encounter. |
+| Acceptance criteria | A non-dev callsite can reach `OPEN_LOCKPICKING_MODAL`, or the blocker is documented with evidence in `GAPS.md`. |
+| Allowed boundaries | `docs/projects/puzzles/*` for docs, plus the smallest lock-entry runtime slice needed to prove the path. |
+| Stop condition | Production entry path is proven or the blocker is recorded with a next action. |
+| Verification | Source scan plus one non-dev evidence path, or a documented blocker if the path is not yet available. |
 | Owner | Worker A |
-| Next action | Keep implementation-safe gaps active and map which gaps are in-scope vs cross-project. |
+| Next action | Start with PZ-001 and keep the key, hint, and map-integration follow-ups out of scope for this slice. |
 
 ## Scope and Boundaries
 
@@ -89,12 +109,12 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| `puzzleSystem` hint path is effectively non-functional (`getPuzzleHint` returns `null`). | support_needed_now | Worker A | `src/systems/puzzles/puzzleSystem.ts` | Define check payload contract and decide the caller for live hint checks. |
-| Lockpicking modal has only dev entry (`test_lockpicking`) for state dispatch. | in_scope_now | Worker A | `src/App.tsx`, `src/state/actionTypes.ts`, `src/components/layout/GameModals.tsx` | Find the first production dispatch source for `OPEN_LOCKPICKING_MODAL` and add payload expectations. |
-| `Lock.keyId` exists in type model but is not consumed by lock resolution logic. | in_scope_now | Worker A | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/components/puzzles/LockpickingModal.tsx` | Clarify key resolution ownership and lock unlock path before any lock-key progression work. |
-| Legacy character fallback flow spans many puzzle modules and tests. | support_needed_now | Worker A | `src/systems/puzzles/*.ts`, `src/types/character.ts` | Preserve shim behavior and define migration steps before adding new puzzle features. |
-| No runtime puzzle-to-map integration is proven from entity/encounter data yet. | support_needed_now | Worker A | `src/systems/puzzles/*.ts` tests only, TODO markers in runtime files | Add at least one evidence-backed production path from dungeon object to puzzle invocation. |
-| Multiple TODOs point to BattleMap/Submap integration (mechanism, secret doors, pressure plates, arcane glyph spells). | adjacent_follow_up | Worker A | `src/systems/puzzles/mechanism.ts`, `src/systems/puzzles/secretDoorSystem.ts`, `src/systems/puzzles/pressurePlateSystem.ts`, `src/systems/puzzles/arcaneGlyphSystem.ts` | Route these to a separate integration slice unless lock progression requires immediate action. |
+| `puzzleSystem` hint path is effectively non-functional (`getPuzzleHint` returns `null`). | support_needed_now | Worker A | `src/systems/puzzles/puzzleSystem.ts` | Define the hint check payload and the caller that owns live hint checks. |
+| Lockpicking modal has only dev entry (`test_lockpicking`) for state dispatch. | in_scope_now | Worker A | `src/App.tsx`, `src/state/actionTypes.ts`, `src/components/layout/GameModals.tsx` | Find the first production dispatch source for `OPEN_LOCKPICKING_MODAL` and record its payload contract. |
+| `Lock.keyId` exists in the type model but is not consumed by lock resolution logic. | in_scope_now | Worker A | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/components/puzzles/LockpickingModal.tsx` | Clarify key ownership and the unlock path before any lock-key progression work. |
+| Legacy character fallback flow spans many puzzle modules and tests. | support_needed_now | Worker A | `src/systems/puzzles/*.ts`, `src/types/character.ts` | Preserve shim behavior and define the migration target before expanding puzzle checks. |
+| No runtime puzzle-to-map integration is proven from entity/encounter data yet. | support_needed_now | Worker A | `src/systems/puzzles/*.ts` tests only, TODO markers in runtime files | Add one evidence-backed production path from a dungeon object to puzzle invocation. |
+| Multiple TODOs point to BattleMap/Submap integration (mechanism, secret doors, pressure plates, arcane glyph spells). | adjacent_follow_up | Worker A | `src/systems/puzzles/mechanism.ts`, `src/systems/puzzles/secretDoorSystem.ts`, `src/systems/puzzles/pressurePlateSystem.ts`, `src/systems/puzzles/arcaneGlyphSystem.ts` | Route this to a separate integration slice unless lock progression needs it immediately. |
 
 ## Evidence And Proof
 
@@ -138,7 +158,7 @@ Out of scope:
 
 The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- tackle the next highest-value evidence-backed project gap in the same pass
+- keep the key, hint, and map-integration follow-ups separated unless the chosen slice needs them
+- if no valid in-scope project gaps exist, identify real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
+- do not invent gaps just to satisfy a count

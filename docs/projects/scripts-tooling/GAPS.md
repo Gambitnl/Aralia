@@ -1,9 +1,11 @@
 # GAPS: Scripts: Tooling
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings tied directly to the scripts-tooling project.
+
+Current iteration note: no new project-local gaps were added in this pass. The stale shared-path ambiguity is tracked centrally in `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
 
 ## Gap Log
 

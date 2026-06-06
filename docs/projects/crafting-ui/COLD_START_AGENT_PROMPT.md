@@ -16,7 +16,7 @@ docs/projects/crafting-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Crafting UI
 Project folder: docs/projects/crafting-ui
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/crafting-ui/NORTH_STAR.md
 Tracker: docs/projects/crafting-ui/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/crafting-ui/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 1 established the initial cold-start pack. This pass refreshed the
+project docs, added the North Star dashboard schema, and tightened the gap
+ordering for the next implementation slice. No code changes were made.
 
 ## Current Mission
 
@@ -47,16 +47,17 @@ Key files to touch:
 
 Scoped verification:
 Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+NORTH_STAR.md. If none is named, add one before claiming the task is done. For
+this docs-only pass, `docs_consistency` is the completed verification.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now has the required Dashboard Card Schema, the tracker and gaps
+were refreshed to 2026-06-05, and the next agent resume path now points to
+G1/G2/G3 first.
 
 ## Required End State For This Iteration
 

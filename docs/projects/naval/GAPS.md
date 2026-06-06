@@ -1,7 +1,7 @@
 # Naval System Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Gap Log
 
@@ -13,4 +13,4 @@ Last updated: 2026-05-31
 | G4 | active | support_needed_now | Worker A | `docs/projects/naval/TRACKER.md` | Bounded scan | Two voyage event catalogs exist with divergent definitions. | `src/data/naval/voyageEvents.ts`, `src/data/naval/voyageEvents/index.ts` | Import path differences can alter behavior across callers and break event balancing. | Consolidate to one canonical catalog and migration-safe source file. | Confirm no remaining callers to the deprecated catalog and single-source test fixture exists. |
 | G5 | not_started | adjacent_follow_up | Worker A | `docs/projects/naval/TRACKER.md` | UI scan | `NavalCombatSystem` is implemented and tested but not invoked by encounter or action selectors. | `src/systems/naval/NavalCombatSystem.ts`, `src/state`, `src/hooks` | Combat path exists as an islanded module and is not usable in gameplay flow. | Decide if naval combat uses generic encounter state or dedicated naval reducer path. | Add route-level verification that combat status emits into one authoritative battle flow. |
 | G6 | not_started | adjacent_follow_up | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | `ShipPane` mostly reads state and has limited action controls despite available reducer actions. | `src/components/Naval/ShipPane.tsx`, `src/state/reducers/navalReducer.ts`, `src/state/actionTypes.ts` | Players can observe state but cannot initiate key naval operations consistently from dashboard. | Either add command controls or route operations through a dedicated naval action surface. | Add UI acceptance test for one crew/recruit or repair control path. |
-| G7 | not_started | uncertain | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | Legacy `NavalLogic.ts` overlaps modern voyage/combat helpers; ownership boundaries are unclear. | `src/systems/naval/NavalLogic.ts`, `src/systems/naval/VoyageManager.ts`, `src/systems/naval/CrewManager.ts` | Duplicate logic increases risk of forked behavior if both paths are invoked in future refactors. | Document intended owner for legacy functions and retire or isolate unused exports. | Static import map check for calls into `NavalLogic.ts` outside explicit compatibility needs. |
+| G7 | not_started | adjacent_follow_up | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | Legacy `NavalLogic.ts` overlaps modern voyage/combat helpers; ownership boundaries are still unclear. | `src/systems/naval/NavalLogic.ts`, `src/systems/naval/VoyageManager.ts`, `src/systems/naval/CrewManager.ts` | Duplicate logic increases risk of forked behavior if both paths are invoked in future refactors. | Document the intended owner for legacy functions and retire or isolate unused exports. | Static import map check for calls into `NavalLogic.ts` outside explicit compatibility needs. |

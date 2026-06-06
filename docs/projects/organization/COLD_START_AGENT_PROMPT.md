@@ -1,7 +1,7 @@
 # Organization Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/organization/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Organization
 Project folder: docs/projects/organization
-Iteration: 1
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/organization/NORTH_STAR.md
 Tracker: docs/projects/organization/TRACKER.md
@@ -24,9 +24,9 @@ Gaps: docs/projects/organization/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+Iteration 2 refreshed the dashboard schema, kept the tracker and gap dates in
+sync, and confirmed the current blocker set still centers on permissions,
+persistence, identity, faction, and succession transfer.
 
 ## Current Mission
 
@@ -55,8 +55,10 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+North Star now includes explicit acceptance criteria for T2, the dashboard card
+schema is current, and the five-gap surface still describes the resume path for
+the next implementation slice. No workflow-level ambiguity was found in this
+pass, and the active objective remains unchanged.
 
 ## Required End State For This Iteration
 

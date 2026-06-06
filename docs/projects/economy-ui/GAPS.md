@@ -1,9 +1,13 @@
 # Economy UI Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable integration gaps that must be carried into implementation.
+
+## Iteration notes
+
+- 2026-06-05 | economy-ui workflow pass | Reviewed the current handoff against `GLOBAL_GAPS.md` and `WORKFLOW_GAPS.md`; no new project-specific blocker surfaced, so the existing G1-G3 set remains the active gap surface.
 
 ## Gap log
 

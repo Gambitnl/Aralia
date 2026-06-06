@@ -1,13 +1,31 @@
 # World 3D UI North Star
 
 Status: active
-Last updated: 2026-06-02
+Last updated: 2026-06-05
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative:
 > - `world3d` — the 3D **rendering engine** (chunk streaming, meshes, R3F scene).
 > - `worldsim-service` — world **generation + simulation** (geometry + first-build history/story).
 > - **this surface (`world-3d-ui`)** — the **transition + HUD** layer.
 > These are not consolidated; each owns a separate concern. Owner: claude.
+
+## Dashboard Card Schema
+
+| Field | Value |
+|---|---|
+| Project | World 3d Ui |
+| Slug | world-3d-ui |
+| Category | active project |
+| Status | active |
+| Confidence | unknown |
+| Evidence | docs/projects/world-3d-ui/TRACKER.md; docs/projects/world-3d-ui/GAPS.md |
+| Gap signal | present |
+| Protocol | living-project |
+| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Required verification | docs consistency |
+| Completed verification | docs refresh |
+| Last proof | 2026-06-05 docs refresh |
+| Workflow gaps reviewed | yes |
 
 ## Why This Project Exists
 

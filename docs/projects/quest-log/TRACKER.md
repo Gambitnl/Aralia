@@ -1,7 +1,7 @@
 # Quest Log Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -18,14 +18,15 @@ Last updated: 2026-05-31
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|
 | T1 | done | Convert existing source scan into a living-project implementation snapshot in quest-log docs | Worker | 2026-05-31 | `src/components/QuestLog/*`, `src/hooks/actions/*`, `src/state/reducers/*`, `src/systems/quests/QuestManager.ts`, `src/state/appState.ts` | Keep project docs in sync with current implementation + gaps | `Get-Content docs/projects/quest-log/NORTH_STAR.md` shows updated scope and map |
-| T2 | active | Confirm Quest Log integration boundaries and next implementation checks before code edits | Worker | 2026-05-31 | `src/components/CharacterSheet/Journal/*`, `src/actions/*`, `docs/projects/quests/NORTH_STAR.md` | Close one gap row after verification with `src/systems/quests/QuestManager.ts` and handlers | Confirm journal/quest transition behavior and deadline behavior after any schema migration |
+| T2 | active | Confirm Quest Log integration boundaries and next implementation checks before code edits | Worker | 2026-06-05 | `src/components/CharacterSheet/Journal/*`, `src/hooks/actions/handleNpcInteraction.ts`, `src/state/reducers/questReducer.ts`, `src/systems/quests/QuestManager.ts` | Close one gap row after verification with quest, journal, and deadline flow checks | Confirm journal/quest transition behavior and deadline behavior after any schema migration |
 | T3 | not_started | Route newly discovered task-specific gaps into owning project or global gaps if out-of-scope | Worker | 2026-05-31 | `docs/projects/quest-log/GAPS.md` | Decide whether each gap is in-project, out-of-project, or global | Add entries with owner/classification once verified |
 
 ## Project Health Notes
 
-- This tracker is complete for docs-only coverage.
+- This tracker is complete for docs-only coverage, and the project card schema is now explicit in `NORTH_STAR.md`.
 - No changes are being made outside `docs/projects/quest-log/`.
 - `docs/projects/quests` remains the owner for quest-engine design decisions.
+- Durable proof notes now live in `AUDIT_OR_PROOF.md` for the next cold-start agent.
 
 ## Update Rules
 

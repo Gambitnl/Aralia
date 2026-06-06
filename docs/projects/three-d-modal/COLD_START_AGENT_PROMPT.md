@@ -1,7 +1,7 @@
 # ThreeD Modal Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 This file is the project-specific handoff for the next cold-start agent. It
 does not duplicate the workflow rules. The agent must follow the shared workflow
@@ -16,7 +16,7 @@ docs/projects/three-d-modal/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: ThreeD Modal
 Project folder: docs/projects/three-d-modal
-Iteration: 1
+Iteration: 2
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 North Star: docs/projects/three-d-modal/NORTH_STAR.md
 Tracker: docs/projects/three-d-modal/TRACKER.md
@@ -24,7 +24,7 @@ Gaps: docs/projects/three-d-modal/GAPS.md
 
 ## Previous Agent Handoff
 
-No prior project iteration handoff exists yet. This is iteration 1. Use
+The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
 NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
 GAPS.md for unresolved findings.
 

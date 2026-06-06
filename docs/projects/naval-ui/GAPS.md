@@ -1,7 +1,7 @@
 # Naval UI Gaps
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolved findings that belong to Naval UI.
 
@@ -20,3 +20,4 @@ Use this file for durable unresolved findings that belong to Naval UI.
 - The intended behavior for `currentVoyage` status in UI remains undefined at the Naval UI layer.
 - No dedicated voyage progress or status panel exists in Naval UI beyond ship-centric views.
 - Clarify whether voyage and combat handoff should be represented in a new modal family instead of `ShipPane`.
+- This docs-only refresh did not surface a new project-specific blocker; the five rows above remain the active Naval UI gap set.

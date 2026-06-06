@@ -1,9 +1,11 @@
 # GAPS: Command Factory Runtime
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use only durable unresolved findings that belong to this factory project and are likely to affect future edits.
+
+2026-06-05 pass: no new project-specific blockers were discovered; the live queue remains G1-G4.
 
 ## Gap Log
 

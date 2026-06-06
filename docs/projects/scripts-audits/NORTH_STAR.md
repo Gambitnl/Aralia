@@ -1,7 +1,7 @@
-# Scripts: Audits North Star
+﻿# Scripts: Audits North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -14,6 +14,22 @@ documented, and recoverable for future maintainers.
 - Keep a working cold-start reference for `scripts/audits`.
 - Preserve intent, boundaries, and file map for audit workflows tied to races.
 - Track integration points with portrait regeneration and glossary/race sync flow.
+
+## Dashboard Card Schema
+
+Project: Scripts: Audits
+Slug: scripts-audits
+Category: Tools, Automation, and Infrastructure
+Status: active
+Confidence: medium
+Evidence: docs/projects/scripts-audits
+Gap signal: 4 open gaps in GAPS.md, including 1 blocked_human_decision
+Protocol: living project doc set
+Next step: Validate the live command and report references named in this project doc set.
+Required verification: docs_consistency, scoped_checks
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File Map
 
@@ -53,6 +69,16 @@ documented, and recoverable for future maintainers.
   - `scripts/audits/slice-of-life-settings.json` and `slice-of-life-settings.md`
   - `scripts/audits/slice-of-life-qa.json`
 
+## Current State
+
+- The project docs are now dashboard-ready: the North Star has a card schema,
+  the tracker is aligned to the durable gap list, and the cold-start handoff
+  names the canonical protocol paths.
+- Live command and report validation is still pending in T2.
+- The shared workflow path mismatch is already tracked centrally in
+  `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` as
+  WFG-001.
+
 ## Integrations
 
 - `docs/guides/RACE_ENRICHMENT_WORKFLOW.md`:
@@ -75,19 +101,18 @@ documented, and recoverable for future maintainers.
 
 | Field | Value |
 |---|---|
-| Task | Keep project docs aligned with the current scripts/audits surface and unresolved check gaps |
-| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS capture purpose, scope, integrations, concrete gaps, and next checks |
+| Task | Keep the docs aligned with the current scripts/audits surface and unresolved check gaps |
+| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS stay compact, current, and point the next agent at the live command/report paths |
 | Allowed boundaries | `docs/projects/scripts-audits/*` |
 | Stop condition | Next maintainer can resume immediately from this docs set |
-| Verification | all referenced paths exist and commands are reproducible from this doc |
+| Verification | docs consistency review completed; live path validation remains the next check |
 | Owner | scripts-audits maintainer |
 
 ## Open Questions
 
-- Which of these audits should be mandatory in CI versus local-only?
-- What minimum frequency is required for regenerating stale outputs such as
-  `slice-of-life-settings.json` and `slice-of-life-qa.json`?
-- Which gaps from historical QA output should be promoted to local policy actions and which should remain advisory?
+- Which checks should be the canonical local entrypoint versus standalone commands?
+- What freshness threshold makes generated reports safe to treat as current evidence?
+- Should the CI/manual policy decision stay project-local or be routed to a broader workflow note?
 
 ## Next Checks
 
@@ -95,7 +120,7 @@ documented, and recoverable for future maintainers.
 2) `npx tsx scripts/audits/verify-cc-glossary-race-sync.ts`
 3) `npx tsx scripts/audits/list-slice-of-life-settings.ts`
 4) `python scripts/audits/race-status-tail.py --n 20`
-5) Quick scan for missing report outputs in `scripts/audits` and compare with references in `docs/portraits/race_portrait_regen_handoff.md`
+5) Compare the command and report paths named in this file against the live docs tree and the current `scripts/audits` outputs.
 
 ## Resume Path
 
@@ -103,7 +128,6 @@ documented, and recoverable for future maintainers.
 2. Read `docs/projects/scripts-audits/TRACKER.md`.
 3. Read `docs/projects/scripts-audits/GAPS.md`.
 4. Re-run the "Next Checks" list and update `TRACKER.md`.
-
 
 ## Cold-Start Gap Routing
 

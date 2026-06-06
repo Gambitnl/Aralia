@@ -235,7 +235,7 @@ duplicate project.
 | Scripts: quality | in-progress | high | `scripts/quality` | GAPS.md present | implemented | connect quality debt tracking to tracker |
 | Scripts: spell-runtime-template-audit | in-progress | medium | `scripts/spellRuntimeTemplateAudit` | GAPS.md present | implemented | complete report + remediation tasks |
 | Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
-| Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present | implemented | add explicit runbook and ownership |
+| Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
 | Script tests | partial | medium | `scripts/__tests__` | GAPS.md present | implemented | expand coverage of scripts behavior |
 | Sideproject: Basic Chat | experimental | high | `sideprojects/basic-chat` | GAPS.md present | implemented | define whether this is active or reference-only |
 
@@ -328,7 +328,7 @@ duplicate project.
 | Scripts: quality | in-progress | high | `scripts/quality` | GAPS.md present | implemented | connect quality debt tracking to tracker |
 | Scripts: spell-runtime-template-audit | in-progress | medium | `scripts/spellRuntimeTemplateAudit` | GAPS.md present | implemented | complete report + remediation tasks |
 | Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
-| Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present | implemented | add explicit runbook and ownership |
+| Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
 | Script tests | partial | medium | `scripts/__tests__` | GAPS.md present | implemented | expand coverage of scripts behavior |
 | Sideproject: Basic Chat | experimental | high | `sideprojects/basic-chat` | GAPS.md present | implemented | define whether this is active or reference-only |
 

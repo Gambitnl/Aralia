@@ -1,7 +1,7 @@
 # NORTH_STAR: Scripts: Workflows
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why this project exists
 
@@ -17,6 +17,22 @@ Last updated: 2026-05-31
 This project documents the workflow automation surface for Gemini image generation/research and chat-debug tooling only.
 
 It is a cold-start map for the next agent, not an implementation change log.
+
+## Dashboard Card Schema
+
+Project: Scripts: Workflows
+Slug: scripts-workflows
+Category: Tools, Automation, and Infrastructure
+Status: partial
+Confidence: medium
+Evidence: docs/projects/scripts-workflows
+Gap signal: 2 open project gaps (G1 command matrix, G2 env-var matrix)
+Protocol: living project doc set
+Next step: Consolidate the canonical command matrix in project-owned docs, then normalize env-var defaults if the slice stays stable.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File map
 
@@ -47,12 +63,14 @@ It is a cold-start map for the next agent, not an implementation change log.
   - `research-races-with-gemini.ts`,
   - and core MCP/driver helpers.
 - Root `scripts/` wrappers for migrated files are still present as migration tombstones.
-- Package scripts currently expose canonical starts for automation:
-  - `npm run mcp:chrome`
-  - `npm run image-gen:login`
-  - `npm run generate:race-images`
-  - `npm run research:race-profiles`
-- Current runbook references are split across `docs/portraits/race_portrait_regen_handoff.md` and `docs/guides/MCP_INTEGRATION.md`.
+  - Package scripts currently expose canonical starts for automation:
+    - `npm run mcp:chrome`
+    - `npm run image-gen:login`
+    - `npm run generate:race-images`
+    - `npm run research:race-profiles`
+  - Current runbook references are split across `docs/portraits/race_portrait_regen_handoff.md` and `docs/guides/MCP_INTEGRATION.md`.
+  - The dashboard card schema is now explicit in this North Star so the next agent can read project state without inferring it from prose.
+  - The open project follow-ups are tracked as T3/T4 in `TRACKER.md`, which keeps the command-matrix and env-var-matrix work visible without widening the slice.
 
 ## Integrations
 
@@ -68,13 +86,13 @@ It is a cold-start map for the next agent, not an implementation change log.
 
 | Field | Value |
 |---|---|
-| Task | Keep docs-only project cold-start packet current for workflow scripts. |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` include scope, file map, implemented state, integrations, gaps, next checks, and resume path. |
-| Allowed boundaries | `docs/projects/scripts-workflows/*`, registry row only for read-only verification |
-| Stop condition | no code changes required; documentation reflects actual script surface and command entry points. |
-| Verification | `Get-Content` for workflow files and registry evidence. |
-| Owner | Worker C |
-| Next action | Keep GAPS and tracker aligned when command entry points change. |
+  | Task | Keep the dashboard packet current and continue the command-matrix follow-up surfaced in `TRACKER.md`. |
+  | Acceptance criteria | `NORTH_STAR.md` carries the dashboard schema; `TRACKER.md` exposes the open command/env-var queue; `GAPS.md` stays compact and actionable; `COLD_START_AGENT_PROMPT.md` points the next agent at the next step. |
+  | Allowed boundaries | `docs/projects/scripts-workflows/*` and `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` only for shared-path testimony |
+  | Stop condition | the docs reflect current state and no new project code/docs outside this packet are touched. |
+  | Verification | `Get-Content` review of touched docs and the registry row. |
+  | Owner | Worker C |
+  | Next action | Continue with `TRACKER.md` row T3, then T4 if the command matrix stays stable. |
 
 ## Scope boundaries
 
@@ -102,9 +120,8 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Command entry points are documented in multiple places with different examples. | adjacent_follow_up | Worker C | `docs/portraits/race_portrait_regen_handoff.md`, `docs/guides/MCP_INTEGRATION.md`, `package.json` | Add one canonical command matrix in project-owned runbook or keep explicit pointer policy. |
-| Some handoff docs carry old run snapshots while workflows keep evolving. | out_of_scope | Worker C | `docs/portraits/race_portrait_regen_handoff.md` | Keep as historical ledger and refresh only when a workflow owner approves. |
-| Research/profile and portrait lanes share environment knobs but docs do not fully normalize them. | support_needed_now | Worker C | `scripts/workflows/gemini/*.ts` | Add one environment variable matrix reference in this project docs. |
+  | Command entry points are documented in multiple places with different examples. | adjacent_follow_up | Worker C | `docs/portraits/race_portrait_regen_handoff.md`, `docs/guides/MCP_INTEGRATION.md`, `package.json` | Add one canonical command matrix in project-owned docs and keep legacy pointers explicit. |
+  | Research/profile and portrait lanes share environment knobs but docs do not fully normalize them. | support_needed_now | Worker C | `scripts/workflows/gemini/*.ts` | Add one environment-variable matrix reference in project docs and capture defaults from the scripts. |
 
 ## Global Gap Imports
 
@@ -149,15 +166,13 @@ Keep durable state in this project doc surface and tracker. Exclude raw logs, ru
 1. Read this file.
 2. Read [docs/projects/scripts-workflows/TRACKER.md](docs/projects/scripts-workflows/TRACKER.md).
 3. Read [docs/projects/scripts-workflows/GAPS.md](docs/projects/scripts-workflows/GAPS.md).
-4. Re-verify registry path in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md).
-5. Continue from: keep command-entrypoint and gap tracking accurate for workflow automation.
+4. Re-verify the registry row in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) only if the dashboard card drifts.
+5. Continue from T3: keep the command matrix canonical, then refresh the cold-start packet after any command-surface drift.
 
 
 ## Cold-Start Gap Routing
 
-The next cold-start agent must:
-- read `TRACKER.md` and `GAPS.md` first
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+  The next cold-start agent should:
+  - start with `TRACKER.md` row T3 and keep T4 queued behind it
+  - keep the command matrix and env-var defaults in one project-owned reference
+  - only add new project gaps when they are real, evidence-backed, and not duplicates of the shared workflow-path issue already tracked in `WORKFLOW_GAPS.md`

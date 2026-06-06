@@ -1,12 +1,28 @@
 # Quests System North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose And Scope
 - Own the quest feature lane for Aralia: runtime progression, state transitions, and UI surfaces.
 - Own the integration layer used by movement, item, dialogue, and world time flows.
 - Preserve what is currently implemented while marking migration gaps from the richer quest schema.
+
+## Dashboard Card Schema
+
+Project: Quests System
+Slug: quests
+Category: Feature Systems
+Status: active
+Confidence: medium
+Evidence: docs/projects/quests
+Gap signal: 5 open project gaps, 1 routed global candidate
+Protocol: living project doc set
+Next step: Decide the runtime migration path from legacy `Quest` state to the richer `QuestDefinition` schema.
+Required verification: docs_consistency
+Completed verification: not run
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Concrete File Map
 - Data and templates
@@ -54,6 +70,11 @@ Last updated: 2026-05-31
 - Deadline handling supports consequence variants: `fail_quest`, `fail_with_note`, `log_only`.
 - Dialogue topic prerequisites can check quest status from `gameState.questLog`.
 
+## Current State Summary
+- The live gameplay contract still centers on the legacy `Quest` reducer shape, while the richer `QuestDefinition` / `QuestStage` types remain the migration target.
+- Trigger coverage is intentionally narrow and currently hangs off a few hardcoded item and location IDs.
+- The modal quest log and the journal/sidebar surfaces both render quest state, but they remain separate integration points that need a single source-of-truth decision.
+
 ## Integration Points
 - Movement flow
   - `ancient_ruins_entrance` and `ruins_courtyard` currently hardcode `explore_ruins` starts and progress objectives.
@@ -83,8 +104,7 @@ Last updated: 2026-05-31
 1) Read this file.
 2) Read `docs/projects/quests/TRACKER.md`.
 3) Read `docs/projects/quests/GAPS.md`.
-4) Read `docs/projects/PROJECT_TRACKER.md` row for Quests System.
-5) Continue by resolving the high-priority gaps above.
+4) Continue with the active tracker task, starting from the legacy-versus-schema migration decision.
 
 
 ## Cold-Start Gap Routing

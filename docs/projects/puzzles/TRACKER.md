@@ -1,7 +1,7 @@
 # Puzzles System Living Tracker
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Status Vocabulary
 
@@ -17,7 +17,8 @@ Last updated: 2026-05-31
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|---|
-| T1 | done | Replace puzzle scaffold docs with an evidence-based cold-start pack in `docs/projects/puzzles/` (this tracker included). | Worker A | 2026-05-31 | `src/systems/puzzles`, `src/components/puzzles`, `src/state`, `docs/architecture/domains/puzzles-quests-rituals.md` | Run a bounded review on unresolved gaps in this project for implementation restart. | `NORTH_STAR.md` and `GAPS.md` contain concrete map and next checks. |
+| T1 | done | Replace puzzle scaffold docs with an evidence-based cold-start pack in `docs/projects/puzzles/` (this tracker included). | Worker A | 2026-06-05 | `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/TRACKER.md`, `docs/projects/puzzles/GAPS.md` | Keep the dashboard schema current and hand the next implementation slice to T2. | `NORTH_STAR.md` contains a current Dashboard Card Schema and `GAPS.md` stays aligned with the open project gaps. |
+| T2 | not_started | Implement the first production lockpicking dispatch path from a real world encounter. | Worker A | 2026-06-05 | `src/App.tsx`, `src/state/actionTypes.ts`, `src/components/layout/GameModals.tsx`, `src/systems/puzzles/lockSystem.ts` | Find the first non-dev producer for `OPEN_LOCKPICKING_MODAL` and document its payload contract. | One non-dev callsite or an explicit blocker note in `GAPS.md`. |
 
 ## Gap Log
 

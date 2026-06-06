@@ -1,13 +1,29 @@
 # Dialogue North Star
 
 Status: active  
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose
 Preserve dialogue project continuity for future workers by documenting the implemented topic-based dialogue system, how it is wired into game state and UI, and where gaps remain.
 
 ## Why this exists
 The feature is already partially implemented as an NPC conversation modal and topic engine. The project is in a **discovery-preserving** stage: keep current behavior and avoid flattening unfinished intent.
+
+## Dashboard Card Schema
+
+Project: Dialogue
+Slug: dialogue
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/dialogue
+Gap signal: 5 open gaps; DIAL-001 is adjacent and DIAL-002 through DIAL-005 are active follow-up work
+Protocol: living project doc set
+Next step: Resume from TRACKER D2 and keep the gap log aligned with the current runtime questions.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## Current system summary
 - Dialogue is implemented as topic-based interactions, not a linear scripted node graph.
@@ -68,12 +84,14 @@ The feature is already partially implemented as an NPC conversation modal and to
 - Cross-NPC topic propagation is only partially represented; TODO markers indicate future propagation work was expected in `useDialogueSystem`.
 - `DialogueSession.sessionDispositionMod` and `availableTopicIds` are present in state but mostly passive in current runtime wiring.
 - Topic unlocks are mostly session-scoped and logged locally; global durable unlock behavior is sparse.
+- Companion chat remains a separate flow from Dialogue; the boundary is known in docs but not formalized as an ownership rule.
 
 ## Next checks for continuation
 1. Verify whether dialogue outcomes should write shared/global unlock facts instead of session-only memory updates.
 2. Decide whether to introduce a node/script representation and migration path from current topics.
 3. Confirm how `DialogueSession.sessionDispositionMod` should affect response and availability logic.
 4. Keep `dialogueService.test.ts` and `npcReducer.test.ts` as the base regression set when changing service/reducer behavior.
+5. Preserve the Dialogue-versus-companion-chat boundary when routing new work or follow-up docs.
 
 
 
@@ -82,6 +100,6 @@ The feature is already partially implemented as an NPC conversation modal and to
 The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
 - tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- register additional Dialogue gaps only when evidence supports them
+- route any out-of-scope findings to `docs/projects/GLOBAL_GAPS.md`
+- do not invent gaps just to satisfy a count

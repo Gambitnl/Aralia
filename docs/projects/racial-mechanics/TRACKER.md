@@ -1,6 +1,6 @@
 # Racial Mechanics / Race Hierarchy Tracker
 
-Last updated: 2026-06-02
+Last updated: 2026-06-05
 Owner: Racial mechanics project agent
 
 This tracker is the operational surface for this project.
@@ -11,6 +11,8 @@ Status vocabulary:
 - `in_progress`: accepted with clear next action.
 - `blocked`: scope decision exists, and implementation waits.
 - `deferred`: documented as adjacent and not required to finish baseline objectives.
+
+This iteration refreshed the living-project docs and aligned tracker state with the gap log; no implementation status changed.
 
 ## Completed baseline (core objective now active)
 
@@ -26,6 +28,7 @@ All rows below are required for the shared parser/materializer path and are comp
 - RM-029 (Savage Attacks & Resourceful): Melee crit roll extra damage and long rest Heroic Inspiration states fully active.
 - RM-030 (Racial Traits Mechanics Slice 2): Fully materialized and wired Satyr's Reveler, Tortle's Natural Armor, Thri-Kreen's Chameleon Carapace, and Wood Elf/Half-Elf's Fleet of Foot traits.
 - RM-GNOME-001 (Gnomish Cunning Advantage): Re-aligned saving throw advantage logic to properly respect specific abilities instead of triggering on all saves, aligning with 2024 PHB Gnome traits.
+- RM-LR-CHOICE-001 (Long Rest choice flow): Long-rest racial choice selection is implemented; keep RM-LR-CHOICE-003 separate for spell-choice-specific support.
 
 ## Active and adjacent work queue
 
@@ -48,7 +51,6 @@ All rows below are required for the shared parser/materializer path and are comp
 | RM-ORC-001 | done | in_scope_now | Orc traits lack mechanical implementation. | Verified: `orcRacialTraits.test.ts` passed. |
 | RM-SPEED-001 | done | in_scope_now | Systemic audit needed for 30ft speed on all core species. | 8 remaining races updated (Halfling/Dwarf/Gnome). Grep check clean. |
 | RM-CRASH-001 | done | support_needed_now | Premature cleanup of `limitedUses` causing crashes during character assembly. | Fixed in `characterUtils.ts`; verified with `regression_RM-CRASH-001.test.ts`. |
-| RM-LR-CHOICE-001 | active | in_scope_now | Lack of support for racial traits requiring choices during a Long Rest. | Audit traits needing LR choices (e.g. Githyanki). |
 | RM-013 | in_progress | adjacent-deferred | `Spells of the Mark` traits still require table/list-based list access into class spell lists. | Build a class spell-list source model and promote if scope allows. |
 | RM-014 | in_progress | adjacent-deferred | Some traits use open spell choice text without concrete spell IDs (`...one cantrip ... of your choice...`). | Define race-choice schema and UI selection flow before implementation. |
 | RM-006 | deferred | adjacent-deferred | Heuristic feature-type inference is brittle across multiple race text forms. | Replace with explicit schema tags only when parser touchpoints are stable. |

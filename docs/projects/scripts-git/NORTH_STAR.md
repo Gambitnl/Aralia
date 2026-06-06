@@ -1,7 +1,7 @@
-# NORTH_STAR: Scripts: Git
+# NORTHSTAR: Scripts: Git
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Why This Project Exists
 
@@ -16,6 +16,22 @@ The project keeps a durable handoff map so future agents can continue policy-awa
 ## Intended Outcome
 
 Provide a cold-start, implementation-ready map of `scripts/git` scope, file map, integration points, and next checks for local policy and CI-aligned push behavior.
+
+## Dashboard Card Schema
+
+Project: Scripts: Git
+Slug: scripts-git
+Category: Tools, Automation, and Infrastructure
+Status: partial
+Confidence: medium
+Evidence: docs/projects/scripts-git
+Gap signal: 2 open gaps, 1 in-scope and 1 follow-up
+Protocol: living project doc set
+Next step: Pick G1 and define the smallest believable verification path for hook-policy behavior.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 ## File Map
 
@@ -34,25 +50,26 @@ Provide a cold-start, implementation-ready map of `scripts/git` scope, file map,
 
 ## Current State
 
-Status remains partial with policy evidence in place and docs now brought to a usable
-hand-off state:
+Status remains partial with policy evidence in place and the docs refreshed for a
+clean cold-start handoff:
 
 - Registry row is present: `docs/projects/PROJECT_TRACKER.md` under Tools, Automation, and Infrastructure.
 - Source evidence is present at `scripts/git` with all policy scripts and hook installer.
 - Local policy path is documented and aligned with agent guidance (`docs/DEVELOPMENT_GUIDE.md`).
-- This update clarifies boundaries and checks; no script behavior was changed.
+- This pass added the dashboard schema, compacted the tracker and gap notes, and kept the implementation surface unchanged.
+- The next meaningful slice is G1: define the smallest believable verification path for the hook-policy scripts.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Refresh docs for Scripts: Git to capture policy purpose, integrations, and next checks |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md` describe file map, local hook flow, CI-local policy split, and unresolved follow-ups |
+| Task | Define the narrow verification path for `scripts/git` hook-policy behavior |
+| Acceptance criteria | G1 is reduced to a concrete verification checklist or test plan and the docs point at the next proof source |
 | Allowed boundaries | `docs/projects/scripts-git/*` only |
-| Stop condition | Documentation reflects current behavior with no claim of code/CI changes |
-| Verification | Confirm `scripts/git` file set exists and matches policy references in docs |
+| Stop condition | A future agent can resume the verification work without guessing which check comes next |
+| Verification | `git diff --check` plus the verification source named by the chosen follow-up |
 | Owner | Worker C |
-| Next action | close tracker with docs-consistent status and keep gaps explicit |
+| Next action | Decide whether the next slice is a doc-only runbook or a small script test |
 
 ## Scope Boundaries
 
@@ -116,15 +133,15 @@ diagnostics outside durable docs.
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Is an explicit runbook file needed for scripts/git policy execution? | Operators currently rely on multiple docs and inline notes | Worker C | Next workflow update request |
+| Is an explicit runbook file needed for scripts/git policy execution, or is the current tracker plus handoff enough? | Operators currently rely on multiple docs and inline notes | Worker C | Next workflow update request |
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
 2. Read `docs/projects/scripts-git/TRACKER.md`.
 3. Read `docs/projects/scripts-git/GAPS.md`.
-4. Confirm current policy files in `scripts/git` and matching package scripts in `package.json`.
-5. Continue from: "update docs to include explicit runbook only if requested."
+4. Choose G1 first unless the owner explicitly wants the runbook follow-up instead.
+5. Continue from: "define the narrow verification path for `scripts/git` hook-policy behavior."
 
 
 ## Cold-Start Gap Routing

@@ -1,7 +1,7 @@
 # Town Description System Gap Registry
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 Use this file for durable unresolveds owned by the town-description system.
 

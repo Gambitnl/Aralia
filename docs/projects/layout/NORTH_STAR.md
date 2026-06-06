@@ -1,7 +1,23 @@
 # Layout Project North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
+
+## Dashboard Card Schema
+
+Project: Layout Project
+Slug: layout
+Category: Feature/UI Projects
+Status: active
+Confidence: medium
+Evidence: docs/projects/layout
+Gap signal: 2 open gaps (G2, G3)
+Protocol: living project doc set
+Next step: Decide whether `ConversationPanel` belongs to the shell, the modal host, or a persistent side panel, then align `GameModals` and the handoff with that rule.
+Required verification: docs_consistency
+Completed verification: none yet
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-05
 
 This is a cold-start checkpoint for the Layout surface of Aralia's main app shell.
 The goal is not implementation work; it is durable handoff clarity plus evidence-backed
@@ -61,19 +77,17 @@ Out of scope:
 
 ## Unknowns and Gaps
 
-- Shell boundary contract is partially implicit: `ConversationPanel` can appear alongside `GameLayout`
-  when active conversation exists, and is not managed by `MainMenu`/`GameLayout`.
-- `GameModals` still includes a currently unused `isUIInteractive` prop, which suggests either a missing
-  wire or a planned contract.
-- Main menu and gameplay shells likely should be explicitly documented as separate interaction regions
-  and interaction-lock rules in one place.
+- `ConversationPanel` ownership is still not explicit in the docs: the open question is whether it is
+  a persistent side panel, a shell-level overlay, or a modal-host sibling.
+- `GameModals` still includes a currently unused `isUIInteractive` prop, which suggests either a stale
+  contract or a missing interaction-lock wire.
 
 ## Next Checks
 
-1. Validate whether `ConversationPanel` should remain an overlay outside `GameModals` or move into the layout contract.
-2. Confirm intended source for `isUIInteractive` inside `GameModals`.
+1. Decide the `ConversationPanel` ownership rule and record it once in `NORTH_STAR.md`.
+2. Confirm the intended source for `isUIInteractive` inside `GameModals`.
 3. Record exact modal ownership for each overlay and whether each one is window-frame based.
-4. Verify responsive behavior and boundary coverage for non-playing phases.
+4. Verify responsive behavior and boundary coverage for non-playing phases after the ownership rule is fixed.
 
 ## Next Handoff
 
@@ -88,8 +102,7 @@ Out of scope:
 
 The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
-- read the existing project gaps in `GAPS.md` before choosing work
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- use the active tracker row as the work queue
+- keep only real, evidence-backed gaps in `GAPS.md`
+- route cross-project findings to `docs/projects/GLOBAL_GAPS.md`
+- not invent gaps to satisfy a count

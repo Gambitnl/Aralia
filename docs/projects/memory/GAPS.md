@@ -1,10 +1,12 @@
 # Memory System Gap Registry
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-05
 
 ## Purpose
 Track unresolved Memory System work that is visible in the current codebase and needed before full trust can be placed in save/load, AI prompt context, and memory event coverage.
+
+Current state: This docs-only pass did not open or close any project gaps. G1-G5 remain open, and G5 is still the clearest runtime implementation slice.
 
 ## Gap Log
 
