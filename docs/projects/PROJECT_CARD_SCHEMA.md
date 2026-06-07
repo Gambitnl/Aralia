@@ -39,6 +39,8 @@ schema_version: 1
 project: Readable Project Name
 slug: readable-project-name
 category: Feature/UI Projects
+main_category: Interface & Experience
+subcategory: Player UI Surfaces
 status: active
 last_updated: 2026-06-04
 confidence: medium
@@ -67,6 +69,11 @@ completed_verification:
 last_proof: 2026-06-04
 workflow_gaps_reviewed: 2026-06-04
 compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: no
 ---
 ```
 
@@ -121,6 +128,8 @@ Field meanings:
 | Project | Human-readable project card title. |
 | Slug | Folder slug. This should match `docs/projects/<slug>`. |
 | Category | Dashboard grouping/filter label. |
+| Main category | Broad dashboard bucket from `PROJECT_CATEGORY_TAXONOMY.md`. |
+| Subcategory | More granular bucket inside the main category. |
 | Status | Current project state: `active`, `planned`, `blocked`, `partial`, `done`, or a clearly explained local status. |
 | Last updated | Date the project docs were last intentionally refreshed. Prefer the North Star `Last updated` date. |
 | Confidence | Low/medium/high confidence in the current handoff state. |
@@ -136,6 +145,11 @@ Field meanings:
 | Required docs | Canonical living-project docs the agent must account for. |
 | Optional docs | Project-specific extras the agent must be aware of when present. |
 | Compaction status | Whether anti-bloat cleanup was `not_needed`, `done`, or `needed`. |
+| Lifecycle status | Dispatch/retention state such as `active`, `reference-only`, `merge-candidate`, or `archive-candidate`. |
+| Deprecation confidence | `none`, `weak`, `medium`, or `strong`; evidence quality for archive/merge review. |
+| Deprecation reason | Compact reason such as `duplicate_owner`, `stale_pointer`, `task_not_project`, `reference_only`, `corrupted_surface`, or `superseded_by`. |
+| Canonical owner | Project that should own the work if this card is merged or archived. |
+| Human decision required | `yes` when merge/archive could lose intent. |
 
 ## Optional `PROJECT_CARD.json` Fields
 
@@ -157,7 +171,12 @@ Field meanings:
   "agentComments": "Optional out-of-flow note.",
   "requiredDocs": ["NORTH_STAR.md", "TRACKER.md", "GAPS.md", "COLD_START_AGENT_PROMPT.md", "DECISIONS.md", "AUDIT_OR_PROOF.md", "RUNBOOK.md"],
   "optionalDocs": ["tasks/", "architecture notes", "migration notes"],
-  "compactionStatus": "not_needed"
+  "compactionStatus": "not_needed",
+  "lifecycleStatus": "active",
+  "deprecationConfidence": "none",
+  "deprecationReason": "",
+  "canonicalOwner": "",
+  "humanDecisionRequired": "no"
 }
 ```
 
@@ -187,6 +206,18 @@ Use these limits:
 6. After roughly ten iterations, an agent must compress stale handoff/progress
    detail into a short "historical summary" and keep only current resume data
    in the main files.
+
+## Dashboard Output Diagnostics
+
+The dashboard may add generated diagnostics that agents do not manually edit:
+
+| Output field | Meaning |
+|---|---|
+| `schemaStatus` | `valid`, `partial`, or `inferred`. |
+| `missingSchemaFields` | Required schema fields absent from the project docs. |
+| `missingDeclaredDocs` | Required docs listed by schema but missing from the folder. |
+| `canonicalDocCoverageStatus` | `complete` or `missing_required`. |
+| `schemaWarnings` | Non-blocking but unsafe-dispatch warnings such as missing frontmatter or dirty date values. |
 
 ## Why This Is Not SQL
 

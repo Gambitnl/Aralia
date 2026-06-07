@@ -1,7 +1,49 @@
+---
+schema_version: 1
+project: 3D Combat Map
+slug: 3d-combat-map
+category: Feature/UI Projects
+main_category: Game & Simulation
+subcategory: Combat & Encounters
+status: active
+last_updated: 2026-06-07
+confidence: medium
+evidence: docs/projects/3d-combat-map
+gap_signal: "4 open gaps (G2 reclassified: SSAO removed in code, live-proof pending); G1 closed"
+protocol: living project doc set
+next_step: Run NC1 (visual smoke) and NC2 (integration) in the next slice, or take G4 terrain-raycast fix.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-07
+workflow_gaps_reviewed: 2026-06-07
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: no
+---
+
 # 3D Combat Map North Star
 
 Status: active
-Last updated: 2026-05-31
+Last updated: 2026-06-07
 
 ## Purpose
 
@@ -47,15 +89,20 @@ Project: 3D Combat Map
 Slug: 3d-combat-map
 Category: Feature/UI Projects
 Status: active
+Last updated: 2026-06-07
 Confidence: medium
 Evidence: docs/projects/3d-combat-map
-Gap signal: 4 open gaps; G1 closed this pass
+Gap signal: 4 open gaps (G2 reclassified: SSAO removed in code, live-proof pending); G1 closed
 Protocol: living project doc set
-Next step: Keep the tracker aligned while T4 adds the next verification checklist.
-Required verification: docs_consistency
+Next step: Run NC1 (visual smoke) and NC2 (integration), or take G4 terrain-raycast fix.
+Required verification: docs_consistency, scoped_tests
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-07
+Workflow gaps reviewed: 2026-06-07
+Agent comments:
+Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
+Optional docs: tasks/, architecture notes, migration notes
+Compaction status: not_needed
 
 ## Engine Constraints and MVP Boundary
 
@@ -96,16 +143,17 @@ Not required for MVP:
 
 ## Open Questions
 
-1. Should SSAO and post-processing usage remain required in MVP, or be made optional by render mode profile?
+1. Should SSAO and post-processing usage remain required in MVP, or be made optional by render mode profile? (Resolved in code: SSAO + `enableNormalPass` were removed for WebGL2 stability and ContactShadows now provides ground darkening — see `src/components/BattleMap/BattleMap3D.tsx:228-251`. Remaining work is a live confirmation that the Bloom+Vignette+ContactShadows stack is console-clean, tracked as NC1.)
 2. Should `CombatView` pop-out 3D mode include stronger external sync for render mode and lifecycle state?
 3. How strict should the 60 fps requirement be in the coldest test hardware profile before relaxing effects?
 
 ## Resume Path
 
 1. Read this file.
-2. Read `docs/projects/3d-combat-map/TRACKER.md`.
+2. Read `docs/projects/3d-combat-map/TRACKER.md` (Next-Check List NC1/NC2).
 3. Read `docs/projects/3d-combat-map/GAPS.md`.
-4. Continue from top-priority open gap.
+4. Read `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` for the durable NC1/NC2 step definitions.
+5. Continue from top-priority open gap, or execute NC1/NC2 to close out the post-processing and pop-out concerns.
 
 
 ## Cold-Start Gap Routing

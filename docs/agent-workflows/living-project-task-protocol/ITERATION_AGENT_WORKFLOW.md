@@ -1,7 +1,7 @@
 # Iteration Agent Workflow
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-07
 
 This is the shared workflow for every agent that performs an iteration pass on a
 living project. Project-specific context belongs in
@@ -11,20 +11,33 @@ whole workflow into every project handoff file.
 ## Start Of Iteration
 
 1. Read the project-specific `COLD_START_AGENT_PROMPT.md` first.
-2. Read this shared workflow and
+2. Identify yourself before selecting work. Record:
+   - agent/model name if available
+   - runtime surface: CLI agent, application agent, browser/app-embedded agent,
+     MCP/subagent, or unknown
+   - system clue used to classify the surface, such as shell-only terminal,
+     app browser context, Codex desktop context, MCP handoff, or explicit
+     operator statement
+   - whether the classification is certain or inferred
+   If the surface cannot be determined safely, write `runtime surface:
+   unknown` and record the uncertainty in the final report. Do not invent a
+   specific runtime identity.
+3. Read this shared workflow and
    `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
    Treat active workflow gaps as process-health warnings before choosing work.
-3. Follow the handoff's project paths to read `NORTH_STAR.md`, `TRACKER.md`, and
+4. Follow the handoff's project paths to read `NORTH_STAR.md`, `TRACKER.md`, and
    `GAPS.md`.
-4. Read any optional supporting files named by the handoff or tracker:
+5. Read any optional supporting files named by the handoff or tracker:
    `DECISIONS.md`, `AUDIT_OR_PROOF.md`, `RUNBOOK.md`, and task docs under
    `tasks/`.
-5. Read `docs/projects/PROJECT_CARD_SCHEMA.md` so dashboard-facing fields are
+6. Read `docs/projects/PROJECT_CARD_SCHEMA.md` so dashboard-facing fields are
    updated from the documented schema instead of guessed from prose.
-6. Read the `required_docs` and `optional_docs` lists from the project schema.
+7. Read the `required_docs` and `optional_docs` lists from the project schema.
    Account for every required doc in the final report, even when a supporting
    doc was not changed because it was not relevant this iteration.
-7. Treat `NORTH_STAR.md` as the durable scope and intent file. Treat
+   If `schema_version` frontmatter is missing, either add the frontmatter during
+   doc-refresh work or record schema migration as a project gap.
+8. Treat `NORTH_STAR.md` as the durable scope and intent file. Treat
    `COLD_START_AGENT_PROMPT.md` as the current handoff packet.
 
 ## Choose The Work
@@ -123,6 +136,10 @@ Use the schema `agent_comments` field only for concise notes that sit outside
 the normal closeout flow. If the note identifies reusable workflow ambiguity,
 also update `WORKFLOW_GAPS.md`; do not hide workflow gaps inside comments.
 
+If the project appears duplicate, superseded, corrupted, reference-only, or
+archive-worthy, do not delete it. Add or update lifecycle/deprecation schema
+fields and route evidence to `docs/projects/PROJECT_DEPRECATION_REVIEW.md`.
+
 ## Documentation Size Discipline
 
 Project docs are living state files, not iteration transcripts. After many
@@ -153,17 +170,19 @@ End with a concise report covering:
 
 1. files updated
 2. files intentionally not updated
-3. verification performed or skipped
-4. bounded gap sweep surfaces checked
-5. gaps recorded
-6. workflow gaps read or updated
-7. dashboard schema fields updated
-8. required docs accounted for
-9. optional docs touched, skipped, or not present
-10. documentation compaction performed or not needed
-11. agent comments added or intentionally left empty
-12. assumptions made
-13. next safe resume action
+3. agent identity and runtime surface, including whether it was certain or
+   inferred
+4. verification performed or skipped
+5. bounded gap sweep surfaces checked
+6. gaps recorded
+7. workflow gaps read or updated
+8. dashboard schema fields updated
+9. required docs accounted for
+10. optional docs touched, skipped, or not present
+11. documentation compaction performed or not needed
+12. agent comments added or intentionally left empty
+13. assumptions made
+14. next safe resume action
 
 Then output the refreshed project handoff between these markers:
 

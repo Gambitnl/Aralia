@@ -380,13 +380,15 @@ const SelectionDecal: React.FC<{
       position={[0, 0.02, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
     >
-      <ringGeometry args={[0.40, 0.50, 32]} />
+      {/* Thicker/brighter idle ring so EVERY unit has a clearly readable
+          team-colored circle at tactical zoom (not just the selected one). */}
+      <ringGeometry args={[0.42, 0.60, 32]} />
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={visible ? 1.2 : 0.6}
+        emissiveIntensity={visible ? 1.4 : 1.0}
         transparent
-        opacity={visible ? baseOpacity : 0.40}
+        opacity={visible ? baseOpacity : 0.62}
         side={THREE.DoubleSide}
         depthWrite={false}
       />
@@ -637,8 +639,9 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         position={[0, 0.05, 0]}
       />
 
-      {/* Character model — scaled up, rotated to face enemies */}
-      <group scale={[3.2, 3.2, 3.2]} rotation={[0, facingRotation, 0]}>
+      {/* Character model — scaled up so the party reads as the focal point
+          rather than being dwarfed by terrain/trees (GOAL #3). */}
+      <group scale={[3.7, 3.7, 3.7]} rotation={[0, facingRotation, 0]}>
         <HumanoidModel
           teamColor={teamColors.primary}
           isPlayerTeam={isPlayer}
@@ -659,8 +662,8 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         />
       )}
 
-      {/* Always-visible HP pip — sphere + team ring, positioned above the 3.2× scaled model */}
-      <group position={[0, 2.65, 0]}>
+      {/* Always-visible HP pip — sphere + team ring, positioned above the 3.7× scaled model */}
+      <group position={[0, 3.05, 0]}>
         {/* HP color sphere — glows team-appropriate health color */}
         <mesh>
           <sphereGeometry args={[0.18, 10, 8]} />
@@ -690,7 +693,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
       {/* Nameplate — shown on hover, selection, or active turn (BG3 style) */}
       {(isSelected || isTurn || hovered) && (
         <Html
-          position={[0, 3.0, 0]}
+          position={[0, 3.5, 0]}
           center
           distanceFactor={10}
           style={{ pointerEvents: 'none' }}

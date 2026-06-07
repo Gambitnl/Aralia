@@ -27,6 +27,13 @@ North Star: docs/projects/<project-slug>/NORTH_STAR.md
 Tracker: docs/projects/<project-slug>/TRACKER.md
 Gaps: docs/projects/<project-slug>/GAPS.md
 
+Agent identity / runtime:
+<Before selecting work, identify yourself and the surface you are running
+through. Use one of: CLI agent, application agent, browser/app-embedded agent,
+MCP/subagent, or unknown. Name the system clue used, such as shell-only
+terminal, app browser context, Codex desktop context, MCP handoff, or explicit
+operator statement. Mark the classification as certain or inferred.>
+
 ## Previous Agent Handoff
 
 <For iteration 1: "No prior project iteration handoff exists yet. Use
@@ -74,10 +81,10 @@ Recent progress:
 ## Required End State For This Iteration
 
 Before ending, update this handoff with the next iteration number, previous
-agent context, active task, acceptance criteria, key files, verification method,
-blockers, recent progress, workflow-gap review result, and dashboard-schema
-updates. Account for every required doc, mention optional docs touched or
-skipped, update `agent_comments` only when an out-of-flow note is useful, and
-keep only the current handoff between the same BEGIN/END markers; do not
-preserve old handoff transcripts in this file.
+agent context, agent identity/runtime surface, active task, acceptance criteria,
+key files, verification method, blockers, recent progress, workflow-gap review
+result, and dashboard-schema updates. Account for every required doc, mention
+optional docs touched or skipped, update `agent_comments` only when an
+out-of-flow note is useful, and keep only the current handoff between the same
+BEGIN/END markers; do not preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---

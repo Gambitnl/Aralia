@@ -1,0 +1,56 @@
+# Documentation Cleanup Decisions
+
+Status: active
+Last updated: 2026-06-07
+
+## D-01: Path-Drift Packets 1G.7–1G.10 Evidence Reconciliation
+
+Date: 2026-06-07
+Gap addressed: G2 (path-drift in historical migration packets)
+
+### Evidence Collected
+
+Each packet in `docs/tasks/documentation-cleanup/` claims its named target README
+is "currently missing." This iteration verified each claim against the live repo.
+
+| Packet | Named Target Path | Brief Claims Missing? | Actual Repo State (2026-06-07) | Verdict |
+|---|---|---|---|---|
+| 1G.7 | `src/context/README.md` | Yes | **Exists** (23 lines) | Drift claim is **wrong** — target was created after the brief |
+| 1G.8 | `src/components/CharacterCreator/README.md` | Yes | **Missing** (no README in folder) | Drift claim is **correct** |
+| 1G.9 | `src/components/LoadGameTransition.README.md` | Yes | **Moved** to `src/components/SaveLoad/LoadGameTransition.README.md` (143 lines) | Path shifted, not missing |
+| 1G.10 | `src/features/SubmapGeneration/README.md` | Yes | **Exists** (74 lines) | Drift claim is **wrong** — target was created after the brief |
+
+### Decisions
+
+1. **1G.7 and 1G.10**: The briefs' "What Drifted" sections are now factually
+   stale. The named target READMEs exist. These packets can be treated as
+   **historical migration intent** (their own self-classification), but the
+   drift note should be corrected so future agents do not assume the targets
+   are still missing. No archive or deletion action needed.
+
+2. **1G.8**: The CharacterCreator folder still has no README. The drift claim
+   is accurate. This packet correctly remains a historical-intent record. If
+   a CharacterCreator README is authored later, it should reference the
+   archive improvement doc `docs/archive/improvements/08_improve_point_buy_ui.md`.
+
+3. **1G.9**: The LoadGameTransition README was not deleted — it moved to
+   `src/components/SaveLoad/LoadGameTransition.README.md`. The packet's
+   path reference is stale, but the content survived at the new location.
+   Future agents should look at the SaveLoad folder, not the old path.
+
+### Preservation Rationale
+
+Per Aralia's expansion-first policy, all four packets are preserved as
+historical migration intent. The correction is to the evidence record, not
+to the files themselves. No pruning performed.
+
+## D-02: PROJECT_TRACKER.md Stale Link for Documentation Cleanup
+
+Date: 2026-06-07
+Gap discovered: PROJECT_TRACKER.md row and North Star map link to
+`docs/tasks/documentation-cleanup/NORTH_STAR.md` (the ignored task folder)
+instead of the durable living-project surface at
+`docs/projects/documentation-cleanup/NORTH_STAR.md`.
+
+Decision: Correct the link to point at the living-project surface. The
+ignored task folder remains as evidence only, per NORTH_STAR.md scope.

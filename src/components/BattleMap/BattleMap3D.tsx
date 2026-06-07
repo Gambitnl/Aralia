@@ -90,15 +90,20 @@ interface BiomeLighting {
 const BIOME_LIGHTING: Record<string, BiomeLighting> = {
   forest: {
     sunColor: 0xffe0a0, sunIntensity: 2.2,
-    ambientColor: 0x203018, ambientIntensity: 0.3,
+    ambientColor: 0x2c3a24, ambientIntensity: 0.45,
     hemisphereTop: 0x87ceeb, hemisphereBottom: 0x3a2a1a,
-    fogColor: 0x6a7a5a, fogNear: 12, fogFar: 32,
+    // Fog pushed back so the battlefield reads clearly at tactical zoom; fog now
+    // only hazes the far map edges instead of swallowing the play area.
+    fogColor: 0x8fa07a, fogNear: 22, fogFar: 60,
   },
   cave: {
-    sunColor: 0x404060, sunIntensity: 0.3,
-    ambientColor: 0x101830, ambientIntensity: 0.2,
-    hemisphereTop: 0x1a1a3a, hemisphereBottom: 0x0a0a1a,
-    fogColor: 0x0a0a1a, fogNear: 6, fogFar: 20,
+    // Readability pass: cave was never actually lit before (biome bug rendered it
+    // as forest), so its preset was far too dark to see the battlefield. Lifted
+    // ambient/sun to keep a dark, enclosed mood while making combat readable.
+    sunColor: 0x6070a0, sunIntensity: 0.5,
+    ambientColor: 0x2a3850, ambientIntensity: 0.6,
+    hemisphereTop: 0x2a2a4a, hemisphereBottom: 0x12121f,
+    fogColor: 0x0a0a1a, fogNear: 10, fogFar: 30,
   },
   dungeon: {
     sunColor: 0xc89050, sunIntensity: 0.6,
@@ -110,13 +115,17 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     sunColor: 0xfff0d0, sunIntensity: 2.2,
     ambientColor: 0x806040, ambientIntensity: 0.5,
     hemisphereTop: 0xe8e0c8, hemisphereBottom: 0xc8a060,
-    fogColor: 0xd8c8a0, fogNear: 14, fogFar: 35,
+    // Fog pushed back now that the ground apron hides the open map edge; far
+    // sand fades into the warm horizon haze instead of a hard cliff into void.
+    fogColor: 0xd8c8a0, fogNear: 24, fogFar: 70,
   },
   swamp: {
-    sunColor: 0xa0b040, sunIntensity: 0.7,
-    ambientColor: 0x203020, ambientIntensity: 0.25,
+    // Readability nudge (kept murky/green on purpose); fog pushed back a little
+    // so the battlefield reads past the immediate foreground.
+    sunColor: 0xa0b040, sunIntensity: 0.9,
+    ambientColor: 0x2a3a24, ambientIntensity: 0.42,
     hemisphereTop: 0x405030, hemisphereBottom: 0x2a2010,
-    fogColor: 0x2a3020, fogNear: 8, fogFar: 22,
+    fogColor: 0x2a3020, fogNear: 12, fogFar: 34,
   },
 };
 
@@ -167,6 +176,24 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
         intensity={0.4}
         position={[cx - 8, 4, cz - 6]}
       />
+
+      {/* Biome accent point-lights — pooled torch (dungeon) / crystal (cave) glow
+          for underground drama: warm/cool light pools with darker space between,
+          instead of flat uniform ambient. Only for enclosed biomes. */}
+      {(biome === 'cave' || biome === 'dungeon') &&
+        (biome === 'dungeon'
+          ? [[9, 6], [-9, -6], [7, -8], [-8, 8]]
+          : [[9, 6], [-9, -6], [7, -8], [-8, 8]]
+        ).map(([ox, oz], i) => (
+          <pointLight
+            key={i}
+            color={biome === 'dungeon' ? 0xff7a2a : 0x46b2e6}
+            intensity={biome === 'dungeon' ? 9 : 7}
+            distance={biome === 'dungeon' ? 13 : 15}
+            decay={2}
+            position={[cx + ox, 2.6, cz + oz]}
+          />
+        ))}
     </>
   );
 };
@@ -176,11 +203,15 @@ const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
   const skyMaterial = useMemo(() => {
     // Per-biome sky colors
     const skyPresets: Record<string, { top: string; horizon: string; bottom: string }> = {
-      forest:  { top: '#4a7ab5', horizon: '#8ab4d4', bottom: '#5a6a4a' },
-      cave:    { top: '#0a0a1a', horizon: '#1a1a3a', bottom: '#0a0a0a' },
-      dungeon: { top: '#2a2030', horizon: '#3a3040', bottom: '#1a1510' },
+      // horizon matches forest fogColor (0x8fa07a) so the fogged ground apron
+      // blends into the sky at the horizon instead of showing a hard seam.
+      forest:  { top: '#5a86c0', horizon: '#8fa07a', bottom: '#5a6a4a' },
+      // horizon = each biome's fogColor so the fogged ground apron blends into
+      // the sky at the horizon (no hard seam). top stays biome-appropriate.
+      cave:    { top: '#0a0a18', horizon: '#0a0a1a', bottom: '#060608' },
+      dungeon: { top: '#241a2c', horizon: '#1a1520', bottom: '#120d10' },
       desert:  { top: '#6a8ac0', horizon: '#d8c8a0', bottom: '#c8a060' },
-      swamp:   { top: '#2a3a2a', horizon: '#4a5a3a', bottom: '#2a2a1a' },
+      swamp:   { top: '#2a3a2a', horizon: '#2a3020', bottom: '#1a1f14' },
     };
     const p = skyPresets[biome] ?? skyPresets.forest;
 
@@ -335,10 +366,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
     return [cx, 0, cz] as const;
   }, [mapData]);
 
-  // Detect biome from mapData
+  // Detect biome from mapData. The generator stores it on `theme`; older callers
+  // may pass `biome`. Reading the wrong field silently fell back to 'forest', so
+  // every biome rendered with forest lighting/fog/sky/apron — fixed here.
   const biome = useMemo(() => {
     if (!mapData) return 'forest';
-    return (mapData as BattleMapData & { biome?: string }).biome ?? 'forest';
+    const m = mapData as BattleMapData & { biome?: string };
+    return m.biome ?? m.theme ?? 'forest';
   }, [mapData]);
 
   if (!mapData) {
@@ -386,6 +420,25 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
       >
         {/* Sky dome — gradient background prevents fade-to-void */}
         <SkyDome biome={biome} />
+
+        {/* Ground apron — a large biome-colored plane at sea level beyond the map
+            edges. On open biomes (desert/cave/dungeon) the terrain plane otherwise
+            ends in a hard cliff over the sky void; this extends the ground outward
+            so it fades into fog. Sits below micro-noise terrain dips to avoid
+            z-fighting inside the playable area. Color matches the biome fog so the
+            apron→horizon transition is seamless. */}
+        <mesh
+          position={[cameraTarget[0], -0.15, cameraTarget[2]]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          renderOrder={-1}
+        >
+          <planeGeometry args={[260, 260]} />
+          <meshStandardMaterial
+            color={BIOME_LIGHTING[biome]?.fogColor ?? 0x8fa07a}
+            roughness={1}
+            metalness={0}
+          />
+        </mesh>
 
         {/* Fog */}
         <fog

@@ -63,7 +63,7 @@ Do not add anonymous vote counts. The testimony is the evidence.
 
 | ID | Status | Severity | Workflow Area | Issue | Testimonies | Next Action | Owner | Last Updated |
 |---|---|---|---|---|---|---|---|---|
-| WFG-001 | open | medium | Start Of Iteration | Shared living-project docs still point at moved or stale canonical paths, so first-read agents have to search manually before they can follow the workflow. | 6 | Update the shared instructions and cold-start prompts to name the canonical moved paths explicitly. | Codex | 2026-06-05 |
+| WFG-001 | open | medium | Start Of Iteration | Shared living-project docs still point at moved or stale canonical paths, so first-read agents have to search manually before they can follow the workflow. | 8 | Update the shared instructions and cold-start prompts to name the canonical moved paths explicitly. | Codex | 2026-06-07 |
 
 ### WFG-001 - Living-project file paths still point at moved or stale locations
 
@@ -130,6 +130,14 @@ can be cleaned up centrally.
   `docs/projects/PROJECT_CARD_SCHEMA.md` paths before continuing, and avoided
   assuming the project docs were wrong when the workflow references were
   stale.
+- 2026-06-07 | docs/projects/documentation-cleanup iteration 2 | Qoder: I
+  followed the cold-start prompt to the shared workflow files, had to use the
+  canonical `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`
+  and `docs/projects/PROJECT_CARD_SCHEMA.md` paths, and additionally found that
+  the PROJECT_TRACKER.md Documentation Cleanup row itself linked to the stale
+  `docs/tasks/documentation-cleanup/` path instead of the living-project surface.
+  Corrected the link as part of this iteration's G4 gap. Avoided assuming the
+  stale link meant the project was not registered.
 
 #### Proposed Workflow Refinement
 

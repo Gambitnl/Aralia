@@ -87,7 +87,6 @@ preserving intent over strict completion.
 | Scripts: tooling | [F:/Repos/Aralia/docs/projects/scripts-tooling/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-tooling/NORTH_STAR.md) |
 | Scripts: workflows | [F:/Repos/Aralia/docs/projects/scripts-workflows/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-workflows/NORTH_STAR.md) |
 | Script tests | [F:/Repos/Aralia/docs/projects/script-tests/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/script-tests/NORTH_STAR.md) |
-| Sideproject: Basic Chat | [F:/Repos/Aralia/docs/projects/sideproject-basic-chat/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/sideproject-basic-chat/NORTH_STAR.md) |
 | Item Categorization | [F:/Repos/Aralia/docs/projects/item_categorization/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/item_categorization/NORTH_STAR.md) |
 | PHB 2024 Glossary Audit | [F:/Repos/Aralia/docs/projects/phb2024_glossary_audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/phb2024_glossary_audit/NORTH_STAR.md) |
 | Tiered Autosave | [F:/Repos/Aralia/docs/projects/tiered-autosave/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/tiered-autosave/NORTH_STAR.md) |
@@ -97,7 +96,7 @@ preserving intent over strict completion.
 | Architecture Sweep | [F:/Repos/Aralia/docs/tasks/architecture/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/architecture/NORTH_STAR.md) |
 | Combat Messaging Enhancement | [F:/Repos/Aralia/docs/tasks/combat-messaging-enhancement/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/combat-messaging-enhancement/NORTH_STAR.md) |
 | Combat Scenario Tester | [F:/Repos/Aralia/docs/tasks/combat-scenario-tester/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/combat-scenario-tester/NORTH_STAR.md) |
-| Documentation Cleanup | [F:/Repos/Aralia/docs/tasks/documentation-cleanup/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/documentation-cleanup/NORTH_STAR.md) |
+| Documentation Cleanup | [F:/Repos/Aralia/docs/projects/documentation-cleanup/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/documentation-cleanup/NORTH_STAR.md) |
 | Feature Capabilities | [F:/Repos/Aralia/docs/tasks/feature-capabilities/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/feature-capabilities/NORTH_STAR.md) |
 | Glossary | [F:/Repos/Aralia/docs/tasks/glossary/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/glossary/NORTH_STAR.md) |
 | Spell Completeness Audit | [F:/Repos/Aralia/docs/tasks/spell-completeness-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/spell-completeness-audit/NORTH_STAR.md) |
@@ -237,7 +236,6 @@ duplicate project.
 | Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
 | Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
 | Script tests | partial | medium | `scripts/__tests__` | GAPS.md present | implemented | expand coverage of scripts behavior |
-| Sideproject: Basic Chat | experimental | high | `sideprojects/basic-chat` | GAPS.md present | implemented | define whether this is active or reference-only |
 
 ## Projectized Planning Areas (`docs/projects`, `docs/tasks`, `conductor/projects`)
 
@@ -330,7 +328,6 @@ duplicate project.
 | Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
 | Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
 | Script tests | partial | medium | `scripts/__tests__` | GAPS.md present | implemented | expand coverage of scripts behavior |
-| Sideproject: Basic Chat | experimental | high | `sideprojects/basic-chat` | GAPS.md present | implemented | define whether this is active or reference-only |
 
 ## Projectized Planning Areas (`docs/projects`, `docs/tasks`, `conductor/projects`)
 
@@ -345,7 +342,7 @@ duplicate project.
 | Architecture Sweep | in-progress | medium | `docs/tasks/architecture` | GAPS.md present | implemented | convert findings into project tasks |
 | Combat Messaging Enhancement | in-progress | medium | `docs/tasks/combat-messaging-enhancement` | GAPS.md present | implemented | specify event payloads + UI format |
 | Combat Scenario Tester | done | high | `docs/tasks/combat-scenario-tester` | GAPS.md present | implemented | Verify cover and senses sandboxes in local dashboard |
-| Documentation Cleanup | planned | medium | `docs/tasks/documentation-cleanup` | GAPS.md present | implemented | curate stale/duplicate docs |
+| Documentation Cleanup | active | medium | `docs/projects/documentation-cleanup` | GAPS.md present; 3 open gaps (G1, G3, G4), 1 resolved (G2) | implemented | continue evidence-backed curation of remaining stale docs (G1) |
 | Feature Capabilities | in-progress | medium | `docs/tasks/feature-capabilities` | GAPS.md present | implemented | list capability owners + acceptance |
 | Glossary | planned | medium | `docs/tasks/glossary` | GAPS.md present | implemented | connect terminology governance |
 | Spell Completeness Audit | in-progress | high | `docs/tasks/spell-completeness-audit` | GAPS.md present | implemented | convert missing spell coverage into tracker |

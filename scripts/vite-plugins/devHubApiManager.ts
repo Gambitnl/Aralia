@@ -38,6 +38,7 @@ export const devHubApiManager = () => ({
     type ProjectDocSignal = ProjectDocRole & {
       exists: boolean;
       href: string;
+      repoPath: string;
       size: number;
       updatedAt: string | null;
       declaredUpdated: string;
@@ -81,9 +82,27 @@ export const devHubApiManager = () => ({
       { key: 'tracker', token: 'T', label: 'Tracker', fileName: 'TRACKER.md', required: true },
       { key: 'gaps', token: 'G', label: 'Gaps', fileName: 'GAPS.md', required: true },
       { key: 'agentPrompt', token: 'A', label: 'Agent Prompt', fileName: 'COLD_START_AGENT_PROMPT.md', required: true },
-      { key: 'decisions', token: 'D', label: 'Decisions', fileName: 'DECISIONS.md', required: false },
-      { key: 'proof', token: 'P', label: 'Proof', fileName: 'AUDIT_OR_PROOF.md', required: false },
-      { key: 'runbook', token: 'R', label: 'Runbook', fileName: 'RUNBOOK.md', required: false },
+      { key: 'decisions', token: 'D', label: 'Decisions', fileName: 'DECISIONS.md', required: true },
+      { key: 'proof', token: 'P', label: 'Proof', fileName: 'AUDIT_OR_PROOF.md', required: true },
+      { key: 'runbook', token: 'R', label: 'Runbook', fileName: 'RUNBOOK.md', required: true },
+    ];
+
+    const requiredProjectSchemaFields = [
+      'schemaversion',
+      'project',
+      'slug',
+      'category',
+      'status',
+      'lastupdated',
+      'confidence',
+      'evidence',
+      'gapsignal',
+      'protocol',
+      'nextstep',
+      'requireddocs',
+      'optionaldocs',
+      'workflowgapsreviewed',
+      'compactionstatus',
     ];
 
     // ============================================================================
@@ -246,6 +265,17 @@ export const devHubApiManager = () => ({
       return '';
     };
 
+    const projectCardSchemaList = (schema: Record<string, any>, ...keys: string[]) => {
+      // Required/optional docs are list-shaped in frontmatter but may still be
+      // comma-separated strings in legacy markdown or JSON. Normalize both so
+      // doc coverage can be compared consistently.
+      const value = projectCardSchemaField(schema, ...keys);
+      return String(value || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    };
+
     const normalizeProjectDate = (value: string) => {
       // Written project dates are more durable than filesystem modification times,
       // which can change during Git operations or generated rewrites.
@@ -259,6 +289,47 @@ export const devHubApiManager = () => ({
       const filePath = path.join(projectDir, fileName);
       if (!fs.existsSync(filePath)) return '';
       return fs.readFileSync(filePath, 'utf-8');
+    };
+
+    const readJsonRequestBody = (req: any): Promise<any> => {
+      // Vite's dev middleware does not parse JSON bodies for us. This helper
+      // keeps write endpoints local and explicit so the project viewer can save
+      // markdown without introducing a broader server framework.
+      return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', (chunk: Buffer) => {
+          body += chunk.toString('utf-8');
+          if (body.length > 2_000_000) {
+            reject(new Error('Request body is too large.'));
+          }
+        });
+        req.on('end', () => {
+          try {
+            resolve(body ? JSON.parse(body) : {});
+          } catch (error) {
+            reject(error);
+          }
+        });
+        req.on('error', reject);
+      });
+    };
+
+    const resolveProjectDocWritePath = (repoPath: string) => {
+      // Live editing is intentionally limited to living-project markdown files.
+      // This prevents the browser viewer from becoming a general filesystem
+      // editor while still allowing agents/users to update project docs directly.
+      const normalizedRepoPath = String(repoPath || '').replace(/\\/g, '/').replace(/^\/+/, '');
+      if (!/^docs\/projects\/[a-zA-Z0-9_-]+\/[A-Z0-9_/-]+\.md$/i.test(normalizedRepoPath)) {
+        throw new Error('Only docs/projects/<project>/<file>.md can be edited from the project viewer.');
+      }
+
+      const projectsRoot = path.resolve(process.cwd(), 'docs', 'projects');
+      const targetPath = path.resolve(process.cwd(), normalizedRepoPath);
+      if (!targetPath.startsWith(projectsRoot + path.sep)) {
+        throw new Error('Project doc path escaped docs/projects.');
+      }
+
+      return { normalizedRepoPath, targetPath };
     };
 
     const projectTitleFromDocs = (slug: string, northStarContent: string, trackerContent: string) => {
@@ -314,6 +385,15 @@ export const devHubApiManager = () => ({
       return '';
     };
 
+    const iterationFromAgentPrompt = (agentPromptContent: string) => {
+      // The cold-start prompt is the handoff packet agents read before an
+      // iteration pass. Reading the counter from that file keeps the dashboard
+      // tied to the durable project workflow instead of a separate UI-only
+      // number that could drift.
+      const match = agentPromptContent.match(/^Iteration:\s*(\d+)/im);
+      return match ? Number(match[1]) : 0;
+    };
+
     const readProjectDocSignal = (projectDir: string, slug: string, role: ProjectDocRole, northStarDate: string): ProjectDocSignal => {
       // Each token reports both existence and freshness. Required files drive the
       // complete/current counts; optional files are shown so agents know whether
@@ -346,6 +426,7 @@ export const devHubApiManager = () => ({
         ...role,
         exists,
         href: '/Aralia/docs/projects/' + slug + '/' + role.fileName,
+        repoPath: 'docs/projects/' + slug + '/' + role.fileName,
         size: stat?.size || 0,
         updatedAt: stat ? stat.mtime.toISOString() : null,
         declaredUpdated,
@@ -428,6 +509,8 @@ export const devHubApiManager = () => ({
       const northStarContent = readOptionalProjectText(projectDir, 'NORTH_STAR.md');
       const trackerContent = readOptionalProjectText(projectDir, 'TRACKER.md');
       const gapsContent = readOptionalProjectText(projectDir, 'GAPS.md');
+      const agentPromptContent = readOptionalProjectText(projectDir, 'COLD_START_AGENT_PROMPT.md');
+      const iteration = iterationFromAgentPrompt(agentPromptContent);
       const dashboardSchema = {
         ...readProjectCardJson(projectDir),
         ...markdownSectionFields(trackerContent, 'Dashboard Card Schema'),
@@ -440,9 +523,28 @@ export const devHubApiManager = () => ({
       const docs = Object.fromEntries(docSet.map((doc) => [doc.key, doc]));
       const declaredDocDates = docSet.map((doc) => doc.declaredUpdated).filter(Boolean).sort();
       const inferredLastUpdated = declaredDocDates[declaredDocDates.length - 1] || northStarDate;
+      const schemaKeys = new Set(Object.keys(dashboardSchema));
+      const missingSchemaFields = requiredProjectSchemaFields.filter((field) => !schemaKeys.has(field));
+      const schemaStatus = !schemaKeys.size ? 'inferred' : missingSchemaFields.length ? 'partial' : 'valid';
+      const declaredRequiredDocs = projectCardSchemaList(dashboardSchema, 'requireddocs', 'requiredDocs');
+      const declaredOptionalDocs = projectCardSchemaList(dashboardSchema, 'optionaldocs', 'optionalDocs');
+      const requiredDocNames = declaredRequiredDocs.length ? declaredRequiredDocs : projectDocRoles.map((role) => role.fileName);
+      const missingDeclaredDocs = requiredDocNames
+        .filter((fileName) => /\.md$/i.test(fileName))
+        .filter((fileName) => !fs.existsSync(path.join(projectDir, fileName)));
+      const dirtySchemaDates = ['lastupdated', 'workflowgapsreviewed', 'lastproof']
+        .filter((field) => {
+          const value = projectCardSchemaField(dashboardSchema, field);
+          return value && !/^\d{4}-\d{2}-\d{2}$/.test(value);
+        });
+      const schemaWarnings = [
+        ...(!schemaKeys.size ? ['schema frontmatter/section missing'] : []),
+        ...(missingDeclaredDocs.length ? ['required docs missing'] : []),
+        ...(dirtySchemaDates.length ? ['dirty machine date fields: ' + dirtySchemaDates.join(', ')] : []),
+      ];
       const requiredDocs = docSet.filter((doc) => doc.required);
       const docsComplete = requiredDocs.every((doc) => doc.exists);
-      const docsCurrent = requiredDocs.every((doc) => doc.exists && ['current', 'dated'].includes(doc.freshness));
+      const docsCurrent = requiredDocs.every((doc) => doc.exists && doc.freshness === 'current');
       const staleDocs = docSet.filter((doc) => doc.exists && ['stale', 'ahead', 'undated'].includes(doc.freshness));
       const purpose = firstProjectParagraph(northStarContent, 'Purpose');
       const resumePath = firstProjectParagraph(northStarContent, 'Resume Path');
@@ -459,15 +561,29 @@ export const devHubApiManager = () => ({
         gapSignal: projectCardSchemaField(dashboardSchema, 'gapsignal', 'gapSignal') || gapSignalFromGaps(gapsContent, Boolean(docs.gaps?.exists)) || trackerFallback.gapSignal || 'See project gap file',
         protocol: projectCardSchemaField(dashboardSchema, 'protocol') || trackerFallback.protocol || (docsComplete ? 'living project doc set' : 'incomplete project doc set'),
         nextStep: projectCardSchemaField(dashboardSchema, 'nextstep', 'nextStep') || trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
+        iteration,
+        iterationLabel: iteration > 0 ? `Iteration ${iteration}` : 'Iteration not recorded',
         requiredVerification: projectCardSchemaField(dashboardSchema, 'requiredverification', 'requiredVerification'),
         completedVerification: projectCardSchemaField(dashboardSchema, 'completedverification', 'completedVerification'),
         lastProof: projectCardSchemaField(dashboardSchema, 'lastproof', 'lastProof'),
         workflowGapsReviewed: projectCardSchemaField(dashboardSchema, 'workflowgapsreviewed', 'workflowGapsReviewed'),
         agentComments: projectCardSchemaField(dashboardSchema, 'agentcomments', 'agentComments'),
-        requiredDocs: projectCardSchemaField(dashboardSchema, 'requireddocs', 'requiredDocs'),
-        optionalDocs: projectCardSchemaField(dashboardSchema, 'optionaldocs', 'optionalDocs'),
+        requiredDocs: declaredRequiredDocs.join(', '),
+        optionalDocs: declaredOptionalDocs.join(', '),
         compactionStatus: projectCardSchemaField(dashboardSchema, 'compactionstatus', 'compactionStatus'),
-        dashboardSchemaPresent: Object.keys(dashboardSchema).length > 0,
+        lifecycleStatus: projectCardSchemaField(dashboardSchema, 'lifecyclestatus', 'lifecycleStatus') || 'active',
+        deprecationConfidence: projectCardSchemaField(dashboardSchema, 'deprecationconfidence', 'deprecationConfidence') || 'none',
+        deprecationReason: projectCardSchemaField(dashboardSchema, 'deprecationreason', 'deprecationReason'),
+        canonicalOwner: projectCardSchemaField(dashboardSchema, 'canonicalowner', 'canonicalOwner'),
+        humanDecisionRequired: projectCardSchemaField(dashboardSchema, 'humandecisionrequired', 'humanDecisionRequired') || 'no',
+        dashboardSchemaPresent: schemaKeys.size > 0,
+        schemaStatus,
+        missingSchemaFields,
+        schemaWarnings,
+        declaredRequiredDocs,
+        declaredOptionalDocs,
+        missingDeclaredDocs,
+        canonicalDocCoverageStatus: missingDeclaredDocs.length ? 'missing_required' : 'complete',
         docsComplete,
         docsCurrent,
         staleDocCount: staleDocs.length,
@@ -477,7 +593,7 @@ export const devHubApiManager = () => ({
       };
     };
 
-    server.middlewares.use((req: any, res: any, next: any) => {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
       const json = (data: any, status = 200) => {
         res.writeHead(status, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify(data));
@@ -485,6 +601,28 @@ export const devHubApiManager = () => ({
 
       const parsedUrl = new URL(req.url || '/', 'http://localhost');
       const urlPath = parsedUrl.pathname;
+
+      if (urlPath === '/api/projects/doc' && req.method === 'POST') {
+        try {
+          const body = await readJsonRequestBody(req);
+          const { normalizedRepoPath, targetPath } = resolveProjectDocWritePath(body.path);
+          const content = String(body.content ?? '');
+
+          fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+          fs.writeFileSync(targetPath, content, 'utf-8');
+          const stat = fs.statSync(targetPath);
+
+          json({
+            ok: true,
+            path: normalizedRepoPath,
+            size: stat.size,
+            updatedAt: stat.mtime.toISOString(),
+          });
+        } catch (e) {
+          json({ error: String(e) }, 400);
+        }
+        return;
+      }
 
       if (urlPath === '/api/projects/dashboard') {
         try {
@@ -506,12 +644,19 @@ export const devHubApiManager = () => ({
             acc[value] = (acc[value] || 0) + 1;
             return acc;
           }, {});
+          const iterationCounts = projects.map((project: any) => Number(project.iteration || 0)).filter((count: number) => Number.isFinite(count));
+          const iterationCountTotal = iterationCounts.reduce((sum: number, count: number) => sum + count, 0);
+          const iterationRecordedCount = iterationCounts.filter((count: number) => count > 0).length;
 
           json({
             generatedAt: new Date().toISOString(),
             projectCount: projects.length,
             docsCompleteCount: projects.filter((project: any) => project.docsComplete).length,
             docsCurrentCount: projects.filter((project: any) => project.docsCurrent).length,
+            iterationCountTotal,
+            iterationCountMax: iterationCounts.length ? Math.max(...iterationCounts) : 0,
+            iterationCountAverage: iterationRecordedCount ? iterationCountTotal / iterationRecordedCount : 0,
+            iterationRecordedCount,
             workflowGaps: readWorkflowGapSummary(),
             statusCounts: countBy('status'),
             categoryCounts: countBy('category'),

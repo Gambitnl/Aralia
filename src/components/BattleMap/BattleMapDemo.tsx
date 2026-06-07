@@ -39,8 +39,27 @@ import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import { createQuickCombatCharacter } from '../../utils/sandbox/quickCharacterGenerator';
 import SpellContext from '../../context/SpellContext';
 import { Spell } from '../../types/spells';
+
+// Dev-only: when the demo is opened without real enemies, spawn a small opposing
+// force so the 3D battle map shows both teams (team colors, spawn spread, class
+// silhouettes, nameplate overlap can all be evaluated). Guarded by canUseDevTools.
+function makeTestEnemies(spells: Record<string, Spell>): CombatCharacter[] {
+  const configs = [
+    { name: 'Orc Reaver',     raceId: 'human', classId: 'fighter', level: 2, useRecommendedStats: true },
+    { name: 'Cult Magus',     raceId: 'human', classId: 'wizard',  level: 2, useRecommendedStats: true },
+    { name: 'Goblin Skulker', raceId: 'human', classId: 'rogue',   level: 2, useRecommendedStats: true },
+    { name: 'Orc Brute',      raceId: 'human', classId: 'fighter', level: 2, useRecommendedStats: true },
+  ];
+  const out: CombatCharacter[] = [];
+  configs.forEach((c, i) => {
+    const cc = createQuickCombatCharacter(c, spells as unknown as Record<string, unknown>);
+    if (cc) out.push({ ...cc, id: `test-enemy-${i}`, name: c.name, team: 'enemy' });
+  });
+  return out;
+}
 
 
 interface BattleMapDemoProps {
@@ -143,7 +162,10 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
   const getBaseCombatants = useCallback((): CombatCharacter[] => {
     const partyCombatants = party.map(p => createPlayerCombatCharacter(p, spellsRecord));
-    return [...partyCombatants, ...initialCharacters];
+    const enemies = initialCharacters.length > 0
+      ? initialCharacters
+      : (canUseDevTools() ? makeTestEnemies(spellsRecord) : []);
+    return [...partyCombatants, ...enemies];
   }, [initialCharacters, party, spellsRecord]);
 
   const [initialSetup] = useState(() => {

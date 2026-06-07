@@ -35,6 +35,7 @@
     "git:hygiene": "node scripts/git/git-hygiene-check.cjs",
     "quality:debt": "node scripts/quality/debt-summary.cjs",
     "quality:debt:strict": "node scripts/quality/debt-summary.cjs --strict",
+    "projects:audit": "node scripts/audit-living-project-docs.cjs",
     "hooks:install": "node scripts/git/install-pre-push-hook.cjs",
     "mcp": "tsx scripts/mcp-util.ts",
     "stitch:init": "npx @_davideast/stitch-mcp init",
