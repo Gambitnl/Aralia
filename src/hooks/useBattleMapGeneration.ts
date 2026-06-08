@@ -59,8 +59,10 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
         return array;
     };
 
-    // Spread characters within their zone: skip tiles adjacent to already-claimed tiles
-    // so characters get at least 1-tile separation by default.
+    // Spread characters within their zone: claim a tile only if no already-claimed
+    // tile is within MIN_SEP (Chebyshev). MIN_SEP=2 gives a visible formation
+    // (≥2-tile gaps) instead of a clump; fallback fills if the zone is too tight.
+    const MIN_SEP = 2;
     const spreadTiles = (tiles: BattleMapTile[], count: number): BattleMapTile[] => {
         const shuffled = shuffle([...tiles]);
         const occupied = new Set<string>();
@@ -70,10 +72,13 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
         for (const tile of shuffled) {
             const { x, y } = tile.coordinates;
             const key = `${x}-${y}`;
-            const hasNeighbor = (
-                occupied.has(`${x - 1}-${y}`) || occupied.has(`${x + 1}-${y}`) ||
-                occupied.has(`${x}-${y - 1}`) || occupied.has(`${x}-${y + 1}`)
-            );
+            let hasNeighbor = false;
+            for (let dx = -MIN_SEP; dx <= MIN_SEP && !hasNeighbor; dx++) {
+                for (let dy = -MIN_SEP; dy <= MIN_SEP; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    if (occupied.has(`${x + dx}-${y + dy}`)) { hasNeighbor = true; break; }
+                }
+            }
             if (!hasNeighbor) {
                 occupied.add(key);
                 result.push(tile);

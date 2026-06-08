@@ -344,18 +344,8 @@
 
         <div class="card" onclick="ctermOpenPage()" style="cursor:pointer">
             <span class="badge badge-tool">Agent Tool</span>
-            <h2>&#x25C8; CODEX TERMINAL</h2>
-            <p>Live AI session. Opens in a separate tab. Flags below apply to the start command.</p>
-            <div class="cterm-flags" onclick="event.stopPropagation()">
-                <label class="cterm-flag-toggle">
-                    <input type="checkbox" id="ctermFlagBypass">
-                    <span>--dangerously-bypass-approvals-and-sandbox</span>
-                </label>
-                <label class="cterm-flag-toggle">
-                    <input type="checkbox" id="ctermFlagSearch">
-                    <span>--search</span>
-                </label>
-            </div>
+            <h2>&#x25C8; SHELL TERMINAL</h2>
+            <p>Plain shell session in a separate tab. Uses the shared PTY bridge and no longer auto-launches Codex.</p>
         </div>
 
         <a href="/Aralia/misc/project_tracker.html" class="card dev-only">
@@ -545,9 +535,8 @@
     <script>
     // ── Codex Terminal (PTY + xterm.js) ─────────────────────────────
     const CTERM_KEY         = 'codex-terminal-window';
-    const CTERM_FLAGS_KEY   = 'codex-terminal-flags';
-    const CTERM_OPEN_KEY    = 'codex-terminal-was-open';   // auto-reopen on HMR reload
-    const CTERM_LAUNCHED_KEY = 'codex-terminal-launched';  // skip auto-type on reconnect
+    const CTERM_FLAGS_KEY   = 'codex-terminal-flags';      // legacy overlay state
+    const CTERM_OPEN_KEY    = 'codex-terminal-was-open';   // legacy overlay state
     const CTERM_MIN_W = 600, CTERM_MIN_H = 400;
 
     // ── Flag persistence ────────────────────────────────────────────
@@ -613,11 +602,8 @@
 
     // ── Open terminal in a separate tab (HMR-immune) ────────────────
     function ctermOpenPage() {
-        // Persist flag state so the terminal page reads the same values
-        ctermSaveFlags();
-        // Open dedicated terminal page — no local module imports, so Vite HMR
-        // never reloads it when source files change.
-        window.open('/Aralia/misc/codex-terminal.html', 'codex-terminal');
+        // Open the shell-only terminal in its own tab target.
+        window.open('/Aralia/misc/codex-terminal.html', 'aralia-shell-terminal');
     }
 
     // ── Open / Close (legacy inline overlay — kept for reference) ───
@@ -883,7 +869,7 @@
     // ── Auto-reopen on HMR reload ────────────────────────────────────
     // If the terminal was open when HMR fired, reopen it automatically so
     // xterm.js reconnects to the sticky PTY without user intervention.
-    if (localStorage.getItem(CTERM_OPEN_KEY) === 'true') {
+    if (false && localStorage.getItem(CTERM_OPEN_KEY) === 'true') {
         // Small delay lets the page finish rendering before opening the overlay
         setTimeout(() => ctermOpen(), 300);
     }

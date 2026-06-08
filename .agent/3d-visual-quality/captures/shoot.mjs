@@ -105,8 +105,26 @@ async function selectBiome(biome) {
   await sleep(800);
 }
 
+// Optional: override the R3F camera to a high tactical-overview pose so the whole
+// battlefield (and spawn spread) is visible, instead of the snap-to-active close cam.
+async function applyOverview() {
+  // Drive OrbitControls the supported way: dispatch wheel-zoom-out on the canvas
+  // to pull back to ~maxDistance for a wide tactical overview.
+  return await page.evaluate(() => {
+    const c = document.querySelector('canvas');
+    if (!c) return 'no-canvas';
+    const r = c.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (let i = 0; i < 24; i++) {
+      c.dispatchEvent(new WheelEvent('wheel', { deltaY: 260, clientX: cx, clientY: cy, bubbles: true, cancelable: true }));
+    }
+    return 'wheeled-out';
+  });
+}
+
 async function shoot(name) {
   const w = await waitCanvasSized();
+  if (process.env.OVERVIEW) { console.log('overview:', JSON.stringify(await applyOverview())); await sleep(1500); }
   await sleep(2500); // let scene settle / render frames
   const box = await page.evaluate(() => {
     const c = document.querySelector('canvas');

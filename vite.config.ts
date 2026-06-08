@@ -23,7 +23,7 @@ import {
 } from './scripts/vite-plugins/devHubLauncherManager';
 
 import { codexRunManager, codexChatManager } from './scripts/vite-plugins/codexManagers';
-import { ptyTerminalManager } from './scripts/vite-plugins/ptyTerminalManager';
+import { ptyTerminalManager, shellTerminalManager } from './scripts/vite-plugins/ptyTerminalManager';
 import { portraitApiManager } from './scripts/vite-plugins/portraitApiManager';
 
 import {
@@ -99,7 +99,8 @@ export default defineConfig(async ({ mode, command }) => {
     portraitApiManager(),
     codexRunManager(),
     codexChatManager(),
-    ptyTerminalManager()
+    ptyTerminalManager(),
+    shellTerminalManager()
   ];
   const roadmapOnlyPlugins = [react(), roadmapManager()];
   const hubOnlyPlugins = [
@@ -117,7 +118,8 @@ export default defineConfig(async ({ mode, command }) => {
     portraitApiManager(),
     codexRunManager(),
     codexChatManager(),
-    ptyTerminalManager()
+    ptyTerminalManager(),
+    shellTerminalManager()
   ];
 
   const plugins = isRoadmapOnlyDev ? roadmapOnlyPlugins : isHubOnlyDev ? hubOnlyPlugins : mainPlugins;
