@@ -1,7 +1,48 @@
+---
+schema_version: 1
+project: Character Sheet
+slug: character-sheet
+category: Feature/UI Projects
+main_category: Interface & Experience
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-08
+confidence: high
+evidence: docs/projects/character-sheet
+gap_signal: 1 open gap (G5); 1 review-required gap (G7); 3 untriaged gaps (G8, G9, G10); G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed
+protocol: living project doc set
+next_step: Await decision on food freshness timestamp semantics before implementing G7.
+agent_comments: README drift audit closed; journal payload omission is intentional and render-tested; the Skills expertise column remains visible but intentionally zero until the character model exposes expertise state; food freshness cannot be computed safely from the current item model alone.
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: yes
+---
+
 # Character Sheet North Star
 
-Status: active  
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 
@@ -9,31 +50,46 @@ Character Sheet is an implemented UI feature with modal and tabbed character dat
 
 ## Current Scope
 
-- Confirm and document existing Character Sheet surfaces under `src/components/CharacterSheet`.
+- Confirm and document existing Character Sheet surfaces under `src/components/CharacterSheet`, keeping README claims aligned with the windowed tab runtime and the Journal tab's optional payload fallback contract.
 - Track state integration points that keep sheet visibility, character payload, inventory, and actions in sync.
-- Capture durable gaps from implementation state and keep adjacency scope explicit.
+- Capture durable gaps from implementation state and keep adjacency scope explicit. The Skills tab's expertise column is intentionally present but still reads as zero because the `PlayerCharacter` model does not expose expertise state yet.
 
 ## Active Task Acceptance Criteria
 
-- Produce a field-by-field map for `PlayerCharacter` and any journal, spell, or item payloads used by Character Sheet tabs.
-- Record any missing, mismatched, or ambiguous fields in `docs/projects/character-sheet/GAPS.md`.
-- Keep `TRACKER.md` and this handoff aligned on the same open slice; do not mark T2 complete without a documented mapping note.
+- Verify the README-described tab and component surfaces against the runtime implementation in `src/components/CharacterSheet`.
+- Record any real mismatch in `docs/projects/character-sheet/GAPS.md` with source-backed evidence.
+- Keep `TRACKER.md` and this handoff aligned on the current open slice; G3 and G6 are resolved, and G7 is now review-required pending a timestamp decision.
 
 ## Dashboard Card Schema
 
 Project: Character Sheet  
 Slug: character-sheet  
 Category: Feature/UI Projects  
-Status: active  
-Confidence: medium  
-Evidence: docs/projects/character-sheet  
-Gap signal: 1 active gap, 3 open follow-ups  
+Status: review-required
+Confidence: high
+Evidence: docs/projects/character-sheet
+Gap signal: 1 open gap (G5); 1 review-required gap (G7); 3 untriaged gaps (G8, G9, G10); G3 journal contract resolved; G6 skills expertise placeholder verified intentional
 Protocol: living project doc set  
-Next step: Complete the T2 schema mapping against `src/types/character.ts` and log any drift in `GAPS.md`.  
-Required verification: docs_consistency  
-Completed verification: docs_consistency  
-Last proof: 2026-06-05  
-Workflow gaps reviewed: 2026-06-05
+Next step: Await decision on food freshness timestamp semantics before implementing G7.
+Required verification: docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
+Agent comments: README drift audit closed; journal payload omission is intentional and render-tested; Skills expertise remains a visible placeholder until the character model exposes expertise state; food freshness cannot be computed safely from the current item model alone.
+Human decision required: yes
+
+## Required Review Brief
+
+Title: Food freshness expiration semantics
+Question: Should inventory food expiration be computed from a durable acquisition timestamp in the item model, or should the project introduce a new lifecycle timestamp system before G7 ships?
+Issue: `InventoryList.tsx` exposes `perishable` and `shelfLife`, but the `Item` model does not define `acquiredAt` or any other durable acquisition timestamp for inventory freshness.
+Current behavior: Perishable food renders an `Expires:` label from `shelfLife`, and the `Eat` action stays enabled because `isExpired` is hardcoded false.
+Why blocked: Any local implementation would have to guess when food entered inventory or invent a save-time timestamp path that does not exist in source; that is a system decision, not a UI patch.
+Option A: Add durable item acquisition timestamp semantics and backfill or migrate inventory data, then implement expiration from that source.
+Option B: Define freshness from an existing authoritative game-date source, or keep the placeholder until another system owns item lifecycles.
+Evidence: `src/components/CharacterSheet/Overview/InventoryList.tsx`, `src/types/items.ts`, `src/types/provenance.ts`, `src/data/item_templates/index.ts`, and repo search showing no `acquiredAt` field on `Item`.
+Decision owner: Product/system owner for item lifecycle persistence.
+Proof after decision: Focused InventoryList render test covering fresh and expired food plus a source-backed data model or migration update.
 
 ## Concrete File Map (Owner Surface)
 
@@ -74,7 +130,7 @@ Workflow gaps reviewed: 2026-06-05
 - `src/components/CharacterSheet/LevelUpModal.tsx`
   - Level-up action container and UPDATE_CHARACTER_CHOICE flow entry.
 - `src/components/CharacterSheet/README.md` and related tab READMEs
-  - Existing component intent notes.
+  - Existing component intent notes, now kept in sync with the windowed tab runtime.
 - `src/components/CharacterSheet/__tests__/` and `src/components/CharacterSheet/Spellbook/__tests__/`
   - Modal, overview, mannequin, and spellbook behavior tests.
 
@@ -100,6 +156,7 @@ Workflow gaps reviewed: 2026-06-05
 ## Implemented Behavior (Observed)
 
 - Modal renders from state, not from local visibility flags.
+- Journal tab accepts an omitted journal payload and falls back to an internal initial state and mock entry instead of crashing; the quest sidebar stays empty until a caller supplies quests.
 - Tab set is implemented for:
   - overview
   - skills
@@ -114,15 +171,16 @@ Workflow gaps reviewed: 2026-06-05
 
 ## Known Gaps To Preserve
 
-- Schema alignment remains an explicit open item from the tracker: sheet fields do not have one authoritative mapping pass documented in one place.
-- Journal input shape and integration points are present but still need schema stability verification.
-- Action payload typing and casing consistency for item use/management actions needs a clean-up to avoid future drift.
-- Component README intent notes may drift from runtime behavior, so they need periodic spot checks before future expansion.
+- Schema alignment was completed as `G1` in `GAPS.md` with the field-by-field mapping appendix.
+- Action payload typing and casing consistency for item use/management actions was normalized to `USE_ITEM` in the shared action contract.
+- Component README intent notes were realigned in T4, but future tab or window changes still need a spot check before expansion.
+- The Skills expertise column is intentionally present but remains zero until the character model gains expertise state.
+- Remaining gap states are `G5` open and `G7` review-required.
 
 ## Next Checks for Cold Start
 
-1. Verify `character` and `journal` shapes against `src/types` across Overview, Details, Spells, Journal, and Family tabs.
-2. Reconcile any action type/payload mismatch before expanding item behavior.
+1. Verify `character` shapes against `src/types` across Overview, Details, Spells, and Family tabs; the journal fallback contract is already test-covered.
+2. Keep the remaining adjacent gap (`G5`) and the review-required gap (`G7`) linked to evidence in `TRACKER.md` before expanding adjacent work.
 3. Carry unresolved schema alignment into project work tracking and keep this folder as the owning handoff point.
 
 ## Anchor Files

@@ -13,6 +13,17 @@ const fakeTiles = (cols: number, rows: number) => {
   return tiles;
 };
 
+const rowBiomes = (cols: number, biomes: string[]) =>
+  biomes.map((biomeId, y) =>
+    Array.from({ length: cols }, (_, x) => ({
+      x,
+      y,
+      biomeId,
+      discovered: false,
+      isPlayerCurrent: false,
+    })),
+  );
+
 it('populates worldData when missing using azgaarWorld payload', () => {
   const cols = 10;
   const rows = 8;
@@ -60,6 +71,40 @@ it('derives a heightfield with real variance from biomes (no flat pancake)', () 
   // The defect (WSS-004) was a constant heightfield. Assert it now varies.
   expect(new Set(heights).size).toBeGreaterThan(1);
   expect(Math.max(...heights)).toBeGreaterThan(Math.min(...heights));
+});
+
+it('derives temperatures from biome climate bands instead of a flat constant', () => {
+  const cols = 4;
+  const rows = 4;
+  const tiles = rowBiomes(cols, [
+    'tundra_icefield',
+    'plains_prairie',
+    'plains_savanna',
+    'jungle_tropical',
+  ]);
+  const before: MapData = { gridSize: { rows, cols }, tiles };
+  const after = migrateMapDataToWorldDataV2(before, 77);
+  const temps = after.worldData!.temperatures;
+
+  expect(new Set(temps).size).toBeGreaterThan(1);
+  expect(temps[0]).toBeLessThan(temps[temps.length - 1]);
+});
+
+it('derives moisture from biome moisture bands instead of a flat constant', () => {
+  const cols = 4;
+  const rows = 4;
+  const tiles = rowBiomes(cols, [
+    'desert_dune',
+    'steppe_windswept',
+    'plains_prairie',
+    'wetland_swamp',
+  ]);
+  const before: MapData = { gridSize: { rows, cols }, tiles };
+  const after = migrateMapDataToWorldDataV2(before, 78);
+  const moisture = after.worldData!.moisture;
+
+  expect(new Set(moisture).size).toBeGreaterThan(1);
+  expect(moisture[0]).toBeLessThan(moisture[moisture.length - 1]);
 });
 
 it('relief correlates with biome elevation bands (mountains > plains > ocean)', () => {

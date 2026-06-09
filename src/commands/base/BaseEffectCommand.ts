@@ -10,6 +10,11 @@ import { generateId } from '../../utils/idGenerator'
  * This class provides standardized helper methods for common operations like retrieving
  * fresh character data, updating state immutably, and writing to the combat log.
  *
+ * Snapshot-vs-live contract:
+ * - `CommandContext` stores caster/target snapshots captured at command creation time.
+ * - Any mutable game values (HP, statuses, resources, position, etc.) must be read from
+ *   the `CombatState` passed to execute-time helpers, never directly from `this.context`.
+ *
  * Subclasses must implement `execute(state)` to define specific effect logic (damage, healing, etc.).
  *
  * @see SpellCommand for the interface definition.
@@ -63,7 +68,8 @@ export abstract class BaseEffectCommand implements SpellCommand {
    */
   protected getCaster(state: CombatState): CombatCharacter {
     // We must find the caster in the current state because state is immutable
-    // and the context.caster might be stale.
+    // and the context snapshot might be stale when earlier commands have already
+    // changed caster state.
     return state.characters.find(c => c.id === this.context.caster.id)!
   }
 
@@ -83,6 +89,8 @@ export abstract class BaseEffectCommand implements SpellCommand {
       return []
     }
     
+    // Resolve each target against current state for live position/HP/conditions.
+    // Snapshot entries may be stale, so only current IDs are used as the index key.
     return this.context.targets
       .map(t => state.characters.find(c => c.id === t.id))
       .filter((c): c is CombatCharacter => c !== undefined)

@@ -3,6 +3,7 @@ import { processDailyRoutes, initializeTradeRoutes } from '../TradeRouteManager'
 import { GameState } from '../../../types';
 import { TradeRoute } from '../../../types/economy';
 import { SeededRandom } from '@/utils/random';
+import { calculateMarketFactors } from '@/utils/economy/marketEvents';
 
 describe('TradeRouteManager', () => {
   let mockState: GameState;
@@ -49,6 +50,32 @@ describe('TradeRouteManager', () => {
   });
 
   describe('processDailyRoutes', () => {
+    it('keeps route events aligned across marketEvents, activeEvents, and marketFactors', () => {
+      const rng = { next: () => 0.01 } as SeededRandom;
+
+      const route: TradeRoute = {
+        id: 'r4',
+        name: 'River Route',
+        originId: 'A',
+        destinationId: 'B',
+        goods: ['Silk', 'Spice'],
+        status: 'active',
+        riskLevel: 0.2,
+        profitability: 0.2,
+        daysInStatus: 5
+      };
+
+      mockState.economy.tradeRoutes = [route];
+
+      const result = processDailyRoutes(mockState, 1, rng);
+      const { marketEvents, activeEvents, marketFactors } = result.state.economy;
+
+      expect(activeEvents).toEqual(marketEvents);
+      expect(marketFactors).toEqual(calculateMarketFactors(marketEvents));
+      expect(marketFactors.scarcity).toEqual(expect.arrayContaining(['silk', 'spice']));
+      expect(marketFactors.surplus).toEqual([]);
+    });
+
     it('should simulate route changes', () => {
       // Create a predictable RNG mock
       const rng = { next: () => 0.01 } as SeededRandom; // Low roll triggers blockage
@@ -73,7 +100,7 @@ describe('TradeRouteManager', () => {
       expect(newRoute.status).toBe('blockaded');
       // Should generate a blockade event (stored in marketEvents)
       expect(result.state.economy.marketEvents.length).toBe(1);
-      expect(result.state.economy.marketFactors.scarcity).toContain('Iron');
+      expect(result.state.economy.marketFactors.scarcity).toContain('iron');
     });
 
     it('should recover blocked routes', () => {
@@ -97,7 +124,60 @@ describe('TradeRouteManager', () => {
       const result = processDailyRoutes(mockState, 1, rng);
       expect(result.state.economy.tradeRoutes[0].status).toBe('active');
       // Should clear scarcity
-      expect(result.state.economy.marketFactors.scarcity).not.toContain('Iron');
+      expect(result.state.economy.marketFactors.scarcity).not.toContain('iron');
+    });
+
+    it('should promote active high-profit routes to booming without a status cast', () => {
+      // A high roll avoids blockade and lands inside the boom window for a profitable route.
+      const rng = { next: () => 0.99 } as SeededRandom;
+
+      const route: TradeRoute = {
+        id: 'r2',
+        name: 'Silk Road',
+        originId: 'A',
+        destinationId: 'B',
+        goods: ['Silk'],
+        status: 'active',
+        riskLevel: 0,
+        profitability: 0.5,
+        daysInStatus: 3
+      };
+
+      mockState.economy.tradeRoutes = [route];
+
+      const result = processDailyRoutes(mockState, 1, rng);
+      const newRoute = result.state.economy.tradeRoutes[0];
+
+      expect(newRoute.status).toBe('booming');
+      expect(newRoute.daysInStatus).toBe(0);
+      expect(result.state.economy.marketFactors.surplus).toContain('silk');
+      expect(result.state.economy.marketEvents[0].type).toBe('SURPLUS');
+    });
+
+    it('should normalize booming routes back to active', () => {
+      // A low roll inside the normalize window ends a boom and clears its surplus factor.
+      const rng = { next: () => 0.1 } as SeededRandom;
+
+      const route: TradeRoute = {
+        id: 'r3',
+        name: 'Gem Road',
+        originId: 'A',
+        destinationId: 'B',
+        goods: ['Gems'],
+        status: 'booming',
+        riskLevel: 0,
+        profitability: 0.5,
+        daysInStatus: 2
+      };
+
+      mockState.economy.tradeRoutes = [route];
+
+      const result = processDailyRoutes(mockState, 1, rng);
+      const newRoute = result.state.economy.tradeRoutes[0];
+
+      expect(newRoute.status).toBe('active');
+      expect(newRoute.daysInStatus).toBe(0);
+      expect(result.state.economy.marketFactors.surplus).not.toContain('gems');
     });
   });
 });

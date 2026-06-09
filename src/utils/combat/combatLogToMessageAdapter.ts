@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 12:30:04
+ * Dependents: components/Combat/CombatView.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file combatLogToMessageAdapter.ts
  * @created 2026-02-10
@@ -84,12 +100,20 @@ interface MessageMapping {
 function classifyEntry(entry: CombatLogEntry): MessageMapping {
   // Lowercase once for all subsequent string.includes() checks.
   const msg = entry.message.toLowerCase();
+  const isCritical = Boolean(entry.data?.isCritical ?? entry.data?.isCrit);
 
   switch (entry.type) {
     // --- DAMAGE ENTRIES ---
     // Emitted by useCombatEngine.handleDamage() and useActionExecutor (zone damage, reactive effects).
     // The data bag includes: damage (number), damageType (string), source (string), isDeath (boolean).
     case 'damage': {
+      if (isCritical) {
+        return {
+          type: CombatMessageType.CRITICAL_HIT,
+          priority: MessagePriority.HIGH,
+          channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT],
+        };
+      }
       // If isDeath is true, the character was killed by this damage — map to KILLING_BLOW
       // with HIGH priority and three channels (log, notification, and visual effect).
       if (entry.data?.isDeath) {
@@ -227,6 +251,13 @@ function classifyEntry(entry: CombatLogEntry): MessageMapping {
       if (msg.includes('opportunity attack')) {
         // "X hits Y with Opportunity Attack!" — successful opportunity attack.
         if (msg.includes('hits')) {
+          if (isCritical) {
+            return {
+              type: CombatMessageType.CRITICAL_HIT,
+              priority: MessagePriority.HIGH,
+              channels: [MessageChannel.COMBAT_LOG, MessageChannel.NOTIFICATION, MessageChannel.VISUAL_EFFECT],
+            };
+          }
           return {
             type: CombatMessageType.DAMAGE_DEALT,
             priority: MessagePriority.HIGH,
@@ -318,14 +349,14 @@ function buildDataPayload(
     case CombatMessageType.ENVIRONMENTAL_DAMAGE: {
       const damage = data?.damage as number ?? data?.damageAmount ?? 0;
       const damageType = (data?.damageType as string) ?? '';
+      const isCritical = Boolean(data?.isCritical ?? data?.isCrit);
       return {
         rawValue: damage,
         formattedValue: damageType ? `${damage} ${damageType}` : `${damage}`,
         damageType: damageType || 'untyped',
-        // isCritical: Currently always false because the existing combat hooks don't pass
-        // critical hit info through the CombatLogEntry.data bag. The combatEvents.emit for
-        // unit_attack also hardcodes isCrit: false. This would need engine-level changes to fix.
-        isCritical: false,
+        // Opportunity attack logs and newer damage producers can carry structured crit data.
+        // Older logs omit it, so the adapter stays backward compatible by defaulting false.
+        isCritical,
         isSneakAttack: false,
         resistanceApplied: false,
         vulnerabilityApplied: false,

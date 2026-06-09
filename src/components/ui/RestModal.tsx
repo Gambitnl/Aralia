@@ -41,6 +41,7 @@ const getAverageHitDieHeal = (die: number, conMod: number): number => {
 const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm }) => {
   // Per-character Hit Dice spending selections keyed by character id and die size.
   const [spendMap, setSpendMap] = useState<HitPointDiceSpendMap>({});
+  const titleId = 'short-rest-title';
 
   // Normalize Hit Dice pools for display (class levels + prior spend).
   const partyPools = useMemo(
@@ -92,19 +93,19 @@ const RestModal: React.FC<RestModalProps> = ({ isOpen, party, onClose, onConfirm
       {...overlayMotion}
       className={`fixed inset-0 z-[${Z_INDEX.MODAL_INTERACTIVE}] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4`}
       onClick={onClose}
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby="short-rest-title"
     >
       <motion.div
         ref={modalRef}
         {...modalMotion}
         className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         tabIndex={-1}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-900/40">
-          <h2 id="short-rest-title" className="text-xl font-semibold text-amber-300">
+          <h2 id={titleId} className="text-xl font-semibold text-amber-300">
             Short Rest
           </h2>
           <button

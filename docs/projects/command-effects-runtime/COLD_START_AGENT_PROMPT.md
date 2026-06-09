@@ -1,7 +1,7 @@
 # Command Effects Runtime Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -17,10 +17,16 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 Project entry point:
 docs/projects/command-effects-runtime/NORTH_STAR.md
 
+## Iteration Ledger
+
+| Iteration | Agent/Model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Codex desktop context with sub-agent repo access |
+
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Command Effects Runtime
 Project folder: docs/projects/command-effects-runtime
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,14 +36,16 @@ Gaps: docs/projects/command-effects-runtime/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 was the initial handoff creation pass. This pass refreshed
-`NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md`, and added the dashboard schema so
-the next agent can resume without re-triaging the project shape.
+Iteration 1 created the initial handoff surface. Iteration 2 resolved the
+teleport budget metadata gap in `MovementCommand`, added proof coverage, and
+refreshed the project docs so the next agent resumes from the narrower
+G1/G4 slice instead of re-triaging G2.
 
 ## Current Mission
 
 Active task:
-Resume from TRACKER.md and choose the highest-value open task that fits the shared workflow.
+Resume from TRACKER.md and continue the highest-value open task, now centered on
+G1 and G4 after G2 was resolved with source-backed proof.
 
 Key files to touch:
 - docs/projects/command-effects-runtime/NORTH_STAR.md
@@ -65,6 +73,12 @@ Stay inside this project's scope boundaries. Route sibling-project blockers inst
 
 Recent progress:
 Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+G2 is resolved in `GAPS.md`; the current active slice is G1/G4. Optional docs
+`DECISIONS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` are not present in this
+project folder and were not needed for this slice. `WORKFLOW_GAPS.md` was read
+and left unchanged; WFG-001 remains the active workflow-level issue. The
+dashboard schema fields refreshed in `NORTH_STAR.md` are the gap signal,
+completed verification, last proof, and workflow gap review date.
 
 ## Required End State For This Iteration
 

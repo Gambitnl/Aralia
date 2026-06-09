@@ -1,15 +1,35 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 13:48:54
+ * Dependents: systems/world3d/chunkBundle.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file waterGeometry.ts
  * Build flat ribbon meshes along clipped river polylines. Each polyline point
  * produces a left/right vertex pair offset perpendicular to the local direction
- * by half the river width (grid→meters). Output is chunk-local.
+ * by half the river width (grid→meters). Lake polygons are filled as flat
+ * triangulated surfaces first, so the river ribbons can still read on top.
+ * Output is chunk-local.
  */
 import type { ChunkData, ChunkGeometryArrays, ClippedPolyline } from './types';
+import earcut from 'earcut';
 import { WORLD3D_CONFIG, heightToMeters } from './config';
 import { gridPointToLocal } from './coords';
 
 const M = WORLD3D_CONFIG.METERS_PER_CELL;
 const WATER_DROP_M = 0.5;
+const LAKE_DROP_M = WATER_DROP_M + 0.05;
 
 const EMPTY: ChunkGeometryArrays = {
   positions: new Float32Array(0),
@@ -18,12 +38,24 @@ const EMPTY: ChunkGeometryArrays = {
 };
 
 export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
+  const lakes = data.lakes?.filter((l) => l.points.length >= 3) ?? [];
   const ribbons = data.rivers.filter((r) => r.points.length >= 2);
-  if (ribbons.length === 0) return EMPTY;
+  if (lakes.length === 0 && ribbons.length === 0) return EMPTY;
 
   const positions: number[] = [];
   const indices: number[] = [];
   const normals: number[] = [];
+
+  for (const lake of lakes) {
+    const startVert = positions.length / 3;
+    emitLake(lake, data, positions, normals);
+    const flat: number[] = [];
+    for (const p of lake.points) {
+      const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
+      flat.push(local.x, local.z);
+    }
+    for (const index of earcut(flat)) indices.push(startVert + index);
+  }
 
   for (const ribbon of ribbons) {
     const startVert = positions.length / 3;
@@ -43,6 +75,19 @@ export function buildWaterMesh(data: ChunkData): ChunkGeometryArrays {
     indices: new Uint32Array(indices),
     normals: new Float32Array(normals),
   };
+}
+
+function emitLake(
+  lake: NonNullable<ChunkData['lakes']>[number],
+  data: ChunkData,
+  positions: number[],
+  normals: number[],
+): void {
+  for (const p of lake.points) {
+    const local = gridPointToLocal(p.x, p.y, data.cx, data.cy);
+    positions.push(local.x, lake.surfaceY - LAKE_DROP_M, local.z);
+    normals.push(0, 1, 0);
+  }
 }
 
 function emitRibbon(

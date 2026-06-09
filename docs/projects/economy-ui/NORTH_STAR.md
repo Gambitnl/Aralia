@@ -1,7 +1,7 @@
 # Economy UI North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-09
 
 ## Purpose and scope
 
@@ -18,9 +18,9 @@ Out of scope:
 
 ## Current state
 
-- Active slice: T2 is the primary resume path. The next agent should plan the missing modal wiring before trying to widen scope.
-- Secondary open slices: T3 and T4 remain open, but they are follow-ups to the modal wiring slice rather than the next action.
-- Resume path: start with `src/components/layout/GameModals.tsx`, then trace the open/close dispatch path for `LedgerBook` and `CourierPouch`, and keep `InvestmentBoard` callback wiring aligned with the existing economy actions.
+- Active slice: T2 is now complete and should be considered the evidence-backed gap pass for this iteration.
+- Secondary open slices: T3 and T4 remain open and define the next product-safe continuation.
+- Resume path: continue with action entry strategy and callback wiring (`InvestmentBoard`), while preserving the modal hosting model completed in T2.
 
 ## Dashboard Card Schema
 
@@ -30,13 +30,13 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: `docs/projects/economy-ui`
-Gap signal: 3 open gaps (G1-G3)
+Gap signal: 2 open gaps (G2, G3)
 Protocol: living project doc set
-Next step: Resume T2 by wiring modal host mounts and open/close dispatch paths for LedgerBook and CourierPouch.
+Next step: Resume T3 by routing economy action-entry intent and wiring `InvestmentBoard` callbacks.
 Required verification: scoped_tests, docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 
 ## File map
 
@@ -68,16 +68,19 @@ Workflow gaps reviewed: 2026-06-05
 - src/state/actionTypes.ts
   - Economy action and ui action type registry.
 - src/components/debug/DevMenu.tsx
-  - Toggle entry for trade route dashboard.
+  - Toggle entries for trade route dashboard, ledger, and courier.
 - src/App.tsx
-  - Developer action dispatch for trade route dashboard.
+  - Developer action dispatch for trade route dashboard, ledger, and courier.
 
 ## Implemented state
 
 - Merchant flow is mounted and uses economy context through `calculatePrice` in
   `src/utils/economy/economyUtils.ts`.
 - `TradeRouteDashboard` is mounted and can be toggled.
-- `LedgerBook`, `InvestmentBoard`, and `CourierPouch` are implemented and reference real state slices, but are not yet mounted in `GameModals`.
+- `LedgerBook` and `CourierPouch` are now mounted in `GameModals` and close via
+  economy toggle actions; fallback Escape handling is tested for both.
+- `InvestmentBoard` is implemented and references real state slices, but callback
+  entry points are still not routed.
 - Economy reducer can apply player investment/loan actions and return updated investment and gold state.
 - Economy UI flags are present in initial state.
 
@@ -103,21 +106,15 @@ This project owns where and how that state is surfaced to the player.
 
 ## Gaps to resolve next
 
-- Wire `LedgerBook` and `CourierPouch` into modal host with open/close actions.
 - Connect `InvestmentBoard` callbacks to `INVEST_IN_CARAVAN` and `TAKE_LOAN` dispatch.
 - Decide whether ledger/courier toggles should move into the ui reducer for ownership consistency.
+- Confirm whether player-facing in-world entry points for ledger/courier are needed beyond Dev Menu test access.
 
 ## Next checks
 
-- Confirm UI entry points for all three economy modal surfaces.
-- Verify no duplicate or dead economy flags remain after wiring.
+- Confirm UI entry points for in-world and dev-menu economy surfaces.
+- Verify no duplicate or dead economy flags remain after wiring and close paths.
 - Add doc check pass for cross-project references between economy and economy-ui.
-
-## Resume path
-
-1. Re-read `TRACKER.md` row T2 and the matching G1/G2 entries in `GAPS.md`.
-2. Confirm the modal host surface in `src/components/layout/GameModals.tsx`.
-3. Wire the LedgerBook and CourierPouch open/close paths before revisiting T3 and T4.
 
 ## Resume path
 

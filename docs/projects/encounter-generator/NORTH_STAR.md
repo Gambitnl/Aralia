@@ -1,85 +1,94 @@
 # Encounter Generator North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-09
 
 ## Dashboard Card Schema
 
 Project: Encounter Generator
 Slug: encounter-generator
 Category: Feature/UI Projects
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/encounter-generator
-Gap signal: 3 open gaps (G1 seedability, G2 difficulty policy, G3 scope naming)
+Gap signal: 1 open gap (G4 AI determinism boundary)
 Protocol: living project doc set
-Next step: Resume T2 from the tracker and keep the first implementation slice focused on the seed and difficulty contract.
-Required verification: docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Next step: Resolve G4 human decision (full AI replay vs local-only replay contract), then resume T3/T4 implementation if approved.
+Required verification: scoped_tests, docs_consistency
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
+
+## Required Review Brief
+
+Title: AI determinism boundary for encounter replay
+Question: Should encounter replay guarantee identical AI-generated encounters for the same seed, or only guarantee deterministic local/fallback generation?
+Issue: The seed now reaches the AI trigger, fallback, validation, and bestiary paths, but Gemini output can still vary for the same prompt and seed-like context.
+Current behavior: Bestiary and fallback generation are deterministic with a fixed seed; provider-backed AI generation is constrained by prompt/seed context but not guaranteed to replay exactly.
+Decision blocked: Forward replay/sharing work needs a product decision before agents expand beyond the local deterministic contract.
+
+| Decision axis | Option A | Option B |
+|---|---|---|
+| Replay contract | Require strict AI replay | Accept local/fallback deterministic replay only |
+| Required work | Add seed-to-cache/model binding and CI replay proof | Document provider nondeterminism and keep current seed contract |
+| Consequence | Stronger reproducibility, larger service/storage contract | Faster rollout, but AI encounter replay remains best-effort |
+
+Evidence: `src/hooks/actions/handleEncounter.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/utils/world/bestiaryEncounterGenerator.ts`
+Decision owner: Human/product owner for replay and sharing policy
+Proof after decision: Add a focused replay acceptance test or an explicit docs boundary before implementation resumes.
 
 ## Purpose and scope
 
-The Encounter Generator project tracks how player encounters are created, balanced, and moved into combat.  
-This doc captures source reality so future work can continue without guessing intent.
+The Encounter Generator project tracks how encounters are generated (AI, fallback, and bestiary), validated, and moved into combat.
 
 ## Implementation map
 
 | File | Why it matters |
 |---|---|
 | src/components/Combat/EncounterModal.tsx | Main encounter creation flow (AI, custom, bestiary) |
-| src/components/Combat/MonsterPicker.tsx | Manual monster selection and lair setup |
-| src/hooks/actions/handleEncounter.ts | Action entry points and modal dispatch |
-| src/state/reducers/encounterReducer.ts | Builds battle-ready encounter payload |
-| src/state/appState.ts | Maps encounter actions into app/combat state transitions |
-| src/utils/encounterDifficulty.ts | Shared XP threshold and difficulty math |
-| src/utils/encounterUtils.ts | AI encounter validation/fallback helpers |
+| src/hooks/actions/handleEncounter.ts | Encounter action entry and deterministic seed source |
+| src/services/gemini/encounters.ts | AI encounter generation and fallback handoff |
+| src/services/geminiServiceFallback.ts | Fallback encounter generation and deterministic seed injection |
 | src/utils/world/bestiaryEncounterGenerator.ts | Offline bestiary encounter generation |
-| src/services/gemini/encounters.ts | AI encounter generation service path |
-| src/services/geminiServiceFallback.ts | Fallback encounter generation path |
-| src/components/EncounterGenerator/PartyManager.tsx | Existing auxiliary UI for party settings |
+| src/utils/world/encounterUtils.ts | Encounter validation and fallback rebuild policy |
+| src/utils/combat/encounterDifficulty.ts | Shared difficulty math contract |
 
 ## Implemented state
 
-- Encounter creation is already wired into gameplay via action handlers, reducers, and the combat modal stack.
-- AI, custom, and bestiary encounter paths are implemented and operational.
-- Difficulty is computed through shared utilities and displayed in the modal before battle launch.
-- Seedable generation is not implemented; results rely on default RNG and AI outputs.
-- There is no dedicated encounter pipeline inside `EncounterGenerator/`; most logic is in Combat/services/utils/state.
+- Encounter flow is connected across AI, custom, and bestiary tabs.
+- Seedability is now wired through one deterministic replay input in:
+  - AI trigger path (`handleEncounter.ts`)
+  - Gemini fallback (`geminiServiceFallback.ts`)
+  - Bestiary generation and rerolls (`bestiaryEncounterGenerator.ts`, `EncounterModal.tsx`)
+- Difficulty is computed through the shared `calculateDifficulty` contract in `encounterDifficulty.ts` in all relevant display/validation paths.
+- Scope remains the combat encounter flow; `EncounterGenerator/` currently holds auxiliary party utilities only.
 
 ## Integrations
 
-- `EncounterModal` is opened from game actions, managed in `GameModals.tsx`, and closes through encounter actions.
-- Modal outputs pass through `START_BATTLE_MAP_ENCOUNTER` reducer logic into active combat.
-- Monster selection and bestiary use shared generated monster data from the data layer.
-- AI flows depend on Gemini service + fallback utilities for safety.
+- `EncounterModal` opens and dispatches actions through `GameModals.tsx`, then hands encounter payloads to combat reducer paths.
+- AI and fallback paths both return encounter arrays that are normalized before combat and displayed through shared difficulty logic.
+- Bestiary local generation uses deterministic seeds in the roll loop and supports reroll + filter changes.
 
-## Gaps and uncertainties
+## Scope note
 
-- Seedability and deterministic replay are not in place across bestiary, fallback, or AI paths.
-- Difficulty behavior is partially duplicated across AI/custom/bestiary paths and can diverge in edge cases.
-- Current evidence suggests future intent may be wider than currently documented, since registry points are narrower than runtime spread.
+This project intentionally does not claim a standalone encounter runtime under `src/components/EncounterGenerator/*` as the implementation owner. Core runtime behavior lives in `Combat` and shared world/services utilities.
 
 ## Resume path
 
-- Start from `TRACKER.md` task T2 and keep the handoff compact.
-- Treat G1 and G2 as the next implementation decision points.
-- Re-check the source path for difficulty math before any code change so the docs do not drift further from runtime reality.
+- Start from `TRACKER.md` task T3.
+- Keep this slice bounded to seedability + difficulty contract consistency.
+- Use the same seed source path and `calculateDifficulty` as the contract baseline for additional encounter features.
 
 ## Next checks
 
-- Confirm desired seed model (single seed, per-source seeds, and seed UI).
-- Decide and lock one difficulty contract for all generation paths.
-- Add docs proof after any change to generation or combat handoff.
-
-
+- Decide whether strict AI output determinism is required (seed-only replay currently does not control provider generation).
+- Add scoped tests for any additional generation path touched in the next slice.
+- Update gap entries if scope or policy shifts.
 
 ## Cold-Start Gap Routing
 
 The next cold-start agent must:
-- read `TRACKER.md` and `GAPS.md` first, then read the existing project gaps
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- read `TRACKER.md` and `GAPS.md` first.
+- review source around seed flow and difficulty contract in the active task scope.
+- add/route one real project gap if a new ambiguity remains after this slice.
+- do not create artificial gaps to satisfy a quota.

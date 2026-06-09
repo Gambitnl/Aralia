@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:31:45
+ * Last Sync: 09/06/2026, 00:04:52
  * Dependents: App.tsx
  * Imports: 41 files
  *
@@ -148,6 +148,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                     isDialogueInterfaceOpen: false,
                     activeDialogueSession: null,
+                    activeConversation: null,
                 };
                 if (action.payload === GamePhase.CHARACTER_CREATION) {
                     // Full reset for a new game
@@ -390,7 +391,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'START_GAME_FOR_DUMMY': {
-            const { mapData, dynamicLocationItemIds, generatedParty, worldSeed } = action.payload;
+            const { mapData, dynamicLocationItemIds, generatedParty, worldSeed, worldHistory } = action.payload;
             if (!generatedParty || generatedParty.length === 0) return { ...state, error: "Dummy character data not available.", phase: GamePhase.MAIN_MENU, isLoading: false, loadingMessage: null };
             const initialDummyLocation = LOCATIONS[STARTING_LOCATION_ID];
 
@@ -430,6 +431,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ],
                 mapData: mapData,
                 dynamicLocationItemIds: dynamicLocationItemIds,
+                // Preserve the generated founding story so the first save after
+                // bootstrap already carries a world-history payload.
+                worldHistory: worldHistory ?? createEmptyHistory(),
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
                 isLoading: false,
                 loadingMessage: null,
@@ -484,6 +488,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
         case 'START_GAME_SUCCESS': {
             const { startingInventory, ...restOfPayload } = action.payload;
+            const worldHistory = action.payload.worldHistory ?? createEmptyHistory();
             // Convert any legacy coin items in starting inventory to gold value
             let startingGold = 10; // Base starting gold
             const filteredInventory = startingInventory.filter(item => {
@@ -511,6 +516,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 subMapCoordinates: restOfPayload.initialSubMapCoordinates,
                 mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
+                // Standard starts use the same bridge; if a caller omits the
+                // seeded history, we still land on an explicit empty registry.
+                worldHistory,
                 currentLocationActiveDynamicNpcIds: restOfPayload.initialActiveDynamicNpcIds,
                 isLoading: false,
                 loadingMessage: null,
@@ -531,7 +539,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             });
 
             const loadedState = action.payload as GameState & { playerCharacter?: PlayerCharacter };
-            const gameTimeFromLoad = typeof loadedState.gameTime === 'string' ? new Date(loadedState.gameTime) : loadedState.gameTime;
+            const gameTimeFromLoad = loadedState.gameTime
+                ? (typeof loadedState.gameTime === 'string' ? new Date(loadedState.gameTime) : loadedState.gameTime)
+                : new Date();
+            const resolvedShortRestTracker = {
+                restsTakenToday: loadedState.shortRestTracker?.restsTakenToday ?? 0,
+                lastRestDay: loadedState.shortRestTracker?.lastRestDay ?? getGameDay(gameTimeFromLoad),
+                lastRestEndedAtMs: loadedState.shortRestTracker?.lastRestEndedAtMs ?? null,
+            };
             // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
             // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
             // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
@@ -549,6 +564,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     memory.knownFacts = oldStringFacts.map((factText): KnownFact => ({
                         id: generateId(),
                         text: factText,
+                        // Preserve a direct provenance label on migrated facts so later readers
+                        // can tell imported memories from derived ones. This is fact metadata,
+                        // not companion approval routing.
                         source: 'direct',
                         isPublic: true,
                         timestamp: gameTimeFromLoad.getTime(),
@@ -629,10 +647,15 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Use loaded or fallback
                 factions: loadedFactions,
                 playerFactionStandings: loadedStandings,
+                // Older saves can still load without a first-build payload; keep
+                // an empty registry so the rest of the game can treat history as present.
+                worldHistory: loadedState.worldHistory ?? createEmptyHistory(),
+                shortRestTracker: resolvedShortRestTracker,
                 underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
                 naval: loadedState.naval || { ...INITIAL_NAVAL_STATE },
                 dynamicLocations: loadedState.dynamicLocations || {},
                 activeDialogueSession: null,
+                activeConversation: null,
                 isDialogueInterfaceOpen: false,
                 banterCooldowns: loadedState.banterCooldowns || {}
             };
@@ -650,7 +673,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 lastNpcResponse: null,
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                 isDialogueInterfaceOpen: false,
-                activeDialogueSession: null
+                activeDialogueSession: null,
+                activeConversation: null
             };
         }
 

@@ -1,7 +1,7 @@
 # NORTH_STAR: Scripts: Quality
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 
@@ -25,13 +25,13 @@ Category: Documentation
 Status: active
 Confidence: medium
 Evidence: docs/projects/scripts-quality
-Gap signal: 2 open in-scope gaps, 1 adjacent follow-up
+Gap signal: repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git
 Protocol: living project doc set
-Next step: Run `npm run quality:debt` and decide whether the current lint scope is intentional or should be documented.
-Required verification: build_typecheck, docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Next step: Run `npm run quality:debt` at each quality-scope change and keep the routed scripts-git follow-up outside this project unless ownership changes.
+Required verification: quality_debt_command, docs_consistency
+Completed verification: quality_debt_command (2026-06-08), docs_consistency
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 ## File Map
 
@@ -55,9 +55,11 @@ Workflow gaps reviewed: 2026-06-05
   - npm script wiring in `package.json`,
   - policy integration in `scripts/git/pre-push-aralia.sh`,
   - dashboard-facing schema section in this North Star file.
+  - lint scope for quality debt is intentionally aligned to `src`, `scripts`, and `tests`.
 - Not yet implemented:
   - automated verification that debt summaries are produced and reviewed on a fixed cadence,
   - persisted debt summaries for trend tracking.
+  - mirrored automation for the routed scripts-git cadence follow-up.
 
 ## Integrations
 
@@ -87,18 +89,38 @@ Do not edit outside `docs/projects/scripts-quality/` in this task.
 
 1. No local checkpoint captures debt-output baselines or trend history.
 2. No documented "expected range" for lint/type diagnostic growth exists.
-3. Lint scope inside the quality script is hardcoded to `src`, `scripts`, `tests`
-   and currently excludes other top-level folders; this may be intentional or a gap.
+3. The routed cadence/policy follow-up is still owned by scripts-git, not this project.
+
+## Command-Evidence Check (2026-06-08)
+
+- `npm run quality:debt` output snapshot:
+  - TypeScript debt: 73 diagnostics (top codes: TS2556 x11, TS6307 x9, TS7006 x7, TS18046 x6, TS18048 x6).
+  - ESLint debt: 15 errors, 1706 warnings across `src` / `scripts` / `tests`.
+  - File areas in debt output remain: `src`, `scripts`, `tests`.
+- Decision: `debt-summary.cjs` is intentionally scoped to the same folder set as `npm run lint` so the debt surface tracks pre-existing policy expectations without widening this local summary surface.
+- Decision: the remaining cadence/policy follow-up stays routed to `scripts-git`; scripts-quality keeps the checkpoint convention and debt snapshot cadence only.
+
+## Checkpoint Convention
+
+- Capture a one-line `npm run quality:debt` snapshot only when a quality-scope,
+  lint-scope, or push-policy change is made.
+- Keep the durable note compact: TypeScript diagnostic count, ESLint error/warning
+  count, top file-area groups, date, and reason for the checkpoint.
+- Do not turn this workstream into broad lint/type cleanup unless the active task
+  explicitly owns that cleanup.
+- 2026-06-08 checkpoint for this convention pass: TypeScript remains at 73
+  diagnostics; ESLint remains at 15 errors and 1706 warnings; file areas remain
+  `src` (1437), `scripts` (282), and `tests` (2).
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Refresh `scripts-quality` docs into a cold-start handoff with integration and gap clarity |
-| Acceptance criteria | NORTH_STAR, TRACKER, GAPS define purpose, file map, implemented state, integrations, active follow-ups, and next checks with specific evidence references |
+| Task | Keep the quality-debt checkpoint convention current and keep the routed scripts-git follow-up outside this project unless ownership changes |
+| Acceptance criteria | NORTH_STAR, TRACKER, and GAPS stay internally consistent; the dashboard card schema still shows one routed adjacent follow-up; no local policy or human-review gate is opened |
 | Allowed boundaries | `docs/projects/scripts-quality/*` |
-| Stop condition | docs are internally consistent, include the dashboard card schema, and reference current script/push-policy wiring |
-| Next checks | `Get-Content package.json`, `Get-Content scripts/git/pre-push-aralia.sh`, `npm run quality:debt` |
+| Stop condition | docs are internally consistent, the routed follow-up is explicit, and the checkpoint convention remains the local owner |
+| Next checks | Run `npm run quality:debt` on quality-scope, lint-scope, or push-policy changes and record one compact snapshot here |
 
 ## Artifact Boundary
 

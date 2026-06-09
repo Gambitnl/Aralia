@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * SHARED UTILITY: Multiple systems rely on these exports.
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 31/05/2026, 23:20:24
- * Dependents: components/BattleMap/characters/CharacterActor.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Last Sync: 08/06/2026, 23:31:42
+ * Dependents: components/BattleMap/characters/CharacterActor.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
@@ -47,6 +47,8 @@ import { buildHitPointDicePools } from '../character/characterUtils';
 import { ResistanceCalculator } from './resistanceUtils';
 
 import { bresenhamLine } from '../spatial/lineOfSight';
+
+type DiceRandomSource = () => number;
 
 // Re-export for consumers
 export { createAbilityFromSpell, generateId, ResistanceCalculator };
@@ -210,12 +212,17 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
  *    - Add deterministic mode for testing purposes
  *    - Implement seedable random number generator
  */
-function rollDieGroup(count: number, sides: number, minRoll: number = 1): number {
+function rollDieGroup(
+  count: number,
+  sides: number,
+  minRoll: number = 1,
+  random: DiceRandomSource = Math.random
+): number {
     // TODO(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation.
     // (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     let subTotal = 0;
   for (let i = 0; i < count; i++) {
-    let roll = Math.floor(Math.random() * sides) + 1;
+    let roll = Math.floor(random() * sides) + 1;
     if (roll < minRoll) roll = minRoll;
     subTotal += roll;
   }
@@ -249,24 +256,29 @@ function rollDieGroup(count: number, sides: number, minRoll: number = 1): number
  *    - Separate parsing from execution for better testability
  *    - Create dedicated dice expression AST for complex operations
  */
-export function rollDice(diceString: string): number {
-  return rollDamage(diceString, false);
+export function rollDice(
+  diceString: string,
+  options: { rng?: DiceRandomSource } = {}
+): number {
+  return rollDamage(diceString, false, 1, options?.rng);
 }
 
 /**
  * Rolls a d20, optionally with advantage or disadvantage.
  */
-export function rollD20(options?: { advantage?: boolean; disadvantage?: boolean }): number {
-  const roll1 = Math.floor(Math.random() * 20) + 1;
-  if (!options) return roll1;
+export function rollD20(
+  options: { advantage?: boolean; disadvantage?: boolean; rng?: DiceRandomSource } = {}
+): number {
+  const { advantage, disadvantage, rng = Math.random } = options;
+  const roll1 = Math.floor(rng() * 20) + 1;
+  if (!advantage && !disadvantage) return roll1;
 
-  const { advantage, disadvantage } = options;
   if (advantage && !disadvantage) {
-    const roll2 = Math.floor(Math.random() * 20) + 1;
+    const roll2 = Math.floor(rng() * 20) + 1;
     return Math.max(roll1, roll2);
   }
   if (disadvantage && !advantage) {
-    const roll2 = Math.floor(Math.random() * 20) + 1;
+    const roll2 = Math.floor(rng() * 20) + 1;
     return Math.min(roll1, roll2);
   }
   return roll1;
@@ -309,7 +321,12 @@ export function rollD20(options?: { advantage?: boolean; disadvantage?: boolean 
  * rollDamage('2d6+3', false) // Returns 5-15
  * rollDamage('2d6', true)    // Returns 4-24 (4d6)
  */
-export function rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
+export function rollDamage(
+  diceString: string,
+  isCritical: boolean,
+  minRoll: number = 1,
+  random: DiceRandomSource = Math.random
+): number {
   // RALPH: Damage Resolver.
   // Uses a global regex to scan the formula for dice (XdY) and flat numbers (Z).
   // Doubling dice for Critical Hits happens BEFORE the roll to ensure consistent 5e logic.
@@ -344,7 +361,7 @@ export function rollDamage(diceString: string, isCritical: boolean, minRoll: num
       // RALPH: 5e rule - double the NUMBER of dice rolled, not the total result.
       const actualNumDice = isCritical ? numDice * 2 : numDice;
 
-      const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll);
+      const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll, random);
       total += sign * subTotal;
     } else if (match[4]) {
       // It's a flat number
@@ -796,12 +813,99 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     { id: 'stand_up', name: 'Stand Up', description: 'Right yourself from a Prone position. Costs half your Speed.', type: 'movement', cost: { type: 'movement-only', movementCost: Math.floor(stats.speed / 2) }, targeting: 'self', range: 0, effects: [], icon: '⬆️' }
   );
 
+  const addClassFeatureAbility = (ability: Ability, limitedUseId?: string): void => {
+    if (limitedUseId) {
+      const limitedUse = player.limitedUses?.[limitedUseId];
+      if (limitedUse) {
+        const maxUses = typeof limitedUse.max === 'number' ? limitedUse.max : undefined;
+        if (typeof maxUses === 'number') {
+          ability.maxUses = maxUses;
+        }
+        if (typeof limitedUse.current === 'number') {
+          ability.usesRemaining = limitedUse.current;
+        }
+      }
+    }
+
+    abilities.push(ability);
+  };
+
   if (player.class.id === 'rogue') {
     abilities.push({ id: 'cunning_dash', name: 'Cunning Dash', description: 'Dash as a bonus action.', type: 'movement', cost: { type: 'bonus' }, targeting: 'self', range: 0, effects: [{ type: 'movement', value: stats.speed }], icon: '🏃' });
   }
 
   if (player.class.id === 'fighter') {
     abilities.push({ id: 'second_wind', name: 'Second Wind', description: 'Regain hit points.', type: 'utility', cost: { type: 'bonus', limitations: { oncePerTurn: true } }, targeting: 'self', range: 0, effects: [{ type: 'heal', value: 10 + (player.level || 1) }], icon: '➕' });
+  }
+
+  if (player.class.id === 'barbarian') {
+    addClassFeatureAbility({
+      id: 'rage',
+      name: 'Rage',
+      description: 'Enter a Rage as a bonus action.',
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '🔥'
+    }, 'rage');
+  }
+
+  if (player.class.id === 'monk' && (player.level || 1) >= 2) {
+    addClassFeatureAbility({
+      id: 'flurry_of_blows',
+      name: 'Flurry of Blows',
+      description: 'Use a bonus action to make additional unarmed strikes.',
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '👊'
+    });
+  }
+
+  if (player.class.id === 'bard') {
+    addClassFeatureAbility({
+      id: 'bardic_inspiration',
+      name: 'Bardic Inspiration',
+      description: 'Grant inspiration dice as a bonus action.',
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '🎶'
+    }, 'bardic_inspiration');
+  }
+
+  if (player.class.id === 'paladin' && (player.level || 1) >= 2) {
+    addClassFeatureAbility({
+      id: 'divine_smite',
+      name: 'Divine Smite',
+      description: 'Augment your next melee weapon hit with radiant damage.',
+      type: 'utility',
+      cost: { type: 'bonus' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '✨'
+    });
+  }
+
+  if (player.class.id === 'warlock') {
+    addClassFeatureAbility({
+      id: 'pact_magic',
+      name: 'Pact Magic',
+      description: 'Use your pact magic resource.',
+      type: 'utility',
+      cost: { type: 'free' },
+      targeting: 'self',
+      range: 0,
+      effects: [],
+      icon: '🕯️'
+    });
   }
 
   // 2. Convert Spells to Combat Abilities using the Factory

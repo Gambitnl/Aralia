@@ -1,6 +1,9 @@
 import { sampleChunk } from '../chunkSampler';
 import { chunkGridAABB } from '../coords';
-import type { WorldData, River, Site } from '@/services/worldSim/types';
+import * as polylineClip from '../polylineClip';
+import { biomeColor } from '../terrainColor';
+import type { Road, WorldData, River, Site } from '@/services/worldSim/types';
+import { vi } from 'vitest';
 
 const makeWorld = (cols: number, rows: number, fill: (x: number, y: number) => number): WorldData => {
   const heights: number[] = [];
@@ -93,11 +96,76 @@ it('samples a per-vertex biome id buffer', () => {
   expect(data.biomeIds.every((b) => b === 'forest')).toBe(true);
 });
 
+it('precomputes blended biome colors across biome boundaries', () => {
+  const cols = 4;
+  const rows = 4;
+  const world = makeWorld(cols, rows, () => 40);
+  world.biomeIds = [
+    'ocean',
+    'desert',
+    'forest',
+    'plains',
+    'ocean',
+    'desert',
+    'forest',
+    'plains',
+    'ocean',
+    'desert',
+    'forest',
+    'plains',
+    'ocean',
+    'desert',
+    'forest',
+    'plains',
+  ];
+  // This chunk sits at the boundary between biome columns 1 and 2 (gx in [1, 1.125]).
+  const data = sampleChunk(world, 8, 0, 16);
+
+  expect(data.biomeColors).toHaveLength(16 * 16 * 3);
+  const edge = data.biomeColors!;
+  const vertex = data.resolution - 1; // last x sample in the first row
+  const idx = vertex * 3;
+  const actual = [edge[idx], edge[idx + 1], edge[idx + 2]];
+  const left = biomeColor('desert', 40);
+  const right = biomeColor('forest', 40);
+  const blend = 0.125;
+  const expected = [
+    left[0] * (1 - blend) + right[0] * blend,
+    left[1] * (1 - blend) + right[1] * blend,
+    left[2] * (1 - blend) + right[2] * blend,
+  ];
+
+  for (let c = 0; c < 3; c++) {
+    expect(actual[c]).toBeCloseTo(expected[c]);
+    expect(actual[c]).not.toBeCloseTo(left[c], 6);
+    expect(actual[c]).not.toBeCloseTo(right[c], 6);
+  }
+});
+
 it('includes rivers that cross the chunk and excludes distant ones', () => {
   const near = sampleChunk(worldWithFeatures(), 0, 0, 4);
   expect(near.rivers.length).toBeGreaterThanOrEqual(1);
   const far = sampleChunk(worldWithFeatures(), 100, 100, 4);
   expect(far.rivers).toHaveLength(0);
+});
+
+it('clips lake polygons into chunk-local lake fill payloads', () => {
+  const world = makeWorld(64, 64, () => 40);
+  world.biomeIds = new Array(64 * 64).fill('plains');
+  world.lakes = [[
+    { x: 0.01, y: 0.01 },
+    { x: 0.10, y: 0.01 },
+    { x: 0.10, y: 0.10 },
+    { x: 0.01, y: 0.10 },
+  ]];
+
+  const near = sampleChunk(world, 0, 0, 4);
+  const far = sampleChunk(world, 100, 100, 4);
+
+  expect(near.lakes).toHaveLength(1);
+  expect(near.lakes?.[0].points).toHaveLength(4);
+  expect(near.lakes?.[0].surfaceY).toBeGreaterThan(0);
+  expect(far.lakes).toHaveLength(0);
 });
 
 it('includes sites whose center falls within the chunk', () => {
@@ -151,4 +219,115 @@ it('assigns a site on a shared Y boundary to exactly one chunk (half-open)', () 
   expect(top.sites).toHaveLength(0);
   expect(bottom.sites).toHaveLength(1);
   expect(bottom.sites[0].id).toBe('edge');
+});
+
+it('maps each road type to a distinct sampled width', () => {
+  const world = makeWorld(64, 8, () => 40);
+  world.sites = [];
+  world.rivers = [];
+  world.coastlines = [];
+  world.lakes = [];
+  world.biomeZones = [];
+  world.temperatures = [];
+  world.moisture = [];
+  world.biomeIds = [];
+  const roadMajor: Road = {
+    id: 'major',
+    points: [
+      { x: 0.01, y: 0.02 },
+      { x: 0.05, y: 0.02 },
+    ],
+    type: 'major',
+    fromSiteId: 'a',
+    toSiteId: 'b',
+  };
+  const roadMinor: Road = {
+    id: 'minor',
+    points: [
+      { x: 0.03, y: 0.04 },
+      { x: 0.07, y: 0.04 },
+    ],
+    type: 'minor',
+    fromSiteId: 'a',
+    toSiteId: 'b',
+  };
+  const roadTrail: Road = {
+    id: 'trail',
+    points: [
+      { x: 0.09, y: 0.06 },
+      { x: 0.11, y: 0.06 },
+    ],
+    type: 'trail',
+    fromSiteId: 'a',
+    toSiteId: 'b',
+  };
+  world.roads = [roadMajor, roadMinor, roadTrail];
+
+  const data = sampleChunk(world, 0, 0, 4);
+  const widths = data.roads.map((r) => r.width[0]);
+  expect(widths).toHaveLength(3);
+  expect(widths).toContain(0.06);
+  expect(widths).toContain(0.04);
+  expect(widths).toContain(0.025);
+  expect(new Set(widths).size).toBe(3);
+});
+
+it('clips only nearby polylines by skipping distant roads/rivers before clipping', () => {
+  const world = makeWorld(256, 8, () => 40);
+  const clipSpy = vi.spyOn(polylineClip, 'clipPolylineToChunk');
+
+  world.rivers = [
+    {
+      id: 'near-river',
+      points: [
+        { x: 0.01, y: 0.05 },
+        { x: 0.05, y: 0.05 },
+      ],
+      width: [0.02, 0.02],
+      discharge: [1, 1],
+    },
+    {
+      id: 'far-river',
+      points: [
+        { x: 200, y: 200 },
+        { x: 201, y: 200 },
+      ],
+      width: [0.02, 0.02],
+      discharge: [1, 1],
+    },
+  ];
+
+  world.roads = [
+    {
+      id: 'near-road',
+      points: [
+        { x: 0.01, y: 0.01 },
+        { x: 0.05, y: 0.01 },
+      ],
+      type: 'major',
+      fromSiteId: 'a',
+      toSiteId: 'b',
+    },
+    {
+      id: 'far-road',
+      points: [
+        { x: 210, y: 210 },
+        { x: 211, y: 210 },
+      ],
+      type: 'trail',
+      fromSiteId: 'a',
+      toSiteId: 'b',
+    },
+  ];
+
+  const data = sampleChunk(world, 0, 0, 4);
+
+  expect(data.rivers).toHaveLength(1);
+  expect(data.rivers[0].points[0]).toEqual({ x: 0.01, y: 0.05 });
+  expect(data.rivers[0].points[1]).toEqual({ x: 0.05, y: 0.05 });
+  expect(data.roads).toHaveLength(1);
+  expect(data.roads[0].points).toHaveLength(2);
+  expect(clipSpy).toHaveBeenCalledTimes(2);
+
+  clipSpy.mockRestore();
 });

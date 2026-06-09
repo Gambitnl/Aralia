@@ -1,7 +1,7 @@
 ﻿# TRACKER: PHB 2024 Glossary Audit
 
-Status: complete implementation scope
-Last updated: 2026-06-05
+Status: review-required; implementation scope complete
+Last updated: 2026-06-08
 
 ## Completed Work
 
@@ -11,13 +11,17 @@ Last updated: 2026-06-05
 - `[done]` Wired the new top-level category folders into glossary UI mapping in `src/components/Glossary/glossaryUIUtils.tsx`.
 - `[done]` Refreshed the living-project docs for the current dashboard state.
 
-## Active Work
+## Review-Gated Work
 
-- `[active]` Doc-only iteration pass: keep the project handoff current and route the next real gap to the right owner.
+- `[blocked_human_decision]` Decide whether this audit project should become
+  reference-only after routing item metadata parity to Item Categorization and
+  rebuild workflow to Glossary maintenance.
 
 ## Blockers
 
-- No hard blockers.
+- Human review is required before assigning forward iteration agents to this
+  project. The remaining gaps are routed to adjacent owners rather than this
+  audit surface.
 
 ## Open Items to Track
 
@@ -33,4 +37,6 @@ Last updated: 2026-06-05
 
 1. Re-run `node scripts/generateGlossaryIndex.js` after any data or mapping edits.
 2. Verify glossary index loading path in `GlossaryContext` and sidebar display for new categories.
-3. Route the highest-value open gap in `GAPS.md` to the owning project before touching shared item pipelines.
+3. Do not assign this project to a worker until the merge-candidate review is
+   cleared; route work through the owning Item Categorization or Glossary
+   surfaces instead.

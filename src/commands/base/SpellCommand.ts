@@ -91,9 +91,16 @@ export interface CommandContext {
   spellSchool?: MagicSchool
   /** The level at which the spell is cast (affects scaling) */
   castAtLevel: number
-  /** Snapshot of the caster at the moment of casting */
+  /**
+   * Snapshot of the caster at the moment of casting.
+   * Runtime reads (HP, position, status, etc.) should read live values from the
+   * `CombatState` passed into `execute()` instead of reusing this snapshot.
+   */
   caster: CombatCharacter
-  /** Snapshot of the targets at the moment of targeting */
+  /**
+   * Snapshot of the targets at the moment of targeting.
+   * Command execution should resolve each target by `id` against current state.
+   */
   targets: CombatCharacter[]
   /** Reference to global game state (for environmental checks, etc.) */
   gameState: GameState

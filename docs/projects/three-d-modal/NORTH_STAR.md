@@ -1,7 +1,7 @@
 # ThreeD Modal North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: human-review-required
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
@@ -10,16 +10,21 @@ Last updated: 2026-06-05
 | Project | Three D Modal |
 | Slug | three-d-modal |
 | Category | active project |
-| Status | active |
+| Status | human-review-required |
 | Confidence | unknown |
 | Evidence | docs/projects/three-d-modal/TRACKER.md; docs/projects/three-d-modal/GAPS.md |
 | Gap signal | present |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Next step | Human review should confirm whether ThreeD Modal remains a separate UX entrypoint owner or merges with World 3D UI before worker assignment. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
 | Last proof | 2026-06-05 docs refresh |
-| Workflow gaps reviewed | yes |
+| Workflow gaps reviewed | 2026-06-08 |
+| Lifecycle status | human-review-required |
+| Deprecation confidence | weak |
+| Deprecation reason | possible_overlap_with_world_3d_ui_entrypoint_work |
+| Canonical owner | pending decision; possible relation to docs/projects/world-3d-ui |
+| Human decision required | yes |
 
 ## Why This Project Exists
 

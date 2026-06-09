@@ -1,23 +1,39 @@
 # Character Creator North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
 Project: Character Creator
 Slug: character-creator
 Category: Feature/UI Projects
-Status: active
+Status: review-required
 Confidence: high
 Evidence: docs/projects/character-creator
-Gap signal: 5 open gaps, with G2 as the active navigation-contract ambiguity
+Gap signal: 5 open gaps; G2 is blocked on sidebar navigation policy
 Protocol: living project doc set
-Next step: Reconcile the sidebar-navigation contract against the current reducer-driven flow before any gating change.
+Next step: Human/product decision: keep permissive sidebar navigation with locked placeholders, or move to strict sequential gating.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-08 review-gate classification
+Workflow gaps reviewed: 2026-06-08
+
+Dashboard lifecycle: reviewed (G2 resolved)
+Next step: G2 resolved - permissive navigation is intentional. Proceed to reconcile documentation drift (T4) or address adjacent gaps (G3-G5).
+
+## Required Review Brief
+
+Title: Sidebar Navigation Policy
+Question: Should Character Creator keep permissive sidebar navigation with locked placeholders, or move to strict sequential gating?
+Status: **Resolved - Permissive Navigation Intentional**
+
+Issue: The sidebar allows users to jump to incomplete steps, while `CharacterCreator.tsx` renders locked placeholders for steps whose prerequisites are missing.
+Current behavior: Users can select later steps from `CreationSidebar`, but incomplete step content is blocked by `StepLockedPlaceholder` messaging.
+Resolution: Permissive navigation with locked placeholders is intentional. The design allows free exploration while preventing invalid state access via clear messaging. The `StepLockedPlaceholder` component (line 386) was introduced to fix a React anti-pattern where prerequisite validation during render caused unstable cycles.
+Evidence: `src/components/CharacterCreator/CreationSidebar.tsx:84-85`; `src/components/CharacterCreator/config/sidebarSteps.ts:42-98`; `src/components/CharacterCreator/CharacterCreator.tsx:386-400`; `src/components/CharacterCreator/__tests__/CreationSidebar.test.tsx:7-24`
+Decision owner: Human/product owner (recorded 2026-06-08)
+Proof after decision: Record the chosen policy in `TRACKER.md`, update G2, and run the focused sidebar/creator flow tests before assigning implementation agents.
 
 ## Why This Project Exists
 
@@ -50,7 +66,7 @@ The live flow is implemented as a single reducer-driven flow with these `Creatio
 - `NameAndReview`
 
 The flow is non-destructively navigable, and the reducer intentionally supports in-flow backtracking.
-Treat G2 in `TRACKER.md` / `GAPS.md` as the current resume target if the navigation contract needs to be clarified.
+Treat G2 in `TRACKER.md` / `GAPS.md` as a human-review blocker before assigning forward implementation.
 
 ### Persisted/Runtime Behavior
 

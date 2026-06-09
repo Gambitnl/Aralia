@@ -1,7 +1,7 @@
 # Economy UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-09
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/economy-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Economy UI
 Project folder: docs/projects/economy-ui
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -37,12 +37,12 @@ and keeps the modal-wiring slice as the primary resume path.
 ## Current Mission
 
 Active task:
-T2 - Prepare implementation-safe integration plan for missing modal wiring.
+T3 - Resolve entry-point strategy for Ledger and Courier UI.
 
 Acceptance criteria:
 Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+NORTH_STAR.md. Confirm that modal mounts and close paths are now operational for
+`LedgerBook` and `CourierPouch`, then carry forward remaining entry/callback gaps.
 
 Key files to touch:
 - docs/projects/economy-ui/NORTH_STAR.md
@@ -61,9 +61,13 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-North Star now carries a Dashboard Card Schema, the tracker narrows the next
-resume slice to T2, and the gap log keeps G1-G3 visible without inventing new
-blockers.
+T2 gap-complete pass mounted `LedgerBook` and `CourierPouch` in `GameModals`,
+added fallback Escape closure for both, and routed open actions through
+`App.tsx`/`DevMenu.tsx` as `toggle_economy_ledger` and
+`toggle_courier_pouch`.
+Current pass added focused regression coverage in
+`src/components/layout/__tests__/GameModals.test.tsx` for fallback `Escape`
+closure of `CourierPouch`, matching the existing ledger parity.
 
 Key files to touch:
 - docs/projects/economy-ui/NORTH_STAR.md
@@ -90,7 +94,8 @@ Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+`NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` are the current source of truth.
+Scope-safe remaining work is now entry-point and `InvestmentBoard` callback routing.
 
 ## Required End State For This Iteration
 

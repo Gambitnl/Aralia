@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:46:27
+ * Last Sync: 08/06/2026, 17:18:57
  * Dependents: hooks/useAbilitySystem.ts
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,7 @@ import { useCallback } from 'react';
 import { CombatCharacter, Ability, Position, BattleMapData } from '../../types/combat';
 import { getDistance, getCharacterDistance, getOccupiedTiles } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
+import { CreatureTaxonomy } from '../../systems/creatures/CreatureTaxonomy';
 
 interface UseTargetValidatorProps {
     characters: CombatCharacter[];
@@ -187,12 +188,15 @@ export function useTargetValidator({ characters, mapData }: UseTargetValidatorPr
         }
 
         // 4. Creature-Type Constraint Check (e.g. Hold Person: Humanoid only)
-        if (ability.validCreatureTypes?.length && targetCharacter) {
-            const targetTypes = targetCharacter.stats.creatureTypes ?? [];
-            const hasValidType = ability.validCreatureTypes.some(required =>
-                targetTypes.some(ct => ct.toLowerCase() === required.toLowerCase())
-            );
-            if (!hasValidType) {
+        if (targetCharacter && ability.validCreatureTypes?.length) {
+            const targetTypes = [
+                ...(targetCharacter.creatureTypes ?? []),
+                ...(targetCharacter.stats?.creatureTypes ?? [])
+            ];
+            if (!CreatureTaxonomy.isValidTarget(targetTypes, {
+                creatureTypes: ability.validCreatureTypes,
+                excludeCreatureTypes: (ability as { excludeCreatureTypes?: string[] }).excludeCreatureTypes
+            })) {
                 const typeList = ability.validCreatureTypes.join(', ');
                 return {
                     isValid: false,

@@ -20,7 +20,7 @@ docs/projects/command-factory-runtime/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Command Factory Runtime
 Project folder: docs/projects/command-factory-runtime
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,12 +28,19 @@ North Star: docs/projects/command-factory-runtime/NORTH_STAR.md
 Tracker: docs/projects/command-factory-runtime/TRACKER.md
 Gaps: docs/projects/command-factory-runtime/GAPS.md
 
-## Previous Agent Handoff
+## Iteration Ledger
 
-Iteration 1 established the project handoff files and refreshed the North Star
-with a dashboard card schema. The project now has a compact resume path and a
-clear open-gap queue. Use `NORTH_STAR.md` for scope and intent, `TRACKER.md`
-for the active queue, and `GAPS.md` for unresolved findings.
+| Iteration | Agent / model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker |
+
+## Previous Handoff
+
+Iteration 2 kept the Command Factory Runtime docs source-anchored and then
+advanced one concrete gap: `AbilityCommandFactory` now calls
+`TargetValidationUtils.matchesFilter(...)` directly, while
+`SpellCommandFactory.matchesFilter(...)` remains only as a legacy wrapper for
+spell callers.
 
 ## Current Mission
 
@@ -41,9 +48,8 @@ Active task:
 T2 - Monitor drift after source edits and keep gaps updated
 
 Acceptance criteria:
-Use the active `TRACKER.md` row and the acceptance criteria listed in
-`NORTH_STAR.md`. Keep the dashboard card schema current, preserve the source-
-anchored file map, and record any new project blocker in `GAPS.md`.
+Keep the dashboard card schema current, preserve the source-anchored file map,
+and record any new project blocker or scope drift in `GAPS.md`.
 
 Key files to touch:
 - docs/projects/command-factory-runtime/NORTH_STAR.md
@@ -54,44 +60,35 @@ Key files to touch:
 
 Scoped verification:
 Use the verification command or evidence source named by `TRACKER.md` or
-`NORTH_STAR.md`. If none is named, add one before claiming the task is done.
-If the change is observable, collect empirical proof.
+`NORTH_STAR.md`. For this slice, the focused factory tests and a call-site
+search confirmed the shared validator path.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-`NORTH_STAR.md` now has a dashboard card schema and the tracker/gap dates are
-synced to the latest cold-start pass. No project-specific blocker was added in
+`AbilityCommandFactory` now uses the shared target validator directly, the
+gap log was updated to show G2 as a lower-risk follow-up, and the focused
+factory tests passed.
+
+Workflow-gap review result:
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read
+and left unchanged; WFG-001 still applies but did not change the safety of
 this iteration.
 
-Key files to touch:
-- docs/projects/command-factory-runtime/NORTH_STAR.md
-- docs/projects/command-factory-runtime/TRACKER.md
-- docs/projects/command-factory-runtime/GAPS.md
-- docs/projects/command-factory-runtime/COLD_START_AGENT_PROMPT.md
-- docs/projects/command-factory-runtime/DECISIONS.md
-- docs/projects/command-factory-runtime/AUDIT_OR_PROOF.md
-- docs/projects/command-factory-runtime/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+Dashboard schema updates:
+`NORTH_STAR.md` and `TRACKER.md` were refreshed with the new date, proof
+status, and source-backed note about the shared validator path.
 
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+Optional docs:
+`DECISIONS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` are not present for this
+project yet, so they were not needed this iteration.
 
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Next safe resume path:
+Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the
+next source edit, then close G2 only if the legacy wrapper loses its last
+caller.
 
 ## Required End State For This Iteration
 

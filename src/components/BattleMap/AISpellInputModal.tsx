@@ -76,9 +76,14 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 z-[var(--z-index-modal-background)] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 bg-black/70 z-[var(--z-index-modal-background)] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-spell-input-modal-title"
+        >
             <div className="bg-gray-800 border-2 border-amber-500 rounded-lg p-6 max-w-lg w-full shadow-2xl">
-                <h2 className="text-2xl font-cinzel text-amber-500 mb-4">Cast {spell.name}</h2>
+                <h2 id="ai-spell-input-modal-title" className="text-2xl font-cinzel text-amber-500 mb-4">Cast {spell.name}</h2>
 
                 <p className="text-gray-300 mb-4 italic">
                     {perTargetChoicePromptTargetName

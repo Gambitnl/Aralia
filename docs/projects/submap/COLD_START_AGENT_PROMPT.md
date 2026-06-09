@@ -1,9 +1,7 @@
 # Submap Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
-
-This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
+Status: review-required
+Last updated: 2026-06-09
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -17,10 +15,66 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 Project entry point:
 docs/projects/submap/NORTH_STAR.md
 
+## Iteration Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 3 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Multi-agent worker fallback while gpt-5.3-codex-spark was usage-limited. |
+
+## Current State
+
+- The DOM/tile Submap remains the live gameplay surface.
+- `docs/projects/submap/DEPENDENCY_CONTRACT.md` now records the renderer-independent quick-travel, inspect, tooltip, and timing contract.
+- `docs/projects/submap/AUDIT_OR_PROOF.md` records the 2026-06-09 dependency inventory evidence.
+- `TRACKER.md` keeps the quick-travel proof slice waiting; `G3` blocks forward assignment on renderer authority.
+- The renderer-phase-out path is contract extraction first, not renderer replacement.
+
+## Active Task
+
+Task:
+Wait for the renderer-authority decision before assigning further Submap implementation or proof work.
+
+Acceptance criteria:
+- `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` stay aligned with the current live contract and review gate.
+- The contract note remains focused on preserved dependencies, not renderer replacement.
+- The next agent can resume after the decision with one concrete proof step instead of re-deriving the contract from source.
+
+Key files:
+- `docs/projects/submap/NORTH_STAR.md`
+- `docs/projects/submap/TRACKER.md`
+- `docs/projects/submap/GAPS.md`
+- `docs/projects/submap/DEPENDENCY_CONTRACT.md`
+- `docs/projects/submap/DECISIONS.md`
+- `docs/projects/submap/AUDIT_OR_PROOF.md`
+- `docs/projects/submap/RUNBOOK.md`
+- `src/components/Submap/SubmapPane.tsx`
+- `src/components/Submap/useQuickTravel.ts`
+- `src/hooks/actions/handleMovement.ts`
+- `src/hooks/actions/handleObservation.ts`
+- `src/types/actions.ts`
+
+Scoped verification:
+- `git diff --check` for all touched files, including the new contract doc.
+
+Blocking dependencies / do-not-touch:
+- Do not delete the DOM/tile Submap surface.
+- Do not continue renderer replacement, implementation, or proof work until the renderer authority decision in `G3` is recorded.
+
+Recent progress:
+- The quick-travel and inspect dependency contract is now documented in a durable Submap note.
+- The North Star and tracker now point at that contract instead of leaving the next step implicit.
+
+Workflow gap review:
+- Read `WORKFLOW_GAPS.md`; no new workflow-level ambiguity was introduced by this pass.
+
+Required end state:
+- Update the project docs in place.
+- Keep the current handoff only; do not preserve older transcript blocks between the markers.
+
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Submap
 Project folder: docs/projects/submap
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,83 +84,43 @@ Gaps: docs/projects/submap/GAPS.md
 
 ## Previous Agent Handoff
 
-The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+The Submap packet has been refreshed to preserve the live DOM/tile surface
+while making the renderer-independent quick-travel and inspect dependencies
+explicit for later extraction work.
 
 ## Current Mission
 
 Active task:
-T2 - Finish Submap cold-start docs with contract-aware state/integration map.
+T4/G3 - Renderer authority decision is required before more Submap implementation or proof work.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Use the contract note and tracker rows to keep the quick-travel and inspect
+proof path concrete, but do not assign it until the renderer-authority decision
+is recorded.
 
 Key files to touch:
 - docs/projects/submap/NORTH_STAR.md
 - docs/projects/submap/TRACKER.md
 - docs/projects/submap/GAPS.md
-- docs/projects/submap/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
-
-Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
-
-Key files to touch:
-- docs/projects/submap/NORTH_STAR.md
-- docs/projects/submap/TRACKER.md
-- docs/projects/submap/GAPS.md
-- docs/projects/submap/COLD_START_AGENT_PROMPT.md
+- docs/projects/submap/DEPENDENCY_CONTRACT.md
 - docs/projects/submap/DECISIONS.md
 - docs/projects/submap/AUDIT_OR_PROOF.md
 - docs/projects/submap/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+- docs/projects/submap/COLD_START_AGENT_PROMPT.md
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Run `git diff --check` for all touched files, including the new contract doc.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Do not delete the DOM/tile Submap surface. Do not continue renderer
+replacement, implementation, or proof work until `G3` is decided.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+The dependency contract now captures the preserved quick-travel and inspect
+inputs, outputs, action payload semantics, modal visibility routing, MapData
+compatibility, and combat-map separation.
 
-## Required End State For This Iteration
-
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
-
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
+Required closeout reminders:
+- Keep `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, and this handoff aligned.
+- Keep the handoff compact; only the latest iteration ledger row should remain.
 ---END NEXT AGENT HANDOFF---

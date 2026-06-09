@@ -35,6 +35,22 @@ describe('heightFromBiomes', () => {
     expect(plateau).toBeLessThan(mountain);
   });
 
+  it('reduces steep border cliffs between adjacent biomes', () => {
+    const cols = 8;
+    const rows = 1;
+    // Abrupt low-to-high transition in row-major order.
+    const biomeIds = new Array(cols);
+    biomeIds.fill('plains_prairie', 0, 4);
+    biomeIds.fill('mountain_alpine', 4);
+
+    const heights = heightFromBiomes(biomeIds, cols, rows, 9);
+
+    // Previous implementation had a sharp 44-step jump here; smoothing should reduce this seam.
+    const seam = Math.abs(heights[3] - heights[4]);
+    expect(seam).toBeLessThan(35);
+    expect(heights[2]).toBeLessThan(heights[5]);
+  });
+
   it('places aquatic biomes below sea level and land biomes above it', () => {
     const cols = 1;
     const rows = 2;

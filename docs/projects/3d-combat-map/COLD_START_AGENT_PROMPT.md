@@ -1,7 +1,7 @@
 # 3D Combat Map Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-07
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/3d-combat-map/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: 3D Combat Map
 Project folder: docs/projects/3d-combat-map
-Iteration: 3
+Iteration: 5
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -29,62 +29,91 @@ Tracker: docs/projects/3d-combat-map/TRACKER.md
 Gaps: docs/projects/3d-combat-map/GAPS.md
 Audit/proof: docs/projects/3d-combat-map/AUDIT_OR_PROOF.md
 
+Agent identity / runtime:
+Next agent must identify its model and runtime surface before selecting work.
+This handoff was refreshed after MCP subagent Kuhn completed G8 required-doc
+accounting.
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 5 | Kuhn / gpt-5.3-codex-spark high | MCP/subagent | certain | 2026-06-08 | Subagent completion notification `019ea7d6-7456-7d63-8459-9bfae3d0e289` |
+
 ## Previous Agent Handoff
 
-Iteration 2 completed T4 (the next-check list). Two standing acceptance checks
-now exist — NC1 (visual smoke, guards G2) and NC2 (integration, guards G3) —
-indexed in TRACKER.md and defined step-by-step in the new AUDIT_OR_PROOF.md. The
-bounded gap sweep found that G2 was stale: SSAO + enableNormalPass were already
-removed from BattleMap3D.tsx (lines 228-251) and replaced with ContactShadows, so
-G2 was reclassified to "live-proof pending" rather than re-fixing removed code.
-GAPS.md G1 was also synced to closed (it had drifted out of step with TRACKER.md).
-NORTH_STAR.md gained YAML frontmatter (schema_version 1).
+Iteration 3 ran NC1 and attempted NC2. (Heads-up: two agents executed iteration 3
+concurrently — a Codex pass and a Claude/Opus pass — so reconcile if any row or
+finding looks doubled.) NC1 (visual smoke, G2) PASSED: a browser BattleMapDemo 3D
+render showed no repeated GL_INVALID_OPERATION / glBlitFramebuffer / SSAO /
+NormalPass errors, and it was independently reproduced headless (forest, canvas
+918px, terrain + tree variety + actors render). G2 is CLOSED. One non-blocking
+terrain shader warning (X4000 uninitialized f_getTerrainColor) was split out as G6.
+NC2 was attempted but BLOCKED (G7): the offline save fixture loads the World3D
+exploration surface (no ActionPane System Menu), so the headless path to a combat
+encounter (Dev Menu → Generate Encounter → Simulate Battle → CombatView) is
+unreachable. A ready NC2 harness exists at
+.agent/3d-visual-quality/captures/nc2-combatview.mjs. Static review: the CombatView
+3D path is structurally sound and was reworked (T5) to fix the canvas-measure root
+cause behind the stale ".agent task 24" note, so residual G3 risk is narrowed to
+the CombatView host mount + pop-out remount. Doc-hygiene gap G8 was opened
+(required_docs declared DECISIONS.md/RUNBOOK.md, both were absent), and has now been
+closed by adding the missing docs.
 
 ## Current Mission
 
 Active task:
-Execute NC1 (visual smoke) and NC2 (integration) from the Next-Check List and
-record empirical results in AUDIT_OR_PROOF.md. Use the evidence to close or
-advance G2 and G3.
+Unblock and run NC2 (G7), then close or re-scope G3. The blocker is reaching a
+CombatView combat encounter headlessly — the renderer itself is already proven by
+NC1.
 
 Acceptance criteria:
-- NC1: a ~5s 3D render pass with camera movement shows terrain, grid, and actors
-  with no repeated GL_INVALID_OPERATION / glBlitFramebuffer / SSAO / NormalPass
-  console errors. If clean, close G2.
-- NC2: enter combat → 3D → pop-out → interact → return; renderMode stays 3d, turn
-  order and selected token persist, and the 2D/3D toggle still works. Resolve or
-  re-scope G3 on the result.
-- Record both results (date, pass/fail, short evidence excerpt) in the
-  AUDIT_OR_PROOF.md Proof Log.
-If the app cannot be run this pass, record the blocker and pivot to G4 (terrain
-raycast/tile mapping, in_scope_now) as the implementation task instead.
+- G7 / NC2: get the app into a real combat encounter (CombatView), toggle 3D, and
+  record whether BattleMap3D mounts (a sized canvas) or hits the ErrorBoundary
+  fallback ("An error occurred in the Battle Map."); then pop out → interact →
+  return and confirm renderMode stays 3d, turn order + selected token persist, and
+  the 2D/3D toggle still works. Unblock via one of: (a) capture a 2D-exploration
+  save fixture with save-bridge.mjs while the app is in classic (non-World3D)
+  exploration so the System Menu is present; (b) add a small dev hook that
+  dispatches a battle-map encounter directly; (c) script the World3D→combat
+  trigger. Then run nc2-combatview.mjs and record the result in AUDIT_OR_PROOF.md.
+- If NC2 still cannot be reached, record the refined blocker and instead run the G4
+  browser slope-click proof, or investigate the G6 terrain-shader warning.
 
 Key files to touch:
 - docs/projects/3d-combat-map/AUDIT_OR_PROOF.md
 - docs/projects/3d-combat-map/TRACKER.md
 - docs/projects/3d-combat-map/GAPS.md
 - docs/projects/3d-combat-map/NORTH_STAR.md
+- docs/projects/3d-combat-map/DECISIONS.md
+- docs/projects/3d-combat-map/RUNBOOK.md
 - docs/projects/3d-combat-map/COLD_START_AGENT_PROMPT.md
-- src/components/BattleMap/BattleMap3D.tsx (NC1 surface; do not edit unless fixing)
+- .agent/3d-visual-quality/captures/nc2-combatview.mjs (ready NC2 harness)
+- .agent/3d-visual-quality/captures/nc1-console.mjs (NC1 harness, reusable)
 - src/components/Combat/CombatView.tsx (NC2 surface; do not edit unless fixing)
+- src/components/BattleMap/BattleMap3D.tsx (renderer surface; do not edit unless fixing)
 
 Scoped verification:
-The change is observable, so collect empirical proof: browser console capture for
-NC1 and a pop-out flow check (state note or before/after screenshots) for NC2. Use
-preview tools; verify in-browser rather than asking for manual confirmation. If the
-slice ends up docs-only (blocked from running), use docs_consistency and record the
-blocker + next proof.
+Observable change → collect empirical proof. The reusable headless harnesses live
+in .agent/3d-visual-quality/captures/ and need the dev server on port 5174
+(`npm run dev -- --port 5174 --strictPort`) so the storageState autosave origin
+matches. Verify in-browser; do not ask for manual confirmation. If blocked from
+running, record the blocker + next proof and fall back to docs_consistency.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's combat-only scope. Do not absorb World3D or ThreeDModal
-behavior (out of scope per NORTH_STAR). Route sibling-project blockers instead of
-editing their docs.
+behavior (out of scope per NORTH_STAR) — navigating *through* the World3D UI to
+reach combat is acceptable, but do not edit World3D docs/code. Route sibling-project
+blockers instead of editing their docs.
 
 Recent progress:
 Use NORTH_STAR.md, TRACKER.md, GAPS.md, and AUDIT_OR_PROOF.md as the current source
-of truth. T1, T2, T3, T4, T5 done. G1 closed. G2 reclassified (live-proof pending).
-G3, G4, G5 open. WORKFLOW_GAPS.md WFG-001 reviewed; canonical paths resolved cleanly
-this pass, so no +1 was added.
+of truth. T1–T5 done. G1, G2 closed; NC1 done (independently reproduced). Open:
+G3 (pop-out proof, blocked by G7), G4 (slope proof), G5 (style policy), G6 (shader
+warning), G7 (NC2 reach-fixture blocker). WORKFLOW_GAPS
+WFG-001 reviewed; the cold-start prompt pointed at the canonical
+docs/agent-workflows/living-project-task-protocol/ paths and they resolved cleanly,
+so no +1 was added.
 
 ## Required End State For This Iteration
 

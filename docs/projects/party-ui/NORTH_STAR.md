@@ -1,7 +1,7 @@
 # Party UI North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
@@ -11,13 +11,13 @@ Category: Feature/UI Projects
 Status: partial
 Confidence: medium
 Evidence: docs/projects/party-ui
-Gap signal: 5 open gaps
+Gap signal: 5 open gaps (G3 resolved 2026-06-08; G5 blocked on human decision; G9/G10 registered 2026-06-08; G7 depends on G5)
 Protocol: living project doc set
-Next step: Lock the companion-party boundary, then resume short-rest persistence verification.
-Required verification: docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Next step: G5 (roster acceptance rule) blocked on human decision; G7 (companion data in overlay) next safe lane once G5 is decided; G9 (PartyMemberCard tests) and G4 (warning placement rule) are independent tasks.
+Required verification: docs_consistency, scoped_tests
+Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08)
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 ## Purpose and scope
 
@@ -89,23 +89,60 @@ This is a cold-start implementation snapshot, not a scaffold placeholder.
 
 ## Companion / party relationship boundary
 
-- Companion browsing and metadata are clearly available in `RelationshipsPane`.
-- Party UI itself does not currently define recruit/leave business logic for companions or the acceptance rule for non-companion NPC party entities.
-- Companion and party membership rules remain external to this project and are the primary unresolved area.
+### Canonical rule (documented 2026-06-08)
+
+Companions and party members occupy **separate identity spaces** with no enforced shared-identity contract:
+
+1. **State domains**:
+   - `gameState.party` is `PlayerCharacter[]` — the active combat/roster party.
+   - `gameState.companions` is `Record<string, Companion>` — all known companion metadata (approval, relationships, banter, questlines).
+   - These are managed by independent reducers (`characterReducer` for party, `companionReducer` for companions).
+
+2. **Best-effort context bridge** (not a membership contract):
+   - `CharacterSheetModal` receives optional companion context via `gameState.companions[character.id]`.
+   - If the character id matches a companion id, companion metadata enriches the sheet. If not, `companion` is `null` and the sheet renders without it.
+   - This lookup is a display convenience, not a membership assertion.
+
+3. **No recruitment / leave business logic exists**:
+   - There is no `RECRUIT_COMPANION`, `DISMISS_COMPANION`, or similar action type.
+   - Companions have approval, loyalty, relationship levels, and banter — but none of these gates or triggers party membership.
+   - The `Companion` type comments note: "For now, we assume they map to a CombatCharacter via ID" — acknowledging the link is aspirational.
+
+4. **Display integration gap**:
+   - `RelationshipsPane` renders all companions but is **not mounted** in `PartyOverlay` or `PartyPane`.
+   - `PartyOverlay` accepts `party: PlayerCharacter[]` only — no companion data is threaded to the overlay.
+   - The party roster and the companion relationship surface are visually and architecturally disconnected.
+
+5. **Dev-only party editing bypass**:
+   - `SET_PARTY_COMPOSITION` and `SET_FULL_PARTY` accept raw character arrays with no companion-membership validation.
+   - A dev-edited party can contain characters with no companion record, or exclude characters that have active companion state.
+
+### Implications
+
+- A companion can exist in `gameState.companions` with full relationship progression without ever appearing in the party.
+- A `PlayerCharacter` can exist in `gameState.party` with no corresponding companion record (e.g., the player's own character, summoned creatures, or dev-spawned NPCs).
+- The id-match bridge in `CharacterSheetModal` is the only point where the two domains meet, and it is optional/null-safe.
 
 ## Gaps carried forward
 
-- Define companion-party membership rules that determine whether and how companion records and `PlayerCharacter` party entries share identity and lifecycle rules.
+- ~~Define companion-party membership rules~~ — **Resolved 2026-06-08**: canonical rule documented above. Separate identity spaces, best-effort id bridge, no recruitment logic.
 - Clarify which missing-choice warnings should be surfaced in the overlay path versus compact cards if richer card variants are introduced later.
-- Decide whether party roster membership can include non-companion NPC party entities and, if so, what acceptance rule governs them.
-- Keep the Party UI README artifacts aligned with current behavior instead of leaving old card and overlay guidance in place.
+- Decide whether party roster membership can include non-companion NPC party entities and, if so, what acceptance rule governs them (now blocked on human decision — see GAPS.md G5).
+- ~~Keep the Party UI README artifacts aligned with current behavior~~ — **Resolved 2026-06-08**: `PartyOverlay.README.md` and `PartyPane.README.md` rewritten to match current implementation (iteration 5).
+- Wire companion relationship data into the PartyOverlay so the roster can show approval/relationship context (see GAPS.md G7).
+- ~~Add a companion-id coherence check when party is rebuilt via `SET_FULL_PARTY`~~ — **Resolved 2026-06-08**: regression coverage proves the id bridge for both rebuild paths.
+- Add `PartyMemberCard` test coverage (see GAPS.md G9).
+- Evaluate short rest modal parity with long rest choice flow (see GAPS.md G10).
 
 ## Next checks for the next agent
 
-- Start with `TRACKER.md` task T2 and write down the canonical companion-party rule before broadening scope.
-- Validate persistence behavior for `shortRestTracker` after load/save and day rollover.
-- Validate that character-sheet companion context stays correct when party is rebuilt via `SET_FULL_PARTY` and when encounter temp party changes.
-- Confirm if party roster should include non-companion NPC party entities and document the acceptance rule.
+- All T-tasks (T1–T5) are done.
+- G3 is resolved: READMEs aligned with current implementation (iteration 5).
+- G5 (roster acceptance rule for non-companion NPCs) remains blocked on human decision; do not touch it.
+- G7 (wire companion relationship data into PartyOverlay) is the next safe lane once G5 is decided.
+- G9 (add `PartyMemberCard` tests) is an independent test-coverage task.
+- G10 (short rest modal parity with long rest) is an independent UX/rules follow-up.
+- G4 (missing-choice warning placement rule) is an independent adjacent follow-up.
 
 ## Resume path
 
@@ -113,6 +150,8 @@ This is a cold-start implementation snapshot, not a scaffold placeholder.
 2. Read `docs/projects/party-ui/TRACKER.md`.
 3. Read `docs/projects/party-ui/GAPS.md`.
 4. Cross-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` for classification before scope expansion.
+5. All T-tasks (T1–T5) are done. G3 resolved. Next safe lanes: G9 (tests), G4 (warning rule), G7 (companion data, blocked by G5).
+6. G5 remains blocked on human decision. G8 and G3 are resolved.
 
 
 ## Cold-Start Gap Routing

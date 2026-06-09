@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 17:22:06
+ * Dependents: state/reducers/worldReducer.ts, systems/world/NobleIntrigueManager.ts
+ * Imports: 17 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -6,7 +22,7 @@
  * Manages daily world simulation events.
  */
 
-import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
+import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState, MarketEventImpactDirection } from '../../types';
 import { MarketEventType } from '../../types/economy';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay } from '../../utils/core';
@@ -257,7 +273,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // Define potential market events with actual gameplay effects
-    const events: Array<{ text: string; event: MarketEvent & { affectedTags?: string[]; effect?: string; duration: number }, weight?: number }> = [
+    const events: Array<{ text: string; event: MarketEvent & { affectedTags?: string[]; effect?: MarketEventImpactDirection; duration: number }, weight?: number }> = [
         {
             text: "A surplus of iron from the mines has lowered weapon prices.",
             event: {
@@ -400,7 +416,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
 
     // RALPH: Logic Unification.
     // Uses the centralized selector to ensure state factors match active events.
-    const { scarcity, surplus } = calculateMarketFactors(newActiveEvents as MarketEvent[]);
+    const { scarcity, surplus } = calculateMarketFactors(newActiveEvents);
 
     const newEconomy: EconomyState = {
         ...state.economy,
@@ -520,9 +536,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         marketFactors: state.economy?.marketFactors ?? { scarcity: [], surplus: [] },
         buyMultiplier: state.economy?.buyMultiplier ?? 1,
         sellMultiplier: state.economy?.sellMultiplier ?? 1,
-        // DEBT: Cast to any to probe dynamic economy event array without strict schema mapping here.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        activeEvents: (state.economy?.activeEvents as any) ?? []
+        activeEvents: state.economy?.activeEvents ?? []
     } as EconomyState;
 
     let currentState = { ...state, economy: safeEconomy }; // Start with reference, only clone on change
@@ -548,10 +562,9 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
     // Clean up expired market events
     if (currentState.economy && currentState.economy.activeEvents) {
         let eventsChanged = false;
-        // DEBT: Cast to any array to allow dynamic mapping/filtering of economy events.
-        const newActiveEvents = (currentState.economy.activeEvents as any[])
-            .map(e => ({ ...e, duration: e.duration - 1 }))
-            .filter((e: any) => e.duration > 0);
+        const newActiveEvents = (currentState.economy.activeEvents || [])
+            .map(event => ({ ...event, duration: (event.duration ?? 0) - 1 } as MarketEvent))
+            .filter(event => event.duration > 0);
 
         if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
             eventsChanged = true;

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:38:42
+ * Last Sync: 08/06/2026, 20:19:40
  * Dependents: commands/index.ts
  * Imports: 14 files
  *
@@ -41,11 +41,11 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
 import { rollDice, generateId, calculateCover, resolveAttack, getDistance, rollD20 } from '@/utils/combatUtils';
 import { SpellEffect, isDamageEffect, isHealingEffect, isStatusConditionEffect } from '@/types/spells';
-import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
 import { FamiliarSharedSensesCommand } from '../effects/FamiliarSharedSensesCommand';
+import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
 
 /**
  * Command for executing a weapon attack.
@@ -99,7 +99,11 @@ export class WeaponAttackCommand implements SpellCommand {
         if (e.mechanics?.disadvantageOnAttacks !== true) return false;
         // If there's an attacker filter, check if it matches
         const attackerFilter = e.mechanics?.attackerFilter;
-        return !attackerFilter || SpellCommandFactory.matchesFilter(this.caster, attackerFilter);
+        // The shared validator now owns filter matching for both spell and
+        // ability command paths; keeping this direct call here advances the
+        // runtime away from the deprecated spell-factory wrapper without
+        // removing that legacy export yet.
+        return !attackerFilter || TargetValidationUtils.matchesFilter(this.caster, attackerFilter);
       }) || false;
 
       let hasAdvantage = false;

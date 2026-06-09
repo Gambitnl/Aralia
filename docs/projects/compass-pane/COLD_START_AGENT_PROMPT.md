@@ -1,7 +1,7 @@
 # Compass Pane Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/compass-pane/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Compass Pane
 Project folder: docs/projects/compass-pane
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,89 +28,52 @@ North Star: docs/projects/compass-pane/NORTH_STAR.md
 Tracker: docs/projects/compass-pane/TRACKER.md
 Gaps: docs/projects/compass-pane/GAPS.md
 
-## Previous Agent Handoff
+## Iteration Ledger
 
-Iteration 1 created the initial project handoff. This pass refreshed the North
-Star dashboard schema, brought the tracker dates current, and clarified the
-stale README note in GAPS so the next agent can resume without re-deriving the
-documentation state.
+| Iteration | Agent / Model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Codex desktop context with sub-agent repo access |
+
+## Previous Iteration Summary
+
+T2 is complete. The Compass Pane movement/action slice now has durable proof for
+move dispatch, `look_around` dispatch, edge disablement, and pass-time wait
+confirmation. The proof note lives in `docs/projects/compass-pane/AUDIT_OR_PROOF.md`.
 
 ## Current Mission
 
 Active task:
-T2 - Validate movement/action surface for Compass Pane end-to-end
+T3 - Resolve navigation-affordance gap from registry
 
 Acceptance criteria:
-Use the active TRACKER.md row and the acceptance criteria already implied by the
-North Star and gap log: confirm direction dispatch, `look_around`, and `wait`
-behavior with focused proof. If implementation work begins and the task still
-lacks a scoped check, record that documentation gap before widening scope.
+Validate the current affordance rules for map/submap/3D toggles in
+`GameLayout` vs `SubmapPane`, confirm whether the world-map toggle should stay
+visible in submap context, and add a Required Review Brief if the visibility
+rule itself is a product decision.
 
 Key files to touch:
 - docs/projects/compass-pane/NORTH_STAR.md
 - docs/projects/compass-pane/TRACKER.md
 - docs/projects/compass-pane/GAPS.md
-- docs/projects/compass-pane/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
-
-Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof. This pass did not run code
-verification; the next agent should do that before closing T2.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-North Star now has a Dashboard Card Schema, the tracker dates are current, and
-the README-staleness gap is recorded in the project gap log. The resume path
-points back to T2.
-
-Key files to touch:
-- docs/projects/compass-pane/NORTH_STAR.md
-- docs/projects/compass-pane/TRACKER.md
-- docs/projects/compass-pane/GAPS.md
-- docs/projects/compass-pane/COLD_START_AGENT_PROMPT.md
-- docs/projects/compass-pane/DECISIONS.md
 - docs/projects/compass-pane/AUDIT_OR_PROOF.md
-- docs/projects/compass-pane/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+- docs/projects/compass-pane/COLD_START_AGENT_PROMPT.md
+- src/components/CompassPane/index.tsx
+- src/components/layout/GameLayout.tsx
+- src/components/Submap/SubmapPane.tsx
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+`npm exec vitest run src/components/CompassPane/__tests__/CompassPane.test.tsx`
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+No blocker currently. Stay inside Compass Pane scope and do not widen into
+unrelated UI refactors.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Movement/action regression proof is durable and `G2` is resolved in
+`docs/projects/compass-pane/GAPS.md`. `TRACKER.md` now points T3 at the
+navigation-affordance decision.
 
-## Required End State For This Iteration
-
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
-
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
+Workflow gap review:
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read
+and no workflow-level update was needed this iteration.
 ---END NEXT AGENT HANDOFF---

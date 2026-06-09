@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 07/05/2026, 00:02:48
+ * Last Sync: 08/06/2026, 16:47:06
  * Dependents: components/Combat/CombatView.tsx
  * Imports: 3 files
  *
@@ -39,7 +39,7 @@ interface UseCombatAIProps {
     /** Callback to execute a chosen action */
     executeAction: (action: CombatAction) => Promise<boolean> | boolean;
     /** Callback to execute an ability (needed for damage/commands) */
-    executeAbility: (ability: any, caster: CombatCharacter, targetPos: any, targetIds: string[]) => void;
+    executeAbility: (ability: any, caster: CombatCharacter, targetPos: any, targetIds: string[]) => Promise<void> | void;
     /** Callback to end the turn */
     endTurn: () => void;
     /** Set of character IDs that are controlled by AI (in addition to 'enemy' team) */
@@ -168,7 +168,7 @@ export const useCombatAI = ({
             } else if (action.type === 'ability' && action.abilityId) {
                 const ability = character.abilities.find(a => a.id === action.abilityId);
                 if (ability) {
-                    executeAbility(
+                    await executeAbility(
                         ability,
                         character,
                         action.targetPosition || character.position,

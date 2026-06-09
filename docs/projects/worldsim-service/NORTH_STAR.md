@@ -1,7 +1,7 @@
 # NORTH_STAR: WorldSim Service
 
-Status: active
-Last updated: 2026-06-05 (WSS-004 remediated — biome-derived heightfield)
+Status: review-required
+Last updated: 2026-06-08 (WSS-008 remediated — bootstrap/save history bridge)
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
 > (not consolidated):
@@ -18,16 +18,34 @@ Last updated: 2026-06-05 (WSS-004 remediated — biome-derived heightfield)
 | Project | Worldsim Service |
 | Slug | worldsim-service |
 | Category | active project |
-| Status | active |
+| Status | review-required |
 | Confidence | unknown |
 | Evidence | docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md |
-| Gap signal | present |
+| Gap signal | WSS-005 review-required; WSS-006/WSS-007 remediated; WSS-008 remediated for bootstrap/save wiring |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Next step | Do not assign WSS-005 forward implementation until source-of-truth review clears; WSS-008 is now closed and future birth-entry points should reuse the same bridge. |
 | Required verification | docs consistency |
-| Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
-| Workflow gaps reviewed | yes |
+| Completed verification | docs refresh, focused worldSim + migration test runs |
+| Last proof | 2026-06-08 first-build history, bootstrap/save bridge, climate fallback, and WSS-007 smoothing tests |
+| Workflow gaps reviewed | 2026-06-08 |
+
+## Required Review Brief
+
+Decision needed: choose the feature source of truth for 2D atlas features and 3D `WorldData` features.
+
+Issue: WSS-005 is review-required because Azgaar `azgaarWorld.rivers` and `runWorldSim` `traceRivers` diverge for a fixed seed, so downstream systems cannot safely assume one canonical river/site/road contract.
+
+Why agents stop: forward implementation would silently bless either Azgaar features or `WorldData` features without an owner decision.
+
+Decision owner: human/product owner with world generation, world rendering, and atlas owners.
+
+Options:
+- Consume Azgaar feature hints into `WorldData` so the 3D contract follows atlas features.
+- Make the 2D atlas consume `WorldData` so generated gameplay/world features become canonical.
+
+Evidence: `src/services/worldSim/__tests__/featureSourceTruth.test.ts`, `src/services/azgaarDerivedMapService.ts`, and `src/services/worldSim/index.ts`.
+
+After decision: update WSS-005 and add a bridge-spec proof before assigning source-of-truth implementation.
 
 ## Why This Project Exists
 
@@ -70,6 +88,7 @@ Out of scope (owned elsewhere):
 - `src/services/worldSim/rivers.ts` - flow tracing and river network generation.
 - `src/services/worldSim/sites.ts` - deterministic site placement by seed.
 - `src/services/worldSim/roads.ts` - A* and MST-based road generation.
+- `src/services/worldSim/heightFromBiomes.ts` and `src/services/worldSim/climateFromBiomes.ts` - deterministic biome-derived fallback relief and climate.
 - `src/services/worldSim/__tests__/*.test.ts` - deterministic outputs and structure checks.
 - `src/services/worldSim/__tests__/pipeline.test.ts` - end-to-end pipeline assertions.
 - `src/services/mapService.ts` and `src/services/azgaarDerivedMapService.ts` - generation entry paths.
@@ -85,8 +104,8 @@ Out of scope (owned elsewhere):
   - full cell arrays: `heights`, `temperatures`, `moisture`, `biomeIds`
   - feature networks: `rivers`, `roads`, `sites`, `coastlines`, `lakes`, `biomeZones`
 - `generateAzgaarDerivedMap(...)` builds azgaar-like inputs and flattens tile biomes before calling `runWorldSim`.
-- `migrateMapDataToWorldDataV2(...)` rebuilds `worldData` when missing or stale, and is idempotent.
-- `loadGame(...)` calls migration for legacy saves via `mapData`.
+- `migrateMapDataToWorldDataV2(...)` rebuilds `worldData` when missing or stale, backfills biome-derived heights + climate when Azgaar data is absent, and is idempotent.
+- `loadGame(...)` calls migration for legacy saves via `mapData` and backfills an empty world-history shell when the save predates the bridge.
 - 3D runtime consumes WorldData through a worker-backed chunk pipeline:
   - pure sample step (`chunkSampler.ts`) keeps geometry math testable
   - worker init/load protocol (`chunkWorker.ts`, `createWorkerChunkLoader.ts`)
@@ -97,7 +116,7 @@ Out of scope (owned elsewhere):
 - Snapshot payload is carried in `MapData.worldData`.
 - Backward compatibility path:
   1. load map/save
-  2. `migrateMapDataToWorldDataV2` reconstructs `worldData` from `azgaarWorld` or defaults
+  2. `migrateMapDataToWorldDataV2` reconstructs `worldData` from `azgaarWorld` or biome-derived fallbacks
   3. regenerated data is used immediately for runtime and then saved as v2 in normal persistence flow.
 - The legacy field `MapData.azgaarWorld` is marked deprecated but kept for migration safety.
 
@@ -119,8 +138,9 @@ Out of scope (owned elsewhere):
 - Runtime performance envelope for very large map seeds is not fully measured (sync generation + migration fallback path).
 - Migration behavior for future `WorldData` versions (v3+) is not defined yet.
 - River/road and site features are generated but downstream render contracts are partially coupled to placeholder 3D mesh builders.
-- **WSS-004 (REMEDIATED 2026-06-02):** the `generateLegacyMap` fallback omits `azgaarWorld`/`worldData`, so migration previously backfilled flat constant heights → a featureless flat 3D world. **Fixed (policy A — derive from biomes):** `src/services/worldSim/heightFromBiomes.ts` maps each cell's biome `elevation` band → height + seeded jitter (deterministic per seed); `migrateMapDataToWorldDataV2` calls it instead of `fill(30)`. Provenance literal renamed `flat-backfill`→`biome-derived` (`world.ts`/`world.d.ts`/`DebugHUD.tsx`), still flagged amber as lower-fidelity. Empirical proof: real `generateMap` legacy-fallback now yields heights `distinct=38 min=25 max=88` (was constant 30). Residual fidelity follow-ups split to WSS-006 (flat fallback climate) and WSS-007 (no smoothing → cliff seams).
-- **WSS-005:** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and can diverge for the same seed; source of truth is undecided.
+- **WSS-004 (REMEDIATED 2026-06-02):** the `generateLegacyMap` fallback omits `azgaarWorld`/`worldData`, so migration previously backfilled flat constant heights → a featureless flat 3D world. **Fixed (policy A — derive from biomes):** `src/services/worldSim/heightFromBiomes.ts` maps each cell's biome `elevation` band → height + seeded jitter (deterministic per seed); `migrateMapDataToWorldDataV2` calls it instead of `fill(30)`. Provenance literal renamed `flat-backfill`→`biome-derived` (`world.ts`/`world.d.ts`/`DebugHUD.tsx`), still flagged amber as lower-fidelity. Empirical proof: real `generateMap` legacy-fallback now yields heights `distinct=38 min=25 max=88` (was constant 30). Remediated 2026-06-08 by adding deterministic smoothing to the biome-derived height pass. WSS-006 was remediated 2026-06-08 via biome-derived climate fields.
+- **WSS-005 (REVIEW-REQUIRED 2026-06-08):** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and diverge for a fixed seed in `featureSourceTruth.test.ts`; source of truth is undecided.
+- **WSS-008 (REMEDIATED 2026-06-08):** `WorldHistoryService.createFirstBuildHistory(...)` now emits a deterministic seeded first-build history contract and `useGameInitialization`/`START_GAME_SUCCESS`/`START_GAME_FOR_DUMMY` carry it into `GameState`. `saveLoadService.loadGame(...)` backfills an empty history shell for legacy saves that predate the bridge.
 
 ## Global Gap Imports
 

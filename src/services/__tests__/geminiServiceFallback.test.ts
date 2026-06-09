@@ -3,9 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as GeminiService from '../geminiService';
 import { ai } from '../aiClient';
 import { TempPartyMember } from '../../types';
-// TODO(lint-intent): 'getFallbackEncounter' is unused in this test; use it in the assertion path or remove it.
-import { getFallbackEncounter as _getFallbackEncounter } from '../geminiServiceFallback';
+import { getFallbackEncounter, getFallbackEncounterWithSeed } from '../geminiServiceFallback';
 import { MONSTERS_DATA } from '../../data/monsters';
+import { MAX_ENCOUNTER_MONSTER_COUNT } from '../../utils/world/encounterUtils';
 
 // Mock the AI client
 vi.mock('../aiClient', () => ({
@@ -76,6 +76,22 @@ describe('GeminiService - generateEncounter Fallback', () => {
     expect(meta?.rawResponse).toContain('Fallback used');
   });
 
+  it('should return deterministic fallback monster ordering with getFallbackEncounterWithSeed', () => {
+    const seed = 2026;
+    const first = getFallbackEncounterWithSeed(xpBudget, themeTags, seed);
+    const second = getFallbackEncounterWithSeed(xpBudget, themeTags, seed);
+
+    expect(first).toEqual(second);
+  });
+
+  it('should cap fallback encounter monsters to the canonical max', () => {
+    const encounter = getFallbackEncounter(10_000, ['goblinoid']);
+    const totalMonsters = encounter.reduce((sum, monster) => sum + (monster.quantity || 1), 0);
+
+    expect(encounter.length).toBeGreaterThan(0);
+    expect(totalMonsters).toBeLessThanOrEqual(MAX_ENCOUNTER_MONSTER_COUNT);
+  });
+
   it('should use fallback encounter when AI returns malformed JSON', async () => {
     // Mock AI returning bad JSON
     // TODO(2026-01-03 pass 2 Codex-CLI): Replace any with the minimal test shape so the behavior stays explicit.
@@ -89,5 +105,18 @@ describe('GeminiService - generateEncounter Fallback', () => {
     expect(result.data?.encounter.length).toBeGreaterThan(0);
     const meta = result.metadata as { rawResponse?: string } | undefined;
     expect(meta?.rawResponse).toContain('Fallback used');
+  });
+
+  it('should include the canonical encounter monster cap in AI prompt instructions', async () => {
+    mockGenerateContent.mockResolvedValue({
+      text: JSON.stringify([
+        { name: 'Goblin', quantity: 1, cr: '1/4', description: 'A goblin attacks.' }
+      ]),
+    });
+
+    await GeminiService.generateEncounter(xpBudget, themeTags, mockParty);
+
+    const requestConfig = mockGenerateContent.mock.calls[0][0].config as { systemInstruction: string };
+    expect(requestConfig.systemInstruction).toContain(`between 1 and ${MAX_ENCOUNTER_MONSTER_COUNT} total monsters`);
   });
 });

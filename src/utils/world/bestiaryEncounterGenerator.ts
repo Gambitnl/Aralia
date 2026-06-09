@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 00:38:54
+ * Dependents: components/Combat/EncounterModal.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/utils/world/bestiaryEncounterGenerator.ts
  *
@@ -19,6 +35,7 @@ import { MONSTERS_DATA } from '../../data/monsters';
 import { XP_THRESHOLDS_BY_LEVEL } from '../../data/dndData';
 import { crToXp, calculateDifficulty } from '../combat/encounterDifficulty';
 import type { DifficultyTier } from '../combat/encounterDifficulty';
+import { SeededRandom } from '../random/seededRandom';
 
 // ─── Public Types ─────────────────────────────────────────────────────────────
 
@@ -90,9 +107,20 @@ const TEMPLATES: EncounterTemplate[] = [
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function pickRandom<T>(arr: T[]): T | null {
+function pickRandom<T>(arr: T[], rng: SeededRandom | null): T | null {
   if (arr.length === 0) return null;
-  return arr[Math.floor(Math.random() * arr.length)];
+  const value = (rng ? rng.next() : Math.random()) * arr.length;
+  return arr[Math.floor(value)];
+}
+
+function shuffleWithRandom<T>(values: T[], rng: SeededRandom | null): T[] {
+  const items = [...values];
+  for (let i = items.length - 1; i > 0; i--) {
+    const randomValue = (rng ? rng.next() : Math.random()) * (i + 1);
+    const j = Math.floor(randomValue);
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
 }
 
 /**
@@ -187,6 +215,8 @@ export interface BestiaryEncounterOptions {
   difficulty?: EncounterDifficultyTarget;
   /** When true, only monsters with lair actions are eligible. */
   lairOnly?: boolean;
+  /** Optional deterministic seed for local bestiary output replay. */
+  seed?: number;
 }
 
 export function generateBestiaryEncounter(
@@ -199,6 +229,7 @@ export function generateBestiaryEncounter(
       : difficultyOrOptions;
 
   const difficulty = options.difficulty ?? 'Medium';
+  const rng = options.seed === undefined ? null : new SeededRandom(options.seed);
 
   let allMonsters = Object.values(MONSTERS_DATA);
   if (options.lairOnly) allMonsters = allMonsters.filter(hasLairActions);
@@ -209,15 +240,15 @@ export function generateBestiaryEncounter(
   const shuffledTemplates = options.lairOnly
     ? [
         TEMPLATES.find(t => t.key === 'solo')!,
-        ...[...TEMPLATES.filter(t => t.key !== 'solo')].sort(() => Math.random() - 0.5),
+        ...shuffleWithRandom([...TEMPLATES.filter(t => t.key !== 'solo')], rng),
       ]
-    : [...TEMPLATES].sort(() => Math.random() - 0.5);
+    : shuffleWithRandom([...TEMPLATES], rng);
 
   for (const template of shuffledTemplates) {
     const budget = getRawBudget(party, difficulty, template.key);
     if (budget <= 0) continue;
 
-    const result = tryBuildEncounter(template, budget, allMonsters);
+    const result = tryBuildEncounter(template, budget, allMonsters, rng);
     if (result && result.monsters.length > 0) {
       const partyLevels = party.map(p => Math.max(1, p.level || 1));
       const diff = calculateDifficulty(
@@ -259,6 +290,7 @@ function tryBuildEncounter(
   template: EncounterTemplate,
   budget: number,
   allMonsters: MonsterData[],
+  rng: SeededRandom | null,
 ): BuildResult | null {
   const monsters: Monster[] = [];
   const usedIds = new Set<string>();
@@ -276,10 +308,10 @@ function tryBuildEncounter(
       // Prefer creatures not already in the list; retry up to 3 times
       let picked: MonsterData | null = null;
       for (let attempt = 0; attempt < 3; attempt++) {
-        const c = pickRandom(candidates.filter(m => !usedIds.has(m.id)));
+        const c = pickRandom(candidates.filter(m => !usedIds.has(m.id)), rng);
         if (c) { picked = c; break; }
       }
-      if (!picked) picked = pickRandom(candidates); // allow duplicate type as fallback
+      if (!picked) picked = pickRandom(candidates, rng); // allow duplicate type as fallback
       if (!picked) continue;
 
       const qty = Math.min(slot.maxQty, 1);
@@ -314,7 +346,7 @@ function tryBuildEncounter(
         .filter(m => !usedIds.has(m.id));
       if (candidates.length === 0) continue;
 
-      const minion = pickRandom(candidates);
+      const minion = pickRandom(candidates, rng);
       if (!minion) continue;
 
       const minionXp = crToXp(minion.baseStats.cr);

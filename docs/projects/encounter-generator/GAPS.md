@@ -1,18 +1,18 @@
 # Encounter Generator Gaps
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-09
 
 Use this file for durable unresolved findings that belong directly to encounter generation in this project.
-Reviewed during the 2026-06-05 cold-start refresh; no new project-specific blockers were added.
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker | Found during | Gap | Evidence | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | Worker B | `TRACKER.md` | docs update pass | Seedability is missing for encounter generation | `src/utils/world/bestiaryEncounterGenerator.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/components/Combat/EncounterModal.tsx` | Replays cannot be reproduced across sessions when debugging, balancing, or sharing results | Design seeded generation contract and wire through AI/custom/bestiary paths | Manual deterministic run test with a fixed seed input |
-| G2 | not_started | in_scope_now | Worker B | `TRACKER.md` | docs update pass | Difficulty rule ambiguity between AI, custom, and bestiary flows | `src/utils/combat/encounterDifficulty.ts`, `src/components/Combat/EncounterModal.tsx` | Players can see inconsistent challenge labels or unexpected combat scaling | Define a single difficulty policy and validate each generation path against it | Difficulty acceptance test covering Easy/Medium/Hard/Deadly across source types |
-| G3 | waiting | support_needed_now | Worker B | `TRACKER.md` | docs update pass | Existing feature naming suggests a fuller EncounterGenerator subsystem than currently implemented | `docs/projects/PROJECT_TRACKER.md`, `src/components/EncounterGenerator/PartyManager.tsx` | Scope can drift between registry intent and runtime reality | Record a scope decision before refactors split ownership | Project owner decision and scope note in NORTH_STAR.md |
+| G1 | done | adjacent_follow_up | Worker B | `TRACKER.md` | Seed iteration | Seedability was missing in bestiary/AI fallback/bestiary reroll paths | `src/utils/world/bestiaryEncounterGenerator.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/components/Combat/EncounterModal.tsx` | Replays could not be reproduced for issue reports or deterministic validation | Use deterministic `seed` flow and stable bestiary rerolls in all local generation and fallback paths | `src/services/__tests__/geminiServiceFallback.test.ts`, `src/utils/world/__tests__/bestiaryEncounterGenerator.test.ts` |
+| G2 | done | in_scope_now | Worker B | `TRACKER.md` | Seed iteration | Difficulty policy across paths was not explicitly documented as a single source of truth | `src/utils/combat/encounterDifficulty.ts`, `src/utils/world/encounterUtils.ts`, `src/components/Combat/EncounterModal.tsx`, `src/utils/world/bestiaryEncounterGenerator.ts` | Without an explicit contract, modal tiers and rebuild output can diverge as implementations evolve | Enforce `calculateDifficulty` in generation verification paths and add focused test coverage | `src/utils/world/__tests__/bestiaryEncounterGenerator.test.ts`, `src/services/__tests__/geminiServiceFallback.test.ts` |
+| G3 | done | support_needed_now | Worker B | `TRACKER.md` | Scope audit | EncounterGenerator runtime surface was larger than implementation reality | `src/components/EncounterGenerator/PartyManager.tsx`, `src/components/Combat/EncounterModal.tsx` | Scope confusion can cause duplicated or abandoned work between UI and runtime ownership | Record scope boundary in NORTH_STAR and keep this project scoped to encounter runtime ownership | `NORTH_STAR.md` |
+| G4 | blocked_human_decision | in_scope_now | Worker B | `TRACKER.md` | Seed iteration | Strict end-to-end deterministic AI encounter generation is not guaranteed because provider output can vary despite fixed prompt/seed | `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/hooks/actions/handleEncounter.ts` | Replay workflows can still diverge whenever Gemini returns a different valid encounter for the same seed and same constraints | Product decision required: define if full end-to-end replay guarantees are needed before advancing to cross-session encounter sharing | Review task update required; capture decision in tracker next iteration |
 
 ## Classification Reference
 
@@ -22,3 +22,27 @@ Reviewed during the 2026-06-05 cold-start refresh; no new project-specific block
 - `out_of_scope`: Explicitly excluded.
 - `blocked_human_decision`: Requires owner/product decision.
 - `blocked_external_state`: Waiting on external dependency.
+
+## Required Review Brief
+
+### G4: AI Determinism Boundary
+
+```mermaid
+flowchart TD
+  A[AI encounter request with seeded input] --> B[Gemini model returns response]
+  B -->|same seed, same constraints| C{Response deterministic?}
+  C -->|No| D[Seeded fallback path still deterministic]
+  C -->|Yes| E[End-to-end replay succeeds]
+  D --> F[Decision: document that replay is local-only]
+  E --> G[No product action required]
+  F --> H{Product decision needed}
+  H -->|Require strict replay| I[Add seed contract + model strategy]
+  H -->|Accept partial replay| J[Keep current contract + docs note]
+```
+
+| Option | Decision path | Consequence |
+|---|---|---|
+| A | Require full deterministic AI output | Add explicit Gemini replay contract, stronger cache/binding, and CI proof before T3+ feature expansion |
+| B | Accept nondeterministic AI output, seeded only for local/fallback paths | Keep deterministic replay guarantee bounded to bestiary + fallback; add docs warning in NORTH_STAR and TRACKER |
+
+Current choice required from product to continue wider rollout where reproducibility is contractual.

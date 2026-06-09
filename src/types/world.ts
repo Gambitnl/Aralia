@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/06/2026, 01:19:49
+ * Dependents: components/CharacterSheet/Family/FamilyTreeTab.tsx, components/World3D/DebugHUD.tsx, components/World3D/InWorldHUD.tsx, services/strongholdService.ts, state/migrations/worldDataMigration.ts, systems/economy/TradeRouteSystem.ts, systems/spells/ai/AISpellArbitrator.ts, types/index.ts, utils/mapDataToWorldData.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import type { NPCVisualSpec } from './visuals.js';
 import type { NPCKnowledgeProfile } from './dialogue.js';
 import type { Position as CombatPosition } from './combat.js';
@@ -5,6 +21,7 @@ import type { NPCMemory } from './memory.js'; // Added because NPC now carries o
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
+import type { Lock } from '../systems/puzzles/types.js';
 
 export type Position = CombatPosition;
 
@@ -52,6 +69,13 @@ export interface LocationDynamicNpcConfig {
   baseSpawnChance: number;
 }
 
+export interface InteractableFeature {
+  id: string;
+  type: 'lock';
+  label: string;
+  lock: Lock;
+}
+
 export interface Exit {
   direction: string;
   targetId: string;
@@ -68,6 +92,7 @@ export interface Location {
   itemIds?: string[];
   npcIds?: string[];
   dynamicNpcConfig?: LocationDynamicNpcConfig;
+  interactableFeatures?: InteractableFeature[];
   mapCoordinates: { x: number; y: number };
   biomeId: string;
   gossipLinks?: string[];

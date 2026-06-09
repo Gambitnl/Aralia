@@ -1,7 +1,7 @@
 ﻿# Scripts: Audits Tracker
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Status Vocabulary
 
@@ -20,6 +20,7 @@ Last updated: 2026-06-05
 | T1 | done | Document project continuity for `scripts/audits` in project docs | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/NORTH_STAR.md` | Keep tracker and gap registry aligned to this state | `docs/projects/scripts-audits` files exist and match the current map |
 | T2 | active | Validate command and report paths against live docs references | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/NORTH_STAR.md`, `docs/projects/scripts-audits/GAPS.md` | Confirm the command/report paths named in the North Star still resolve or record any stale references explicitly | Run the next checks in `NORTH_STAR.md` and update evidence paths |
 | T3 | active | Capture durable unresolved audit-project gaps | User-facing maintainer | 2026-06-05 | `docs/projects/scripts-audits/GAPS.md` | Keep the durable gap list compact, actionable, and aligned with the tracker | One follow-up entry per gap with proof path |
+| T4 | blocked | Decide mandatory CI gates versus optional/manual audit workflow | project owner | 2026-06-08 | `docs/projects/scripts-audits/GAPS.md` S4; `docs/guides/RACE_ENRICHMENT_WORKFLOW.md`; `docs/portraits/race_portrait_regen_handoff.md` | Record audit policy before assigning forward automation work | Human/policy decision written in project docs |
 
 ## Gap Log
 

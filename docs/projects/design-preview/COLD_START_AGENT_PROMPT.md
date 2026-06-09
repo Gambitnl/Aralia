@@ -1,9 +1,12 @@
 # Design Preview Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
-This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
+This file is the project-specific context package and directive checklist for
+the next cold-start agent. It does not duplicate the full workflow rules. The
+agent must follow the shared workflow file and use this file for current
+project context, resume state, and closeout obligations.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -20,63 +23,41 @@ docs/projects/design-preview/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Design Preview
 Project folder: docs/projects/design-preview
-Iteration: 2
+Iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
 North Star: docs/projects/design-preview/NORTH_STAR.md
 Tracker: docs/projects/design-preview/TRACKER.md
 Gaps: docs/projects/design-preview/GAPS.md
+Runbook: docs/projects/design-preview/RUNBOOK.md
+Audit/proof: docs/projects/design-preview/AUDIT_OR_PROOF.md
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 5 | Gemini CLI | CLI agent | certain | 2026-06-08 | T2 closure, self-contained workflow update |
 
 ## Previous Agent Handoff
 
-Iteration 1 established the project handoff skeleton. This pass added the
-Dashboard Card Schema, refreshed the tracker and gap rows, and kept the active
-objective visible for the next cold-start agent.
+Iteration 5 updated `NORTH_STAR.md` to include a fully self-contained workflow loop for cold-start agents, allowing them to bypass reading the generic shared protocol. It closed task T2 and updated `TRACKER.md` to reflect that all tracked implementation and workflow capture tasks are complete.
 
 ## Current Mission
 
 Active task:
-T2 - Capture design workflow and owners in a durable place
+None.
 
 Acceptance criteria:
-Use the active TRACKER.md row and the Dashboard Card Schema in NORTH_STAR.md
-to keep the workflow, provisional owners, open questions, and next checks
-explicit. If a required owner map or check path is still missing, record it as
-a gap instead of guessing.
+The project is currently in a steady state. The next agent should focus on resolving G3 (assigning stable local owners for lanes) or awaiting new feature requests. Maintain doc consistency if addressing G3.
 
 Key files to touch:
 - docs/projects/design-preview/NORTH_STAR.md
 - docs/projects/design-preview/TRACKER.md
 - docs/projects/design-preview/GAPS.md
 - docs/projects/design-preview/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
-
-Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. For
-this docs pass, `docs_consistency` is the minimum check.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-Dashboard Card Schema is explicit in NORTH_STAR.md. Workflow and owner notes
-are documented, but G1 still tracks the unresolved steward map and G2 still
-tracks the missing launch/checklist runbook.
-
-Key files to touch:
-- docs/projects/design-preview/NORTH_STAR.md
-- docs/projects/design-preview/TRACKER.md
-- docs/projects/design-preview/GAPS.md
-- docs/projects/design-preview/COLD_START_AGENT_PROMPT.md
-- docs/projects/design-preview/DECISIONS.md
-- docs/projects/design-preview/AUDIT_OR_PROOF.md
 - docs/projects/design-preview/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+- docs/projects/design-preview/AUDIT_OR_PROOF.md
 
 Optional docs to check when present or named by tracker:
 - tasks/
@@ -85,17 +66,30 @@ Optional docs to check when present or named by tracker:
 - project-specific proof or design notes
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+- `git diff --check` for all touched files, including any new file.
+- Visual checks using `RUNBOOK.md` if any runtime or styling features are added.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Stay inside this project's scope boundaries. Do not implement large new lanes without a registered task or explicitly updating the scope in `NORTH_STAR.md`.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+T2 is closed. A self-contained cold-start resume path exists in `NORTH_STAR.md`. The manual launch and smoke checklist is maintained in `RUNBOOK.md`. G1 and G3 remain open, waiting for domain owner decisions.
+
+Workflow gaps reviewed:
+Checked `WORKFLOW_GAPS.md` and `GLOBAL_GAPS.md`. No new workflow-level gaps were found affecting this state. 
+
+Dashboard schema updates:
+`gap_signal` is still 3 open gaps. `next_step` changed to indicate G3 is the primary candidate for future work.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
+Before ending, update this handoff with the next iteration number, previous
+agent context, active task, acceptance criteria, key files, verification
+method, blockers, recent progress, workflow-gap review result, and
+dashboard-schema updates. Account for every required doc, mention optional docs
+touched or skipped, update `agent_comments` only when an out-of-flow note is
+useful, and keep only the current handoff between the same BEGIN/END markers;
+do not preserve old handoff transcripts in this file.
 
 Final response must report:
 - files updated

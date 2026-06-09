@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 15:41:21
+ * Dependents: hooks/combat/useActionExecutor.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/combat/reactions/OpportunityAttackSystem.ts
  * Logic for detecting and validating Opportunity Attacks (Attacks of Opportunity) in D&D 5e.
@@ -19,6 +35,7 @@ export interface OpportunityAttackResult {
   attackerId: string;
   targetId: string;
   triggerPosition: Position; // The position *before* leaving reach
+  triggerReach?: number; // The threatened reach threshold that was crossed.
   reason?: string; // Why it failed (debug/log)
 }
 
@@ -73,31 +90,24 @@ export class OpportunityAttackSystem {
         }
       }
 
-      // Calculate Reach
-      const reach = this.getReach(attacker);
+      // Calculate reach thresholds per weapon/ability.
+      // We keep the lowest threatened reach that was crossed so a character
+      // with both 5ft and 10ft weapons still provokes at the first boundary
+      // without generating duplicate OA entries for the same reaction spend.
+      const triggeredReach = this.getTriggeredReach(attacker, fromPos, toPos);
+      if (triggeredReach === null) continue;
 
-      // Geometric Check:
-      // OA is triggered when you leave a threatened square.
-      // Was 'fromPos' within reach?
-      const distFrom = getDistance(attacker.position, fromPos);
-      const wasInReach = distFrom <= reach;
+      // Valid Trigger
+      const isEnemiesAbound = attacker.statusEffects.some(e => e.id === 'enemies_abound' || e.name === 'Enemies Abound');
 
-      // Is 'toPos' outside reach?
-      const distTo = getDistance(attacker.position, toPos);
-      const isLeavingReach = distTo > reach;
-
-      if (wasInReach && isLeavingReach) {
-          // Valid Trigger
-          const isEnemiesAbound = attacker.statusEffects.some(e => e.id === 'enemies_abound' || e.name === 'Enemies Abound');
-
-          results.push({
-            canAttack: true,
-            attackerId: attacker.id,
-            targetId: mover.id,
-            triggerPosition: fromPos,
-            reason: isEnemiesAbound ? 'enemies_abound_must_attack' : undefined
-          });
-      }
+      results.push({
+        canAttack: true,
+        attackerId: attacker.id,
+        targetId: mover.id,
+        triggerPosition: fromPos,
+        triggerReach: triggeredReach,
+        reason: isEnemiesAbound ? 'enemies_abound_must_attack' : undefined
+      });
     }
 
     return results;
@@ -107,30 +117,40 @@ export class OpportunityAttackSystem {
     return character.statusEffects.some(e => e.id === 'disengage' || e.name === 'Disengage');
   }
 
-  private getReach(character: CombatCharacter): number {
-    // Default reach is 1 tile (5ft)
-    let reach = 1;
+  private getThreatenedReaches(character: CombatCharacter): number[] {
+    // Default reach is 1 tile (5ft).
+    // We keep the set distinct and sorted so reach checks stay deterministic
+    // when a creature has both normal and reach weapons.
+    const threatenedReaches = new Set<number>([1]);
 
-    // Check weapon properties
-    // We assume the first melee weapon determines reach for OAs
-    // In complex 5e, you track reach per weapon. Here we simplify.
-    // Critical Fix: Ensure we don't pick up Ranged weapons (like Longbows) as "Reach" weapons.
-    // We assume melee weapons have range 1 or 2 (reach). Ranged usually 5+.
-    // A better check would be looking at weapon properties, but for now we heuristics on range + name/tags.
-    const meleeReachAbility = character.abilities.find(a =>
-      a.type === 'attack' &&
-      a.range <= 2 && // Strictly limit to melee reach ranges (5ft or 10ft)
-      a.range > 1 &&
-      a.weapon // It must be a weapon attack
-    );
-
-    if (meleeReachAbility) {
-      reach = Math.max(reach, meleeReachAbility.range);
+    for (const ability of character.abilities) {
+      if (
+        ability.type === 'attack' &&
+        ability.weapon &&
+        ability.range > 1 &&
+        ability.range <= 2
+      ) {
+        threatenedReaches.add(ability.range);
+      }
     }
 
-    // Check for size/monster reach
-    // (Monsters often have Reach 10ft embedded in their attacks)
+    return [...threatenedReaches].sort((a, b) => a - b);
+  }
 
-    return reach;
+  private getTriggeredReach(character: CombatCharacter, fromPos: Position, toPos: Position): number | null {
+    const threatenedReaches = this.getThreatenedReaches(character);
+    const distFrom = getDistance(character.position, fromPos);
+    const distTo = getDistance(character.position, toPos);
+
+    // Pick the first threatened boundary that was crossed so one movement step
+    // still spends only one reaction even if the move passed through multiple
+    // threatened radii.
+    for (const reach of threatenedReaches) {
+      if (distFrom <= reach && distTo > reach) {
+        return reach;
+      }
+    }
+
+    return null;
   }
 }

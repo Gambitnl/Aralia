@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 30/05/2026, 23:20:24
- * Dependents: None (Orphan)
- * Imports: 2 files
+ * Last Sync: 08/06/2026, 04:12:09
+ * Dependents: services/mapService.ts, services/saveLoadService.ts, utils/mapDataToWorldData.ts
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,8 +24,9 @@
  *   the procedural world data on load if it's missing or outdated.
  * - By checking `mapData.worldData`'s version and presence, it serves as an idempotent
  *   safeguard that only generates once and then behaves as a fast no-op on subsequent loads.
- * - Standard defaults are used for Heights, Temperatures, Moisture, and Biomes if the
- *   v1 payload has sparse data, ensuring no type errors or runtime failures.
+ * - When Azgaar terrain is absent, the fallback path now derives both relief and climate from
+ *   the biome ids instead of flattening the world to constants. That keeps legacy saves and
+ *   generator fallbacks readable without pretending they are full-fidelity Azgaar outputs.
  *
  * Known limitations/deferred issues:
  * - Re-running the procedural pipeline takes slightly longer during load on legacy saves,
@@ -35,6 +36,7 @@
 import type { MapData } from '@/types/world';
 import { runWorldSim } from '@/services/worldSim';
 import { heightFromBiomes } from '@/services/worldSim/heightFromBiomes';
+import { climateFromBiomes } from '@/services/worldSim/climateFromBiomes';
 
 /**
  * Migrates a MapData object to WorldData v2 if worldData is missing.
@@ -61,8 +63,9 @@ export function migrateMapDataToWorldDataV2(mapData: MapData, worldSeed: number)
   // is deterministic for a given seed. Track this so the DebugHUD reflects the true (coarser) source.
   const usedBiomeDerivedHeights = !az?.heights;
   const heights = az?.heights ?? heightFromBiomes(biomeIds, cols, rows, worldSeed);
-  const temperatures = az?.temperatures ?? new Array(rows * cols).fill(15);
-  const moisture = az?.moisture ?? new Array(rows * cols).fill(20);
+  const derivedClimate = climateFromBiomes(biomeIds, cols, rows, worldSeed);
+  const temperatures = az?.temperatures ?? derivedClimate.temperatures;
+  const moisture = az?.moisture ?? derivedClimate.moisture;
   const templateId = az?.templateId ?? 'unknown';
 
   // Regenerate WorldData procedurally

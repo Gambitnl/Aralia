@@ -44,7 +44,7 @@ const TradeRouteDashboard: React.FC<TradeRouteDashboardProps> = ({
     // Calculate overview stats
     const activeRoutes = tradeRoutes.filter(r => r.status === 'active').length;
     const blockedRoutes = tradeRoutes.filter(r => r.status === 'blockaded' || r.status === 'disrupted').length;
-    const boomingRoutes = tradeRoutes.filter(r => (r.status as string) === 'booming').length;
+    const boomingRoutes = tradeRoutes.filter(r => r.status === 'booming').length;
     const shortages = marketEvents.filter(e => e.type === 'SHORTAGE').length;
     const surpluses = marketEvents.filter(e => e.type === 'SURPLUS').length;
 

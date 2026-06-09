@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 23:51:29
+ * Last Sync: 08/06/2026, 12:29:54
  * Dependents: hooks/combat/useTurnManager.ts
  * Imports: 9 files
  *
@@ -397,17 +397,26 @@ export const useActionExecutor = ({
       const attackBonus = abilityMod + profBonus;
       const targetAC = updatedCharacter.armorClass || updatedCharacter.baseAC || 10;
       const totalRoll = d20 + attackBonus;
-      const isHit = d20 === 20 || (d20 !== 1 && totalRoll >= targetAC);
+      const isCrit = d20 === 20;
+      const isHit = isCrit || (d20 !== 1 && totalRoll >= targetAC);
 
       if (isHit) {
+        combatEvents.emit({
+          type: 'unit_attack',
+          attackerId: attacker.id,
+          targetId: updatedCharacter.id,
+          isHit: true,
+          isCrit: isCrit
+        });
+
         onLogEntry({
           id: generateId(), timestamp: Date.now(), type: 'action',
           message: `${attacker.name} hits ${updatedCharacter.name} with Opportunity Attack using ${weaponAbility.name}! (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
-          characterId: attacker.id, targetIds: [updatedCharacter.id]
+          characterId: attacker.id, targetIds: [updatedCharacter.id],
+          data: { isHit: true, isCrit, rollResult: d20 }
         });
         const damageFormula = getOpportunityAttackDamageFormula(weaponAbility);
         if (damageFormula) {
-          const isCrit = d20 === 20;
           let damage = rollDice(damageFormula);
           if (isCrit) damage += rollDice(damageFormula);
           updatedCharacter = handleDamage(
@@ -416,10 +425,19 @@ export const useActionExecutor = ({
           );
         }
       } else {
+        combatEvents.emit({
+          type: 'unit_attack',
+          attackerId: attacker.id,
+          targetId: updatedCharacter.id,
+          isHit: false,
+          isCrit: false
+        });
+
         onLogEntry({
           id: generateId(), timestamp: Date.now(), type: 'action',
           message: `${attacker.name} misses Opportunity Attack against ${updatedCharacter.name} using ${weaponAbility.name}. (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
-          characterId: attacker.id, targetIds: [updatedCharacter.id]
+          characterId: attacker.id, targetIds: [updatedCharacter.id],
+          data: { isHit: false, isCrit: false, rollResult: d20 }
         });
         addDamageNumber(0, updatedCharacter.position, 'miss');
       }
@@ -643,9 +661,7 @@ export const useActionExecutor = ({
         combatEvents.emit({
           type: 'unit_attack',
           attackerId: updatedCharacter.id,
-          targetId,
-          isHit: true,
-          isCrit: false
+          targetId
         });
 
         const triggers = reactiveTriggers.filter(t =>

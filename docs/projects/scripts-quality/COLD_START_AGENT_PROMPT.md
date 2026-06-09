@@ -1,7 +1,7 @@
 # Scripts: Quality Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -17,10 +17,16 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 Project entry point:
 docs/projects/scripts-quality/NORTH_STAR.md
 
+## Iteration Ledger
+
+| Iteration | Agent/Model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker |
+
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Scripts: Quality
 Project folder: docs/projects/scripts-quality
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,18 +36,18 @@ Gaps: docs/projects/scripts-quality/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 established the project doc set and the initial quality-policy map.
-This pass refreshed the dashboard-facing schema, compacted the tracker/gap
-state, and recorded the repeated shared-path workflow ambiguity as a +1.
+Iteration 2 kept the quality-debt checkpoint convention in place and made the remaining cadence/policy follow-up explicit as a routed scripts-git item.
 
 ## Current Mission
 
 Active task:
-T3 - Capture quality-monitoring gaps and define next checks
+Preserve the scripts-quality checkpoint convention and keep the routed scripts-git cadence follow-up outside this project unless ownership changes.
 
 Acceptance criteria:
-Use the active TRACKER.md row and the acceptance criteria in NORTH_STAR.md.
-If the active task lacks a scoped check, define one before moving beyond docs.
+The current tracker and gap log stay internally consistent, the dashboard schema still shows one routed adjacent follow-up, and no local policy or human-review gate is opened.
+
+Blockers:
+None. The remaining follow-up is routed to scripts-git and this slice stays docs-only.
 
 Key files to touch:
 - docs/projects/scripts-quality/NORTH_STAR.md
@@ -51,45 +57,19 @@ Key files to touch:
 - Any source/docs named by the active tracker task
 
 Scoped verification:
-Run `npm run quality:debt` and compare the output shape to the
-`scripts/quality/debt-summary.cjs` map. If the scope stays narrow on purpose,
-record that in NORTH_STAR.md instead of leaving it implicit.
+Run `npm run quality:debt` on any quality-scope change and compare the output shape to the `scripts/quality/debt-summary.cjs` map.
+
+Workflow-gap review result:
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was reviewed; the stale-path workflow gap remains open, and no new workflow-level gap was needed for this slice.
+
+Dashboard schema updates:
+The `Gap signal` entry now names the routed scripts-git follow-up explicitly so the dashboard does not read it as a local scripts-quality task.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Route sibling-project blockers instead of editing their docs.
 
 Recent progress:
-The North Star now includes a Dashboard Card Schema section, the tracker and
-gap log are compacted to the current active follow-ups, and the workflow gap
-about moved shared paths now has another testimony.
-
-Key files to touch:
-- docs/projects/scripts-quality/NORTH_STAR.md
-- docs/projects/scripts-quality/TRACKER.md
-- docs/projects/scripts-quality/GAPS.md
-- docs/projects/scripts-quality/COLD_START_AGENT_PROMPT.md
-- docs/projects/scripts-quality/DECISIONS.md
-- docs/projects/scripts-quality/AUDIT_OR_PROOF.md
-- docs/projects/scripts-quality/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+The North Star now records the checkpoint convention, the tracker marks the routed follow-up as cross-project, and the gap log keeps G3 explicitly owned by scripts-git instead of scripts-quality.
 
 ## Required End State For This Iteration
 

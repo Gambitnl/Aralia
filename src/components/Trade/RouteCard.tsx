@@ -10,7 +10,7 @@ interface RouteCardProps {
     route: TradeRoute;
 }
 
-const getStatusBadge = (status: TradeRoute['status'] | 'booming') => {
+const getStatusBadge = (status: TradeRoute['status']) => {
     switch (status) {
         case 'active':
             return { icon: '🟢', text: 'Active', color: 'bg-green-700/50 text-green-200' };
@@ -28,7 +28,7 @@ const getStatusBadge = (status: TradeRoute['status'] | 'booming') => {
 const RouteCard: React.FC<RouteCardProps> = ({ route }) => {
     const originRegion = REGIONAL_ECONOMIES[route.originId];
     const destRegion = REGIONAL_ECONOMIES[route.destinationId];
-    const statusBadge = getStatusBadge(route.status as TradeRoute['status'] | 'booming');
+    const statusBadge = getStatusBadge(route.status);
 
     return (
         <div className="bg-gray-800/70 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors">

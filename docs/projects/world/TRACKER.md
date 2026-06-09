@@ -1,14 +1,15 @@
 # World System Living Tracker
 
-Status: active  
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Replace placeholder world docs with concrete cold-start context and file map. | Codex integration pass | 2026-05-31 | `src/systems/world`, `src/state`, `src/services/worldSim`, `src/types`, `src/hooks/actions`, `src/systems/world/__tests__` | Maintain scope to world ownership and keep town work in town-description project. | `docs/projects/world/NORTH_STAR.md` is evidence-backed. |
-| T2 | active | Complete world-system gap pass from observed simulation/state contracts. | future agent | 2026-05-31 | `src/systems/world/WorldEventManager.ts`, `src/state/migrations/worldDataMigration.ts`, `src/types/world.ts`, `src/types/state.ts` | Add/triage gaps in `docs/projects/world/GAPS.md` and mark dependencies before any code change proposal. | Each open gap has a next proof/check row. |
+| T2 | blocked | Complete world-system gap pass from observed simulation/state contracts. | future agent | 2026-06-08 | `src/systems/world/WorldEventManager.ts`, `src/state/migrations/worldDataMigration.ts`, `src/types/world.ts`, `src/types/state.ts`, `src/components/MapPane.tsx`, `src/hooks/actions/handleMovement.ts` | First preserve or route tile-grid movement/save/migration contracts that are being phased out by Azgaar/3D world paths. | Contract preservation table before forward runtime edits. |
+| T4 | not_started | Extract tile-grid world-map dependency contract for phase-out planning. | future agent | 2026-06-08 | `src/components/MapPane.tsx`, `src/hooks/actions/handleMovement.ts`, `src/types/world.ts`, `src/state/appState.ts`, `src/state/migrations/worldDataMigration.ts`, `src/hooks/useGameInitialization.ts` | Document movement semantics, discovery/current markers, passability, startup/load continuity, and 3D marker anchors. | Project docs name preserved contracts and owner routing. |
 | T3 | adjacent_follow_up | Keep world-system registry separation from town-description scope. | future agent | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`, `docs/projects/town-description-system` | Verify handoff boundary in the next world pass and any new project-local docs. | Confirm no gap in this project owns only town-content behavior. |
 
 ## Task Slice Notes

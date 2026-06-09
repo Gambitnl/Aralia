@@ -1,4 +1,5 @@
 # DECISIONS: Item Categorization
+Last updated: 2026-06-08
 
 ## Decision Summary
 
@@ -21,7 +22,13 @@
 - **Open question:** Decide whether `src/utils/itemAdapter.ts` becomes a deprecated alternate path or a compatibility helper.
 
 ### 4. Type contract coverage
-- **Decision:** `itemMetadata` is considered part of the project’s glossary-item contract and should be present in both TS declaration and implementation types.
-- **Status:** Pending alignment.
-- **Evidence:** `src/types/ui.ts` has `itemMetadata`; `src/types/ui.d.ts` does not.
-- **Next step:** Either extend `ui.d.ts` or unify source of truth so declaration consumers see the field.
+- **Decision:** `itemMetadata` is part of the project’s glossary-item contract and is now present in both TS declaration and implementation types.
+- **Status:** Implemented.
+- **Evidence:** `src/types/ui.ts` and `src/types/ui.d.ts` both include `itemMetadata`, and the glossary item stat block now renders the field in the UI.
+- **Next step:** No further action unless a future schema migration changes the contract again.
+
+### 5. Item grouping taxonomy
+- **Decision:** `itemGroup` is a real source signal in the vendor corpus, but the project has not yet chosen whether it should become a first-class visible grouping primitive.
+- **Status:** Review-required.
+- **Evidence:** `vendor/5etools-src/data/items.json` includes `itemGroup` bundles, while `scripts/ingestPhbGlossary.ts`, `scripts/generateGlossaryIndex.js`, and `scripts/generateItemRegistry.ts` still promote only `itemType`-driven grouping.
+- **Next step:** Record the taxonomy decision in the Required Review Brief, then implement the chosen path only if the decision explicitly selects one.

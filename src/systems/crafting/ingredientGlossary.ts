@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 13:48:54
+ * Dependents: components/Crafting/IngredientGlossaryPanel.tsx
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/crafting/ingredientGlossary.ts
  * Ingredient glossary - comprehensive data for all gatherable ingredients.
@@ -11,7 +27,7 @@ export interface IngredientEntry {
     name: string;
     source: 'flora' | 'creature' | 'purchased';
     description: string;
-    rarity: string;
+    rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'unknown';
     locations: string[];
     harvestDC?: number;
     toolRequired?: string;
@@ -74,10 +90,7 @@ export function buildIngredientGlossary(): IngredientEntry[] {
                 name: part.name,
                 source: 'creature',
                 description: `Harvested from ${creature.name}. ${part.description || ''}`.trim(),
-                // TODO(2026-01-03 pass 4 Codex-CLI): challengeRating fallback to 0 until creature data guarantees presence.
-                rarity: (creature.challengeRating ?? 0) >= 10 ? 'very_rare' :
-                    (creature.challengeRating ?? 0) >= 5 ? 'rare' :
-                        (creature.challengeRating ?? 0) >= 2 ? 'uncommon' : 'common',
+                rarity: getCreaturePartRarity(creature),
                 locations: creature.locations,
                 harvestDC: part.harvestDC,
                 toolRequired: (part as Partial<CreaturePart> & { toolRequired?: string }).toolRequired ?? 'Harvesting Tools',
@@ -114,6 +127,21 @@ export function buildIngredientGlossary(): IngredientEntry[] {
     }
 
     return glossary;
+}
+
+/**
+ * Creature rarity is only inferred from challenge rating when the data is present.
+ * Missing CR stays visible as `unknown` so we do not silently pretend it is common.
+ */
+function getCreaturePartRarity(creature: { challengeRating?: number }): IngredientEntry['rarity'] {
+    if (typeof creature.challengeRating !== 'number') {
+        return 'unknown';
+    }
+
+    if (creature.challengeRating >= 10) return 'very_rare';
+    if (creature.challengeRating >= 5) return 'rare';
+    if (creature.challengeRating >= 2) return 'uncommon';
+    return 'common';
 }
 
 /**

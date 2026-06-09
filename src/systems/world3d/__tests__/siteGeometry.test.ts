@@ -24,6 +24,7 @@ const chunkWithTown = (): ChunkData => ({
         { x: 0.04, y: 0.06 },
       ],
       walled: true,
+      population: 1200,
       surfaceY: heightToMeters(SITE_RAW_HEIGHT),
     },
   ],
@@ -47,5 +48,47 @@ it('converts a contained site to a local placement with a positive radius', () =
   expect(Number.isFinite(s.localZ)).toBe(true);
   expect(s.surfaceY).toBeCloseTo(heightToMeters(SITE_RAW_HEIGHT));
   expect(s.radius).toBeGreaterThanOrEqual(8);
-  expect(s.radius).toBeLessThanOrEqual(80);
+  expect(s.radius).toBeLessThanOrEqual(30);
+  expect(s.population).toBe(1200);
+});
+
+it('scales town radius up with population but stays plausible', () => {
+  const low = chunkWithTown();
+  low.sites = [
+    {
+      ...low.sites[0],
+      id: 'low',
+      kind: 'town',
+      population: 500,
+    },
+  ];
+  const high = chunkWithTown();
+  high.sites = [
+    {
+      ...high.sites[0],
+      id: 'high',
+      kind: 'town',
+      population: 5000,
+    },
+  ];
+
+  const [lowPlacement] = buildSiteMeshes(low);
+  const [highPlacement] = buildSiteMeshes(high);
+  expect(lowPlacement.radius).toBeLessThan(highPlacement.radius);
+  expect(lowPlacement.radius).toBeGreaterThanOrEqual(16);
+  expect(highPlacement.radius).toBeLessThanOrEqual(30);
+});
+
+it('uses kind-based base radius for non-town sites without population', () => {
+  const data = chunkWithTown();
+  data.sites = [
+    {
+      ...data.sites[0],
+      id: 'd0',
+      kind: 'dungeon',
+      population: undefined,
+    },
+  ];
+  const [dungeonPlacement] = buildSiteMeshes(data);
+  expect(dungeonPlacement.radius).toBe(9);
 });

@@ -196,7 +196,14 @@ const ThreeDModal = ({
   const activeNpc = activeNpcId ? localNpcRegistryRef.current[activeNpcId] ?? null : null;
 
   return (
-    <div id={UI_ID.THREE_D_MODAL} data-testid={UI_ID.THREE_D_MODAL} className={`fixed inset-0 z-[${Z_INDEX.MODAL_IMMERSIVE_BACKGROUND}] bg-black`}>
+    <div
+      id={UI_ID.THREE_D_MODAL}
+      data-testid={UI_ID.THREE_D_MODAL}
+      className={`fixed inset-0 z-[${Z_INDEX.MODAL_IMMERSIVE_BACKGROUND}] bg-black`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="3D Exploration"
+    >
       <div className="absolute inset-0">
         <Scene3D
           key={`${biomeId}:${submapSeed}`}

@@ -1,7 +1,7 @@
 # Providers North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 
@@ -18,7 +18,9 @@ Document provider scope, current composition, and cross-cutting integration poin
 - In runtime order today: `AppProviders -> GameProvider -> App UI tree`.
 - `AppProviders` currently composes `GlossaryProvider`, `SpellProvider`, and `DiceProvider`.
 - `DataLoaderGate` blocks non-main-menu UI until spell and glossary contexts are non-null.
+- Spell and glossary failures now degrade visibly instead of blocking startup: the spell provider shows an error overlay and falls back to an empty record, while glossary falls back to an empty list.
 - `GameProvider` is a separate global-state context in `src/state/GameContext.tsx`.
+- The provider boundary is now explicit in the docs, not just implied by the source tree.
 - The dashboard card schema is kept in this file so the project card can stay in sync with the tracked provider state.
 
 ## Dashboard Card Schema
@@ -26,28 +28,43 @@ Document provider scope, current composition, and cross-cutting integration poin
 Project: Providers
 Slug: providers
 Category: Feature/UI Projects
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/providers
-Gap signal: 4 open gaps (G2 and G3 active, G4 support-needed, G1 follow-up)
+Gap signal: G2/G3 resolved; G4 waiting; G5 provider modularization review required
 Protocol: living project doc set
-Next step: Start with G2 and keep G3 paired in the next implementation slice.
+Next step: Await provider modularization boundary decision before assigning further Providers work.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-08 docs-only review of `App.tsx`, `AppProviders.tsx`, `DataLoaderGate.tsx`, `SpellContext.tsx`, and `GlossaryContext.tsx`
+Workflow gaps reviewed: 2026-06-08
+Agent comments: G2/G3 provider startup and boundary docs are resolved; G4 is safe only after the review-required G5 decision is recorded.
+
+## Required Review Brief
+
+Title: Provider modularization boundary
+Question: Should `App.tsx` provider and phase composition be split now, and if so which owner controls the provider boundary and degraded-startup policy?
+Issue: `App.tsx` is a large orchestration surface that includes provider nesting, phase/render composition, and global state boundaries. The current docs now preserve the provider order and degraded-state behavior, but moving provider composition still needs an owner-approved boundary.
+Current behavior: `AppProviders` wraps `GameProvider` in `App.tsx`; `DataLoaderGate` blocks only null spell/glossary contexts outside the main menu, while degraded spell/glossary loads remain visible with overlays and empty fallbacks.
+Why blocked: A forward modularization agent could move provider composition and accidentally change data loading, game-state context availability, or phase gating without an explicit owner decision.
+Option A: Keep provider composition in `App.tsx` for now and limit Providers work to docs/source-doc sync until a broader app-shell split is approved.
+Option B: Move provider composition into a dedicated app-shell/provider module with explicit tests preserving provider order, `DataLoaderGate`, and `GameProvider` boundaries.
+Option C: Split only source documentation now, then revisit app-shell/provider movement through the code-modularization project.
+Evidence: `src/App.tsx`, `src/components/providers/AppProviders.tsx`, `src/components/providers/DataLoaderGate.tsx`, `src/state/GameContext.tsx`, and `docs/projects/code-modularization-audit/GAPS.md` CMA-G4.
+Decision owner: human/product owner plus providers/layout owners.
+Proof after decision: owner-approved split plan or defer note, plus focused tests or source-doc sync preserving provider order and degraded-startup behavior.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Decide and document the provider startup behavior for degraded states, then keep the dependency boundary explicit |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` stay aligned on provider order, `G2`, `G3`, and the current gap signal |
+| Task | G2/G3 docs slice complete; hand off the next provider docs slice |
+| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` stay aligned on the resolved `G2`/`G3` state, provider order, and current gap signal |
 | Allowed boundaries | `docs/projects/providers/` only |
-| Stop condition | The provider doc set is refreshed and ready for the next implementation slice |
-| Verification | docs consistency review against the current provider order and gate behavior |
+| Stop condition | The provider doc set is refreshed and ready for the `G4` source-doc sync |
+| Verification | docs consistency review against the current provider order, startup matrix, and gate behavior |
 | Owner | Worker B |
-| Next action | Start with `G2`, keep `G3` paired, and only widen scope if the decision requires source-doc sync |
+| Next action | Await the G5 provider-boundary decision before assigning further Providers work |
 
 ## Scope Boundaries
 
@@ -82,7 +99,8 @@ Out of scope:
 - `DataLoaderGate` is active for all phases except main menu.
 - `Dice` functionality is exposed via `useDice` and used by `DiceOverlay` and `LockpickingModal`.
 - `SpellContext` and `GlossaryContext` consumers exist across Character Creator, Combat, and glossary UI.
-- Ownership boundary for `GameProvider` relative to provider wrappers is documented in this file, with one behavior question still marked for follow-up.
+- Ownership boundary for `GameProvider` relative to provider wrappers is documented in this file, and the startup matrix now reflects the current non-blocking degraded-state behavior.
+- `G4` remains a useful source-doc sync slice, but this project is review-required until the G5 provider-boundary decision is recorded.
 
 ## Global Gap Imports
 
@@ -128,12 +146,12 @@ Check the global gap tracker before expanding scope:
 
 Keep this project scope in these files and direct code evidence references.
 
-## Open Questions
+## Deferred Follow-Ups
 
-| Question | Why it matters | Owner | Needed by |
+| Follow-up | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| What is the desired error strategy when one provider fails while the others load successfully? | This affects whether main menu should block or continue | Worker B | dependency-graph follow-up |
-| Should `DataLoaderGate` also block on context issue arrays (for example spell load warnings), not only null? | Current gate allows degraded spell payloads | Worker B | implementation follow-up |
+| `G4` GlossaryContext README sync | The current README still needs to reflect the live fetch path and empty-list fallback behavior. | Worker B | after review gate clears |
+| `G5` app-shell/provider modularization decision | The split stays blocked until a human decision is recorded. | human/product owner + providers/layout owners | decision gate |
 
 ## Resume Path For A Cold Agent
 
@@ -141,7 +159,7 @@ Keep this project scope in these files and direct code evidence references.
 2. Read docs/projects/providers/TRACKER.md.
 3. Read docs/projects/providers/GAPS.md.
 4. Check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue from: map provider dependency edges and failure-order implications.
+5. Continue only after the provider-boundary decision is recorded; then run the `G4` source-doc sync for `GlossaryContext.README.md` if still needed.
 
 
 
@@ -149,8 +167,7 @@ Keep this project scope in these files and direct code evidence references.
 
 The next cold-start agent must:
 - read `TRACKER.md` and `GAPS.md` first
-- read the existing project gaps before choosing work
-- tackle one real, evidence-backed project gap in the same pass
-- identify and register 2 additional real project gaps tied to this project in `GAPS.md`
-- if no valid in-scope project gaps exist, identify 2 real cross-project gaps in `docs/projects/GLOBAL_GAPS.md` instead and register them there
-- do not invent gaps just to satisfy the count
+- keep the current startup matrix and provider boundary note intact
+- do not assign forward Providers work while the project is review-required
+- after the decision, tackle the `G4` source-doc sync if still needed
+- do not invent gaps just to satisfy a count

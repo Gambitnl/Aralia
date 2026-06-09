@@ -1,7 +1,7 @@
 # Combat System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 Combat has a live implementation split across systems, hooks, and UI surfaces that were added in different slices. This project doc keeps ownership, execution paths, and unresolved behavior gaps visible for next agents so future work does not restart discovery or collapse unfinished intent.
@@ -22,12 +22,12 @@ Category: Gameplay Systems
 Status: active
 Confidence: medium
 Evidence: docs/projects/combat
-Gap signal: 14 open gaps, 1 imported from global
+Gap signal: 9 open gaps, 1 imported from global; G11 class palette generation, G12 premade weapon coverage, G26 async AI turn sequencing, G27 OA reach inspection, and G28/G29 concentration cleanup work completed
 Protocol: living project doc set
-Next step: Implement G11 class feature generation in `src/utils/combat/combatUtils.ts`.
+Next step: Choose the next open combat rules gap after checking `TRACKER.md`; G26, G28, and G29 are resolved, keep G30 modularization review-gated.
 Required verification: scoped_tests, docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-06-08
 Workflow gaps reviewed: 2026-06-05
 
 ## Project Scope (Evidence-Bound)
@@ -75,7 +75,7 @@ The combat runtime is now clearly split:
 
 ### Combat utilities (implemented, partial)
 
-- `src/utils/combat/combatUtils.ts` converts player and monster state into combat-facing data, but class-feature generation is still partial and does not yet cover the broader class palette tracked in G11.
+- `src/utils/combat/combatUtils.ts` converts player and monster state into combat-facing data; G11 added combat-palette generation for Barbarian Rage, Monk Flurry of Blows, Bardic Inspiration, Divine Smite, and Pact Magic.
 - `src/utils/combat/createEnemyFromMonster.ts`, `src/utils/combat/resistanceUtils.ts`, and `src/utils/combat/combatAI.ts` remain supporting utility surfaces with their own open gaps in `GAPS.md`.
 
 ## Known Partial / Open Areas (Evidence-Backed)
@@ -84,9 +84,9 @@ These are direct code/docs observations, not guesses:
 
 - `TODO(lint-intent)` comments indicate testability or typing debt in `AttackRiderSystem.ts`, `SustainActionSystem.ts`, `useCombatAI.ts`, `useActionExecutor.ts`, `useCombatEngine.ts`, and `useTurnManager.ts` (unused imports/parameters, stale-closure workaround notes, singleton extraction concerns, centralization opportunities).
 - Event/sustain singletons are shared via `getInstance()` and may require explicit reset hooks for strict unit isolation (noted in file comments and `Combat_Ralph.md`).
-- `docs/architecture/domains/combat.md` records known mechanics omissions (for example, death-save sequencing and some class feature conversions), so implementation behavior should be validated before assuming full D&D parity.
+- `docs/architecture/domains/combat.md` records known mechanics omissions, so implementation behavior should be validated before assuming full D&D parity.
 - `useCombatAI.ts` still has explicit TODOs to cover state-machine transition tests in test suite terms.
-- Class-feature generation is still incomplete outside the existing fighter and rogue paths; G11 remains the active follow-up slice for that gap.
+- G11 class-feature palette generation is complete for the named classes, but downstream execution semantics may still need feature-specific command/effect work in later combat slices.
 
 ## Uncertain / Open Questions (Needs Follow-Up)
 
@@ -110,10 +110,10 @@ These are direct code/docs observations, not guesses:
 
 | Field | Value |
 |---|---|
-| Task | Class feature generation gap (G11): Barbarian Rage, Monk Flurry, Bardic Inspiration, and Divine Smite are absent from the combat palette. |
-| Acceptance criteria | Add missing class-specific combat ability generation and verify the target classes named in G11. |
-| Allowed boundaries | `src/utils/combat/` and related combat tests; expand to premade character data only if the generator needs it. |
-| Stop condition | Verified with focused tests or evidence that Monk has Flurry of Blows and Warlock has Pact features in the palette. |
+| Task | Next open combat rules gap selected from `TRACKER.md`; G11, G12, and G26 are complete. |
+| Acceptance criteria | Preserve combat utility behavior and add focused tests for the selected gap. |
+| Allowed boundaries | Match the selected gap; avoid crossing into battle-map rendering or events ownership unless explicitly routed. |
+| Stop condition | Focused tests pass and project docs name any new blockers or follow-up gaps. |
 
 ## Resume Path for Cold Start
 

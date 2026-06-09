@@ -12,6 +12,7 @@ import { WINDOW_KEYS } from '../../styles/uiIds';
 import MonsterPicker, { PickedMonster } from './MonsterPicker';
 import { calculateDifficulty, DifficultyTier } from '../../utils/combat/encounterDifficulty';
 import { useGameState } from '../../state/GameContext';
+import { simpleHash } from '../../utils/core/hashUtils';
 import {
   generateBestiaryEncounter,
   BestiaryEncounterResult,
@@ -68,6 +69,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
   const [bestiaryDifficulty, setBestiaryDifficulty] = useState<EncounterDifficultyTarget>('Medium');
   const [bestiaryResult, setBestiaryResult] = useState<BestiaryEncounterResult | null>(null);
   const [bestiaryGenerated, setBestiaryGenerated] = useState(false); // lazy: only generate on first tab visit
+  const [bestiarySeedCounter, setBestiarySeedCounter] = useState(0);
   const [lairOnly, setLairOnly] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   /**
@@ -83,12 +85,31 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     ? partyUsed
     : party.map(p => ({ id: p.id, name: p.name, classId: p.class.id, level: p.level || 1 }));
 
+  const buildBestiarySeed = useCallback((difficulty: EncounterDifficultyTarget, lair: boolean) => {
+    const partySeed = effectiveParty
+      .map(member => `${member.id ?? member.name}:${member.level ?? 1}:${member.classId}`)
+      .sort()
+      .join('|');
+    return simpleHash([
+      state.worldSeed,
+      state.currentLocationId,
+      partySeed,
+      difficulty,
+      lair ? 'lair' : 'normal',
+      bestiarySeedCounter,
+    ].join('|'));
+  }, [effectiveParty, state.worldSeed, state.currentLocationId, bestiarySeedCounter]);
+
   const rollBestiaryEncounter = useCallback((difficulty: EncounterDifficultyTarget, lair: boolean) => {
-    const result = generateBestiaryEncounter(effectiveParty, { difficulty, lairOnly: lair });
+    const result = generateBestiaryEncounter(effectiveParty, {
+      difficulty,
+      lairOnly: lair,
+      seed: buildBestiarySeed(difficulty, lair),
+    });
     setBestiaryResult(result);
     setLiveMonsters(result?.monsters ? [...result.monsters] : []);
     setBestiaryGenerated(true);
-  }, [effectiveParty]);
+  }, [effectiveParty, buildBestiarySeed]);
 
   /** Merges a MonsterPicker selection into liveMonsters — stacks onto existing rows. */
   const handleAddSearchMonster = useCallback((picked: PickedMonster) => {
@@ -124,6 +145,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
       setBestiaryGenerated(false);
       setBestiaryDifficulty('Medium');
       setLairOnly(false);
+      setBestiarySeedCounter(0);
       setShowSearch(false);
       setLiveMonsters([]);
     }
@@ -280,11 +302,12 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     : canSimulateCustom;
 
   return (
-    <WindowFrame
-      title={t('encounter_modal.title')}
-      onClose={onClose}
-      storageKey={WINDOW_KEYS.ENCOUNTER_MODAL}
-    >
+    <div role="dialog" aria-modal="true" aria-label={t('encounter_modal.title')}>
+      <WindowFrame
+        title={t('encounter_modal.title')}
+        onClose={onClose}
+        storageKey={WINDOW_KEYS.ENCOUNTER_MODAL}
+      >
       <div className="flex flex-col h-full bg-gray-800 p-6">
         {/* Tab bar */}
         <div className="flex border-b border-gray-600 mb-4 shrink-0">
@@ -333,6 +356,7 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                     key={d}
                     onClick={() => {
                       setBestiaryDifficulty(d);
+                      setBestiarySeedCounter(0);
                       setBestiaryGenerated(false); // trigger re-gen via useEffect
                     }}
                     className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
@@ -348,7 +372,10 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                   </button>
                 ))}
                 <button
-                  onClick={() => rollBestiaryEncounter(bestiaryDifficulty, lairOnly)}
+                  onClick={() => {
+                    setBestiarySeedCounter(prev => prev + 1);
+                    setBestiaryGenerated(false); // trigger re-gen via useEffect
+                  }}
                   className="ml-auto px-3 py-1 text-xs font-semibold rounded bg-emerald-800/60 text-emerald-300 hover:bg-emerald-700/60 border border-emerald-700/50 transition-colors"
                 >
                   🎲 Reroll
@@ -360,8 +387,9 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
                 <button
                   onClick={() => {
                     const next = !lairOnly;
+                    setBestiarySeedCounter(0);
                     setLairOnly(next);
-                    rollBestiaryEncounter(bestiaryDifficulty, next);
+                    setBestiaryGenerated(false); // trigger re-gen via useEffect
                   }}
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
                     lairOnly ? 'bg-amber-600' : 'bg-gray-600'
@@ -617,7 +645,8 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
           </button>
         </div>
       </div>
-    </WindowFrame>
+      </WindowFrame>
+    </div>
   );
 };
 

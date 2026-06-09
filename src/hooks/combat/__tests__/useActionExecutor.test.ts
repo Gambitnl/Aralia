@@ -442,8 +442,16 @@ describe('useActionExecutor', () => {
                 reaction: expect.objectContaining({ used: true })
             })
         }));
+        // The opportunity attack roll is intentionally allowed to hit or miss in this
+        // test. What matters for this branch is that the selected reaction weapon
+        // drives the log entry and carries structured hit metadata for downstream
+        // combat-message adapters.
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('Opportunity Attack using Rapier')
+            message: expect.stringContaining('using Rapier'),
+            data: expect.objectContaining({
+                isHit: expect.any(Boolean),
+                isCrit: expect.any(Boolean)
+            })
         }));
     });
 

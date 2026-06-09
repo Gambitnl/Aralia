@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:31:45
+ * Last Sync: 08/06/2026, 13:33:58
  * Dependents: App.tsx
- * Imports: 12 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -62,16 +62,27 @@ import { BIOMES } from '../data/biomes';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 // Procedural map generator that produces the world grid from locations, biomes, and a seed.
 import { generateMap } from '../services/mapService';
+import { WorldHistoryService } from '../services/WorldHistoryService';
 // Save/load service for persisting and restoring game state from local storage.
 import * as SaveLoadService from '../services/saveLoadService';
 // Utility that determines which dynamic NPCs should be active at a given location.
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
+import { getAllFactions } from '../utils/factionUtils';
 import { generateWorldSeed } from '../utils/random/generateWorldSeed';
 import { generateId } from '../utils/core/idGenerator';
 
 // Shorthand type for the chat message function passed in from the parent component.
 // Accepts message text and an optional sender tag for styling in the chat log.
 type AddMessageFn = (text: string, sender?: 'system' | 'player' | 'npc') => void;
+
+// First-build history is attached at bootstrap time so new games and quick starts
+// carry the same seeded founding story into the save lifecycle.
+function createBootstrapWorldHistory(worldSeed: number) {
+  return WorldHistoryService.createFirstBuildHistory({
+    worldSeed,
+    factions: getAllFactions(worldSeed),
+  });
+}
 
 // Props interface for the hook. All three are provided by the consuming component (App.tsx).
 //  - dispatch:       Sends actions to the game state reducer.
@@ -175,7 +186,17 @@ export function useGameInitialization({
       const { initialInventoryForDummyCharacter } = await import('../data/dev/dummyCharacter');
 
       // Dispatch jumps straight into gameplay, skipping the character creator entirely.
-      dispatch({ type: 'START_GAME_FOR_DUMMY', payload: { mapData: newMapData, dynamicLocationItemIds: initialDynamicItems, generatedParty, worldSeed: newWorldSeed, initialInventory: initialInventoryForDummyCharacter } });
+      dispatch({
+        type: 'START_GAME_FOR_DUMMY',
+        payload: {
+          mapData: newMapData,
+          dynamicLocationItemIds: initialDynamicItems,
+          generatedParty,
+          worldSeed: newWorldSeed,
+          initialInventory: initialInventoryForDummyCharacter,
+          worldHistory: createBootstrapWorldHistory(newWorldSeed),
+        }
+      });
 
     } catch (error) {
       // Surface the error to both the console and the UI error state.
@@ -255,6 +276,7 @@ export function useGameInitialization({
         initialLocationDescription: initialLocation.baseDescription,
         initialSubMapCoordinates: initialSubMapCoords,
         initialActiveDynamicNpcIds: initialActiveDynamicNpcs,
+        worldHistory: createBootstrapWorldHistory(worldSeed),
       };
 
       // Dispatch transitions the game phase from character creation into active gameplay.
@@ -335,6 +357,7 @@ export function useGameInitialization({
         generatedParty,
         worldSeed,
         initialInventory: initialInventoryForDummyCharacter,
+        worldHistory: createBootstrapWorldHistory(worldSeed),
       }
     });
   }, [currentMapData, currentWorldSeed, dispatch]);

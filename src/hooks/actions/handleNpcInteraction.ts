@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:17
- * Dependents: actionHandlers.ts
- * Imports: 9 files
+ * Last Sync: 09/06/2026, 00:04:52
+ * Dependents: hooks/actions/actionHandlers.ts
+ * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -28,6 +28,15 @@ import { NPCS } from '../../constants';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateId } from '../../utils/core/idGenerator';
+import { OllamaService } from '../../services/ollama';
+import { ConversationMessage } from '../../types/conversation';
+
+interface BanterContext {
+    locationName: string;
+    weather: string;
+    timeOfDay: string;
+    currentTask?: string;
+}
 
 interface HandleTalkProps {
   action: Action;
@@ -38,6 +47,51 @@ interface HandleTalkProps {
   playPcmAudio: PlayPcmAudioFn;
   playerContext: string;
   generalActionContext: string;
+}
+
+function getConversationTarget(action: Action, gameState: GameState): string | null {
+    const directTargetId = ('targetId' in action ? (action as { targetId?: string }).targetId : undefined);
+    const payloadTargetId = (action.payload as { targetNpcId?: string } | undefined)?.targetNpcId;
+
+    if (directTargetId) return directTargetId;
+    if (payloadTargetId) return payloadTargetId;
+    if (typeof action.label === 'string') {
+        const labelTargetMatch = action.label.match(/^talk to (.+)$/i);
+        if (labelTargetMatch) {
+            const normalizedLabel = labelTargetMatch[1].trim().toLowerCase();
+            const companionByLabel = Object.entries(gameState.companions).find(([, companion]) =>
+                companion.identity.name.toLowerCase() === normalizedLabel
+            );
+            if (companionByLabel) return companionByLabel[0];
+        }
+    }
+    return null;
+}
+
+function buildConversationContext(state: GameState): BanterContext {
+    const locId = state.currentLocationId;
+    const locName = state.dynamicLocations?.[locId]?.name || locId;
+    const weather = state.environment?.currentWeather || 'Clear';
+    const hour = new Date(state.gameTime).getHours();
+    const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+
+    // WHAT CHANGED: Normalized dual-status checks for mixed save/runtime schemas.
+    // TODO(2026-01-03 pass 2 Codex-CLI): activeQuest typing changed casing across
+    // saves and runtime payloads; remove this cast once status is consistently
+    // one shape.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activeQuest = state.questLog.find((q: any) => q.status === 'Active' || q.status === 'active');
+
+    return {
+        locationName: locName,
+        weather,
+        timeOfDay,
+        currentTask: activeQuest?.title,
+    };
+}
+
+function getCompanionConversationMessage(companionName: string): string {
+    return `${companionName} looks up, smiles, and waits for you to speak.`;
 }
 
 export async function handleStartDialogue({
@@ -99,10 +153,83 @@ export async function handleTalk({
   playerContext,
   generalActionContext,
 }: HandleTalkProps): Promise<void> {
-  const targetId = 'targetId' in action ? (action as any).targetId : undefined;
+  const targetId = getConversationTarget(action, gameState);
 
   if (!targetId) {
     addMessage("Invalid talk target.", "system");
+    return;
+  }
+
+  const companion = gameState.companions[targetId];
+  if (companion) {
+    if (gameState.activeConversation) {
+      addMessage('You are already in a conversation.', 'system');
+      return;
+    }
+
+    if (gameState.activeDialogueSession) {
+      dispatch({ type: 'END_DIALOGUE_SESSION' });
+    }
+
+    dispatch({ type: 'SET_CONVERSATION_PENDING', payload: true });
+    dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+
+    const context = buildConversationContext(gameState);
+    const participant = {
+      id: targetId,
+      name: companion.identity.name,
+      race: companion.identity.race,
+      class: companion.identity.class,
+      sex: companion.identity.sex,
+      age: companion.identity.age,
+      physicalDescription: companion.identity.physicalDescription,
+      personality: `Values: ${companion.personality.values.join(', ')}. Quirks: ${companion.personality.quirks.join(', ')}.`
+    };
+
+    let initialMessage: ConversationMessage = {
+      id: generateId(),
+      speakerId: targetId,
+      text: getCompanionConversationMessage(companion.identity.name),
+      timestamp: Date.now(),
+    };
+
+    try {
+        const result = await OllamaService.continueConversation(
+            [participant],
+            [],
+            context
+        );
+
+        if (result.metadata) {
+            addGeminiLog(
+                'continueConversation',
+                result.metadata.prompt,
+                result.metadata.response || ''
+            );
+        }
+
+        if (result.success && result.data) {
+            initialMessage = {
+                ...initialMessage,
+                speakerId: result.data.speakerId,
+                text: result.data.text,
+                emotion: result.data.emotion,
+            };
+        }
+    } catch {
+        // Keep fallback message on any model/path failure.
+    } finally {
+        dispatch({ type: 'SET_CONVERSATION_PENDING', payload: false });
+    }
+
+    dispatch({
+        type: 'START_CONVERSATION',
+        payload: {
+            companionIds: [targetId],
+            initialMessage,
+        },
+    });
+
     return;
   }
 

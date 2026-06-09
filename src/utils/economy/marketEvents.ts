@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 27/02/2026, 09:32:15
- * Dependents: TradeRouteSystem.ts, WorldEventManager.ts, economy/index.ts
+ * Last Sync: 08/06/2026, 17:21:33
+ * Dependents: systems/economy/TradeRouteManager.ts, systems/economy/TradeRouteSystem.ts, systems/world/WorldEventManager.ts, utils/economy/economyUtils.ts, utils/economy/index.ts
  * Imports: 2 files
  *
  * MULTI-AGENT SAFETY:
@@ -89,6 +89,38 @@ export interface EnrichedMarketEvent extends MarketEvent {
   priceModifier: number;
 }
 
+const normalizeTag = (tag: string): string => tag.toLowerCase().trim();
+
+const normalizeNameToTags = (name: string): string[] => {
+  const scrubbed = name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+  return scrubbed
+    .split(/\s+/)
+    .map(normalizeTag)
+    .filter(Boolean);
+};
+
+export function getMarketEventTags(event: MarketEvent): string[] {
+  const tags = new Set<string>();
+
+  if (event.affectedTags?.length) {
+    event.affectedTags.forEach(tag => {
+      if (tag) tags.add(normalizeTag(tag));
+    });
+  }
+
+  if (event.affectedCategories?.length) {
+    event.affectedCategories.forEach(tag => {
+      if (tag) tags.add(normalizeTag(tag));
+    });
+  }
+
+  if (tags.size === 0 && event.name) {
+    normalizeNameToTags(event.name).forEach(tag => tags.add(tag));
+  }
+
+  return Array.from(tags);
+}
+
 /**
  * Generates active market events based on the current game time
  * This is deterministic - same time always yields same events
@@ -125,8 +157,6 @@ export function generateMarketEvents(gameTime: number): EnrichedMarketEvent[] {
           // We can cast to any if the strict MarketEvent type forbids them,
           // but since EnrichedMarketEvent extends MarketEvent, we should be fine
           // if we pass this object where EnrichedMarketEvent is expected.
-          // However, to satisfy strict MarketEvent where name/desc aren't there:
-          // We might need to handle that. But for now let's assume Enriched is used internally.
           name: template.name,
           description: template.description
         } as EnrichedMarketEvent);
@@ -142,14 +172,14 @@ export function generateMarketEvents(gameTime: number): EnrichedMarketEvent[] {
  */
 export function getEventPriceModifier(category: string, events: MarketEvent[]): number {
   let modifier = 1.0;
+  const normalizedCategory = category.toLowerCase();
 
   for (const event of events) {
-    // We cast to EnrichedMarketEvent to access the extra properties
-    // In a real DB backed system these would be looked up from a template ID
-    const enriched = event as unknown as EnrichedMarketEvent;
+    const tags = getMarketEventTags(event);
 
-    if (enriched.affectedCategories && (enriched.affectedCategories.includes('all') || enriched.affectedCategories.includes(category))) {
-      modifier *= enriched.priceModifier;
+    if (tags.includes('all') || tags.includes(normalizedCategory)) {
+      const { priceModifier } = event as Partial<Pick<EnrichedMarketEvent, 'priceModifier'>>;
+      modifier *= priceModifier ?? 1;
     }
   }
 
@@ -162,26 +192,24 @@ export function getEventPriceModifier(category: string, events: MarketEvent[]): 
  * This eliminates the risk of desynchronized manual lists in the state.
  */
 export function calculateMarketFactors(events: MarketEvent[]): { scarcity: string[], surplus: string[] } {
-    const scarcity = new Set<string>();
-    const surplus = new Set<string>();
+  const scarcity = new Set<string>();
+  const surplus = new Set<string>();
 
-    events.forEach(event => {
-        // Handle both Enriched and base events
-        const enriched = event as any;
-        const tags = enriched.affectedCategories || enriched.affectedTags || [];
-        const type = enriched.type;
+  events.forEach(event => {
+    const tags = getMarketEventTags(event);
+    const type = event.type;
 
-        tags.forEach((tag: string) => {
-            if (type === MarketEventType.SHORTAGE || type === MarketEventType.BUST) {
-                scarcity.add(tag);
-            } else if (type === MarketEventType.SURPLUS || type === MarketEventType.FESTIVAL) {
-                surplus.add(tag);
-            }
-        });
+    tags.forEach((tag: string) => {
+      if (type === MarketEventType.SHORTAGE || type === MarketEventType.BUST) {
+        scarcity.add(tag);
+      } else if (type === MarketEventType.SURPLUS || type === MarketEventType.FESTIVAL) {
+        surplus.add(tag);
+      }
     });
+  });
 
-    return {
-        scarcity: Array.from(scarcity),
-        surplus: Array.from(surplus)
-    };
+  return {
+    scarcity: Array.from(scarcity),
+    surplus: Array.from(surplus)
+  };
 }

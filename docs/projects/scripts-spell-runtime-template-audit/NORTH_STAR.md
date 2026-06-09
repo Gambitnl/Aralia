@@ -1,23 +1,28 @@
 # NORTH_STAR: Scripts: Spell Runtime Template Audit
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
 Project: Scripts: Spell Runtime Template Audit
 Slug: scripts-spell-runtime-template-audit
 Category: Scripts / Audit Projects
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md
 Gap signal: 2 open gaps
 Protocol: living project doc set
-Next step: Decide whether the recurring-mechanics labels join the strict vocabulary or move to the spell-system-overhaul lane, then rerun `npm run audit:spell-template`.
+Next step: Human review should decide whether this remains standalone or routes into Structured Spell Execution / scripts quality before worker assignment.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Workflow gaps reviewed: 2026-06-08
+Lifecycle status: merge-candidate
+Deprecation confidence: weak
+Deprecation reason: overlap_with_spell_system_overhaul_and_scripts_audit_ownership
+Canonical owner: docs/tasks/spell-system-overhaul or docs/projects/scripts-quality pending review
+Human decision required: yes
 
 ## Why This Project Exists
 

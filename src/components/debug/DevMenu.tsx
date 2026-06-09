@@ -41,7 +41,29 @@ import { Z_INDEX } from '../../styles/zIndex';
 import { UI_ID } from '../../styles/uiIds';
 import StateViewer from './StateViewer';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'quick_start_dev' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_village' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
+type DevMenuActionType =
+  | 'main_menu'
+  | 'char_creator'
+  | 'quick_start_dev'
+  | 'save'
+  | 'load'
+  | 'toggle_log_viewer'
+  | 'toggle_unified_log_viewer'
+  | 'battle_map_demo'
+  | 'generate_encounter'
+  | 'toggle_party_editor'
+  | 'toggle_npc_test_plan'
+  | 'inspect_noble_houses'
+  | 'test_temple'
+  | 'test_village'
+  | 'test_lockpicking'
+  | 'test_dice_roller'
+  | 'toggle_thieves_guild'
+  | 'toggle_naval_dashboard'
+  | 'toggle_trade_route_dashboard'
+  | 'toggle_economy_ledger'
+  | 'toggle_courier_pouch'
+  | 'restart_dynamic_party';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -189,6 +211,8 @@ const DevMenu: React.FC<DevMenuProps> = ({
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
         { label: 'Naval Dashboard', action: 'toggle_naval_dashboard', style: 'bg-slate-700 hover:bg-slate-600 border border-slate-500' },
         { label: 'Trade Routes', action: 'toggle_trade_route_dashboard', style: 'bg-amber-700 hover:bg-amber-600 border border-amber-500' },
+        { label: 'Ledger Book', action: 'toggle_economy_ledger', style: 'bg-emerald-700 hover:bg-emerald-600 border border-emerald-500' },
+        { label: 'Courier Pouch', action: 'toggle_courier_pouch', style: 'bg-indigo-700 hover:bg-indigo-600 border border-indigo-500' },
       ],
     },
   ];

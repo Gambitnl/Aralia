@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:31:45
+ * Last Sync: 09/06/2026, 00:04:52
  * Dependents: App.tsx, state/appState.ts
  * Imports: 13 files
  *
@@ -287,6 +287,7 @@ export const initialGameState: GameState = {
     // Dialogist: Dialogue System
     activeDialogueSession: null,
     isDialogueInterfaceOpen: false,
+    activeConversation: null,
 
     // Lockpicking Modal State
     isLockpickingModalVisible: false,

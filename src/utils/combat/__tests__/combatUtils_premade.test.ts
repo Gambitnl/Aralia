@@ -115,3 +115,45 @@ describe('combatUtils: higher level caster fixtures', () => {
     expect(spellAbilities.length).toBe(expectedSpellCount);
   });
 });
+
+describe('combatUtils: premade character loadout evidence', () => {
+  const isMartialPremade = (fixture: any): boolean =>
+    ['fighter', 'barbarian', 'paladin', 'ranger', 'rogue', 'monk'].includes(fixture.class?.id);
+
+  it('should give fighter/premade martial characters a real main-hand attack ability', () => {
+    const fixturePath = path.join(process.cwd(), 'public', 'premade-characters', 'kael_ironvow.json');
+    const fixtureData = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+
+    const combatChar = createPlayerCombatCharacter(fixtureData);
+    const attackMain = combatChar.abilities.find((ability) => ability.id === 'attack_main');
+
+    expect(attackMain).toBeDefined();
+    expect(attackMain?.name).toBe('Longsword');
+    expect(attackMain?.id).toBe('attack_main');
+  });
+
+  it('should not fall back to unarmed strike for premade martials when a main-hand weapon is defined', () => {
+    const premadeDir = path.join(process.cwd(), 'public', 'premade-characters');
+    const fixtureFiles = fs
+      .readdirSync(premadeDir)
+      .filter((filename) => filename.endsWith('.json') && filename !== 'manifest.json');
+
+    for (const filename of fixtureFiles) {
+      const fixtureData = JSON.parse(fs.readFileSync(path.join(premadeDir, filename), 'utf8')) as any;
+
+      if (!isMartialPremade(fixtureData)) {
+        continue;
+      }
+
+      const combatChar = createPlayerCombatCharacter(fixtureData);
+      const attackMain = combatChar.abilities.find((ability) => ability.id === 'attack_main');
+      const unarmed = combatChar.abilities.find((ability) => ability.id === 'unarmed_strike');
+
+      expect(attackMain, `${fixtureData.name} (${filename}) should have a main-hand attack ability`).toBeDefined();
+      expect(attackMain?.name, `${fixtureData.name} (${filename}) should reflect equipped main hand item`).toBe(
+        fixtureData.equippedItems.MainHand.name
+      );
+      expect(unarmed, `${fixtureData.name} (${filename}) should not fall back to unarmed strike`).toBeUndefined();
+    }
+  });
+});

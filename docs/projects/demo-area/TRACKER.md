@@ -1,7 +1,7 @@
 # Demo Area Tracker
 
-Status: active
-Last updated: 2026-06-05
+Status: reference-only; blocked on human retention decision
+Last updated: 2026-06-08
 
 ## Status Vocabulary
 
@@ -19,7 +19,7 @@ Last updated: 2026-06-05
 |---|---|---|---|---|---|---|---|
 | T1 | done | Create this project docs shell and run a narrow demo/dev/test scan | Worker B | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md`, `src/App.tsx` | Keep only scope files in docs/projects/demo-area and record scan result | Presence of the three required files and evidence-backed status wording |
 | T2 | done | Classify Demo Area status after scan | Worker B | 2026-05-31 | `src/components/demo/CombatMessagingDemo.tsx`, `src/App.tsx`, `src/components/debug/DevMenu.tsx` | Set project classification as reference-only with retention/removal decision pending | `src/components/demo/CombatMessagingDemo.tsx` remains unreferenced by App/state |
-| T3 | active | Resolve demo area retention decision | Worker B | 2026-06-05 | `docs/projects/demo-area/GAPS.md`, `docs/projects/PROJECT_TRACKER.md` | Decide keep/move/remove for `src/components/demo/CombatMessagingDemo.tsx`; add mount path if keeping | App route/action evidence and state transition updates |
+| T3 | blocked | Resolve demo area retention decision | Human owner | 2026-06-08 | `docs/projects/demo-area/GAPS.md`, `docs/projects/PROJECT_TRACKER.md` | Decide keep/move/remove for `src/components/demo/CombatMessagingDemo.tsx`; no forward iteration assignment until decided | App route/action evidence and state transition updates after decision |
 
 ## Gap Log
 

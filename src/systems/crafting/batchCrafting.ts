@@ -21,6 +21,20 @@ export const DEFAULT_BATCH_CONFIG: BatchCraftingConfig = {
     timeMultiplier: 0.8
 };
 
+/**
+ * Batch previews need stack quantity, not row count, so a single large stack can
+ * unlock the same max craftable count the engine now sees.
+ */
+function countItemQuantityInInventory(inventory: Item[], itemId: string): number {
+    return inventory.reduce((total, item) => {
+        if (item.id !== itemId) {
+            return total;
+        }
+
+        return total + (item.quantity ?? 1);
+    }, 0);
+}
+
 export interface BatchCraftabilityResult {
     baseRecipe: RecipeCraftability;
     maxCraftable: number;
@@ -66,7 +80,7 @@ export function calculateBatchCraftability(
     // Calculate max craftable based on ingredients
     let maxByIngredients = Infinity;
     for (const ing of recipe.ingredients) {
-        const available = inventory.filter(item => item.id === ing.itemId).length;
+        const available = countItemQuantityInInventory(inventory, ing.itemId);
         const canMake = Math.floor(available / ing.quantity);
         maxByIngredients = Math.min(maxByIngredients, canMake);
     }

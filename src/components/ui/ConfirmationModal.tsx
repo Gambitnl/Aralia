@@ -36,6 +36,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   // 3. Handling Escape key
   // 4. Restoring focus on close
   const dialogRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+  const titleId = 'confirmation-modal-title';
 
   return (
     <AnimatePresence>
@@ -54,14 +55,16 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             className="bg-gray-900 border border-amber-500/60 rounded-xl shadow-xl max-w-md w-full p-6 text-gray-100 focus:outline-none"
             role="dialog"
             aria-modal="true"
+            aria-labelledby={titleId}
             tabIndex={-1}
-            aria-label={title}
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
           >
-            <h3 className="text-xl font-bold text-amber-300 mb-3">{title}</h3>
+            <h3 id={titleId} className="text-xl font-bold text-amber-300 mb-3">
+              {title}
+            </h3>
             <div className="text-sm text-gray-300 leading-relaxed">
               {children}
             </div>

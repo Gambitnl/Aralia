@@ -114,6 +114,16 @@ export const useActionGeneration = ({
       actions.push({ type: 'APPROACH_TOWN', label: 'Approach Cautiously' });
     }
 
+    currentLocation.interactableFeatures?.forEach((feature) => {
+      if (feature.type === 'lock') {
+        actions.push({
+          type: 'OPEN_LOCKPICKING_MODAL',
+          label: feature.label,
+          payload: feature.lock,
+        });
+      }
+    });
+
     return actions;
   }, [currentLocation, npcsInLocation, itemsInLocation, subMapCoordinates, worldSeed]);
 

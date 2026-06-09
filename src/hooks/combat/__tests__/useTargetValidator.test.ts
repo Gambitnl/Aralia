@@ -52,6 +52,23 @@ const meleeAttack: Ability = {
     effects: [{ type: 'damage', value: 1, damageType: 'physical' }]
 };
 
+const holdPersonLikeAbility: Ability = {
+    ...meleeAttack,
+    id: 'hold-person-like',
+    name: 'Hold Person Like',
+    validCreatureTypes: ['Humanoid'],
+    range: 2
+};
+
+const holySmiteLikeAbility: Ability & { excludeCreatureTypes?: string[] } = {
+    ...meleeAttack,
+    id: 'holy-smite-like',
+    name: 'Holy Smite Like',
+    validCreatureTypes: ['Humanoid', 'Fey'],
+    excludeCreatureTypes: ['Undead'],
+    range: 2
+};
+
 describe('useTargetValidator', () => {
     it('keeps existing boolean validation while explaining out-of-range enemies', () => {
         const caster = createMockCombatCharacter({
@@ -122,6 +139,78 @@ describe('useTargetValidator', () => {
         expect(result.current.getTargetValidation(meleeAttack, caster, { x: 1, y: 0 })).toEqual({
             isValid: false,
             reason: 'Unarmed Strike needs an enemy target.'
+        });
+    });
+
+    it('rejects non-matching target creature types with manual combat reason path', () => {
+        const caster = createMockCombatCharacter({
+            id: 'kaelen',
+            name: 'Kaelen',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+        const undeadTarget = createMockCombatCharacter({
+            id: 'undead-1',
+            name: 'Undead 1',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            stats: {
+                ...createMockCombatCharacter({ currentHP: 10 }).stats,
+                creatureTypes: ['Undead']
+            }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, undeadTarget],
+            mapData: createMap(3, 3)
+        }));
+
+        expect(result.current.getTargetValidation(holdPersonLikeAbility, caster, undeadTarget.position)).toEqual({
+            isValid: false,
+            reason: 'Hold Person Like can only target Humanoid creatures.'
+        });
+    });
+
+    it('supports case-insensitive creature typing and exclusion in getTargetValidation', () => {
+        const caster = createMockCombatCharacter({
+            id: 'kaelen',
+            name: 'Kaelen',
+            team: 'player',
+            position: { x: 0, y: 0 }
+        });
+        const undeadHumanoidTarget = createMockCombatCharacter({
+            id: 'zombie-1',
+            name: 'Zombie 1',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            stats: {
+                ...createMockCombatCharacter({ currentHP: 10 }).stats,
+                creatureTypes: ['undead', 'humanoid']
+            }
+        });
+
+        const feyTarget = createMockCombatCharacter({
+            id: 'sprite-1',
+            name: 'Sprite 1',
+            team: 'enemy',
+            position: { x: 2, y: 0 },
+            stats: {
+                ...createMockCombatCharacter({ currentHP: 10 }).stats,
+                creatureTypes: ['fey']
+            }
+        });
+
+        const { result } = renderHook(() => useTargetValidator({
+            characters: [caster, undeadHumanoidTarget, feyTarget],
+            mapData: createMap(4, 4)
+        }));
+
+        expect(result.current.getTargetValidation(holySmiteLikeAbility, caster, undeadHumanoidTarget.position)).toEqual({
+            isValid: false,
+            reason: 'Holy Smite Like can only target Humanoid, Fey creatures.'
+        });
+        expect(result.current.getTargetValidation(holySmiteLikeAbility, caster, feyTarget.position)).toEqual({
+            isValid: true
         });
     });
 });

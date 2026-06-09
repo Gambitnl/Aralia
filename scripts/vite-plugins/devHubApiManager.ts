@@ -187,6 +187,8 @@ export const devHubApiManager = () => ({
       // Agents fill dashboard-facing values in a named markdown section. This
       // parser lets the dashboard read those explicit fields first, while older
       // projects can still fall back to inferred values until they are upgraded.
+      // It accepts both the newer "Label: value" block and the older two-column
+      // markdown table form used by some living-project North Stars.
       const fields: Record<string, string> = {};
       const lines = content.split(/\r?\n/);
       const headingPattern = new RegExp('^##\\s+' + headingName + '\\s*$', 'i');
@@ -196,9 +198,17 @@ export const devHubApiManager = () => ({
       for (const line of lines.slice(startIndex + 1)) {
         if (/^##\s+/.test(line)) break;
         const match = line.match(/^\s*([^:]+?)\s*:\s*(.+)\s*$/);
-        if (!match) continue;
-        const key = toProjectSlug(match[1]).replace(/-/g, '');
-        fields[key] = stripMarkdownInline(match[2]).trim();
+        if (match) {
+          const key = toProjectSlug(match[1]).replace(/-/g, '');
+          fields[key] = stripMarkdownInline(match[2]).trim();
+          continue;
+        }
+
+        const tableCells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+        if (tableCells.length < 2) continue;
+        if (/^-+$/.test(tableCells[0].replace(/\s/g, '')) || /^field$/i.test(stripMarkdownInline(tableCells[0]))) continue;
+        const key = toProjectSlug(tableCells[0]).replace(/-/g, '');
+        fields[key] = stripMarkdownInline(tableCells.slice(1).join(' | ')).trim();
       }
 
       return fields;
@@ -364,6 +374,36 @@ export const devHubApiManager = () => ({
       return collected.join(' ').trim();
     };
 
+    const requiredReviewBriefFromDocs = (
+      northStarContent: string,
+      trackerContent: string,
+      gapsContent: string,
+    ) => {
+      // Review-required projects need more than a terse next-step sentence.
+      // Agents can add a small markdown section named "Required Review Brief";
+      // the dashboard turns that section into a decision panel with options.
+      const fields = {
+        ...markdownSectionFields(gapsContent, 'Required Review Brief'),
+        ...markdownSectionFields(trackerContent, 'Required Review Brief'),
+        ...markdownSectionFields(northStarContent, 'Required Review Brief'),
+      };
+      const options = ['optiona', 'optionb', 'optionc']
+        .map((key) => projectCardSchemaField(fields, key))
+        .filter(Boolean);
+
+      return {
+        title: projectCardSchemaField(fields, 'title') || '',
+        question: projectCardSchemaField(fields, 'question') || '',
+        issue: projectCardSchemaField(fields, 'issue') || '',
+        currentBehavior: projectCardSchemaField(fields, 'currentbehavior') || '',
+        whyBlocked: projectCardSchemaField(fields, 'whyblocked') || '',
+        options,
+        evidence: projectCardSchemaField(fields, 'evidence') || '',
+        decisionOwner: projectCardSchemaField(fields, 'decisionowner') || '',
+        proofAfterDecision: projectCardSchemaField(fields, 'proofafterdecision') || '',
+      };
+    };
+
     const nextStepFromTracker = (trackerContent: string) => {
       // The active task queue is the strongest source for the next visible
       // dashboard action.
@@ -392,6 +432,45 @@ export const devHubApiManager = () => ({
       // number that could drift.
       const match = agentPromptContent.match(/^Iteration:\s*(\d+)/im);
       return match ? Number(match[1]) : 0;
+    };
+
+    const iterationAgentsFromPrompt = (agentPromptContent: string, iteration: number) => {
+      // The workflow only recently started asking agents to identify their
+      // runtime surface. Until a long-lived ledger exists, expose the current
+      // handoff identity as a one-row table so the UI has a stable shape and
+      // missing agent identity stays visible instead of being hidden.
+      const ledgerRows = agentPromptContent.split(/\r?\n/).flatMap((line) => {
+        if (!/^\|\s*\d+\s*\|/.test(line)) return [];
+        const cells = line.split('|').slice(1, -1).map((cell) => stripMarkdownInline(cell).trim());
+        if (cells.length < 6) return [];
+        return [{
+          iteration: Number(cells[0]) || 0,
+          agent: cells[1] || 'Not recorded',
+          surface: cells[2] || 'Not recorded',
+          certainty: cells[3] || 'unknown',
+          date: cells[4] || '',
+          source: cells[5] || 'COLD_START_AGENT_PROMPT.md',
+        }];
+      }).filter((row) => row.iteration > 0);
+
+      if (ledgerRows.length) return ledgerRows;
+
+      const identityBlock = (agentPromptContent.match(/^Agent identity \/ runtime:\s*([\s\S]*?)(?:\n##|\n---END|\n\n[A-Z][^\n]*:|$)/im)?.[1] || '').trim();
+      const compactIdentity = identityBlock
+        .split(/\r?\n/)
+        .map((line) => stripMarkdownInline(line.replace(/^[-*]\s+/, '').trim()))
+        .filter(Boolean)
+        .join(' ');
+
+      if (!iteration) return [];
+
+      return [{
+        iteration,
+        agent: compactIdentity || 'Not recorded',
+        surface: compactIdentity || 'Not recorded',
+        certainty: compactIdentity ? 'recorded in handoff' : 'missing',
+        source: 'COLD_START_AGENT_PROMPT.md',
+      }];
     };
 
     const readProjectDocSignal = (projectDir: string, slug: string, role: ProjectDocRole, northStarDate: string): ProjectDocSignal => {
@@ -511,6 +590,7 @@ export const devHubApiManager = () => ({
       const gapsContent = readOptionalProjectText(projectDir, 'GAPS.md');
       const agentPromptContent = readOptionalProjectText(projectDir, 'COLD_START_AGENT_PROMPT.md');
       const iteration = iterationFromAgentPrompt(agentPromptContent);
+      const iterationAgents = iterationAgentsFromPrompt(agentPromptContent, iteration);
       const dashboardSchema = {
         ...readProjectCardJson(projectDir),
         ...markdownSectionFields(trackerContent, 'Dashboard Card Schema'),
@@ -549,6 +629,7 @@ export const devHubApiManager = () => ({
       const purpose = firstProjectParagraph(northStarContent, 'Purpose');
       const resumePath = firstProjectParagraph(northStarContent, 'Resume Path');
       const trackerNextStep = nextStepFromTracker(trackerContent);
+      const requiredReviewBrief = requiredReviewBriefFromDocs(northStarContent, trackerContent, gapsContent);
 
       return {
         slug,
@@ -563,6 +644,7 @@ export const devHubApiManager = () => ({
         nextStep: projectCardSchemaField(dashboardSchema, 'nextstep', 'nextStep') || trackerNextStep || resumePath || purpose || trackerFallback.nextStep || 'Add next action to TRACKER.md',
         iteration,
         iterationLabel: iteration > 0 ? `Iteration ${iteration}` : 'Iteration not recorded',
+        iterationAgents,
         requiredVerification: projectCardSchemaField(dashboardSchema, 'requiredverification', 'requiredVerification'),
         completedVerification: projectCardSchemaField(dashboardSchema, 'completedverification', 'completedVerification'),
         lastProof: projectCardSchemaField(dashboardSchema, 'lastproof', 'lastProof'),
@@ -576,6 +658,7 @@ export const devHubApiManager = () => ({
         deprecationReason: projectCardSchemaField(dashboardSchema, 'deprecationreason', 'deprecationReason'),
         canonicalOwner: projectCardSchemaField(dashboardSchema, 'canonicalowner', 'canonicalOwner'),
         humanDecisionRequired: projectCardSchemaField(dashboardSchema, 'humandecisionrequired', 'humanDecisionRequired') || 'no',
+        requiredReviewBrief,
         dashboardSchemaPresent: schemaKeys.size > 0,
         schemaStatus,
         missingSchemaFields,

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 01:11:09
+ * Last Sync: 08/06/2026, 13:21:07
  * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/ui/BanterInterruptUI.tsx, components/ui/OllamaDependencyModal.tsx
  * Imports: None
  *
@@ -56,27 +56,34 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className = '', label, error, helperText, disabled, ...props }, ref) => {
+  ({ className = '', label, error, helperText, disabled, id, ...props }, ref) => {
     // Determine the border color based on the current state (error vs. default).
     const borderClass = error 
       ? "border-red-500/80 focus:border-red-500 focus:ring-red-500/50" 
       : "";
+    const generatedId = React.useId();
+    const inputId = id ?? generatedId;
+    const feedbackId = error || helperText ? `${inputId}-feedback` : undefined;
+    const describedBy = [props['aria-describedby'], feedbackId].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {/* Render label text if provided */}
         {label && (
-          <label className="text-xs font-semibold uppercase tracking-wider text-amber-400/85 select-none">
+          <label htmlFor={inputId} className="text-xs font-semibold uppercase tracking-wider text-amber-400/85 select-none">
             {label}
           </label>
         )}
 
         <div className="relative">
           <input
-            ref={ref}
-            disabled={disabled}
-            className={`${INPUT_BASE_CLASSES} ${borderClass} ${className}`}
             {...props}
+            ref={ref}
+            id={inputId}
+            disabled={disabled}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            className={`${INPUT_BASE_CLASSES} ${borderClass} ${className}`}
           />
         </div>
 
@@ -84,6 +91,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <AnimatePresence>
           {error ? (
             <motion.span 
+              id={feedbackId}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
@@ -93,7 +101,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </motion.span>
           ) : helperText ? (
             // Show helpful hints if no errors are present.
-            <span className="text-xs text-gray-500">
+            <span id={feedbackId} className="text-xs text-gray-500">
               {helperText}
             </span>
           ) : null}
@@ -118,32 +126,40 @@ export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextArea
 }
 
 export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  ({ className = '', label, error, helperText, disabled, ...props }, ref) => {
+  ({ className = '', label, error, helperText, disabled, id, ...props }, ref) => {
     // Align border classes with current validation state.
     const borderClass = error 
       ? "border-red-500/80 focus:border-red-500 focus:ring-red-500/50" 
       : "";
+    const generatedId = React.useId();
+    const textareaId = id ?? generatedId;
+    const feedbackId = error || helperText ? `${textareaId}-feedback` : undefined;
+    const describedBy = [props['aria-describedby'], feedbackId].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {/* Render textarea label */}
         {label && (
-          <label className="text-xs font-semibold uppercase tracking-wider text-amber-400/85 select-none">
+          <label htmlFor={textareaId} className="text-xs font-semibold uppercase tracking-wider text-amber-400/85 select-none">
             {label}
           </label>
         )}
 
         <textarea
-          ref={ref}
-          disabled={disabled}
-          className={`${INPUT_BASE_CLASSES} min-h-[100px] resize-y ${borderClass} ${className}`}
           {...props}
+          ref={ref}
+          id={textareaId}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+          className={`${INPUT_BASE_CLASSES} min-h-[100px] resize-y ${borderClass} ${className}`}
         />
 
         {/* Dynamic error display */}
         <AnimatePresence>
           {error ? (
             <motion.span 
+              id={feedbackId}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
@@ -152,7 +168,7 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
               ⚠️ {error}
             </motion.span>
           ) : helperText ? (
-            <span className="text-xs text-gray-500">
+            <span id={feedbackId} className="text-xs text-gray-500">
               {helperText}
             </span>
           ) : null}
@@ -178,27 +194,34 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className = '', label, error, helperText, options = [], children, disabled, ...props }, ref) => {
+  ({ className = '', label, error, helperText, options = [], children, disabled, id, ...props }, ref) => {
     // Apply styling to standard select components.
     const borderClass = error 
       ? "border-red-500/80 focus:border-red-500 focus:ring-red-500/50" 
       : "";
+    const generatedId = React.useId();
+    const selectId = id ?? generatedId;
+    const feedbackId = error || helperText ? `${selectId}-feedback` : undefined;
+    const describedBy = [props['aria-describedby'], feedbackId].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {/* Render selection label */}
         {label && (
-          <label className="text-xs font-semibold uppercase tracking-wider text-amber-400/85 select-none">
+          <label htmlFor={selectId} className="text-xs font-semibold uppercase tracking-wider text-amber-400/85 select-none">
             {label}
           </label>
         )}
 
         <div className="relative w-full">
           <select
-            ref={ref}
-            disabled={disabled}
-            className={`${INPUT_BASE_CLASSES} appearance-none pr-10 ${borderClass} ${className}`}
             {...props}
+            ref={ref}
+            id={selectId}
+            disabled={disabled}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            className={`${INPUT_BASE_CLASSES} appearance-none pr-10 ${borderClass} ${className}`}
           >
             {/* Accept children OR dynamic options array */}
             {children || options.map(opt => (
@@ -220,6 +243,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <AnimatePresence>
           {error ? (
             <motion.span 
+              id={feedbackId}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
@@ -228,7 +252,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               ⚠️ {error}
             </motion.span>
           ) : helperText ? (
-            <span className="text-xs text-gray-500">
+            <span id={feedbackId} className="text-xs text-gray-500">
               {helperText}
             </span>
           ) : null}

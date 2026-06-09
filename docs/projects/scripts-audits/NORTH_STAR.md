@@ -1,7 +1,7 @@
 ﻿# Scripts: Audits North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 
@@ -20,16 +20,19 @@ documented, and recoverable for future maintainers.
 Project: Scripts: Audits
 Slug: scripts-audits
 Category: Tools, Automation, and Infrastructure
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/scripts-audits
 Gap signal: 4 open gaps in GAPS.md, including 1 blocked_human_decision
 Protocol: living project doc set
-Next step: Validate the live command and report references named in this project doc set.
+Next step: Human/policy decision: decide which audits are mandatory gates versus optional/manual checks before assigning forward automation work.
 Required verification: docs_consistency, scoped_checks
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-08 review-gate classification
+Workflow gaps reviewed: 2026-06-08
+
+Dashboard lifecycle: policy-review-required
+Assignment rule: Do not assign forward iteration agents until mandatory-vs-optional audit policy is decided.
 
 ## File Map
 
@@ -74,7 +77,7 @@ Workflow gaps reviewed: 2026-06-05
 - The project docs are now dashboard-ready: the North Star has a card schema,
   the tracker is aligned to the durable gap list, and the cold-start handoff
   names the canonical protocol paths.
-- Live command and report validation is still pending in T2.
+- Live command and report validation is still pending in T2, but forward automation/gating work is blocked by S4 policy review.
 - The shared workflow path mismatch is already tracked centrally in
   `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` as
   WFG-001.

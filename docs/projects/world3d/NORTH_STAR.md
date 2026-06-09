@@ -1,7 +1,7 @@
 # World 3D System North Star
 
-Status: active
-Last updated: 2026-06-05 (T13)
+Status: review-required
+Last updated: 2026-06-08 (T19)
 
 > The **3D rendering engine** for Aralia's Azgaar-driven streamed 3D world: chunk streaming,
 > per-chunk mesh generation, and the R3F scene. One of three distinct surfaces (not
@@ -18,16 +18,34 @@ Last updated: 2026-06-05 (T13)
 | Project | World3d |
 | Slug | world3d |
 | Category | active project |
-| Status | active |
+| Status | review-required |
 | Confidence | unknown |
 | Evidence | docs/projects/world3d/TRACKER.md; docs/projects/world3d/GAPS.md |
-| Gap signal | present |
+| Gap signal | T6 and T14-T18 remediated; T7/W3D-G10 now review-blocked on loader LOD contract and seam strategy; W3D-G16 also needs view-window/LOD contract review |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Next step | Resume from TRACKER.md; do not reassign W3D-G19/W3D-G23/W3D-G24/W3D-G25/W3D-G26, and do not assign T7 until the loader/LOD review clears. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
+| Last proof | 2026-06-08 focused world3d scene lifecycle proof plus useChunkStreaming StrictMode coverage |
 | Workflow gaps reviewed | yes |
+
+## Required Review Brief
+
+Decision needed: choose the loader LOD API and mixed-LOD seam strategy before assigning more World3D implementation work.
+
+Issue: T7/W3D-G10 is review-blocked because chunk loads request only `cx/cy`, while `ChunkStreamer` records LOD after dispatch and no seam/skirt contract exists for mixed-resolution chunks.
+
+Why agents stop: a local sampler or mesh-density change would either ignore the requested LOD or risk visible cracks between neighboring chunks.
+
+Decision owner: rendering/world owner.
+
+Options:
+- Extend the chunk-loader request contract to carry requested LOD/resolution and define seam handling.
+- Keep current mesh resolution for now and document larger view-window work as a separate performance decision.
+
+Evidence: `src/components/World3D/createWorkerChunkLoader.ts`, `src/systems/world3d/chunkStreamer.ts`, `src/systems/world3d/chunkGeometry.ts`, and `src/systems/world3d/lod.ts`.
+
+After decision: add mixed near/mid/low chunk regression tests, then reassign T7 only with the selected loader/seam contract.
 
 ## Why This Project Exists
 
@@ -49,7 +67,7 @@ exposing a clean scene API that `world-3d-ui` can mount, drive, and overlay.
 
 ## Current State
 
-Implemented and rendering. As of 2026-06-01:
+Implemented and rendering. As of 2026-06-08:
 
 - **Streaming + meshes done:** coords/config/chunkManager/lod/sampler/streamer/worker +
   `ChunkMeshBundle` (Plan 2 + Plan 3). Biome-colored terrain, river water ribbons, road
@@ -58,8 +76,16 @@ Implemented and rendering. As of 2026-06-01:
   shadows dropped + WebGL context-loss recovery, and a concrete canvas height — the last of
   which was the decisive fix that made terrain visible.
 - **Verified live:** `?phase=world3d` renders streamed terrain, no context loss, no console
-  errors. 70 unit tests pass across `src/systems/world3d` + `src/components/World3D`;
-  `tsc --noEmit` clean for world3d.
+  errors. Focused world3d tests cover the rendering core; repo-wide `tsc --noEmit`
+  still has unrelated failures outside the world3d slice.
+- **Scene lifecycle proof added:** focused RTL coverage now checks that `World3DScene`
+  stays visibly sized, forwards the start position into the camera/origin wiring,
+  invokes the first stream update on mount, and renders loaded chunk content. The
+  separate `useChunkStreaming` StrictMode regression test still guards the streamer
+  lifecycle.
+- **T6 and T14-T18 done (2026-06-08):** lake polygons now triangulate as filled water surfaces; town footprints now use bounded visual radii, road ribbons honor
+  `road.type`, road/river clipping has a chunk-AABB prefilter, vegetation scatter payloads reuse
+  cached typed buffers, and renderer-side vegetation matrix writes skip unchanged scatter payloads.
 - **T4 done (2026-06-01):** the demo now feeds the **real** `generateMap(...).worldData`
   pipeline (varied biomes, flow-traced rivers, MST roads, ~30 towns) and spawns the camera on
   the first town. Live screenshot confirms biome variety renders (ocean meeting a landmass)
@@ -112,13 +138,13 @@ the exaggerated terrain (→ W3D-G15, next task) and duplicate site React keys (
 
 | Field | Value |
 |---|---|
-| Task | T14 — fix the town footprint radius formula (W3D-G19). `siteGeometry.buildSiteMeshes` derives each box half-width from the site's Voronoi cell footprint `(vertex − center)·METERS_PER_CELL`, which yields ~785 m cubes (a typical town footprint spans ~0.7 grid cells); T10 capped it at a stopgap `MAX_RADIUS_M = 80`. The visual size of a town bears no relation to the settlement — it's a bounding volume, not a building cluster. |
-| Acceptance criteria | Town box diameter is visually plausible (< ~100 m) and ideally scales with site importance (population/kind), with no back-face culling from the camera being inside the box; the `MAX_RADIUS_M` stopgap clamp is no longer the thing doing the work. |
-| Allowed boundaries | `src/systems/world3d/siteGeometry.ts` (radius formula) + its test file. Do **not** touch the half-open clip rules (T12/T13, done), `surfaceY` seating (T10, done), biome blending (T9), lakes (T6), LOD (T7), or site quantization W3D-G22 (likely `worldsim-service`). |
-| Stop condition | Stop when town boxes render at a plausible scale from a sensible formula (not the cap) and a test pins the formula. |
-| Verification | Unit test on the radius formula (small/large site → bounded plausible radius). Then live `?phase=world3d`: a town box reads as a building cluster, not a horizon-spanning volume; describe-first per the Visual Verification Protocol. Run `npx vitest run src/systems/world3d`. |
-| Owner | unassigned |
-| Next action | Replace the Voronoi-footprint radius in `siteGeometry.ts` with a fixed visual scale (e.g. 20–60 m) or a population/kind-based formula; add a unit test; re-verify live. Candidate alternatives if T14 is not chosen: T15 (road width by `type`, W3D-G23) or T16 (polyline clip spatial pre-filter, W3D-G24). |
+| Task | T19 complete. `World3DScene` lifecycle proof now covers the visible shell, mount-time camera/origin wiring, and first stream update, while `useChunkStreaming` keeps the StrictMode lifecycle guard. |
+| Acceptance criteria | Scene mount stays visible, the initial stream update still fires, and loaded chunk content renders while the streamer lifecycle remains guarded by the existing StrictMode proof. |
+| Allowed boundaries | `src/components/World3D/__tests__/World3DScene.lifecycle.test.tsx`, `src/components/World3D/__tests__/useChunkStreaming.test.tsx`, and World3D docs. |
+| Stop condition | Focused scene lifecycle proof and streamer lifecycle tests remain green. |
+| Verification | `World3DScene.lifecycle.test.tsx` covers visible shell, camera/origin wiring, first stream update, rendered chunk content, and WebGL context listeners; `useChunkStreaming.test.tsx` keeps the StrictMode streamer guard. |
+| Owner | Codex worker |
+| Next action | T7/W3D-G10 is review-blocked until the loader API can carry requested LOD/resolution and a mixed-LOD seam strategy is chosen. Next safe World3D work is documentation-only contract extraction. |
 
 ## Scope Boundaries
 
@@ -155,16 +181,17 @@ See `docs/projects/world3d/GAPS.md`. Headline rendering-owned gaps:
 | Sub-cell view window flattens relief (W3D-G16) | adjacent_follow_up | unassigned | window ≈512 m vs `METERS_PER_CELL=1024` → ≤1 cell visible | widen visible window w/o exploding chunk count |
 | StrictMode-killed streamer → blank live scene (W3D-G17) | **done** | claude | live `loadOk=4, chunks=0` → fixed → `chunks=81` | resolved during T8 (per-mount streamer) |
 | Duplicate site React keys (W3D-G18) | **done** | claude | T10/T11 chunk-scoped key + T12 half-open filter remove the underlying duplicate | resolved by T12 |
-| Voronoi footprint radii → camera inside box (W3D-G19) | adjacent_follow_up | unassigned | Footprint spans ~0.7 cells → ~785m radius; capped at 80m; needs real formula | Replace with fixed visual scale or population-based formula |
+| Voronoi footprint radii → camera inside box (W3D-G19) | **done** | claude | T14: bounded kind/population radius (`8`-`30`m) replaced footprint-derived radius | resolved by T14 |
 | Boundary sites in multiple chunks → dup keys (W3D-G20) | **done** | claude | `chunkSampler` half-open `[min, max)`; replay: 58/58 sites in exactly one chunk | resolved by T12 |
 | Boundary rivers/roads double-drawn (W3D-G21) | **done** | claude | T13: `clipSegment` max edges half-open (`q <= 0`); replay: 31/34 roads double-counted → 0/34 | resolved by T13 |
-| Roads drawn at hardcoded uniform width (W3D-G23) | adjacent_follow_up | unassigned | `chunkSampler` uses `0.04` for every road point; `road.type` ignored | map `road.type` → width (T15) |
-| No spatial pre-filter on polyline clip (W3D-G24) | adjacent_follow_up | unassigned | every river/road clipped against every chunk; no bbox reject | add bbox-overlap reject before `clipPolylineToChunk` (T16) |
-| Vegetation scatter no instanced-mesh caching (W3D-G25, imported from GG-4) | adjacent_follow_up | unassigned | `vegetationScatter.ts` recomputes layout per viewport shift → GC spikes | cache/instance scatter; recompute only on chunk-set change |
+| Roads drawn at hardcoded uniform width (W3D-G23) | **done** | claude | T15: `chunkSampler` maps `road.type` to width | resolved by T15 |
+| No spatial pre-filter on polyline clip (W3D-G24) | **done** | claude | T16: `chunkSampler` prefilters road/river bboxes against chunk AABB | resolved by T16 |
+| Vegetation scatter no instanced-mesh caching (W3D-G25, imported from GG-4) | **done** | Codex worker | T17: bounded payload-aware LRU cache reuses typed buffers | resolved by T17 |
+| Renderer-side instance matrices still rebuild for unchanged scatter payloads (W3D-G26) | **done** | Codex worker | T18: `VegetationScatter.cacheKey` skips repeat `setMatrixAt` loops | resolved by T18 |
 | Sites quantized to integer grid → seat at chunk NW corner (W3D-G22) | adjacent_follow_up | unassigned | T12 replay: all 58 sites integer-grid → `localX=localZ=0` | sub-cell placement (likely `worldsim-service`) or document as intended |
 | Hard biome-color seams (no blending) (W3D-G12) | adjacent_follow_up | unassigned | `sampleBiomeNearest` + per-vertex color | feather biome colors across boundaries |
-| `WorldData.lakes` polygons not meshed (only river ribbons) | adjacent_follow_up | unassigned | `waterGeometry.ts` | add lake-fill geometry behind the bundle |
-| Per-LOD geometry detail (LOD only tints) | adjacent_follow_up | unassigned | `lod.ts` unused by sampler resolution | lower resolution for mid/low tiers |
+| `WorldData.lakes` polygons not meshed (only river ribbons) | **done** | Codex worker | T6: `chunkSampler` carries lake polygons and `waterGeometry` triangulates lake fills | resolved by T6 |
+| Per-LOD geometry detail (LOD only tints) | **blocked** | review required | loader requests only `cx/cy`; `ChunkStreamer` records LOD after dispatch; no mixed-resolution seam/skirt contract | choose loader LOD API + seam strategy before implementation |
 | `culled` LOD tier unreachable / floating-origin never rebases (W3D-G13/G14) | adjacent_follow_up | unassigned | prior scan 2026-06-01 | see GAPS.md |
 | Worker loader unused by demo (inline path) | adjacent_follow_up | unassigned | `World3DDemo.tsx` inline `handleChunkRequest` | decide inline vs worker (with `world-3d-ui` entry choice) |
 | Cold-load `?phase=world3d` bounce | — | `world-3d-ui` | live debug 2026-06-01 | **owned by `world-3d-ui`** (entry/transition); see its GAPS |

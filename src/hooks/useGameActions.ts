@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:09:13
+ * Last Sync: 09/06/2026, 01:20:12
  * Dependents: App.tsx
  * Imports: 9 files
  *
@@ -88,11 +88,12 @@ export function useGameActions({
   const processAction = useCallback(
     async (action: Action) => {
       // RALPH: UI Toggle Gate.
-      // Uses the centralized UIToggleAction enum to determine if an action should trigger
-      // the global loading spinner. This prevents "Ghost Spinners" during pure UI transitions.
+      // Uses explicit action metadata first, then falls back to the historical
+      // UIToggleAction enum to determine if the global loading spinner should be suppressed.
       // DEBT: Cast to any to allow loose membership check against UI toggle union.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const isUiToggle = Object.values(UIToggleAction).includes(action.type as any);
+      const isUiToggle = ACTION_METADATA[action.type]?.isUiToggle ||
+        Object.values(UIToggleAction).includes(action.type as any);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
@@ -171,7 +172,8 @@ export function useGameActions({
         // Clear loading state if it was set initially.
         // handlers for complex actions (like save_game or encounter generation) 
         // manage their own loading lifecycle and should not be reset here.
-        const handledByComponent = action.type === 'save_game' ||
+        const handledByComponent = Boolean(ACTION_METADATA[action.type]?.managesLoading) ||
+          action.type === 'save_game' ||
           action.type === 'GENERATE_ENCOUNTER' ||
           action.type.includes('_MERCHANT') ||
           action.type.includes('_ITEM');

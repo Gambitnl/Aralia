@@ -9,7 +9,7 @@ export interface EconomyState {
     };
     buyMultiplier: number;
     sellMultiplier: number;
-    activeEvents: unknown[];
+    activeEvents: MarketEvent[];
 }
 export interface MarketEvent {
     id: string;
@@ -20,6 +20,9 @@ export interface MarketEvent {
     intensity: number;
     name?: string;
     description?: string;
+    affectedTags?: string[];
+    affectedCategories?: string[];
+    effect?: 'scarcity' | 'surplus';
 }
 export declare enum MarketEventType {
     BOOM = "BOOM",
@@ -50,7 +53,7 @@ export interface TradeRoute {
     destinationId: string;
     goods: string[];
     resources?: string[];
-    status: 'active' | 'disrupted' | 'blockaded';
+    status: 'active' | 'disrupted' | 'blockaded' | 'booming';
     riskLevel: number;
     profitability: number;
     controllingFactionId?: string;

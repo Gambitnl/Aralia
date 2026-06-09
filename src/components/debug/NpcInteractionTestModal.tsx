@@ -90,11 +90,12 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
   const currentStep = testSteps[step - 1];
 
   return (
-    <WindowFrame
-      title="NPC System Test Plan"
-      onClose={onClose}
-      storageKey={WINDOW_KEYS.NPC_TEST_PLAN}
-    >
+    <div role="dialog" aria-modal="true" aria-label="NPC System Test Plan">
+      <WindowFrame
+        title="NPC System Test Plan"
+        onClose={onClose}
+        storageKey={WINDOW_KEYS.NPC_TEST_PLAN}
+      >
       <div className="bg-gray-800 p-6 w-full h-full flex flex-col">
         <div className="bg-gray-900/50 p-4 rounded-lg flex-grow overflow-y-auto">
           <h3 className="text-xl font-semibold text-amber-300 mb-2">{currentStep.title}</h3>
@@ -144,7 +145,8 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
         </div>
 
       </div>
-    </WindowFrame>
+      </WindowFrame>
+    </div>
   );
 };
 

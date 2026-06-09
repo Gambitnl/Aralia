@@ -1,7 +1,7 @@
 # World 3D System Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/world3d/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: World 3D System
 Project folder: docs/projects/world3d
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,19 +30,19 @@ Gaps: docs/projects/world3d/GAPS.md
 
 ## Previous Agent Handoff
 
-The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+The first project packet was established earlier. This pass closed W3D-G19 (town footprint scale) and refreshed the packet.
+Use NORTH_STAR.md for scope and intent, TRACKER.md for the active queue, and GAPS.md for unresolved findings.
 
 ## Current Mission
 
 Active task:
-No open task selected. Read TRACKER.md and choose the highest-value open task.
+T15 (W3D-G23) and T16 (W3D-G24) are complete. Next active task is T9 (W3D-G12): biome-color seam blending.
 
 Acceptance criteria:
 Use the active TRACKER.md row and any acceptance criteria listed in
 NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
 criteria before implementation and record that documentation gap.
+This iteration validated T15/T16 by confirming visible road-width variation by type and scoped polyline work clipping by chunk AABB before geometry clipping, with no regression to existing chunk behavior.
 
 Key files to touch:
 - docs/projects/world3d/NORTH_STAR.md
@@ -61,8 +61,7 @@ Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+T15 (road-width mapping) and T16 (pre-filtered polyline clipping) are complete in code and docs. T14 also complete in docs (`siteGeometry` radius is now bounded by kind/population; no active `MAX_RADIUS_M` cap dependence). Workflow rules remain in ITERATION_AGENT_WORKFLOW.md.
 
 Key files to touch:
 - docs/projects/world3d/NORTH_STAR.md

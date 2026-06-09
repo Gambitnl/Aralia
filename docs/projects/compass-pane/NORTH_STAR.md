@@ -1,7 +1,7 @@
 # Compass Pane North Star
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Purpose And Scope
 
@@ -26,13 +26,13 @@ Category: Feature/UI Projects
 Status: active  
 Confidence: medium  
 Evidence: docs/projects/compass-pane  
-Gap signal: 4 open gaps; movement proof and affordance semantics still need validation  
+Gap signal: 3 open gaps; movement proof captured and affordance semantics still need validation
 Protocol: living project doc set  
-Next step: Resume T2 by adding focused movement/action regression proof  
+Next step: Resume T3 by validating navigation affordances for map/submap/3D toggles in context
 Required verification: scoped_tests, docs_consistency  
-Completed verification: docs_consistency  
-Last proof: 2026-06-05  
-Workflow gaps reviewed: 2026-06-05
+Completed verification: docs_consistency, scoped_tests
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 ## Concrete File Map
 
@@ -42,7 +42,7 @@ Workflow gaps reviewed: 2026-06-05
 | `src/components/Submap/SubmapPane.tsx` | Integration surface | Embeds Compass Pane in submap modal context, disables controls during inspect/quick travel. |
 | `src/components/layout/GameLayout.tsx` | Integration surface | Renders Compass Pane in normal exploration layout. |
 | `src/components/ui/TimeWidget.tsx` | Time display + action entry | Provides clock, moon/season display, and pass-time button callback. |
-| `src/components/CompassPane/__tests__/CompassPane.test.tsx` | Test coverage | Tests time widget rendering only, not movement action behavior. |
+| `src/components/CompassPane/__tests__/CompassPane.test.tsx` | Test coverage | Covers time widget rendering, move/look-around dispatch, edge disablement, and pass-time wait confirmation. |
 | `src/hooks/actions/actionHandlers.ts` | Action dispatch registry | Maps `move`, `look_around`, `toggle_map`, `toggle_submap_visibility`, `toggle_three_d`, `wait` to handlers. |
 | `src/hooks/actions/handleMovement.ts` | Movement contract | Performs submap/world movement, wrap and bounds logic, map tile validation, time advancement, and location dispatch. |
 | `src/hooks/actions/handleObservation.ts` | Look around contract | Generates `look_around` descriptions and sets custom actions. |
@@ -64,10 +64,11 @@ Workflow gaps reviewed: 2026-06-05
 - `look_around` action is currently never movement-blocked by direction checks.
 - Time section is rendered through `TimeWidget` and pass-time launches `PassTimeModal`.
 - On pass-time confirm, Compass dispatches `wait` with seconds (`handlePassTimeConfirm`).
+- Regression proof now covers move dispatch, look-around dispatch, edge disablement, and pass-time wait confirmation in `src/components/CompassPane/__tests__/CompassPane.test.tsx`.
 - Toggling map/submap/3D actions are emitted from button handlers.
 - In `GameLayout`, compass sits in the left column and is wrapped by an `ErrorBoundary`.
 - In `SubmapPane`, compass is rendered in right-column controls with `isSubmapContext=true`.
-- When in submap context, compass hides map/submap toggles and 3D entry button remains hidden.
+- When in submap context, the world-map toggle remains visible while the submap and 3D controls stay hidden.
 - Action registry and handlers already support map/submap/3D toggles and `wait`.
 
 ## Integration Points
@@ -91,11 +92,10 @@ Workflow gaps reviewed: 2026-06-05
 
 ## Resume Path
 
-1. Resume T2 in `TRACKER.md`; the active slice is still movement/action surface validation.
-2. Add explicit proof for direction dispatch, `look_around`, and pass-time `wait`
-   behavior before widening movement logic.
+1. Resume T3 in `TRACKER.md`; the active slice is the navigation-affordance decision.
+2. Keep the movement/action regression proof in `AUDIT_OR_PROOF.md` as the durable reference for T2.
 3. Keep the submap/main-layout affordance question open until the gap log says it
-   has been accepted or closed.
+   has been accepted or closed or a Required Review Brief is added.
 
 
 ## Cold-Start Gap Routing

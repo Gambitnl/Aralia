@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:27:30
- * Dependents: Crafting/index.ts
- * Imports: 11 files
+ * Last Sync: 08/06/2026, 16:13:35
+ * Dependents: components/Crafting/index.ts
+ * Imports: 13 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -25,36 +25,28 @@
  * 'handleProgressionUpdate' function signature to improve type safety 
  * and maintainability.
  */
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import {
-    getAllRecipeCraftability,
     attemptCrafting,
     generateCraftingActions,
     RecipeCraftability,
-    getCraftingSummary,
     getQualityColor,
     getQualityIcon
 } from '../../systems/crafting/craftingEngine';
 import { CraftingRecipe, CraftingTool, getResearchCost } from '../../systems/crafting/alchemyRecipes';
 import { CraftingQuality } from '../../systems/crafting/crafterProgression';
-import {
-    calculateBatchCraftability,
-    attemptBatchCraft,
-    generateBatchCraftActions,
-    getBatchDCDisplay,
-    DEFAULT_BATCH_CONFIG
-} from '../../systems/crafting/batchCrafting';
-import {
-    CRAFTING_LOCATIONS,
-    CraftingLocationType,
-    calculateLocationModifier,
-    canCraftRarityAtLocation
-} from '../../systems/crafting/craftingLocations';
+import { attemptBatchCraft, generateBatchCraftActions, getBatchDCDisplay, DEFAULT_BATCH_CONFIG } from '../../systems/crafting/batchCrafting';
+import { CraftingLocationType } from '../../systems/crafting/craftingLocations';
 import { ExperimentPanel } from './ExperimentPanel';
 import { IngredientGlossaryPanel } from './IngredientGlossaryPanel';
-import { createInitialCraftingState, CraftingState } from '../../types/crafting';
+import { CraftingState } from '../../types/crafting';
 import { WindowFrame } from '../ui/WindowFrame';
+import {
+    buildAlchemyBenchDerivedState,
+    collectPartyToolProficiencies,
+    resolveAlchemyBenchCraftingState
+} from './alchemyBenchSelectors';
 import { WINDOW_KEYS } from '../../styles/uiIds';
 import './AlchemyBenchPanel.css';
 
@@ -85,114 +77,58 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
     const [batchSize, setBatchSize] = useState(1);
     const [selectedLocation, setSelectedLocation] = useState<CraftingLocationType>('workshop');
 
+    const partyToolProficiencies = useMemo(
+        () => collectPartyToolProficiencies(state.party),
+        [state.party]
+    );
+
     // Initialize crafting state if not present
     useEffect(() => {
         if (!state.crafting) {
-            const profs: string[] = [];
-            for (const char of state.party) {
-                // TODO: Add proper tool proficiency tracking to Class/Background
-                // For now, check feat choices
-                if (char.featChoices) {
-                    Object.values(char.featChoices).forEach(choice => {
-                        if (choice.selectedTools) {
-                            profs.push(...choice.selectedTools);
-                        }
-                    });
-                }
-            }
-            dispatch({ type: 'INIT_CRAFTING_STATE', payload: { toolProficiencies: profs } });
+            dispatch({ type: 'INIT_CRAFTING_STATE', payload: { toolProficiencies: partyToolProficiencies } });
         }
-    }, [state.crafting, state.party, dispatch]);
+    }, [state.crafting, partyToolProficiencies, dispatch]);
 
     // Use crafting state from global state, or create temporary one
     const craftingState: CraftingState = useMemo(() => {
-        if (state.crafting) return state.crafting;
+        return resolveAlchemyBenchCraftingState(state.crafting, partyToolProficiencies);
+    }, [state.crafting, partyToolProficiencies]);
 
-        const profs: string[] = [];
-        for (const char of state.party) {
-            // TODO: Add proper tool proficiency tracking to Class/Background
-            if (char.featChoices) {
-                Object.values(char.featChoices).forEach(choice => {
-                    if (choice.selectedTools) {
-                        profs.push(...choice.selectedTools);
-                    }
-                });
-            }
-        }
-        return createInitialCraftingState(profs);
-    }, [state.crafting, state.party]);
-
-    // Convert array to Set for the engine
-    const knownRecipesSet = useMemo(() =>
-        new Set(craftingState.knownRecipes),
-        [craftingState.knownRecipes]
-    );
-
-    // Get tool proficiencies from party
-    const toolProficiencies = useMemo(() => {
-        const profs: string[] = [];
-        for (const char of state.party) {
-            // TODO: Add proper tool proficiency tracking to Class/Background
-            if (char.featChoices) {
-                Object.values(char.featChoices).forEach(choice => {
-                    if (choice.selectedTools) {
-                        profs.push(...choice.selectedTools);
-                    }
-                });
-            }
-        }
-        return profs;
-    }, [state.party]);
-
-    // Current location data
-    const currentLocation = CRAFTING_LOCATIONS[selectedLocation];
-
-    // Get all recipe craftability with discovery filter
-    const allRecipes = useMemo(() => {
-        const filterTool = selectedTool === 'all' ? undefined : selectedTool;
-        return getAllRecipeCraftability(
+    const benchState = useMemo(
+        () => buildAlchemyBenchDerivedState({
+            inventory: state.inventory,
+            gold: state.gold,
+            party: state.party,
+            partyToolProficiencies,
+            craftingState,
+            selectedTool,
+            selectedRecipe,
+            selectedLocation,
+            filterCraftable,
+            showUnknown
+        }),
+        [
             state.inventory,
             state.gold,
-            toolProficiencies,
-            filterTool,
-            knownRecipesSet,
+            state.party,
+            partyToolProficiencies,
+            craftingState,
+            selectedTool,
+            selectedRecipe,
+            selectedLocation,
+            filterCraftable,
             showUnknown
-        );
-    }, [state.inventory, state.gold, toolProficiencies, selectedTool, knownRecipesSet, showUnknown]);
-
-    // Summary stats
-    const summary = useMemo(() =>
-        getCraftingSummary(state.inventory, state.gold, toolProficiencies, knownRecipesSet),
-        [state.inventory, state.gold, toolProficiencies, knownRecipesSet]
+        ]
     );
 
-    // Filtered recipes (also filter by location max rarity)
-    const displayedRecipes = useMemo(() => {
-        let recipes = allRecipes;
-        if (filterCraftable) {
-            recipes = recipes.filter(r => r.canCraft);
-        }
-        // Filter by location max rarity
-        recipes = recipes.filter(r => canCraftRarityAtLocation(currentLocation, r.recipe.rarity));
-        return recipes;
-    }, [allRecipes, filterCraftable, currentLocation]);
-
-    // Batch craftability for selected recipe
-    const batchInfo = useMemo(() => {
-        if (!selectedRecipe) return null;
-        return calculateBatchCraftability(selectedRecipe.recipe, state.inventory, state.gold);
-    }, [selectedRecipe, state.inventory, state.gold]);
-
-    // Get crafter modifier
-    const crafterModifier = useMemo(() => {
-        if (state.party.length === 0) return 2;
-        const profBonus = state.party[0].proficiencyBonus || 2;
-        const intMod = Math.floor(((state.party[0].abilityScores?.Intelligence || 10) - 10) / 2);
-        const locationMod = selectedRecipe
-            ? calculateLocationModifier(currentLocation, selectedRecipe.recipe.category)
-            : currentLocation.dcModifier;
-        return profBonus + intMod + craftingState.bonusModifier - locationMod;
-    }, [state.party, craftingState.bonusModifier, currentLocation, selectedRecipe]);
+    const {
+        knownRecipesSet,
+        currentLocation,
+        summary,
+        displayedRecipes,
+        batchInfo,
+        crafterModifier
+    } = benchState;
 
     const handleCraft = () => {
         if (!selectedRecipe) return;

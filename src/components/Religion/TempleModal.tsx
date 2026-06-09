@@ -70,11 +70,12 @@ const TempleModal: React.FC<TempleModalProps> = ({
     if (!isOpen || !deity) return null;
 
     return (
-        <WindowFrame
-            title={temple.name}
-            onClose={onClose}
-            storageKey={WINDOW_KEYS.TEMPLE_MODAL}
-        >
+        <div role="dialog" aria-modal="true" aria-label={`Temple of ${temple.name}`}>
+            <WindowFrame
+                title={temple.name}
+                onClose={onClose}
+                storageKey={WINDOW_KEYS.TEMPLE_MODAL}
+            >
             <div className="flex flex-col h-full bg-gray-900 rounded-b-xl overflow-hidden">
                 {/* Header Info - Moved inside content since WindowFrame has its own title bar */}
                 <div className="relative p-6 bg-gradient-to-b from-gray-800 to-gray-900 border-b border-amber-800 shrink-0">
@@ -237,7 +238,8 @@ const TempleModal: React.FC<TempleModalProps> = ({
                     </div>
                 </div>
             </div>
-        </WindowFrame>
+            </WindowFrame>
+        </div>
     );
 };
 

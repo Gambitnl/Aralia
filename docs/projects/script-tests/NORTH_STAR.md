@@ -1,7 +1,7 @@
 # NORTH_STAR: Script Tests
 
-Status: active  
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Purpose And Scope
 
@@ -15,16 +15,21 @@ Primary objective: preserve test continuity for script behavior that guards migr
 Project: Script Tests  
 Slug: script-tests  
 Category: Test Infrastructure  
-Status: partial  
-Confidence: medium  
-Evidence: docs/projects/script-tests  
-Gap signal: 4 open gaps; ST-GAP-001 is the safest next slice  
-Protocol: living project doc set  
-Next step: Close one deterministic script test gap or record why it stays deferred.  
-Required verification: scoped_tests, docs_consistency  
-Completed verification: docs_consistency  
-Last proof: 2026-06-05  
-Workflow gaps reviewed: 2026-06-05
+Status: review-required
+Confidence: medium
+Evidence: docs/projects/script-tests
+Gap signal: 4 open gaps; ST-GAP-001 is the safest next slice
+Protocol: living project doc set
+Next step: Human review should decide whether this remains a standalone test project or merges into Scripts Quality/Audits before worker assignment.
+Required verification: scoped_tests, docs_consistency
+Completed verification: docs_consistency
+Last proof: 2026-06-05
+Workflow gaps reviewed: 2026-06-08
+Lifecycle status: merge-candidate
+Deprecation confidence: weak
+Deprecation reason: possible_support_surface_for_scripts_quality_or_audits
+Canonical owner: docs/projects/scripts-quality or docs/projects/scripts-audits pending review
+Human decision required: yes
 
 ## File Map (Narrow Scope)
 

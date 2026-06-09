@@ -499,7 +499,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         </select>
                       )}
                       {(child.type === 'consumable' || isFood) && (
-                        <button onClick={() => onAction({ type: 'use_item', label: isFood ? `Eat ${child.name}` : `Use ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
+                        /* Normalize consumable/use actions to the uppercase reducer contract used everywhere else. */
+                        <button onClick={() => onAction({ type: 'USE_ITEM', label: isFood ? `Eat ${child.name}` : `Use ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                           disabled={isExpired}
                           className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded disabled:bg-gray-600 transition-colors shadow-sm"
                           aria-label={isFood ? `Eat ${child.name}` : `Use ${child.name}`}

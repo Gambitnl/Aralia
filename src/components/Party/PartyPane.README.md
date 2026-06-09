@@ -1,72 +1,61 @@
 # PartyPane Component
 
+Status: current
+Last verified: 2026-06-08
+
 ## Purpose
 
-The `PartyPane.tsx` component displays interactive elements for each party member, primarily focusing on their name, Armor Class (AC) with a shield icon, and a dynamic health bar. Initially, it is designed to show only the main player character but can be extended to display multiple party members. This component replaces the more detailed `PlayerPane` in the main game view, offering a more compact status overview.
-
-Clicking on a character's button in the `PartyPane` now opens the `CharacterSheetModal` for that character, allowing the player to view detailed stats and equipment.
+`PartyPane.tsx` renders a vertical list of `PartyMemberCard` components for each party member. It is the main content area inside the `PartyOverlay` modal, displaying detailed combat stats, HP, spell slots, hit dice, and expendable abilities for every member.
 
 ## Props
 
-*   **`playerCharacter: PlayerCharacter`**:
-    *   **Type**: `PlayerCharacter` (from `src/types.ts`)
-    *   **Purpose**: The data object for the player character to be displayed.
-    *   **Required**: Yes
-
-*   **`onViewCharacterSheet: (character: PlayerCharacter) => void`**:
-    *   **Type**: Function
-    *   **Purpose**: Callback function invoked when a character's button is clicked. It passes the `PlayerCharacter` object of the clicked character, typically to trigger the opening of the `CharacterSheetModal`.
-    *   **Required**: Yes
-
-*   **`partyMembers?: PlayerCharacter[]` (Future)**:
-    *   **Type**: Array of `PlayerCharacter` objects.
-    *   **Purpose**: For displaying other members of the player's party.
-    *   **Required**: No (for initial implementation focusing on the player).
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `party` | `PlayerCharacter[]` | Yes | Array of party member characters to display. |
+| `onViewCharacterSheet` | `(character: PlayerCharacter) => void` | Yes | Callback when a member's "more" button is clicked (opens character sheet). |
+| `onFixMissingChoice` | `(character: PlayerCharacter, missing: MissingChoice) => void` | Yes | Callback when a missing-choice warning is clicked. |
 
 ## Core Functionality
 
-1.  **Character Display (`PartyCharacterButton` sub-component)**:
-    *   Each character is represented by a styled, clickable `<button>`.
-    *   **Name**: The character's name is displayed prominently.
-    *   **Armor Class (AC)**:
-        *   Displayed to the right of the character's name.
-        *   Uses an SVG shield icon.
-        *   The character's AC value is shown as text centered inside the shield icon.
-    *   **Health Bar**:
-        *   A visual representation of the character's current HP relative to their maximum HP.
-        *   The filled portion of the bar is typically reddish (e.g., `bg-red-600`).
-        *   The background of the bar shows the "empty" portion (e.g., `bg-gray-500` or a darker red).
-        *   The width of the filled portion is dynamically calculated as `(character.hp / character.maxHp) * 100%`.
-        *   Text displaying "Current HP / Max HP" (e.g., "85/100 HP") is overlaid on the bar for clarity.
-    *   Displays character's race and class below the health bar.
-    *   The button is focusable and clickable. Clicking it invokes the `onViewCharacterSheet` prop with the character's data.
-    *   The button's `aria-label` includes the character's name, AC, and HP status, and indicates it opens the character sheet.
+1. **Empty state**: When `party.length === 0`, renders a centered message prompting character creation.
+2. **Member card list**: Maps `party` to `PartyMemberCard` components keyed by `member.id || member.name`.
+3. **Callback routing**: `onMoreClick` on each card routes to `onViewCharacterSheet(member)`. `onMissingChoiceClick` routes `onFixMissingChoice` directly.
 
-2.  **Party Pane Layout**:
-    *   The main `PartyPane` component provides a container for one or more `PartyCharacterButton`s.
-    *   It includes a title like "Party".
-    *   The pane is scrollable if many party members are displayed.
+## Sub-components (in `PartyPane/` subfolder)
 
-## Styling
+### PartyMemberCard (active)
 
-*   Uses Tailwind CSS for a consistent look and feel with the rest of the application.
-*   Health bars are styled for clear visual feedback on character status.
-*   Shield icon and AC value are styled for clarity and visual appeal.
-*   Buttons are designed to be easily identifiable and interactive.
+Information-dense card showing:
+- **Portrait placeholder**: Circular with first-letter initial and level badge.
+- **Missing-choice warning**: Animated red badge (top-right of portrait) with tooltip and fix-flow callback. Uses `validateCharacterChoices` from `@/utils/character`.
+- **Stats row**: AC, Save DC (conditional, casters only), Movement speed, Initiative modifier. Each in a `StatBox` with tooltip.
+- **Attack bonuses row**: Melee, Ranged, Spell Attack (conditional) with icons via `GlossaryIcon`.
+- **HP bar**: Color-coded (red-700 at ≤25%, red-600 at ≤50%, red-500 otherwise) with numeric display and hit dice indicator.
+- **Spell slots** (conditional): Pip display per spell level with current/max tooltip.
+- **Expendable abilities** (conditional): Shows up to 2 limited-use abilities (Ki, Channel Divinity, Rage, etc.) with color-coded labels.
+- **More button**: Opens the character sheet via `onMoreClick`.
+
+### PartyCharacterButton (legacy / design preview only)
+
+Older, simpler card variant showing name, AC shield, HP bar, race/class, and optional rich NPC data. **Not used by `PartyPane`**. Exists in the same subfolder and is referenced by `DesignPreview` and its own tests, but `PartyPane` renders `PartyMemberCard` exclusively.
 
 ## Integration
 
-*   In `App.tsx`, `PartyPane` replaces `PlayerPane` in the main game layout.
-*   It receives the `playerCharacter` from the global game state and the `onViewCharacterSheet` callback from `App.tsx`.
-*   The display of inventory and detailed character stats (ability scores, skills, spells) previously handled by `PlayerPane` in this screen location is not part of `PartyPane`'s current scope; these details are now intended for the `CharacterSheetModal`.
+`PartyPane` is rendered inside `PartyOverlay.tsx`:
 
-## Future Enhancements
+```tsx
+<PartyPane
+    party={party}
+    onViewCharacterSheet={onViewCharacterSheet}
+    onFixMissingChoice={onFixMissingChoice}
+/>
+```
 
-*   Displaying multiple party members.
-*   Adding status effect icons near character buttons.
-*   Visual feedback for low health (e.g., pulsing bar, color change).
+`PartyOverlay` is mounted in `GameModals.tsx`. `PartyPane` is not rendered directly in `App.tsx` or outside the overlay.
 
 ## Accessibility
-*   Character buttons have `aria-label` attributes providing character name, AC, health status, and the action of viewing details.
-*   Health bars use `role="progressbar"` with `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`.
-*   The shield icon is decorative (`aria-hidden="true"`) as its value is part of the button's main `aria-label`.
+
+- `PartyMemberCard` more button has `aria-label` with character name.
+- Missing-choice warning button has `aria-label="Fix missing character selection"`.
+- `StatBox` and attack bonus displays use `Tooltip` wrappers with `cursor-help` for discoverability.
+- HP bar uses percentage width with numeric text fallback.

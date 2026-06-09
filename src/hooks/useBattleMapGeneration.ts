@@ -1,7 +1,9 @@
 /**
  * @file hooks/useBattleMapGeneration.ts
- * Utility logic to manage the generation of the battle map data.
- * Previously a hook, now a stateless utility function.
+ * Utility logic for battle-map setup generation.
+ * The filename is still hook-shaped for caller stability, but this module is
+ * a plain stateless helper. Keep callers pointed here until a coordinated
+ * rename can update every use site together.
  */
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../types/combat';
 import { BATTLE_MAP_DIMENSIONS } from '../config/mapConfig';

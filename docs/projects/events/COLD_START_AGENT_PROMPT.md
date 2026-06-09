@@ -1,7 +1,7 @@
 # Events System Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/events/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Events System
 Project folder: docs/projects/events
-Iteration: 2
+Iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,90 +30,64 @@ Gaps: docs/projects/events/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 was a docs-only living-project refresh. It updated the Events
-North Star with the dashboard card schema, rechecked the tracker and gap set,
-and kept the active objective unchanged. Use NORTH_STAR.md for project scope
-and intent, TRACKER.md for the active queue, and GAPS.md for unresolved
-findings.
+Iteration 3 documented the replay contract at the event-bus level and then
+split the remaining work into review-gated lane-contract decisions. The open
+set now includes a compatibility-contract decision for the split combat/event
+lanes, a marker-contract decision for turn order versus day scheduling, and a
+new reducer-merge gap for daily world events.
 
 ## Current Mission
 
 Active task:
-T2 - Define and document replay/scheduling gaps for src/systems/events and adjacent combat event lanes.
+T2 - Define and document remaining cross-lane scheduling gaps for src/systems/events and adjacent combat event lanes, but keep the lane-contract decisions review-gated.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Use TRACKER.md and NORTH_STAR.md as authority, keep the remaining gap set
+aligned with source evidence, and preserve the proof map for event order,
+replay snapshot round-tripping, split-lane compatibility, turn/day marker
+ownership, and the daily-world merge contract.
 
 Key files to touch:
 - docs/projects/events/NORTH_STAR.md
 - docs/projects/events/TRACKER.md
 - docs/projects/events/GAPS.md
 - docs/projects/events/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Run a docs-only verification pass:
+`git diff --check`
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside docs/projects/events. Do not edit docs/projects/PROJECT_TRACKER.md
+or docs/projects/GLOBAL_GAPS.md in this pass.
 
 Recent progress:
-North Star now includes the Dashboard Card Schema section required by the
-shared project-card schema.
-TRACKER.md and GAPS.md still carry the five evidence-backed replay/scheduling
-gaps for event priority, dispatch ordering, replay persistence, lane split, and
-hit/crit fidelity.
-The bounded gap sweep also reviewed docs/projects/GLOBAL_GAPS.md and
-WORKFLOW_GAPS.md; no new project-specific or workflow-level gaps were added.
+CombatEvents now records a canonical replay trace and supports snapshot/restore
+round-tripping. G2 remains done, G3 and G4 are now review-required, and G6
+captures the world-reducer merge gap for daily simulation output.
 
-Key files to touch:
-- docs/projects/events/NORTH_STAR.md
-- docs/projects/events/TRACKER.md
-- docs/projects/events/GAPS.md
-- docs/projects/events/COLD_START_AGENT_PROMPT.md
-- docs/projects/events/DECISIONS.md
-- docs/projects/events/AUDIT_OR_PROOF.md
-- docs/projects/events/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+Blockers:
+- G3 is review-required on the split combat/event lane compatibility contract.
+- G4 is review-required on turn-day marker ownership and proof boundaries.
+- G6 needs a reducer merge contract before daily world output can be treated
+  as fully preserved.
 
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+Workflow-gap review result:
+- Source evidence confirms the split lanes are real, but the compatibility
+  envelope, marker ownership, and reducer merge contract are not yet explicit.
+- No forward implementation work should be assigned until the owner decision is
+  recorded.
 
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Dashboard-schema updates:
+- Gap signal now reports three open project gaps.
+- Next step now points future agents toward review-gated contract alignment
+  instead of implementation assignment.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
-
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
+Before ending, update this handoff with the next iteration number, previous
+agent context, active task, acceptance criteria, key files, verification
+method, blockers, recent progress, workflow-gap review result, and
+dashboard-schema updates. Keep only the current handoff between the BEGIN/END
+markers; do not preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---

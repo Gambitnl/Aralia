@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 00:38:43
+ * Dependents: services/geminiService.ts
+ * Imports: 12 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GenerationConfig } from "@google/genai";
 import { ai } from "../aiClient";
 import { getFallbackEncounter } from "../geminiServiceFallback";
@@ -10,6 +26,7 @@ import { chooseModelForComplexity, generateText } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
 import { Action, GoalStatus, GroundingChunk, InspectSubmapTilePayload, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
 import { SUBMAP_ICON_MEANINGS } from "../../data/glossaryData";
+import { MAX_ENCOUNTER_MONSTER_COUNT } from "../../utils/world/encounterUtils";
 
 export async function generateOracleResponse(
   playerQuery: string,
@@ -92,12 +109,13 @@ export async function generateEncounter(
   xpBudget: number,
   themeTags: string[],
   party: TempPartyMember[],
-  devModelOverride: string | null = null
+  devModelOverride: string | null = null,
+  seed?: number
 ): Promise<StandardizedResult<GeminiEncounterData>> {
   const partyComposition = party.map(p => `Level ${p.level} ${CLASSES_DATA[p.classId]?.name || 'Adventurer'}`).join(', ');
   const systemInstruction = `You are an expert D&D Dungeon Master creating a balanced combat encounter using Google Search for monster ideas.
   - The party's total XP budget for a medium encounter is ${xpBudget} XP.
-  - You MUST suggest between 1 and 4 total monsters.
+  - You MUST suggest between 1 and ${MAX_ENCOUNTER_MONSTER_COUNT} total monsters.
   - Find monsters that fit the themes: ${themeTags.join(', ')}.
   - The response MUST be a valid JSON array of objects. Keys: "name", "quantity", "cr", "description".
   - Provide ONLY the JSON array.`;
@@ -205,7 +223,7 @@ export async function generateEncounter(
   const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
 
   logger.warn(`AI Encounter Generation failed. Using fallback. Error: ${errorMessage}`);
-  const fallbackEncounter = getFallbackEncounter(xpBudget, themeTags);
+  const fallbackEncounter = getFallbackEncounter(xpBudget, themeTags, seed);
 
   return {
     data: {

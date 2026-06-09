@@ -245,11 +245,12 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
   const showSaveOption = canSavePremadeCharacters();
 
   return (
-    <WindowFrame
-      title="Edit Encounter Party"
-      onClose={onClose}
-      storageKey={WINDOW_KEYS.PARTY_EDITOR}
-    >
+    <div role="dialog" aria-modal="true" aria-label="Edit Encounter Party">
+      <WindowFrame
+        title="Edit Encounter Party"
+        onClose={onClose}
+        storageKey={WINDOW_KEYS.PARTY_EDITOR}
+      >
       <div className="flex flex-col h-full bg-gray-800 p-6">
         {/* ================================================================ */}
         {/* Main party editor — the name/class/level rows                    */}
@@ -387,7 +388,8 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
           </button>
         </div>
       </div>
-    </WindowFrame>
+      </WindowFrame>
+    </div>
   );
 };
 

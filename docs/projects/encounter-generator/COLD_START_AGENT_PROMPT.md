@@ -1,9 +1,9 @@
 # Encounter Generator Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-09
 
-This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
+This file is the active handoff for the next agent. It replaces this previous iteration record.
 
 Shared workflow:
 docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
@@ -20,7 +20,7 @@ docs/projects/encounter-generator/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Encounter Generator
 Project folder: docs/projects/encounter-generator
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,84 +30,67 @@ Gaps: docs/projects/encounter-generator/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 established the project handoff scaffold, the active tracker queue,
-and the first durable gap set. Use NORTH_STAR.md for project scope and intent,
-TRACKER.md for the active queue, and GAPS.md for unresolved findings.
+Iteration 2 completed the tracker/card refresh and started the first deterministic slice:
+- Added seed threading across AI trigger, fallback, process validation, and bestiary generation.
+- Added bestiary seed counter resets for reroll/difficulty/lair state transitions.
+- Added scoped tests for deterministic fallback and deterministic bestiary outputs.
+- Updated tracker and gaps, and documented AI determinism as an unresolved decision in G4.
 
 ## Current Mission
 
 Active task:
-T2 - Track implemented state and integration points for cold-start handoff
+T3 - Close seeded encounter generation and difficulty contract slice
 
 Acceptance criteria:
-Use the active TRACKER.md row and the acceptance criteria listed in
-NORTH_STAR.md. Keep the handoff compact, current, and sufficient for a cold-start
-resume. If the active task lacks acceptance criteria, define scoped criteria
-before implementation and record that documentation gap.
+- Keep implementation scoped to encounter seedability and shared difficulty contract only.
+- Verify seeded fallback + bestiary reproducibility through focused tests.
+- Confirm docs reflect implemented status and the new open gap G4.
+- Ensure tracker/NORTH_STAR/TASK docs stay aligned and compact.
+- Do not continue beyond T3 implementation until the G4 review decision is recorded.
 
 Key files to touch:
 - docs/projects/encounter-generator/NORTH_STAR.md
 - docs/projects/encounter-generator/TRACKER.md
 - docs/projects/encounter-generator/GAPS.md
 - docs/projects/encounter-generator/COLD_START_AGENT_PROMPT.md
+- src/components/Combat/EncounterModal.tsx
+- src/hooks/actions/handleEncounter.ts
+- src/services/gemini/encounters.ts
+- src/services/geminiServiceFallback.ts
+- src/utils/world/bestiaryEncounterGenerator.ts
+- src/utils/world/encounterUtils.ts
+- src/utils/world/__tests__/bestiaryEncounterGenerator.test.ts
+- src/services/__tests__/geminiServiceFallback.test.ts
 
 Scoped verification:
-Use the docs-consistency evidence in NORTH_STAR.md and TRACKER.md. If the next
-iteration adds code work, switch to the verification named by TRACKER.md or
-NORTH_STAR.md before claiming completion.
+- Run targeted Vitest files for the two added tests.
+- Run docs consistency check for encounter-generator docs.
 
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-North Star now includes the Dashboard Card Schema. The tracker and gap dates
-have been refreshed. The open project issues remain seedability, difficulty
-policy, and EncounterGenerator scope naming.
-
-Key files to touch:
-- docs/projects/encounter-generator/NORTH_STAR.md
-- docs/projects/encounter-generator/TRACKER.md
-- docs/projects/encounter-generator/GAPS.md
-- docs/projects/encounter-generator/COLD_START_AGENT_PROMPT.md
-- docs/projects/encounter-generator/DECISIONS.md
-- docs/projects/encounter-generator/AUDIT_OR_PROOF.md
-- docs/projects/encounter-generator/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Blockers / do-not-touch:
+- Stay inside encounter-generator scope.
+- Do not edit unrelated projects or global workflow trackers unless they are direct blockers.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+- Seed flow is active for local generation and fallback.
+- Difficulty display/rebuild logic is consistently sourced.
+- Open gap now limited to optional end-to-end AI determinism policy (G4).
 
-## Required End State For This Iteration
+Workflow gap review result:
+- Reviewed `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
+- Current workflow gates unchanged.
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
+Dashboard schema fields updated:
+- `Last updated`: 2026-06-09
+- `Next step`, `Gap signal`, `Required verification`, `Completed verification`, `Workflow gaps reviewed`, `Last proof`
 
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
+Optional docs:
+- Encounter-generator optional docs are intentionally absent in this scope.
+
+## Documentation compaction status
+
+Compaction status: done
+Rationale: replaced prior multi-entry handoff text with one live handoff block.
+
+Agent comments:
+Project is currently review-required. Do not continue forward implementation past this handoff until G4 human decision is recorded.
 ---END NEXT AGENT HANDOFF---

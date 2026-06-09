@@ -225,7 +225,8 @@ export class MovementCommand extends BaseEffectCommand {
      */
     private applyTeleport(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         const origin = target.position
-        const maxTiles = Math.max(0, Math.floor((effect.distance || 0) / 5))
+        const requestedDistanceFeet = Math.max(0, effect.distance || 0)
+        const maxTiles = Math.max(0, Math.floor(requestedDistanceFeet / 5))
         const requestedDestination = this.resolveTeleportDestination(state, target, maxTiles, effect)
 
         if (!requestedDestination) {
@@ -237,11 +238,17 @@ export class MovementCommand extends BaseEffectCommand {
         }
 
         const clampedDestination = this.clampToBounds(requestedDestination, state)
+        const clampedByBounds =
+            clampedDestination.x !== requestedDestination.x ||
+            clampedDestination.y !== requestedDestination.y
+        let finalDestination = clampedDestination
+        let usedFallbackDestination = false
 
         // Final validation: is it occupied?
-        if (!this.validatePosition(state, clampedDestination, target.id)) {
-             // Try to find available near destination? The original method findAvailableDestination did this.
-             // Let's reuse findAvailableDestination but update it to use validatePosition
+        if (!this.validatePosition(state, finalDestination, target.id)) {
+             // If the requested tile is blocked, keep the original fallback search.
+             // The move still resolves through the same command path; this branch
+             // just records that the landing space was negotiated instead of exact.
              const altDest = this.findAvailableDestination(state, target.id, origin, clampedDestination, maxTiles)
              if (!altDest) {
                  return this.addLogEntry(state, {
@@ -251,25 +258,35 @@ export class MovementCommand extends BaseEffectCommand {
                  })
              }
 
-             // Recursion safe because findAvailableDestination returns a validated point or null
-             const updatedState = this.updateCharacter(state, target.id, { position: altDest })
-             return this.addLogEntry(updatedState, {
-                type: 'action',
-                message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${altDest.x}, ${altDest.y})`,
-                characterId: target.id,
-                // TODO: capture teleport budget precisely (tiles vs feet) once effect.distance is normalized.
-                data: { from: origin, to: altDest, maxDistance: effect.distance ?? undefined }
-            })
+             finalDestination = altDest
+             usedFallbackDestination = true
         }
 
-        const updatedState = this.updateCharacter(state, target.id, { position: clampedDestination })
+        const updatedState = this.updateCharacter(state, target.id, { position: finalDestination })
+        const actualDistanceTiles = getDistance(origin, finalDestination)
+        const actualDistanceFeet = actualDistanceTiles * 5
+        const teleportLogData = {
+            from: origin,
+            to: finalDestination,
+            requestedDestination,
+            requestedDistanceFeet,
+            requestedBudgetTiles: maxTiles,
+            actualDistanceTiles,
+            actualDistanceFeet,
+            budgetSpentFeet: actualDistanceFeet,
+            budgetRemainingFeet: Math.max(0, requestedDistanceFeet - actualDistanceFeet),
+            clampedByBounds,
+            usedFallbackDestination,
+            maxDistance: effect.distance ?? undefined
+        }
 
         return this.addLogEntry(updatedState, {
             type: 'action',
-            message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${clampedDestination.x}, ${clampedDestination.y})`,
+            message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${finalDestination.x}, ${finalDestination.y})`,
             characterId: target.id,
-            // TODO: expose whether the teleport consumed the full budget or was clamped by the map bounds.
-            data: { from: origin, to: clampedDestination, maxDistance: effect.distance ?? undefined }
+            // The log keeps the teleport budget contract inspectable without
+            // changing how the command resolves movement.
+            data: teleportLogData
         })
     }
 

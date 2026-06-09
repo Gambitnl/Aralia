@@ -29,7 +29,8 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
     };
 
     return (
-        <WindowFrame title="Heist Planning" onClose={onClose}>
+        <div role="dialog" aria-modal="true" aria-label="Heist Planning">
+            <WindowFrame title="Heist Planning" onClose={onClose}>
             <div className="p-4 text-gray-200">
                 <h3 className="text-xl font-bold text-amber-400 mb-4">Target: {plan.targetLocationId}</h3>
                 
@@ -89,6 +90,7 @@ export const HeistPlanningModal: React.FC<HeistPlanningModalProps> = ({
                     </button>
                 </div>
             </div>
-        </WindowFrame>
+            </WindowFrame>
+        </div>
     );
 };

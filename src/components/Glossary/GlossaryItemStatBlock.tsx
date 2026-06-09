@@ -2,6 +2,11 @@ import React from 'react';
 import { GlossaryEntry } from '../../types';
 
 export const GlossaryItemStatBlock: React.FC<{ metadata: NonNullable<GlossaryEntry['itemMetadata']> }> = ({ metadata }) => {
+    // The ingest pipeline uses "None" as a placeholder rarity for mundane items.
+    // Hide that sentinel here so the card reads like a real item card instead of
+    // surfacing the placeholder back to the player.
+    const displayRarity = metadata.rarity && metadata.rarity !== 'None' ? metadata.rarity : undefined;
+
     // Rarity Color Mapping
     const rarityColors: Record<string, string> = {
         'Common': 'from-gray-500/20 to-gray-600/10 border-gray-500/50 text-gray-300',
@@ -13,7 +18,7 @@ export const GlossaryItemStatBlock: React.FC<{ metadata: NonNullable<GlossaryEnt
         'Unknown': 'from-sky-500/20 to-sky-600/10 border-sky-500/50 text-sky-400'
     };
 
-    const rarityKey = metadata.rarity || 'Unknown';
+    const rarityKey = displayRarity || 'Unknown';
     const colorClasses = rarityColors[rarityKey] || rarityColors['Unknown'];
 
     return (
@@ -23,9 +28,9 @@ export const GlossaryItemStatBlock: React.FC<{ metadata: NonNullable<GlossaryEnt
                 <div className="font-semibold tracking-wider uppercase text-sm">
                     {metadata.type || 'Item'}
                 </div>
-                {metadata.rarity && (
+                {displayRarity && (
                     <div className="text-xs font-bold uppercase tracking-widest px-2 py-1 rounded bg-black/40 shadow-inner">
-                        {metadata.rarity}
+                        {displayRarity}
                         {metadata.tier ? ` (${metadata.tier})` : ''}
                     </div>
                 )}

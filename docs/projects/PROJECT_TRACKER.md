@@ -96,6 +96,7 @@ preserving intent over strict completion.
 | Architecture Sweep | [F:/Repos/Aralia/docs/tasks/architecture/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/architecture/NORTH_STAR.md) |
 | Combat Messaging Enhancement | [F:/Repos/Aralia/docs/tasks/combat-messaging-enhancement/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/combat-messaging-enhancement/NORTH_STAR.md) |
 | Combat Scenario Tester | [F:/Repos/Aralia/docs/tasks/combat-scenario-tester/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/combat-scenario-tester/NORTH_STAR.md) |
+| Code Modularization Audit | [F:/Repos/Aralia/docs/projects/code-modularization-audit/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/code-modularization-audit/NORTH_STAR.md) |
 | Documentation Cleanup | [F:/Repos/Aralia/docs/projects/documentation-cleanup/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/documentation-cleanup/NORTH_STAR.md) |
 | Feature Capabilities | [F:/Repos/Aralia/docs/tasks/feature-capabilities/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/feature-capabilities/NORTH_STAR.md) |
 | Glossary | [F:/Repos/Aralia/docs/tasks/glossary/NORTH_STAR.md](F:/Repos/Aralia/docs/tasks/glossary/NORTH_STAR.md) |
@@ -145,18 +146,43 @@ anchor. Create the missing North Star and supporting docs in the correct owning
 folder, then refresh the existing row with those links instead of adding a
 duplicate project.
 
+## Dashboard Assignment Guardrails (2026-06-08)
+
+Projects in this table are still preserved as discoverable intent, but they are
+not safe targets for forward-moving sub-agent iteration until the review flag is
+cleared in the owning project docs. Do not delete their systems as part of this
+classification.
+
+| Project/scope | Lifecycle status | Deprecation confidence | Canonical owner | Assignment rule | Evidence/rationale |
+|---|---|---|---|---|---|
+| Demo Area (`docs/projects/demo-area`) | reference-only | medium | pending human decision | Do not assign forward iteration agents | `NORTH_STAR.md` and `GAPS.md` classify `src/components/demo/CombatMessagingDemo.tsx` as orphaned and blocked on keep/move/remove decision. |
+| PHB 2024 Glossary Audit (`docs/projects/phb2024_glossary_audit`) | merge-candidate | medium | `docs/projects/item_categorization` for item metadata; `docs/tasks/glossary` for broader glossary workflow | Do not assign forward iteration agents until owner split is reviewed | Implementation slice is complete, while remaining gaps are explicitly routed to adjacent owners. |
+| Roadmap task folder (`docs/tasks/roadmap`) | merged-reference | strong | `docs/projects/roadmap-maintenance` | Assign only through Roadmap Maintenance | `roadmap-maintenance/NORTH_STAR.md` names this folder as historical/task evidence while the project folder is the durable dashboard owner. |
+| 3D Combat Map old conductor path (`conductor/projects/3d-combat-map`) | merged-reference | strong | `docs/projects/3d-combat-map` | Assign only through `docs/projects/3d-combat-map` | The old conductor North Star path is absent; the canonical project folder has current frontmatter and active gaps. |
+| Spell Phase Workstream row | merged-reference | strong | `docs/tasks/spell-system-overhaul` / Structured Spell Execution | Assign only through Structured Spell Execution | This row points at the same spell-overhaul workstream already registered as Structured Spell Execution. |
+| Crime System (`docs/projects/crime`) | corrupted-doc-surface | strong | same project after North Star repair | Repair docs before assignment | `PROJECT_DEPRECATION_REVIEW.md` says the project should remain, but `NORTH_STAR.md` contains unrelated corpus/glossary material. |
+| Script tests (`docs/projects/script-tests`) | merge-candidate | weak | likely `docs/projects/scripts-quality` or `docs/projects/scripts-audits` | Do not assign until standalone ownership is confirmed | `PROJECT_DEPRECATION_REVIEW.md` says this may be support surface for script quality/audits. |
+| Scripts: spell-runtime-template-audit (`docs/projects/scripts-spell-runtime-template-audit`) | merge-candidate | weak | likely `docs/tasks/spell-system-overhaul` or scripts quality lane | Do not assign until ownership is confirmed | `PROJECT_DEPRECATION_REVIEW.md` says this overlaps spell-overhaul and scripts/audit ownership. |
+| ThreeD Modal (`docs/projects/three-d-modal`) | human-review-required | weak | pending decision; possible relation to `docs/projects/world-3d-ui` | Do not assign until owner split is confirmed | `PROJECT_DEPRECATION_REVIEW.md` says it may be a useful separate modal boundary or overlapping 3D UI work. |
+| Character Creator (`docs/projects/character-creator`) | human-review-required | strong | same project after UX decision | Do not assign forward iteration agents until sidebar navigation policy is decided | `TRACKER.md` T3 and `GAPS.md` G2 say the sidebar allows navigation to incomplete steps while placeholders lock content; strict gating vs permissive navigation is a product decision. |
+| Scripts: audits (`docs/projects/scripts-audits`) | policy-review-required | strong | same project after audit policy decision | Do not assign forward iteration agents until mandatory-vs-optional audit policy is decided | `GAPS.md` S4 is `blocked_human_decision` on whether scripts/audits checks should become CI gates or stay manual. |
+| World System (`docs/projects/world`) | phase-out-contract-review | strong | same project after tile-grid dependency extraction | Do not assign forward runtime changes until tile-grid movement/save/migration contracts are preserved | `MapPane`, `handleMovement`, `MapData`, app state, and migration still depend on tile-grid world data while Azgaar/3D paths replace the old renderer. |
+| Submap DOM renderer/painter slice (`docs/projects/submap`) | renderer-slice-review | strong | Submap project for contract extraction; renderer replacement decision pending | Assign only contract extraction/parity documentation, not renderer replacement, until the active renderer decision is made | `SubmapPane` owns DOM hit-testing/inspect/quick-travel preview while `src/components/Submap/painters` carries an alternate renderer path. |
+| Layout/App shell (`docs/projects/layout`) | app-shell-review-required | strong | same project after interaction-lock decision | Do not assign forward App-shell modularization until `isUIInteractive` and phase/render invariants are decided | `layout/GAPS.md` G3/G4 block modal interaction-lock and App-shell split movement. |
+| Providers/App provider stack (`docs/projects/providers`) | provider-contract-review-required | strong | same project after degraded-state and provider-order decisions | Do not assign forward App/provider modularization until provider order and degraded-state policy are explicit | `providers/GAPS.md` G2/G3/G5 block provider movement and App/provider split work. |
+
 ## Gameplay & World Systems (`src/systems/*`)
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
-| Combat System (`combat`) | partial | high | `src/systems/combat`, `src/components/Combat` | GAPS.md present | implemented | define combat-phase gap list + interfaces |
-| Companions System | partial | high | `src/systems/companions` | GAPS.md present | implemented | map companion lifecycle + AI ownership |
-| Crafting System | partial | high | `src/systems/crafting`, `src/components/Crafting` | GAPS.md present | implemented | identify missing recipe/recipe-ui contracts |
-| Creatures System | partial | high | `src/systems/creatures` | GAPS.md present | implemented | classify creature generation vs stat model gaps |
+| Combat System (`combat`) | active | high | `src/systems/combat`, `src/components/Combat`, `src/utils/combat` | GAPS.md present; G11 class palette generation, G12 premade weapon coverage, G26 AI await sequencing, G27 OA reach inspection, and G28/G29 concentration cleanup issues resolved 2026-06-08 | implemented | choose next open combat rules gap; keep G30 modularization route review-gated |
+| Companions System | review-required | high | `src/systems/companions` | GAPS.md present; G1 relationship-bound reaction filtering, G2 relationship scale alignment, G3 loyalty retention contract, G4 reaction queue/dedupe, G5 source/player-directed route contract, G7 shared ID-helper proof, G8 banter split contract, and G9 player-directed regression coverage resolved 2026-06-08; G6 romance lock-in review-blocked | implemented | human/story decision: choose automatic, event-driven, or hysteresis breakup semantics before assigning more companion work |
+| Crafting System | active | high | `src/systems/crafting`, `src/components/Crafting` | GAPS.md present; G1 dual-engine compatibility contract documented, G2 real crafter adapter, G3 material type/category fallback, G4 experiment damage routing, G7 alchemy drag/drop staging, G8 glossary missing-CR handling, G9 modularization split closed, G10 compatibility adapter proof expanded, G11 stacked reagent accounting resolved 2026-06-08, G12 batch/craftability quantity proof closed 2026-06-08, and G13 compatibility provenance follow-up completed 2026-06-08; G5 UX ownership review-blocked | implemented | next safe lane is G1 broader compatibility regression with explicit success/failure and full quality mapping coverage; keep G5 blocked until refining/enchanting placement is decided |
+| Creatures System | active | high | `src/systems/creatures`, `src/utils/world/encounterUtils.ts`, `src/services/geminiServiceFallback.ts` | GAPS.md present; G2 schema policy, G3 monster-count cap, and G1/CT-2 validator sharing resolved 2026-06-08 | implemented | next safe lane is G4/G5 adjacency follow-ups; keep CT-2 validated behavior unchanged |
 | Crime System | partial | high | `src/systems/crime`, `src/components/Crime` | GAPS.md present | implemented | reconcile crime outcomes/events coverage |
-| Economy System | partial | high | `src/systems/economy`, `src/components/Economy` | GAPS.md present | implemented | add exchange/rule audit items |
+| Economy System | active | high | `src/systems/economy`, `src/components/Economy`, `src/components/Trade` | GAPS.md present; G2 booming route status model resolved 2026-06-08; G3 seed-route-region validation resolved 2026-06-08; G4 exchange/rule audit docs proof complete 2026-06-08; G5 market representation-fidelity check complete 2026-06-08; G1 typing contract cleanup complete 2026-06-08 | implemented | keep route-market event typing parity checks current as new market event sources are added |
 | Environment System | partial | high | `src/systems/environment` | GAPS.md present | implemented | confirm deterministic environment effects |
-| Events System | partial | high | `src/systems/events` | GAPS.md present | implemented | capture event priority and replay expectations |
+| Events System | review-required | high | `src/systems/events` | GAPS.md present; G1 ordering, G2 replay snapshot/restore, G5 hit/crit fidelity, and G6 daily reducer merge proof resolved 2026-06-08; G3/G4 lane scheduling review-blocked | implemented | do not assign Events forward implementation until lane-marker ownership is decided or a fresh source-backed scan finds a non-G3/G4 gap |
 | History System | partial | high | `src/systems/history` | GAPS.md present | implemented | define retention and pruning policy |
 | Intrigue System | partial | medium | `src/systems/intrigue` | GAPS.md present | implemented | specify intrigue action graph boundaries |
 | Logic System | partial | high | `src/systems/logic` | GAPS.md present | implemented | document canonical rule orchestration |
@@ -173,8 +199,8 @@ duplicate project.
 | Travel System | partial | high | `src/systems/travel`, `src/components/Submap` | GAPS.md present | implemented | define pathfinding/travel cost/edge cases |
 | Underdark System | partial | medium | `src/systems/underdark` | GAPS.md present | implemented | verify integration with geography + encounters |
 | Visibility System | partial | high | `src/systems/visibility` | GAPS.md present | implemented | confirm LOS/perception model assumptions |
-| World System | partial | high | `src/systems/world`, `docs/projects/town-description-system` | GAPS.md present | implemented | complete worldgen-state contract |
-| World 3D System | active | high | `src/systems/world3d`, `src/components/World3D` | North Star + TRACKER + GAPS refreshed 2026-06-01; renders live | rendering works (Plans 1-3 + hardening) | make `?phase=world3d` cold-load reliable, then Plan 4 gameplay wiring (W3D-G7/G3) |
+| World System | review-required | high | `src/systems/world`, `docs/projects/town-description-system` | GAPS.md present; tile-grid phase-out contract review needed | implemented | preserve movement/save/migration tile-grid contracts before forward runtime assignment |
+| World 3D System | active | high | `src/systems/world3d`, `src/components/World3D` | North Star + TRACKER + GAPS refreshed 2026-06-08; T6/T9/T14/T15/T16/T17/T18/T19 done; T7/W3D-G10 review-blocked | rendering works; W3D-G6/W3D-G9/W3D-G12/W3D-G19/W3D-G23/W3D-G24/W3D-G25/W3D-G26 remediated | do not assign T7 until loader LOD contract and seam strategy are chosen; next safe slice is documentation-only contract extraction while T7 remains blocked |
 
 ## Feature/UI Projects (`src/components/*`)
 
@@ -182,7 +208,7 @@ duplicate project.
 |---|---|---|---|---|---|---|
 | Action Pane | partial | medium | `src/components/ActionPane` | GAPS.md present | implemented | define action dispatch contract |
 | Battle Map | partial | medium | `src/components/BattleMap` | GAPS.md present | implemented | define map state/events sync spec |
-| Character Creator | in-progress | high | `src/components/CharacterCreator` | GAPS.md present | implemented | finish wizard/validation edge cases |
+| Character Creator | review-required | high | `src/components/CharacterCreator` | GAPS.md present; sidebar UX decision blocks forward assignment | implemented | human decision: permissive sidebar navigation vs strict step gating before further forward iteration |
 | Character Sheet | partial | high | `src/components/CharacterSheet` | GAPS.md present | implemented | align sheet fields with schema |
 | Compass Pane | partial | medium | `src/components/CompassPane` | GAPS.md present | implemented | define navigation affordances |
 | Conversation Panel | partial | medium | `src/components/ConversationPanel` | GAPS.md present | implemented | define dialogue state transitions |
@@ -198,136 +224,53 @@ duplicate project.
 | Logbook | partial | medium | `src/components/Logbook` | GAPS.md present | implemented | define retention and pagination |
 | Naval UI | partial | medium | `src/components/Naval` | GAPS.md present | implemented | tie to naval system status events |
 | Organization | partial | medium | `src/components/Organization` | GAPS.md present | implemented | define grouping and permission model |
-| Party UI | partial | medium | `src/components/Party` | GAPS.md present | implemented | define companion/party rules |
+| Party UI | partial | medium | `src/components/Party` | GAPS.md present; G2 short-rest persistence resolved 2026-06-08; G1 companion-party boundary resolved 2026-06-08; G8 id-coherence resolved 2026-06-08; G7/G5 remain open (G5 blocked on human decision) | implemented | All T-tasks done; next safe lane is G7 (companion data in overlay) after G5 decided, or G3/G4 independently |
 | Quest Log | partial | medium | `src/components/QuestLog` | GAPS.md present | implemented | ensure one source of truth with quests system |
 | SaveLoad | partial | high | `src/components/SaveLoad` | GAPS.md present | implemented | define backward-compatible save schema |
-| Submap | partial | medium | `src/components/Submap` | GAPS.md present | implemented | finalize submap generation contract |
+| Submap | partial | medium | `src/components/Submap` | GAPS.md present; renderer-slice review needed | implemented | extract quick-travel/inspect contracts; do not replace renderer until DOM/painter authority is decided |
 | Trade UI | partial | medium | `src/components/Trade` | GAPS.md present | implemented | normalize pricing and offer format |
 | Town | partial | medium | `src/components/Town` | GAPS.md present | implemented | clarify city-state model coupling |
 | ThreeD Modal | partial | medium | `src/components/ThreeDModal` | GAPS.md present | implemented | establish UX contract for 3D entrypoints |
 | World 3D UI | active | medium | `src/components/World3D`, `src/hooks/useHistorySync.ts` | North Star refreshed 2026-06-01 (re-scoped: 2D↔3D transition + in-3D HUD) | scope clarified | fix `?phase=world3d` entry bounce; author Plan 4 (transition + atlas marker sync) |
 | types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
-| Layout | partial | medium | `src/components/layout` | GAPS.md present | implemented | define application shell boundaries |
-| Providers | partial | medium | `src/components/providers` | GAPS.md present | implemented | specify provider dependency graph |
-| UI primitives | active | high | [NORTH_STAR.md](file:///F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) | GAPS.md (G1-G4) updated | implemented | build visual previews for all stubs |
+| Layout | review-required | medium | `src/components/layout` | GAPS.md present; ConversationPanel boundary documented; App shell modularization review-gated | implemented | decide modal interaction-lock and App-shell split contracts before code movement |
+| Providers | review-required | medium | `src/components/providers` | GAPS.md present; App/provider modularization review-gated | implemented | decide provider degraded-state and App/provider split contracts before code movement |
+| UI primitives | active | high | [NORTH_STAR.md](file:///F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) | GAPS.md present; G5 validation feedback, G9 focus-trap manager coverage, G10/G11 modal ARIA labels, and G12 coin-display semantics done | implemented | no open audited UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass |
 
 ## Feature Domains and Runtime Support (`src/features`, `src/commands`, `src/workers`, `src/services`)
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
 | Submap Generation | in-progress | high | `src/features/SubmapGeneration` | GAPS.md present | implemented | document generation parameters and outputs |
-| Command Base Runtime | partial | high | `src/commands/base` | GAPS.md present | implemented | define command lifecycle and hooks |
+| Command Base Runtime | partial | high | `src/commands/base` | GAPS.md present; `G4` resolved | implemented | add next contract-sensitive test checks when context helpers are refactored |
 | Command Effects Runtime | partial | high | `src/commands/effects` | GAPS.md present | implemented | standardize effect payloads/errors |
 | Command Factory Runtime | partial | high | `src/commands/factory` | GAPS.md present | implemented | clarify registration and validation |
 | Gemini Service | experimental | medium | `src/services/gemini` | GAPS.md present | implemented | define cost/error fallback strategy |
 | Ollama Service | experimental | medium | `src/services/ollama` | GAPS.md present | implemented | define local/remote adapter abstraction |
 | RealmSmith Service | partial | medium | `src/services/realmsmith` | GAPS.md present | implemented | stabilize API contract + retry policy |
-| WorldSim Service | active | high | `src/services/worldSim`, `src/services/WorldHistoryService.ts` | North Star refreshed 2026-06-01 (generation + simulation) | geometry done; story/history early | grow first-build world history/story/events generation |
+| WorldSim Service | active | high | `src/services/worldSim`, `src/services/WorldHistoryService.ts` | North Star refreshed 2026-06-08; WSS-005 review-required; WSS-006/WSS-007/WSS-008 remediated; T3 first-build history contract added | geometry done; story/history contract seeded and attached to bootstrap/save; feature-source divergence proven by fixed-seed test | do not assign WSS-005 forward implementation until review clears; next independent work must avoid the 2D/3D feature-source decision |
 
 ## Tools, Automation, and Infrastructure
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
 | Scripts: archive | partial | medium | `scripts/archive` | GAPS.md present | implemented | evaluate reuse and cleanup |
-| Scripts: audits | partial | medium | `scripts/audits` | GAPS.md present | implemented | prioritize missing automated checks |
+| Scripts: audits | review-required | medium | `scripts/audits` | GAPS.md present; S4 blocks automation policy | implemented | human decision: mandatory CI gates vs optional/manual audit workflow before forward iteration |
 | Scripts: git | partial | medium | `scripts/git` | GAPS.md present | implemented | align with CI pre-push and local policy |
-| Scripts: quality | in-progress | high | `scripts/quality` | GAPS.md present | implemented | connect quality debt tracking to tracker |
+| Scripts: quality | active | high | `scripts/quality` | GAPS.md present; G1/G2 resolved 2026-06-08; checkpoint convention established | implemented | rerun `npm run quality:debt` only when quality scope, lint scope, or push policy changes |
 | Scripts: spell-runtime-template-audit | in-progress | medium | `scripts/spellRuntimeTemplateAudit` | GAPS.md present | implemented | complete report + remediation tasks |
 | Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
 | Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
 | Script tests | partial | medium | `scripts/__tests__` | GAPS.md present | implemented | expand coverage of scripts behavior |
+| Code Modularization Audit | active | high | `docs/projects/code-modularization-audit`; line-count scan across `src`, `scripts`, `devtools` | GAPS.md present; CMA-G1..CMA-G13 scored/routed into owning project gaps | implemented | wait for owner projects to accept specific split candidates, then create bounded split plans with preservation tests |
 
-## Projectized Planning Areas (`docs/projects`, `docs/tasks`, `conductor/projects`)
+## Merged Duplicate Tracker Block (2026-06-08)
 
-| Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
-|---|---|---|---|---|---|---|
-| Item Categorization | partial | high | `docs/projects/item_categorization` | GAPS.md present | implemented | convert gaps into tracker stories |
-| Companions System | partial | high | `src/systems/companions` | GAPS.md present | implemented | map companion lifecycle + AI ownership |
-| Crafting System | partial | high | `src/systems/crafting`, `src/components/Crafting` | GAPS.md present | implemented | identify missing recipe/recipe-ui contracts |
-| Creatures System | partial | high | `src/systems/creatures` | GAPS.md present | implemented | classify creature generation vs stat model gaps |
-| Crime System | partial | high | `src/systems/crime`, `src/components/Crime` | GAPS.md present | implemented | reconcile crime outcomes/events coverage |
-| Economy System | partial | high | `src/systems/economy`, `src/components/Economy` | GAPS.md present | implemented | add exchange/rule audit items |
-| Environment System | partial | high | `src/systems/environment` | GAPS.md present | implemented | confirm deterministic environment effects |
-| Events System | partial | high | `src/systems/events` | GAPS.md present | implemented | capture event priority and replay expectations |
-| History System | partial | high | `src/systems/history` | GAPS.md present | implemented | define retention and pruning policy |
-| Intrigue System | partial | medium | `src/systems/intrigue` | GAPS.md present | implemented | specify intrigue action graph boundaries |
-| Logic System | partial | high | `src/systems/logic` | GAPS.md present | implemented | document canonical rule orchestration |
-| Memory System | partial | high | `src/systems/memory` | GAPS.md present | implemented | identify serialization / memory consistency gaps |
-| Naval System | partial | high | `src/systems/naval`, `src/components/Naval` | GAPS.md present | implemented | finalize voyage + encounter coupling |
-| Physics System | partial | high | `src/systems/physics` | GAPS.md present | implemented | verify collision and turn-timing assumptions |
-| Planar System | partial | high | `src/systems/planar` | GAPS.md present | implemented | define planar transition contracts |
-| Puzzles System | partial | high | `src/systems/puzzles`, `src/components/puzzles` | GAPS.md present | implemented | add puzzle registry and progression rules |
-| Quests System | partial | high | `src/systems/quests`, `src/components/QuestLog` | GAPS.md present | implemented | align quest schema with UI event model |
-| Religion System | partial | high | `src/systems/religion`, `src/components/Religion` | GAPS.md present | implemented | document doctrine/ritual side effects |
-| Rituals System | partial | high | `src/systems/rituals` | GAPS.md present | implemented | define ritual cost/time/influence math |
-| Spells System | partial | high | `src/systems/spells`, `docs/spells` | GAPS.md present | implemented | gap pass for ontology + runtime coverage |
-| Time System | partial | high | `src/systems/time` | GAPS.md present | implemented | pin authoritative time semantics |
-| Travel System | partial | high | `src/systems/travel`, `src/components/Submap` | GAPS.md present | implemented | define pathfinding/travel cost/edge cases |
-| Underdark System | partial | medium | `src/systems/underdark` | GAPS.md present | implemented | verify integration with geography + encounters |
-| Visibility System | partial | high | `src/systems/visibility` | GAPS.md present | implemented | confirm LOS/perception model assumptions |
-| World System | partial | high | `src/systems/world`, `docs/projects/town-description-system` | GAPS.md present | implemented | complete worldgen-state contract |
-| World 3D System | active | high | `src/systems/world3d`, `src/components/World3D` | North Star + TRACKER + GAPS refreshed 2026-06-01; renders live | rendering works (Plans 1-3 + hardening) | make `?phase=world3d` cold-load reliable, then Plan 4 gameplay wiring (W3D-G7/G3) |
-
-## Feature/UI Projects (`src/components/*`)
-
-| Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
-|---|---|---|---|---|---|---|
-| Action Pane | partial | medium | `src/components/ActionPane` | GAPS.md present | implemented | define action dispatch contract |
-| Battle Map | partial | medium | `src/components/BattleMap` | GAPS.md present | implemented | define map state/events sync spec |
-| Character Creator | in-progress | high | `src/components/CharacterCreator` | GAPS.md present | implemented | finish wizard/validation edge cases |
-| Character Sheet | partial | high | `src/components/CharacterSheet` | GAPS.md present | implemented | align sheet fields with schema |
-| Compass Pane | partial | medium | `src/components/CompassPane` | GAPS.md present | implemented | define navigation affordances |
-| Conversation Panel | partial | medium | `src/components/ConversationPanel` | GAPS.md present | implemented | define dialogue state transitions |
-| Crafting UI | partial | medium | `src/components/Crafting` | GAPS.md present | implemented | reconcile with systems/crafting |
-| Crime UI | partial | medium | `src/components/Crime` | GAPS.md present | implemented | define suspect/report flow |
-| Demo Area | planned | low | `src/components/demo` | GAPS.md present | implemented | decide retention / removal criteria |
-| Design Preview | in-progress | medium | `src/components/DesignPreview` | GAPS.md present | implemented | capture design workflow and owners |
-| Dialogue | partial | medium | `src/components/Dialogue` | GAPS.md present | implemented | define node-level script format |
-| Dice | partial | medium | `src/components/dice` | GAPS.md present | implemented | confirm deterministic RNG behavior |
-| Economy UI | partial | medium | `src/components/Economy` | GAPS.md present | implemented | align with economy system actions |
-| Encounter Generator | in-progress | medium | `src/components/EncounterGenerator` | GAPS.md present | implemented | define seedability and difficulty rules |
-| Glossary UI | partial | medium | `src/components/Glossary` | GAPS.md present | implemented | connect glossary indexing to source data |
-| Logbook | partial | medium | `src/components/Logbook` | GAPS.md present | implemented | define retention and pagination |
-| Naval UI | partial | medium | `src/components/Naval` | GAPS.md present | implemented | tie to naval system status events |
-| Organization | partial | medium | `src/components/Organization` | GAPS.md present | implemented | define grouping and permission model |
-| Party UI | partial | medium | `src/components/Party` | GAPS.md present | implemented | define companion/party rules |
-| Quest Log | partial | medium | `src/components/QuestLog` | GAPS.md present | implemented | ensure one source of truth with quests system |
-| SaveLoad | partial | high | `src/components/SaveLoad` | GAPS.md present | implemented | define backward-compatible save schema |
-| Submap | partial | medium | `src/components/Submap` | GAPS.md present | implemented | finalize submap generation contract |
-| Trade UI | partial | medium | `src/components/Trade` | GAPS.md present | implemented | normalize pricing and offer format |
-| Town | partial | medium | `src/components/Town` | GAPS.md present | implemented | clarify city-state model coupling |
-| ThreeD Modal | partial | medium | `src/components/ThreeDModal` | GAPS.md present | implemented | establish UX contract for 3D entrypoints |
-| World 3D UI | active | medium | `src/components/World3D`, `src/hooks/useHistorySync.ts` | North Star refreshed 2026-06-01 (re-scoped: 2D↔3D transition + in-3D HUD) | scope clarified | fix `?phase=world3d` entry bounce; author Plan 4 (transition + atlas marker sync) |
-| types UI | partial | medium | `src/components/types` | GAPS.md present | implemented | document type registry and exports |
-| Layout | partial | medium | `src/components/layout` | GAPS.md present | implemented | define application shell boundaries |
-| Providers | partial | medium | `src/components/providers` | GAPS.md present | implemented | specify provider dependency graph |
-| UI primitives | active | high | [NORTH_STAR.md](file:///F:/Repos/Aralia/docs/projects/ui-primitives/NORTH_STAR.md) | GAPS.md (G1-G4) updated | implemented | build visual previews for all stubs |
-
-## Feature Domains and Runtime Support (`src/features`, `src/commands`, `src/workers`, `src/services`)
-
-| Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
-|---|---|---|---|---|---|---|
-| Submap Generation | in-progress | high | `src/features/SubmapGeneration` | GAPS.md present | implemented | document generation parameters and outputs |
-| Command Base Runtime | partial | high | `src/commands/base` | GAPS.md present | implemented | define command lifecycle and hooks |
-| Command Effects Runtime | partial | high | `src/commands/effects` | GAPS.md present | implemented | standardize effect payloads/errors |
-| Command Factory Runtime | partial | high | `src/commands/factory` | GAPS.md present | implemented | clarify registration and validation |
-| Gemini Service | experimental | medium | `src/services/gemini` | GAPS.md present | implemented | define cost/error fallback strategy |
-| Ollama Service | experimental | medium | `src/services/ollama` | GAPS.md present | implemented | define local/remote adapter abstraction |
-| RealmSmith Service | partial | medium | `src/services/realmsmith` | GAPS.md present | implemented | stabilize API contract + retry policy |
-| WorldSim Service | active | high | `src/services/worldSim`, `src/services/WorldHistoryService.ts` | North Star refreshed 2026-06-01 (generation + simulation) | geometry done; story/history early | grow first-build world history/story/events generation |
-
-## Tools, Automation, and Infrastructure
-
-| Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
-|---|---|---|---|---|---|---|
-| Scripts: archive | partial | medium | `scripts/archive` | GAPS.md present | implemented | evaluate reuse and cleanup |
-| Scripts: audits | partial | medium | `scripts/audits` | GAPS.md present | implemented | prioritize missing automated checks |
-| Scripts: git | partial | medium | `scripts/git` | GAPS.md present | implemented | align with CI pre-push and local policy |
-| Scripts: quality | in-progress | high | `scripts/quality` | GAPS.md present | implemented | connect quality debt tracking to tracker |
-| Scripts: spell-runtime-template-audit | in-progress | medium | `scripts/spellRuntimeTemplateAudit` | GAPS.md present | implemented | complete report + remediation tasks |
-| Scripts: tooling | partial | medium | `scripts/tooling` | GAPS.md present | implemented | document supported workflows |
-| Scripts: workflows | partial | medium | `scripts/workflows` | GAPS.md present; 2 open docs gaps; WFG-001 reviewed | implemented | keep the command matrix and env-var defaults canonical in one project-owned reference |
-| Script tests | partial | medium | `scripts/__tests__` | GAPS.md present | implemented | expand coverage of scripts behavior |
+This location previously repeated the gameplay, UI, runtime, and infrastructure
+tables already listed above. The duplicate rows were merged back into their
+canonical sections to prevent the dashboard tracker from offering the same
+projects as separate assignment targets. No project folders, code systems, or
+future intent were removed.
 
 ## Projectized Planning Areas (`docs/projects`, `docs/tasks`, `conductor/projects`)
 
@@ -337,12 +280,12 @@ duplicate project.
 | PHB 2024 Glossary Audit | partial | medium | `docs/projects/phb2024_glossary_audit` | GAPS.md present | implemented | validate glossary schema + mapping rules |
 | Tiered Autosave | partial | medium | `docs/projects/tiered-autosave` | GAPS.md present | implemented | finalize autosave tiers and migration plan |
 | Town Description System | planned | medium | `docs/projects/town-description-system` | GAPS.md present | implemented | create initial gap list + owner |
-| 3D Combat Map | planned | medium | `conductor/projects/3d-combat-map` | GAPS.md present | implemented | decide MVP boundary and engine constraints |
+| 3D Combat Map | active | medium | `docs/projects/3d-combat-map` (canonical; old `conductor/projects/3d-combat-map/NORTH_STAR.md` path is absent) | GAPS.md present; old conductor row merged; G2/NC1 browser visual smoke closed 2026-06-08; G4 structural terrain-coordinate clamp proof added 2026-06-08 | implemented | continue only from the canonical project folder; run G4 browser slope-click proof or NC2 pop-out lifecycle proof |
 | Action System Refactor | in-progress | medium | `docs/tasks/action-system-refactor` | GAPS.md present | implemented | define action bus contract before merge |
 | Architecture Sweep | in-progress | medium | `docs/tasks/architecture` | GAPS.md present | implemented | convert findings into project tasks |
 | Combat Messaging Enhancement | in-progress | medium | `docs/tasks/combat-messaging-enhancement` | GAPS.md present | implemented | specify event payloads + UI format |
-| Combat Scenario Tester | done | high | `docs/tasks/combat-scenario-tester` | GAPS.md present | implemented | Verify cover and senses sandboxes in local dashboard |
-| Documentation Cleanup | active | medium | `docs/projects/documentation-cleanup` | GAPS.md present; 3 open gaps (G1, G3, G4), 1 resolved (G2) | implemented | continue evidence-backed curation of remaining stale docs (G1) |
+| Combat Scenario Tester | done / reference-only | high | `docs/tasks/combat-scenario-tester` | GAPS.md present | implemented | Do not assign iteration agents unless reopened; keep as completed sandbox evidence |
+| Documentation Cleanup | review-required | medium | `docs/projects/documentation-cleanup` | GAPS.md present; G1/G2/G4/G5 resolved, G3 duplicate-cleanup scope review-blocked | implemented | human/project decision: widen duplicate-cleanup, close it as complete enough, or preserve it as adjacent evidence before assigning more agents |
 | Feature Capabilities | in-progress | medium | `docs/tasks/feature-capabilities` | GAPS.md present | implemented | list capability owners + acceptance |
 | Glossary | planned | medium | `docs/tasks/glossary` | GAPS.md present | implemented | connect terminology governance |
 | Spell Completeness Audit | in-progress | high | `docs/tasks/spell-completeness-audit` | GAPS.md present | implemented | convert missing spell coverage into tracker |
@@ -352,14 +295,14 @@ duplicate project.
 | Weapon Proficiency System | in-progress | high | `docs/tasks/weapon-proficiency-system` | GAPS.md present | implemented | finalize progression math + persistence |
 | Investigation Task Cluster | planned | low | `docs/tasks/investigations` | GAPS.md present | implemented | clarify expected outputs for each inquiry |
 | Item Icons | planned | low | `docs/tasks/item-icons` | GAPS.md present | implemented | determine canonical icon taxonomy |
-| Roadmap Maintenance | planned | medium | `docs/tasks/roadmap` | GAPS.md present | implemented | align with this tracker schema |
+| Roadmap Maintenance | active | medium | `docs/projects/roadmap-maintenance` (canonical; `docs/tasks/roadmap` remains task-facing evidence) | GAPS.md present; task row merged into canonical project | implemented | route assignments through `docs/projects/roadmap-maintenance` only |
 
 ## Design-Intent References
 
 | Project | Status | Confidence | Evidence | Gap signal | Living project protocol | Next step |
 |---|---|---|---|---|---|---|
 | Racial Mechanics / Race Hierarchy | partial | high | `docs/projects/racial-mechanics/NORTH_STAR.md`, `docs/projects/racial-mechanics/TRACKER.md` | GAPS.md present | implemented | maintain and expand deferred mechanics (choices, lists) |
-| Spell Phase Workstream | planned | medium | `src/systems/spells`, `docs/spells`, `docs/tasks/spell-system-overhaul` | GAPS.md present | implemented | create one phase-level project card with milestones |
+| Spell Phase Workstream | merged-reference | medium | `src/systems/spells`, `docs/spells`, `docs/tasks/spell-system-overhaul` | GAPS.md present; merged into Structured Spell Execution | implemented | Do not assign separately; use the Structured Spell Execution row and task docs |
 
 ## How to use this tracker
 

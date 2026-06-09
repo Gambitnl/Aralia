@@ -281,6 +281,104 @@ describe('useCompanionBanter', () => {
 
     });
 
+    it('should open a player-directed response window and clear it on player interrupt', async () => {
+        // Keep this regression on the player-directed branch so it proves the
+        // opening line, the waiting deadline, and the interrupt reset together.
+        vi.mocked(Math.random).mockReturnValueOnce(0.25);
+
+        vi.mocked(OllamaService.generateBanterLine)
+            .mockResolvedValueOnce({
+                success: true,
+                data: {
+                    speakerId: 'elara_vance',
+                    text: 'Thanks for answering 1.',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: { id: 'follow-up-1', prompt: 'p1', response: 'r1', model: 'm' }
+            } as any)
+            .mockResolvedValueOnce({
+                success: true,
+                data: {
+                    speakerId: 'elara_vance',
+                    text: 'Thanks for answering 2.',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: { id: 'follow-up-2', prompt: 'p2', response: 'r2', model: 'm' }
+            } as any)
+            .mockResolvedValueOnce({
+                success: true,
+                data: {
+                    speakerId: 'elara_vance',
+                    text: 'Thanks for answering 3.',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: { id: 'follow-up-3', prompt: 'p3', response: 'r3', model: 'm' }
+            } as any)
+            .mockResolvedValueOnce({
+                success: true,
+                data: {
+                    speakerId: 'elara_vance',
+                    text: 'Thanks for answering 4.',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: { id: 'follow-up-4', prompt: 'p4', response: 'r4', model: 'm' }
+            } as any)
+            .mockResolvedValueOnce({
+                success: true,
+                data: {
+                    speakerId: 'elara_vance',
+                    text: 'Thanks for answering 5.',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: { id: 'follow-up-5', prompt: 'p5', response: 'r5', model: 'm' }
+            } as any);
+
+        const { result } = renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
+
+        await act(async () => {
+            await result.current.forceBanter();
+            await Promise.resolve();
+        });
+
+        expect(OllamaService.generatePlayerDirectedLine).toHaveBeenCalledTimes(1);
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
+        expect(vi.mocked(OllamaService.generatePlayerDirectedLine).mock.calls[0][0]).toMatchObject({
+            id: 'kaelen_thorne'
+        });
+        expect(result.current.isPlayerDirected).toBe(true);
+        expect(result.current.isWaitingForPlayerResponse).toBe(true);
+        expect(result.current.playerResponseDeadlineSeconds).toBe(120);
+        expect(result.current.banterHistory[0]).toMatchObject({
+            speakerId: 'kaelen_thorne',
+            isDirectedAtPlayer: true
+        });
+
+        await act(async () => {
+            result.current.playerInterrupt('I am here.');
+            await Promise.resolve();
+        });
+
+        expect(result.current.isWaitingForPlayerResponse).toBe(false);
+        expect(result.current.playerResponseDeadlineSeconds).toBe(0);
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(1500);
+        });
+
+        expect(OllamaService.generateBanterLine).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            await vi.advanceTimersByTimeAsync(120_000);
+        });
+
+        expect(OllamaService.generateEscalationLine).not.toHaveBeenCalled();
+    });
+
     it('should summarize conversation and add memories when banter ends with sufficient history', async () => {
         // forceBanter skips the trigger-roll check and only rolls for mode,
         // so one NPC-to-NPC roll is enough here.

@@ -1,7 +1,7 @@
 # Dice Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/dice/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Dice
 Project folder: docs/projects/dice
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,9 +30,8 @@ Gaps: docs/projects/dice/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 created the initial Dice handoff packet and established the current
-doc set. This refresh adds the dashboard schema and aligns the active task with
-the current project gaps.
+Iteration 2 added the initial scoped implementation for seeded silent-path
+roll behavior and refreshed the handoff contract fields.
 
 ## Current Mission
 
@@ -43,28 +42,33 @@ Acceptance criteria:
 - Define one deterministic roll policy that covers silent and visual Dice paths.
 - Decide the roll-history scope: session-only, persisted, or export-only.
 - Record any unresolved project blocker in `GAPS.md` before implementation starts.
+- Keep D-2 status review-gated until policy is approved.
 
 Key files to touch:
 - docs/projects/dice/NORTH_STAR.md
 - docs/projects/dice/TRACKER.md
 - docs/projects/dice/GAPS.md
 - docs/projects/dice/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/utils/combat/combatUtils.ts
+- src/systems/spells/mechanics/DiceRoller.ts
+- src/utils/combat/__tests__/combatUtils_rollDice.test.ts
+- src/systems/spells/mechanics/__tests__/DiceRoller.test.ts
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. For
-this planning slice, keep verification docs-only unless the task moves into
-runtime changes.
+Run focused unit tests for silent-path deterministic behavior:
+- `npm run test -- src/utils/combat/__tests__/combatUtils_rollDice.test.ts src/systems/spells/mechanics/__tests__/DiceRoller.test.ts`
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-North Star now includes the dashboard card schema and the current resume
-target. Tracker and gaps were refreshed to match the active D-2 planning
-slice. No new project-specific blocker was discovered in this pass.
+Seeded RNG support is implemented for silent rolls in
+`combatUtils.ts` and now used by legacy `DiceRoller.ts`; docs now reflect
+`D-G1` as resolved and `D-G3` as requiring human review for visual parity and
+history policy.
+- `NORTH_STAR.md` now carries a Required Review Brief for deterministic+history decision.
+- `TRACKER.md` and `GAPS.md` were updated with new gap statuses and proof checks.
 
 Key files to touch:
 - docs/projects/dice/NORTH_STAR.md

@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:27
- * Dependents: ConversationPanel.tsx
+ * Last Sync: 09/06/2026, 00:04:52
+ * Dependents: components/ConversationPanel/ConversationPanel.tsx
  * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
@@ -48,8 +48,8 @@ export interface UseConversationResult {
     sendPlayerMessage: (text: string) => Promise<void>;
     /** End the conversation and generate memory summary */
     endConversation: () => Promise<void>;
-    /** Whether currently waiting for AI response */
-    isPending: boolean;
+    /** Whether currently blocked from sending because it's not player turn or waiting for AI response */
+    isInteractionLocked: boolean;
 }
 
 export function useConversation(
@@ -66,7 +66,10 @@ export function useConversation(
         gameStateRef.current = gameState;
     }, [gameState]);
 
-    const isPending = gameState.activeConversation?.pendingResponse ?? false;
+    const conversation = gameState.activeConversation;
+    const isPending = conversation?.pendingResponse ?? false;
+    const isPlayerTurn = conversation?.isPlayerTurn ?? false;
+    const isInteractionLocked = isPending || !isPlayerTurn;
 
     /**
      * Build context for the AI from current game state.
@@ -196,7 +199,7 @@ export function useConversation(
      */
     const sendPlayerMessage = useCallback(async (text: string) => {
         const state = gameStateRef.current;
-        if (!state.activeConversation || state.activeConversation.pendingResponse) return;
+        if (!state.activeConversation || state.activeConversation.pendingResponse || !state.activeConversation.isPlayerTurn) return;
 
         // Extract @mention to determine who is being addressed
         const mentionMatch = text.match(/@(\w+)/i);
@@ -361,6 +364,6 @@ export function useConversation(
         startConversation,
         sendPlayerMessage,
         endConversation,
-        isPending,
+        isInteractionLocked,
     };
 }

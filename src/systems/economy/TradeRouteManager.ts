@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 17:22:06
+ * Dependents: systems/world/WorldEventManager.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -9,6 +25,7 @@
 import { GameState, GameMessage, TradeRoute, EconomyState, MarketEvent, MarketEventType } from '../../types';
 import { SeededRandom } from '@/utils/random';
 import { INITIAL_TRADE_ROUTES } from '../../data/tradeRoutes';
+import { calculateMarketFactors } from '../../utils/economy/marketEvents';
 
 export interface TradeRouteUpdateResult {
   state: GameState;
@@ -54,8 +71,8 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
 
   // Iterate through routes and simulate changes
   for (const route of currentRoutes) {
-    const routeStatus = route.status as unknown as string;
-    let newStatus: TradeRoute['status'] | 'booming' = routeStatus as TradeRoute['status'];
+    const routeStatus = route.status;
+    let newStatus: TradeRoute['status'] = routeStatus;
     let daysInStatus = (route.daysInStatus ?? 0) + daysPassed;
     let statusChanged = false;
 
@@ -133,8 +150,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
 
     newRoutes.push({
       ...route,
-      // TODO(2026-01-03 pass 4 Codex-CLI): 'booming' status cast until TradeRoute supports richer states.
-      status: newStatus as TradeRoute['status'],
+      status: newStatus,
       daysInStatus
     });
   }
@@ -146,61 +162,45 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
   const existingEvents = (economy.marketEvents || []).filter(e => !e.id.startsWith(routeEventPrefix));
   const newEvents: MarketEvent[] = [...existingEvents];
 
-  newRoutes.forEach(route => {
-    const routeStatus = route.status as unknown as string;
-    if (routeStatus === 'blockaded') {
-      // Create separate shortage events for each good category
-      route.goods.forEach(good => {
-        const eventId = `${routeEventPrefix}${route.id}_${good}_scarcity`;
-        // Check if event already exists to preserve start time, or create new
-        const existing = economy.marketEvents?.find(e => e.id === eventId);
+  const toRouteEvent = (route: TradeRoute, good: string, status: TradeRoute['status']) => {
+    const eventType = status === 'blockaded'
+      ? MarketEventType.SHORTAGE
+      : MarketEventType.SURPLUS;
 
-        newEvents.push({
-          id: eventId,
-          type: MarketEventType.SHORTAGE,
-          name: `${route.name} Blockade: ${good}`,
-          description: `Trade route blocked: ${route.name} causing shortage of ${good}`,
-          startTime: Number(existing?.startTime ?? timestampNumber),
-          duration: 1, // Managed by the route system, refreshed daily
-          intensity: 0.5 + (route.riskLevel * 0.5) // Higher risk routes cause worse shortages
-        });
+    const eventSuffix = status === 'blockaded' ? 'scarcity' : 'surplus';
+    const routeLabel = status === 'blockaded' ? 'Blockade' : 'Boom';
+    const direction = status === 'blockaded' ? 'scarcity of' : 'surplus of';
+    const eventId = `${routeEventPrefix}${route.id}_${good}_${eventSuffix}`;
+    const existing = economy.marketEvents?.find(e => e.id === eventId);
+
+    return {
+      id: eventId,
+      type: eventType,
+      name: `${route.name} ${routeLabel}: ${good}`,
+      description: `Trade route ${routeLabel.toLowerCase()} on ${route.name}, ${direction} ${good}`,
+      startTime: Number(existing?.startTime ?? timestampNumber),
+      duration: 1,
+      intensity: status === 'blockaded'
+        ? 0.5 + (route.riskLevel * 0.5)
+        : 0.3 + (route.profitability * 0.3),
+      affectedTags: [good.toLowerCase()]
+    } as MarketEvent;
+  };
+
+  newRoutes.forEach(route => {
+    const routeStatus = route.status;
+    if (routeStatus === 'blockaded') {
+      route.goods.forEach(good => {
+        newEvents.push(toRouteEvent(route, good, 'blockaded'));
       });
     } else if (routeStatus === 'booming') {
       route.goods.forEach(good => {
-        const eventId = `${routeEventPrefix}${route.id}_${good}_surplus`;
-        const existing = economy.marketEvents?.find(e => e.id === eventId);
-
-        newEvents.push({
-          id: eventId,
-          type: MarketEventType.SURPLUS,
-          name: `${route.name} Boom: ${good}`,
-          description: `High trade volume on ${route.name} bringing surplus of ${good}`,
-          startTime: Number(existing?.startTime ?? timestampNumber),
-          duration: 1,
-          intensity: 0.3 + (route.profitability * 0.3) // Higher profit routes cause bigger surpluses
-        });
+        newEvents.push(toRouteEvent(route, good, 'booming'));
       });
     }
   });
 
-  // Rebuild Market Factors (Legacy Support)
-  const newScarcity = new Set<string>();
-  const newSurplus = new Set<string>();
-
-  newEvents.forEach(e => {
-    // Extract goods/tags from name or description as we don't have affectedTags in MarketEvent
-    // This is a bit heuristic, but matches how we constructed the events above
-    const parts = e.name?.split(': ');
-    const tag = parts && parts.length > 1 ? parts[1] : null;
-
-    if (tag) {
-      if (e.type === MarketEventType.SHORTAGE) {
-        newScarcity.add(tag);
-      } else if (e.type === MarketEventType.SURPLUS) {
-        newSurplus.add(tag);
-      }
-    }
-  });
+  const { scarcity: newScarcity, surplus: newSurplus } = calculateMarketFactors(newEvents);
 
   const newEconomy: EconomyState = {
     ...economy,

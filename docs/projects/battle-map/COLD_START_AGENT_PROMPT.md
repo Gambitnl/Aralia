@@ -1,7 +1,7 @@
 # Battle Map Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/battle-map/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Battle Map
 Project folder: docs/projects/battle-map
-Iteration: 2
+Iteration: 8
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,88 +28,50 @@ North Star: docs/projects/battle-map/NORTH_STAR.md
 Tracker: docs/projects/battle-map/TRACKER.md
 Gaps: docs/projects/battle-map/GAPS.md
 
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 3 | gpt-5.3-codex-spark high | MCP-subagent | certain | 2026-06-08 | Documented Battle Map map-state/events sync contract; no runtime files changed |
+| 4 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Multi-agent worker fallback because gpt-5.3-codex-spark was at usage limit until 2026-06-08 21:03 |
+| 5 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Multi-agent worker fallback because gpt-5.3-codex-spark remained over limit |
+| 6 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Fallback while gpt-5.3-codex-spark remained over limit; documented the hook-shaped filename contract without renaming callers |
+| 7 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Built the 2D/3D parity checklist and focused renderer proof, corrected stale tile selectors, and added the safe 3D lighting guard |
+| 8 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker; elevated the Battle Map naming contract to review-required and added the Required Review Brief |
+
 ## Previous Agent Handoff
 
-Iteration 1 established the Battle Map living-project packet and split the
-shared workflow rules into the shared protocol file. The active queue still
-points at T2, and the map state/events sync contract remains the main cold-start
-question. Use NORTH_STAR.md for project scope and intent, TRACKER.md for the
-active queue, and GAPS.md for unresolved findings.
+Iteration 3 completed T2 and closed the map-state/events sync contract. Iteration 4 split T3 into separate follow-up slices. Iteration 5 closed G2 by proving `ensureConnectivity()` now repairs disconnected cave/dungeon maps. Iteration 6 documented the `useBattleMapGeneration.ts` naming contract in source/docs without renaming callers, so G3 stayed a deliberate docs/naming follow-up. Iteration 7 recorded the parity checklist/proof gate, fixed stale tile-title assumptions in the 2D visibility tests, and added a null guard to the 3D lighting target so the renderer proof stays testable. Iteration 8 elevated the G3 naming choice to review-required with a Required Review Brief and kept the renderer parity gate unchanged. No broad renderer behavior expansion was made.
 
 ## Current Mission
 
 Active task:
-T2 - Confirm map state/events sync scope before any new movement/targeting/overlay renderer changes
+G3 - naming contract review gate; the helper stays hook-shaped until the decision brief is answered.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Keep the G3 naming contract explicit, keep the Required Review Brief current, and preserve the parity checklist as the gate before any renderer behavior expansion.
 
 Key files to touch:
 - docs/projects/battle-map/NORTH_STAR.md
 - docs/projects/battle-map/TRACKER.md
 - docs/projects/battle-map/GAPS.md
 - docs/projects/battle-map/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- docs/projects/battle-map/PARITY_CHECKLIST.md
+- src/hooks/useBattleMapGeneration.ts only if a coordinated rename is approved
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Docs consistency sweep across the Battle Map handoff files plus `git diff --check`; no Battle Map runtime tests unless a rename is approved.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Do not rename `useBattleMapGeneration.ts` blindly while callers exist. Do not expand renderer behavior unless the parity checklist is refreshed first. Route sibling-project blockers instead of editing their docs.
+
+Required-review handling:
+If this iteration discovers a human/product/policy blocker, mark the project review-required only after creating or refreshing a `Required Review Brief` in `NORTH_STAR.md`, `TRACKER.md`, or `GAPS.md`. That brief is the project-detail visual decision segment; include the decision question, issue, current behavior, blocked reason, options, evidence, decision owner, and proof-after-decision. Once marked review-required, do not assign forward implementation agents until the decision is recorded.
 
 Recent progress:
-North Star now includes a dashboard card schema, and the project docs were
-refreshed in place for cold-start resume. No runtime files changed in this
-pass.
-
-Key files to touch:
-- docs/projects/battle-map/NORTH_STAR.md
-- docs/projects/battle-map/TRACKER.md
-- docs/projects/battle-map/GAPS.md
-- docs/projects/battle-map/COLD_START_AGENT_PROMPT.md
-- docs/projects/battle-map/DECISIONS.md
-- docs/projects/battle-map/AUDIT_OR_PROOF.md
-- docs/projects/battle-map/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+T2 closed as a documentation-only pass. T3 remains the split decision boundary. G2 is closed with a focused seed-2 reachability/pathability regression. G3 is now review-required, with the `useBattleMapGeneration.ts` naming contract explicit in source/docs and the Required Review Brief carrying the decision. G4 now has a concrete parity checklist plus focused renderer tests, and the older visibility checks were updated to match the actual tile labels. Workflow gaps were re-read with no workflow-level update needed. The dashboard card schema stayed on the supported section-based path. No broad renderer behavior expansion was made.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
-
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
+Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers. Keep the iteration agent ledger as one compact row per completed iteration; do not preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---

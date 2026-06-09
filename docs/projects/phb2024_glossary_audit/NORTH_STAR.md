@@ -1,23 +1,28 @@
 ﻿# NORTH STAR: PHB 2024 Glossary Audit
 
 Status: partial
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
 Project: PHB 2024 Glossary Audit
 Slug: phb2024_glossary_audit
 Category: Documentation / Living Project Rollout
-Status: partial
+Status: review-required
 Confidence: high
 Evidence: docs/projects/phb2024_glossary_audit/NORTH_STAR.md, docs/projects/phb2024_glossary_audit/TRACKER.md, docs/projects/phb2024_glossary_audit/GAPS.md
-Gap signal: 3 open gaps
+Gap signal: 3 open gaps; remaining work is routed to adjacent owners
 Protocol: living project doc set
-Next step: Resolve itemMetadata contract parity with the owning project.
+Next step: Wait for human review to decide whether this audit becomes reference-only or continues as a coordination surface.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
+Lifecycle status: merge-candidate
+Deprecation confidence: medium
+Deprecation reason: audit_slice_complete_remaining_gaps_routed_to_adjacent_owners
+Canonical owner: docs/projects/item_categorization for itemMetadata parity; docs/tasks/glossary for rebuild workflow
+Human decision required: yes
 
 ## Why This Project Exists
 
@@ -29,19 +34,32 @@ Keep the PHB 2024 glossary family surface complete, documented, and safely resum
 
 ## Current State
 
-The in-scope PHB 2024 glossary families are ingested and wired into the glossary UI. The implementation slice is complete, but the project still carries three open follow-ups: item metadata contract parity, a non-dev rebuild contract, and a glossary-scope boundary note.
+The in-scope PHB 2024 glossary families are ingested and wired into the glossary UI. The implementation slice is complete, but the project still carries three open follow-ups: item metadata contract parity, a non-dev rebuild contract, and a glossary-scope boundary note. All remaining gaps are routed to adjacent owners rather than this audit surface.
+
+## Required Review Brief
+
+Title: Merge-candidate review for PHB 2024 Glossary Audit
+Question: Should this audit project become reference-only after routing remaining gaps to adjacent owners?
+Issue: The implementation slice is complete, but three open gaps remain that cross into adjacent project boundaries (itemMetadata parity, glossary rebuild workflow, and glossary scope overlap).
+Current behavior: The project is marked as review-required with lifecycle_status: merge-candidate. Forward iteration agents are blocked from assigning work until human review clears the status.
+Why blocked: The remaining gaps belong to adjacent owners (docs/projects/item_categorization and docs/tasks/glossary). Continuing to treat this audit surface as the canonical owner would create ownership confusion and duplicate work tracking.
+Option A: Archive this project as reference-only and route all remaining gap work to the owning projects.
+Option B: Keep this project active but explicitly mark it as a coordination surface only, with all implementation work routed through owning projects.
+Evidence: GAPS.md shows three open gaps with adjacent owners; NORTH_STAR.md lifecycle_status is merge-candidate; TRACKER.md shows review-gated work.
+Decision owner: Human/product owner
+Proof after decision: Update NORTH_STAR.md lifecycle_status and canonical_owner fields; update TRACKER.md next checks accordingly.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Refresh the living-project docs and dashboard schema for the current project state |
-| Acceptance criteria | NORTH_STAR.md includes a current Dashboard Card Schema; TRACKER.md, GAPS.md, and COLD_START_AGENT_PROMPT.md agree on scope, open gaps, and next action; no implementation work is claimed beyond the existing evidence |
-| Allowed boundaries | docs/projects/phb2024_glossary_audit/ plus docs/projects/PROJECT_CARD_SCHEMA.md and docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md for schema/workflow reference |
-| Stop condition | Do not touch glossary runtime, ingest scripts, or adjacent item/categorization code |
-| Verification | git diff --check on the edited markdown files |
-| Owner | Codex docs pass |
-| Next action | Choose the highest-value open gap from GAPS.md and route it to the owning project before widening scope |
+| Task | Wait for human review to clear merge-candidate status |
+| Acceptance criteria | Human decides whether this audit becomes reference-only or continues as active; remaining gaps are already routed to adjacent owners |
+| Allowed boundaries | docs/projects/phb2024_glossary_audit/ only for doc updates |
+| Stop condition | Do not assign forward iteration work until human review is complete |
+| Verification | None required for this review-gated state |
+| Owner | Human review |
+| Next action | After review, either archive this project as reference-only or continue with routed gap work in owning projects |
 
 ## Scope Boundaries
 
@@ -118,4 +136,4 @@ Track durable intent, decisions, verification summaries, promoted proof, and nex
 2. Read TRACKER.md.
 3. Read GAPS.md.
 4. Review docs/projects/PROJECT_CARD_SCHEMA.md and docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md for dashboard and workflow context.
-5. Continue from: resolve the highest-value open gap, starting with itemMetadata contract parity if the owning project is available.
+5. Do not assign forward iteration work until the human review clears the merge-candidate status. The remaining gaps are routed to adjacent owners (itemMetadata parity to docs/projects/item_categorization, rebuild workflow to docs/tasks/glossary).

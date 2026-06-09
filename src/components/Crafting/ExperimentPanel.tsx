@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 14:52:38
+ * Dependents: components/Crafting/AlchemyBenchPanel.tsx, components/Crafting/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/Crafting/ExperimentPanel.tsx
  * UI for experimental alchemy - mix random ingredients to discover recipes.
@@ -48,16 +64,19 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
     const [isExperimenting, setIsExperimenting] = useState(false);
     const [experimentLog, setExperimentLog] = useState<string[]>([]);
 
-    // Get unique ingredients from inventory
+    // Get unique ingredients from inventory.
+    // Stackable reagents need to count their stored quantity, not just the
+    // number of inventory records, so the experiment UI reflects real supply.
     const availableIngredients = useMemo(() => {
         const uniqueItems = new Map<string, { id: string; name: string; count: number }>();
 
         for (const item of state.inventory) {
+            const stackSize = item.quantity ?? 1;
             const existing = uniqueItems.get(item.id);
             if (existing) {
-                existing.count++;
+                existing.count += stackSize;
             } else {
-                uniqueItems.set(item.id, { id: item.id, name: item.name, count: 1 });
+                uniqueItems.set(item.id, { id: item.id, name: item.name, count: stackSize });
             }
         }
 
@@ -102,6 +121,39 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
         setExperimentResult(null);
     };
 
+    // Drag-and-drop stays additive here so the existing click selection path
+    // still works for players and for the current experiment-panel tests.
+    const handleIngredientDragStart = (
+        item: { id: string; name: string },
+        event: React.DragEvent<HTMLButtonElement>
+    ) => {
+        if (selectedIngredients.length >= 4) {
+            event.preventDefault();
+            return;
+        }
+
+        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.setData('text/plain', item.id);
+    };
+
+    const handleCauldronDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+    };
+
+    const handleCauldronDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+
+        const itemId =
+            event.dataTransfer.getData('application/x-aralia-crafting-ingredient') ||
+            event.dataTransfer.getData('text/plain');
+        const item = availableIngredients.find(ingredient => ingredient.id === itemId);
+
+        if (item) {
+            handleAddIngredient(item);
+        }
+    };
+
     const handleRemoveIngredient = (index: number) => {
         setSelectedIngredients(prev => prev.filter((_, i) => i !== index));
         setExperimentResult(null);
@@ -127,9 +179,23 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
                 onProgressionUpdate(newProgression);
             }
 
-            // Handle damage from explosions
+            // Route explosion fallout through the shared party-health reducer.
+            // ExperimentPanel does not own combat state, so this keeps the damage
+            // visible in the same HP model the rest of the game already uses.
             if (result.damage) {
-                // For now, just log it - could dispatch damage to party
+                const partyMemberIds = state.party.map(member => member.id);
+                if (partyMemberIds.length > 0) {
+                    dispatch({
+                        type: 'MODIFY_PARTY_HEALTH',
+                        payload: {
+                            amount: -result.damage.amount,
+                            characterIds: partyMemberIds
+                        }
+                    });
+                }
+
+                // Also log it locally so the player sees the narrative fallout
+                // in this panel while HP is handled by shared party state.
                 setExperimentLog(prev => [`💥 Explosion dealt ${result.damage?.amount} ${result.damage?.type} damage!`, ...prev].slice(0, 10));
             }
 
@@ -169,7 +235,9 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
                                 <button
                                     key={item.id}
                                     className="ingredient-btn"
+                                    draggable={selectedIngredients.length < 4}
                                     onClick={() => handleAddIngredient(item)}
+                                    onDragStart={(event) => handleIngredientDragStart(item, event)}
                                     disabled={selectedIngredients.length >= 4}
                                     title={`Properties: ${props.join(', ')}`}
                                 >
@@ -194,7 +262,12 @@ export const ExperimentPanel: React.FC<ExperimentPanelProps> = ({
                 {/* Mixing Area */}
                 <div className="mixing-area">
                     <h3>Mixing Cauldron</h3>
-                    <div className="cauldron">
+                    <div
+                        className="cauldron"
+                        data-testid="alchemy-cauldron"
+                        onDragOver={handleCauldronDragOver}
+                        onDrop={handleCauldronDrop}
+                    >
                         {[0, 1, 2, 3].map(slot => (
                             <div key={slot} className={`cauldron-slot ${selectedIngredients[slot] ? 'filled' : 'empty'}`}>
                                 {selectedIngredients[slot] ? (

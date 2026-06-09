@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:25:25
+ * Last Sync: 08/06/2026, 14:53:18
  * Dependents: App.tsx
  * Imports: 6 files
  *
@@ -433,6 +433,8 @@ export const useCompanionBanter = (
     const hasPlayerResponded = mode === 'PLAYER_DIRECTED' &&
       banterHistoryRef.current.some(l => l.speakerId === (gameStateRef.current.party[0]?.id || 'player'));
 
+    // PLAYER_DIRECTED is an explicit contract: open with generatePlayerDirectedLine,
+    // then hold the response window until the player interrupts or the timeout escalates.
     if (mode === 'PLAYER_DIRECTED' && (isFirstPlayerDirectedTurn || !hasPlayerResponded)) {
       // NPC opens by addressing the player directly
       result = await OllamaService.generatePlayerDirectedLine(

@@ -5,6 +5,7 @@ import type { NPCMemory } from './memory.js';
 import type { AbilityScores } from './character.js';
 import type { EquipmentSlotType, Item } from './items.js';
 import type { WorldData } from '../services/worldSim/types';
+import type { Lock } from '../systems/puzzles/types.js';
 export type Position = CombatPosition;
 export interface FamilyMember {
     id: string;
@@ -43,6 +44,12 @@ export interface LocationDynamicNpcConfig {
     maxSpawnCount: number;
     baseSpawnChance: number;
 }
+export interface InteractableFeature {
+    id: string;
+    type: 'lock';
+    label: string;
+    lock: Lock;
+}
 export interface Exit {
     direction: string;
     targetId: string;
@@ -60,6 +67,7 @@ export interface Location {
     itemIds?: string[];
     npcIds?: string[];
     dynamicNpcConfig?: LocationDynamicNpcConfig;
+    interactableFeatures?: InteractableFeature[];
     mapCoordinates: {
         x: number;
         y: number;

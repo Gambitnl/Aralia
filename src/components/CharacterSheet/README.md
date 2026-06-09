@@ -1,30 +1,44 @@
 # CharacterSheet Directory
 
-This directory contains components related to the Character Sheet display and interactions.
+This directory contains the Character Sheet window, the tab surfaces it renders, and the supporting widgets used by those tabs.
 
-## Components
+## Runtime Surface
 
-### `CharacterOverview.tsx`
-Displays the main overview tab of the character sheet, including:
-- Core Vitals (HP, AC, Speed)
-- Spellcasting Stats
-- Ability Scores
-- Features & Traits
-- Proficiencies
+### `CharacterSheetModal.tsx`
+WindowFrame-based sheet shell that owns the tab bar and conditional tab availability:
+- Overview
+- Skills
+- Details
+- Family, when family data exists
+- Spellbook, when the character has spells
+- Crafting
+- Journal
 
-It utilizes the `useCharacterProficiencies` hook to calculate proficiency strings.
+The shell also exposes the Level Up flow when the character can level.
+
+### `Overview/CharacterOverview.tsx`
+Overview tab column for vitals, ability scores, spellcasting stats, features and traits, and proficiencies.
+It uses `useCharacterProficiencies` to aggregate armor, weapon, tool, and language proficiency strings.
+
+### `Overview/EquipmentMannequin.tsx`
+Overview tab equipment column with the paper-doll layout and unequip / auto-equip interactions.
+
+### `Overview/InventoryList.tsx`
+Overview tab inventory column with equip, use, drop, filtering, and nested container handling.
 
 ### `LevelUpModal.tsx`
-Modal flow for leveling up from the character sheet:
-- Lets players choose which class advances when multiclassing.
-- Handles Ability Score Improvements (ASI) or feat selection at eligible levels.
-- Dispatches selections back through `UPDATE_CHARACTER_CHOICE`.
+Level-up confirmation flow for class selection and ASI / feat choices.
 
 ### `SkillDetailDisplay.tsx`
-A modal/overlay component that provides detailed information about a character's skills, including proficiency bonuses and relevant ability scores.
+Skill detail overlay for per-skill breakdowns.
 
 ## Hooks
 
 ### `useCharacterProficiencies`
 Located in `src/hooks/useCharacterProficiencies.ts`.
 Extracts the logic for calculating aggregated proficiency strings (Armor, Weapons, Tools, Languages) from the character data.
+
+## Notes
+
+- The modal is a `WindowFrame`, not a full-screen overlay.
+- Keep README claims aligned with the runtime surfaces above before adding new player-facing copy.

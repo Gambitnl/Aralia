@@ -30,9 +30,9 @@ This folder contains the logic for the Companion System, including dynamic bante
 ---
 
 ### 2. RelationshipManager.ts - crypto.randomUUID() Usage
-**Status:** Validated - Medium Priority
+**Status:** Resolved - Medium Priority
 
-**Issue:** Direct calls to `crypto.randomUUID()` (lines 118, 129, 139) assume modern browser/Node environments. May fail in older runtimes or specific embedding contexts.
+**Issue:** Direct calls to `crypto.randomUUID()` used to appear in `RelationshipManager.ts` for approval and history event IDs. That pattern would have assumed modern browser/Node environments and could fail in older runtimes or specific embedding contexts.
 
 **Existing Solution:** `src/utils/core/idGenerator.ts` already provides `generateId()` with proper fallback:
 ```typescript
@@ -42,7 +42,7 @@ if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
 return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
 ```
 
-**Fix:** Replace all `crypto.randomUUID()` calls with `generateId()` from the utility module.
+**Current State:** `RelationshipManager.ts` now uses `generateId()` for approval events, milestone history, and unlock history entries. The focused regression test covers the fallback path when `crypto.randomUUID` is unavailable.
 
 ---
 
@@ -76,6 +76,17 @@ if (rule.requirements) {
 hated: -5, enemy: -4, rival: -3, distrusted: -2, wary: -1,
 stranger: 0, acquaintance: 1, friend: 2, close: 3, devoted: 4, romance: 5
 ```
+
+---
+
+### 4. Companion Action Side-Effect Routing
+**Status:** Documented - Low Priority
+
+**Issue:** `UPDATE_COMPANION_APPROVAL.source` is present as provenance only; the reducer still routes every approval delta through the player-targeted relationship path. The player-directed banter path is also now explicit: `generatePlayerDirectedLine` opens the conversation, the hook holds a response window, and `playerInterrupt` / `handlePlayerIgnored` / `extendPlayerResponseDeadline` keep the session moving.
+
+**Current State:** The contract lives in `src/state/reducers/companionReducer.ts`, `src/hooks/useCompanionBanter.ts`, and the migration comment in `src/state/appState.ts`. No hidden branching is implied by the `source` payload field.
+
+**Follow-up:** Add a focused player-directed regression only if future UI or state-shape changes need one more safety net for the response timer.
 
 ---
 

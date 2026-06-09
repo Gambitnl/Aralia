@@ -113,7 +113,8 @@ export function getDiegeticPlayerActionMessage(
         }
         return `You attempt to unequip an item.`;
 
-    case 'use_item':
+    // Keep action-message generation aligned with the normalized USE_ITEM contract.
+    case 'USE_ITEM':
         if(action.payload?.itemId && ITEMS[action.payload.itemId]) {
             return `You use the ${ITEMS[action.payload.itemId].name}.`;
         }

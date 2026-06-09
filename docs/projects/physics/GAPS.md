@@ -1,6 +1,6 @@
 # Physics System Gaps
 
-Status: active
+Status: review-required
 Last updated: 2026-06-05
 
 The routing classes below follow the shared iteration workflow: `in_scope_now`,

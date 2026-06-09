@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:14:41
+ * Last Sync: 09/06/2026, 01:19:30
  * Dependents: hooks/actions/actionHandlers.ts, hooks/actions/handleResourceActions.ts, types/index.ts
  * Imports: None
  *
@@ -20,6 +20,7 @@ import { Quest } from './quests.js';
 import { TempPartyMember, PlayerCharacter, HitPointDiceSpendMap } from './character.js';
 import { Faction } from './factions.js';
 import { DialogueSession } from './dialogue.js';
+import type { Lock } from '../systems/puzzles/types.js';
 import type { CombatCharacter } from './combat.js';
 
 // -----------------------------------------------------------------------------
@@ -47,7 +48,7 @@ export type ActionType =
   | 'look_around'
   | 'talk'
   | 'take_item'
-  | 'use_item'
+  | 'USE_ITEM'
   | 'custom'
   | 'ask_oracle'
   | 'toggle_map'
@@ -101,6 +102,7 @@ export type ActionType =
   | 'OPEN_TEMPLE' // New
   | 'CLOSE_TEMPLE' // New
   | 'USE_TEMPLE_SERVICE' // New
+  | 'OPEN_LOCKPICKING_MODAL'
   | 'HARVEST_RESOURCE' // New
   | 'BARTER_ITEMS' // New
   | 'HAGGLE_ITEM' // New
@@ -159,6 +161,7 @@ export const ACTION_METADATA: Partial<Record<ActionType, ActionMetadata>> = {
   TOGGLE_GAME_GUIDE: { isUiToggle: true },
   TOGGLE_QUEST_LOG: { isUiToggle: true },
   SET_DEV_MODE_ENABLED: { isUiToggle: true },
+  OPEN_LOCKPICKING_MODAL: { isUiToggle: true },
   UPDATE_QUEST_OBJECTIVE: { isUiToggle: true },
   UPDATE_NPC_GOAL_STATUS: { isUiToggle: true },
   UPDATE_CHARACTER_CHOICE: { isUiToggle: true },
@@ -270,6 +273,7 @@ export interface StartGameSuccessPayload {
   initialSubMapCoordinates: { x: number; y: number };
   initialActiveDynamicNpcIds: string[] | null;
   startingInventory: Item[];
+  worldHistory?: import('./history.js').WorldHistory;
 }
 
 export type Action =
@@ -277,7 +281,8 @@ export type Action =
   | { type: 'look_around'; payload?: { query?: string }; label?: string }
   | { type: 'talk'; payload: { targetNpcId?: string; query?: string; isEgregious?: boolean }; label?: string; targetId?: string }
   | { type: 'take_item'; payload: { itemId: string }; label?: string; targetId?: string }
-  | { type: 'use_item'; payload: UseItemPayload; label?: string }
+  // Keep item-use actions on the reducer-facing uppercase contract used by the item state flow.
+  | { type: 'USE_ITEM'; payload: UseItemPayload; label?: string }
   | { type: 'custom'; payload?: { villageContext?: VillageActionContext }; label?: string }
   | { type: 'ask_oracle'; payload: { query: string }; label?: string }
   | { type: 'toggle_map'; payload?: never; label?: string }
@@ -332,6 +337,7 @@ export type Action =
   | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext }; label?: string }
   | { type: 'CLOSE_TEMPLE'; payload?: never; label?: string }
   | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; cost: number; effect: unknown }; label?: string }
+  | { type: 'OPEN_LOCKPICKING_MODAL'; payload: Lock; label?: string }
   | { type: 'HARVEST_RESOURCE'; payload: { harvestContext?: string; skillCheck?: { skill: string; dc: number } }; label?: string }
   | { type: 'ANALYZE_SITUATION'; payload?: never; label?: string }
   | { type: 'wait'; payload?: { seconds?: number }; label?: string }

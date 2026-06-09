@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 08/06/2026, 13:34:24
+ * Dependents: None (Orphan)
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -6,7 +22,62 @@
  * Evaluates companion reactions to player decisions.
  */
 
-import { Companion, DecisionContext, ReactionResult, CompanionReactionRule } from '../../types/companions';
+import { Companion, DecisionContext, ReactionResult, CompanionReactionRule, RelationshipLevel } from '../../types/companions';
+
+// Relationship reactions use the same coarse approval ladder as the rest of the companion system.
+// Keeping the mapping local avoids importing a heavier manager just to compare bounds.
+const RELATIONSHIP_LEVEL_WEIGHTS: Record<RelationshipLevel, number> = {
+  hated: -5,
+  enemy: -4,
+  rival: -3,
+  distrusted: -2,
+  wary: -1,
+  stranger: 0,
+  acquaintance: 1,
+  friend: 2,
+  close: 3,
+  devoted: 4,
+  romance: 5
+};
+
+const getRelationshipWeight = (level: RelationshipLevel): number => RELATIONSHIP_LEVEL_WEIGHTS[level];
+
+const meetsRelationshipRequirements = (companion: Companion, rule: CompanionReactionRule): boolean => {
+  if (!rule.requirements) {
+    return true;
+  }
+
+  const needsRelationshipState = Boolean(rule.requirements.minRelationship || rule.requirements.maxRelationship);
+  if (!needsRelationshipState) {
+    return true;
+  }
+
+  const playerRelationship = companion.relationships['player'];
+
+  // Relationship bounds are evaluated against the current player relationship only when
+  // the rule actually declares min/max relationship requirements.
+  if (!playerRelationship) {
+    return false;
+  }
+
+  const currentWeight = getRelationshipWeight(playerRelationship.level);
+
+  if (rule.requirements.minRelationship) {
+    const minWeight = getRelationshipWeight(rule.requirements.minRelationship);
+    if (currentWeight < minWeight) {
+      return false;
+    }
+  }
+
+  if (rule.requirements.maxRelationship) {
+    const maxWeight = getRelationshipWeight(rule.requirements.maxRelationship);
+    if (currentWeight > maxWeight) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 export class CompanionReactionSystem {
 
@@ -19,7 +90,8 @@ export class CompanionReactionSystem {
     // RALPH: Matches player decision "Tags" (e.g., 'aggressive', 'greedy') against Companion Rules.
     // A rule matches if ANY of its triggerTags are present in the decision's tags.
     const matchingRules = companion.reactionRules.filter(rule =>
-      rule.triggerTags.some(tag => context.tags.includes(tag))
+      rule.triggerTags.some(tag => context.tags.includes(tag)) &&
+      meetsRelationshipRequirements(companion, rule)
     );
 
     if (matchingRules.length === 0) {
@@ -34,16 +106,6 @@ export class CompanionReactionSystem {
     let maxAbsChange = -1;
 
     for (const rule of matchingRules) {
-      // Check requirements if present
-      if (rule.requirements) {
-        // TODO(lint-intent): 'relationship' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-        const _relationship = companion.relationships['player']; // Assume player is target for now
-        // Skip if requirements not met (omitted for MVP simplicity, but placeholding logic)
-        // if (rule.requirements.minRelationship && ...) continue;
-      }
-
       // Calculate change based on magnitude
       // Base change * magnitude
       const change = rule.approvalChange * context.magnitude;

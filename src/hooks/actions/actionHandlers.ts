@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:14:40
+ * Last Sync: 09/06/2026, 01:20:01
  * Dependents: hooks/useGameActions.ts
- * Imports: 16 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -55,6 +55,7 @@ import type { AppAction } from '../../state/actionTypes';
 import type { CastSpellPayload } from '../../types/actions';
 import { ITEMS, WEAPONS_DATA } from '../../constants';
 import { formatDuration } from '../../utils/core';
+import type { Lock } from '../../systems/puzzles/types.js';
 import type {
   AddGeminiLogFn,
   AddMessageFn,
@@ -198,7 +199,8 @@ export function buildActionHandlers({
     UNEQUIP_ITEM: (action) => {
       handleUnequipItem(dispatch, action.payload as UnequipItemPayload);
     },
-    use_item: (action) => {
+    // Align item-use action names with reducer/action contracts used by character state.
+    USE_ITEM: (action) => {
       handleUseItem(dispatch, action.payload as UseItemPayload);
     },
     DROP_ITEM: (action) => {
@@ -353,6 +355,9 @@ export function buildActionHandlers({
     },
     HAGGLE_ITEM: async (action) => {
       await handleMerchantAction({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
+    },
+    OPEN_LOCKPICKING_MODAL: (action) => {
+      dispatch({ type: 'OPEN_LOCKPICKING_MODAL', payload: action.payload as Lock });
     },
 
     // Village-specific actions (migrated from label-based custom actions).

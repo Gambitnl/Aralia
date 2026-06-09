@@ -121,6 +121,26 @@ Optional docs: tasks/, architecture notes, migration notes
 Compaction status: not_needed
 ```
 
+For any project marked `review-required`, `human-review-required`,
+`policy-review-required`, or blocked by a human decision, the handling agent
+must add a `Required Review Brief` section to `NORTH_STAR.md`, `TRACKER.md`, or
+`GAPS.md`. The project detail page renders this as a visual decision panel.
+
+```markdown
+## Required Review Brief
+
+Title: Short decision name
+Question: What exactly must be decided?
+Issue: What source-backed problem created the review gate?
+Current behavior: What happens in the app or workflow today?
+Why blocked: Why forward agents must stop instead of continuing implementation.
+Option A: One valid decision path.
+Option B: Another valid decision path.
+Evidence: Source files, project gaps, or proof docs that show the issue.
+Decision owner: Human/product owner, policy owner, or named subsystem owner.
+Proof after decision: Test, visual check, or doc update required once a choice is made.
+```
+
 Field meanings:
 
 | Field | Purpose |

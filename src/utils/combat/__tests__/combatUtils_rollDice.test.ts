@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { rollDice } from '../../combat/combatUtils';
+import { rollDice, rollD20 } from '../../combat/combatUtils';
 
 describe('combatUtils: rollDice', () => {
   it('returns 0 for empty or invalid input', () => {
@@ -54,5 +54,25 @@ describe('combatUtils: rollDice', () => {
   it('handles invalid parts by ignoring or best-effort', () => {
     // "1d1 + abc" -> "1d1+abc" -> "1d1" matches, "abc" ignored.
     expect(rollDice('1d1 + abc')).toBe(1);
+  });
+
+  it('supports deterministic RNG injection for dice rolls', () => {
+    const values = [0.0, 0.999999, 0.5];
+    let index = 0;
+    const deterministicRng = () => values[index++] % 1;
+
+    expect(rollDice('2d6', { rng: deterministicRng })).toBe(7);
+    expect(index).toBe(2);
+    expect(rollDice('1d1+3', { rng: deterministicRng })).toBe(4);
+    expect(index).toBe(3);
+  });
+
+  it('supports deterministic RNG injection for d20 advantage/disadvantage', () => {
+    const values = [0.2, 0.8, 0.1, 0.9];
+    let index = 0;
+    const deterministicRng = () => values[index++];
+
+    expect(rollD20({ advantage: true, rng: deterministicRng })).toBe(17);
+    expect(rollD20({ disadvantage: true, rng: deterministicRng })).toBe(3);
   });
 });

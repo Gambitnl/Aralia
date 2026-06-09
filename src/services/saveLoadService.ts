@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 08/06/2026, 13:34:25
+ * Dependents: App.tsx, components/SaveLoad/LoadGameModal.tsx, components/SaveLoad/SaveSlotSelector.tsx, components/layout/MainMenu.tsx, hooks/actions/handleSystemAndUi.ts, hooks/useAutoSave.ts, hooks/useGameInitialization.ts, state/appState.ts
+ * Imports: 10 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -21,6 +37,7 @@
 import { GameState, GamePhase, NotificationType } from '../types';
 import { buildHitPointDicePools, normalizeClassLevels } from '../utils/characterUtils';
 import { getGameDay } from '../utils/core';
+import { createEmptyHistory } from '../utils/historyUtils';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
 import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
@@ -356,6 +373,9 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     }
 
     normalizeLoadedDates(loadedState);
+    // Legacy saves may predate the world-history bootstrap payload, so keep a
+    // defined empty registry in place instead of forcing a rewrite of old slots.
+    loadedState.worldHistory = loadedState.worldHistory || createEmptyHistory();
     // Backfill rich WorldData v2 on saves created before worldSim existed.
     if (loadedState.mapData) {
       loadedState.mapData = migrateMapDataToWorldDataV2(loadedState.mapData, loadedState.worldSeed ?? 0);

@@ -315,5 +315,133 @@ describe('Death Saving Throws & Unconsciousness logic', () => {
 
     randomSpy.mockRestore();
   });
-});
 
+  it('only cleans a shared ally effect once when two concentrating characters drop in the same initialize batch', () => {
+    const sharedEffectId = 'bless-effect-ally';
+
+    const dummy = makeCharacter('dummy', {
+      currentHP: 10,
+      maxHP: 10,
+      team: 'enemy',
+      stats: {
+        strength: 10,
+        dexterity: 18,
+        constitution: 12,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 8,
+        baseInitiative: 5,
+        speed: 30,
+        cr: '0'
+      }
+    });
+
+    const casterOne = makeCharacter('player1', {
+      currentHP: 5,
+      maxHP: 10,
+      team: 'player',
+      concentratingOn: {
+        spellId: 'bless-one',
+        spellName: 'Bless',
+        spellLevel: 1,
+        startedTurn: 0,
+        effectIds: [sharedEffectId],
+        canDropAsFreeAction: true
+      }
+    });
+
+    const casterTwo = makeCharacter('player2', {
+      currentHP: 5,
+      maxHP: 10,
+      team: 'player',
+      concentratingOn: {
+        spellId: 'bless-two',
+        spellName: 'Bless',
+        spellLevel: 1,
+        startedTurn: 0,
+        effectIds: [sharedEffectId],
+        canDropAsFreeAction: true
+      }
+    });
+
+    const ally = makeCharacter('player3', {
+      currentHP: 10,
+      maxHP: 10,
+      team: 'player',
+      statusEffects: [{
+        id: sharedEffectId,
+        name: 'Bless',
+        duration: 10,
+        type: 'buff'
+      }],
+      conditions: [{
+        name: 'Bless',
+        duration: { type: 'rounds', value: 10 },
+        appliedTurn: 0,
+        source: 'Bless'
+      }]
+    });
+
+    const secondAlly = makeCharacter('player4', {
+      currentHP: 10,
+      maxHP: 10,
+      team: 'player',
+      statusEffects: [{
+        id: sharedEffectId,
+        name: 'Bless',
+        duration: 10,
+        type: 'buff'
+      }],
+      conditions: [{
+        name: 'Bless',
+        duration: { type: 'rounds', value: 10 },
+        appliedTurn: 0,
+        source: 'Bless'
+      }]
+    });
+
+    const onCharacterUpdate = vi.fn();
+    const onLogEntry = vi.fn();
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: [dummy, casterOne, casterTwo, ally, secondAlly],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry
+    }));
+
+    const randomSpy = vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.99)
+      .mockReturnValueOnce(0.01)
+      .mockReturnValueOnce(0.01)
+      .mockReturnValueOnce(0.01);
+
+    act(() => {
+      result.current.initializeCombat([
+        dummy,
+        { ...casterOne, currentHP: 0 },
+        { ...casterTwo, currentHP: 0 },
+        ally,
+        secondAlly
+      ]);
+    });
+
+    const allyUpdates = (characterId: string) => onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .filter(character => character.id === characterId);
+
+    const cleanedPrimaryAllyUpdates = allyUpdates('player3').filter(character =>
+      !character.statusEffects.some(effect => effect.id === sharedEffectId) &&
+      !character.conditions?.some(condition => condition.source === 'Bless')
+    );
+    const cleanedSecondAllyUpdates = allyUpdates('player4').filter(character =>
+      !character.statusEffects.some(effect => effect.id === sharedEffectId) &&
+      !character.conditions?.some(condition => condition.source === 'Bless')
+    );
+
+    expect(cleanedPrimaryAllyUpdates).toHaveLength(1);
+    expect(cleanedSecondAllyUpdates).toHaveLength(1);
+
+    randomSpy.mockRestore();
+  });
+});

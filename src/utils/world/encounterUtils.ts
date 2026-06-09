@@ -1,11 +1,11 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 07/05/2026, 00:03:52
- * Dependents: utils/encounterUtils.ts, utils/world/index.ts
- * Imports: 3 files
+ * Last Sync: 09/06/2026, 00:38:08
+ * Dependents: services/gemini/encounters.ts, services/geminiServiceFallback.ts, utils/encounterUtils.ts, utils/world/index.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,25 @@ import type { GameMessage, Monster, TempPartyMember } from '../../types';
 import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR } from '../../data/dndData';
 import { LOCATIONS, BIOMES } from '../../constants';
 import { MONSTERS_DATA } from '../../data/monsters';
+import { SeededRandom } from '../random/seededRandom';
+
+type SeededRng = SeededRandom | null;
+
+function pickRandom<T>(arr: T[], rng: SeededRng): T | null {
+  if (arr.length === 0) return null;
+  const randomValue = (rng ? rng.next() : Math.random()) * arr.length;
+  return arr[Math.floor(randomValue)] || null;
+}
+
+function shuffleWithRandom<T>(values: T[], rng: SeededRng): T[] {
+  const items = [...values];
+  for (let i = items.length - 1; i > 0; i--) {
+    const randomValue = (rng ? rng.next() : Math.random()) * (i + 1);
+    const j = Math.floor(randomValue);
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
 
 interface EncounterParameters {
   xpBudget: number;
@@ -93,7 +112,7 @@ export function calculateEncounterParameters(
 }
 
 
-const MAX_MONSTER_COUNT = 4; // Gameplay rule: max 4 monsters in an encounter
+export const MAX_ENCOUNTER_MONSTER_COUNT = 4; // Gameplay rule: max monsters in an encounter
 
 /**
  * Validates an AI-suggested encounter. If it's unreasonable (e.g., too many monsters),
@@ -104,12 +123,14 @@ const MAX_MONSTER_COUNT = 4; // Gameplay rule: max 4 monsters in an encounter
  */
 export function processAndValidateEncounter(
     aiSuggestions: Monster[],
-    themeTags: string[]
+    themeTags: string[],
+    seed?: number
 ): Monster[] {
+    const rng = seed === undefined ? null : new SeededRandom(seed);
     const finalEncounter: Monster[] = [];
     const totalSuggestedQuantity = aiSuggestions.reduce((sum, s) => sum + (s.quantity || 0), 0);
 
-    if (totalSuggestedQuantity > MAX_MONSTER_COUNT) {
+    if (totalSuggestedQuantity > MAX_ENCOUNTER_MONSTER_COUNT) {
         console.warn(`Gameplay Override: AI suggested ${totalSuggestedQuantity} monsters, which is too many. Rebuilding encounter...`);
 
         const totalXpBudget = aiSuggestions.reduce((sum, s) => {
@@ -135,14 +156,15 @@ export function processAndValidateEncounter(
         }
 
         const monsterCounts: Record<string, number> = {};
-        const shuffledReplacements = [...potentialReplacements].sort(() => Math.random() - 0.5);
+        const shuffledReplacements = shuffleWithRandom([...potentialReplacements], rng);
         
-        while(remainingXp > 10 && Object.values(monsterCounts).reduce((s, c) => s + c, 0) < MAX_MONSTER_COUNT) {
+        while(remainingXp > 10 && Object.values(monsterCounts).reduce((s, c) => s + c, 0) < MAX_ENCOUNTER_MONSTER_COUNT) {
             // Find all that fit and pick a random one
             const affordable = shuffledReplacements.filter(m => (XP_BY_CR[m.baseStats.cr] || 0) <= remainingXp);
             if (affordable.length === 0) break;
 
-            const monsterToAdd = affordable[Math.floor(Math.random() * affordable.length)];
+            const monsterToAdd = pickRandom(affordable, rng);
+            if (!monsterToAdd) break;
             monsterCounts[monsterToAdd.id] = (monsterCounts[monsterToAdd.id] || 0) + 1;
             remainingXp -= (XP_BY_CR[monsterToAdd.baseStats.cr] || 0);
         }
@@ -178,7 +200,8 @@ export function processAndValidateEncounter(
                 if (sortedByXpDiff.length > 0) {
                     const minDiff = sortedByXpDiff[0].diff;
                     const bestMatches = sortedByXpDiff.filter(m => m.diff === minDiff);
-                    const substitute = bestMatches[Math.floor(Math.random() * bestMatches.length)].monster;
+                    const substitute = pickRandom(bestMatches, rng)?.monster;
+                    if (!substitute) continue;
                     
                     console.warn(`Substitution: AI suggested unknown monster "${suggestion.name}". Replacing with "${substitute.name}".`);
                     finalEncounter.push({

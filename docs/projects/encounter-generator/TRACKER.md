@@ -1,15 +1,15 @@
 # Encounter Generator Tracker
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-09
 
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Refresh encounter-generator docs with runtime evidence map | Worker B | 2026-05-31 | NORTH_STAR.md | Keep updates limited to project docs | Confirm all three files are consistent and ASCII only |
-| T2 | active | Track implemented state and integration points for cold-start handoff | Worker B | 2026-06-05 | `docs/projects/encounter-generator/NORTH_STAR.md`, `docs/projects/encounter-generator/GAPS.md` | Keep the cold-start packet current and preserve the seed/difficulty resume path | Verify tracker, North Star, and gap wording stay aligned |
-| T3 | not_started | Define deterministic encounter generation scope with owner sign-off | Worker B | 2026-05-31 | `src/utils/world/bestiaryEncounterGenerator.ts` | Add implementation design when feature work starts | Manual encounter run reproducibility smoke test |
+| T2 | done | Track implemented state and integration points for cold-start handoff | Worker B | 2026-06-09 | `docs/projects/encounter-generator/NORTH_STAR.md`, `docs/projects/encounter-generator/GAPS.md` | Handoff should now be compact and current | Verify tracker, North Star, and gap wording stay aligned |
+| T3 | blocked | Close seeded encounter generation and difficulty contract slice | Worker B | 2026-06-09 | `src/components/Combat/EncounterModal.tsx`, `src/hooks/actions/handleEncounter.ts`, `src/services/gemini/encounters.ts`, `src/services/geminiServiceFallback.ts`, `src/utils/world/bestiaryEncounterGenerator.ts`, `src/utils/world/encounterUtils.ts`, `src/utils/combat/encounterDifficulty.ts` | Keep slice bounded to seed + difficulty contract and route non-seeded AI replay gap | Pause forward implementation until G4 decision is recorded; maintain review gate in GAPS and then continue with explicit scope note |
 
 ## Status Vocabulary
 

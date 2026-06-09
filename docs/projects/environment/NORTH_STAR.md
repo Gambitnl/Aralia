@@ -1,7 +1,7 @@
 # Environment System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-09
 
 ## Why this project exists
 The Environment System is a partial gameplay domain with a defined file surface but incomplete runtime integration. This doc set preserves the current evidence, names the live blockers, and gives the next agent a direct resume path instead of forcing another cold re-discovery pass.
@@ -9,8 +9,8 @@ The Environment System is a partial gameplay domain with a defined file surface 
 ## Current state (evidence-backed)
 - Registered and claimed by `docs/projects/PROJECT_TRACKER.md` under Gameplay & World Systems.
 - `GameState` carries `environment?: WeatherState`, and initial state still seeds `DEFAULT_WEATHER`.
-- Weather, terrain, and hazard helpers are implemented and tested, but runtime coupling is still partial:
-  - weather progression exists in `WeatherSystem.ts` without a production caller;
+- Weather, terrain, and hazard helpers are implemented and tested, with runtime coupling now partially closed:
+  - weather progression is now called from `worldReducer.ts` on day-boundary `ADVANCE_TIME`;
   - terrain/hazard helpers are covered by tests but not clearly wired into live movement/combat flow;
   - legacy or mixed reads still appear in world/naval/commentary paths.
 - The remaining work is an implementation slice, not a redesign. The project is still intentionally expanding, with deterministic enablement unresolved.
@@ -30,7 +30,7 @@ The Environment System is a partial gameplay domain with a defined file surface 
 - `src/state/initialState.ts` - initial environment default.
 
 ### Runtime coupling lanes
-- `src/state/reducers/worldReducer.ts` - processes daily world events but does not currently advance environment progression.
+- `src/state/reducers/worldReducer.ts` - advances environment progression on day-boundary `ADVANCE_TIME` via `updateWeather`.
 - `src/state/reducers/navalReducer.ts` - passes `state.environment` into voyage progression.
 - `src/systems/naval/VoyageManager.ts` - uses `weather.wind` and `weather.precipitation`.
 - `src/systems/world/WorldEventManager.ts` - still applies weather checks through `(state as any).weather`.
@@ -60,23 +60,23 @@ Category: Gameplay & World Systems
 Status: partial
 Confidence: medium
 Evidence: docs/projects/environment
-Gap signal: 5 open project gaps
+Gap signal: 4 open project gaps
 Protocol: living project doc set
-Next step: Implement G1 weather progression wiring from the runtime loop.
+Next step: Start `T4` and define deterministic weather/naval randomness policy for `G2`.
 Required verification: scoped_tests, deterministic_replay_or_state_change
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: docs_consistency, scoped_tests
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 
 ## Active task (current resume)
 
 | Field | Value |
 |---|---|
-| Task | Docs handoff refreshed; next agent should start the first runtime slice in G1. |
-| Scope boundaries | This pass stayed inside `docs/projects/environment/*`; no source edits were made. |
-| Acceptance criteria | North Star has the dashboard schema and evidence-backed state; tracker/gaps point to the same next action; the cold-start path is explicit. |
+| Task | Runtime wiring for `G1` completed: `ADVANCE_TIME` now calls weather progression and reducer tests cover biome resolution and call-path behavior. |
+| Scope boundaries | Source edits were limited to `src/state/reducers/worldReducer.ts`, `src/state/reducers/__tests__/worldReducer.test.ts`, and environment docs; no game-system architectural scope was expanded. |
+| Acceptance criteria | Weather is updated on day-boundary time advancement, biome selection resolves coordinate tiles, and tests prove state changes through reducer output. |
 | Owner | Worker A |
-| Next action | Start `G1` in `docs/projects/environment/GAPS.md` and wire weather progression into a real runtime call path. |
+| Next action | Start `G2` from `TRACKER.md`: resolve deterministic policy for weather/naval `Math.random` usage. |
 
 ## Cold-start resume path
 1. Read this file.
@@ -84,4 +84,4 @@ Workflow gaps reviewed: 2026-06-05
 3. Read `docs/projects/environment/GAPS.md`.
 4. Re-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` if the next slice needs scope validation.
 5. Re-open source evidence in `src/systems/environment/*`, `src/types/environment.ts`, `src/state/initialState.ts`, `src/state/reducers/worldReducer.ts`, `src/state/reducers/navalReducer.ts`, `src/systems/world/WorldEventManager.ts`, and `src/systems/naval/VoyageManager.ts`.
-6. Continue with implementation starting from `G1` if approved.
+6. Continue with implementation starting from `G2` if approved.

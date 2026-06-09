@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 08/06/2026, 16:30:45
+ * Dependents: components/CharacterSheet/Overview/InventoryList.tsx, components/DesignPreview/steps/PreviewComponents.tsx, components/Economy/LedgerBook.tsx, components/Trade/MerchantModal.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file CoinPurseDisplay.tsx
  *
@@ -20,6 +36,7 @@ export interface CoinBadgeProps {
     type: keyof CoinBreakdown;
     amount: number;
     compact?: boolean;
+    showZero?: boolean;
 }
 
 export const COIN_NAMES: Record<keyof CoinBreakdown, string> = {
@@ -29,21 +46,18 @@ export const COIN_NAMES: Record<keyof CoinBreakdown, string> = {
     cp: 'Copper',
 };
 
-export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = false }) => {
-    if (amount === 0) return null;
+export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = false, showZero = false }) => {
+    if (amount === 0 && !showZero) return null;
 
     return (
         <Tooltip content={`${amount} ${COIN_NAMES[type]} Piece${amount !== 1 ? 's' : ''}`}>
-            
-            
-            {/*
-              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-            */}
-            <button
-                type="button"
-                className={`flex items-center gap-1 ${compact ? 'px-1' : 'px-2 py-1'} rounded bg-gray-800/80 border border-gray-600/50`}
+            {/* Coin badges expose a tooltip on focus/hover without pretending to be
+                clickable controls. Direct zero-value badges still collapse unless
+                the owning purse explicitly asks to display zero denominations. */}
+            <span
+                role="img"
+                tabIndex={0}
+                className={`flex items-center gap-1 ${compact ? 'px-1' : 'px-2 py-1'} rounded bg-gray-800/80 border border-gray-600/50 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-help`}
                 aria-label={`${amount} ${COIN_NAMES[type]} pieces`}
             >
                 <span className={compact ? 'text-sm' : 'text-lg'} aria-hidden="true">
@@ -55,7 +69,7 @@ export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = fa
                 <span className={`uppercase tracking-wider text-gray-400 ${compact ? 'text-[8px]' : 'text-[10px]'}`}>
                     {type}
                 </span>
-            </button>
+            </span>
         </Tooltip>
     );
 };
@@ -81,7 +95,7 @@ const CoinPurseDisplay: React.FC<CoinPurseDisplayProps> = ({
     if (visibleCoins.length === 0) {
         return (
             <div className="flex items-center gap-1">
-                <CoinBadge type="gp" amount={0} compact={compact} />
+                <CoinBadge type="gp" amount={0} compact={compact} showZero />
             </div>
         );
     }
@@ -89,7 +103,7 @@ const CoinPurseDisplay: React.FC<CoinPurseDisplayProps> = ({
     return (
         <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'} flex-wrap`}>
             {visibleCoins.map(type => (
-                <CoinBadge key={type} type={type} amount={coins[type]} compact={compact} />
+                <CoinBadge key={type} type={type} amount={coins[type]} compact={compact} showZero={showZeros} />
             ))}
         </div>
     );

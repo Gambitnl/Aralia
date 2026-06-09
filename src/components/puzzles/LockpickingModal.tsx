@@ -246,11 +246,12 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const canBreak = (lockState.breakDC || lockState.breakHP) && lockState.isLocked;
 
     return (
-        <WindowFrame
-            title="Lockpicking"
-            onClose={onClose}
-            storageKey={WINDOW_KEYS.LOCKPICKING_MODAL}
-        >
+        <div role="dialog" aria-modal="true" aria-label="Lockpicking">
+            <WindowFrame
+                title="Lockpicking"
+                onClose={onClose}
+                storageKey={WINDOW_KEYS.LOCKPICKING_MODAL}
+            >
             <div className="flex flex-col h-full bg-gray-900 text-gray-200">
                 {/* Header / Info Bar */}
                 <div className="px-6 py-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center shrink-0">
@@ -368,7 +369,8 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                     </div>
                 </div>
             </div>
-        </WindowFrame>
+            </WindowFrame>
+        </div>
     );
 };
 

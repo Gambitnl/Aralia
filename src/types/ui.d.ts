@@ -50,6 +50,22 @@ export interface GlossaryEntry {
         minLevel: number;
         spells: string[];
     }[];
+    /**
+     * Structured equipment stats copied from glossary ingestion so the
+     * glossary UI and item adapters can render item cards without re-deriving
+     * the source metadata.
+     */
+    itemMetadata?: {
+        type?: string;
+        cost?: number;
+        weight?: number;
+        damage?: string;
+        properties?: string[];
+        ac?: number;
+        rarity?: string;
+        tier?: string;
+        reqAttune?: string;
+    };
 }
 export interface SeededFeatureConfig {
     id: string;

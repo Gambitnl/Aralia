@@ -1,26 +1,23 @@
 # Action Pane Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
-This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
+Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
+Project entry point: docs/projects/action-pane/NORTH_STAR.md
 
-Shared workflow:
-docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+## Iteration Ledger
 
-Workflow gaps:
-docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-
-Dashboard schema:
-docs/projects/PROJECT_CARD_SCHEMA.md
-
-Project entry point:
-docs/projects/action-pane/NORTH_STAR.md
+| Iteration | Agent/Model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Spawned by the foreman as a bounded living-project iteration worker |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Action Pane
 Project folder: docs/projects/action-pane
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,71 +27,38 @@ Gaps: docs/projects/action-pane/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 created the first cold-start packet and established the living
-project doc set. This pass refreshed the dashboard schema and resume metadata
-without changing runtime code.
+Iteration 2 resolved the visible ActionPane system-menu and quick-command contract gap with focused contract tests. The tracker now marks T2 done, G1 resolved, and the next safe slice is prop-contract cleanup.
 
 ## Current Mission
 
 Active task:
-T2 - Confirm full ActionPane action contract coverage against runtime handlers
+T3 - Stabilize stale or ambiguous ActionPane prop contracts
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Use the active TRACKER.md row and the current gaps in NORTH_STAR.md / GAPS.md. Decide whether `isDevDummyActive` still belongs on the ActionPane path, then update docs and tests so the next agent sees a stable contract.
 
 Key files to touch:
 - docs/projects/action-pane/NORTH_STAR.md
 - docs/projects/action-pane/TRACKER.md
 - docs/projects/action-pane/GAPS.md
 - docs/projects/action-pane/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/components/ActionPane/index.tsx
+- src/components/ActionPane/__tests__/ActionPane.test.tsx
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Use the focused ActionPane test file and any docs consistency check named by NORTH_STAR.md or TRACKER.md. If verification cannot be run, record the blocker and the next proof.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside docs/projects/action-pane/** plus the narrow ActionPane contract surface. Do not remove legacy action surfaces unless a source-backed decision is recorded first.
 
 Recent progress:
-NORTH_STAR.md now has a Dashboard Card Schema section, the tracker dates
-are current, and the open Action Pane gaps still point at contract coverage,
-prop contract cleanup, and move.targetId normali
+G1 is resolved with source-backed test coverage for Analyze Situation, Short Rest, Long Rest, town context actions, and the system menu. T2 is done. Remaining open gaps are G2 and G3, with G4 still the adjacent follow-up.
 
-Key files to touch:
-- docs/projects/action-pane/NORTH_STAR.md
-- docs/projects/action-pane/TRACKER.md
-- docs/projects/action-pane/GAPS.md
-- docs/projects/action-pane/COLD_START_AGENT_PROMPT.md
-- docs/projects/action-pane/DECISIONS.md
-- docs/projects/action-pane/AUDIT_OR_PROOF.md
-- docs/projects/action-pane/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+agent_comments: none
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
+Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Keep the iteration ledger to one compact row per completed iteration and do not preserve old handoff transcripts in this file.
 
 Final response must report:
 - files updated

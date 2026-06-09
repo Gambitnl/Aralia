@@ -44,3 +44,23 @@ it('is deterministic for the same chunk coords + data', () => {
   expect(Array.from(a.positions)).toEqual(Array.from(b.positions));
   expect(Array.from(a.rotations)).toEqual(Array.from(b.rotations));
 });
+
+it('reuses cached geometry transforms when chunk payload is identical', () => {
+  const first = buildVegetationScatter(chunk('forest'));
+  const second = buildVegetationScatter(chunk('forest'));
+  expect(second.positions).toBe(first.positions);
+  expect(second.scales).toBe(first.scales);
+  expect(second.rotations).toBe(first.rotations);
+  expect(second.cacheKey).toBe(first.cacheKey);
+});
+
+it('invalidates cache entries when vegetated cell data changes', () => {
+  const a = chunk('forest');
+  const first = buildVegetationScatter(a);
+
+  a.biomeIds[0] = 'ocean';
+  const second = buildVegetationScatter(a);
+
+  expect(second.positions).not.toBe(first.positions);
+  expect(second.cacheKey).not.toBe(first.cacheKey);
+});

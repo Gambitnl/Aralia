@@ -175,13 +175,8 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
 
   // --- Solid-color materials per variant (no texture uploads) ---
   const variantMaterials = useMemo(() => {
-    return biomeConfig.variants.map((cfg) => ({
-      branch: new THREE.MeshStandardMaterial({
-        color: cfg.barkColor,
-        roughness: 0.92,
-        metalness: 0.0,
-      }),
-      leaf: new THREE.MeshStandardMaterial({
+    return biomeConfig.variants.map((cfg) => {
+      const leaf = new THREE.MeshStandardMaterial({
         color: cfg.leafColor,
         roughness: 0.80,
         metalness: 0.0,
@@ -189,8 +184,32 @@ const EzTreeLayer: React.FC<EzTreeLayerProps> = ({ mapData }) => {
         // Slight transparency makes leaf clusters feel less solid
         transparent: true,
         opacity: 0.92,
-      }),
-    }));
+      });
+      // BG3-style camera-proximity foliage fade (gap #16): canopy that sits
+      // between the camera and the battlefield fades out so it can't wall off the
+      // characters at low/snap-to-active camera angles. Driven by view-space depth
+      // (-mvPosition.z), so it only kicks in for foliage near the camera and leaves
+      // the distant forest fully opaque. Pure GPU — no per-frame JS.
+      leaf.onBeforeCompile = (shader) => {
+        shader.vertexShader = shader.vertexShader
+          .replace('#include <common>', '#include <common>\nvarying float vCamDepth;')
+          .replace('#include <project_vertex>', '#include <project_vertex>\nvCamDepth = -mvPosition.z;');
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nvarying float vCamDepth;')
+          .replace(
+            '#include <color_fragment>',
+            '#include <color_fragment>\ndiffuseColor.a *= smoothstep(2.5, 7.0, vCamDepth);',
+          );
+      };
+      return {
+        branch: new THREE.MeshStandardMaterial({
+          color: cfg.barkColor,
+          roughness: 0.92,
+          metalness: 0.0,
+        }),
+        leaf,
+      };
+    });
   }, [biomeConfig]);
 
   // --- Build per-variant tile buckets, then InstancedMeshes ---

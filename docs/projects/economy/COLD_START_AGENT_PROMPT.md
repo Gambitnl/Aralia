@@ -1,7 +1,7 @@
 # Economy System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/economy/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Economy System
 Project folder: docs/projects/economy
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,70 +28,59 @@ North Star: docs/projects/economy/NORTH_STAR.md
 Tracker: docs/projects/economy/TRACKER.md
 Gaps: docs/projects/economy/GAPS.md
 
+Agent identity / runtime:
+Next agent must identify its model and runtime surface before selecting work.
+This handoff was refreshed from a Codex desktop foreman review after MCP
+subagent Goodall completed the G1 event-typing pass.
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Goodall / gpt-5.3-codex-spark high | MCP/subagent | certain | 2026-06-08 | Subagent completion notification `019ea7bb-28ae-7921-a301-b8c832c7446a` |
+
 ## Previous Agent Handoff
 
-Iteration 1 established the initial project handoff. This pass refreshed the
-resume state, added the Dashboard Card Schema to NORTH_STAR.md, and kept the
-active task centered on T3. Use NORTH_STAR.md for project scope and intent,
-TRACKER.md for the active queue, and GAPS.md for unresolved findings.
+Iteration 2 closed G1 by promoting active economy events to `MarketEvent[]`,
+adding explicit route-event tags, deriving market factors through shared
+helpers, and preserving legacy name parsing only as a fallback. The same
+iteration also left T2-T5/G2-G5 documented as complete from the 2026-06-08
+economy pass.
 
 ## Current Mission
 
 Active task:
-T3 - Verify route-region id validity (seed routes vs region catalog) before major gameplay tuning.
+No open Economy implementation gap is currently registered.
 
 Acceptance criteria:
-Use the active TRACKER.md row and the resume path in NORTH_STAR.md.
-Acceptance is met when every seed route id resolves to a region entry, the
-failing mappings are repaired, and a CI-safe assertion or test remains in place.
+Before assigning another implementation pass, run a fresh source-backed scan of
+new or weakly typed economy event sources. If a real gap is found, add it to
+GAPS.md and select a narrow proof. If no source-backed gap is found, leave
+Economy unassigned and preserve the completed G1-G5 state.
 
 Key files to touch:
 - docs/projects/economy/NORTH_STAR.md
 - docs/projects/economy/TRACKER.md
 - docs/projects/economy/GAPS.md
 - docs/projects/economy/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- docs/projects/economy/AUDIT_OR_PROOF.md
+- Any source/docs named by a newly discovered, source-backed economy gap
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+For contract-parity work, run the focused TradeRouteManager, economyUtils, and
+MerchantModal checks already named in TRACKER.md/AUDIT_OR_PROOF.md. Re-run the
+dependency visualizer sync for touched economy types, utils, systems, or UI
+entry files.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
+Do not add speculative market features just to keep Economy moving. Stay inside
+Economy scope, preserve active event parity, and route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Docs-only continuity refresh completed on 2026-06-05. NORTH_STAR.md now
-includes the Dashboard Card Schema, TRACKER.md and GAPS.md were aligned to keep
-T3 as the resume path, and no source code or shared workflow files were changed.
-
-Key files to touch:
-- docs/projects/economy/NORTH_STAR.md
-- docs/projects/economy/TRACKER.md
-- docs/projects/economy/GAPS.md
-- docs/projects/economy/COLD_START_AGENT_PROMPT.md
-- docs/projects/economy/DECISIONS.md
-- docs/projects/economy/AUDIT_OR_PROOF.md
-- docs/projects/economy/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+G1-G5 are marked done. `AUDIT_OR_PROOF.md` now holds the durable audit proof,
+and focused tests cover route status transitions, typed event tags, market
+factor projection, typed pricing application, and MerchantModal event rendering.
 
 ## Required End State For This Iteration
 

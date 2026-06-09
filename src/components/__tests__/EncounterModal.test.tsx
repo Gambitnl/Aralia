@@ -47,6 +47,7 @@ describe('EncounterModal', () => {
       />
     );
 
+    expect(screen.getByRole('dialog', { name: 'encounter_modal.title' })).toBeInTheDocument();
     openAiGeneratedTab();
 
     expect(screen.getByText('encounter_modal.loading')).toBeInTheDocument();

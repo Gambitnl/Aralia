@@ -1,3 +1,28 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 08/06/2026, 17:21:33
+ * Dependents: components/Economy/CourierPouch.tsx, components/Economy/InvestmentBoard.tsx, components/Economy/LedgerBook.tsx, components/Trade/MarketEventCard.tsx, components/Trade/RouteCard.tsx, components/Trade/TradeRouteDashboard.tsx, data/economy/regions.ts, data/tradeRoutes.ts, state/reducers/economyReducer.ts, systems/economy/BusinessAcquisition.ts, systems/economy/BusinessManagement.ts, systems/economy/BusinessSimulation.ts, systems/economy/EconomicIntelSystem.ts, systems/economy/InvestmentManager.ts, systems/economy/LoanSystem.ts, systems/economy/NpcBusinessManager.ts, systems/economy/RegionalEconomySystem.ts, systems/economy/TradeRouteSystem.ts, systems/world/FactionEconomyManager.ts, systems/world/WorldEventManager.ts, types/index.ts, utils/economy/marketEvents.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
+/**
+ * This file defines the economy data shapes shared by trade systems, market
+ * simulation, save state, and trade UI panels.
+ *
+ * The types here are the contract between daily simulation code, reducers, and
+ * player-facing economy screens. When a runtime state is promoted here, callers
+ * no longer need local casts or string guesses to preserve that behavior.
+ */
+
 export interface EconomyState {
   marketEvents: MarketEvent[];
   tradeRoutes: TradeRoute[];
@@ -11,11 +36,10 @@ export interface EconomyState {
   };
   buyMultiplier: number;
   sellMultiplier: number;
-  // TODO(lint-intent): The any on 'activeEvents' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  activeEvents: unknown[]; // Deprecated, use marketEvents
+  activeEvents: MarketEvent[]; // Deprecated, use marketEvents
 }
+
+export type MarketEventImpactDirection = 'scarcity' | 'surplus';
 
 export interface MarketEvent {
   id: string;
@@ -27,6 +51,13 @@ export interface MarketEvent {
   // Optional descriptive fields
   name?: string;
   description?: string;
+  // Explicit impact channel used by route events and market factor derivation.
+  // G1 cleanup uses this before falling back to name heuristics for legacy records.
+  affectedTags?: string[];
+  // Legacy/alternate event payload source (e.g. generated templates) from source behavior.
+  affectedCategories?: string[];
+  // Legacy directional hint from world-event-driven sources.
+  effect?: MarketEventImpactDirection;
 }
 
 export enum MarketEventType {
@@ -61,7 +92,7 @@ export interface TradeRoute {
   destinationId: string;
   goods: string[]; // List of good categories or IDs
   resources?: string[]; // Legacy support
-  status: 'active' | 'disrupted' | 'blockaded';
+  status: 'active' | 'disrupted' | 'blockaded' | 'booming';
   riskLevel: number; // 0-1.0
   profitability: number; // 0-100
   controllingFactionId?: string;

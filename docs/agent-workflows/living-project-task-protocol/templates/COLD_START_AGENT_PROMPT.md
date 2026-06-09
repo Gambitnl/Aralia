@@ -34,6 +34,12 @@ MCP/subagent, or unknown. Name the system clue used, such as shell-only
 terminal, app browser context, Codex desktop context, MCP handoff, or explicit
 operator statement. Mark the classification as certain or inferred.>
 
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| <N> | <agent/model> | <CLI agent/application agent/browser-app agent/MCP-subagent/unknown> | <certain/inferred/unknown> | <YYYY-MM-DD> | <short clue> |
+
 ## Previous Agent Handoff
 
 <For iteration 1: "No prior project iteration handoff exists yet. Use
@@ -75,6 +81,15 @@ Scoped verification:
 Blocking dependencies / do-not-touch:
 <scope boundaries and sibling-project blockers>
 
+Required-review handling:
+<If this iteration discovers a human/product/policy blocker, mark the project
+review-required only after creating or refreshing a `Required Review Brief` in
+NORTH_STAR.md, TRACKER.md, or GAPS.md. That brief is the project-detail visual
+decision segment; include the decision question, issue, current behavior,
+blocked reason, options, evidence, decision owner, and proof-after-decision.
+Once marked review-required, do not assign forward implementation agents until
+the decision is recorded.>
+
 Recent progress:
 <brief handoff summary from the previous agent>
 
@@ -86,5 +101,6 @@ key files, verification method, blockers, recent progress, workflow-gap review
 result, and dashboard-schema updates. Account for every required doc, mention
 optional docs touched or skipped, update `agent_comments` only when an
 out-of-flow note is useful, and keep only the current handoff between the same
-BEGIN/END markers; do not preserve old handoff transcripts in this file.
+BEGIN/END markers. Keep the iteration agent ledger as one compact row per
+completed iteration; do not preserve old handoff transcripts in this file.
 ---END NEXT AGENT HANDOFF---

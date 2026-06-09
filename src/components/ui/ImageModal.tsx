@@ -26,6 +26,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
   // This automatically keeps focus inside the modal, supports Tab/Shift+Tab wrapping,
   // and closes the modal on Escape press.
   const modalRef = useFocusTrap<HTMLDivElement>(true, onClose);
+  const titleId = 'image-modal-title';
 
   return (
     /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
@@ -37,13 +38,14 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
       {...modalMotion}
       className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-8 focus:outline-none`}
       onClick={onClose}
-      tabIndex={-1}
-      aria-modal="true"
       role="dialog"
-      aria-label="Image viewer"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      tabIndex={-1}
     >
-      
-      
+      <h2 id={titleId} className="sr-only">
+        Image viewer: {alt}
+      </h2>
       <button
         type="button"
         onClick={(e) => e.stopPropagation()}

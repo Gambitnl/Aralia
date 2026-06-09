@@ -2,78 +2,71 @@
 
 ## Purpose
 
-The `CharacterSheetModal.tsx` component provides a modal dialog interface to display detailed information about a player character. It is designed to show character stats, skills, spells, an equipment mannequin, and an inventory with interaction options (the inventory part is now handled by the `InventoryList.tsx` component). This modal is typically opened when a player interacts with a character element in the `PartyPane`.
+`CharacterSheetModal.tsx` renders the window-framed Character Sheet shell. `GameModals` owns visibility and placement, and `WindowFrame` provides the draggable / resizable chrome. This file does not render the old full-screen fixed overlay layout.
 
 ## Props
 
-*   **`isOpen: boolean`**:
-    *   **Type**: `boolean`
-    *   **Purpose**: Controls the visibility of the modal. If `true`, the modal is displayed; otherwise, it's hidden.
-    *   **Required**: Yes
+- `isOpen: boolean` - controls whether the sheet is rendered.
+- `character: PlayerCharacter | null` - the active character payload; the sheet does not render when this is null.
+- `companion?: Companion | null` - optional companion data for the Details tab.
+- `inventory: Item[]` - inventory items shown in the overview inventory column.
+- `gold: number` - gold shown in the inventory coin display.
+- `onClose: () => void` - closes the window shell.
+- `onAction: (action: Action) => void` - dispatches equipment, inventory, and level-up actions.
+- `onNavigateToGlossary?: (termId: string) => void` - glossary navigation hook used by the Skills tab.
+- `quests?: Quest[]` - quest data shown in the Journal tab.
+- `journal?: JournalState` - optional journal state shown in the Journal tab.
 
-*   **`character: PlayerCharacter | null`**:
-    *   **Type**: `PlayerCharacter` object (from `src/types.ts`) or `null`.
-    *   **Purpose**: The character data to be displayed in the sheet. If `null` (or if `isOpen` is `false`), the modal does not render.
-    *   **Required**: Yes (when `isOpen` is true)
+## Runtime Surface
 
-*   **`inventory: Item[]`**:
-    *   **Type**: Array of `Item` objects.
-    *   **Purpose**: The player's current inventory. This is passed to the `InventoryList` component.
-    *   **Required**: Yes.
-
-*   **`onClose: () => void`**:
-    *   **Type**: Function
-    *   **Purpose**: A callback function that is invoked when the modal requests to be closed (e.g., by clicking the "X" button, the "Close" button, or pressing the Escape key).
-    *   **Required**: Yes
-
-*   **`onAction: (action: Action) => void`**:
-    *   **Type**: Function.
-    *   **Purpose**: Callback to dispatch actions related to inventory items (Equip, Unequip, Use, Drop) or unequipping items from the mannequin. This is passed to `InventoryList` and used by `EquipmentMannequin` interaction.
-    *   **Required**: Yes.
-
-## Core Functionality
-
-1.  **Modal Display**:
-    *   Renders as a fixed-position overlay with a semi-transparent background, centering its content on the screen.
-    *   The main modal content is displayed in a styled panel.
-
-2.  **Content Sections**:
-    *   **Header**: Displays the character's name and a close button ("X").
-    *   **Tab Bar**: Includes a "Level Up" button when the character has enough XP, opening the level-up modal flow.
-    *   **Main Content Area (Grid Layout)**:
-        *   **Column 1 (Character Details)**: Displays core stats (Vitals, Ability Scores), skills, and selected class/racial features (Fighting Style, Divine Domain, Giant Ancestry, Fiendish Legacy).
-        *   **Column 2 (Spells & Inventory)**:
-            *   **Spells**: Lists known cantrips and spells with their levels and descriptions available via tooltips.
-            *   **Inventory**: Renders the **`InventoryList.tsx`** component, passing `inventory`, `character`, and `onAction` props to it. The `InventoryList` component handles the display of items, tooltips, action buttons, and total inventory weight.
-        *   **Column 3 (Equipment)**: Renders the `EquipmentMannequin.tsx` component, showing currently equipped items. Clicking an equipped item in the mannequin triggers an "Unequip" action via the `onAction` prop.
-    *   **Footer**: Contains a "Close" button.
-
-3.  **Closing Mechanism**:
-    *   The modal can be closed via the "X" button, the "Close" button, or the `Escape` key. All trigger the `onClose` callback.
-
-## State Management
-
-The `CharacterSheetModal` is largely stateless regarding its content, receiving `character` and `inventory` data via props. Its visibility (`isOpen`) is also prop-controlled. It uses an internal `useEffect` hook for the Escape key listener.
+1. Window shell
+   - `WindowFrame` supplies the title bar, close, reset, and maximize controls.
+   - The sheet is only mounted when `isOpen` and `character` are both truthy.
+2. Tab bar
+   - Overview
+   - Skills
+   - Details
+   - Family, when `character.richNpcData.family` has entries
+   - Spellbook, when the character has spells
+   - Crafting
+   - Journal
+   - Level Up, when `canLevelUp(character)` returns true
+3. Overview tab layout
+   - left column: `CharacterOverview`
+   - middle column: `EquipmentMannequin`
+   - right column: `InventoryList`
+4. Level up flow
+   - opens `LevelUpModal`
+   - dispatches `UPDATE_CHARACTER_CHOICE` through `onAction`
+5. Close behavior
+   - the shell and surrounding modal manager own dismissal; this file does not register its own Escape listener.
 
 ## Data Dependencies
 
-*   `src/types.ts`: For `PlayerCharacter`, `Item`, `EquipmentSlotType`, `Action` types.
-*   `./EquipmentMannequin.tsx`: Renders the equipment display.
-*   `./InventoryList.tsx`: Renders the inventory display.
-*   `../utils/characterUtils.ts`: For `getAbilityModifierString`.
-*   `../constants.ts`: For `RACES_DATA`, `SPELLS_DATA`, `GIANT_ANCESTRIES`, `TIEFLING_LEGACIES` to look up details for display.
+- `src/types.ts`: `PlayerCharacter`, `Item`, `EquipmentSlotType`, `Action`, `Quest`, and `LevelUpChoices`.
+- `./Overview/CharacterOverview.tsx`: overview tab stats column.
+- `./Overview/EquipmentMannequin.tsx`: overview tab equipment column.
+- `./Overview/InventoryList.tsx`: overview tab inventory column.
+- `./Skills/SkillsTab.tsx`: skills tab content.
+- `./Details/CharacterDetailsTab.tsx`: details tab content.
+- `./Family/FamilyTreeTab.tsx`: family tab content.
+- `./Spellbook/SpellbookTab.tsx`: spellbook tab content.
+- `./Crafting/CraftingTab.tsx`: crafting tab content.
+- `./Journal/JournalTab.tsx`: journal tab content.
+- `./LevelUpModal.tsx`: level-up flow.
+- `../ui/WindowFrame.tsx`: draggable / resizable shell.
 
 ## Styling
 
-*   Uses Tailwind CSS for a consistent dark theme and layout.
-*   The modal panel is designed for readability of dense character information.
+- Uses Tailwind CSS and the shared window shell styling.
+- The window is designed for dense character information rather than a full-screen overlay.
 
 ## Accessibility
-*   The modal has `aria-modal="true"` and `role="dialog"`.
-*   The main title of the modal is linked via `aria-labelledby`.
-*   Close buttons and interactive item buttons (within `InventoryList`) have appropriate `aria-label` attributes.
-*   Tooltips are used to provide additional information accessibly.
+
+- The modal uses `role="dialog"` and `aria-modal="true"`.
+- The shell title is exposed by `WindowFrame`.
+- Close and action buttons rely on the shared UI component patterns used elsewhere in the sheet.
 
 ## Future Enhancements
-*   Full focus trapping and restoration for accessibility.
-*   More detailed spell information display if needed.
+
+- More tab-specific proof notes if the runtime surface changes again.

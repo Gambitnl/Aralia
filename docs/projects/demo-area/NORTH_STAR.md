@@ -1,7 +1,7 @@
 # Demo Area North Star
 
 Status: reference-only-due-to-orphaned-component
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 Project classification for this cycle: Reference-only, with retention/removal decision pending.
 
@@ -70,16 +70,21 @@ Runtime references checked for this update:
 Project: Demo Area
 Slug: demo-area
 Category: Feature/UI Projects
-Status: partial
+Status: reference-only
 Confidence: medium
 Evidence: `docs/projects/demo-area`
 Gap signal: 2 open gaps, 1 blocker
 Protocol: living project doc set
-Next step: Decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx`.
+Next step: Human review must decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx` before any forward iteration.
 Required verification: docs_consistency
-Completed verification: not run
+Completed verification: docs_consistency
 Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Workflow gaps reviewed: 2026-06-08
+Lifecycle status: reference-only
+Deprecation confidence: medium
+Deprecation reason: orphaned_component_human_decision
+Canonical owner:
+Human decision required: yes
 
 
 

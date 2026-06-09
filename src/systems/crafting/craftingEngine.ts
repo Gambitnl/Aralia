@@ -57,10 +57,24 @@ export interface CraftingResult {
 const MINUTES_PER_WORKDAY = 480; // 8 hours
 
 /**
- * Counts how many of a specific item are in the inventory.
+ * Counts matching inventory rows for older callers that still want entry count.
  */
 export function countItemInInventory(inventory: Item[], itemId: string): number {
     return inventory.filter(item => item.id === itemId).length;
+}
+
+/**
+ * Counts the full stack quantity for a specific item.
+ * Craftability needs this version so a single stacked row can satisfy the full recipe demand.
+ */
+function countItemQuantityInInventory(inventory: Item[], itemId: string): number {
+    return inventory.reduce((total, item) => {
+        if (item.id !== itemId) {
+            return total;
+        }
+
+        return total + (item.quantity ?? 1);
+    }, 0);
 }
 
 /**
@@ -98,7 +112,7 @@ export function checkRecipeCraftability(
 
     // Check ingredients
     const ingredientStatuses: IngredientStatus[] = recipe.ingredients.map(req => {
-        const available = countItemInInventory(inventory, req.itemId);
+        const available = countItemQuantityInInventory(inventory, req.itemId);
         return {
             itemId: req.itemId,
             name: req.name || req.itemId,

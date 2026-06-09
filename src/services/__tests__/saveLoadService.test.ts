@@ -238,6 +238,17 @@ describe('SaveLoadService', () => {
             expect(result.success).toBe(true);
             expect(result.data?.mapData?.worldData?.version).toBe(2);
         });
+
+        // The loader should keep older saves bootable even when they predate the
+        // first-build history payload; the new field should land as an empty shell.
+        it('backfills an empty worldHistory for legacy saves that predate first-build attachment', async () => {
+            await SaveLoadService.saveGame(mockGameState, 'legacy_history_slot');
+
+            const result = await SaveLoadService.loadGame('legacy_history_slot');
+
+            expect(result.success).toBe(true);
+            expect(result.data?.worldHistory).toEqual({ events: [] });
+        });
     });
 
     describe('getSaveSlots', () => {

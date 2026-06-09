@@ -1,7 +1,7 @@
 # Crafting UI North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-09
 
 ## Dashboard Card Schema
 
@@ -11,13 +11,13 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/crafting-ui
-Gap signal: 5 open gaps (3 current blockers, 2 follow-ups)
+Gap signal: 5 open gaps (2 current blockers, 3 follow-ups)
 Protocol: living project doc set
-Next step: Resume with G1 or G3 in GAPS.md and keep the UI/system contract boundary explicit.
-Required verification: docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Next step: Resume with G3 in GAPS.md and keep the UI/system contract boundary explicit.
+Required verification: docs_consistency, scoped_tests
+Completed verification: docs_consistency, scoped_tests
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 
 ## Why this project exists
 
@@ -66,9 +66,11 @@ It does not own recipe math, location rules, or economy core calculations.
   - Computes owned counts from `state.inventory`.
 - `GatheringPanel`:
   - Calls `attemptIdentification` and `attemptHarvest`.
+  - Resolves the acting crafter through `src/components/Crafting/crafterAdapter.ts`, preferring the selected character from the open sheet when one exists.
   - Adds harvested items via `ADD_ITEM`.
 - `CreatureHarvestPanel`:
   - Triggered in `src/components/Combat/CombatView.tsx` only.
+  - Resolves the acting crafter through the same shared adapter, anchored to the current party lead until CombatView exposes a separate selector.
   - Calls `attemptCreatureHarvest` and adds result items through `ADD_ITEM`.
 
 ## State and action integration
@@ -100,13 +102,13 @@ It does not own recipe math, location rules, or economy core calculations.
 
 ## Active project-level gaps
 
-- Current resume blockers are G1, G2, and G3. G4 and G5 stay as follow-up work unless the next slice re-opens them.
+- Current resume blockers are G2 and G3. G4, G5, and G6 stay as follow-up work unless the next slice re-opens them.
 - UI and systems contract boundary is still split: registry now explicitly marks this project as needing reconciliation with systems/crafting.
 - Some flows still rely on simplified placeholders:
-  - Gathering and creature harvest use mock crafter objects rather than full character skill model.
+  - Gathering now prefers the selected character from the open sheet; creature harvest stays on the party lead until CombatView exposes a separate selection prop.
   - Experiment result side effects include text-only damage logging instead of party damage dispatch.
   - Only AlchemyBenchPanel is wrapped in `WindowFrame`; Gathering and harvest use custom overlays.
-- No dedicated craft UI tests were observed during this scan.
+- Focused craft UI tests now cover the shared crafter adapter plus the gathering and creature-harvest selection paths, but reducer-contract coverage still needs a named proof row.
 - Action typing is not fully strict for crafting stat updates (`string` payload fields).
 
 ## Relationship to docs/projects/crafting
@@ -118,17 +120,17 @@ The systems project (`Crafting System` row) owns gameplay logic; this project ow
 
 | Field | Value |
 |---|---|
-| Task | Convert registry evidence into a concrete cold-start Crafting UI implementation map |
-| Acceptance criteria | North Star and tracker show implemented file coverage, integration surface, and in-scope gaps with proof anchors |
-| Allowed files | `docs/projects/crafting-ui/NORTH_STAR.md`, `docs/projects/crafting-ui/TRACKER.md`, `docs/projects/crafting-ui/GAPS.md` |
-| Stop condition | Docs reflect current implementation state clearly enough for any engineer to continue work without re-scanning all craft surfaces |
-| Verification | Manual file-map verification against `src/components/Crafting` and `src/components/CharacterSheet` and `src/components/Combat/CombatView.tsx` |
+| Task | Preserve the current Crafting UI contract map and the resolved G1 proof slice |
+| Acceptance criteria | North Star, tracker, gaps, and proof docs agree on the shared crafter boundary, and the next agent can resume with G3 without re-deriving G1 |
+| Allowed files | `docs/projects/crafting-ui/NORTH_STAR.md`, `docs/projects/crafting-ui/TRACKER.md`, `docs/projects/crafting-ui/GAPS.md`, `docs/projects/crafting-ui/COLD_START_AGENT_PROMPT.md`, `docs/projects/crafting-ui/AUDIT_OR_PROOF.md` |
+| Stop condition | Docs reflect the G1 closure and the next safe resume path clearly enough for any engineer to continue from G3 |
+| Verification | `docs_consistency`, focused Crafting UI vitest run, and manual file-map verification against `src/components/Crafting` and `src/components/CharacterSheet` and `src/components/Combat/CombatView.tsx` |
 
 ## Resume path
 
 1. Read this file.
 2. Read `docs/projects/crafting-ui/TRACKER.md` and `docs/projects/crafting-ui/GAPS.md`.
-3. Start with G1 or G3, depending on whether the next slice should first resolve the shared crafter contract or the experiment damage contract.
+3. Start with G3 first, then G2 if the typing slice is still needed after the damage contract is settled.
 4. Check `docs/projects/PROJECT_TRACKER.md` only if a gap needs routing back to `Crafting System`.
 5. Keep scope narrow; if neither blocker is safe to address, preserve the docs state and record the reason instead of widening the slice.
 

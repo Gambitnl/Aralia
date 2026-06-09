@@ -23,21 +23,41 @@ for a future agent. If the next agent can read only one file, the North Star
 should prevent them from restarting discovery, duplicating work, shrinking the
 project, or losing unfinished intent.
 
-Supporting files exist only to make the North Star operational:
+## Canonical Aralia Paths
+
+For Aralia project iteration work, use these canonical paths. These are the
+paths cold-start agents should read before selecting work:
 
 ```text
-PROJECT_NORTH_STAR.md   <- main cold-start entry point
-PROJECT_TRACKER.md      <- active queue, statuses, blockers, next actions
+docs/projects/<project-slug>/NORTH_STAR.md
+docs/projects/<project-slug>/TRACKER.md
+docs/projects/<project-slug>/GAPS.md
+docs/projects/<project-slug>/COLD_START_AGENT_PROMPT.md
+docs/projects/<project-slug>/DECISIONS.md
+docs/projects/<project-slug>/AUDIT_OR_PROOF.md
+docs/projects/<project-slug>/RUNBOOK.md
+docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+docs/projects/PROJECT_CARD_SCHEMA.md
+docs/projects/PROJECT_TRACKER.md
+docs/projects/GLOBAL_GAPS.md
+```
+
+Template filenames under `docs/agent-workflows/living-project-task-protocol/templates/`
+are scaffolds only. Do not treat generic names such as `PROJECT_NORTH_STAR.md`
+or `PROJECT_REGISTRY.md` as live Aralia paths.
+
+Supporting files exist only to make the North Star operational. The generic
+roles are:
+
+```text
+NORTH_STAR.md              <- main cold-start entry point
+TRACKER.md                 <- active queue, statuses, blockers, next actions
 COLD_START_AGENT_PROMPT.md <- project-specific current handoff for the next agent
-ITERATION_AGENT_WORKFLOW.md <- shared workflow instructions for all iterations
-WORKFLOW_GAPS.md        <- process-level ambiguity and workflow-refinement gaps
-PROJECT_REGISTRY.md     <- repo/workspace project inventory if one exists
-TASK_SLICE.md           <- bounded task definition and verification plan
-GAPS.md                 <- unresolved findings if too large for the tracker
-GLOBAL_GAPS.md          <- repo/workspace gap surfacing and routing tracker
-DECISIONS.md            <- meaningful path choices only
-AUDIT_OR_PROOF.md       <- verification summaries and proof ledger when needed
-RUNBOOK.md              <- repeatable commands or operator workflow when needed
+GAPS.md                    <- unresolved findings if too large for the tracker
+DECISIONS.md               <- meaningful path choices only
+AUDIT_OR_PROOF.md          <- verification summaries and proof ledger when needed
+RUNBOOK.md                 <- repeatable commands or operator workflow when needed
 ```
 
 ## Agent Instructions
@@ -53,10 +73,11 @@ Follow this system as the project architecture:
    evidence, known gaps, artifact rules, and exact resume path.
 3. Create or refresh the required operational files: tracker, gap registry,
    and project-specific cold-start handoff. Keep shared workflow rules in
-   ITERATION_AGENT_WORKFLOW.md instead of duplicating them in every project.
-   Check WORKFLOW_GAPS.md for process-level ambiguity before launching into
-   implementation, and update it only when the workflow itself needs
-   clarification across projects.
+   `docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`
+   instead of duplicating them in every project. Check
+   `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` for
+   process-level ambiguity before launching into implementation, and update it
+   only when the workflow itself needs clarification across projects.
    Create or link optional supporting files only when they have a clear job:
    task docs, decision log, audit/proof record, architecture note, or runbook.
 4. Keep clear pointers between the North Star, tracker, task docs, gap records,

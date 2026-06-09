@@ -130,12 +130,13 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   };
 
   return (
-    <WindowFrame
-      title={character.name}
-      storageKey={WINDOW_KEYS.CHARACTER_SHEET}
-      onClose={onClose}
-      initialMaximized={true}
-    >
+    <div role="dialog" aria-modal="true" aria-label={character.name}>
+      <WindowFrame
+        title={character.name}
+        storageKey={WINDOW_KEYS.CHARACTER_SHEET}
+        onClose={onClose}
+        initialMaximized={true}
+      >
       <div className="flex flex-col h-full">
         {/* Tab Bar */}
         {/* Main character sheet tab navigation, rendered using a premium serif font for immersive D&D theme. */}
@@ -278,7 +279,8 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         onClose={() => setIsLevelUpOpen(false)}
         onConfirm={handleLevelUpConfirm}
       />
-    </WindowFrame>
+      </WindowFrame>
+    </div>
   );
 };
 

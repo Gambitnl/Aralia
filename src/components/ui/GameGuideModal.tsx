@@ -66,6 +66,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
     const [showCreationTools, setShowCreationTools] = useState(false);
     const [quickRace, setQuickRace] = useState(Object.keys(RACES_DATA)[0]);
     const [quickClass, setQuickClass] = useState(AVAILABLE_CLASSES[0].id);
+    const titleId = 'game-guide-title';
 
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -172,17 +173,17 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
             id={UI_ID.GAME_GUIDE_MODAL}
             data-testid={UI_ID.GAME_GUIDE_MODAL}
             className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
-            aria-modal="true"
-            role="dialog"
-            aria-labelledby="game-guide-title"
         >
             <div
                 ref={modalRef}
                 className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-500/50 w-full max-w-lg flex flex-col max-h-[90vh] focus:outline-none"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
                 tabIndex={-1}
             >
                 <div className="flex justify-between items-center mb-4">
-                    <h2 id="game-guide-title" className="text-2xl font-bold text-blue-300 font-cinzel">
+                    <h2 id={titleId} className="text-2xl font-bold text-blue-300 font-cinzel">
                         {t('game_guide.title')}
                     </h2>
                     <button

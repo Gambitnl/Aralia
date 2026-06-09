@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 15:20:55
+ * Dependents: components/BattleMap/terrain/index.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file TerrainMesh.tsx
  * Continuous heightfield terrain mesh with procedural PBR-like texturing.
@@ -17,6 +33,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapTile } from '../../../types/combat';
+import { resolveTerrainTileCoordinates } from './terrainTileMapping';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -692,15 +709,29 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     [tileGrid, width, height, mapData.seed],
   );
 
-  // Skirt material — solid earth/stone, DoubleSide to avoid winding issues
+  // Skirt material — solid earth/stone cliff face, DoubleSide to avoid winding
+  // issues. Tinted per biome so the perimeter cliff reads as the same ground the
+  // surface is made of (a uniform near-black band looked wrong under desert sand).
+  const skirtColor = useMemo(() => {
+    const m = mapData as BattleMapData & { biome?: string; theme?: string };
+    const biome = m.biome ?? m.theme ?? 'forest';
+    const palette: Record<string, number> = {
+      forest: 0x3a2a18,  // dark loam
+      swamp: 0x2a2618,   // dark peat
+      desert: 0x7a5836,  // sandstone — matches sand instead of a black band
+      cave: 0x2e2b29,    // dark stone
+      dungeon: 0x34302b, // dressed stone-grey
+    };
+    return palette[biome] ?? palette.forest;
+  }, [mapData]);
   const skirtMaterial = useMemo(
     () => new THREE.MeshStandardMaterial({
-      color: 0x2a1e12,
+      color: skirtColor,
       roughness: 0.95,
       metalness: 0.0,
       side: THREE.DoubleSide,
     }),
-    [],
+    [skirtColor],
   );
 
   // Dispose GPU resources on change/unmount
@@ -720,15 +751,19 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   const handleClick = useMemo(() => {
     return (event: THREE.Intersection) => {
       if (!event.point) return;
-      const px = event.point.x;
-      const pz = event.point.z;
-      const tileX = Math.floor(px / TILE_SIZE);
-      const tileZ = Math.floor(pz / TILE_SIZE);
-      const tileId = `${tileX}-${tileZ}`;
+      // The mesh can produce tiny floating-point drift at map edges when the
+      // ray lands on a steeply displaced surface. Clamping the derived tile
+      // coordinate keeps valid edge clicks from falling out of bounds.
+      const tileCoords = resolveTerrainTileCoordinates(
+        { x: event.point.x / TILE_SIZE, z: event.point.z / TILE_SIZE },
+        { width, height },
+      );
+      if (!tileCoords) return;
+      const tileId = `${tileCoords.x}-${tileCoords.y}`;
       const tile = mapData.tiles.get(tileId);
       if (tile) onTileClick(tile);
     };
-  }, [mapData, onTileClick]);
+  }, [height, mapData, onTileClick, width]);
 
   return (
     <>

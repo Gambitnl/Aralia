@@ -147,8 +147,150 @@ export class BattleMapGenerator {
   }
   
   private ensureConnectivity() {
-    // This is a complex part. A simple flood fill can check for connectivity.
-    // If disconnected, a simple path-carving algorithm could connect areas.
-    // For this demo, we'll assume the initial generation is mostly connected.
+    // Cave and dungeon maps are the only biomes that need a hard connectivity
+    // guarantee. We keep the check local to those modes so the other biomes can
+    // preserve their noisier terrain and obstacle patterns.
+    const walkableComponents = this.getWalkableComponents();
+    if (walkableComponents.length <= 1) {
+      return;
+    }
+
+    // Use the largest connected walkable area as the anchor and carve each
+    // isolated component back into it. This keeps the fix bounded: we only
+    // punch a minimal corridor when the generator has actually split the map.
+    const anchorComponent = walkableComponents.reduce((largest, component) => (
+      component.length > largest.length ? component : largest
+    ));
+
+    for (const component of walkableComponents) {
+      if (component === anchorComponent) {
+        continue;
+      }
+
+      const { startTile, endTile } = this.findClosestTiles(component, anchorComponent);
+      this.carvePassage(startTile, endTile);
+    }
+  }
+
+  // Flood-fill the map into connected walkable regions so we can prove whether
+  // generation left any isolated rooms behind.
+  private getWalkableComponents(): BattleMapTile[][] {
+    const walkableIds = new Set<string>();
+    this.tiles.forEach(tile => {
+      if (!tile.blocksMovement) {
+        walkableIds.add(tile.id);
+      }
+    });
+
+    const visited = new Set<string>();
+    const components: BattleMapTile[][] = [];
+
+    for (const tileId of walkableIds) {
+      if (visited.has(tileId)) {
+        continue;
+      }
+
+      const component: BattleMapTile[] = [];
+      const stack = [tileId];
+      visited.add(tileId);
+
+      while (stack.length > 0) {
+        const currentId = stack.pop()!;
+        const currentTile = this.tiles.get(currentId);
+        if (!currentTile) {
+          continue;
+        }
+
+        component.push(currentTile);
+
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            if (dx === 0 && dy === 0) {
+              continue;
+            }
+
+            const neighborId = `${currentTile.coordinates.x + dx}-${currentTile.coordinates.y + dy}`;
+            if (walkableIds.has(neighborId) && !visited.has(neighborId)) {
+              visited.add(neighborId);
+              stack.push(neighborId);
+            }
+          }
+        }
+      }
+
+      components.push(component);
+    }
+
+    return components;
+  }
+
+  // The shortest corridor is a straight Bresenham line. That keeps the repair
+  // deterministic and avoids building a second maze-carving system just for
+  // edge cases where the generator split a room from the main cave.
+  private carvePassage(startTile: BattleMapTile, endTile: BattleMapTile) {
+    let x0 = startTile.coordinates.x;
+    let y0 = startTile.coordinates.y;
+    const x1 = endTile.coordinates.x;
+    const y1 = endTile.coordinates.y;
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = x0 < x1 ? 1 : -1;
+    const sy = y0 < y1 ? 1 : -1;
+    let err = dx - dy;
+
+    while (true) {
+      const tile = this.tiles.get(`${x0}-${y0}`);
+      if (tile) {
+        this.carveTile(tile);
+      }
+
+      if (x0 === x1 && y0 === y1) {
+        break;
+      }
+
+      const twiceErr = 2 * err;
+      if (twiceErr > -dy) {
+        err -= dy;
+        x0 += sx;
+      }
+      if (twiceErr < dx) {
+        err += dx;
+        y0 += sy;
+      }
+    }
+  }
+
+  // Reset carved tiles to ordinary floor so they are actually traversable by
+  // movement, targeting, and pathfinding consumers.
+  private carveTile(tile: BattleMapTile) {
+    tile.terrain = 'floor';
+    tile.movementCost = 5;
+    tile.blocksLoS = false;
+    tile.blocksMovement = false;
+    tile.decoration = null;
+    tile.providesCover = false;
+  }
+
+  private findClosestTiles(a: BattleMapTile[], b: BattleMapTile[]): { startTile: BattleMapTile; endTile: BattleMapTile } {
+    let bestStart = a[0];
+    let bestEnd = b[0];
+    let bestDistance = Number.POSITIVE_INFINITY;
+
+    for (const startTile of a) {
+      for (const endTile of b) {
+        const distance = Math.max(
+          Math.abs(startTile.coordinates.x - endTile.coordinates.x),
+          Math.abs(startTile.coordinates.y - endTile.coordinates.y)
+        );
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestStart = startTile;
+          bestEnd = endTile;
+        }
+      }
+    }
+
+    return { startTile: bestStart, endTile: bestEnd };
   }
 }

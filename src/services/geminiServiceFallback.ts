@@ -1,9 +1,44 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 00:42:56
+ * Dependents: services/gemini/encounters.ts
+ * Imports: 7 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 import { Monster } from '../types';
 import type { MonsterData } from '../types/ui';
 import { XP_BY_CR } from '../constants';
 import { MONSTERS_DATA } from '../data/monsters';
 import { logger } from '../utils/logger';
+import { MAX_ENCOUNTER_MONSTER_COUNT } from '../utils/world/encounterUtils';
+import { SeededRandom } from '../utils/random/seededRandom';
+
+type SeededRng = SeededRandom | null;
+
+function pickRandom<T>(arr: T[], rng: SeededRng): T | undefined {
+  if (arr.length === 0) return undefined;
+  const randomValue = (rng ? rng.next() : Math.random()) * arr.length;
+  return arr[Math.floor(randomValue)];
+}
+
+function shuffleWithRandom<T>(values: T[], rng: SeededRng): T[] {
+  const items = [...values];
+  for (let i = items.length - 1; i > 0; i--) {
+    const randomValue = (rng ? rng.next() : Math.random()) * (i + 1);
+    const j = Math.floor(randomValue);
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
 
 /**
  * Generates a fallback encounter when the AI service is unavailable or fails.
@@ -11,11 +46,30 @@ import { logger } from '../utils/logger';
  *
  * @param xpBudget The target XP budget for the encounter.
  * @param themeTags Tags to filter monsters by (e.g., 'forest', 'goblinoid').
+ * @param seed Optional deterministic seed for replayable fallback runs.
  * @returns An array of Monster objects.
  */
-export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Monster[] {
+export function getFallbackEncounter(xpBudget: number, themeTags: string[], seed?: number): Monster[] {
+  return getFallbackEncounterWithSeed(xpBudget, themeTags, seed);
+}
+
+/**
+ * Generates a fallback encounter when the AI service is unavailable or fails.
+ * It attempts to select monsters from static data that fit the XP budget.
+ *
+ * @param xpBudget The target XP budget for the encounter.
+ * @param themeTags Tags to filter monsters by (e.g., 'forest', 'goblinoid').
+ * @param seed Deterministic seed for replayable fallback runs.
+ * @returns An array of Monster objects.
+ */
+export function getFallbackEncounterWithSeed(
+  xpBudget: number,
+  themeTags: string[],
+  seed: number | undefined,
+): Monster[] {
   const encounter: Monster[] = [];
   let currentXp = 0;
+  const rng = seed === undefined ? null : new SeededRandom(seed);
 
   // 1. Filter available monsters based on themes if possible
   const availableMonsters: MonsterData[] = Object.values(MONSTERS_DATA);
@@ -62,10 +116,9 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
 
   // 3. Fill the budget with randomized selection
   // Shuffle candidates to ensure variety
-  const shuffledCandidates = [...validCandidates].sort(() => Math.random() - 0.5);
+  const shuffledCandidates = shuffleWithRandom([...validCandidates], rng);
   
   let monsterCount = 0;
-  const MAX_MONSTERS = 6;
   const targetXp = xpBudget;
   
   // Attempt to fill budget by picking random valid monsters
@@ -73,7 +126,7 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
   let attempts = 0;
   const MAX_ATTEMPTS = 20;
 
-  while (currentXp < targetXp && monsterCount < MAX_MONSTERS && attempts < MAX_ATTEMPTS) {
+  while (currentXp < targetXp && monsterCount < MAX_ENCOUNTER_MONSTER_COUNT && attempts < MAX_ATTEMPTS) {
     attempts++;
     const remainingBudget = targetXp - currentXp;
     
@@ -83,7 +136,8 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
     if (affordable.length === 0) break;
 
     // Pick a random affordable monster
-    const nextMonster = affordable[Math.floor(Math.random() * affordable.length)];
+    const nextMonster = pickRandom(affordable, rng);
+    if (!nextMonster) break;
     const xp = getXp(nextMonster);
 
     // Check if we already have this monster in the list

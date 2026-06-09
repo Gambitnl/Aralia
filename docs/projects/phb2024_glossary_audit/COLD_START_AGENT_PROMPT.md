@@ -1,7 +1,7 @@
 # Phb2024 Glossary Audit Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/phb2024_glossary_audit/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Phb2024 Glossary Audit
 Project folder: docs/projects/phb2024_glossary_audit
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,42 +30,29 @@ Gaps: docs/projects/phb2024_glossary_audit/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 established the living-project handoff and documented the completed
-PHB 2024 glossary family scope. This pass refreshed the dashboard schema and
-synced the tracker, gaps, and north star to the current state.
+Iteration 2 refreshed the living-project docs to reflect the review-gated state. Added a Required Review Brief section to NORTH_STAR.md, updated the Dashboard Card Schema with current dates, and clarified the resume path to prevent forward iteration until human review clears the merge-candidate status. All three open gaps are explicitly routed to adjacent owners.
 
 ## Current Mission
 
 Active task:
-Refresh the living-project docs, then pick the highest-value open gap from
-`GAPS.md`, starting with `itemMetadata` contract parity if the owning project is
-available.
+Wait for human review to clear the merge-candidate status. Do not assign forward iteration work to this project until the human decides whether it becomes reference-only or continues as a coordination surface.
 
 Acceptance criteria:
-`NORTH_STAR.md` includes an up-to-date `Dashboard Card Schema`; `TRACKER.md`,
-`GAPS.md`, and `NORTH_STAR.md` agree on scope, open gaps, and next action; and
-the next agent has one concrete gap-routing action instead of a vague resume
-instruction.
+Human review clears the merge-candidate status and decides the project's lifecycle disposition (reference-only archive or active coordination surface). After review, update NORTH_STAR.md lifecycle_status and canonical_owner fields accordingly.
 
 Key files to touch:
-- docs/projects/phb2024_glossary_audit/NORTH_STAR.md
-- docs/projects/phb2024_glossary_audit/TRACKER.md
-- docs/projects/phb2024_glossary_audit/GAPS.md
-- docs/projects/phb2024_glossary_audit/COLD_START_AGENT_PROMPT.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+- docs/projects/phb2024_glossary_audit/NORTH_STAR.md (after human decision)
+- docs/projects/phb2024_glossary_audit/TRACKER.md (after human decision)
+- docs/projects/phb2024_glossary_audit/COLD_START_AGENT_PROMPT.md (after human decision)
 
 Scoped verification:
-Use `git diff --check` for the markdown edits and keep the proof narrative in
-the docs themselves. No runtime verification is needed for this pass.
+Use `git diff --check` for the markdown edits after the human decision is implemented.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Do not edit glossary runtime,
-ingest scripts, or sibling-project docs unless the gap is explicitly routed.
+Stay inside this project's scope boundaries. Do not edit glossary runtime, ingest scripts, or sibling-project docs. All remaining implementation work belongs to adjacent owners (docs/projects/item_categorization for itemMetadata parity, docs/tasks/glossary for rebuild workflow).
 
 Recent progress:
-Dashboard schema added, tracker/gaps tightened, and the remaining work is
-project-gap routing rather than implementation.
+Project is review-gated with a clear Required Review Brief. All three open gaps are routed to adjacent owners. The resume path explicitly blocks forward iteration until human review.
 
 Key files to touch:
 - docs/projects/phb2024_glossary_audit/NORTH_STAR.md
@@ -73,26 +60,19 @@ Key files to touch:
 - docs/projects/phb2024_glossary_audit/GAPS.md
 - docs/projects/phb2024_glossary_audit/COLD_START_AGENT_PROMPT.md
 - docs/projects/phb2024_glossary_audit/DECISIONS.md
-- docs/projects/phb2024_glossary_audit/AUDIT_OR_PROOF.md
-- docs/projects/phb2024_glossary_audit/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
 
 Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+- AUDIT_OR_PROOF.md (not present)
+- RUNBOOK.md (not present)
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Use git diff --check for markdown edits after the human decision is implemented.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+NORTH_STAR.md, TRACKER.md, and GAPS.md are aligned on the review-gated state. Required Review Brief added. Dashboard Card Schema updated with current dates.
 
 ## Required End State For This Iteration
 

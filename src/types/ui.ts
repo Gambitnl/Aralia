@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 08/06/2026, 19:55:02
+ * Dependents: data/adapters/5eTools/index.ts, data/adapters/runtimeMonsterRegistry.ts, hooks/data/useBestiary.ts, hooks/useGameActions.ts, services/geminiServiceFallback.ts, types/index.ts, utils/world/bestiaryEncounterGenerator.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import React from 'react';
 import { CombatCharacter, CharacterStats } from './combat.js';
 import { DamageType } from './spells.js';

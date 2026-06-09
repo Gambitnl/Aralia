@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 11/03/2026, 01:19:00
- * Dependents: MerchantModal.tsx, economy/index.ts, handleMerchantInteraction.ts
- * Imports: 5 files
+ * Last Sync: 08/06/2026, 17:22:06
+ * Dependents: components/Trade/MerchantModal.tsx, hooks/actions/handleMerchantInteraction.ts, utils/economy/index.ts
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -46,6 +46,7 @@ import { Faction, PlayerFactionStanding } from '../../types/factions';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 import { getRegionalPriceModifier } from '../../systems/economy/RegionalEconomySystem';
 import { getFactionTradeBonus } from '../../systems/world/FactionEconomyManager';
+import { getMarketEventTags } from './marketEvents';
 
 export interface PriceContext {
   factions?: Record<string, Faction>;
@@ -175,10 +176,13 @@ export const calculatePrice = (
   if (economy.marketEvents && economy.marketEvents.length > 0) {
     economy.marketEvents.forEach(event => {
       // Determine if event applies to this item
-      // Note: MarketEvent doesn't have `affectedTags` in the type, so we parse `name` or look for matching logic
-      // In TradeRouteManager, we stored tag in name like "Boom: Grain"
-      // This is a bit weak, but better than nothing until we fully migrate tags into MarketEvent proper
-      const applies = itemTags.some(tag => event.name?.toLowerCase().includes(tag));
+      // Route/world event tags are now carried in affectedTags or affectedCategories.
+      // Keep name parsing only as fallback for legacy events.
+      const eventTags = getMarketEventTags(event);
+      const applies = itemTags.some(tag =>
+        eventTags.some(eventTag =>
+          eventTag === 'all' || eventTag === tag || eventTag.includes(tag) || tag.includes(eventTag))
+      );
 
       if (applies) {
         if (event.type === MarketEventType.SHORTAGE) {

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 14:53:17
+ * Dependents: state/appState.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -13,9 +29,9 @@ import { RelationshipManager } from '../../systems/companions/RelationshipManage
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
     case 'UPDATE_COMPANION_APPROVAL': {
-      // TODO(lint-intent): 'source' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+      // `source` stays in the payload as provenance for upstream routing, but this reducer
+      // still resolves the approval delta through the player-targeted relationship path.
+      // Keep any future companion-vs-companion branching explicit instead of hiding it here.
       const { companionId, change, reason, source: _source } = action.payload;
       const companion = state.companions[companionId];
 

@@ -1,7 +1,7 @@
 # WorldSim Service Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/worldsim-service/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: WorldSim Service
 Project folder: docs/projects/worldsim-service
-Iteration: 2
+Iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,66 +30,65 @@ Gaps: docs/projects/worldsim-service/GAPS.md
 
 ## Previous Agent Handoff
 
-The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+This pass resolved WSS-007 by adding deterministic smoothing to biome-derived fallback
+heights (cliff seams reduced at biome borders) while preserving seed determinism and broad
+elevation ordering. WSS-006 remains closed from the prior pass.
 
 ## Current Mission
 
 Active task:
-No open task selected. Read TRACKER.md and choose the highest-value open task.
+T3 remains the tracker-owned active slice: grow first-build world history/story/events
+generation. The migration/fidelity lane for WSS-007 is now complete; next work can return to
+T3 world-story output.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+For T3, define what "world story at first build" produces (seeded history, founding
+events, lore) and how it attaches to `WorldData`/save. Keep the scope inside
+`docs/projects/worldsim-service/*` plus the named source files. WSS-007 is already remediated in
+this pass, so subsequent agents can resume T3 story-definition work without re-entering this
+same migration lane.
 
 Key files to touch:
 - docs/projects/worldsim-service/NORTH_STAR.md
 - docs/projects/worldsim-service/TRACKER.md
 - docs/projects/worldsim-service/GAPS.md
 - docs/projects/worldsim-service/COLD_START_AGENT_PROMPT.md
+- src/services/worldSim/heightFromBiomes.ts
+- src/services/worldSim/__tests__/heightFromBiomes.test.ts
+- src/services/worldSim/__tests__ (focused suite)
 - Any source/docs named by the active tracker task
 
 Scoped verification:
 Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+NORTH_STAR.md. For this pass, the climate fallback proof is:
+`npm test -- --run src/services/worldSim/__tests__/climateFromBiomes.test.ts src/state/migrations/__tests__/worldDataMigration.test.ts`.
+This pass used:
+`npm test -- --run src/services/worldSim/__tests__/heightFromBiomes.test.ts src/state/migrations/__tests__/worldDataMigration.test.ts`
+and `npm test -- --run src/services/worldSim/__tests__` (focused full worldSim suite).
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
+WSS-006 is closed. The migration fallback now derives biome-based temperatures/moisture
+from `src/services/worldSim/climateFromBiomes.ts`, and the direct helper + migration tests
+passed. `TRACKER.md` now points future work at WSS-007 or the story/history slice.
 
-Key files to touch:
-- docs/projects/worldsim-service/NORTH_STAR.md
-- docs/projects/worldsim-service/TRACKER.md
-- docs/projects/worldsim-service/GAPS.md
-- docs/projects/worldsim-service/COLD_START_AGENT_PROMPT.md
-- docs/projects/worldsim-service/DECISIONS.md
-- docs/projects/worldsim-service/AUDIT_OR_PROOF.md
-- docs/projects/worldsim-service/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+Workflow-gap review:
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` was read and left
+unchanged; WFG-001 still applies as a shared path-mismatch warning, but it did not alter this
+project pass.
 
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Dashboard-schema updates:
+`NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, `COLD_START_AGENT_PROMPT.md`, and the
+`docs/projects/PROJECT_TRACKER.md` WorldSim Service row were refreshed. `agent_comments` was
+left empty because no out-of-flow note was needed.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying
+them here. WSS-007 is closed; only reopen this migration lane if a meaningful fallback fidelity
+counterexample appears.
 
 ## Required End State For This Iteration
 

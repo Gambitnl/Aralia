@@ -142,9 +142,12 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
 
   // Point directional light at map center so shadow frustum covers the battlefield
   React.useEffect(() => {
-    if (directionalRef.current) {
-      directionalRef.current.target.position.set(cx, 0, cz);
-      directionalRef.current.target.updateMatrixWorld();
+    // The ref target can be absent in mocked or partially mounted scenes, so
+    // keep the alignment update guarded instead of assuming the light target exists.
+    const target = directionalRef.current?.target;
+    if (target) {
+      target.position.set(cx, 0, cz);
+      target.updateMatrixWorld();
     }
   }, [cx, cz]);
 

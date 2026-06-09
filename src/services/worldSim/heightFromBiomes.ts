@@ -47,11 +47,52 @@ const BAND_JITTER: Record<ElevationBand, number> = {
 };
 
 const DEFAULT_BAND: ElevationBand = 'low';
+const SMOOTH_ITERATIONS = 1;
+const SMOOTH_RELAX_WEIGHT = 2;
 
 /** Salt mixed into the seed so this derivation does not correlate with placement RNG. */
 const HEIGHT_SALT = 0x5eed1e55;
 
 const clamp01to100 = (v: number): number => Math.max(0, Math.min(100, v));
+
+function smoothHeightfield(heights: number[], cols: number, rows: number): number[] {
+  const cells = cols * rows;
+  let current = heights;
+  let next = new Array<number>(cells);
+
+  for (let pass = 0; pass < SMOOTH_ITERATIONS; pass++) {
+    for (let i = 0; i < cells; i++) {
+      const x = i % cols;
+      const y = (i / cols) | 0;
+      let sum = current[i];
+      let count = 1;
+
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) {
+            continue;
+          }
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) {
+            continue;
+          }
+          sum += current[ny * cols + nx];
+          count += 1;
+        }
+      }
+
+      const neighborAverage = sum / count;
+      next[i] = clamp01to100(
+        Math.round((current[i] * (SMOOTH_RELAX_WEIGHT - 1) + neighborAverage) / SMOOTH_RELAX_WEIGHT),
+      );
+    }
+
+    [current, next] = [next, current];
+  }
+
+  return current;
+}
 
 /**
  * Derives a deterministic heightfield (length `cols * rows`, row-major) from per-cell biome ids.
@@ -77,5 +118,6 @@ export function heightFromBiomes(
     const jitter = BAND_JITTER[band] ?? BAND_JITTER[DEFAULT_BAND];
     heights[i] = clamp01to100(Math.round(base + rng.next() * jitter));
   }
-  return heights;
+
+  return smoothHeightfield(heights, cols, rows);
 }

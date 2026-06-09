@@ -2,7 +2,7 @@
 import { describe, it, expect, vi as _vi } from 'vitest';
 import { characterReducer } from '../characterReducer';
 // TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { GameState, PlayerCharacter as _PlayerCharacter, AbilityScoreName, Class } from '../../../types';
+import { GameState, PlayerCharacter as _PlayerCharacter, AbilityScoreName, Class, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 import { DEEP_GNOME_DATA } from '../../../data/races/deep_gnome';
@@ -361,5 +361,93 @@ describe('characterReducer', () => {
         const updated = newState.party?.[0];
 
         expect(updated?.heroicInspiration).toBe(true);
+    });
+
+    it('should handle USE_ITEM by applying a healing effect and removing the item from inventory', () => {
+        const character = createMockPlayerCharacter({
+            id: 'use-item-char',
+            hp: 3,
+            maxHp: 10,
+        });
+
+        const healingPotion: Item = {
+            id: 'health_potion',
+            name: 'Health Potion',
+            description: 'A basic healing potion.',
+            type: 'consumable',
+            effect: 'heal_5',
+        };
+
+        const state = {
+            ...initialState,
+            party: [character],
+            inventory: [healingPotion],
+            currentLocationId: 'town_square',
+            characterSheetModal: { isOpen: false, character: null },
+        } as GameState;
+
+        const action: AppAction = {
+            type: 'USE_ITEM',
+            payload: {
+                itemId: 'health_potion',
+                characterId: 'use-item-char',
+            },
+        };
+
+        const newState = characterReducer(state, action);
+
+        expect(newState.party?.[0].hp).toBe(8);
+        expect(newState.inventory).toHaveLength(0);
+    });
+
+    it('should keep equip and drop item actions on the normalized item contract path', () => {
+        const character = createMockPlayerCharacter({
+            id: 'equip-drop-char',
+            hp: 10,
+            maxHp: 10,
+        });
+
+        const steelSword: Item = {
+            id: 'steel_sword',
+            name: 'Steel Sword',
+            description: 'A reliable weapon.',
+            type: 'weapon',
+            slot: 'MainHand',
+        };
+        const driedMeat: Item = {
+            id: 'dried_meat',
+            name: 'Dried Meat',
+            description: 'Food with no special effects.',
+            type: 'food_drink',
+        };
+
+        const state = {
+            ...initialState,
+            party: [character],
+            inventory: [steelSword, driedMeat],
+            dynamicLocationItemIds: { town_square: ['dried_meat'] },
+            currentLocationId: 'town_square',
+            characterSheetModal: { isOpen: false, character: null },
+        } as GameState;
+
+        const equipState = characterReducer(state, {
+            type: 'EQUIP_ITEM',
+            payload: { itemId: 'steel_sword', characterId: 'equip-drop-char' },
+        });
+
+        expect(equipState.party?.[0].equippedItems.MainHand?.id).toBe('steel_sword');
+        expect(equipState.inventory.some(item => item.id === 'steel_sword')).toBe(false);
+
+        const dropState = characterReducer({
+            ...equipState,
+            currentLocationId: 'town_square',
+            dynamicLocationItemIds: { town_square: [] },
+        } as GameState, {
+            type: 'DROP_ITEM',
+            payload: { itemId: 'dried_meat', characterId: 'equip-drop-char' },
+        });
+
+        expect(dropState.inventory.some(item => item.id === 'dried_meat')).toBe(false);
+        expect(dropState.dynamicLocationItemIds.town_square).toContain('dried_meat');
     });
 });

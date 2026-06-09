@@ -30,6 +30,7 @@ const modalMotion: MotionProps = {
 
 const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, onConfirm }) => {
   const [choices, setChoices] = useState<Record<string, Record<string, RacialRestChoiceData>>>({});
+  const titleId = 'long-rest-title';
 
   useEffect(() => {
     if (isOpen) {
@@ -69,19 +70,19 @@ const LongRestModal: React.FC<LongRestModalProps> = ({ isOpen, party, onClose, o
       {...overlayMotion}
       className={`fixed inset-0 z-[${Z_INDEX.MODAL_INTERACTIVE}] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4`}
       onClick={onClose}
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby="long-rest-title"
     >
       <motion.div
         ref={modalRef}
         {...modalMotion}
         className="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         tabIndex={-1}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-900/40">
-          <h2 id="long-rest-title" className="text-xl font-semibold text-amber-300">
+          <h2 id={titleId} className="text-xl font-semibold text-amber-300">
             Long Rest
           </h2>
           <button

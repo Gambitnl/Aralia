@@ -103,11 +103,15 @@ export function buildTerrainMesh(data: ChunkData): TerrainMesh {
   const base = buildPlaceholderHeightfield(data);
   const vertCount = data.resolution * data.resolution;
   const colors = new Float32Array(vertCount * 3);
-  for (let v = 0; v < vertCount; v++) {
-    const [r, g, b] = biomeColor(data.biomeIds[v] ?? 'plains', data.heights[v] ?? 0);
-    colors[v * 3] = r;
-    colors[v * 3 + 1] = g;
-    colors[v * 3 + 2] = b;
+  if (data.biomeColors && data.biomeColors.length === vertCount * 3) {
+    colors.set(data.biomeColors);
+  } else {
+    for (let v = 0; v < vertCount; v++) {
+      const [r, g, b] = biomeColor(data.biomeIds[v] ?? 'plains', data.heights[v] ?? 0);
+      colors[v * 3] = r;
+      colors[v * 3 + 1] = g;
+      colors[v * 3 + 2] = b;
+    }
   }
   return { ...base, colors };
 }

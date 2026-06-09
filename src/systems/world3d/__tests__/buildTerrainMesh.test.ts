@@ -26,3 +26,33 @@ it('tints forest vertices green-dominant', () => {
   expect(g).toBeGreaterThan(r);
   expect(g).toBeGreaterThan(b);
 });
+
+it('uses precomputed per-vertex biome colors when available', () => {
+  const res = 4;
+  const data = chunk(res, 'plains');
+  const override = new Float32Array([
+    0.1, 0.2, 0.3,
+    0.4, 0.5, 0.6,
+    0.7, 0.8, 0.9,
+    1.0, 0.9, 0.8,
+
+    0.1, 0.2, 0.3,
+    0.4, 0.5, 0.6,
+    0.7, 0.8, 0.9,
+    1.0, 0.9, 0.8,
+
+    0.1, 0.2, 0.3,
+    0.4, 0.5, 0.6,
+    0.7, 0.8, 0.9,
+    1.0, 0.9, 0.8,
+
+    0.1, 0.2, 0.3,
+    0.4, 0.5, 0.6,
+    0.7, 0.8, 0.9,
+    1.0, 0.9, 0.8,
+  ]);
+  const mesh = buildTerrainMesh({ ...data, biomeColors: override });
+  expect(mesh.colors.slice(0, 3)).toEqual(new Float32Array([0.1, 0.2, 0.3]));
+  expect(mesh.colors[3]).toBeCloseTo(0.4);
+  expect(mesh.colors[mesh.colors.length - 1]).toBeCloseTo(0.8);
+});

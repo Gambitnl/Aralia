@@ -1,23 +1,23 @@
 # Layout Project North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
 Project: Layout Project
 Slug: layout
 Category: Feature/UI Projects
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/layout
-Gap signal: 2 open gaps (G2, G3)
+Gap signal: 1 review-required gap (G3); 1 blocked follow-up (G4)
 Protocol: living project doc set
-Next step: Decide whether `ConversationPanel` belongs to the shell, the modal host, or a persistent side panel, then align `GameModals` and the handoff with that rule.
+Next step: Await human review on the `isUIInteractive` modal contract and keep the prop surface intact until the owner chooses wire-or-retire.
 Required verification: docs_consistency
-Completed verification: none yet
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: docs_consistency
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 This is a cold-start checkpoint for the Layout surface of Aralia's main app shell.
 The goal is not implementation work; it is durable handoff clarity plus evidence-backed
@@ -75,19 +75,34 @@ Out of scope:
 - `DataLoaderGate` wraps most non-menu views and currently does not wrap the modal host.
 - The minimap is in the layout shell and intentionally layered below modal layers.
 
-## Unknowns and Gaps
+## Ownership Decisions
 
-- `ConversationPanel` ownership is still not explicit in the docs: the open question is whether it is
-  a persistent side panel, a shell-level overlay, or a modal-host sibling.
-- `GameModals` still includes a currently unused `isUIInteractive` prop, which suggests either a stale
-  contract or a missing interaction-lock wire.
+- `ConversationPanel` is a PLAYING-only floating shell sibling rendered directly by `App.tsx` when
+  `gameState.activeConversation` exists. It is not owned by `GameModals` and should not be folded
+  into the modal host without a new interaction/focus policy.
+- `GameModals` accepts `isUIInteractive` from `App.tsx` as a preserved compatibility hook, but the
+  modal host does not consume it yet. The decision is review-required: either wire it into a modal-lock
+  policy or retire the pass-through after the owner confirms the contract.
+
+## Required Review Brief
+
+Title: `GameModals.isUIInteractive` contract
+Question: Should `GameModals` keep `isUIInteractive` as a compatibility-only pass-through, or should the prop be wired into a modal interaction-lock policy?
+Issue: `App.tsx` computes `isUIInteractive` and passes it into `GameModals`, but `GameModals.tsx` renames it to `_isUIInteractive` and never reads it.
+Current behavior: The App-level interaction flag already disables `GameLayout`, `TownCanvas`, and companion reactions when overlays or loading states are active; the modal host itself handles focus traps and Escape fallback without using the flag.
+Why blocked: Removing the prop changes the App-to-modal contract, while wiring it now would commit Layout to a modal-lock policy that is not documented in the current project scope.
+Option A: Keep the prop as compatibility only, document that `GameModals` currently ignores it, and wire it later only if a modal-lock policy is approved.
+Option B: Retire the prop and remove the pass-through once the owner approves the App/layout interaction policy and the focused tests are updated.
+Evidence: `src/App.tsx:899`, `src/App.tsx:1047`, `src/App.tsx:1090`, `src/App.tsx:1196`, `src/App.tsx:1220`; `src/components/layout/GameModals.tsx:101`, `src/components/layout/GameModals.tsx:139-142`; `src/components/layout/__tests__/GameModals.test.tsx:82`.
+Decision owner: Human/product owner for the Layout interaction and focus policy.
+Proof after decision: Either a focused App/GameModals test update that exercises the chosen modal-lock behavior, or a source-backed pass-through removal with matching call-site cleanup.
 
 ## Next Checks
 
-1. Decide the `ConversationPanel` ownership rule and record it once in `NORTH_STAR.md`.
-2. Confirm the intended source for `isUIInteractive` inside `GameModals`.
-3. Record exact modal ownership for each overlay and whether each one is window-frame based.
-4. Verify responsive behavior and boundary coverage for non-playing phases after the ownership rule is fixed.
+1. Await the owner decision recorded in the Required Review Brief.
+2. Record exact modal ownership for each overlay and whether each one is window-frame based.
+3. Verify responsive behavior and boundary coverage for non-playing phases after the interaction-lock rule is fixed.
+4. If the owner keeps the compatibility hook, wire the flag into the chosen modal-lock surface and add focused tests.
 
 ## Next Handoff
 

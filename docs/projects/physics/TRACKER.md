@@ -1,6 +1,6 @@
 # Physics System Tracker
 
-Status: active
+Status: review-required
 Last updated: 2026-06-05
 
 ## Status Vocabulary

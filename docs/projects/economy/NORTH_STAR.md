@@ -1,7 +1,7 @@
 # Economy System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Purpose and scope
 
@@ -17,9 +17,73 @@ This project is a coupling layer between world simulation, merchants, factions, 
 
 ## Current state
 
-- Active slice: T3 verifies route-region id validity for seed routes before any broader economy tuning work.
-- Secondary open slice: T4 keeps the `'booming'` route-status union question visible, but it is not the next resume action.
-- Resume path: validate every seed route against `REGIONAL_ECONOMIES`, repair invalid mappings in `src/data/tradeRoutes.ts`, and keep a CI-safe assertion or test around the catalog.
+- Completed slice: T3 route-region validation is resolved with seed routes now checked against `REGIONAL_ECONOMIES` in a deterministic test.
+- Completed slice: T4 promoted `'booming'` into the shared trade-route status model and removed the matching runtime/UI casts.
+- Completed slice: T2 exchange/rule audit checklist is now established for pricing inputs, route transitions, and merchant outcomes.
+- Active safe lane: `G1` (economy event typing contracts) and `G5` representation-fidelity checks are now implemented.
+
+## G4 Exchange/Rule Audit (complete)
+
+Status: done (2026-06-08)
+
+Scope:
+
+- pricing inputs (`calculatePrice` + parse/rounding behavior),
+- route transitions and market event outcomes (`processDailyRoutes` + event synthesis),
+- merchant transaction outcomes (`validateMerchantTransaction`, transaction dispatch).
+
+Durable pass criteria:
+
+1. Pricing Inputs
+   - Evidence:
+     - `src/utils/economy/economyUtils.ts:62-83`, `130-295` (parse, market-events, regional modifiers, fallback handling).
+     - `src/utils/economy/__tests__/economyUtils.test.ts:27-203` (cp/sp/pp parsing, rounding, region and market-event effects).
+     - `src/components/Trade/MerchantModal.tsx:74-93`, `195-238` (price display path in BUY/SELL UI).
+   - Pass criteria:
+     - `calculatePrice` supports base-value parsing + rounding and does not return free buys.
+     - Regional and market modifiers are deterministically exercised by tests.
+
+2. Route Transitions and Outcomes
+   - Evidence:
+     - `src/systems/economy/TradeRouteManager.ts:33-223` (active/blockaded/booming transitions, market-event and factor updates).
+     - `src/systems/economy/__tests__/TradeRouteManager.test.ts:51-155` (active->blockaded, blockaded->active, active->booming, booming->active; factor assertions).
+     - `src/systems/economy/__tests__/tradeRoutesData.test.ts:1-17` (seed-route region lookup integrity).
+   - Pass criteria:
+     - Route transition behavior is locked by tests, with route-events and derived scarcity/surplus state staying aligned to transition outcomes.
+
+3. Merchant Transaction Outcomes
+   - Evidence:
+     - `src/hooks/actions/handleMerchantInteraction.ts:68-91`, `251-405` (validation and buy/sell dispatch).
+     - `src/hooks/actions/__tests__/handleMerchantInteraction.test.ts:1-70` (validation outcomes).
+     - `src/components/Trade/__tests__/MerchantModal.test.tsx:93-123` (`BUY_ITEM` UI dispatch with calculated price).
+   - Pass criteria:
+     - Invalid buy/sell payloads do not dispatch state updates.
+     - Valid transactions dispatch `BUY_ITEM` or `SELL_ITEM` with final rounded prices.
+
+Execution evidence:
+
+- Ledgered in `docs/projects/economy/AUDIT_OR_PROOF.md` with command checks:
+  - `npm exec vitest run src/utils/economy/__tests__/economyUtils.test.ts src/systems/economy/__tests__/TradeRouteManager.test.ts src/hooks/actions/__tests__/handleMerchantInteraction.test.ts src/components/Trade/__tests__/MerchantModal.test.tsx`
+
+## G5 Market Representation Fidelity (complete)
+
+Status: done (2026-06-08)
+
+Scope:
+
+- `processDailyRoutes` now emits route events with explicit good tags (`affectedTags`) for shortage/surplus cases.
+- `marketFactors` is derived from the shared `calculateMarketFactors` selector using those events.
+- A test now verifies route event projection keeps `marketEvents`, `activeEvents`, and `marketFactors` aligned.
+
+Evidence:
+
+- `src/systems/economy/TradeRouteManager.ts`
+- `src/systems/economy/__tests__/TradeRouteManager.test.ts`
+
+Pass criteria:
+
+- Route transitions remain deterministic and factor outputs remain in sync with generated event tags.
+- `activeEvents` and `marketEvents` remain equivalent after each route projection update.
 
 ## Dashboard Card Schema
 
@@ -29,13 +93,13 @@ Category: Feature/System Projects
 Status: active
 Confidence: high
 Evidence: `docs/projects/economy`
-Gap signal: 5 open gaps
+Gap signal: 0 open gaps
 Protocol: living project doc set
-Next step: Resume T3 by validating and repairing seed route IDs against `REGIONAL_ECONOMIES`.
+Next step: Keep active event contract parity in any new event source.
 Required verification: scoped_tests, docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 ## What is implemented today
 
@@ -99,17 +163,16 @@ Workflow gaps reviewed: 2026-06-05
 
 ## Missing or uncertain items (evidence-backed)
 
-- `activeEvents` is still `unknown[]` in `EconomyState`, while route data is pushed into it and read in UI (`src/types/economy.ts`, `src/systems/world/WorldEventManager.ts`, `src/components/Trade/MerchantModal.tsx`).
-- Route simulation uses `'booming'` as an effective status but the `TradeRoute` type excludes it (`src/systems/economy/TradeRouteManager.ts`, `src/types/economy.ts`).
-- Initial route data includes `region_plains`, `region_desert`, `region_farmlands` which are not defined in `REGIONAL_ECONOMIES` (`src/data/tradeRoutes.ts`, `src/data/economy/regions.ts`).
-- Market event tags are carried partly by heuristic extraction from names/strings in both route and pricing code (`src/systems/economy/TradeRouteManager.ts`, `src/utils/economy/economyUtils.ts`, `src/utils/economy/marketEvents.ts`).
+- `activeEvents` is now `MarketEvent[]`, aligned with `MarketEvent` and shared tag derivation helpers across route projection, market factor selectors, and pricing (`src/types/economy.ts`, `src/systems/world/WorldEventManager.ts`, `src/systems/economy/TradeRouteManager.ts`, `src/utils/economy/marketEvents.ts`, `src/utils/economy/economyUtils.ts`, `src/components/Trade/MerchantModal.tsx`).
+- Route simulation now treats `'booming'` as a canonical `TradeRoute.status`, with regression coverage for active->booming and booming->active transitions.
+- Market event tags in route-driven events are now sourced from explicit good tags on the route event payload, and `marketFactors` is derived through `calculateMarketFactors`.
 - Project-level tracker row still calls for an exchange and rule audit for this domain (`docs/projects/PROJECT_TRACKER.md`).
 
 ## Next useful checks
 
-- Confirm type alignment for `TradeRoute.status` and all market event payload shapes before adding new gameplay effects.
-- Add an explicit route-to-region integrity check (origin and destination must exist in `REGIONAL_ECONOMIES`) and use it as the acceptance gate for T3.
-- Create a compact exchange/rule audit section for pricing inputs, route transitions, and merchant transaction outcomes with evidence proof files for future acceptance checks.
+- Keep `TradeRoute.status` aligned before adding any future route states, and confirm market event payload shapes before adding new gameplay effects.
+- Keep the deterministic route-to-region integrity check in place as the acceptance gate (`src/systems/economy/__tests__/tradeRoutesData.test.ts`).
+- Add or refresh focused evidence checks whenever a new market-event source is introduced, especially for tag-to-factor and tag-to-pricing parity.
 
 
 ## Cold-Start Gap Routing

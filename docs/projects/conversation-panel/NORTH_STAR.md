@@ -1,7 +1,7 @@
 # Conversation Panel North Star
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
@@ -11,156 +11,98 @@ Category: Feature/UI Projects
 Status: partial
 Confidence: medium
 Evidence: docs/projects/conversation-panel
-Gap signal: 3 open gaps
+Gap signal: 1 open gap
 Protocol: living project doc set
-Next step: Decide and wire the `START_CONVERSATION` trigger path, then resolve `isPlayerTurn` gating.
+Next step: Close current slice, keep `activeConversation`/`activeDialogueSession` exclusivity intent in `CMA-G12` and continue next planned project action.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
+Agent comments:
 
 ## Why This Project Exists
 
-Conversation Panel is the dedicated UI and state lane for direct companion chat (`@mention`, free text, AI response).  
-It is separate from topic-based NPC dialogue (`DialogueInterface`) and needs stable boundaries so future work does not collapse the two flows.
+Conversation Panel is the dedicated UI and state lane for direct companion chat (`@mention`, free text, AI response). It is intentionally separate from topic-based NPC dialogue (`DialogueInterface`) and must stay distinct from topic/discussion logic.
 
 ## Intended Outcome
 
-Create a project-introduced map of the implemented conversation subsystem and current unknowns so the next agent can continue without rediscovering the same source paths.
+Create and maintain a stable map of the companion conversation path: how it starts from gameplay actions, how turns are gated, and how it is cleared during gameplay transitions.
 
 ## Current State
 
-- Core UI exists: `src/components/ConversationPanel/ConversationPanel.tsx` renders only when `gameState.phase === GamePhase.PLAYING && gameState.activeConversation`.
-- Core hook exists: `src/hooks/useConversation.ts` owns start/send/end flow, Ollama calls, and memory summary dispatches.
-- Core state updates exist: `src/state/reducers/conversationReducer.ts` handles:
-  - `START_CONVERSATION`
-  - `ADD_CONVERSATION_MESSAGE`
-  - `SET_CONVERSATION_PENDING`
-  - `END_CONVERSATION`
-- State wiring exists:
-  - Action types include the four conversation actions in `src/state/actionTypes.ts`
-  - Conversation state shape is in `src/types/conversation.ts`
-  - `activeConversation?: ActiveConversation | null` is declared in `src/types/state.ts`
-  - Conversation reducer is part of the app reducer pipeline in `src/state/appState.ts`
-- Existing focus/occupancy checks already treat conversation as a blocking UI mode in `src/utils/world/sceneUtils.ts`.
-- The remaining open runtime questions are the gameplay trigger path and turn-gating semantics; those stay tracked in `GAPS.md`.
+- Core UI: `src/components/ConversationPanel/ConversationPanel.tsx` renders when `gameState.phase === GamePhase.PLAYING && gameState.activeConversation`.
+- Core hook: `src/hooks/useConversation.ts` owns start/send/end flow and memory summarization.
+- Core reducer state: `src/state/reducers/conversationReducer.ts` handles `START_CONVERSATION`, `ADD_CONVERSATION_MESSAGE`, `SET_CONVERSATION_PENDING`, `END_CONVERSATION`.
+- Trigger path now wired:
+  - Companion talk now routes through `handleTalk` and dispatches `START_CONVERSATION` from `src/hooks/actions/handleNpcInteraction.ts`.
+  - NPC talk path remains topic dialog via `START_DIALOGUE_SESSION`.
+- Turn gating now enforced:
+  - `sendPlayerMessage` returns early when not player turn.
+  - `ConversationPanel` disables send/input when `!activeConversation?.isPlayerTurn` or pending AI response.
+- State integration updates:
+  - `activeConversation` is now initialized in `src/state/initialState.ts`.
+  - `src/state/appState.ts` clears `activeConversation` on `SET_GAME_PHASE` (menu/character creation), `MOVE_PLAYER`, and `LOAD_GAME_SUCCESS`.
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Document concrete Conversation Panel scope, state map, integration points, and live gaps for cold start |
-| Acceptance criteria | `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, and the dashboard card schema contain concrete implementation evidence and clear unresolved items |
-| Allowed boundaries | Only `docs/projects/conversation-panel/NORTH_STAR.md`, `docs/projects/conversation-panel/TRACKER.md`, `docs/projects/conversation-panel/GAPS.md` |
-| Stop condition | Stop after doc updates are complete and evidence-backed gaps are recorded |
-| Verification | `Get-Content` and `rg` evidence reads completed against `src/components/ConversationPanel`, `src/hooks/useConversation.ts`, `src/state/appState.ts`, `src/types/state.ts`, `src/utils/world/sceneUtils.ts`, `src/components/Dialogue/DialogueInterface.tsx`, `src/components/layout/GameModals.tsx`, and `docs/projects/PROJECT_CARD_SCHEMA.md` |
+| Task | Close `START_CONVERSATION` dispatch + `isPlayerTurn` gating implementation; then route remaining exclusivity policy to CMA |
+| Acceptance criteria | Companion `talk` opens `ConversationPanel`; player turn and pending response are enforced in send and UI; gameplay transitions clear stale conversation state |
+| Allowed boundaries | `docs/projects/conversation-panel/NORTH_STAR.md`, `docs/projects/conversation-panel/TRACKER.md`, `docs/projects/conversation-panel/GAPS.md`, targeted source files |
+| Stop condition | Task evidence is captured in source/docs and gap ledger reflects remaining follow-up only |
+| Verification | `rg` evidence scans, targeted source diff review, and focused project-doc consistency check |
 | Owner | Project worker |
-| Next action | Address integration/start-up gap for `START_CONVERSATION` and confirm whether it must be tied to an action handler or NPC interaction path |
+| Next action | Coordinate with `docs/projects/code-modularization-audit/CMA-G12` before any adjacent scope expansion |
 
 ## Concrete File Map
 
-- `src/components/ConversationPanel/index.ts`: Barrel export for panel.
-- `src/components/ConversationPanel/ConversationPanel.tsx`: Renders messages/input, `@` autocomplete, calls `sendPlayerMessage`/`endConversation`.
-- `src/components/ConversationPanel/ConversationPanel.css`: Styling for panel, header, messages, and controls.
-- `src/hooks/useConversation.ts`: Dispatch-driven state machine + Ollama calls + optional memory summarization.
-- `src/state/reducers/conversationReducer.ts`: Creates and mutates `activeConversation`.
-- `src/types/conversation.ts`: `ConversationMessage` and `ActiveConversation`.
-- `src/types/state.ts`: Includes optional `activeConversation`.
-- `src/state/actionTypes.ts`: Conversation action contracts.
-- `src/state/appState.ts`: Conversation reducer added in the default pipeline.
-- `src/state/initialState.ts`: No `activeConversation` initialization (only optional field in types).
-- `src/App.tsx`: Panel mount gate for PLAYING phase.
-- `src/utils/world/sceneUtils.ts`: Focus and NPC occupancy checks include `activeConversation`.
-- `src/components/Dialogue/DialogueInterface.tsx` and `src/components/layout/GameModals.tsx`: Parallel dialogue UI using `activeDialogueSession` and `isDialogueInterfaceOpen`.
-- `src/hooks/useDialogueSystem.ts`: Topic outcome handling for topic-based dialogue.
-- `src/hooks/actions/handleNpcInteraction.ts`: NPC talk flow dispatching `START_DIALOGUE_SESSION`.
+- `src/hooks/actions/handleNpcInteraction.ts`: companion branch in `talk` now dispatches `START_CONVERSATION`.
+- `src/components/ConversationPanel/ConversationPanel.tsx`: interaction lock UI (input/send/close) now tied to pending + player turn.
+- `src/hooks/useConversation.ts`: hook-level send guard now includes `isPlayerTurn`.
+- `src/state/appState.ts`: conversation state gets cleared on phase/move/load boundaries.
+- `src/state/initialState.ts`: `activeConversation: null` initialized.
+- `src/components/Dialogue/DialogueInterface.tsx` and `src/hooks/useDialogueSystem.ts`: unchanged topic flow remains separate.
 
 ## Implemented State and Integration
 
-- `START_CONVERSATION` creates `ActiveConversation` with:
-  - `participants` from companion IDs,
-  - `messages` seeded with initial message,
-  - `startedAt`,
-  - `isPlayerTurn`,
-  - `pendingResponse`.
-- `ADD_CONVERSATION_MESSAGE` appends message and flips turn intent.
-- `SET_CONVERSATION_PENDING` drives input disablement in the panel and request gating in hook.
-- `END_CONVERSATION` resets `activeConversation` to null; memory summary and approval updates are dispatched in `useConversation.endConversation`.
-- `activeConversation` and `activeDialogueSession` are separate channels:
-  - panel flow keys off `activeConversation` + `ConversationPanel`,
-  - topic dialogue flow keys off `isDialogueInterfaceOpen` + `activeDialogueSession` + `DialogueInterface`.
-- Focus gating is currently unioned at usage sites (`isPlayerFocused`, `isNpcOccupied`) rather than a central exclusivity guard.
-
-## What Must Not Be Lost
-
-- Keep the distinct difference between free-form companion conversation and topic-based NPC dialogue.
-- Keep `activeConversation` optional in state and allow future expansion to multiple participants.
-- Keep UI-level gating behavior: panel is in-play only and `startConversation` is currently hook-local unless an action path is added.
-- Keep current summary and sentiment hooks in `useConversation.endConversation` as implemented behavior.
+- `START_CONVERSATION` creates `ActiveConversation` with participants, seeded message, turn state, and pending state.
+- `ADD_CONVERSATION_MESSAGE` still flips turn state (`isPlayerTurn`) and appends messages.
+- `SET_CONVERSATION_PENDING` controls both hook and panel lock behavior.
+- `END_CONVERSATION` resets `activeConversation`.
+- `handleTalk` branch:
+  - Companion-only branch: resolves companion, ends any active topic dialogue session, opens conversation with seeded message.
+  - NPC branch remains topic dialogue as before.
 
 ## Known Gaps And Follow-Ups
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| `START_CONVERSATION` is never dispatched outside `useConversation`; no obvious NPC/interaction action path opens the panel conversation flow | adjacent_follow_up | Project worker | `useConversation.ts` defines `startConversation`, only `ConversationPanel.tsx` calls `useConversation`; repo-wide search found only reducer/TypeScript references for `START_CONVERSATION` in `useConversation`, `actionTypes`, and `conversationReducer` | decide trigger path (action handler, debug command, or bridge from existing dialogue flow) and add one call site |
-| `activeConversation.isPlayerTurn` is set but not consistently used to gate turns | in_scope_now | Project worker | reducer sets/toggles value, `useConversation` gates on `pendingResponse` and state checks | either remove dead intent or add explicit turn checks in UI/hook dispatch boundaries |
-| Optional `activeConversation` is not seeded in `initialState.ts` | support_needed_now | Project worker | type is optional in `types/state.ts`; no initializer in `initialState.ts` | confirm this is intentional for save/load compatibility, and document migration policy |
-
-## Global Gap Imports
-
-Check the global gap tracker before expanding scope:
-`docs/projects/GLOBAL_GAPS.md` (`No rows currently`).
-
-| Global gap ID | Imported? | Project destination | Scope rationale |
-|---|---|---|---|
-| none | no | none | No global gaps currently map to this project |
+| Broader exclusivity policy between companion conversation and modularized banter/companion orchestration is still owned by code-modularization work | adjacent_follow_up | `docs/projects/code-modularization-audit` (`CMA-G12`) | `src/hooks/actions/handleNpcInteraction.ts`, `src/state/appState.ts` | Keep this decision in `CMA-G12`; do not expand this project beyond current scope |
 
 ## Evidence And Proof
 
 | Evidence | What it proves | Location |
 |---|---|---|
-| UI mount condition for conversation panel | Panel is only visible during playing when `activeConversation` is set | `src/App.tsx:1085` |
-| Conversation reducer action coverage | Core lifecycle actions are implemented | `src/state/reducers/conversationReducer.ts` |
-| Action contracts | Dispatch contract for the conversation lane exists | `src/state/actionTypes.ts` |
-| Hook behavior | Async chat lifecycle, context build, AI calls, summary dispatches | `src/hooks/useConversation.ts` |
-| Focus/occupancy effects | Active conversation suppresses focus behavior and NPC occupancy checks | `src/utils/world/sceneUtils.ts` |
-| Parallel dialogue UI flow | Separate topic-based path is also present and active | `src/components/layout/GameModals.tsx`, `src/components/Dialogue/DialogueInterface.tsx`, `src/state/reducers/dialogueReducer.ts`, `src/hooks/useDialogueSystem.ts` |
-
-## Supporting Files
-
-| File | Purpose | Status |
-|---|---|---|
-| `docs/projects/PROJECT_TRACKER.md` | Registry anchor (`Conversation Panel` row) | active |
-| `docs/projects/GLOBAL_GAPS.md` | Repo-level routing for cross-project gaps | active |
-| `docs/projects/conversation-panel/TRACKER.md` | Queue + owned gaps + verification checkpoints | active |
-| `docs/projects/conversation-panel/GAPS.md` | Durable unresolved findings for this project | active |
+| Companion talk now dispatches `START_CONVERSATION` | Trigger path exists for gameplay `talk` actions | `src/hooks/actions/handleNpcInteraction.ts` |
+| Turn gating now includes player-turn lock | Request/UI consistency for companion turn state | `src/hooks/useConversation.ts`, `src/components/ConversationPanel/ConversationPanel.tsx` |
+| Transition cleanup | Stale conversation state cannot survive movement/load/phase transitions | `src/state/appState.ts`, `src/state/initialState.ts` |
 
 ## Artifact Boundary
 
-Keep durable intent, decisions, and gap evidence here.  
-Do not promote runtime logs, full local run output, or temporary diagnostics.
+Keep durable intent and decisions in project docs. Avoid adding runtime log dumps or command output.
 
 ## Open Questions
 
-| Question | Why it matters | Owner | Needed by |
-|---|---|---|---|
-| How should `START_CONVERSATION` be triggered in gameplay flow? | Defines whether `ConversationPanel` becomes user-visible in normal play or remains utility-only | Project owner | Next implementation slice |
-| Should `activeConversation` and `activeDialogueSession` be mutually exclusive? | Prevents contradictory UI focus and double-turn handling | Gameplay systems owner | Next implementation slice |
+- Whether to make `activeConversation` exclusive with legacy banter orchestration beyond start/clear boundaries remains handled by `CMA-G12`.
 
 ## Resume Path For A Cold Agent
 
-1. Read `docs/projects/conversation-panel/NORTH_STAR.md`.
-2. Read `docs/projects/conversation-panel/TRACKER.md`.
-3. Read `docs/projects/conversation-panel/GAPS.md`.
-4. Read `docs/projects/PROJECT_TRACKER.md` row for Conversation Panel and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue from: T2 in `TRACKER.md`. Resolve trigger/turning semantics for `START_CONVERSATION` and decide cross-flow exclusivity with `activeDialogueSession`.
-
+1. Read this North Star, `TRACKER.md`, and `GAPS.md`.
+2. Confirm `TRACKER` task state and review `docs/projects/GLOBAL_GAPS.md` only for cross-project routing.
+3. Continue with next open tracker action and any handoff notes from `COLD_START_AGENT_PROMPT.md`.
 
 ## Cold-Start Resume Notes
 
-The next cold-start agent should:
-- read `TRACKER.md` and `GAPS.md` first
-- start from tracker task `T2` and the current open gaps
-- use the schema and evidence above to confirm the resume path
-- add any newly discovered real gaps to `GAPS.md` only if they are evidence-backed
-- keep the existing gap count honest; do not invent filler work to satisfy a quota
+- The implementation slice for `START_CONVERSATION` trigger path and `isPlayerTurn` gating is now in place.
+- Any remaining cross-flow sequencing questions belong to `CMA-G12`; this project is now at evidence-complete handoff state.

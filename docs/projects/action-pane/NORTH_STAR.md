@@ -1,7 +1,50 @@
-﻿# Action Pane North Star
+---
+schema_version: 1
+project: Action Pane
+slug: action-pane
+category: Feature/UI Projects
+main_category: Interface & Experience
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/action-pane
+gap_signal: "2 active gaps, 1 adjacent follow-up"
+protocol: living project doc set
+next_step: Continue with T3 prop-contract cleanup.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+  - scoped_tests
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: no
+---
+
+# Action Pane North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 
@@ -19,8 +62,9 @@ Capture a concrete, implementation-grounded snapshot of:
 - Action Pane remains the primary player command surface in the PLAYING layout.
 - The action dispatch entrypoint is still processAction in src/hooks/useGameActions.ts.
 - handleAction routing stays centralized in src/hooks/actions/actionHandlers.ts with system UI handling in src/hooks/actions/handleSystemAndUi.ts.
-- The action surface still includes dynamic context actions from useActionGeneration, manual commands such as sk_oracle, ANALYZE_SITUATION, SHORT_REST, and LONG_REST, Gemini action rendering, and SystemMenu toggles.
-- Current contract drift is still tracked in TRACKER.md and GAPS.md, especially system-menu coverage, isDevDummyActive intent, and move.targetId normalization.
+- The action surface still includes dynamic context actions from useActionGeneration, manual commands such as ask_oracle, ANALYZE_SITUATION, SHORT_REST, and LONG_REST, Gemini action rendering, and SystemMenu toggles.
+- Current contract drift is still tracked in TRACKER.md and GAPS.md, especially isDevDummyActive intent and move.targetId normalization.
+- System-menu and quick-command emission now has focused contract proof in src/components/ActionPane/__tests__/ActionPane.test.tsx, so the menu coverage gap is no longer the next blocker.
 
 ## Dashboard Card Schema
 
@@ -30,13 +74,13 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/action-pane
-Gap signal: 3 active gaps, 1 adjacent follow-up
+Gap signal: 2 active gaps, 1 adjacent follow-up
 Protocol: living project doc set
-Next step: Continue T2 with a focused ActionPane action-contract coverage pass.
+Next step: Continue with T3 prop-contract cleanup.
 Required verification: scoped_tests, docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Completed verification: docs_consistency, scoped_tests
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 ## Active Task
 
@@ -48,7 +92,7 @@ Workflow gaps reviewed: 2026-06-05
 | Stop condition | Do not widen into unrelated gameplay systems |
 | Verification | Verify this folder plus tracker/gaps fields are filled with current, cross-referenced implementation evidence |
 | Owner | Action Pane doc owner |
-| Next action | Move to contract-fidelity checks in the next implementation slice |
+| Next action | Move to prop-contract cleanup in the next implementation slice |
 
 ## Scope Boundaries
 
@@ -77,11 +121,11 @@ Out of scope:
 ## What Must Not Be Lost
 
 - Existing pane behaviors tied to movement and interaction:
-  - 	alk, 	ake_item, move (with normalization),
+  - talk, take_item, move (with normalization),
   - ENTER_VILLAGE, APPROACH_TOWN, OBSERVE_TOWN,
-  - ANALYZE_SITUATION, sk_oracle, SHORT_REST, LONG_REST.
+  - ANALYZE_SITUATION, ask_oracle, SHORT_REST, LONG_REST.
 - System action coverage:
-  - 	oggle_* actions,
+  - toggle_* actions,
   - save_game,
   - go_to_main_menu,
   - set auto-save toggle,
@@ -93,9 +137,8 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Confirm full action contract coverage across all system-menu and quick command actions | support_needed_now | Action Pane owner | src/components/ActionPane/SystemMenu.tsx, src/hooks/actions/actionHandlers.ts | Add or rerun targeted integration test for each emitted Action.type |
 | Move ActionPane prop contracts to stable, non-legacy form | in_scope_now | Action Pane owner | src/components/ActionPane/index.tsx | Replace stale isDevDummyActive usages or update docs/tests for expected behavior |
-| Normalize action payload expectations across generators and handlers | support_needed_now | Action Pane owner | src/components/ActionPane/useActionGeneration.ts, src/types/actions.ts | Add contract test that no numeric 	argetId needs runtime normalization |
+| Normalize action payload expectations across generators and handlers | support_needed_now | Action Pane owner | src/components/ActionPane/useActionGeneration.ts, src/types/actions.ts | Add contract test that no numeric targetId needs runtime normalization |
 
 ## Global Gap Imports
 
@@ -116,7 +159,7 @@ Check the global gap tracker before expanding scope:
 | Handler mapping | Runtime action contract and state updates | F:\Repos\Aralia\src\hooks\actions\actionHandlers.ts, F:\Repos\Aralia\src\hooks\actions\handleSystemAndUi.ts |
 | Shell wiring | Where pane actions enter gameplay | F:\Repos\Aralia\src\App.tsx, F:\Repos\Aralia\src\components\layout\GameLayout.tsx |
 | Type contracts | Canonical action names and metadata | F:\Repos\Aralia\src\types\actions.ts, F:\Repos\Aralia\src\state\actionTypes.ts |
-| Tests | Oracle, move normalization, menu actions, disabled state | F:\Repos\Aralia\src\components\ActionPane\__tests__\ActionPane.test.tsx |
+| Tests | Oracle, analyze, short rest, long rest, move normalization, menu actions, disabled state | F:\Repos\Aralia\src\components\ActionPane\__tests__\ActionPane.test.tsx |
 
 ## Supporting Files
 
@@ -148,4 +191,4 @@ Avoid adding ad hoc runtime logs, screenshots, or process notes that do not affe
 1. Read this file.
 2. Read [docs/projects/action-pane/TRACKER.md](docs/projects/action-pane/TRACKER.md) and [docs/projects/action-pane/GAPS.md](docs/projects/action-pane/GAPS.md).
 3. Confirm no imported gaps are needed in [docs/projects/GLOBAL_GAPS.md](docs/projects/GLOBAL_GAPS.md) and recheck [docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md](docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md).
-4. Continue with T2 first, then T3 and T4 only if the contract pass exposes a real blocker.
+4. Continue with T3 first, then T4 only if the prop-contract pass exposes a real blocker.

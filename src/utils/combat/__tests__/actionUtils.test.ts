@@ -142,7 +142,7 @@ const makeAction = (action: { type: string } & Record<string, unknown>): Action 
     });
 
     it('should return use message for known item', () => {
-      const action = makeAction({ type: 'use_item', payload: { itemId: 'potion_healing' } });
+      const action = makeAction({ type: 'USE_ITEM', payload: { itemId: 'potion_healing' } });
       const result = getDiegeticPlayerActionMessage(action, {}, {}, undefined); 
       expect(result).toBe('You use the Healing Potion.');
     });

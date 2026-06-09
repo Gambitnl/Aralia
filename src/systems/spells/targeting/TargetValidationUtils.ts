@@ -1,5 +1,6 @@
 import type { CombatCharacter } from '@/types/combat'
 import type { TargetConditionFilter } from '@/types/spells'
+import { CreatureTaxonomy } from '../../creatures/CreatureTaxonomy'
 
 /**
  * Utility for validating spell targets against constraints.
@@ -12,18 +13,14 @@ export class TargetValidationUtils {
   public static matchesFilter(target: CombatCharacter, filter: TargetConditionFilter): boolean {
     if (!filter) return true
 
-    // Creature Type (supports both singular and plural from schema)
-    const allowedTypes = filter.creatureTypes || filter.creatureType
-    if (allowedTypes && allowedTypes.length > 0) {
-      if (!target.creatureTypes || !allowedTypes.some((t: string) => target.creatureTypes!.includes(t))) {
-        return false
-      }
-    }
+    // Creature Type (supports legacy `creatureType` and canonical `creatureTypes`).
+    const targetTypes = [
+      ...(target.creatureTypes ?? []),
+      ...(target.stats?.creatureTypes ?? [])
+    ];
 
-    if (filter.excludeCreatureTypes && filter.excludeCreatureTypes.length > 0) {
-      if (target.creatureTypes && filter.excludeCreatureTypes.some((t: string) => target.creatureTypes!.includes(t))) {
-        return false
-      }
+    if (!CreatureTaxonomy.isValidTarget(targetTypes, filter)) {
+      return false
     }
 
     // Size

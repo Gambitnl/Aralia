@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 14:31:44
+ * Dependents: components/Crafting/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/Crafting/GatheringPanel.tsx
  * UI component for the herbalism gathering system.
@@ -7,25 +23,8 @@ import React, { useState, useMemo } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { attemptIdentification, attemptHarvest, IdentificationResult, HarvestingResult } from '../../systems/crafting/gatheringSystem';
 import { GatherableResource, Biome } from '../../systems/crafting/gatheringData';
-import { Crafter } from '../../systems/crafting/craftingSystem';
+import { resolveCraftingCrafter } from './crafterAdapter';
 import './GatheringPanel.css';
-
-// Mock crafter from party - in production, this would come from the selected character
-function createCrafterFromParty(party: unknown[]): Crafter {
-    // Use first party member with relevant skills
-    // This is a simplified implementation
-    return {
-        id: 'party-gatherer',
-        name: 'Party',
-        inventory: [],
-        rollSkill: (skillName: string) => {
-            // Simulate a skill roll: d20 + modifier
-            const d20 = Math.floor(Math.random() * 20) + 1;
-            const modifier = skillName === 'Nature' || skillName === 'Herbalism Kit' ? 5 : 2;
-            return d20 + modifier;
-        }
-    };
-}
 
 // Map location types to biomes (simplified)
 function getBiomeFromLocation(locationId: string): Biome {
@@ -55,7 +54,13 @@ export const GatheringPanel: React.FC<GatheringPanelProps> = ({ onClose }) => {
     const [timeMultiplier, setTimeMultiplier] = useState(1);
 
     const currentBiome = useMemo(() => getBiomeFromLocation(state.currentLocationId), [state.currentLocationId]);
-    const crafter = useMemo(() => createCrafterFromParty(state.party), [state.party]);
+    const crafter = useMemo(
+        () => resolveCraftingCrafter(state, {
+            selectedCharacter: state.characterSheetModal.character,
+            allowCharacterSheetSelection: true,
+        }).crafter,
+        [state.party, state.characterSheetModal.character, state.characterSheetModal.isOpen]
+    );
 
     const handleIdentify = () => {
         setIsIdentifying(true);

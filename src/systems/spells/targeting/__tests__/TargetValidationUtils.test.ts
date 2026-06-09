@@ -80,6 +80,48 @@ describe('TargetValidationUtils', () => {
     expect(TargetValidationUtils.matchesFilter(deadChar, filter)).toBe(true)
   })
 
+  it('validates creature type inclusion and exclusion through shared taxonomy', () => {
+    const humanGoblin = createMockCombatCharacter({
+      currentHP: 10,
+      creatureTypes: ['Humanoid', 'Goblin']
+    })
+    const undead = createMockCombatCharacter({
+      currentHP: 10,
+      creatureTypes: ['Undead']
+    })
+
+    const includeOnlyHumanoid: TargetConditionFilter = {
+      creatureTypes: ['humanoid']
+    }
+
+    const excludeUndead: TargetConditionFilter = {
+      excludeCreatureTypes: ['Undead']
+    }
+
+    expect(TargetValidationUtils.matchesFilter(humanGoblin, includeOnlyHumanoid)).toBe(true)
+    expect(TargetValidationUtils.matchesFilter(undead, includeOnlyHumanoid)).toBe(false)
+    expect(TargetValidationUtils.matchesFilter(undead, excludeUndead)).toBe(false)
+    expect(TargetValidationUtils.matchesFilter(humanGoblin, excludeUndead)).toBe(true)
+  })
+
+  it('preserves legacy singular creatureType alias on matchesFilter', () => {
+    const dragon = createMockCombatCharacter({
+      currentHP: 10,
+      creatureTypes: ['Dragon']
+    })
+    const ogre = createMockCombatCharacter({
+      currentHP: 10,
+      creatureTypes: ['Giant']
+    })
+
+    const filter: TargetConditionFilter = {
+      creatureType: ['Dragon']
+    }
+
+    expect(TargetValidationUtils.matchesFilter(dragon, filter)).toBe(true)
+    expect(TargetValidationUtils.matchesFilter(ogre, filter)).toBe(false)
+  })
+
   it('keeps the representative Package 10 spell data valid under the live spell schema', () => {
     // Validating the committed spell JSON guards against a false-positive
     // repair where the TypeScript types compile but the data loader rejects the

@@ -1,7 +1,7 @@
 # Providers Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/providers/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Providers
 Project folder: docs/projects/providers
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,87 +28,36 @@ North Star: docs/projects/providers/NORTH_STAR.md
 Tracker: docs/projects/providers/TRACKER.md
 Gaps: docs/projects/providers/GAPS.md
 
-## Previous Agent Handoff
+## Iteration Agent Ledger
 
-Iteration 1 established the initial provider doc set and dependency map.
-This pass refreshed the dashboard card schema and compacted the tracker/gap
-handoff so the next agent can start from the current provider state instead of
-the bootstrap state.
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 3 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Multi-agent worker fallback while gpt-5.3-codex-spark was usage-limited; provider-doc review plus source read-through of `App.tsx`, `AppProviders.tsx`, `DataLoaderGate.tsx`, `SpellContext.tsx`, and `GlossaryContext.tsx` |
 
-## Current Mission
+## Current Slice
 
-Active task:
-G2 - Decide how degraded provider states should behave when some providers load and others fail
+- G2 is now resolved as the current startup matrix: only null contexts block non-main-menu entry; degraded spell/glossary loads remain visible with overlays and empty fallbacks.
+- G3 is now resolved as the explicit provider boundary note: `AppProviders` wraps `GameProvider` in `App.tsx`, and the provider nesting order is fixed in the docs.
+- G4 is waiting; the project is review-required because G5 needs a provider-boundary decision.
+- Do not assign further Providers work until the G5 decision is recorded.
 
-Acceptance criteria:
-`G2` has a compact decision entry, `G3` stays paired in the same slice, and the
-project docs stay aligned on provider order, gate behavior, and gap signal.
+## Verification
 
-Key files to touch:
-- docs/projects/providers/NORTH_STAR.md
-- docs/projects/providers/TRACKER.md
-- docs/projects/providers/GAPS.md
-- docs/projects/providers/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task, only if the decision
-  requires a source-doc sync
+- Docs consistency review against `App.tsx`, `AppProviders.tsx`, `DataLoaderGate.tsx`, `SpellContext.tsx`, and `GlossaryContext.tsx`.
+- No source or unit tests were run because this slice stayed in documentation.
 
-Scoped verification:
-Do a docs consistency review against the current App render path and provider
-order. If the slice widens to source docs, use the source evidence named by the
-tracker or North Star.
+## Blockers And Notes
 
-Blocking dependencies / do-not-touch:
-`G4` is a separate source-doc sync for `GlossaryContext.README.md`; do not
-widen this doc pass into runtime refactors.
+- `G4` is support-needed but waiting behind the project review gate.
+- `G5` is `blocked_human_decision`; the Required Review Brief lives in `NORTH_STAR.md`.
+- Workflow gaps were read; no new workflow-level ambiguity was found.
 
-Recent progress:
-Dashboard Card Schema added to NORTH_STAR.md. Tracker and gaps are now compact
-enough for the next agent to continue from the live provider gap set. No
-workflow-level ambiguity was found in this pass.
+## Required Docs
 
-Key files to touch:
-- docs/projects/providers/NORTH_STAR.md
-- docs/projects/providers/TRACKER.md
-- docs/projects/providers/GAPS.md
-- docs/projects/providers/COLD_START_AGENT_PROMPT.md
-- docs/projects/providers/DECISIONS.md
-- docs/projects/providers/AUDIT_OR_PROOF.md
-- docs/projects/providers/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
+- Accounted for: `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, `COLD_START_AGENT_PROMPT.md`
+- Not present and not needed this iteration: `DECISIONS.md`, `AUDIT_OR_PROOF.md`, `RUNBOOK.md`
 
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+## Next Safe Resume Action
 
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
-
-## Required End State For This Iteration
-
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
-
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
+- Await the G5 provider-boundary decision before assigning further Providers work.
 ---END NEXT AGENT HANDOFF---

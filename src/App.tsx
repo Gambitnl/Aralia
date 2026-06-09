@@ -742,7 +742,7 @@ const App: React.FC = () => {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
-    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard') {
+    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'toggle_economy_ledger' | 'toggle_courier_pouch') {
       case 'restart_dynamic_party':
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
         try {
@@ -823,6 +823,12 @@ const App: React.FC = () => {
         break;
       case 'toggle_trade_route_dashboard':
         dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' });
+        break;
+      case 'toggle_economy_ledger':
+        dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' });
+        break;
+      case 'toggle_courier_pouch':
+        dispatch({ type: 'TOGGLE_COURIER_POUCH' });
         break;
       case 'test_lockpicking':
         // Open lockpicking modal with a sample test lock
@@ -913,6 +919,8 @@ const App: React.FC = () => {
     !gameState.isQuestLogVisible &&
     !gameState.isGameGuideVisible &&
     !gameState.merchantModal.isOpen &&
+    !gameState.isEconomyLedgerVisible &&
+    !gameState.isCourierPouchVisible &&
     !missingChoiceModal.isOpen;
 
   // Specific check for Submap interaction disabling

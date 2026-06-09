@@ -19,6 +19,29 @@ const mockWood: Item = {
   type: ItemType.CraftingMaterial
 };
 
+const mockExactMatchItem: Item = {
+  id: 'exact_match_component',
+  name: 'Exact Match Component',
+  description: 'A test item that only proves ID-based matching.',
+  type: ItemType.Note,
+  category: 'legacy-only'
+};
+
+const mockTypedMaterial: Item = {
+  id: 'typed_material_shard',
+  name: 'Typed Material Shard',
+  description: 'A test item that matches by item type.',
+  type: ItemType.CraftingMaterial
+};
+
+const mockCategorizedMaterial: Item = {
+  id: 'categorized_bundle',
+  name: 'Categorized Bundle',
+  description: 'A test item that matches by category.',
+  type: ItemType.Consumable,
+  category: 'herb_bundle'
+};
+
 const mockRecipe: Recipe = {
   id: 'iron_sword_recipe',
   name: 'Iron Sword',
@@ -70,6 +93,36 @@ describe('Crafting System', () => {
       ];
 
       const result = checkMaterials(inventory, mockRecipe.inputs);
+      expect(result.hasMaterials).toBe(true);
+      expect(result.missing).toHaveLength(0);
+    });
+
+    // Keep the strict ID path separate so future fallback changes do not blur it.
+    it('should still match exact item IDs even when other metadata differs', () => {
+      const inventory: InventoryEntry[] = [
+        { ...mockExactMatchItem, quantity: 2 } as InventoryEntry
+      ];
+
+      const result = checkMaterials(inventory, [
+        { itemId: mockExactMatchItem.id, quantity: 2, consumed: true }
+      ]);
+
+      expect(result.hasMaterials).toBe(true);
+      expect(result.missing).toHaveLength(0);
+    });
+
+    // Legacy recipe data can name a broad type or category, but only after exact IDs miss.
+    it('should match by item type or category when exact IDs are absent', () => {
+      const inventory: InventoryEntry[] = [
+        { ...mockTypedMaterial, quantity: 2 } as InventoryEntry,
+        { ...mockCategorizedMaterial, quantity: 1 } as InventoryEntry
+      ];
+
+      const result = checkMaterials(inventory, [
+        { itemId: ItemType.CraftingMaterial, quantity: 2, consumed: true },
+        { itemId: 'herb_bundle', quantity: 1, consumed: true }
+      ]);
+
       expect(result.hasMaterials).toBe(true);
       expect(result.missing).toHaveLength(0);
     });

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 08/06/2026, 13:21:07
+ * Dependents: None (Orphan)
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { Recipe, CraftingResult, MaterialRequirement } from './types';
 import { PlayerCharacter } from '../../types/character';
 import { InventoryEntry } from '../../types/items';
@@ -12,11 +28,32 @@ export const checkMaterials = (
 ): { hasMaterials: boolean; missing: string[] } => {
   const missing: string[] = [];
 
+  // Exact item IDs stay authoritative, but legacy recipe data can also point at
+  // the broader type/category fields that already exist on inventory entries.
+  const matchesRequirement = (entry: InventoryEntry, requirement: MaterialRequirement): boolean => {
+    if (entry.id === requirement.itemId) {
+      return true;
+    }
+
+    if (entry.type === requirement.itemId) {
+      return true;
+    }
+
+    return entry.category === requirement.itemId;
+  };
+
+  const getAvailableQuantity = (entry: InventoryEntry): number => {
+    return typeof entry.quantity === 'number' ? entry.quantity : 1;
+  };
+
   for (const req of requirements) {
-    // Basic implementation only checking exact item IDs
-    // TODO: Implement matchByItemType logic
-    const found = inventory.find(i => i.id === req.itemId);
-    const available = (found && 'quantity' in found && typeof found.quantity === 'number') ? found.quantity : (found ? 1 : 0);
+    const available = inventory.reduce((count, entry) => {
+      if (!matchesRequirement(entry, req)) {
+        return count;
+      }
+
+      return count + getAvailableQuantity(entry);
+    }, 0);
 
     if (available < req.quantity) {
       missing.push(`${req.itemId} (Need ${req.quantity}, Have ${available})`);

@@ -135,13 +135,14 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                 `}
             </style>
             <AnimatePresence>
-                <WindowFrame
-                    key="dice-roller-window"
-                    title="Dice Roller"
-                    onClose={onClose}
-                    storageKey={WINDOW_KEYS.DICE_ROLLER}
-                    headerActions={<Dice6 className="w-5 h-5 text-amber-400" />}
-                >
+                <div role="dialog" aria-modal="true" aria-label="Dice Roller">
+                    <WindowFrame
+                        key="dice-roller-window"
+                        title="Dice Roller"
+                        onClose={onClose}
+                        storageKey={WINDOW_KEYS.DICE_ROLLER}
+                        headerActions={<Dice6 className="w-5 h-5 text-amber-400" />}
+                    >
                     <div
                         className="flex flex-col h-full bg-gray-900"
                         onKeyDown={handleKeyDown}
@@ -296,7 +297,8 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                             </div>
                         </div>
                     </div>
-                </WindowFrame>
+                    </WindowFrame>
+                </div>
             </AnimatePresence>
         </>
     );

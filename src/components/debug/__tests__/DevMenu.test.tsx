@@ -77,4 +77,22 @@ describe('DevMenu', () => {
 
     expect(screen.queryByRole('button', { name: 'Quick Start (Dev)' })).not.toBeInTheDocument();
   });
+
+  it('shows economy modal toggles', () => {
+    render(<DevMenu {...baseProps} />);
+
+    expect(screen.getByRole('button', { name: 'Ledger Book' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Courier Pouch' })).toBeInTheDocument();
+  });
+
+  it('forwards economy modal actions', () => {
+    const onDevAction = vi.fn();
+    render(<DevMenu {...baseProps} onDevAction={onDevAction} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ledger Book' }));
+    expect(onDevAction).toHaveBeenCalledWith('toggle_economy_ledger');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Courier Pouch' }));
+    expect(onDevAction).toHaveBeenCalledWith('toggle_courier_pouch');
+  });
 });

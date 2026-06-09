@@ -8,10 +8,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { CompanionReactionSystem } from '../CompanionReactionSystem';
-import { Companion, DecisionContext, CompanionReactionRule } from '../../../types/companions';
+import { Companion, DecisionContext, CompanionReactionRule, RelationshipLevel } from '../../../types/companions';
 
 // Mock Companion Factory
-const createMockCompanion = (id: string, rules: CompanionReactionRule[]): Companion => ({
+const createMockCompanion = (
+  id: string,
+  rules: CompanionReactionRule[],
+  relationshipLevel: RelationshipLevel = 'stranger'
+): Companion => ({
   id,
   identity: {
     id,
@@ -32,7 +36,7 @@ const createMockCompanion = (id: string, rules: CompanionReactionRule[]): Compan
   },
   goals: [],
   relationships: {
-    player: { targetId: 'player', level: 'stranger', approval: 0, history: [], unlocks: [] }
+    player: { targetId: 'player', level: relationshipLevel, approval: 0, history: [], unlocks: [] }
   },
   loyalty: 50,
   approvalHistory: [],
@@ -107,5 +111,113 @@ describe('CompanionReactionSystem', () => {
 
     const result = CompanionReactionSystem.evaluateReaction(companion, context);
     expect(result?.approvalChange).toBe(3); // 5 - 2
+  });
+
+  it('should not reject location-only requirements as missing relationship state', () => {
+    const companion: Companion = {
+      ...createMockCompanion('c1', [
+        {
+          triggerTags: ['city'],
+          approvalChange: 3,
+          dialoguePool: ['This place changes things.'],
+          requirements: { locationId: 'waterdeep' }
+        }
+      ]),
+      relationships: {}
+    };
+
+    const context: DecisionContext = {
+      id: 'd1',
+      type: 'location',
+      tags: ['city'],
+      magnitude: 1
+    };
+
+    const result = CompanionReactionSystem.evaluateReaction(companion, context);
+
+    expect(result?.approvalChange).toBe(3);
+  });
+
+  it('should reject rules when the companion is below the minimum relationship', () => {
+    const companion = createMockCompanion(
+      'c1',
+      [
+        {
+          triggerTags: ['kind'],
+          approvalChange: 8,
+          dialoguePool: ['Too soon.'],
+          requirements: { minRelationship: 'friend' }
+        }
+      ],
+      'stranger'
+    );
+
+    const context: DecisionContext = {
+      id: 'd1',
+      type: 'gesture',
+      tags: ['kind'],
+      magnitude: 1
+    };
+
+    const result = CompanionReactionSystem.evaluateReaction(companion, context);
+    expect(result).toBeNull();
+  });
+
+  it('should reject rules when the companion is above the maximum relationship', () => {
+    const companion = createMockCompanion(
+      'c1',
+      [
+        {
+          triggerTags: ['cold'],
+          approvalChange: -8,
+          dialoguePool: ['That is beneath us.'],
+          requirements: { maxRelationship: 'acquaintance' }
+        }
+      ],
+      'friend'
+    );
+
+    const context: DecisionContext = {
+      id: 'd1',
+      type: 'gesture',
+      tags: ['cold'],
+      magnitude: 1
+    };
+
+    const result = CompanionReactionSystem.evaluateReaction(companion, context);
+    expect(result).toBeNull();
+  });
+
+  it('should only aggregate and select rules that fall within the relationship bounds', () => {
+    const companion = createMockCompanion(
+      'c1',
+      [
+        {
+          triggerTags: ['choice'],
+          approvalChange: 4,
+          dialoguePool: ['We can work with that.'],
+          requirements: { minRelationship: 'acquaintance', maxRelationship: 'close' }
+        },
+        {
+          triggerTags: ['choice'],
+          approvalChange: 20,
+          dialoguePool: ['This should not be chosen.'],
+          requirements: { minRelationship: 'devoted' }
+        }
+      ],
+      'friend'
+    );
+
+    const context: DecisionContext = {
+      id: 'd1',
+      type: 'decision',
+      tags: ['choice'],
+      magnitude: 2
+    };
+
+    const result = CompanionReactionSystem.evaluateReaction(companion, context);
+
+    expect(result?.approvalChange).toBe(8);
+    expect(result?.dialogue).toBe('We can work with that.');
   });
 });

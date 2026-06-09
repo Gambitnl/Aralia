@@ -1,7 +1,7 @@
 # Iteration Agent Workflow
 
 Status: active
-Last updated: 2026-06-07
+Last updated: 2026-06-08
 
 This is the shared workflow for every agent that performs an iteration pass on a
 living project. Project-specific context belongs in
@@ -48,6 +48,16 @@ whole workflow into every project handoff file.
    line and update the tracker so the next agent is not misled.
 4. Do not widen the active slice just because adjacent work is visible. Record
    adjacent findings as gaps or follow-ups.
+5. If the task becomes blocked by a required human/product/policy review, stop
+   forward implementation for that project and create or refresh a
+   `Required Review Brief` in the project docs using the schema in
+   `docs/projects/PROJECT_CARD_SCHEMA.md`. The brief is the dashboard decision
+   segment: it must explain the issue visually enough for the project detail
+   page to show what needs to be decided, not just say "blocked."
+6. Once a project is marked `review-required`, `human-review-required`,
+   `policy-review-required`, or has `human_decision_required: yes`, do not
+   assign it to another forward-iteration agent until the required decision is
+   recorded.
 
 ## Verification Standard
 
@@ -127,6 +137,11 @@ Before ending the iteration, update or explicitly report on:
    left unchanged because no workflow-level gap was found.
 6. Optional files when relevant:
    `DECISIONS.md`, `AUDIT_OR_PROOF.md`, `RUNBOOK.md`, task docs.
+7. For any required-review gate opened or preserved this iteration, verify that
+   a `Required Review Brief` exists in `NORTH_STAR.md`, `TRACKER.md`, or
+   `GAPS.md` with the decision question, current behavior, blocked reason,
+   options, evidence, decision owner, and proof-after-decision. Mention in the
+   final report which file supplies the dashboard decision segment.
 
 If an optional file exists but was not updated, say why in the final report. If
 it does not exist and is not needed, say it was not needed instead of creating
@@ -151,6 +166,9 @@ Rules:
    every iteration.
 2. Keep only the latest `COLD_START_AGENT_PROMPT.md` handoff between the
    markers. The next agent needs current context, not ten old handoffs.
+   Keep the compact iteration agent ledger table, but store one short row per
+   iteration only: iteration number, agent/model, runtime surface, certainty,
+   and date. Do not paste full final reports into the ledger.
 3. Keep `NORTH_STAR.md` focused on current scope, state, boundaries, evidence,
    and resume path. Compress stale history into one short historical summary
    when it stops helping direct work.
@@ -183,6 +201,11 @@ End with a concise report covering:
 12. agent comments added or intentionally left empty
 13. assumptions made
 14. next safe resume action
+
+Before replacing the handoff, update the compact iteration agent ledger in
+`COLD_START_AGENT_PROMPT.md`. Add exactly one row for the completed iteration
+with the agent/model, runtime surface, certainty, date, and source clue. This
+ledger is what the project UI uses for the iteration counter popup.
 
 Then output the refreshed project handoff between these markers:
 

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 01:05:21
+ * Dependents: state/appState.ts
+ * Imports: 16 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/reducers/worldReducer.ts
  * A slice reducer that handles world-related state changes.
@@ -7,9 +23,12 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, DiscoveryResidue as _DiscoveryResidue, Location as _Location, Faction as _Faction } from '../../types';
 import { AppAction } from '../actionTypes';
+import { LOCATIONS } from '../../data/world/locations';
+import { getTimeOfDay, getGameDay } from '../../utils/core';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
-import { getGameDay } from '../../utils/core';
+import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
+import { updateWeather } from '../../systems/environment/WeatherSystem';
 import { ritualReducer } from './ritualReducer';
 import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
 import { processAllStrongholds, strongholdSummariesToMessages } from '../../services/strongholdService';
@@ -18,6 +37,20 @@ import { processAllInvestments } from '../../systems/economy/InvestmentManager';
 import { processAllNpcBusinesses } from '../../systems/economy/NpcBusinessManager';
 import { processPlayerBusinessManagement } from '../../systems/economy/BusinessManagement';
 import { SeededRandom } from '@/utils/random';
+
+const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const resolveBiomeId = (state: GameState): string => {
+    const staticLocation = LOCATIONS[state.currentLocationId];
+    if (staticLocation?.biomeId) return staticLocation.biomeId;
+
+    const coordMatch = /^coord_(\d+)_(\d+)$/.exec(state.currentLocationId);
+    if (!coordMatch || !state.mapData) return 'plains';
+
+    const x = Number(coordMatch[1]);
+    const y = Number(coordMatch[2]);
+    return state.mapData.tiles?.[y]?.[x]?.biomeId || 'plains';
+};
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -96,8 +129,22 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         messages: [...nextState.messages, ...underdarkMessages]
       };
 
-      // 3. Daily World Simulation
       if (daysPassed > 0) {
+        // 3. Daily Environment Simulation
+        const biomeId = resolveBiomeId(nextState);
+        let nextWeather = nextState.environment || DEFAULT_WEATHER;
+
+        for (let dayOffset = 0; dayOffset < daysPassed; dayOffset++) {
+          const dayProgressTime = new Date(newTime.getTime() - ((daysPassed - dayOffset - 1) * MILLIS_PER_DAY));
+          nextWeather = updateWeather(nextWeather, biomeId, getTimeOfDay(dayProgressTime));
+        }
+
+        nextState = {
+          ...nextState,
+          environment: nextWeather
+        };
+
+        // 4. Daily World Simulation
         // Reset daily short rest counts when the in-game day ticks over.
         if (newDay !== currentRestTracker.lastRestDay) {
           nextState = {
@@ -112,15 +159,17 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         
         const { state: simulatedWorldState, logs: worldLogs } = processWorldEvents(nextState, daysPassed);
 
-        // Merge world event changes (Factions, Economy, standigs) and append logs.
+        // Preserve the full daily simulation result so economy, rumors, history,
+        // couriers, and other world-owned fields survive the reducer boundary.
+        // Messages are appended separately because this reducer already owns the
+        // time-step log stream.
         nextState = {
           ...nextState,
-          factions: simulatedWorldState.factions,
-          playerFactionStandings: simulatedWorldState.playerFactionStandings,
+          ...simulatedWorldState,
           messages: [...nextState.messages, ...worldLogs]
         };
 
-        // 4. Stronghold Daily Processing
+        // 5. Stronghold Daily Processing
         if (nextState.strongholds && Object.keys(nextState.strongholds).length > 0) {
           const { updatedStrongholds, summaries } = processAllStrongholds(nextState.strongholds);
           const strongholdMessages = strongholdSummariesToMessages(summaries, newTime);
@@ -131,7 +180,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           };
         }
 
-        // 5. Business Daily Processing
+        // 6. Business Daily Processing
         const currentBusinesses = nextState.businesses;
         const currentStrongholds = nextState.strongholds;
         if (currentBusinesses && Object.keys(currentBusinesses).length > 0 && currentStrongholds) {
@@ -155,7 +204,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           };
         }
 
-        // 5b. NPC World Business Daily Processing
+        // 6b. NPC World Business Daily Processing
         // Simulates NPC-owned businesses: revenue, costs, price adjustments, financial pressure.
         // Bankrupt businesses (pressure > 90 for 30+ unprofitable days) are removed and their
         // NPC owner's businessId is cleared so they can be re-generated as merchants without shops.
@@ -188,7 +237,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           nextState = { ...nextState, worldBusinesses: wbState };
         }
 
-        // 5c. Player-owned World Business Management (decay, events, ramp-up)
+        // 6c. Player-owned World Business Management (decay, events, ramp-up)
         // Processes management decay (reputation/satisfaction loss without visits or a manager),
         // random business events (theft, festivals, competitor changes), and customer ramp-up
         // caps for newly founded businesses. Events generate courier messages for the player.
@@ -224,7 +273,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
           nextState = { ...nextState, worldBusinesses: mgmtWb };
         }
 
-        // 6. Investment Daily Processing (Caravans, Loans, Speculation)
+        // 7. Investment Daily Processing (Caravans, Loans, Speculation)
         const currentInvestments = nextState.playerInvestments;
         if (currentInvestments && currentInvestments.length > 0) {
           const investRng = new SeededRandom(state.worldSeed + newDay + 9999);

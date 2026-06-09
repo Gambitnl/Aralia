@@ -37,9 +37,10 @@ function extractMention(text: string, participantIds: string[], companions: Game
 }
 
 export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState, dispatch }) => {
-    const { sendPlayerMessage, endConversation, isPending } = useConversation(gameState, dispatch);
+    const { sendPlayerMessage, endConversation, isInteractionLocked } = useConversation(gameState, dispatch);
 
     const conversation = gameState.activeConversation;
+    const isPlayerTurn = conversation?.isPlayerTurn ?? false;
     const [inputText, setInputText] = useState('');
     const [showMentionMenu, setShowMentionMenu] = useState(false);
     const [mentionFilter, setMentionFilter] = useState('');
@@ -105,14 +106,14 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
 
     // Handle send
     const handleSend = useCallback(async () => {
-        if (!inputText.trim() || isPending || !conversation) return;
+        if (!inputText.trim() || isInteractionLocked || !conversation || !isPlayerTurn) return;
 
         const text = inputText.trim();
         setInputText('');
         setShowMentionMenu(false);
 
         await sendPlayerMessage(text);
-    }, [inputText, isPending, conversation, sendPlayerMessage]);
+    }, [inputText, isInteractionLocked, conversation, isPlayerTurn, sendPlayerMessage]);
 
     // Handle key press
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -140,7 +141,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                 <button
                     className="conversation-close-btn"
                     onClick={handleEndConversation}
-                    disabled={isPending}
+                    disabled={isInteractionLocked}
                     title="End Conversation"
                 >
                     ✕
@@ -165,7 +166,7 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     );
                 })}
 
-                {isPending && (
+                {isInteractionLocked && (
                     <div className="conversation-message companion pending">
                         <span className="message-text">...</span>
                     </div>
@@ -197,14 +198,14 @@ export const ConversationPanel: React.FC<ConversationPanelProps> = ({ gameState,
                     value={inputText}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    disabled={isPending}
+                    disabled={isInteractionLocked || !isPlayerTurn}
                     autoFocus
                 />
 
                 <button
                     className="conversation-send-btn"
                     onClick={handleSend}
-                    disabled={isPending || !inputText.trim()}
+                    disabled={isInteractionLocked || !inputText.trim() || !isPlayerTurn}
                 >
                     Send
                 </button>

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { calculatePrice, parseCost } from '../economyUtils';
-import { EconomyState, Item, MarketEventType, ItemType } from '../../../types';
+import { EconomyState, Item, MarketEventType, ItemType, MarketEvent } from '../../../types';
 
 // Mock the regional data to ensure tests are robust and independent of live data changes
 vi.mock('../../data/economy/regions', () => ({
@@ -198,6 +198,35 @@ describe('economyUtils', () => {
       // Base 1.0 - 0.5 = 0.5 multiplier
       expect(result.multiplier).toBeCloseTo(0.5);
       expect(result.finalPrice).toBe(5);
+    });
+
+    it('prefers typed event tags over name-only parsing for event application', () => {
+      const item: Item = {
+        id: 'broadsword',
+        name: 'Merchant Blade',
+        description: 'A blade for sale.',
+        type: ItemType.Weapon,
+        costInGp: 10,
+        weight: 3
+      };
+
+      const eventEconomy: EconomyState = {
+        ...economy,
+        marketEvents: [{
+          id: 'evt_typed',
+          type: MarketEventType.SHORTAGE,
+          name: 'Regional fluctuation',
+          startTime: 0,
+          duration: 1,
+          intensity: 0.8,
+          affectedTags: ['weapon']
+        } as MarketEvent]
+      };
+
+      const result = calculatePrice(item, eventEconomy, 'buy');
+      // Base 1.0 + 0.8 from SHORTAGE for weapon-tagged event.
+      expect(result.multiplier).toBeCloseTo(1.8);
+      expect(result.finalPrice).toBe(18);
     });
   });
 });

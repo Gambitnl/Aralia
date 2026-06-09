@@ -61,7 +61,9 @@ describe('MerchantModal', () => {
   it('renders correctly when open', () => {
     render(<MerchantModal {...defaultProps} />);
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: /Trading with Test Merchant/i });
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(screen.getByLabelText(/Trading with Test Merchant/i)).toBeInTheDocument();
     expect(screen.getByText('Test Merchant')).toBeInTheDocument();
   });

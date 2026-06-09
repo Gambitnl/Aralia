@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 14:04:05
+ * Dependents: components/DesignPreview/steps/PreviewComponents.tsx, components/Party/RelationshipsPane.tsx
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
@@ -36,8 +52,8 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
   const relationship = companion.relationships[playerId] || { level: 'stranger', approval: 0 };
   const { identity, personality, goals } = companion;
 
-  // Calculate approval width (mapped from -100..100 to 0..100%)
-  const approvalPercent = Math.max(0, Math.min(100, (relationship.approval + 100) / 2));
+  // Map the full runtime approval span (-500..500) into the bar width.
+  const approvalPercent = Math.max(0, Math.min(100, (relationship.approval + 500) / 10));
 
   return (
     <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-lg w-full">
@@ -74,6 +90,7 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
         <div className={`h-3 w-full rounded-full ${APPROVAL_GRADIENT} relative border border-gray-700`}>
           {/* Marker */}
           <div
+            data-testid="approval-marker"
             className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-all duration-500"
             style={{ left: `${approvalPercent}%` }}
           />

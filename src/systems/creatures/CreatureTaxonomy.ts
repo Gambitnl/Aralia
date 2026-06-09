@@ -94,5 +94,3 @@ export class CreatureTaxonomy {
     return entry ? entry[1] : null;
   }
 }
-
-// TODO(Taxonomist): Integrate CreatureTaxonomy.isValidTarget() into src/systems/spells/targeting/TargetValidationUtils.ts to replace legacy string checks.

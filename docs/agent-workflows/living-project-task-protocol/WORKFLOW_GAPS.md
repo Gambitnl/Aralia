@@ -1,7 +1,7 @@
 # Living Project Workflow Gaps
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-09
 
 This file tracks gaps in the living-project workflow itself. It is not a
 project blocker list. Use it only when an agent finds ambiguity, unsafe
@@ -63,15 +63,15 @@ Do not add anonymous vote counts. The testimony is the evidence.
 
 | ID | Status | Severity | Workflow Area | Issue | Testimonies | Next Action | Owner | Last Updated |
 |---|---|---|---|---|---|---|---|---|
-| WFG-001 | open | medium | Start Of Iteration | Shared living-project docs still point at moved or stale canonical paths, so first-read agents have to search manually before they can follow the workflow. | 8 | Update the shared instructions and cold-start prompts to name the canonical moved paths explicitly. | Codex | 2026-06-07 |
+| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-001 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-09 |
 
 ### WFG-001 - Living-project file paths still point at moved or stale locations
 
-Status: open
+Status: resolved
 Severity: medium
 Workflow area: Start Of Iteration
 Opened: 2026-06-05
-Last updated: 2026-06-05
+Last updated: 2026-06-09
 
 #### Problem
 
@@ -145,10 +145,23 @@ Update the shared instructions and cold-start prompts to name the canonical
 paths explicitly, and note that the entry-point file is a pointer rather than a
 replacement for the moved workflow package.
 
+#### Resolution
+
+Resolved on 2026-06-09 by updating
+`docs/agent-workflows/living-project-task-protocol/README.md` with an explicit
+Canonical Aralia Paths section and by confirming current project
+`COLD_START_AGENT_PROMPT.md` files use the canonical
+`docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md`,
+`docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`, and
+`docs/projects/PROJECT_CARD_SCHEMA.md` references. Historical copied text in
+older project docs may still mention generic template filenames, but the active
+shared workflow and active handoff path now point agents at canonical files.
+
 ## Resolved Workflow Gaps
 
 | ID | Status | Severity | Workflow Area | Issue | Resolution | Last Updated |
 |---|---|---|---|---|---|---|
+| WFG-001 | resolved | medium | Start Of Iteration | Shared living-project docs still pointed at moved or stale canonical paths. | Added explicit Canonical Aralia Paths to the protocol README and verified active handoffs use canonical workflow/schema paths. | 2026-06-09 |
 
 ## Gap Detail Template
 

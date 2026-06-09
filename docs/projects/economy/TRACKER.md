@@ -1,7 +1,7 @@
 # Economy System Living Tracker
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Status vocabulary
 
@@ -18,9 +18,11 @@ Last updated: 2026-06-05
 | ID | Status | Task | Owner | Evidence | Last updated | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Refresh all economy docs as a concrete cold-start handoff with evidence-backed scope. | Economy docs owner | `src/systems/economy/*`, `src/state/reducers/*`, `src/components/{Economy,Trade}/*` | 2026-05-31 | Start from G1 when implementation resumes. | Confirm this update stays aligned with `PROJECT_TRACKER.md` and future implementation notes. |
-| T2 | not_started | Add explicit exchange/rule audit check list for price, route, and trade outcomes. | Economy docs owner | `docs/projects/PROJECT_TRACKER.md` | 2026-05-31 | Add one small audit slice in `TRACKER.md` and `GAPS.md` with pass criteria. | Run target test and evidence checks documented in G4. |
-| T3 | active | Verify route-region id validity (seed routes vs region catalog) before major gameplay tuning. | Economy docs owner | `src/data/tradeRoutes.ts`, `src/data/economy/regions.ts` | 2026-06-05 | Resume with deterministic route-region validation and repair invalid seed mappings. | Keep a CI-safe assertion in a unit or startup test that every seed route id resolves to a region entry. |
-| T4 | active | Decide route status model for `'booming'` and remove runtime casts where possible. | Economy docs owner | `src/systems/economy/TradeRouteSystem.ts`, `src/systems/economy/TradeRouteManager.ts`, `src/types/economy.ts` | 2026-06-05 | Add shared status union and update UI/system consumers together. | Add regression test for route status transitions in existing route manager/system tests. |
+| T2 | done | Add explicit exchange/rule audit check list for price, route, and trade outcomes. | Economy docs owner | `docs/projects/economy/AUDIT_OR_PROOF.md` | 2026-06-08 | Audit lane remains complete; G1 and G5 are now closed as verified. | Ledgered run set in `docs/projects/economy/AUDIT_OR_PROOF.md`: `npm exec vitest run src/utils/economy/__tests__/economyUtils.test.ts src/systems/economy/__tests__/TradeRouteManager.test.ts src/hooks/actions/__tests__/handleMerchantInteraction.test.ts src/components/Trade/__tests__/MerchantModal.test.tsx`. |
+| T3 | done | Verify route-region id validity (seed routes vs region catalog) before major gameplay tuning. | Economy docs owner | `src/data/tradeRoutes.ts`, `src/data/economy/regions.ts`, `src/systems/economy/__tests__/tradeRoutesData.test.ts` | 2026-06-08 | Preserved as historical validation checkpoint; no follow-up slice added. | CI-safe validation is in `tradeRoutesData.test.ts`: `npm exec vitest run src/systems/economy/__tests__/tradeRoutesData.test.ts`. |
+| T4 | done | Decide route status model for `'booming'` and remove runtime casts where possible. | Codex | `src/types/economy.ts`, `src/systems/economy/TradeRouteManager.ts`, `src/components/Trade/TradeRouteDashboard.tsx`, `src/components/Trade/RouteCard.tsx`, `src/systems/economy/__tests__/TradeRouteManager.test.ts` | 2026-06-08 | Keep any future route status in the shared `TradeRoute` model before UI/system branches consume it. | `TradeRouteManager.test.ts` covers active->booming, booming->active, active->blockaded, and blockaded->active transitions. |
+| T5 | done | Add explicit market-event representation fidelity checks for route-driven events. | Codex | `src/systems/economy/TradeRouteManager.ts`, `src/systems/economy/__tests__/TradeRouteManager.test.ts` | 2026-06-08 | G1 typing contract cleanup is done; keep contract parity checks in active economy slices. | `npm exec vitest run src/systems/economy/__tests__/TradeRouteManager.test.ts` validates active/event/tag parity and factor derivation. |
+| T6 | done | Finish G1 economy event typing contract cleanup and close event tag projection drift. | Codex | `src/types/economy.ts`, `src/systems/world/WorldEventManager.ts`, `src/systems/economy/TradeRouteManager.ts`, `src/utils/economy/marketEvents.ts`, `src/utils/economy/economyUtils.ts`, `src/components/Trade/MerchantModal.tsx` | 2026-06-08 | Continue maintaining parity when new economy event sources are added. | `npm exec vitest run src/systems/economy/__tests__/TradeRouteManager.test.ts src/utils/economy/__tests__/economyUtils.test.ts` |
 
 ## Tracking rules
 

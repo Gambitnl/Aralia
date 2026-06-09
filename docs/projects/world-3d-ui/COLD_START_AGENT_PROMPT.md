@@ -1,7 +1,7 @@
 # World 3D UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/world-3d-ui/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: World 3D UI
 Project folder: docs/projects/world-3d-ui
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,68 +28,45 @@ North Star: docs/projects/world-3d-ui/NORTH_STAR.md
 Tracker: docs/projects/world-3d-ui/TRACKER.md
 Gaps: docs/projects/world-3d-ui/GAPS.md
 
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 3 | gpt-5.3-codex-spark high | MCP-subagent | certain | 2026-06-08 | Implemented W3DUI-27 in `src/components/World3D` and validated with `src/components/World3D/__tests__` |
+
 ## Previous Agent Handoff
 
-The first project packet is now established. This pass refreshed the packet and preserved the current queue. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue, and
-GAPS.md for unresolved findings.
+First pass completed T12+PLAN 4 slices and W3DUI-26 minimap. This iteration implemented W3DUI-27 (in-3D nameplates) with conservative LOD/distance visibility controls and test coverage.
 
 ## Current Mission
 
 Active task:
-No open task selected. Read TRACKER.md and choose the highest-value open task.
+None. W3DUI-27 is done; keep the task surface monitor-safe.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+Keep in-3D label overlays for visible `WorldData.sites` behind distance and LOD gates, verify with focused World3D tests and avoid regressions.
 
 Key files to touch:
 - docs/projects/world-3d-ui/NORTH_STAR.md
 - docs/projects/world-3d-ui/TRACKER.md
 - docs/projects/world-3d-ui/GAPS.md
 - docs/projects/world-3d-ui/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/components/World3D/World3DNameplates.tsx
+- src/components/World3D/World3DScene.tsx
+- src/components/World3D/World3DWrapper.tsx
+- src/components/World3D/__tests__/World3DNameplates.test.tsx
+- src/components/World3D/__tests__/World3DScene.lifecycle.test.tsx
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Use `npm exec vitest run src/components/World3D/__tests__/World3DNameplates.test.tsx` and then
+`npm exec vitest run src/components/World3D/__tests__`.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Route sibling-project blockers
 instead of editing their docs.
 
 Recent progress:
-Initial handoff file created as part of the living-project cold-start handoff
-system split. Workflow rules now live in ITERATION_AGENT_WORKFLOW.md.
-
-Key files to touch:
-- docs/projects/world-3d-ui/NORTH_STAR.md
-- docs/projects/world-3d-ui/TRACKER.md
-- docs/projects/world-3d-ui/GAPS.md
-- docs/projects/world-3d-ui/COLD_START_AGENT_PROMPT.md
-- docs/projects/world-3d-ui/DECISIONS.md
-- docs/projects/world-3d-ui/AUDIT_OR_PROOF.md
-- docs/projects/world-3d-ui/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Plan 4 HUD deferred UX is complete in world-3d-ui: minimap and nameplates now both land in the active 3D HUD. `docs/projects/world-3d-ui/` tracker docs and gap log are updated to show W3DUI-27 done and add an iteration record.
 
 ## Required End State For This Iteration
 

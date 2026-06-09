@@ -1,7 +1,7 @@
 # NORTH_STAR: Command Factory Runtime
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
@@ -14,10 +14,10 @@ Evidence: docs/projects/command-factory-runtime
 Gap signal: 4 open project gaps
 Protocol: living project doc set
 Next step: Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the next source edit, then update `GAPS.md` if drift appears.
-Required verification: docs_consistency
-Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Required verification: scoped_tests, docs_consistency
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
 
 ## Purpose
 
@@ -44,6 +44,7 @@ It is the primary "creation lane" for runtime combat mechanics.
 - Active integration path:
   - Spell path: `hooks/useAbilitySystem.ts` -> `SpellCommandFactory.createCommands(...)` -> `CommandExecutor.execute(...)`
   - Ability path: `hooks/useAbilitySystem.ts` -> `AbilityCommandFactory.createCommands(...)` -> `CommandExecutor.execute(...)`
+- Ability-side attacker-filter checks now call `TargetValidationUtils.matchesFilter(...)` directly inside `AbilityCommandFactory`; `SpellCommandFactory.matchesFilter(...)` remains only as a legacy wrapper for spell callers.
 - Data validation relation:
   - `systems/spells/validation/SpellIntegrityValidator.ts` and `LegacySpellValidator.ts` run before/alongside command creation at data quality level.
   - `TargetValidationUtils` is now the shared filter implementation; `SpellCommandFactory.matchesFilter(...)` is still present as a deprecated wrapper.
@@ -95,14 +96,14 @@ Out of scope:
 | Task | Keep command-factory runtime docs as a cold-start-safe contract handoff for factory, validation, integration boundaries, and dashboard state |
 | Acceptance criteria | Documentation includes file map, integrations, implemented state, gap log, dashboard card schema, and clear resume path |
 | Allowed files | `docs/projects/command-factory-runtime/*` |
-| Next check | Re-validate references against `src/commands/factory`, `src/commands/base`, and `src/commands/index.ts` after any factory refactor |
+| Next check | Re-check `src/commands/factory` and `src/hooks/useAbilitySystem.ts` after the next source edit, then update `GAPS.md` if drift appears |
 | Owner | Worker C |
 | Stop condition | docs remain source-anchored, dashboard schema stays current, and the next check evidence list updates when factory wiring changes |
 
 ## Known uncertainties and gap watch
 
 - Which creation paths should be registered as first-class explicit factory registry entries versus direct-call surfaces.
-- Whether `SpellCommandFactory.matchesFilter` should be removed once all call-sites use `TargetValidationUtils.matchesFilter`.
+- Whether `SpellCommandFactory.matchesFilter` should be removed once the last legacy spell caller is retired.
 - Whether command scaling helpers should move to a shared utility with `resolveScalableNumber`.
 
 ## Resume path for cold agent

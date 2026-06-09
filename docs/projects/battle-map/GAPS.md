@@ -1,18 +1,22 @@
 # Battle Map Gaps
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 Use this file for durable unresolved findings that genuinely belong to this project.
+
+T3 decision: G2 and G3 are separate follow-up slices. Treat G2 as the runtime/pathability proof slice and keep G3 as the review-required naming decision until the Required Review Brief is resolved.
+T4 proof: the G2 connectivity slice now has a focused seed-2 regression that keeps cave/dungeon maps to one connected walkable component.
+G4 proof: the renderer parity slice now has a concrete checklist and focused tests covering shared state updates, overlays, and highlighting across the 2D and 3D battle-map renderers.
 
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | not_started | adjacent_follow_up | Battle Map owner | `docs/projects/battle-map/TRACKER.md` | project bootstrap | Define map state/events sync spec and ownership boundaries between CombatView, map renderers, and save/state systems | `docs/projects/PROJECT_TRACKER.md` row + `src/components/Combat/CombatView.tsx` + `src/hooks/useBattleMap.ts` | Missing contract can diverge 2D/3D behavior and complicate debugging during future parity work | Decide contract, event source, and persistence model before large map feature changes | spec note plus review checklist |
-| G2 | not_started | in_scope_now | Battle Map owner | `src/services/battleMapGenerator.ts` | implementation audit | Cave/dungeon connectivity is not guaranteed; `ensureConnectivity()` is currently a placeholder comment | `src/services/battleMapGenerator.ts` | Movement/pathing assumptions may fail on generated maps with disconnected regions | Validate connectivity expectations and implement stub before hardening map encounters | add dedicated generation or pathability test |
-| G3 | not_started | adjacent_follow_up | Battle Map owner | `src/hooks/useBattleMapGeneration.ts` | implementation audit | Naming drift: file and function names imply hook but expose stateless utility logic | `src/hooks/useBattleMapGeneration.ts` | Increases onboarding ambiguity and complicates static assumptions around hook usage | Align naming or add explicit contract comments in architecture/docs; do not rename blindly while callers exist | decision stored in tracker/PR notes |
-| G4 | not_started | support_needed_now | Battle Map owner | `src/components/Combat/CombatView.tsx` + `src/components/BattleMap` | implementation audit | No single parity checklist exists proving state updates, overlays, and highlighting behave identically across 2D and 3D | runtime renderers and shared hooks | Prevents silent renderer divergence and hard-to-trace visual/state bugs | Create and run a parity checklist on first render-mode expansion | checklist artifact in tracker or PR |
+| G1 | done | adjacent_follow_up | Battle Map owner | `docs/projects/battle-map/TRACKER.md` | documentation continuity pass | Define map state/events sync spec and ownership boundaries between CombatView, map renderers, and save/state systems | `src/components/Combat/CombatView.tsx`, `src/hooks/combat/useTurnManager.ts`, `src/hooks/useAbilitySystem.ts`, `docs/projects/battle-map/NORTH_STAR.md`, `docs/projects/battle-map/TRACKER.md` | Missing contract can diverge 2D/3D behavior and complicate debugging during future parity work | Keep contract as a required check when touching map-mode logic, map persistence, or movement/overlay edits | proof check completed; re-validate if event schema changes |
+| G2 | done | in_scope_now | Battle Map owner | `src/services/battleMapGenerator.ts` | implementation audit | Cave/dungeon connectivity is now repaired by a deterministic corridor carve instead of a placeholder stub | `src/services/battleMapGenerator.ts`, `src/services/__tests__/battleMapGenerator.test.ts` | Movement/pathing assumptions can rely on connected walkable regions for cave and dungeon maps | Keep the regression in place and re-run if generator terrain logic changes | seed-2 reachability/pathability regression now passes |
+| G3 | blocked | blocked_human_decision | Battle Map owner | `src/hooks/useBattleMapGeneration.ts` | implementation audit | Naming drift: file and function names imply hook but expose stateless utility logic; the naming choice now needs a human/product decision | `src/hooks/useBattleMapGeneration.ts`, `docs/projects/battle-map/NORTH_STAR.md` | Increases onboarding ambiguity and complicates static assumptions around hook usage | Pause any rename or caller sweep until the Required Review Brief is answered; keep the contract note current in docs | decision stored in tracker/PR notes; keep as separate follow-up slice |
+| G4 | done | support_needed_now | Battle Map owner | `docs/projects/battle-map/PARITY_CHECKLIST.md` + `src/components/BattleMap/__tests__/BattleMap.parity.test.tsx` + `src/components/BattleMap/__tests__/BattleMap3D.parity.test.tsx` | implementation audit | A concrete parity checklist now proves state updates, overlays, and highlighting stay aligned across 2D and 3D | runtime renderers and shared hooks | Prevents silent renderer divergence and hard-to-trace visual/state bugs | Keep the checklist as the gate before future renderer behavior changes | parity checklist and focused tests recorded |
 
 ## Classification Reference
 

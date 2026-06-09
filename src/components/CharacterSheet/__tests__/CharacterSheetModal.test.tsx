@@ -119,6 +119,7 @@ describe('CharacterSheetModal', () => {
   it('renders core sections and character name when open', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
+    expect(screen.getByRole('dialog', { name: 'Test Hero' })).toBeInTheDocument();
     expect(screen.getByText('Test Hero')).toBeInTheDocument();
     expect(screen.getByTestId('character-overview')).toBeInTheDocument();
     expect(screen.getByTestId('equipment-mannequin')).toBeInTheDocument();

@@ -184,6 +184,7 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
         <World3DScene
           loader={loader}
           start={startPos}
+          playerWorldPos={position}
           onPositionChange={handlePositionChange}
           onChunkUpdate={handleChunkUpdate}
         />

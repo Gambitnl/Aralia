@@ -2,6 +2,28 @@ import { describe, it, expect } from 'vitest'
 import { DiceRoller } from '../DiceRoller'
 
 describe('DiceRoller', () => {
+  it('supports deterministic RNG for formula roll', () => {
+    let values = [0.0, 0.5, 0.9];
+    const rng = () => values.shift() as number;
+
+    const result = DiceRoller.roll('2d6', rng)
+    expect(result).toBe(5)
+  })
+
+  it('supports deterministic RNG for d20 advantage and disadvantage', () => {
+    let values = [0.2, 0.8, 0.1, 0.9];
+    const rng = () => values.shift() as number;
+
+    expect(DiceRoller.rollD20Advantage(rng)).toMatchObject({
+      roll: 17,
+      rolls: [5, 17],
+    })
+    expect(DiceRoller.rollD20Disadvantage(rng)).toMatchObject({
+      roll: 3,
+      rolls: [3, 19],
+    })
+  })
+
   describe('rollD20', () => {
     it('should roll between 1 and 20', () => {
       for (let i = 0; i < 100; i++) {

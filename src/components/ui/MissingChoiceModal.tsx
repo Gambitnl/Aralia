@@ -39,6 +39,8 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
   missingChoice, 
   onConfirm 
 }) => {
+  const titleId = 'missing-choice-title';
+
   const [selectedOption, setSelectedOption] = useState<{
     choiceId: string;
     optionId: string;
@@ -75,19 +77,22 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
       {...overlayMotion}
       className={`fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[${Z_INDEX.MODAL_CONTENT}] p-4`}
       onClick={onClose}
-      aria-modal="true"
-      role="dialog"
     >
       <motion.div
         ref={modalRef}
         {...modalMotion}
         className="bg-gray-800 border border-amber-500/50 rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden focus:outline-none"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         tabIndex={-1}
       >
         <div className="bg-amber-900/30 p-4 border-b border-amber-500/30 flex justify-between items-center">
              <div>
-                <h3 className="text-lg font-bold text-amber-400 font-cinzel">Incomplete Character</h3>
+                <h3 id={titleId} className="text-lg font-bold text-amber-400 font-cinzel">
+                  Incomplete Character
+                </h3>
                 <p className="text-sm text-amber-200/70">{characterName} is missing a vital trait or spell.</p>
              </div>
              <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">&times;</button>

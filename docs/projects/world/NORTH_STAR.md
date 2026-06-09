@@ -1,7 +1,7 @@
 # World System North Star
 
-Status: active  
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
@@ -10,16 +10,19 @@ Last updated: 2026-06-05
 | Project | World |
 | Slug | world |
 | Category | active project |
-| Status | active |
+| Status | review-required |
 | Confidence | unknown |
 | Evidence | docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md |
-| Gap signal | present |
+| Gap signal | present; tile-grid phase-out dependency contract blocks forward runtime assignment |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Next step | Preserve tile-grid movement/save/migration contracts before forward runtime assignment. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
-| Workflow gaps reviewed | yes |
+| Last proof | 2026-06-08 world-map dependency scan |
+| Workflow gaps reviewed | 2026-06-08 |
+
+Dashboard lifecycle: phase-out-contract-review
+Assignment rule: Do not assign forward runtime changes until `MapData` tile-grid movement, save/load, and migration compatibility dependencies are explicitly preserved or routed.
 
 ## Why This Project Exists
 
@@ -57,6 +60,7 @@ Provide a cold-start map of implemented world-state ownership and open gaps arou
 - Dynamic rumor lifecycle exists in `WorldEventManager` and is persisted in `GameState.activeRumors`.
 - Faction economy and diplomacy are actively mutated from the daily loop and exposed via `playerFactionStandings`.
 - `worldDataMigration` already handles missing/legacy `MapData` by regenerating `worldData` with `runWorldSim(...)`.
+- `MapPane`, `handleMovement`, `MapData`, app state setup/load flows, and `worldDataMigration` still preserve tile-grid world data while Azgaar/3D rendering paths replace the old world-map renderer.
 
 ## Relevant Tests
 
@@ -76,7 +80,7 @@ Keep this project focused on world-system ownership; do not close open items fro
 1. Read this file.
 2. Read `docs/projects/world/TRACKER.md`.
 3. Read `docs/projects/world/GAPS.md`.
-4. Continue with evidence-backed gap resolution and boundary checks before any runtime edits.
+4. Continue with evidence-backed tile-grid contract preservation before any forward runtime edits.
 
 
 ## Cold-Start Gap Routing

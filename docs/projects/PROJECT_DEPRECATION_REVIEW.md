@@ -1,12 +1,32 @@
 # Project Deprecation Review
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file records evidence-backed candidates for merge, archive, downgrade, or
 repair. It does not authorize deletion. Aralia is expansion-first, so the safe
 default is to preserve intent until a canonical owner, routed gaps, and archive
 target are clear.
+
+## 2026-06-08 Dashboard Application Notes
+
+- `docs/projects/PROJECT_TRACKER.md` now has assignment guardrails for the
+  review-only candidates in this file.
+- Duplicate gameplay/world tracker rows were merged back into their canonical
+  tracker sections; no systems or project folders were removed.
+- The stale `conductor/projects/3d-combat-map` row now points at
+  `docs/projects/3d-combat-map`.
+- `demo-area`, `phb2024_glossary_audit`, `script-tests`,
+  `scripts-spell-runtime-template-audit`, `three-d-modal`, and `crime` now carry
+  dashboard-facing lifecycle/review fields in their North Stars.
+- Review-gated projects should not receive forward-moving sub-agent assignments
+  until their human-decision or repair flag is cleared.
+- `character-creator`, `scripts-audits`, and `world` were added to the
+  assignment guardrails after fresh evidence showed human-policy or phase-out
+  contract decisions are needed before forward-moving work.
+- The `submap` project remains assignable for quick-travel/inspect contract
+  extraction, but its DOM renderer/painter replacement slice is review-gated
+  until the active renderer authority is decided.
 
 ## Review Rules
 

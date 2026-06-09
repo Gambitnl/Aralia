@@ -1,7 +1,7 @@
 # Dice Gaps
 
-Status: active  
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 Use this file for durable, in-project unresolved findings.
 
@@ -9,9 +9,9 @@ Use this file for durable, in-project unresolved findings.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| D-G1 | not_started | in_scope_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | No deterministic/seeded RNG entry point for Dice service | `src/services/DiceService.ts`, `src/utils/combat/combatUtils.ts` | Replayability, tests, and seed-based simulations are impossible without policy | Define deterministic path and caller contract | Add deterministic fixture or seed contract test |
+| D-G1 | done | in_scope_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | Deterministic/seeded RNG support added for silent Dice path | `src/utils/combat/combatUtils.ts`, `src/systems/spells/mechanics/DiceRoller.ts` | Replayability, tests, and seed-based checks were limited without this API | Add visual policy and cross-path contract before D-G2 execution | Rolled into follow-up acceptance for D-G2 |
 | D-G2 | not_started | in_scope_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | No dice roll history persistence for users or replay logs | `src/components/dice/DiceRollerModal.tsx`, `src/services/DiceService.ts` | Hard to debug outcomes or audit roll outcomes after session events | Specify history storage and retention policy | Add UI and state persistence definition |
-| D-G3 | not_started | support_needed_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | Silent roll and visual roll paths share behavior expectations but differ by implementation path | `src/services/DiceService.ts`, `src/hooks/useDiceBox.ts`, `src/components/dice/DiceOverlay.tsx` | Divergent behavior can make outcomes inconsistent between gameplay and visual display | Define and document one RNG + result contract | Add integration test across both paths |
+| D-G3 | blocked_human_decision | support_needed_now | Agent | `docs/projects/dice/TRACKER.md` | narrow code scan | Silent and visual roll paths share behavior expectations but differ by deterministic contract | `src/services/DiceService.ts`, `src/hooks/useDiceBox.ts`, `src/components/dice/DiceOverlay.tsx` | Divergent behavior can make outcomes inconsistent between gameplay and visual display | Finalize deterministic + history contract in review brief | Add a policy acceptance test |
 
 ## Classification reference
 

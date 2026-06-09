@@ -1,7 +1,7 @@
 # World 3D UI North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative:
 > - `world3d` — the 3D **rendering engine** (chunk streaming, meshes, R3F scene).
@@ -11,21 +11,23 @@ Last updated: 2026-06-05
 
 ## Dashboard Card Schema
 
-| Field | Value |
-|---|---|
-| Project | World 3d Ui |
-| Slug | world-3d-ui |
-| Category | active project |
-| Status | active |
-| Confidence | unknown |
-| Evidence | docs/projects/world-3d-ui/TRACKER.md; docs/projects/world-3d-ui/GAPS.md |
-| Gap signal | present |
-| Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
-| Required verification | docs consistency |
-| Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
-| Workflow gaps reviewed | yes |
+Project: World 3D UI
+Slug: world-3d-ui
+Category: Feature/UI Projects
+Status: active
+Confidence: high
+Evidence: docs/projects/world-3d-ui
+Gap signal: Plan 4 HUD gaps closed; monitor nameplate density/perf only
+Protocol: living project doc set
+Next step: No open world-3d-ui implementation task; monitor nameplate density/perf during broader 3D passes.
+Required verification: scoped_tests, docs_consistency
+Completed verification: scoped_tests, docs_consistency
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
+Agent comments: W3DUI-27 completed by MCP subagent; no required-review blocker found.
+Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md
+Optional docs: PERF.md, Plan 4 design notes
+Compaction status: not_needed
 
 ## Why This Project Exists
 
@@ -56,20 +58,21 @@ atlas↔3D bridge a clear owner.
 - **`AtlasPlayerMarker` + click-to-travel** — marker on MapPane Azgaar overlay; **Enter 3D** interaction mode dispatches position + `worldViewMode`; compass **Enter 3D** routes to streamed world (T10).
 - **Integration tests + perf budget** — RTL lifecycle (W3DUI-3), `worldCoords` unit tests, Playwright HUD round-trip, `docs/projects/world-3d-ui/PERF.md` (T11).
 - **Sandbox** `WORLD3D_DEMO` → `<World3DDemo />` via `?phase=world3d` remains unchanged.
-- **In-3D minimap** — `World3DMinimap` paints a top-down view from `WorldData.biomeIds` with the live `AtlasPlayerMarker`, mounted bottom-left of `InWorldHUD` (W3DUI-26). **Nameplates** still deferred (W3DUI-27).
+- **In-3D minimap** — `World3DMinimap` paints a top-down view from `WorldData.biomeIds` with the live `AtlasPlayerMarker`, mounted bottom-left of `InWorldHUD` (W3DUI-26). In-3D nameplates are now implemented and gated in `World3DNameplates` (W3DUI-27).
 - **`WorldAtlasStrip`** — compact world-map preview with `AtlasPlayerMarker` on PLAYING `GameLayout` when `playerWorldPos` is set (W3DUI-23).
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Plan 4 deferred UX: in-3D **nameplates** (minimap done — W3DUI-26) |
-| Acceptance criteria | Billboarded labels over visible `WorldData.sites`, distance/LOD gated; no perf regression |
+| Task | W3DUI-27 complete: in-3D nameplates over visible `WorldData.sites` |
+| Acceptance criteria | Labels render for visible `world3d.sites` with distance + LOD + max-visible gates and no UI flooding |
 | Allowed boundaries | `world-3d-ui` surface |
-| Stop condition | Operator prioritizes next slice |
-| Verification | Labels track sites as camera moves; vitest green |
-| Owner | unassigned |
-| Next action | Build nameplates (W3DUI-27) or operator directs TownCanvas handoff |
+| Stop condition | Monitor label behavior under dense sites; no open task in this surface |
+| Verification | `World3DNameplates.test.tsx` and full `World3D` suite pass |
+| Owner | gpt-5.3-codex-spark |
+| Status | done |
+| Next action | None queued on world-3d-ui; monitor thresholds in broader perf sweep |
 
 ## Scope Boundaries
 
@@ -108,7 +111,7 @@ See `docs/projects/world-3d-ui/GAPS.md`. Headline:
 | `entryPosition` unused on TransitionController | done | unassigned | W3DUI-24 | Removed from controller; `World3DWrapper` only |
 | Atlas marker E2E after 3D movement | done | claude | W3DUI-25 | Playwright test covers pan and marker verification |
 | In-3D minimap (deferred Plan 4 UX) | done | claude | W3DUI-26 | `World3DMinimap` in HUD; `World3DMinimap.test.tsx` |
-| In-3D nameplates over sites | active | unassigned | W3DUI-27 | Remaining deferred half of Plan 4 HUD UX |
+| In-3D nameplates over sites | done | gpt-5.3-codex-spark | W3DUI-27 | `World3DNameplates` + `World3DScene` + `World3DWrapper`; gate by LOD/distance and max visible |
 
 ## Global Gap Imports
 
@@ -163,4 +166,4 @@ Durable: transition/HUD design intent, the entry seam, decisions, gap classifica
 3. Read Plan 4: `docs/superpowers/plans/2026-06-01-world-3d-ui-transition-and-marker-sync.md`.
 4. Plan 4 slices T7–T11 are **done**; pick follow-up from Active Task or `GAPS.md`.
 5. Run `npx vitest run src/components/World3D/__tests__` and optionally `npx playwright test tests/world-3d-ui-transition.spec.ts`.
-6. W3DUI-1/18/22/23/24/25/26 done. Highest-impact remaining follow-up: **W3DUI-27 in-3D nameplates** over `WorldData.sites`.
+6. W3DUI-1/18/22/23/24/25/26/27 done. Plan 4 HUD UX is complete; monitor naming plate density and perf as follow-up signals.

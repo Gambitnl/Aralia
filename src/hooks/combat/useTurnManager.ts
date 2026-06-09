@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/06/2026, 23:59:23
+ * Last Sync: 08/06/2026, 16:01:00
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 11 files
  *
@@ -94,9 +94,20 @@ export const useTurnManager = ({
   } = useCombatVisuals();
   const [activeLightSources, setActiveLightSources] = useState<LightSource[]>([]);
   const { canAfford, consumeAction } = useActionEconomy();
+  // Remember which concentration cleanup keys already ran in the current render batch.
+  // This keeps stale synchronous updates from re-cleaning the same ally effects.
+  const concentrationCleanupKeysRef = useRef<Set<string>>(new Set());
+  const lastCharactersRef = useRef(characters);
+  const getStatusCleanupKey = (characterId: string, effectId: string) => `status:${characterId}:${effectId}`;
+  const getConditionCleanupKey = (characterId: string, source: string) => `condition:${characterId}:${source}`;
 
   // Wrapped character update callback to handle immediate concentration drop when a character is downed (0 HP)
   const handleCharacterUpdateWrapped = useCallback((updatedChar: CombatCharacter) => {
+    if (lastCharactersRef.current !== characters) {
+      concentrationCleanupKeysRef.current.clear();
+      lastCharactersRef.current = characters;
+    }
+
     const originalChar = characters.find(c => c.id === updatedChar.id);
     let finalChar = updatedChar;
 
@@ -104,6 +115,9 @@ export const useTurnManager = ({
       const previousSpell = originalChar.concentratingOn.spellName;
       const previousSpellId = originalChar.concentratingOn.spellId;
       const trackedEffectIds = new Set(originalChar.concentratingOn.effectIds || []);
+      const trackedConditionSources = [previousSpellId, previousSpell].filter((source): source is string => Boolean(source));
+      const cleanedConcentrationKeys = concentrationCleanupKeysRef.current;
+      const cleanedKeysThisCall = new Set<string>();
 
       // 1. Clear concentration on the downed character
       finalChar = {
@@ -123,15 +137,20 @@ export const useTurnManager = ({
       characters.forEach(char => {
         if (char.id === finalChar.id) return;
 
-        const hasTrackedEffect = (char.statusEffects || []).some(eff => trackedEffectIds.has(eff.id));
-        const hasTrackedCondition = (char.conditions || []).some(cond =>
-          cond.source === previousSpellId || cond.source === previousSpell
+        const statusEffectsToRemove = (char.statusEffects || []).filter(eff =>
+          trackedEffectIds.has(eff.id) && !cleanedConcentrationKeys.has(getStatusCleanupKey(char.id, eff.id))
+        );
+        const conditionSourcesToRemove = trackedConditionSources.filter(source =>
+          (char.conditions || []).some(cond => cond.source === source) &&
+          !cleanedConcentrationKeys.has(getConditionCleanupKey(char.id, source))
         );
 
-        if (hasTrackedEffect || hasTrackedCondition) {
-          const newStatusEffects = (char.statusEffects || []).filter(eff => !trackedEffectIds.has(eff.id));
+        if (statusEffectsToRemove.length > 0 || conditionSourcesToRemove.length > 0) {
+          const statusEffectIdsToRemove = new Set(statusEffectsToRemove.map(effect => effect.id));
+          const conditionSourcesToRemoveSet = new Set(conditionSourcesToRemove);
+          const newStatusEffects = (char.statusEffects || []).filter(eff => !statusEffectIdsToRemove.has(eff.id));
           const newConditions = (char.conditions || []).filter(cond =>
-            cond.source !== previousSpellId && cond.source !== previousSpell
+            typeof cond.source !== 'string' || !conditionSourcesToRemoveSet.has(cond.source)
           );
 
           onCharacterUpdate({
@@ -139,8 +158,13 @@ export const useTurnManager = ({
             statusEffects: newStatusEffects,
             conditions: newConditions
           });
+
+          statusEffectsToRemove.forEach(effect => cleanedKeysThisCall.add(getStatusCleanupKey(char.id, effect.id)));
+          conditionSourcesToRemove.forEach(source => cleanedKeysThisCall.add(getConditionCleanupKey(char.id, source)));
         }
       });
+
+      cleanedKeysThisCall.forEach(key => cleanedConcentrationKeys.add(key));
 
       // 3. Clean up light sources linked to this concentration spell
       setActiveLightSources(prev => prev.filter(ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)));

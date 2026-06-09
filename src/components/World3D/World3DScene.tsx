@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 17:58:48
+ * Dependents: components/World3D/World3DDemo.tsx, components/World3D/World3DWrapper.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file World3DScene.tsx
  * @description R3F shell for the streamed 3D world. Renders one bundle of meshes per
@@ -20,11 +36,14 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import FreeRoamCameraController from './FreeRoamCameraController';
+import { syncVegetationInstanceMatrices } from './vegetationInstanceMatrices';
 import { useChunkStreaming } from './useChunkStreaming';
+import World3DNameplates from './World3DNameplates';
 import type { ChunkLoader, LoadedChunk } from '@/systems/world3d/types';
 import { chunkOriginWorld } from '@/systems/world3d/coords';
 import { worldToScene, type SceneOrigin } from '@/systems/world3d/sceneOrigin';
 import { WORLD3D_CONFIG } from '@/systems/world3d/config';
+import type { PlayerWorldPosition } from '@/types';
 
 interface World3DSceneProps {
   loader: ChunkLoader;
@@ -41,6 +60,8 @@ interface World3DSceneProps {
   onPositionChange?: (worldX: number, worldZ: number) => void;
   /** Optional callback for chunk update notifications (loaded count). */
   onChunkUpdate?: (loadedCount: number) => void;
+  /** Live player position for distance-gated label overlays. */
+  playerWorldPos?: PlayerWorldPosition | null;
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -124,24 +145,18 @@ const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chu
 const VegetationPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   const veg = chunk.bundle.vegetation;
   const ref = useRef<THREE.InstancedMesh>(null);
-  const count = veg ? veg.positions.length / 3 : 0;
+  // Track the last vegetation payload key so identical worker-cloned scatters do not
+  // rewrite every instance matrix again. If vegetation disappears, the key resets so the
+  // next mount still repopulates the new mesh.
+  const lastVegetationCacheKey = useRef<string | null>(null);
   useEffect(() => {
-    if (!ref.current || !veg) return;
-    const m = new THREE.Matrix4();
-    const q = new THREE.Quaternion();
-    const axis = new THREE.Vector3(0, 1, 0);
-    const pos = new THREE.Vector3();
-    const scl = new THREE.Vector3();
-    for (let i = 0; i < count; i++) {
-      const s = veg.scales[i];
-      q.setFromAxisAngle(axis, veg.rotations[i]);
-      pos.set(veg.positions[i * 3], veg.positions[i * 3 + 1], veg.positions[i * 3 + 2]);
-      scl.set(s * 2, s * 5, s * 2);
-      m.compose(pos, q, scl);
-      ref.current.setMatrixAt(i, m);
+    if (!veg || !ref.current) {
+      lastVegetationCacheKey.current = null;
+      return;
     }
-    ref.current.instanceMatrix.needsUpdate = true;
-  }, [veg, count]);
+    syncVegetationInstanceMatrices(ref.current, veg, lastVegetationCacheKey);
+  }, [veg?.cacheKey]);
+  const count = veg ? veg.positions.length / 3 : 0;
   if (!veg || count === 0) return null;
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
@@ -163,7 +178,14 @@ const ChunkPieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ ch
   </>
 );
 
-const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, startSurfaceY = 0, onPositionChange: onPositionChangeOverride, onChunkUpdate }) => {
+const World3DScene: React.FC<World3DSceneProps> = ({
+  loader,
+  start,
+  startSurfaceY = 0,
+  playerWorldPos = null,
+  onPositionChange: onPositionChangeOverride,
+  onChunkUpdate,
+}) => {
   const { loaded, update } = useChunkStreaming(loader);
 
   // Lift the camera + its look-at target to the spawn ground elevation. With vertical
@@ -229,6 +251,11 @@ const World3DScene: React.FC<World3DSceneProps> = ({ loader, start, startSurface
         <directionalLight position={[120, 200, 80]} intensity={1.6} />
         <fog attach="fog" args={[0x9fb8d0, 900, 4500]} />
         <FreeRoamCameraController initialTarget={[0, startSurfaceY, 0]} sceneOrigin={sceneOrigin} onPositionChange={onPositionChange} />
+        <World3DNameplates
+          loaded={loaded}
+          sceneOrigin={sceneOrigin}
+          playerWorldPos={playerWorldPos}
+        />
         {loaded.map((c) => (
           <ChunkPieces key={`${c.cx}|${c.cy}`} chunk={c} origin={sceneOrigin} />
         ))}

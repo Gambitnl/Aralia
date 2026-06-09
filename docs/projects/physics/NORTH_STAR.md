@@ -1,6 +1,6 @@
 # Physics System North Star
 
-Status: active
+Status: review-required
 Last updated: 2026-06-05
 
 ## Why this project exists
@@ -14,7 +14,7 @@ It is intentionally registered as partial implementation because related physics
 Project: Physics System
 Slug: physics
 Category: Core Simulation / Combat
-Status: partial
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/physics
 Gap signal: 8 open gaps; G7 needs a human decision
@@ -24,6 +24,24 @@ Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
 Workflow gaps reviewed: 2026-06-05
+
+## Required Review Brief
+
+Decision needed: choose ownership and timing for suffocation and pressure-style physics before assigning broad physics implementation.
+
+Issue: G7 is a blocked human decision because suffocation remains a TODO in `physicsUtils` with no agreed route into combat, environment resolution, or a deferred rule lane.
+
+Why agents stop: forward implementation would decide a rules owner and runtime timing model implicitly.
+
+Decision owner: human/product owner with physics, combat, and environment owners.
+
+Options:
+- Route suffocation into near-term physics/combat integration with explicit proof tests.
+- Defer suffocation as a documented rule lane and keep T4 elemental-state wiring separate.
+
+Evidence: `src/utils/physicsUtils.ts`, `docs/projects/physics/GAPS.md`, and the current Physics tracker gap log.
+
+After decision: update G7 with the chosen owner/deferral and resume only the approved slice.
 
 ## Scope
 

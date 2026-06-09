@@ -8,6 +8,7 @@ import { uiReducer } from '../reducers/uiReducer';
 import { GamePhase, GameState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { createMockPlayerCharacter } from '../../utils/factories';
+import { getGameDay } from '../../utils/core';
 
 const makeState = (overrides: Partial<GameState> = {}): GameState =>
   ({
@@ -51,5 +52,26 @@ describe('worldViewMode vs legacy ThreeDModal (W3DUI-22)', () => {
     const next = appReducer(state, action);
     expect(next.worldViewMode).toBe('3d');
     expect(next.isThreeDVisible).toBe(false);
+  });
+
+  it('LOAD_GAME_SUCCESS backfills shortRestTracker when omitted from saved payload', () => {
+    const state = makeState();
+    const loadedSaveDate = new Date(Date.UTC(351, 0, 3, 12, 0, 0));
+    const action = {
+      type: 'LOAD_GAME_SUCCESS',
+      payload: {
+        party: state.party,
+        gameTime: loadedSaveDate,
+        currentLocationId: state.currentLocationId,
+      },
+    } as AppAction;
+
+    const next = appReducer(state, action);
+
+    expect(next.shortRestTracker).toEqual({
+      restsTakenToday: 0,
+      lastRestDay: getGameDay(loadedSaveDate),
+      lastRestEndedAtMs: null,
+    });
   });
 });

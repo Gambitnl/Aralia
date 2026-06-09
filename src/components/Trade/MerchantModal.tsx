@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 17:22:06
+ * Dependents: components/Trade/index.ts, components/layout/GameModals.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file MerchantModal.tsx
@@ -7,7 +22,7 @@
  */
 import React, { useMemo, useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { Item, Action, EconomyState } from '../../types';
+import { Item, Action, EconomyState, MarketEvent } from '../../types';
 import Tooltip from '../Tooltip';
 import { useGameState } from '../../state/GameContext';
 import { calculatePrice } from '../../utils/economy/economyUtils';
@@ -122,7 +137,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     <>
                                         {economy.activeEvents && economy.activeEvents.length > 0 ? (
                                             <div className="flex flex-col gap-1 mb-1">
-                                                {economy.activeEvents.map((marketEvent: any) => (
+                                                {economy.activeEvents.map((marketEvent: MarketEvent) => (
                                                     <div key={marketEvent.id} className="text-amber-200 flex items-center gap-2">
                                                         <span>📢 {marketEvent.name}: {marketEvent.description}</span>
                                                     </div>

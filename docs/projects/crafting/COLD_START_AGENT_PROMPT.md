@@ -1,7 +1,7 @@
 # Crafting System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-08
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/crafting/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Crafting System
 Project folder: docs/projects/crafting
-Iteration: 2
+Iteration: 4
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -28,70 +28,59 @@ North Star: docs/projects/crafting/NORTH_STAR.md
 Tracker: docs/projects/crafting/TRACKER.md
 Gaps: docs/projects/crafting/GAPS.md
 
+Agent identity / runtime:
+Next agent must identify its model and runtime surface before selecting work.
+This handoff was refreshed from a Codex desktop foreman review after MCP
+subagent Mill completed the G13 source pass.
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 3 | Mill / gpt-5.3-codex-spark high | MCP/subagent | certain | 2026-06-08 | Subagent completion notification `019ea7bb-81a9-7113-9692-65b27e500704` |
+
 ## Previous Agent Handoff
 
-Iteration 1 created the initial living-project handoff and seeded the first
-gap registry. This pass refreshed the North Star dashboard schema, clarified
-the tracker resume path, and expanded the explicit crafting gap set to G1-G8.
+Iteration 3 closed G13 by adding `craftingCompatibility.ts` provenance fields
+and focused compatibility tests. The pass preserved both craft engines, did not
+move refining/enchanting UX ownership, and left G5 review-blocked.
 
 ## Current Mission
 
 Active task:
-T3 - Convert unresolved areas into explicit gap rows with owners and follow-on proof checks.
+T5 - Continue G1 compatibility regression hardening while preserving both
+craft engines.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. The gap registry now holds the known crafting follow-ups
-explicitly; the next agent should continue from the highest-priority open gap
-instead of re-opening already-captured uncertainty.
+Expand the compatibility proof beyond the current provenance adapter without
+deleting, merging, or replacing `craftingSystem.ts` or `craftingEngine.ts`.
+Keep quality, material loss, time, gold, XP, and unavailable enhanced fields
+explicit in tests and docs.
 
 Key files to touch:
 - docs/projects/crafting/NORTH_STAR.md
 - docs/projects/crafting/TRACKER.md
 - docs/projects/crafting/GAPS.md
 - docs/projects/crafting/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
+- src/systems/crafting/craftingCompatibility.ts
+- src/systems/crafting/__tests__/craftingCompatibility.test.ts
+- Any additional source/docs named by the active tracker task
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. For this doc-only pass, keep verification documentation-safe and
-record the expected proof path in the gap rows instead of widening scope.
+Run the focused compatibility tests and any adjacent crafting tests touched by
+the change. Re-run dependency sync if exported signatures change.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Do not advance G5 until a human/product decision places refining/enchanting in
+a dedicated panel, an existing crafting tab, or a system-only lane. Stay inside
+Crafting scope and route sibling-project blockers instead of editing their
+docs.
 
 Recent progress:
-The handoff now points at the detailed gap registry, the North Star includes
-the dashboard schema, and `GAPS.md` has explicit rows for the alchemy
-drag-and-drop follow-up and the ingredient glossary CR fallback.
-
-Key files to touch:
-- docs/projects/crafting/NORTH_STAR.md
-- docs/projects/crafting/TRACKER.md
-- docs/projects/crafting/GAPS.md
-- docs/projects/crafting/COLD_START_AGENT_PROMPT.md
-- docs/projects/crafting/DECISIONS.md
-- docs/projects/crafting/AUDIT_OR_PROOF.md
-- docs/projects/crafting/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+G13 now records legacy-result provenance with explicit unavailable enhanced
+fields. Focused tests cover success/failure normalization and bidirectional
+quality mapping. The dashboard schema reports Crafting as active and assignable;
+G5 remains blocked by review.
 
 ## Required End State For This Iteration
 

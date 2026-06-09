@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:14:41
+ * Last Sync: 09/06/2026, 00:38:31
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,6 +23,7 @@ import { GameState, ShowEncounterModalPayload, StartBattleMapEncounterPayload, I
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { calculateEncounterParameters, processAndValidateEncounter } from '../../utils/encounterUtils';
+import { simpleHash } from '../../utils/core/hashUtils';
 
 interface HandleGenerateEncounterProps {
     gameState: GameState;
@@ -52,8 +53,18 @@ export async function handleTriggerAiEncounter({ gameState, dispatch }: HandleGe
             throw new Error("Cannot generate encounter for an empty party.");
         }
 
-        const { xpBudget, themeTags } = calculateEncounterParameters(partyForEncounter, gameState.currentLocationId, gameState.messages.slice(-10));
-        const result = await GeminiService.generateEncounter(xpBudget, themeTags, partyForEncounter, gameState.devModelOverride);
+    const { xpBudget, themeTags } = calculateEncounterParameters(partyForEncounter, gameState.currentLocationId, gameState.messages.slice(-10));
+    const encounterSeed = simpleHash(
+      [
+        gameState.worldSeed,
+        gameState.currentLocationId,
+        xpBudget,
+        ...partyForEncounter.map(p => `${p.level ?? 1}`),
+        ...themeTags.sort(),
+      ].join('|'),
+    );
+
+    const result = await GeminiService.generateEncounter(xpBudget, themeTags, partyForEncounter, gameState.devModelOverride, encounterSeed);
 
         if (result.data?.rateLimitHit || result.metadata?.rateLimitHit) {
             dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
@@ -63,7 +74,7 @@ export async function handleTriggerAiEncounter({ gameState, dispatch }: HandleGe
             throw new Error(result.error || "Failed to generate encounter.");
         }
 
-        const finalEncounter = processAndValidateEncounter(result.data.encounter, themeTags);
+        const finalEncounter = processAndValidateEncounter(result.data.encounter, themeTags, encounterSeed);
         const payload: ShowEncounterModalPayload = { encounter: finalEncounter, sources: result.data.sources, partyUsed: partyForEncounter };
         dispatch({ type: 'SHOW_ENCOUNTER_MODAL', payload: { encounterData: payload } });
 

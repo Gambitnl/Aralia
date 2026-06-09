@@ -1,7 +1,7 @@
 # Battle Map North Star
 
-Status: active
-Last updated: 2026-06-05
+Status: review-required
+Last updated: 2026-06-08
 
 ## Why This Project Exists
 
@@ -19,25 +19,39 @@ Maintain a cold-start handoff for Battle Map by documenting:
 Project: Battle Map
 Slug: battle-map
 Category: Feature/UI Projects
-Status: partial
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/battle-map
-Gap signal: 4 open gaps, with map state/events sync still the active blocker
+Gap signal: 1 open gap; G3 naming contract is review-required, parity proof recorded
 Protocol: living project doc set
-Next step: Confirm map state/events sync scope before any new movement/targeting/overlay renderer changes
-Required verification: docs_consistency
+Next step: Wait for the G3 naming decision before any rename or caller sweep; keep the parity checklist as the renderer gate.
+Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-08
+Workflow gaps reviewed: 2026-06-08
+
+## Required Review Brief
+
+Title: Battle Map generation helper naming
+Question: Should `src/hooks/useBattleMapGeneration.ts` be renamed to match its stateless utility role, or should the hook-shaped filename remain for caller stability?
+Issue: The module exports a plain setup helper, but its filename still implies a hook. Current docs preserve that drift to avoid a risky caller sweep.
+Current behavior: `CombatView` and other Battle Map callers import `generateBattleSetup` from `src/hooks/useBattleMapGeneration.ts`; the module is stateless and the parity checklist is already the gate for renderer changes.
+Why blocked: Renaming without a coordinated caller sweep would churn stable imports and could obscure whether the contract was intentionally preserved.
+Option A: Rename the file and update every caller, test, and doc in one coordinated sweep.
+Option B: Keep the current filename, document the utility contract, and revisit the rename only when caller churn is already planned.
+Evidence: `src/hooks/useBattleMapGeneration.ts`, `src/components/Combat/CombatView.tsx`, `src/components/BattleMap/BattleMapDemo.tsx`, `docs/projects/battle-map/GAPS.md`, `docs/projects/battle-map/PARITY_CHECKLIST.md`
+Decision owner: Battle Map product owner or the person responsible for module naming and caller stability.
+Proof after decision: Focused caller sweep, test update, and docs refresh that match the chosen name; re-run the Battle Map focused tests if code moves.
 
 ## Current State
 
-- Registry anchor is in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) under Feature/UI Projects with gap signal `GAPS.md present`, status `partial`, confidence `medium`, and the specific follow-up `define map state/events sync spec`.
-- The active combat host is `src/components/Combat/CombatView.tsx`. It owns mode selection and orchestrates:
+- Registry anchor is in [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) under Feature/UI Projects with gap signal `GAPS.md present`, status `partial`, confidence `medium`, while the project-local follow-up is now review-required through the G3 naming decision and parity checklist gate.
+- The active combat host is `src/components/Combat/CombatView.tsx`. It owns map-mode selection and orchestrates:
   - `useTurnManager`,
   - `useAbilitySystem`,
   - `useBattleMap` data flow,
   - and the choice between `BattleMap` and `BattleMap3D`.
+- CombatView also owns and mutates the current battle map model (`mapData`) and pushes map updates into the combat hooks.
 - Map rendering surface:
   - 2D: `src/components/BattleMap/BattleMap.tsx`.
   - 3D: `src/components/BattleMap/BattleMap3D.tsx`.
@@ -50,6 +64,10 @@ Workflow gaps reviewed: 2026-06-05
   - `src/hooks/combat/useTargeting.ts`,
   - `src/services/battleMapGenerator.ts`,
   - `src/hooks/useBattleMapGeneration.ts`.
+- `useBattleMapGeneration.ts` stays hook-shaped in filename for caller stability, but the exported setup helper is intentionally stateless. The naming choice is now review-required, and the rename stays deferred until the Required Review Brief is resolved.
+- T3 decision: G2 connectivity and G3 naming drift do not belong in the same implementation slice. G2 stays the runtime/pathability proof slice; G3 is now the review-required naming decision until the brief resolves it.
+- G2 runtime proof: `ensureConnectivity()` now carves deterministic corridors for cave/dungeon maps when generation splits walkable regions, and the focused seed-2 regression keeps that guarantee visible.
+- Parity proof: `docs/projects/battle-map/PARITY_CHECKLIST.md` now records the 2D/3D state-update, overlay, and highlighting contract, with focused renderer tests backing the proof.
 - Types and shared utilities:
   - `src/types/combat.ts`,
   - `src/utils/pathfinding.ts`,
@@ -62,13 +80,13 @@ Workflow gaps reviewed: 2026-06-05
 
 | Field | Value |
 |---|---|
-| Task | Convert Battle Map folder to an implementation-accurate living-project checkpoint for cold-start continuity |
-| Acceptance criteria | NORTH_STAR.md, TRACKER.md, and GAPS.md explain what is implemented, what owns map logic, how renderers connect, and next verified checks |
-| Allowed boundaries | `docs/projects/battle-map/` only |
-| Stop condition | No runtime edits; no new file types introduced beyond the three required docs |
-| Verification | Re-read registry row, evidence files listed below, and internal task/gap rows for consistency |
-| Owner | Battle Map documentation worker |
-| Next action | Address tracker row T2 by confirming sync contract scope before behavior changes |
+| Task | G3 naming contract review gate - decide whether `useBattleMapGeneration.ts` stays as-is or is renamed in a coordinated sweep |
+| Acceptance criteria | Keep the G3 naming contract explicit, create and maintain the Required Review Brief, and do not expand renderer behavior without the parity checklist |
+| Allowed boundaries | `docs/projects/battle-map/`, plus narrow BattleMap source/tests only if the naming decision approves a coordinated rename |
+| Stop condition | Do not rename `useBattleMapGeneration.ts` blindly and do not expand renderer behavior unless the parity checklist stays current and the naming decision is recorded |
+| Verification | Docs consistency sweep plus proof that the Required Review Brief is present; focused Battle Map tests only if code changes are approved |
+| Owner | Battle Map implementation worker |
+| Next action | Wait for the human/product naming decision; keep the parity checklist as the renderer gate |
 
 ## Scope Boundaries
 
@@ -92,17 +110,21 @@ Out of scope:
 - 2D/3D parity is a contract; both renderers share the same movement, targeting, and turn/economy data.
 - `CombatView` is the live host and should remain the coordinator over renderer internals.
 - Combat rules stay in hooks/utilities, not in renderer-only components.
-- The generator naming drift (`useBattleMapGeneration.ts` as utility) currently exists and should be preserved in docs until code/work ownership changes it.
+- Map terrain/state (`mapData`) is a shared read model for both renderers, not a renderer-owned mutable state.
+- `combatEvents` remains a rule/event bus for combat side effects; map-state change propagation uses `onMapUpdate` callbacks.
+- The generator naming drift (`useBattleMapGeneration.ts` as utility) currently exists and should be preserved in docs until the review decision resolves it.
+- The parity checklist is the gating proof for future movement, targeting, overlay, and highlight changes.
 - Registry gap signal about map state/events sync must stay visible across handoffs.
 
 ## Known Gaps And Follow-Ups
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Define map state/events sync spec | adjacent_follow_up | Battle Map owner | [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) | Draft and store event/state contract when map or combat orchestration changes |
-| Ensure cave/dungeon map connectivity guarantee is explicit | in_scope_now | Battle Map owner | `src/services/battleMapGenerator.ts` | Verify `ensureConnectivity` behavior and add regression checks if disconnected movement zones appear |
+| Define map state/events sync spec | done | Battle Map owner | `src/components/Combat/CombatView.tsx`, `src/hooks/combat/useTurnManager.ts`, `src/hooks/useAbilitySystem.ts` | Contract stored below; re-check when map persistence or event schema changes |
+| Ensure cave/dungeon map connectivity guarantee is explicit | done | Battle Map owner | `src/services/battleMapGenerator.ts`, `src/services/__tests__/battleMapGenerator.test.ts` | Deterministic corridor repair is now implemented; keep the regression in place and re-run if generator terrain logic changes |
 | Confirm parity checks for 2D and 3D map overlays before adding new visual rules | adjacent_follow_up | Battle Map owner | `src/components/BattleMap/BattleMap.tsx`, `src/components/BattleMap/BattleMap3D.tsx`, `src/hooks/useBattleMap.ts` | Add a short parity acceptance checklist |
-| Resolve naming drift for `useBattleMapGeneration.ts` if/when moving hook-level refactors | adjacent_follow_up | Battle Map owner | `src/hooks/useBattleMapGeneration.ts` | Decide rename vs keep and align exports/imports once callers are stable |
+| Resolve naming drift for `useBattleMapGeneration.ts` if/when moving hook-level refactors | blocked_human_decision | Battle Map owner | `src/hooks/useBattleMapGeneration.ts`, `docs/architecture/COMBAT_MAP_ENGINE.md`, `docs/architecture/domains/battle-map.md` | Naming choice is now review-required; preserve the current caller contract until a human/product decision is recorded | Pause any rename or caller sweep until the Required Review Brief is answered | Decision recorded, then run the coordinated rename or confirm keep-as-is |
+| Create and run a parity checklist for 2D and 3D map overlays before adding new visual rules | done | Battle Map owner | `docs/projects/battle-map/PARITY_CHECKLIST.md`, `src/components/BattleMap/__tests__/BattleMap.parity.test.tsx`, `src/components/BattleMap/__tests__/BattleMap3D.parity.test.tsx` | Checklist and focused tests now gate the next renderer-change slice; re-run if movement/overlay/highlight behavior changes |
 
 ## Global Gap Imports
 
@@ -119,11 +141,13 @@ Check the global gap tracker before expanding scope:
 |---|---|---|
 | Registry row + gap signal | Project ownership and unresolved contract direction | `docs/projects/PROJECT_TRACKER.md` |
 | Live runtime host | 2D/3D map is rendered through CombatView with turn/economy hooks | `src/components/Combat/CombatView.tsx` |
+| Map data write channels | Map terrain/state updates route through `setMapData` callbacks from Turn Manager and Ability System | `src/components/Combat/CombatView.tsx`, `src/hooks/combat/useTurnManager.ts`, `src/hooks/useAbilitySystem.ts` |
 | Shared map interaction contract | Selection, move, path, click routing, action mode handling | `src/hooks/useBattleMap.ts` |
 | Combat targeting + LOS contracts | Target/area computation and line-of-sight checks are shared utilities | `src/hooks/combat/useTargetSelection.ts`, `src/hooks/combat/useTargetValidator.ts`, `src/utils/spatial/lineOfSight.ts` |
-| Generator and setup helper | Deterministic terrain generation and spawn/setup logic | `src/services/battleMapGenerator.ts`, `src/hooks/useBattleMapGeneration.ts` |
+| Generator and setup helper | Deterministic terrain generation, spawn/setup logic, and corridor repair when cave/dungeon maps split into islands | `src/services/battleMapGenerator.ts`, `src/services/__tests__/battleMapGenerator.test.ts`, `src/hooks/useBattleMapGeneration.ts` |
+| Parity checklist and focused renderer tests | State updates, overlays, and highlighting now have a durable 2D/3D proof gate | `docs/projects/battle-map/PARITY_CHECKLIST.md`, `src/components/BattleMap/__tests__/BattleMap.parity.test.tsx`, `src/components/BattleMap/__tests__/BattleMap3D.parity.test.tsx`, `src/components/BattleMap/__tests__/BattleMap.visibility.test.tsx`, `src/components/BattleMap/__tests__/BattleMap3D.visibility.test.tsx` |
 | UI and renderer subtrees | Current production feature breadth and renderer split | `src/components/BattleMap/*` plus `src/components/BattleMap/terrain/*`, `camera/*`, `characters/*`, `vfx/*` |
-| Test visibility points | Current verified test touchpoints for map UI and setup | `src/components/BattleMap/__tests__/AbilityButton.test.tsx`, `src/components/BattleMap/__tests__/ActionEconomyBar.test.tsx`, `src/components/BattleMap/__tests__/BattleMapTile.test.tsx`, `src/hooks/__tests__/useBattleMapGeneration.test.ts`, `src/hooks/combat/__tests__/useGridMovement.test.ts`, `src/hooks/combat/__tests__/useTargetSelection.test.ts` |
+| Test visibility points | Current verified test touchpoints for map UI, setup, connectivity repair, and parity proof | `src/components/BattleMap/__tests__/AbilityButton.test.tsx`, `src/components/BattleMap/__tests__/ActionEconomyBar.test.tsx`, `src/components/BattleMap/__tests__/BattleMapTile.test.tsx`, `src/hooks/__tests__/useBattleMapGeneration.test.ts`, `src/hooks/combat/__tests__/useGridMovement.test.ts`, `src/hooks/combat/__tests__/useTargetSelection.test.ts`, `src/services/__tests__/battleMapGenerator.test.ts` |
 | Architecture context | Prior drift corrections and system boundaries | `docs/architecture/domains/battle-map.md`, `docs/architecture/COMBAT_MAP_ENGINE.md`, `src/components/BattleMap/BattleMap.README.md` |
 
 ## Supporting Files
@@ -134,6 +158,7 @@ Check the global gap tracker before expanding scope:
 | `docs/projects/GLOBAL_GAPS.md` | Repo-level routing for non-local gaps | active |
 | `docs/projects/battle-map/TRACKER.md` | Active bounded tasks and status | active |
 | `docs/projects/battle-map/GAPS.md` | Durable unresolved findings | active |
+| `docs/projects/battle-map/PARITY_CHECKLIST.md` | Renderer parity proof gate for state updates, overlays, and highlights | active |
 | `docs/architecture/COMBAT_MAP_ENGINE.md` | Cross-subsystem map of combat map engine | active |
 
 ## Artifact Boundary
@@ -144,8 +169,21 @@ Keep durable evidence here (scope, contracts, status, and follow-up decisions). 
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Is map mode state part of combat state persistence, or UI-only state in CombatView? | Affects save/load and replay consistency across renderers | Battle Map + Combat owners | next parity-sensitive work |
+| Is map mode state part of combat state persistence, or UI-only state in CombatView? | Affects save/load and replay consistency across renderers | Battle Map + Combat owners | resolve |
 | What minimal map event schema should be shared with any future combat timeline/logging tools? | Prevents duplicate validation logic and missed sync points | Battle Map owner | any integration pass |
+
+## Map-State / Event Sync Contract
+
+- Map topology/state source-of-truth: `CombatView` owns `mapData` (`useState`) and passes it read-only to both `BattleMap` and `BattleMap3D`.
+- Write channels:
+  - `useTurnManager` via `onMapUpdate`, currently for round-based environmental tile updates in `useCombatEngine.updateRoundBasedEffects`.
+  - `useAbilitySystem` via `onMapUpdate`, when command execution returns a changed `finalState.mapData` (terrain-command and other map-mutating command outputs).
+- Ownership boundaries:
+  - UI mode (`renderMode`) and interaction affordances are owned by UI/components and `useBattleMap`.
+  - Movement/target/path overlays are derived state from shared hooks and are parity-consumed by both renderers.
+  - Rule-side combat events (`unit_move`, `unit_attack`, etc.) go through `combatEvents` and are not map-state write channels.
+- Persistence note:
+  - Current storage/persistence of `mapData` in encounter-wide save/load is not implemented in this doc slice; it remains a follow-up decision for later if replay or deterministic restore is required.
 
 ## Resume Path For A Cold Agent
 
@@ -153,7 +191,7 @@ Keep durable evidence here (scope, contracts, status, and follow-up decisions). 
 2. Read `docs/projects/battle-map/TRACKER.md`.
 3. Read `docs/projects/battle-map/GAPS.md`.
 4. Confirm registry and global links in `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md`.
-5. Continue from row `T2` in the tracker.
+5. Continue from the next gap row in `TRACKER.md`: G3 is review-required, so keep the naming decision visible and use the parity checklist before any renderer behavior expansion.
 
 
 

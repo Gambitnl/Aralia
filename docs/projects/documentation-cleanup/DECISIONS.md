@@ -1,7 +1,7 @@
 # Documentation Cleanup Decisions
 
 Status: active
-Last updated: 2026-06-07
+Last updated: 2026-06-08
 
 ## D-01: Path-Drift Packets 1G.7–1G.10 Evidence Reconciliation
 
@@ -54,3 +54,33 @@ instead of the durable living-project surface at
 
 Decision: Correct the link to point at the living-project surface. The
 ignored task folder remains as evidence only, per NORTH_STAR.md scope.
+
+## D-03: Historical Packet Drift Wording Correction (G1)
+
+Date: 2026-06-08
+Gap addressed: G1 (remaining historical packet wording curation)
+
+### Evidence Collected
+
+From a direct repo check of the `1G.*` packet targets:
+
+| Packet | Named target in packet | Current repo state | Packet wording action |
+|---|---|---|---|
+| 1G.7 | `src/context/README.md` | Exists | Correct the drift note from "currently missing" to "now exists" and keep packet as historical. |
+| 1G.8 | `src/components/CharacterCreator/README.md` | Missing | Preserve as historical migration intent (claim still accurate). |
+| 1G.9 | `src/components/LoadGameTransition.README.md` | Moved to `src/components/SaveLoad/LoadGameTransition.README.md` | Correct packet wording to reference the current location and keep as historical migration intent. |
+| 1G.10 | `src/features/SubmapGeneration/README.md` | Exists | Correct the drift note from "currently missing" to "now exists" and keep packet as historical. |
+
+### Decision
+
+For G1, I am recording a **correct-and-preserve** handling pattern:
+
+1. **Correct stale wording** in historical records where a claim is now factually
+   incorrect (`1G.7`, `1G.9`, `1G.10`).
+2. **Preserve all four packets as history** where they sit in the ignored task
+   folder and are not treated as live authority.
+3. Prefer live authority to `docs/projects/documentation-cleanup/*` and the
+   two registry ledgers.
+
+No broad deletion or pruning is performed; only curation of wording for evidence
+consistency was required.

@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: Game & Simulation
 subcategory: Combat & Encounters
 status: active
-last_updated: 2026-06-07
+last_updated: 2026-06-08
 confidence: medium
 evidence: docs/projects/3d-combat-map
-gap_signal: "4 open gaps (G2 reclassified: SSAO removed in code, live-proof pending); G1 closed"
+gap_signal: "5 open gaps (G1/G2 closed; NC1 done. Open: G3 pop-out proof, G4 slope proof, G5 style policy, G6 shader warning, G7 NC2 blocked by World3D save fixture)"
 protocol: living project doc set
-next_step: Run NC1 (visual smoke) and NC2 (integration) in the next slice, or take G4 terrain-raycast fix.
+next_step: Unblock NC2 (G7 — capture a 2D-exploration save fixture or add a dev hook to reach a battle-map encounter, then run nc2-combatview.mjs), or run the G4 terrain raycast browser proof.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -30,8 +30,9 @@ required_verification:
   - scoped_tests
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-07
-workflow_gaps_reviewed: 2026-06-07
+  - browser_visual_smoke
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -43,7 +44,7 @@ human_decision_required: no
 # 3D Combat Map North Star
 
 Status: active
-Last updated: 2026-06-07
+Last updated: 2026-06-08
 
 ## Purpose
 
@@ -89,15 +90,15 @@ Project: 3D Combat Map
 Slug: 3d-combat-map
 Category: Feature/UI Projects
 Status: active
-Last updated: 2026-06-07
+Last updated: 2026-06-08
 Confidence: medium
 Evidence: docs/projects/3d-combat-map
-Gap signal: 4 open gaps (G2 reclassified: SSAO removed in code, live-proof pending); G1 closed
+Gap signal: 5 open gaps (G2/NC1 closed; G3 pop-out proof, G4 slope proof, G5 style policy, G6 shader warning, G7 blocker remain)
 Protocol: living project doc set
-Next step: Run NC1 (visual smoke) and NC2 (integration), or take G4 terrain-raycast fix.
+Next step: Run the G4 terrain raycast browser proof, or run NC2 pop-out lifecycle proof.
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency
-Last proof: 2026-06-07
+Completed verification: docs_consistency, scoped_tests, browser_visual_smoke
+Last proof: 2026-06-08
 Workflow gaps reviewed: 2026-06-07
 Agent comments:
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
@@ -110,7 +111,7 @@ Compaction status: not_needed
 - Target quality remains 60 fps on GTX 1060+ class desktop hardware.
 - Current engine constraints in use:
   - Browser + three.js rendering via `<Canvas>`.
-  - Post effects are optional by budget; SSAO is currently a known stability issue in this codepath.
+  - Post effects are optional by budget; SSAO remains excluded from this codepath after the 2026-06-08 NC1 browser proof confirmed the replacement stack was free of repeated SSAO/NormalPass/WebGL blit errors.
   - Deterministic generator input for fairness and reproducibility.
 - MVP boundary for this project:
   - Implement all required 3D combat-map quality outcomes only within combat flow.
@@ -143,7 +144,7 @@ Not required for MVP:
 
 ## Open Questions
 
-1. Should SSAO and post-processing usage remain required in MVP, or be made optional by render mode profile? (Resolved in code: SSAO + `enableNormalPass` were removed for WebGL2 stability and ContactShadows now provides ground darkening — see `src/components/BattleMap/BattleMap3D.tsx:228-251`. Remaining work is a live confirmation that the Bloom+Vignette+ContactShadows stack is console-clean, tracked as NC1.)
+1. Should SSAO and post-processing usage remain required in MVP, or be made optional by render mode profile? (Resolved in code and proof: SSAO + `enableNormalPass` were removed for WebGL2 stability, ContactShadows now provides ground darkening, and NC1 passed in the browser on 2026-06-08 without repeated `GL_INVALID_OPERATION`, `glBlitFramebuffer`, `SSAO`, or `NormalPass` errors.)
 2. Should `CombatView` pop-out 3D mode include stronger external sync for render mode and lifecycle state?
 3. How strict should the 60 fps requirement be in the coldest test hardware profile before relaxing effects?
 
@@ -152,8 +153,8 @@ Not required for MVP:
 1. Read this file.
 2. Read `docs/projects/3d-combat-map/TRACKER.md` (Next-Check List NC1/NC2).
 3. Read `docs/projects/3d-combat-map/GAPS.md`.
-4. Read `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` for the durable NC1/NC2 step definitions.
-5. Continue from top-priority open gap, or execute NC1/NC2 to close out the post-processing and pop-out concerns.
+4. Read `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` for the durable NC1/NC2 step definitions and proof log.
+5. Continue with the G4 browser slope-click proof, or execute NC2 to close out the pop-out concern.
 
 
 ## Cold-Start Gap Routing

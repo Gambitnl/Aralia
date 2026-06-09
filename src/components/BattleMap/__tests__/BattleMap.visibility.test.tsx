@@ -176,7 +176,10 @@ describe('BattleMap visibility handoff', () => {
         mapData
       })
     }));
-    expect(screen.getByTitle('(0, 0) - floor - Elev: 0 - dim')).toBeInTheDocument();
-    expect(screen.getByTitle('(1, 0) - floor - Elev: 0 - hidden')).toBeInTheDocument();
+    const dimTile = screen.getByRole('button', { name: 'Tile floor at 0, 0' });
+    const hiddenTile = screen.getByRole('button', { name: 'Tile floor at 1, 0' });
+
+    expect(dimTile).toHaveAttribute('title', expect.stringContaining('(0, 0) - floor - Elev: 0 - dim'));
+    expect(hiddenTile).toHaveAttribute('title', expect.stringContaining('(1, 0) - floor - Elev: 0 - hidden'));
   });
 });

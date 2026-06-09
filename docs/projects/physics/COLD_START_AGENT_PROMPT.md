@@ -1,6 +1,6 @@
 # Physics System Cold Start Agent Handoff
 
-Status: active
+Status: review-required
 Last updated: 2026-06-06
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.

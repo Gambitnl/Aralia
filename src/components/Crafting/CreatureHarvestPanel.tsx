@@ -1,26 +1,29 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 08/06/2026, 14:31:44
+ * Dependents: components/Combat/CombatView.tsx, components/Crafting/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/components/Crafting/CreatureHarvestPanel.tsx
  * UI component for harvesting parts from defeated creatures using Poisoner's Kit.
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGameState } from '../../state/GameContext';
 import { attemptCreatureHarvest, getHarvestableParts } from '../../systems/crafting/creatureHarvestSystem';
 import { HarvestableCreature, CreaturePart, getCreatureById } from '../../systems/crafting/creatureHarvestData';
-import { Crafter } from '../../systems/crafting/craftingSystem';
+import { resolveCraftingCrafter } from './crafterAdapter';
 import './CreatureHarvestPanel.css';
-
-// Mock crafter - in production, this would come from selected party member
-// TODO(lint-intent): Reintroduce a proficiency helper on the crafter mock once the Crafter type exposes it; keep this lean to satisfy current typing while preserving intent for future skill checks.
-const mockCrafter: Crafter = {
-    id: 'harvester-crafter',
-    name: 'Harvester',
-    inventory: [],
-    rollSkill: (skillName: string) => {
-        const d20 = Math.floor(Math.random() * 20) + 1;
-        const modifier = skillName.includes('Kit') || skillName.includes('Supplies') ? 5 : 2;
-        return d20 + modifier;
-    },
-};
 
 interface CreatureHarvestPanelProps {
     creatureId: string;
@@ -28,13 +31,17 @@ interface CreatureHarvestPanelProps {
 }
 
 export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ creatureId, onClose }) => {
-    const { dispatch } = useGameState();
+    const { state, dispatch } = useGameState();
     const [harvestLog, setHarvestLog] = useState<string[]>([]);
     const [isHarvesting, setIsHarvesting] = useState(false);
     const [harvestedParts, setHarvestedParts] = useState<Set<string>>(new Set());
 
     const creature = getCreatureById(creatureId);
     const parts = getHarvestableParts(creatureId);
+    const crafter = useMemo(
+        () => resolveCraftingCrafter(state, { allowCharacterSheetSelection: false }).crafter,
+        [state.party]
+    );
 
     if (!creature) {
         return (
@@ -50,7 +57,7 @@ export const CreatureHarvestPanel: React.FC<CreatureHarvestPanelProps> = ({ crea
 
         setIsHarvesting(true);
         setTimeout(() => {
-            const result = attemptCreatureHarvest(mockCrafter, creatureId, part.id);
+            const result = attemptCreatureHarvest(crafter, creatureId, part.id);
 
             if ('message' in result) {
                 setHarvestLog(prev => [...prev, result.message]);

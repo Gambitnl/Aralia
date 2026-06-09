@@ -1,8 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { createPlayerCombatCharacter } from '../../combat/combatUtils';
-// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { PlayerCharacter as _PlayerCharacter, Item } from '../../../types';
+import { CLASSES_DATA } from '../../../data/classes';
+import { Item } from '../../../types';
 import { Spell, SpellSchool } from '../../../types/spells';
 import { createMockPlayerCharacter, createMockSpell } from '../../core/factories';
 
@@ -146,6 +146,86 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
 
     expect(cunningDash).toBeDefined();
     expect(cunningDash?.cost.type).toBe('bonus');
+  });
+
+  it('should include limited-use class features for Barbarian and Bard', () => {
+    const barbarian = createMockPlayerCharacter({
+      class: CLASSES_DATA.barbarian,
+      classLevels: { barbarian: 1 },
+      level: 1,
+      limitedUses: {
+        rage: {
+          name: 'Rage',
+          current: 2,
+          max: 2,
+          resetOn: 'long_rest'
+        }
+      }
+    });
+
+    const barbarianCombat = createPlayerCombatCharacter(barbarian);
+    const rage = barbarianCombat.abilities.find(a => a.id === 'rage');
+
+    expect(rage).toBeDefined();
+    expect(rage?.cost.type).toBe('bonus');
+    expect(rage?.usesRemaining).toBe(2);
+    expect(rage?.maxUses).toBe(2);
+
+    const bard = createMockPlayerCharacter({
+      class: CLASSES_DATA.bard,
+      classLevels: { bard: 1 },
+      level: 1,
+      limitedUses: {
+        bardic_inspiration: {
+          name: 'Bardic Inspiration',
+          current: 3,
+          max: 3,
+          resetOn: 'long_rest'
+        }
+      }
+    });
+
+    const bardCombat = createPlayerCombatCharacter(bard);
+    const bardicInspiration = bardCombat.abilities.find(a => a.id === 'bardic_inspiration');
+
+    expect(bardicInspiration).toBeDefined();
+    expect(bardicInspiration?.cost.type).toBe('bonus');
+    expect(bardicInspiration?.usesRemaining).toBe(3);
+    expect(bardicInspiration?.maxUses).toBe(3);
+  });
+
+  it('should include missing class features for Monk, Paladin, and Warlock', () => {
+    const monk = createMockPlayerCharacter({
+      class: CLASSES_DATA.monk,
+      classLevels: { monk: 2 },
+      level: 2,
+    });
+    const monkCombat = createPlayerCombatCharacter(monk);
+    const flurry = monkCombat.abilities.find(a => a.id === 'flurry_of_blows');
+
+    expect(flurry).toBeDefined();
+    expect(flurry?.cost.type).toBe('bonus');
+
+    const paladin = createMockPlayerCharacter({
+      class: CLASSES_DATA.paladin,
+      classLevels: { paladin: 2 },
+      level: 2,
+    });
+    const paladinCombat = createPlayerCombatCharacter(paladin);
+    const divineSmite = paladinCombat.abilities.find(a => a.id === 'divine_smite');
+
+    expect(divineSmite).toBeDefined();
+
+    const warlock = createMockPlayerCharacter({
+      class: CLASSES_DATA.warlock,
+      classLevels: { warlock: 1 },
+      level: 1,
+    });
+    const warlockCombat = createPlayerCombatCharacter(warlock);
+    const pactMagic = warlockCombat.abilities.find(a => a.id === 'pact_magic');
+
+    expect(pactMagic).toBeDefined();
+    expect(pactMagic?.type).toBe('utility');
   });
 
   it('should convert prepared spells into abilities', () => {

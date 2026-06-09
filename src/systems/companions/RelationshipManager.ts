@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:33
- * Dependents: companionReducer.ts
+ * Last Sync: 08/06/2026, 14:12:11
+ * Dependents: state/reducers/companionReducer.ts
  * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
@@ -34,7 +34,7 @@ import { GameState as _GameState } from '../../types';
 import { generateId } from '../../utils/core/idGenerator';
 
 export class RelationshipManager {
-  // Approval scale: -500 to +500 with 100-point step changes
+  // Canonical runtime approval scale: -500 to +500 with 100-point step changes.
   // Each relationship level spans exactly 100 points for clean progression
   private static readonly APPROVAL_THRESHOLDS: Record<RelationshipLevel, [number, number]> = {
     hated: [-500, -401],      // Actively despised
@@ -49,6 +49,10 @@ export class RelationshipManager {
     devoted: [400, 499],      // Deep loyalty
     romance: [500, 500],      // Special state (requires explicit trigger at max devotion)
   };
+
+  // Loyalty is treated as a retention floor here, not as the full leave/betrayal engine.
+  // When a companion falls below this floor, callers can make the story-specific decision.
+  private static readonly LOYALTY_RETENTION_FLOOR = 10;
 
   /**
    * Calculates the new approval value and returns the updated companion state.
@@ -186,8 +190,8 @@ export class RelationshipManager {
   }
 
   static checkLoyalty(companion: Companion): boolean {
-    // Simple check: if loyalty is too low, they might leave
-    // This is a placeholder for more complex logic
-    return companion.loyalty > 10;
+    // Conservative contract: this only answers whether the companion is still above the
+    // minimum retention floor. It does not remove the companion or resolve betrayal.
+    return companion.loyalty > this.LOYALTY_RETENTION_FLOOR;
   }
 }

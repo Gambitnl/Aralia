@@ -1,7 +1,7 @@
 # UI Primitives North Star
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Dashboard Card Schema
 
@@ -13,12 +13,12 @@ Last updated: 2026-06-05
 | Status | active |
 | Confidence | unknown |
 | Evidence | docs/projects/ui-primitives/TRACKER.md; docs/projects/ui-primitives/GAPS.md |
-| Gap signal | present |
+| Gap signal | G5 validation feedback, G9 focus-trap manager coverage, G10/G11 ARIA labeling passes, and G12 coin-display semantics done |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md and keep the gap log aligned. |
+| Next step | No open UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass. |
 | Required verification | docs consistency |
-| Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
+| Completed verification | docs refresh, focused GameModals, Input, and coin-display tests |
+| Last proof | 2026-06-08 GameModals focus-trap tests, Input accessibility feedback tests, and CoinDisplay/CoinPurseDisplay tests |
 | Workflow gaps reviewed | yes |
 
 ## Why this project exists
@@ -60,14 +60,14 @@ UI primitives are the shared foundation for gameplay and feature interfaces. Thi
 - [RESOLVED] Focus traps have been audited and fully implemented across all dynamic modals.
 - [RESOLVED] Focus trap restoration on unmount/programmatic close is now fixed with cleanup and deferred restoration.
 - [RESOLVED] Fallback Escape handler at GameModals level ensures all modals are closeable via keyboard.
-- Standard form validation triggers and wider responsive scaling remains informal (G5).
-- ~16 modals rendered via GameModals still lack `useFocusTrap` coverage (G9).
-- Inconsistent ARIA dialog labeling across modal surfaces (G10).
+- [RESOLVED] Input/TextArea/Select validation feedback now uses native label, invalid, and described-by relationships (G5).
+- [RESOLVED] GameModals manager-owned overlays now use focus-trap wrappers where child components do not already own `useFocusTrap` (G9).
+- [RESOLVED for `src/components/ui`] Shared UI modal roots now use consistent dialog labeling (`role="dialog"`, `aria-modal`, and title-backed labeling) (G10).
+- Non-UI modal families completed the same labeling normalization (G11); `src/components/ImageModal.tsx` is an alias shim rather than a runtime modal root.
+- [RESOLVED] Coin display primitives are focusable tooltip targets without misleading button semantics, and the empty purse state now renders a visible zero-gold badge (G12).
 
 ## Next checks
-- G9: Audit and integrate `useFocusTrap` into the ~16 modals rendered by GameModals that currently lack focus trapping.
-- G10: Define and apply a standard ARIA labeling convention (`role="dialog"`, `aria-modal`, `aria-labelledby`/`aria-label`) across all modal surfaces.
-- G5: Define shared form validation and feedback specs for `Input.tsx`.
+- No open UI primitive gap remains from the current audited set after the G12 coin-display semantics pass. Before assigning another forward pass, run a fresh source-backed gap scan and register the specific finding.
 
 
 ## Cold-Start Gap Routing

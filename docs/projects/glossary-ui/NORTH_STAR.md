@@ -1,26 +1,53 @@
+---
+schema_version: 1
+project: Glossary UI
+slug: glossary-ui
+category: Feature/UI Projects
+main_category: Interface & Experience
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-09
+confidence: medium
+evidence: docs/projects/glossary-ui
+gap_signal: "4 open gaps"
+protocol: living project doc set
+next_step: Track item metadata and categorization assumptions affecting this UI.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - docs_consistency
+  - rebuild_verification
+completed_verification:
+  - docs_consistency
+  - rebuild_verification
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: no
+---
+
 # Glossary UI North Star
 
-Status: active  
-Last updated: 2026-06-05
+Status: active
+Last updated: 2026-06-09
 
 ## Purpose
 Keep the glossary feature discoverable as a working project surface. The feature is already implemented; this folder now captures current behavior, integration points, and open risks before further extension.
-
-## Dashboard Card Schema
-
-Project: Glossary UI
-Slug: glossary-ui
-Category: Feature/UI Projects
-Status: active
-Confidence: medium
-Evidence: docs/projects/glossary-ui/NORTH_STAR.md
-Gap signal: 3 open gaps
-Protocol: living project doc set
-Next step: Document the non-dev glossary rebuild contract and keep the proof path explicit.
-Required verification: docs_consistency
-Completed verification: not run this pass
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
 
 ## Scope
 This project covers the glossary modal and content browsing experience under:
@@ -41,6 +68,24 @@ This project covers the glossary modal and content browsing experience under:
   - `src/components/providers/DataLoaderGate.tsx`
   - `src/App.tsx` and `src/components/layout/GameModals.tsx` modal wiring
 
+## Glossary Rebuild Pipeline
+
+The glossary system uses a three-stage pipeline. See `RUNBOOK.md` for detailed
+commands and verification steps.
+
+| Stage | Script | Input | Output |
+|---|---|---|---|
+| 1. Ingest | `scripts/ingestPhbGlossary.ts` | vendor 5eTools data | `public/data/glossary/entries/` |
+| 2. Index | `scripts/generateGlossaryIndex.js` | entry files + spells manifest | `public/data/glossary/index/` |
+| 3. Bundle | `scripts/bundle-static-data.ts` | index files via `main.json` | `public/data/glossary_bundle.json` |
+
+Non-dev rebuild: `npm run glossary:rebuild` now runs the full ingest -> index ->
+bundle flow. `npm run build:data` still handles the broader data build and now
+delegates to the glossary rebuild after item registry generation. See G1 in
+`GAPS.md` for the resolved proof path.
+
+Dev-server shortcut: `POST /api/glossary/rebuild-index` triggers Stage 2 via the `glossaryIndexManager` Vite plugin.
+
 ## File Map (Primary)
 - `src/components/Glossary/Glossary.tsx` - container modal, fetch lifecycle, open/close, initial term selection.
 - `src/components/Glossary/GlossarySidebar.tsx` - tree with categories, search toggle, term highlighting.
@@ -59,20 +104,21 @@ This project covers the glossary modal and content browsing experience under:
 - `docs/projects/PROJECT_TRACKER.md` is the registry anchor and cross-project handoff point.
 
 ## Open Issues and Next Checks
-- Confirm a non-dev rebuild contract for glossary index generation in standard build/CI paths, and keep the command path and proof file named in the tracker.
+- Keep the named `npm run glossary:rebuild` entry point in sync if the pipeline
+  stages change again.
 - Decide whether Equipment grouping taxonomy should stay based on `itemType` strings or move to a curated canonical list.
 - Validate whether all generated glossary fields consumed by UI, including `itemMetadata`, are consistently typed and preserved in all item pipelines.
 
 ## Current Focus
-- T2 is the active slice: capture the non-dev glossary rebuild contract as a stable project-level check.
-- Keep the source -> index -> bundle path visible in docs so the next agent can resume without reading runtime code first.
-- Preserve the item-categorization boundary: this folder records the dependency, but `docs/projects/item_categorization` owns the taxonomy decision.
+- T2 is done: the non-dev rebuild contract is now captured in `RUNBOOK.md`, and the full glossary rebuild has a named `npm run glossary:rebuild` entry point.
+- T3 is the next active slice: track item metadata and categorization assumptions.
+- Keep the item-categorization boundary: this folder records the dependency, but `docs/projects/item_categorization` owns the taxonomy decision.
 
 ## Resume Path
 1. Read `TRACKER.md` for active tasks.
 2. Read `GAPS.md` for durable unresolved items.
-3. Verify the pipeline links with `PROJECT_TRACKER.md` and any relevant entries in `docs/tasks/glossary` and `docs/projects/item_categorization`.
-
+3. Read `RUNBOOK.md` for the rebuild pipeline and verification.
+4. Verify the pipeline links with `PROJECT_TRACKER.md` and any relevant entries in `docs/tasks/glossary` and `docs/projects/item_categorization`.
 
 ## Cold-Start Gap Routing
 

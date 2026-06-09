@@ -1,7 +1,7 @@
 # Roadmap Maintenance Gap Registry
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-08
 
 ## Gap Log
 
@@ -11,6 +11,7 @@ Last updated: 2026-06-05
 | G2 | not_started | support_needed_now | future agent | `docs/projects/roadmap-maintenance` + `roadmap-local` bridge | Local open-task pass | The remaining roadmap-local open items still need durable routing: task-number collision validation, full documentation categorization, queue-driven document processing, vision freshness workflow, and hybrid insights pipeline. | `.agent/roadmap-local/features/roadmap-visualizer/open_tasks.md`; `devtools/roadmap/ROADMAP_AUDIT_RUNBOOK.local.md` | These items are real, remain open in local evidence, and need one glance of project ownership before a fresh roadmap-local run changes anything. | Keep each item here unless a new audit proves it belongs in `docs/projects/GLOBAL_GAPS.md` or in local-only runtime state. | Re-run the open-task snapshot or audit output and confirm the same routing decision. |
 | G3 | not_started | adjacent_follow_up | future agent | `docs/projects/roadmap-maintenance` | Evidence capture | The cross-check output files may be historical rather than fresh proof, and this docs pass should not imply otherwise. | `devtools/roadmap/ROADMAP_FEATURE_CROSSCHECK.md`; `devtools/roadmap/ROADMAP_BRANCH_COMPLETENESS_AUDIT.md`; `devtools/roadmap/ROADMAP_AUDIT_RUNBOOK.local.md` | Stale cross-check artifacts can cause false confidence in roadmap alignment and downstream decisions. | Treat them as historical until a new roadmap-local run refreshes the timestamps or proof summary. | Refresh the proof date or add an explicit historical note before using them as current evidence. |
 | G4 | done | adjacent_follow_up | future agent | `docs/projects/roadmap-maintenance` | General evidence review | The durable-corpus split is now explicit: ignored `docs/tasks/roadmap` evidence stays external, while this folder keeps the stable handoff slice. | `docs/tasks/roadmap/NORTH_STAR.md`; `docs/projects/GLOBAL_GAPS.md`; `docs/projects/roadmap-maintenance/NORTH_STAR.md` | Preserving continuity without duplicating local/tooling noise is now documented instead of implied. | Keep the boundary small and promote only genuinely cross-project items to `GLOBAL_GAPS.md`. | Future iterations only need to revisit if the durable corpus boundary changes. |
+| G5 | blocked | blocked_human_decision | human/product owner + roadmap maintainer | `docs/projects/code-modularization-audit` CMA-G1 | Code modularization audit routing | Roadmap visualizer/generator files are large modularization candidates, but roadmap-local evidence and review gates must be settled before code movement. | `devtools/roadmap/src/components/debug/roadmap/RoadmapVisualizer.tsx`; `devtools/roadmap/scripts/roadmap-engine/generate.ts`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G1 | Roadmap is the project discoverability surface; an unsafe split can corrupt status/routing visibility. | Keep this routing-only until roadmap-local ownership and review gate are clear. | Owner-approved split plan names proof commands and preserves node health/routing behavior. |
 
 ## Classification Reference
 
