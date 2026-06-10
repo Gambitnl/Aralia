@@ -1,7 +1,44 @@
+---
+schema_version: 1
+project: World
+slug: world
+category: active project
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: review-required
+last_updated: 2026-06-09
+confidence: unknown
+evidence: "docs/projects/world/TRACKER.md; docs/projects/world/GAPS.md"
+gap_signal: "present; tile-grid phase-out dependency contract blocks forward runtime assignment"
+protocol: living-project
+next_step: Preserve tile-grid movement/save/migration contracts before forward runtime assignment.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs consistency
+completed_verification:
+  - docs refresh
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: phase-out-contract-review
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # World System North Star
 
 Status: review-required
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ## Dashboard Card Schema
 
@@ -18,11 +55,24 @@ Last updated: 2026-06-08
 | Next step | Preserve tile-grid movement/save/migration contracts before forward runtime assignment. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
-| Last proof | 2026-06-08 world-map dependency scan |
-| Workflow gaps reviewed | 2026-06-08 |
+| Last proof | 2026-06-09 Required Review Brief added for tile-grid phase-out contract |
+| Workflow gaps reviewed | 2026-06-09 |
 
 Dashboard lifecycle: phase-out-contract-review
 Assignment rule: Do not assign forward runtime changes until `MapData` tile-grid movement, save/load, and migration compatibility dependencies are explicitly preserved or routed.
+
+## Required Review Brief
+
+Title: Tile-grid world-map phase-out contract
+Question: Which tile-grid `MapData` gameplay contracts must remain canonical while Azgaar, worldSim, and 3D/world-render paths replace the old world-map renderer?
+Issue: The tile-grid world map is being phased out as a renderer, but its data contract still carries movement semantics, passability, discovery/current tile markers, startup/load continuity, migration compatibility, and 3D marker anchors.
+Current behavior: `MapPane`, `handleMovement`, `MapData`, app setup/load flows, and `worldDataMigration` still preserve tile-grid world data even as newer geography and rendering paths expand.
+Why blocked: Forward world-runtime agents could accidentally remove or bypass tile-grid fields that gameplay and save/load still depend on, so runtime edits must stop until the preservation contract is explicit.
+Option A: Keep tile-grid `MapData` as the canonical gameplay compatibility layer and adapt new renderers/world data around it.
+Option B: Promote a new canonical world geography contract and create an explicit migration/adapter layer for every tile-grid dependency before retiring old fields.
+Evidence: `docs/projects/world/GAPS.md` G3; `src/components/MapPane.tsx`; `src/hooks/actions/handleMovement.ts`; `src/types/world.ts`; `src/state/appState.ts`; `src/state/migrations/worldDataMigration.ts`; `src/hooks/useGameInitialization.ts`.
+Decision owner: Human/product owner plus world, map, save/load, and 3D/world-render owners.
+Proof after decision: Contract preservation table plus focused startup/load/movement verification proving passability, current/discovered markers, migration, and 3D marker anchors still work.
 
 ## Why This Project Exists
 

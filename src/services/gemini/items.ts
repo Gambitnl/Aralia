@@ -1,9 +1,25 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 05:08:18
+ * Dependents: services/geminiService.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { v4 as uuidv4 } from 'uuid';
 import { FAST_MODEL, COMPLEX_MODEL } from "../../config/geminiConfig";
 import { logger } from "../../utils/logger";
 import { safeJSONParse, cleanAIJSON, redactSensitiveData } from "../../utils/securityUtils";
 import { SeededRandom } from '@/utils/random';
-import { formatMemoryForAI } from "../../utils/memoryUtils";
+import { formatMemoryForAI } from "../../utils/world/memoryUtils";
 import { InventoryResponseSchema, ItemSchema } from "../geminiSchemas";
 import { generateText } from "./core";
 import { GeminiHarvestData, GeminiInventoryData, GeminiTextData, StandardizedResult } from "./types";

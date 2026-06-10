@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: RealmSmith Service
+slug: realmsmith-service
+category: Runtime Support
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/realmsmith-service
+gap_signal: 3 open gaps (2 support-needed, 1 adjacent follow-up)
+protocol: living project doc set
+next_step: Confirm the service contract and retry policy from source before the next implementation change.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: RealmSmith Service
 
 Status: active

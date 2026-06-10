@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Crafting UI
+slug: crafting-ui
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-09
+confidence: medium
+evidence: docs/projects/crafting-ui
+gap_signal: 5 open gaps (2 current blockers, 3 follow-ups)
+protocol: living project doc set
+next_step: Resume with G3 in GAPS.md and keep the UI/system contract boundary explicit.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - docs_consistency
+  - scoped_tests
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Crafting UI North Star
 
 Status: active

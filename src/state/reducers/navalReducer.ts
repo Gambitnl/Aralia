@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 09/06/2026, 02:48:37
+ * Dependents: None (Orphan)
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/state/reducers/navalReducer.ts
  * Reducer for managing naval state: ships, crew, and voyages.
@@ -8,6 +24,18 @@ import type { WeatherState } from '../../types';
 import { VoyageManager } from '../../systems/naval/VoyageManager';
 import { CrewManager } from '../../systems/naval/CrewManager';
 import { createShip } from '../../utils/navalUtils';
+import { SeededRandom } from '@/utils/random';
+
+const hashStringToSeed = (value: string): number => {
+  let hash = 2166136261;
+
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
 
 export const navalReducer = (state: GameState, action: AppAction): GameState => {
   switch (action.type) {
@@ -59,11 +87,26 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         wind: { direction: 'variable', speed: 'calm' },
         visibility: 'clear',
       };
+      const voyageShipIndex = state.naval.playerShips.findIndex(s => s.id === ship.id);
+      const voyageSeed = hashStringToSeed([
+        state.worldSeed,
+        voyageShipIndex,
+        ship.name,
+        ship.type,
+        state.naval.currentVoyage.daysAtSea + 1,
+        state.naval.currentVoyage.distanceTraveled,
+        state.naval.currentVoyage.distanceToDestination,
+        currentWeather.precipitation,
+        currentWeather.wind.direction,
+        currentWeather.wind.speed,
+        currentWeather.visibility
+      ].join('|'));
       const { newState: updatedVoyage, updatedShip } = VoyageManager.advanceDay(
         state.naval.currentVoyage,
         ship,
         currentWeather,
-        state.gold
+        state.gold,
+        new SeededRandom(voyageSeed)
       );
 
       // Check for arrival
@@ -95,7 +138,15 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         if (shipIndex === -1) return state;
 
         const updatedShips = [...state.naval.playerShips];
-        const newCrewMember = CrewManager.generateCrewMember(role);
+        const recruitSeed = hashStringToSeed([
+          state.worldSeed,
+          shipIndex,
+          updatedShips[shipIndex].name,
+          updatedShips[shipIndex].type,
+          role,
+          updatedShips[shipIndex].crew.members.length
+        ].join('|'));
+        const newCrewMember = CrewManager.generateCrewMember(role, 1, new SeededRandom(recruitSeed));
 
         // Deduct gold (simplified - should be in payload or checked)
         // For now, assuming payment happens elsewhere or is free for starter

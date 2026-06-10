@@ -6,6 +6,8 @@ import { characterReducer } from '../../../state/reducers/characterReducer';
 import type { Companion, GameState, Location, TempPartyMember } from '../../../types';
 import type { ComponentType } from 'react';
 
+let boardGameState: GameState;
+
 vi.mock('../../../hooks/useDialogueSystem', () => ({
     useDialogueSystem: vi.fn(() => ({
         generateResponse: vi.fn(),
@@ -15,6 +17,27 @@ vi.mock('../../../hooks/useDialogueSystem', () => ({
 
 vi.mock('../../../utils/permissions', () => ({
     canUseDevTools: () => true,
+}));
+
+vi.mock('../../../state/GameContext', () => ({
+    useGameState: () => ({
+        state: boardGameState,
+    }),
+}));
+
+vi.mock('../../../systems/economy/LoanSystem', () => ({
+    getAvailableLenders: vi.fn(() => ([
+        {
+            lenderId: 'guild-1',
+            lenderName: 'Merchant Guild',
+            factionId: 'guild-1',
+            maxAmount: 2500,
+            interestRate: 0.09,
+            minDuration: 7,
+            maxDuration: 30,
+            collateralRequired: 'none',
+        },
+    ])),
 }));
 
 vi.mock('../../ui/LoadingSpinner', () => ({
@@ -294,5 +317,51 @@ describe('GameModals focus-trap coverage', () => {
         createProps(withOpenModal({ isCourierPouchVisible: true }));
 
         expect(await screen.findByTestId('courier-pouch')).toBeInTheDocument();
+    });
+
+    it('mounts the investment board and dispatches caravan and loan actions from its buttons', async () => {
+        const dispatch = vi.fn();
+        const investmentRoute = {
+            id: 'route-1',
+            name: 'Amber Caravan',
+            originId: 'village-center',
+            destinationId: 'port-city',
+            goods: ['spice'],
+            status: 'active',
+            riskLevel: 0.25,
+            profitability: 18,
+        } as GameState['economy']['tradeRoutes'][number];
+
+        boardGameState = withOpenModal({
+            isInvestmentBoardVisible: true,
+            gold: 500,
+            economy: {
+                ...baseGameState.economy,
+                tradeRoutes: [investmentRoute],
+                marketEvents: [],
+            },
+        });
+
+        createProps(boardGameState, { dispatch });
+
+        expect(await screen.findByRole('dialog', { name: 'Investment Notice Board' })).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: /^Invest / }));
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'INVEST_IN_CARAVAN',
+            payload: { tradeRouteId: 'route-1', goldAmount: 100 },
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Negotiate' }));
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'TAKE_LOAN',
+            payload: {
+                lenderId: 'guild-1',
+                factionId: 'guild-1',
+                amount: 1000,
+                interestRate: 0.09,
+                durationDays: 7,
+            },
+        });
     });
 });

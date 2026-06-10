@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 20:19:40
+ * Last Sync: 09/06/2026, 08:08:04
  * Dependents: commands/index.ts
- * Imports: 14 files
+ * Imports: 15 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -37,10 +37,11 @@ import { GameState } from '@/types';
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
+import { MovementCommand } from '../effects/MovementCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
 import { rollDice, generateId, calculateCover, resolveAttack, getDistance, rollD20 } from '@/utils/combatUtils';
-import { SpellEffect, isDamageEffect, isHealingEffect, isStatusConditionEffect } from '@/types/spells';
+import { SpellEffect, isDamageEffect, isHealingEffect, isMovementEffect, isStatusConditionEffect } from '@/types/spells';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
 import { VisibilitySystem } from '@/systems/visibility';
 import { DismissFamiliarToPocketCommand, RecallFamiliarFromPocketCommand } from '../effects/FamiliarPocketCommands';
@@ -502,9 +503,15 @@ export class AbilityCommandFactory {
       return new StatusConditionCommand(effect, context);
     }
 
-    // Movement and teleport effects intentionally do not create commands here.
-    // Dash/Disengage are current-turn rule changes, and useActionExecutor owns
-    // that resource mutation so action economy stays centralized.
+    if (isMovementEffect(effect) && effect.movementType === 'teleport') {
+      // Teleport has a concrete landing resolution, so it keeps its command
+      // path even while the broader movement-economy bridge stays centralized.
+      return new MovementCommand(effect, context);
+    }
+
+    // Other movement effects stay out of this path for now. Dash/Disengage are
+    // current-turn rule changes, and useActionExecutor owns that resource
+    // mutation so action economy stays centralized.
     return null;
   }
 

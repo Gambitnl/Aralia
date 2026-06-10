@@ -21,6 +21,16 @@ const STATE = path.join(__dirname, 'storageState.json');
 const ctxOpts = { viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 };
 if (fs.existsSync(STATE)) { ctxOpts.storageState = STATE; }
 const ctx = await browser.newContext(ctxOpts);
+// LINEUP=1 → spawn the dev-only race lineup (one fighter per race) instead of the
+// normal party, so race-driven character visuals can be judged side by side.
+if (process.env.LINEUP) {
+  await ctx.addInitScript(() => { window.__BM3D_RACE_LINEUP = true; });
+}
+// CREATURELINEUP=1 → enemy creature lineup (goblin/skeleton/beast/orc/ogre) for
+// verifying creature-form + size visuals.
+if (process.env.CREATURELINEUP) {
+  await ctx.addInitScript(() => { window.__BM3D_CREATURE_LINEUP = true; });
+}
 const page = await ctx.newPage();
 const errors = [];
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
@@ -126,6 +136,31 @@ async function shoot(name) {
   const w = await waitCanvasSized();
   if (process.env.OVERVIEW) { console.log('overview:', JSON.stringify(await applyOverview())); await sleep(1500); }
   await sleep(2500); // let scene settle / render frames
+  // Deterministic camera pose via the dev hook (window.__bm3dCam). Format:
+  // POSE="distance,polarDeg,azimuthDeg" e.g. POSE="33,75,40" for a low
+  // horizon-facing tactical shot. Needs the CameraController dev hook.
+  if (process.env.POSE) {
+    const args = process.env.POSE.split(',').map(Number);
+    const r = await page.evaluate((a) => {
+      const c = window.__bm3dCam;
+      return c && c.pose ? c.pose(a[0], a[1], a[2]) : 'no-hook';
+    }, args);
+    console.log('pose:', JSON.stringify(r));
+    await sleep(1500);
+  }
+  // POSETEAM="team,distance,polarDeg,azimuthDeg" → frame a team's centroid
+  // (e.g. POSETEAM="player,16,72,30" for the race lineup).
+  if (process.env.POSETEAM) {
+    const parts = process.env.POSETEAM.split(',');
+    const team = parts[0];
+    const nums = parts.slice(1).map(Number);
+    const r = await page.evaluate(([t, a]) => {
+      const c = window.__bm3dCam;
+      return c && c.poseTeam ? c.poseTeam(t, a[0], a[1], a[2]) : 'no-hook';
+    }, [team, nums]);
+    console.log('poseTeam:', JSON.stringify(r));
+    await sleep(1500);
+  }
   const box = await page.evaluate(() => {
     const c = document.querySelector('canvas');
     const el = c ? (c.closest('div.relative') || c.parentElement) : null;

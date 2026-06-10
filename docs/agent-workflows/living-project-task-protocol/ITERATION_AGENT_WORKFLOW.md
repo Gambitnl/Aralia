@@ -54,6 +54,11 @@ whole workflow into every project handoff file.
    `docs/projects/PROJECT_CARD_SCHEMA.md`. The brief is the dashboard decision
    segment: it must explain the issue visually enough for the project detail
    page to show what needs to be decided, not just say "blocked."
+   If the decision is about a user-facing UI, layout, interaction, wording,
+   visual style, map surface, or other observable experience, also create an
+   isolated decision visualization page that shows "this is what I mean" before
+   asking for the decision. Register that page in a `Decision Visualizations`
+   table in `NORTH_STAR.md`, `TRACKER.md`, or `GAPS.md`.
 6. Once a project is marked `review-required`, `human-review-required`,
    `policy-review-required`, or has `human_decision_required: yes`, do not
    assign it to another forward-iteration agent until the required decision is
@@ -142,6 +147,11 @@ Before ending the iteration, update or explicitly report on:
    `GAPS.md` with the decision question, current behavior, blocked reason,
    options, evidence, decision owner, and proof-after-decision. Mention in the
    final report which file supplies the dashboard decision segment.
+8. For any user-facing required-review choice, verify that a decision
+   visualization page exists and that the project docs include a
+   `Decision Visualizations` table row with decision, status, visual page,
+   summary, and owner. If no visual page is needed, state why the decision is
+   non-visual in the final report.
 
 If an optional file exists but was not updated, say why in the final report. If
 it does not exist and is not needed, say it was not needed instead of creating

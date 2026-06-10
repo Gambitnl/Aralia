@@ -1,8 +1,10 @@
 
 import { describe, it, expect } from 'vitest';
-import { createEmptyMemory, addInteraction, decayMemories, getRelevantMemories, learnFact } from '../memoryUtils';
+import { createEmptyMemory, addInteraction, decayMemories, formatMemoryForAI, getRelevantMemories, learnFact } from '../memoryUtils';
 import { MemoryImportance, Interaction, Fact } from '../../../types/memory';
 
+// These tests cover the canonical world helper because Gemini item prompts now import it directly.
+// The deprecated bridge remains for legacy callers, so the proof here checks the owner path that active code should use.
 describe('memoryUtils', () => {
     it('creates an empty memory', () => {
         const memory = createEmptyMemory();
@@ -87,5 +89,32 @@ describe('memoryUtils', () => {
         expect(memory.knownFacts).toHaveLength(1);
         expect(memory.knownFacts[0].confidence).toBe(0.9);
         expect(memory.knownFacts[0].source).toBe('witnessed');
+    });
+
+    it('formats memory for ai through the canonical world helper', () => {
+        let memory = createEmptyMemory();
+        memory = addInteraction(memory, {
+            date: 100,
+            type: 'dialogue',
+            summary: 'Asked for help with the gate',
+            attitudeChange: 4,
+            significance: MemoryImportance.Standard
+        });
+        memory = learnFact(memory, {
+            id: 'player_helped_gate_watch',
+            dateLearned: 120,
+            confidence: 0.8,
+            significance: MemoryImportance.Major,
+            source: 'gossip'
+        });
+
+        const formatted = formatMemoryForAI(memory, ['gate']);
+
+        expect(formatted).toContain('Disposition towards player: 4');
+        expect(formatted).toContain('Past Interactions:');
+        expect(formatted).toContain('Asked for help with the gate');
+        expect(formatted).toContain('Known Facts:');
+        expect(formatted).toContain('player_helped_gate_watch');
+        expect(formatted).toContain('(Heard Rumor)');
     });
 });

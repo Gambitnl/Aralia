@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Scripts: Quality
+slug: scripts-quality
+category: Documentation
+main_category: "Tools, Docs & Agents"
+subcategory: "Scripts & Automation"
+status: active
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/scripts-quality
+gap_signal: "repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git"
+protocol: living project doc set
+next_step: Run npm run quality:debt at each quality-scope change and keep the routed scripts-git follow-up outside this project unless ownership changes.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - quality_debt_command
+  - docs_consistency
+completed_verification:
+  - quality_debt_command (2026-06-08)
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Scripts: Quality
 
 Status: active

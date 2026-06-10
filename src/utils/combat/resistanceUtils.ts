@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 02/06/2026, 15:48:55
+ * Last Sync: 09/06/2026, 04:06:46
  * Dependents: commands/effects/DamageCommand.ts, utils/combat/combatUtils.ts, utils/combat/index.ts
- * Imports: 2 files
+ * Imports: 3 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -16,6 +16,21 @@
 
 import type { DamageType } from '@/types/spells';
 import type { CombatCharacter } from '@/types';
+import { isPositionInArea, type ActiveSpellZone } from '@/systems/spells/effects/triggerHandler';
+
+type ResistanceSpellZone = Pick<
+  ActiveSpellZone,
+  'id' | 'spellId' | 'casterId' | 'position' | 'areaOfEffect' | 'direction' | 'effects' | 'targetingValidTargets'
+>;
+
+/**
+ * Optional zone state threaded into damage resolution so protective auras can
+ * affect damage the same turn they are active on the map.
+ */
+export interface ResistanceZoneContext {
+  spellZones?: ResistanceSpellZone[];
+  characters?: CombatCharacter[];
+}
 
 /**
  * Applies damage resistance/vulnerability/immunity logic based on D&D 5e rules.
@@ -48,17 +63,18 @@ export class ResistanceCalculator {
     damageType: DamageType,
     target: CombatCharacter,
     source?: CombatCharacter | null,
-    isMagical?: boolean
+    isMagical?: boolean,
+    zoneContext?: ResistanceZoneContext
   ): number {
     let finalDamage = Math.max(0, baseDamage);
 
     // 1. Immunity (Damage -> 0)
-    if (this.isImmune(target, damageType, isMagical)) {
+    if (this.isImmune(target, damageType, isMagical, zoneContext)) {
       return 0;
     }
 
     // Determine effective resistance (accounting for feats like Elemental Adept)
-    const hasResistance = this.isResistant(target, damageType, isMagical);
+    const hasResistance = this.isResistant(target, damageType, isMagical, zoneContext);
     const hasVulnerability = this.isVulnerable(target, damageType);
 
     // Check for Elemental Adept feat on the source
@@ -115,7 +131,8 @@ export class ResistanceCalculator {
   private static isImmune(
     character: CombatCharacter,
     damageType: DamageType,
-    isMagical?: boolean
+    isMagical?: boolean,
+    zoneContext?: ResistanceZoneContext
   ): boolean {
     const lowerType = damageType.toLowerCase();
     if (character.immunities?.some(dt => dt.toLowerCase() === lowerType)) return true;
@@ -126,6 +143,11 @@ export class ResistanceCalculator {
     
     // Check for temporary immunity modifiers applied by active spell effects (activeEffects)
     if (character.activeEffects?.some(ae => ae.mechanics?.damageImmunity?.some(dt => dt.toLowerCase() === lowerType))) return true;
+
+    // Preserve zone defenses as live battlefield state instead of flattening
+    // them into the target record. This lets auras like Silence or similar
+    // spell zones grant immunity while the target remains inside the area.
+    if (this.hasZoneDefense(character, damageType, zoneContext, 'immunity')) return true;
 
     return false;
   }
@@ -142,7 +164,8 @@ export class ResistanceCalculator {
   private static isResistant(
     character: CombatCharacter,
     damageType: DamageType,
-    isMagical?: boolean
+    isMagical?: boolean,
+    zoneContext?: ResistanceZoneContext
   ): boolean {
     const lowerType = damageType.toLowerCase();
     if (character.resistances?.some(dt => dt.toLowerCase() === lowerType)) return true;
@@ -153,6 +176,8 @@ export class ResistanceCalculator {
     
     // Check for temporary resistance modifiers applied by active spell effects (activeEffects)
     if (character.activeEffects?.some(ae => ae.mechanics?.damageResistance?.some(dt => dt.toLowerCase() === lowerType))) return true;
+
+    if (this.hasZoneDefense(character, damageType, zoneContext, 'resistance')) return true;
 
     return false;
   }
@@ -176,6 +201,66 @@ export class ResistanceCalculator {
     
     // Check for temporary vulnerability modifiers applied by active spell effects (activeEffects)
     if (character.activeEffects?.some(ae => ae.mechanics?.damageVulnerability?.some(dt => dt.toLowerCase() === lowerType))) return true;
+
+    return false;
+  }
+
+  /**
+   * Check whether any active spell zone at the target's current tile grants the
+   * requested defense. This keeps area auras and silence-style zones tied to
+   * map position instead of target sheet data.
+   */
+  private static hasZoneDefense(
+    character: CombatCharacter,
+    damageType: DamageType,
+    zoneContext: ResistanceZoneContext | undefined,
+    defenseType: 'resistance' | 'immunity'
+  ): boolean {
+    const zones = zoneContext?.spellZones;
+    if (!zones?.length || !character.position) return false;
+
+    const lowerType = damageType.toLowerCase();
+
+    return zones.some(zone => {
+      if (!zone.areaOfEffect) return false;
+      if (!isPositionInArea(character.position, zone.position, zone.areaOfEffect, zone.direction)) return false;
+      if (!this.zoneAppliesToCharacter(zone, character, zoneContext?.characters)) return false;
+
+      return zone.effects.some(effect => {
+        if (effect.type !== 'DEFENSIVE' || effect.defenseType !== defenseType) return false;
+
+        const damageTypes = effect.damageType;
+        return Array.isArray(damageTypes) && damageTypes.some(dt => dt.toLowerCase() === lowerType);
+      });
+    });
+  }
+
+  /**
+   * Preserve the source spell's targeting intent so ally-only auras do not
+   * accidentally apply to enemies just because they share the same area.
+   */
+  private static zoneAppliesToCharacter(
+    zone: ResistanceSpellZone,
+    target: CombatCharacter,
+    characters?: CombatCharacter[]
+  ): boolean {
+    const validTargets = zone.targetingValidTargets;
+    if (!validTargets?.length) return true;
+
+    const caster = characters?.find(candidate => candidate.id === zone.casterId);
+    if (!caster) return false;
+
+    if (target.id === zone.casterId && validTargets.includes('self')) return true;
+
+    const sameTeam = target.team === caster.team;
+    if (sameTeam && validTargets.includes('allies')) return true;
+    if (!sameTeam && validTargets.includes('enemies')) return true;
+
+    // Point/ground/creature/object zones are treated as spatially universal
+    // once they are active on the map.
+    if (validTargets.some(targetType => targetType === 'point' || targetType === 'ground' || targetType === 'creatures' || targetType === 'objects')) {
+      return true;
+    }
 
     return false;
   }

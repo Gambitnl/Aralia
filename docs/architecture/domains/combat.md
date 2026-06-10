@@ -13,6 +13,7 @@ High-signal current entry points verified in this pass:
 - src/systems/combat/
 - src/systems/events/CombatEvents.ts
 - src/utils/combatUtils.ts
+- src/utils/combat/deathSaveUtils.ts
 - src/types/combat.ts
 
 ## Current Domain Shape
@@ -73,7 +74,7 @@ All 13 premade characters in `public/premade-characters/` have `"equippedItems":
 
 ### Death Saving Throws
 
-No death saving throw system exists. When a player character reaches 0 HP, `advanceTurn` (`src/hooks/combat/useTurnOrder.ts:112`) skips them via `char.currentHP > 0` — they are invisible to the turn system indefinitely. Enemy characters have the same behaviour. D&D 5e rule: player characters are *downed* at 0 HP and roll a d20 on each of their turns (3 successes = stable, 3 failures = dead); enemies die immediately. Fix plan: `docs/superpowers/plans/2026-05-11-death-saving-throws.md`.
+Death-saving throws, unconscious recovery, and concentration drop on 0 HP are implemented in `src/utils/combat/deathSaveUtils.ts`, `src/hooks/combat/useTurnManager.ts`, and `src/commands/effects/DamageCommand.ts`. Downed player characters initialize death-save tracking when they hit 0 HP, take failure increments when damaged while downed, revive through healing, and roll at the start of their turn until they stabilize or die. Stable characters stay in the turn loop so round-based cleanup and repeat-save processing can continue, but the old note that the system was absent is stale.
 
 ---
 

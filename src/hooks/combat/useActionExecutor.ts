@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 12:29:54
+ * Last Sync: 09/06/2026, 06:46:55
  * Dependents: hooks/combat/useTurnManager.ts
- * Imports: 9 files
+ * Imports: 10 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -43,6 +43,7 @@ import {
 } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
+import { calculateMovementTotal } from '../../utils/combat/actionEconomyUtils';
 import {
   ActiveSpellZone,
   MovementTriggerDebuff,
@@ -85,9 +86,14 @@ export interface UseActionExecutorProps {
     attackerId: string,
     targetId: string,
     triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
-    reactionSpells?: Spell[],
+    reactionSpells?: Array<Spell | Ability>,
     reactionWeapons?: Ability[]
   ) => Promise<string | null>;
+  executeReactionSpell?: (
+    attacker: CombatCharacter,
+    target: CombatCharacter,
+    spellAbility: Ability
+  ) => Promise<void> | void;
 }
 
 interface ImmediateAbilityEffectResult {
@@ -106,6 +112,75 @@ interface ImmediateAbilityEffectResult {
 
 const isDisengageAbility = (ability: Ability): boolean => {
   return ability.id === 'disengage' || ability.tags?.includes('disengage') === true || ability.name.toLowerCase() === 'disengage';
+};
+
+const SENTINEL_STOP_EFFECT_ID = 'sentinel_stop';
+const SENTINEL_STOP_EFFECT_NAME = 'Sentinel Stop';
+
+const hasFeat = (character: CombatCharacter, featName: string): boolean => {
+  return character.feats?.some(feat => feat.toLowerCase() === featName.toLowerCase()) === true;
+};
+
+const hasSentinelFeat = (character: CombatCharacter): boolean => {
+  return hasFeat(character, 'sentinel');
+};
+
+const hasWarCasterFeat = (character: CombatCharacter): boolean => {
+  return hasFeat(character, 'war caster');
+};
+
+const isWarCasterEligibleSpell = (ability: Ability): boolean => {
+  // War Caster only swaps in spells that still behave like a single-target
+  // action-cast spell. Reaction-cast spells already consume the same resource
+  // and should stay out of the OA substitution list.
+  return ability.type === 'spell'
+    && ability.cost.type === 'action'
+    && ability.spell !== undefined
+    && (ability.targeting === 'single_enemy' || ability.targeting === 'single_any');
+};
+
+const applySentinelStop = (character: CombatCharacter): CombatCharacter => {
+  const movementTotal = calculateMovementTotal(character);
+  const hasSentinelStop = character.statusEffects.some(effect =>
+    effect.id === SENTINEL_STOP_EFFECT_ID || effect.name === SENTINEL_STOP_EFFECT_NAME
+  );
+  const movementAlreadyZero = character.actionEconomy.movement.used === 0 && character.actionEconomy.movement.total === 0;
+  const needsSentinelEffect = !hasSentinelStop && movementTotal > 0;
+
+  if (movementAlreadyZero && !needsSentinelEffect) {
+    return character;
+  }
+
+  const statusEffects = needsSentinelEffect
+    ? [
+      ...character.statusEffects,
+      {
+        id: SENTINEL_STOP_EFFECT_ID,
+        name: SENTINEL_STOP_EFFECT_NAME,
+        type: 'debuff',
+        duration: 1,
+        effect: {
+          type: 'stat_modifier',
+          stat: 'speed',
+          value: -movementTotal
+        },
+        icon: 'shield'
+      }
+    ]
+    : character.statusEffects;
+
+  return {
+    ...character,
+    statusEffects,
+    actionEconomy: {
+      ...character.actionEconomy,
+      movement: {
+        ...character.actionEconomy.movement,
+        used: 0,
+        total: 0
+      }
+    }
+  };
 };
 
 const applyImmediateAbilityTurnEffects = (
@@ -279,7 +354,8 @@ export const useActionExecutor = ({
   movementDebuffs,
   reactiveTriggers,
   setMovementDebuffs,
-  requestReaction
+  requestReaction,
+  executeReactionSpell
 }: UseActionExecutorProps) => {
 
   // Singleton AreaEffectTracker — created once per hook mount, zones updated each use.
@@ -291,7 +367,9 @@ export const useActionExecutor = ({
   // ============================================================================
   // Isolated here so OA logic is readable on its own and not buried in the
   // movement executor. Returns the mover's character after absorbing any damage.
-  // TODO(Warlord): Allow selecting which weapon to use for OA if multiple exist.
+  // Weapon choice already exists here; War Caster now reuses the same prompt
+  // for single-target action-cast spells and hands spell resolution back to
+  // the spell executor so this hook stays focused on OA movement fallout.
   // ============================================================================
   const handleOpportunityAttacks = useCallback(async (
     movedCharacter: CombatCharacter,
@@ -315,6 +393,9 @@ export const useActionExecutor = ({
         a.type === 'attack' && a.weapon && (a.range <= 2)
       );
       const unarmedStrike = attacker.abilities.find(a => a.id === 'unarmed_strike');
+      const warCasterSpells = hasWarCasterFeat(attacker) && executeReactionSpell
+        ? attacker.abilities.filter(isWarCasterEligibleSpell)
+        : [];
 
       // Create a list of available weapons/strikes for the reaction prompt.
       const reactionWeapons: Ability[] = [...meleeWeapons];
@@ -329,17 +410,19 @@ export const useActionExecutor = ({
 
       let chosenWeaponId: string | null = null;
       if (attacker.team === 'player' && requestReaction) {
-        // Ask the player to choose which weapon to swing or to skip the Opportunity Attack reaction entirely.
+        // Ask the player to choose between a weapon strike and any War Caster
+        // spell that can legally replace the opportunity attack.
         chosenWeaponId = await requestReaction(
           attacker.id,
           updatedCharacter.id,
           'opportunity_attack',
-          [], // No spells for Opportunity Attack
+          warCasterSpells,
           reactionWeapons
         );
 
-        // If the player chooses to skip, log the decision and move to the next possible Opportunity Attack.
-        // This does not spend the character's reaction resource.
+        // If the player chooses to skip, log the decision and move to the next
+        // possible Opportunity Attack. This does not spend the character's
+        // reaction resource.
         if (!chosenWeaponId) {
           onLogEntry({
             id: generateId(),
@@ -349,6 +432,12 @@ export const useActionExecutor = ({
             characterId: attacker.id,
             targetIds: [updatedCharacter.id]
           });
+          continue;
+        }
+
+        const chosenSpell = warCasterSpells.find(a => a.id === chosenWeaponId);
+        if (chosenSpell) {
+          await executeReactionSpell?.(attacker, updatedCharacter, chosenSpell);
           continue;
         }
       } else {
@@ -424,6 +513,21 @@ export const useActionExecutor = ({
             weaponAbility.effects.find(e => e.type === 'damage')?.damageType
           );
         }
+
+        if (hasSentinelFeat(attacker)) {
+          const sentinelStoppedCharacter = applySentinelStop(updatedCharacter);
+          if (sentinelStoppedCharacter !== updatedCharacter) {
+            updatedCharacter = sentinelStoppedCharacter;
+            onLogEntry({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'status',
+              message: `${attacker.name}'s Sentinel feat stops ${updatedCharacter.name} in place!`,
+              characterId: attacker.id,
+              targetIds: [updatedCharacter.id]
+            });
+          }
+        }
       } else {
         combatEvents.emit({
           type: 'unit_attack',
@@ -444,7 +548,7 @@ export const useActionExecutor = ({
     }
 
     return updatedCharacter;
-  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction]);
+  }, [characters, mapData, handleDamage, onLogEntry, onCharacterUpdate, addDamageNumber, requestReaction, executeReactionSpell]);
 
   // ============================================================================
   // Movement Execution
@@ -453,7 +557,8 @@ export const useActionExecutor = ({
   // effects, opportunity attacks, movement-debuff triggers, and spell-zone entry.
   // NOTE: D&D 5e OAs occur *before* the creature leaves the reach, but in this
   // synchronous engine we resolve damage retroactively after the move commits.
-  // (Sentinel feat stop-in-place is not yet implemented.)
+  // Sentinel now zeroes the mover's remaining movement after a hit so the
+  // turn state and the next reset both see the stop.
   // ============================================================================
   const handleMoveExecution = useCallback(async (
     character: CombatCharacter,

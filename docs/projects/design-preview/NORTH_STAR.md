@@ -3,15 +3,15 @@ schema_version: 1
 project: Design Preview
 slug: design-preview
 category: Feature/UI Projects
-main_category: Interface & Experience
-subcategory: Developer Tools
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 confidence: medium
 evidence: docs/projects/design-preview
-gap_signal: "3 open gaps"
+gap_signal: "0 open gaps; lane steward map and split-proof notes added"
 protocol: living project doc set
-next_step: Execute gap G3 to map stable local owners for all lanes or await new feature requests.
+next_step: Maintain the lane steward map and await new preview requests or a re-route from the modularization audit.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -29,14 +29,14 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: no
+human_decision_required: "no"
 ---
 # Design Preview North Star
 
@@ -63,6 +63,7 @@ by policy.
 - The page exposes lane selection, style-variant switching, window-frame controls, and local codebase-visualizer actions.
 - The project evidence path in `docs/projects/PROJECT_TRACKER.md` is `src/components/DesignPreview` with registry status `in-progress`.
 - This pass refreshed the cold-start handoff so the next agent can resume from the doc set without re-deriving the workflow, and the manual launch/checklist proof now lives in `RUNBOOK.md`.
+- The project now carries a source-backed lane steward and split-readiness map so future agents know which active preview lanes belong to which local systems and what proof is required before moving a large step file.
 
 ## File Map
 
@@ -101,10 +102,31 @@ by policy.
 ## Workflow And Ownership
 
 - Current doc steward: Worker B.
-- Lane and variant owners are still provisional and not fully mapped; a gap is recorded to decide if all lanes need stable local owners (see GAPS.md G1, G3). Do not assume they are settled until a later pass writes them down in `GAPS.md` or a linked task slice.
+- Lane ownership is now mapped by source-backed local system rather than by guesswork. The active router is covered below, while dormant helpers remain noted as such instead of being treated like live lanes.
 - The manual launch/checklist runbook now lives in `RUNBOOK.md`, which closes G2 and gives the next agent a repeatable proof path.
-- G4 remains tracked only in `GAPS.md` because it belongs to the adjacent code-modularization audit, not the active Design Preview owner-map slice.
+- G3 is now resolved by the lane steward map below.
+- G4 is now resolved by the split-readiness map below, which names the large preview step files and the proof needed before any move or modularization.
 - Refresh `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` in the same pass when lane, variant, or launch behavior changes.
+
+## Lane Steward And Split Readiness Map
+
+The table below ties each active preview lane to the local system that should steward it and the proof expected before a large step file is moved, split, or modularized. The rows are intentionally source-backed: they point at the actual step files in `src/components/DesignPreview/steps/*` and at the current proof anchors that already exist.
+
+| Preview lane family | Active step ids | Source-backed steward | Large-step split candidates | Required proof before move/split |
+|---|---|---|---|---|
+| Character creation pack | `race`, `class`, `background`, `stats`, `skills`, `features`, `mastery`, `feats`, `age`, `visuals`, `review` | `character-creator` with `racial-mechanics` for the race/visuals branch | `PreviewRace.tsx`, `PreviewClass.tsx`, `PreviewBackground.tsx`, `PreviewStats.tsx`, `PreviewSkills.tsx`, `PreviewClassFeatures.tsx`, `PreviewWeaponMastery.tsx`, `PreviewFeats.tsx`, `PreviewAge.tsx`, `PreviewVisuals.tsx`, `PreviewReview.tsx` | Capture a rendered `misc/design.html?step=<lane>` screenshot for the target lane and add a focused step test before any extraction. The creator pack already uses `CreationStepLayout`, `ChoiceCard`, `LegacyCard`, `StatCounter`, `RangeSlider`, and `SkillTile`, so visual parity matters more than file size alone. |
+| Equipment / trade / dialogue | `equipment`, `trade`, `dialogue` | `character-sheet` for equipment, `trade-ui` for trade, and `dialogue` for the conversation lane | `PreviewEquipment.tsx`, `PreviewTrade.tsx`, `PreviewDialogue.tsx` | Capture screenshots that show the interactive slot toggles, buy/sell routing, or dialogue history before moving code. These lanes already embed local list/card layouts, so a move should prove the same interactions still render. |
+| Combat suite | `combat`, `sandbox`, `scenarios` | `combat` | `PreviewCombat.tsx`, `PreviewCombatSandbox.tsx`, `PreviewCombatScenarios.tsx` | Require the combat scenario smoke path and a rendered preview screenshot. `PreviewCombatScenarios.tsx` wires real `useTurnManager` and `useAbilitySystem` hooks, so any split needs proof that the combat log, turn flow, and 2D/3D render modes still line up. |
+| Environment / 3D / biome | `environment`, `biome`, `3d` | `environment` for the environmental labs, with `three-d-modal` for the 3D tree lab | `PreviewEnvironment.tsx`, `PreviewBiome.tsx`, `PreviewThreeDTest.tsx` | Require a rendered scene screenshot before any move. `PreviewEnvironment.tsx` currently has no direct `*.test.tsx` in the folder, so any extraction from that lane should add a targeted test or equivalent render proof instead of relying on the page wrapper alone. |
+| Window frame shell | `frame` | `layout` | `PreviewWindowFrame.tsx` | Capture the open/close/reopen states of the frame shell. The proof should show the window chrome, not just the inner content, because the frame wrapper is the split boundary. |
+| Image generation tool | `imagegen` | `gemini-service` / imagegen tooling | `PreviewImageGen.tsx` | Capture the browser-automation response log and the rendered output image before moving or modularizing the lane. The lane is a tool surface, not a gameplay system, so proof needs to show both request and result. |
+| Shared UI library | `tables`, `icons`, `missing_icons`, `components` | `ui-primitives` with `glossary-ui` for the icon registry surfaces | `PreviewComponents.tsx`, `PreviewTables.tsx`, `PreviewIcons.tsx`, `PreviewMissingIcons.tsx` | The only current step-level unit test in this folder is `PreviewTables.test.tsx`. Before any split, require that test anchor plus a rendered preview screenshot for the target lane. `PreviewComponents.tsx` is the main large-file candidate here and should not be moved without visual proof. |
+| Glossary / spell surfaces | `spell_glossary`, `redirect_surfaces`, `spell_data_flow` | `glossary-ui` with `spells` for the data-flow lane | `PreviewSpellGlossary.tsx`, `PreviewGlossaryRedirectSurfaces.tsx`, `PreviewSpellDataFlow.tsx` | Require a glossary-provider render check and a screenshot of the spell-gate or redirect-surface state that is being preserved. `PreviewSpellGlossary.tsx` intentionally wraps the real provider boundary, so a split must prove that boundary still behaves. |
+| Race media | `race_images` | `racial-mechanics` with `character-creator` as the adjacent consumer | `PreviewRaceImages.tsx` | Require the slice-ledger screenshot and the duplicate/regen checklist before any move. This lane is an audit surface for race image state, not a generic image gallery. |
+
+## Dormant Helper Note
+
+`PreviewMdLibrary.tsx` is a large file, but it is not imported by `DesignPreviewPage.tsx` right now. Treat it as a dormant helper rather than an active lane. If a future pass re-routes it into the active preview page, document the docs-registry proof path first and then decide whether the file deserves a split.
 
 ## Active Task
 
@@ -134,8 +156,9 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next action |
 |---|---|---|---|---|
-| G1 | adjacent_follow_up | Worker B | `docs/projects/PROJECT_TRACKER.md` | Keep provisional steward notes visible until a named lane owner map is approved |
-| G3 | adjacent_follow_up | Worker B | `src/components/DesignPreview/DesignPreviewPage.tsx` | Add per-lane steward notes in a project doc or linked task slice |
+| G1 | done | adjacent_follow_up | Worker B | `docs/projects/PROJECT_TRACKER.md` | Keep provisional steward notes visible until a named lane owner map is approved | `docs/projects/design-preview/NORTH_STAR.md` | Ownership drift is now covered by the source-backed lane steward map | Lane steward map exists and points at the active preview lanes | `docs/projects/design-preview/NORTH_STAR.md` lane steward map |
+| G3 | done | adjacent_follow_up | Worker B | `src/components/DesignPreview/DesignPreviewPage.tsx` | Decide if all Design Preview steps should have stable local owners | `docs/projects/design-preview/NORTH_STAR.md` | Stable owners are now documented by lane family | Lane steward map exists and points at the active preview lanes | `docs/projects/design-preview/NORTH_STAR.md` lane steward map |
+| G4 | done | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G3 | `PreviewComponents.tsx` and sibling preview steps are large enough to need step-owner and visual-proof routing before any split. | `src/components/DesignPreview/steps/PreviewComponents.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G3 | The split checklist now lives in the Design Preview handoff | Large-step proof gates are documented before any move or modularization | `misc/design.html?step=components` screenshot plus `PreviewTables.test.tsx` as the current test anchor |
 
 G2 is closed in `GAPS.md` and documented in `RUNBOOK.md`. G4 remains in
 `GAPS.md` only because it is owned by the adjacent code-modularization audit,
@@ -170,6 +193,7 @@ Check the global gap tracker before expanding cross-project:
 | [docs/projects/PROJECT_TRACKER.md](docs/projects/PROJECT_TRACKER.md) | Registry anchor for long-term discoverability |
 | [docs/projects/design-preview/TRACKER.md](docs/projects/design-preview/TRACKER.md) | Active tasks and queue control |
 | [docs/projects/design-preview/GAPS.md](docs/projects/design-preview/GAPS.md) | Durable unresolved findings |
+| [docs/projects/design-preview/DECISIONS.md](docs/projects/design-preview/DECISIONS.md) | Durable lane ownership and split-proof decisions |
 | [docs/projects/design-preview/RUNBOOK.md](docs/projects/design-preview/RUNBOOK.md) | Manual launch and smoke checklist for future proof passes |
 | [docs/projects/design-preview/AUDIT_OR_PROOF.md](docs/projects/design-preview/AUDIT_OR_PROOF.md) | Durable proof summaries for docs-only and visual passes |
 | [docs/projects/GLOBAL_GAPS.md](docs/projects/GLOBAL_GAPS.md) | Cross-project routing for out-of-scope gaps |
@@ -185,8 +209,7 @@ Check the global gap tracker before expanding cross-project:
 
 ## Open Questions
 
-- Which lane owners are authoritative versus provisional?
-- Should the live marker map be owned by a named steward or by the tracker row?
+- None for the active router. The current lane families are source-backed, and the only dormant large helper is explicitly called out above.
 
 ## Resume Path For A Cold Agent
 

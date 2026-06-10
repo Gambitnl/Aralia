@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 18:57:25
+ * Last Sync: 09/06/2026, 06:46:56
  * Dependents: components/Combat/index.ts
  * Imports: 36 files
  *
@@ -32,7 +32,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import BattleMap from '../BattleMap/BattleMap';
 import BattleMap3D from '../BattleMap/BattleMap3D';
 import { PlayerCharacter, Item } from '../../types';
-import { BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon } from '../../types/combat';
+import { Ability, BattleMapData, CombatCharacter, CombatLogEntry, PocketedSummon } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
@@ -94,8 +94,35 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   // Note: GameProvider must be above CombatView in tree (usually is in App)
   const { dispatch } = useGameState();
 
+  // The combat log is persisted per encounter signature so a refresh can
+  // restore the same fight without merging unrelated battles into one bucket.
+  // This is intentionally roster-scoped rather than turn-state-scoped: the log
+  // should survive HP changes and turn order updates, but it still needs a
+  // stable boundary so a new encounter does not inherit the previous one.
+  const combatLogStorageKey = React.useMemo(() => {
+    const serializeCombatant = (combatant: { id: string; name: string; level: number; maxHP: number }) =>
+      `${combatant.id}:${combatant.name}:${combatant.level}:${combatant.maxHP}`;
+
+    const partySignature = party
+      .map(combatant => `player:${serializeCombatant(combatant)}`)
+      .sort()
+      .join('|');
+    const enemySignature = enemies
+      .map(combatant => `enemy:${serializeCombatant(combatant)}`)
+      .sort()
+      .join('|');
+
+    return [
+      'aralia_combat_log',
+      currentPlane ?? 'none',
+      biome,
+      partySignature,
+      enemySignature,
+    ].join('::');
+  }, [biome, currentPlane, enemies, party]);
+
   const [seed] = useState(() => Date.now()); // Generate map once
-  const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog();
+  const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog({ storageKey: combatLogStorageKey });
 
   // [2026-02-10] Rich messaging system state.
   // Instantiates the useCombatMessaging hook which manages a parallel CombatMessage[] array.
@@ -208,6 +235,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     messaging.addMessage(richMessage);
   }, [baseLogEntry, dispatch, messaging.addMessage]);
   const requestReactionRef = useRef<any>(null);
+  const executeReactionSpellRef = useRef<((attacker: CombatCharacter, target: CombatCharacter, spellAbility: Ability) => Promise<void>) | null>(null);
 
   const turnManager = useTurnManager({
     characters,
@@ -226,19 +254,31 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
       attackerId: string,
       targetId: string,
       triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
-      spells?: import('../../types/spells').Spell[],
+      spells?: Array<import('../../types/spells').Spell | Ability>,
       weapons?: import('../../types/combat').Ability[]
     ) => {
       if (requestReactionRef.current) {
         return requestReactionRef.current(attackerId, targetId, triggerType, spells, weapons);
       }
       return Promise.resolve(null);
+    }, []),
+    executeReactionSpell: useCallback((
+      attacker: CombatCharacter,
+      target: CombatCharacter,
+      spellAbility: Ability
+    ) => {
+      if (executeReactionSpellRef.current) {
+        return executeReactionSpellRef.current(attacker, target, spellAbility);
+      }
+      return Promise.resolve();
     }, [])
   });
 
   // Initialize turn manager when characters are ready.
   // [2026-02-10] Also clears any stale rich messages before combat starts, so the
-  // CombatLog begins fresh. This mirrors useCombatLog's behavior (which starts with an empty array).
+  // rich messaging layer begins fresh. The simple CombatLog now hydrates from
+  // localStorage when the same encounter key returns, so refreshes can recover
+  // the in-progress history without waiting for a separate save system.
   useEffect(() => {
     if (characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
       messaging.clearMessages();
@@ -304,6 +344,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
     onPocketedSummonsUpdate: setPocketedSummons,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
+    spellZones: turnManager.spellZones,
     onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
     onAddMovementDebuff: turnManager.addMovementDebuff,
     onAddSpellMovementVisual: turnManager.addSpellMovementVisual,
@@ -312,6 +353,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onRoundE
   });
 
   requestReactionRef.current = abilitySystem.requestReaction;
+  executeReactionSpellRef.current = (attacker, target, spellAbility) => {
+    const reactionSpell = {
+      ...spellAbility,
+      cost: {
+        ...spellAbility.cost,
+        type: 'reaction' as const
+      }
+    };
+    return abilitySystem.executeAbility(reactionSpell, attacker, target.position, [target.id]);
+  };
 
   const handleToggleAuto = useCallback((characterId: string) => {
     setAutoCharacters(prev => {

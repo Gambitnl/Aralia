@@ -3,6 +3,17 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ReactionPrompt } from '../ReactionPrompt';
 import { createMockSpell } from '../../../utils/factories';
+import { Ability } from '../../../types/combat';
+
+/**
+ * This file protects the reaction-choice modal that pauses combat until the
+ * player chooses whether to spend their reaction. The tests cover the normal
+ * spell reaction path and the opportunity-attack branch, where weapon choices
+ * and War Caster spell substitutions share the same decision surface.
+ *
+ * Called by: Vitest component checks for Combat UI
+ * Depends on: ReactionPrompt.tsx and shared combat/spell option shapes
+ */
 
 // Mock the useFocusTrap hook to verify it's being called
 const mockFocusTrapRef = { current: null };
@@ -42,6 +53,35 @@ describe('ReactionPrompt', () => {
         );
         expect(screen.getByRole('button', { name: /Cast Shield/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Cast Hellish Rebuke/i })).toBeInTheDocument();
+    });
+
+    it('renders War Caster spell choices during opportunity attacks', () => {
+        const warCasterSpell: Ability = {
+            id: 'spell_strike',
+            name: 'Spell Strike',
+            description: 'A single-target spell attack.',
+            type: 'spell',
+            cost: { type: 'action', spellSlotLevel: 1 },
+            targeting: 'single_enemy',
+            range: 6,
+            spell: createMockSpell({ id: 'spell_strike', name: 'Spell Strike' }),
+            effects: [{ type: 'damage', value: 6, damageType: 'force', dice: '1d6' }]
+        };
+
+        render(
+            <ReactionPrompt
+                attackerName="Mage"
+                targetName="Goblin"
+                reactionSpells={[warCasterSpell]}
+                reactionWeapons={[]}
+                triggerType="opportunity_attack"
+                onResolve={mockOnResolve}
+            />
+        );
+
+        expect(screen.getByRole('heading', { name: /opportunity attack/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Cast Spell Strike/i })).toBeInTheDocument();
+        expect(screen.getByText(/War Caster spell option/i)).toBeInTheDocument();
     });
 
     it('calls onResolve with spell ID when a spell is clicked', () => {

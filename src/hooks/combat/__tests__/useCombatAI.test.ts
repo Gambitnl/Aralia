@@ -1,3 +1,11 @@
+/**
+ * These tests protect the combat AI turn loop.
+ *
+ * The hook schedules enemy and auto-controlled ally turns with timers, so small
+ * state-machine changes can accidentally double-plan actions or skip the turn
+ * cap. The mocked planner below lets the tests prove the hook waits for async
+ * abilities and stops after the bounded move/action sequence.
+ */
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useCombatAI } from '../useCombatAI';
@@ -128,6 +136,15 @@ const endTurnAction: CombatAction = {
   timestamp: 2
 };
 
+const moveAction: CombatAction = {
+  id: 'goblin-move',
+  characterId: mockCharacter.id,
+  type: 'move',
+  targetPosition: { x: 1, y: 0 },
+  cost: { type: 'movement-only' },
+  timestamp: 3
+};
+
 describe('useCombatAI', () => {
   const mockExecuteAction = vi.fn().mockResolvedValue(true);
   const mockEndTurn = vi.fn();
@@ -141,6 +158,54 @@ describe('useCombatAI', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it('treats auto-controlled allies as AI turns and stops after the third planned action', async () => {
+    const autoAlly: CombatCharacter = {
+      ...mockCharacter,
+      id: 'ally-bot',
+      name: 'Ally Bot',
+      team: 'player'
+    };
+
+    mockEvaluateCombatTurn
+      .mockReturnValueOnce(moveAction)
+      .mockReturnValueOnce({ ...abilityAction, characterId: autoAlly.id })
+      .mockReturnValueOnce({ ...abilityAction, characterId: autoAlly.id })
+      .mockReturnValue({ ...endTurnAction, characterId: autoAlly.id });
+
+    const mockExecuteAbility = vi.fn().mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useCombatAI({
+      difficulty: 'easy',
+      characters: [autoAlly, playerTarget],
+      mapData: mockMapData,
+      currentCharacterId: autoAlly.id,
+      executeAction: mockExecuteAction,
+      executeAbility: mockExecuteAbility,
+      endTurn: mockEndTurn,
+      autoCharacters: new Set([autoAlly.id])
+    }));
+
+    const advanceAiTurn = async () => {
+      act(() => {
+        vi.advanceTimersByTime(AI_THINKING_DELAY_MS.easy);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+    };
+
+    await advanceAiTurn();
+    await advanceAiTurn();
+    await advanceAiTurn();
+    await advanceAiTurn();
+
+    expect(mockExecuteAction).toHaveBeenCalledTimes(1);
+    expect(mockExecuteAbility).toHaveBeenCalledTimes(2);
+    expect(mockEndTurn).toHaveBeenCalled();
+    expect(result.current.aiState).toBe('done');
   });
 
   it('waits for async executeAbility before transitioning into the next AI action', async () => {

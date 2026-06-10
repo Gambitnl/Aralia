@@ -31,3 +31,55 @@ Direct file inspection and assertion-based test verification:
 
 `PZ-001` is complete as a bounded in-scope implementation. Remaining open gaps are
 `PZ-002`, `PZ-003`, `PZ-004`, `PZ-005`, and `PZ-006`.
+
+## Iteration 4: Live Puzzle Hint Helper and Caller Gap Split
+
+### Method
+
+Scoped source review and deterministic unit test verification:
+
+- `docs/projects/puzzles/NORTH_STAR.md`
+- `docs/projects/puzzles/TRACKER.md`
+- `docs/projects/puzzles/GAPS.md`
+- `src/systems/puzzles/puzzleSystem.ts`
+- `src/systems/puzzles/__tests__/puzzleSystem.test.ts`
+
+### Results
+
+| Item | Result | Evidence |
+|---|---|---|
+| `getPuzzleHint` no longer returns `null` when a hint exists | [Done] | The helper now rolls a live Intelligence check using `CharacterStats.intelligence` and delegates to `checkPuzzleHint` |
+| Deterministic test proves at least one puzzle can return a hint | [Done] | `puzzleSystem.test.ts` stubs `Math.random`, feeds a valid `CharacterStats`, and expects the riddle hint to return |
+| Remaining caller gap is recorded separately | [Done] | `GAPS.md` and `TRACKER.md` now point to the missing runtime caller as the next follow-up instead of treating the helper as dead |
+
+### Conclusion
+
+`PZ-002` is resolved at the helper layer. `PZ-007` now carries the remaining runtime caller follow-up so the next agent does not mistake the helper fix for full gameplay integration.
+
+## Iteration 5: Puzzle Hint Caller Ownership Review
+
+### Method
+
+Targeted source scan and dashboard/doc review only:
+
+- `docs/projects/puzzles/NORTH_STAR.md`
+- `docs/projects/puzzles/TRACKER.md`
+- `docs/projects/puzzles/GAPS.md`
+- `docs/projects/puzzles/COLD_START_AGENT_PROMPT.md`
+- `src/components/puzzles/LockpickingModal.tsx`
+- `src/components/layout/GameModals.tsx`
+- `src/hooks/actions/actionHandlers.ts`
+- `src/systems/puzzles/puzzleSystem.ts`
+- `src/systems/puzzles/__tests__/puzzleSystem.test.ts`
+
+### Results
+
+| Item | Result | Evidence |
+|---|---|---|
+| Live helper still works | [Done] | `getPuzzleHint` remains covered by the deterministic unit test from the previous iteration |
+| No runtime gameplay caller exists yet | [Done] | Search found no source-backed caller that passes a real `Puzzle` object into `getPuzzleHint` |
+| Gap is now review-required instead of half-assigned | [Done] | `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` now carry the human decision brief and the blocked gap row |
+
+### Conclusion
+
+The helper is still preserved, but the next safe step is a human ownership decision on the first runtime hint caller before any key or map follow-up work.

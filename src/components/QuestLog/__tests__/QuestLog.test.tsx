@@ -39,6 +39,7 @@ const mockQuests: Quest[] = [
     dateStarted: 1000,
     dateCompleted: 2000,
     objectives: [],
+    notes: 'Failed: Deadline missed.\nThe recipient died waiting.',
     rewards: {}
   }
 ];
@@ -64,6 +65,13 @@ describe('QuestLog Component', () => {
     expect(screen.getByText('Objective 2')).toBeInTheDocument();
     // Check rewards
     expect(screen.getByText('100 gp')).toBeInTheDocument();
+  });
+
+  it('shows the failed quest note in history', () => {
+    render(<QuestLog isOpen={true} onClose={vi.fn()} quests={mockQuests} />);
+
+    expect(screen.getByText(/Failed: Deadline missed\./)).toBeInTheDocument();
+    expect(screen.getByText(/The recipient died waiting\./)).toBeInTheDocument();
   });
 
   it('calls onClose when close button is clicked', () => {

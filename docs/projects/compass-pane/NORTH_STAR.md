@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Compass Pane
+slug: compass-pane
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: active
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/compass-pane
+gap_signal: "3 open gaps; movement proof captured and affordance semantics still need validation"
+protocol: living project doc set
+next_step: Resume T3 by validating navigation affordances for map/submap/3D toggles in context
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+  - scoped_tests
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Compass Pane North Star
 
 Status: active  

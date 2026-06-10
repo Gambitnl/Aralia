@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 00:04:52
+ * Last Sync: 09/06/2026, 04:34:01
  * Dependents: App.tsx, state/appState.ts
- * Imports: 13 files
+ * Imports: 14 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -21,6 +21,7 @@
  */
 
 import { GameState, GamePhase, SuspicionLevel, UnderdarkState } from '../types';
+import { withLegacyWeatherBridge } from '../types/environment';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 import { STARTING_LOCATION_ID } from '../data/world/locations';
 import { NPCS } from '../data/world/npcs';
@@ -282,7 +283,9 @@ export const initialGameState: GameState = {
     underdark: INITIAL_UNDERDARK_STATE,
 
     // Environment System
-    environment: DEFAULT_WEATHER,
+    // Keep the legacy string bridge present on fresh saves while the reducer
+    // and consumers keep using the structured weather object as the source of truth.
+    environment: withLegacyWeatherBridge(DEFAULT_WEATHER),
 
     // Dialogist: Dialogue System
     activeDialogueSession: null,
@@ -307,6 +310,7 @@ export const initialGameState: GameState = {
     isThievesGuildSafehouseVisible: false,
     isNobleHouseListVisible: false,
     isTradeRouteDashboardVisible: false,
+    isInvestmentBoardVisible: false,
     isEconomyLedgerVisible: false,
     isCourierPouchVisible: false,
 

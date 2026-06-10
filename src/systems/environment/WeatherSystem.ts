@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 02:48:37
+ * Dependents: state/reducers/worldReducer.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/systems/environment/WeatherSystem.ts
@@ -7,6 +22,20 @@
 
 import { WeatherState, Precipitation, WindSpeed, Temperature, VisibilityLevel } from '../../types/environment';
 import { TimeOfDay } from '../../utils/core';
+import { SeededRandom } from '../../utils/random';
+
+type RandomSource = Pick<SeededRandom, 'next'>;
+
+const hashStringToSeed = (value: string): number => {
+    let hash = 2166136261;
+
+    for (let i = 0; i < value.length; i++) {
+        hash ^= value.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+
+    return hash >>> 0;
+};
 
 /**
  * Defines the probability distribution for weather in a specific climate.
@@ -168,8 +197,8 @@ export function getClimateForBiome(biomeId: string): ClimateProfile {
 /**
  * Helper to select a key from a probability map.
  */
-function weightedRandom<T extends string>(probabilities: Record<T, number>): T {
-    const rand = Math.random();
+function weightedRandom<T extends string>(probabilities: Record<T, number>, rng: RandomSource): T {
+    const rand = rng.next();
     let sum = 0;
     const keys = Object.keys(probabilities) as T[];
 
@@ -242,13 +271,31 @@ function adjustVisibilityForTime(baseVisibility: VisibilityLevel, timeOfDay: Tim
  * @param currentWeather The current weather state.
  * @param biomeId The ID of the current biome.
  * @param timeOfDay The current time of day (optional, defaults to Day if unknown)
+ * @param rng The random source used for weather transitions. When omitted, the
+ *            current weather snapshot is hashed into a deterministic fallback
+ *            so legacy callers do not reintroduce ambient randomness.
  * @returns The new WeatherState (may be same as current).
  */
-export function updateWeather(currentWeather: WeatherState, biomeId: string, timeOfDay: TimeOfDay = TimeOfDay.Day): WeatherState {
+export function updateWeather(
+    currentWeather: WeatherState,
+    biomeId: string,
+    timeOfDay: TimeOfDay = TimeOfDay.Day,
+    rng?: RandomSource
+): WeatherState {
     const climate = getClimateForBiome(biomeId);
+    const randomSource = rng ?? new SeededRandom(hashStringToSeed([
+        biomeId,
+        timeOfDay,
+        currentWeather.precipitation,
+        currentWeather.temperature,
+        currentWeather.wind.direction,
+        currentWeather.wind.speed,
+        currentWeather.baseTemperature ?? '',
+        currentWeather.baseVisibility ?? ''
+    ].join('|')));
 
     // Determines if we are keeping the current "base" weather pattern
-    const keepBaseWeather = Math.random() > 0.2;
+    const keepBaseWeather = randomSource.next() > 0.2;
 
     let basePrecipitation = currentWeather.precipitation;
     let baseTemp = currentWeather.baseTemperature || currentWeather.temperature; // Fallback for migration
@@ -257,9 +304,9 @@ export function updateWeather(currentWeather: WeatherState, biomeId: string, tim
 
     if (!keepBaseWeather) {
         // Generate NEW base weather
-        basePrecipitation = weightedRandom(climate.precipitationChances);
-        baseTemp = weightedRandom(climate.temperatureChances);
-        const newWindSpeed = weightedRandom(climate.windChances);
+        basePrecipitation = weightedRandom(climate.precipitationChances, randomSource);
+        baseTemp = weightedRandom(climate.temperatureChances, randomSource);
+        const newWindSpeed = weightedRandom(climate.windChances, randomSource);
         baseWind = {
             direction: currentWeather.wind.direction,
             speed: newWindSpeed

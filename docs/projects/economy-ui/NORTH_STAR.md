@@ -1,3 +1,45 @@
+---
+schema_version: 1
+project: Economy UI
+slug: economy-ui
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-09
+confidence: medium
+evidence: docs/projects/economy-ui
+gap_signal: 0 open gaps
+protocol: living project doc set
+next_step: "Preserve the documented reducer split; only revisit visibility normalization if a future reducer migration is explicitly approved."
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Economy UI North Star
 
 Status: active
@@ -18,9 +60,9 @@ Out of scope:
 
 ## Current state
 
-- Active slice: T2 is now complete and should be considered the evidence-backed gap pass for this iteration.
-- Secondary open slices: T3 and T4 remain open and define the next product-safe continuation.
-- Resume path: continue with action entry strategy and callback wiring (`InvestmentBoard`), while preserving the modal hosting model completed in T2.
+- Active slice: T3 and T4 are now complete and should be considered the evidence-backed action-entry and ownership passes for this iteration.
+- Secondary open slice: none. T4 is now complete and the ownership question is resolved as a documentation-only contract.
+- Resume path: preserve the modal hosting model from T2 and the documented reducer split; only reopen if a future reducer migration is requested.
 
 ## Dashboard Card Schema
 
@@ -30,9 +72,9 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: `docs/projects/economy-ui`
-Gap signal: 2 open gaps (G2, G3)
+Gap signal: 0 open gaps
 Protocol: living project doc set
-Next step: Resume T3 by routing economy action-entry intent and wiring `InvestmentBoard` callbacks.
+Next step: Preserve the documented reducer split; only revisit visibility normalization if a future reducer migration is explicitly approved.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
 Last proof: 2026-06-09
@@ -57,20 +99,22 @@ Workflow gaps reviewed: 2026-06-09
 - src/components/Economy/index.ts
   - Barrel exports for economy components.
 - src/components/layout/GameModals.tsx
-  - Overlay host for modal mounting.
+  - Overlay host for modal mounting, including `InvestmentBoard` callback wiring.
+- src/components/debug/DevMenu.tsx
+  - Shared developer surface for opening economy UI modals during test passes.
 - src/state/initialState.ts
-  - `isTradeRouteDashboardVisible`, `isEconomyLedgerVisible`, `isCourierPouchVisible`,
+  - `isTradeRouteDashboardVisible`, `isInvestmentBoardVisible`, `isEconomyLedgerVisible`, `isCourierPouchVisible`,
     and economy runtime fields.
 - src/state/reducers/uiReducer.ts
-  - `TOGGLE_TRADE_ROUTE_DASHBOARD` reducer behavior.
+  - `TOGGLE_TRADE_ROUTE_DASHBOARD` and `TOGGLE_INVESTMENT_BOARD` reducer behavior.
 - src/state/reducers/economyReducer.ts
   - Economy actions plus `TOGGLE_ECONOMY_LEDGER` and `TOGGLE_COURIER_POUCH`.
 - src/state/actionTypes.ts
-  - Economy action and ui action type registry.
-- src/components/debug/DevMenu.tsx
-  - Toggle entries for trade route dashboard, ledger, and courier.
+  - Economy action and ui action type registry, including `TOGGLE_INVESTMENT_BOARD`.
 - src/App.tsx
-  - Developer action dispatch for trade route dashboard, ledger, and courier.
+  - Global interaction gating now pauses background flow while the investment board is open.
+- src/utils/core/timekeeperUtils.ts
+  - Passive clock gate includes the investment board modal as a pause condition.
 
 ## Implemented state
 
@@ -79,8 +123,11 @@ Workflow gaps reviewed: 2026-06-09
 - `TradeRouteDashboard` is mounted and can be toggled.
 - `LedgerBook` and `CourierPouch` are now mounted in `GameModals` and close via
   economy toggle actions; fallback Escape handling is tested for both.
-- `InvestmentBoard` is implemented and references real state slices, but callback
-  entry points are still not routed.
+- `InvestmentBoard` is implemented, mounted in `GameModals`, and its caravan and
+  loan buttons now dispatch `INVEST_IN_CARAVAN` and `TAKE_LOAN`.
+- The reducer ownership contract is now documented and intentional:
+  - `uiReducer` owns `isTradeRouteDashboardVisible` and `isInvestmentBoardVisible`.
+  - `economyReducer` owns `isEconomyLedgerVisible` and `isCourierPouchVisible`.
 - Economy reducer can apply player investment/loan actions and return updated investment and gold state.
 - Economy UI flags are present in initial state.
 
@@ -92,10 +139,11 @@ Workflow gaps reviewed: 2026-06-09
   - Merchant modal
   - Economy state (`marketFactors`, `activeEvents`, `marketEvents`, `tradeRoutes`)
   - Faction standings and region context.
-- There is a split ownership:
-  - Route dashboard toggle lives in UI reducer.
-  - Ledger/courier toggles live in economy reducer.
-- `InvestmentBoard` has optional callbacks (`onInvestInCaravan`, `onTakeLoan`) but currently no parent wiring.
+- There is an intentional split ownership contract:
+  - Route dashboard and investment board toggles live in the UI reducer.
+  - Ledger and courier toggles live in the economy reducer.
+  - `GameModals` remains the single host for all four surfaces.
+- `InvestmentBoard` now routes optional callbacks from `GameModals` to the existing economy actions, and the Dev Menu has a direct close-and-open path for the board.
 
 ## Relation to docs/projects/economy
 
@@ -106,9 +154,8 @@ This project owns where and how that state is surfaced to the player.
 
 ## Gaps to resolve next
 
-- Connect `InvestmentBoard` callbacks to `INVEST_IN_CARAVAN` and `TAKE_LOAN` dispatch.
-- Decide whether ledger/courier toggles should move into the ui reducer for ownership consistency.
-- Confirm whether player-facing in-world entry points for ledger/courier are needed beyond Dev Menu test access.
+- No open project gap remains for reducer ownership. If visibility normalization is ever requested, treat it as a separate reducer-migration review.
+- Confirm whether player-facing in-world entry points are needed for `InvestmentBoard` beyond the Dev Menu launch path.
 
 ## Next checks
 

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 03:06:22
+ * Dependents: state/reducers/navalReducer.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -12,6 +28,20 @@ import { Ship, VoyageState, VoyageEvent as _VoyageEvent, RationingLevel as _Rati
 import { VOYAGE_EVENTS } from '../../data/naval/voyageEvents';
 import { CrewManager } from './CrewManager';
 import { WeatherState } from '../../types/environment';
+import { SeededRandom } from '@/utils/random';
+
+type RandomSource = SeededRandom;
+
+const hashStringToSeed = (value: string): number => {
+    let hash = 2166136261;
+
+    for (let i = 0; i < value.length; i++) {
+        hash ^= value.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+
+    return hash >>> 0;
+};
 
 export class VoyageManager {
     /**
@@ -46,7 +76,8 @@ export class VoyageManager {
         state: VoyageState, 
         ship: Ship, 
         weather: WeatherState,
-        availableFunds: number = 1000
+        availableFunds: number = 1000,
+        rng?: RandomSource
     ): {
         newState: VoyageState;
         updatedShip: Ship;
@@ -87,20 +118,31 @@ export class VoyageManager {
 
         const actualDistance = baseMilesPerDay * weatherModifier;
 
+        const randomSource = rng ?? new SeededRandom(hashStringToSeed([
+            state.shipId,
+            state.daysAtSea + 1,
+            state.distanceTraveled,
+            state.distanceToDestination,
+            weather.precipitation,
+            weather.wind.speed,
+            weather.visibility,
+            availableFunds
+        ].join('|')));
+
         // 2. Event Trigger
         // RALPH: Chaos Factor. 40% chance of a random event (Storm, Kraken, Ghost Ship).
         const possibleEvents = VOYAGE_EVENTS.filter(e => !e.conditions || e.conditions(state));
 
         // Simple weighted choice
-        const eventRoll = Math.random();
+        const eventRoll = randomSource.next();
         let _eventResult = null;
 
         if (eventRoll < 0.4 && possibleEvents.length > 0) {
-            const eventIndex = Math.floor(Math.random() * possibleEvents.length);
+            const eventIndex = Math.floor(randomSource.next() * possibleEvents.length);
             const event = possibleEvents[eventIndex];
 
-            if (Math.random() < (event.probability * 3)) {
-                 const result = event.effect(state, currentShip);
+            if (randomSource.next() < (event.probability * 3)) {
+                 const result = event.effect(state, currentShip, () => randomSource.next());
                  dailyLog = result.log;
                  dailyLogType = result.type;
                  // TODO(lint-intent): '_eventResult' is declared but unused, suggesting an unfinished state/behavior hook in this block.
@@ -115,7 +157,7 @@ export class VoyageManager {
         state.distanceToDestination = Math.max(0, state.distanceToDestination - actualDistance);
 
         // 3. Crew Updates
-        const crewUpdate = CrewManager.processDailyCrewUpdate(currentShip, availableFunds);
+        const crewUpdate = CrewManager.processDailyCrewUpdate(currentShip, availableFunds, randomSource);
         currentShip = crewUpdate.ship;
         const funds = crewUpdate.remainingFunds;
 

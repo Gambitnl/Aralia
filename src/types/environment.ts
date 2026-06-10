@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 09/06/2026, 04:34:01
+ * Dependents: hooks/actions/handleNpcInteraction.ts, hooks/useCompanionBanter.ts, hooks/useCompanionCommentary.ts, hooks/useConversation.ts, state/initialState.ts, state/reducers/worldReducer.ts, systems/environment/EnvironmentSystem.ts, systems/environment/TerrainSystem.ts, systems/environment/WeatherSystem.ts, systems/environment/hazards.ts, systems/naval/VoyageManager.ts, types/index.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/types/environment.ts
@@ -31,11 +46,52 @@ export interface WeatherState {
   temperature: Temperature;
   wind: WindCondition;
   visibility: VisibilityLevel;
-  currentWeather?: string; // legacy field used by some hooks; mirrors precipitation/summary
+  currentWeather?: string; // legacy compatibility bridge; keep derived from structured weather state when writing
   // Base values before time-of-day modifications (prevents drift)
   baseTemperature?: Temperature;
   baseVisibility?: VisibilityLevel;
 }
+
+// --- Weather Compatibility Bridge ---
+
+/**
+ * Keeps the legacy string label alive for older prompts and save data without
+ * reintroducing the old loose weather model as the primary read path.
+ */
+const WEATHER_SUMMARY_BY_PRECIPITATION: Record<Precipitation, string> = {
+  none: 'Clear',
+  light_rain: 'Light rain',
+  heavy_rain: 'Heavy rain',
+  storm: 'Storm',
+  snow: 'Snow',
+  blizzard: 'Blizzard',
+};
+
+type WeatherSummaryInput = Partial<Pick<WeatherState, 'currentWeather' | 'precipitation'>> | null | undefined;
+
+/**
+ * Converts structured weather into the compact legacy label used by prompts
+ * and older narrative hooks. When a save already carries the bridge label, we
+ * preserve it instead of trying to synthesize a richer description.
+ */
+export const getWeatherSummary = (weather: WeatherSummaryInput): string => {
+  const legacyLabel = weather?.currentWeather?.trim();
+  if (legacyLabel) {
+    return legacyLabel;
+  }
+
+  return WEATHER_SUMMARY_BY_PRECIPITATION[weather?.precipitation ?? 'none'];
+};
+
+/**
+ * Re-attaches the legacy bridge field to canonical weather objects so old
+ * callers can keep reading a string while the reducer continues to own the
+ * structured state.
+ */
+export const withLegacyWeatherBridge = (weather: WeatherState): WeatherState => ({
+  ...weather,
+  currentWeather: getWeatherSummary(weather),
+});
 
 // --- Terrain System ---
 

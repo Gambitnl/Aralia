@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 02/06/2026, 11:57:33
+ * Last Sync: 09/06/2026, 06:46:55
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 21 files
  *
@@ -119,6 +119,8 @@ interface UseAbilitySystemProps {
   onMapUpdate?: (mapData: BattleMapData) => void;
   /** Registers persistent spell zones created by structured area-trigger effects. */
   onAddSpellZone?: (zone: ActiveSpellZone) => void;
+  /** Live spell-zone state so command damage can respect active area defenses. */
+  spellZones?: ActiveSpellZone[];
   /** Registers target-bound scheduled spell effects that resolve on future turns. */
   onAddScheduledSpellEffect?: (effect: ScheduledSpellEffect) => void;
   /** Registers target movement debuffs such as Booming Blade-style delayed triggers. */
@@ -134,7 +136,7 @@ export interface PendingReaction {
   attackerId: string;
   targetId: string;
   triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack';
-  reactionSpells?: Spell[]; // Spells available to cast
+  reactionSpells?: Array<Spell | Ability>; // Spells available to cast, or ability-wrapped spells used by War Caster.
   reactionWeapons?: Ability[]; // Weapons/attacks available to swing
   onResolve: (choiceId: string | null) => void;
 }
@@ -166,6 +168,7 @@ export const useAbilitySystem = ({
   onPocketedSummonsUpdate,
   onMapUpdate,
   onAddSpellZone,
+  spellZones,
   onAddScheduledSpellEffect,
   onAddMovementDebuff,
   onAddSpellMovementVisual,
@@ -205,7 +208,7 @@ export const useAbilitySystem = ({
     attackerId: string,
     targetId: string,
     triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
-    reactionSpells: Spell[] = [],
+    reactionSpells: Array<Spell | Ability> = [],
     reactionWeapons: Ability[] = []
   ): Promise<string | null> => {
     return new Promise(resolve => {
@@ -310,6 +313,7 @@ export const useAbilitySystem = ({
       const currentState: CombatState = {
         isActive: true,
         characters: commandCharacters,
+        spellZones: spellZones ?? [],
         turnState: {
           currentTurn: 0,
           turnOrder: [],
@@ -417,7 +421,11 @@ export const useAbilitySystem = ({
           // effects do not silently change if the caster's stats change later.
           const castSaveDC = calculateSpellDC(caster);
 
-          if (onAddSpellZone && zoneRegistration && spell.effects.some(hasPersistentAreaTrigger)) {
+          const hasPersistentAreaDefense = spell.effects.some(effect =>
+            effect.type === 'DEFENSIVE' && (effect.defenseType === 'resistance' || effect.defenseType === 'immunity')
+          );
+
+          if (onAddSpellZone && zoneRegistration && (spell.effects.some(hasPersistentAreaTrigger) || hasPersistentAreaDefense)) {
             onAddSpellZone(createSpellZoneFromAoEParams(
               spell.id,
               caster.id,
@@ -426,7 +434,8 @@ export const useAbilitySystem = ({
               spell.effects,
               currentState.turnState.currentTurn,
               getDurationRounds(spell),
-              castSaveDC
+              castSaveDC,
+              spell.targeting.validTargets
             ));
           }
 
@@ -511,7 +520,7 @@ export const useAbilitySystem = ({
         }
       }
     },
-    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources]
+    [onCharacterUpdate, onLogEntry, onNotification, onRequestInput, onReactiveTriggerUpdate, onActiveLightSourcesUpdate, onMapUpdate, onAddSpellZone, onAddScheduledSpellEffect, onAddMovementDebuff, onAddSpellMovementVisual, activeLightSources, spellZones]
   );
 
 

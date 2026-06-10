@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Economy System
+slug: economy
+category: Feature/System Projects
+main_category: "Game & Simulation"
+subcategory: Core Sim Systems
+status: active
+last_updated: 2026-06-08
+confidence: high
+evidence: docs/projects/economy
+gap_signal: 0 open gaps
+protocol: living project doc set
+next_step: Keep active event contract parity in any new event source.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Economy System North Star
 
 Status: active

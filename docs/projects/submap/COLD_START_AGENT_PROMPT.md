@@ -1,6 +1,6 @@
 # Submap Cold Start Agent Handoff
 
-Status: review-required
+Status: active
 Last updated: 2026-06-09
 
 Shared workflow:
@@ -20,24 +20,27 @@ docs/projects/submap/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 3 | gpt-5.4-mini high | MCP-subagent | certain | 2026-06-08 | Multi-agent worker fallback while gpt-5.3-codex-spark was usage-limited. |
+| 4 | Codex / gpt-5 | direct dashboard correction pass | certain | 2026-06-09 | User clarified Submap should be active pre-deprecation extraction, not immediate reference-only deprecation. |
 
 ## Current State
 
-- The DOM/tile Submap remains the live gameplay surface.
+- The DOM/tile Submap remains present in the repo while pre-deprecation extraction proceeds.
 - `docs/projects/submap/DEPENDENCY_CONTRACT.md` now records the renderer-independent quick-travel, inspect, tooltip, and timing contract.
 - `docs/projects/submap/AUDIT_OR_PROOF.md` records the 2026-06-09 dependency inventory evidence.
-- `TRACKER.md` keeps the quick-travel proof slice waiting; `G3` blocks forward assignment on renderer authority.
-- The renderer-phase-out path is contract extraction first, not renderer replacement.
+- `TRACKER.md` keeps extraction tasks active and separates the later replacement-owner decision from extraction work.
+- The phase-out path is contract extraction first, not renderer replacement or
+  deletion.
 
 ## Active Task
 
 Task:
-Wait for the renderer-authority decision before assigning further Submap implementation or proof work.
+Assign only extraction/inventory/proof work before any Submap component
+deprecation.
 
 Acceptance criteria:
-- `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` stay aligned with the current live contract and review gate.
-- The contract note remains focused on preserved dependencies, not renderer replacement.
-- The next agent can resume after the decision with one concrete proof step instead of re-deriving the contract from source.
+- `NORTH_STAR.md`, `TRACKER.md`, and `GAPS.md` stay aligned with the active extraction scope.
+- The contract note remains focused on retained functions and dependent systems, not renderer replacement.
+- The next agent can resume an extraction slice without re-deriving the contract from source.
 
 Key files:
 - `docs/projects/submap/NORTH_STAR.md`
@@ -58,7 +61,8 @@ Scoped verification:
 
 Blocking dependencies / do-not-touch:
 - Do not delete the DOM/tile Submap surface.
-- Do not continue renderer replacement, implementation, or proof work until the renderer authority decision in `G3` is recorded.
+- Do not delete or replace Submap components. Extraction-only implementation is
+  allowed when it preserves behavior and includes proof.
 
 Recent progress:
 - The quick-travel and inspect dependency contract is now documented in a durable Submap note.
@@ -67,7 +71,12 @@ Recent progress:
 Workflow gap review:
 - Read `WORKFLOW_GAPS.md`; no new workflow-level ambiguity was introduced by this pass.
 
-Required end state:
+agent_comments: User clarification on 2026-06-09 made Submap an active
+pre-deprecation extraction/modularization project. Assign only extraction,
+inventory, and proof slices; no deletion or replacement.
+
+## Required End State For This Iteration
+
 - Update the project docs in place.
 - Keep the current handoff only; do not preserve older transcript blocks between the markers.
 
@@ -84,19 +93,19 @@ Gaps: docs/projects/submap/GAPS.md
 
 ## Previous Agent Handoff
 
-The Submap packet has been refreshed to preserve the live DOM/tile surface
+The Submap packet has been corrected to keep the DOM/tile surface in place
 while making the renderer-independent quick-travel and inspect dependencies
-explicit for later extraction work.
+explicit for extraction work.
 
 ## Current Mission
 
 Active task:
-T4/G3 - Renderer authority decision is required before more Submap implementation or proof work.
+T3/T4/T5 - Continue extraction inventory and retained-function proof before
+component deprecation.
 
 Acceptance criteria:
-Use the contract note and tracker rows to keep the quick-travel and inspect
-proof path concrete, but do not assign it until the renderer-authority decision
-is recorded.
+Use the contract note and tracker rows to extract or prove retained behavior.
+Do not delete or replace components.
 
 Key files to touch:
 - docs/projects/submap/NORTH_STAR.md
@@ -112,13 +121,18 @@ Scoped verification:
 Run `git diff --check` for all touched files, including the new contract doc.
 
 Blocking dependencies / do-not-touch:
-Do not delete the DOM/tile Submap surface. Do not continue renderer
-replacement, implementation, or proof work until `G3` is decided.
+Do not delete the DOM/tile Submap surface. Do not continue renderer replacement
+or component removal. Extraction-only implementation with proof is allowed.
 
 Recent progress:
 The dependency contract now captures the preserved quick-travel and inspect
-inputs, outputs, action payload semantics, modal visibility routing, MapData
-compatibility, and combat-map separation.
+inputs, outputs, action payload semantics, modal visibility routing, action menu
+and material lookup dependents, generation services, town/village overlap,
+puzzle hooks, MapData compatibility, and combat-map separation.
+
+agent_comments: User clarification on 2026-06-09 made Submap an active
+pre-deprecation extraction/modularization project. Assign only extraction,
+inventory, and proof slices; no deletion or replacement.
 
 Required closeout reminders:
 - Keep `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, and this handoff aligned.

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 16:47:06
+ * Last Sync: 09/06/2026, 05:49:10
  * Dependents: components/Combat/CombatView.tsx
  * Imports: 3 files
  *
@@ -21,11 +21,13 @@
  * It handles the lifecycle of an AI turn: Thinking -> Evaluating -> Acting -> Waiting -> Repeating.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CombatCharacter, CombatAction, BattleMapData } from '../../types/combat';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 // TODO: Refactor: Move 'AI_THINKING_DELAY_MS' into a dynamic 'AIConfigContext' to support per-monster personalities and user overrides.
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
+
+const MAX_AI_ACTIONS_PER_TURN = 3;
 
 interface UseCombatAIProps {
     /** The difficulty setting that determines AI thinking speed */
@@ -51,13 +53,9 @@ interface UseCombatAIProps {
  * Detects if the current turn is an AI turn, waits for a thinking delay,
  * determines the best action, and executes it.
  *
- * TODO: Add unit tests for useCombatAI state machine transitions.
- * Cases to cover:
- * 1. AI turn detection (enemy team vs autoCharacters set)
- * 2. State transitions: idle -> thinking -> acting -> done
- * 3. Action limit enforcement (max 3 actions per turn)
- * 4. Graceful handling when executeAction returns false
- * 5. Timer cleanup on component unmount
+ * Focused regression coverage keeps the loop bounded while still allowing
+ * auto-controlled allies, move actions, and ability actions to reuse the same
+ * turn flow as enemies.
  */
 export const useCombatAI = ({
     difficulty,
@@ -76,8 +74,10 @@ export const useCombatAI = ({
     // done: AI has finished its actions for the turn
     const [aiState, setAiState] = useState<'idle' | 'thinking' | 'acting' | 'done'>('idle');
 
-    // Track actions to prevent infinite loops (max 3 actions per turn limit)
+    // Track actions to prevent infinite loops while still allowing a full
+    // move/action sequence to resolve within the current turn.
     const [aiActionsPerformed, setAiActionsPerformed] = useState(0);
+    const aiActionsPerformedRef = useRef(0);
 
     /**
      * Effect: Turn Start / AI Activation
@@ -92,6 +92,7 @@ export const useCombatAI = ({
         if (!character) return;
 
         // Reset state for the new turn
+        aiActionsPerformedRef.current = 0;
         setTimeout(() => setAiActionsPerformed(0), 0);
 
         const isAiControlled = character.team === 'enemy' || autoCharacters.has(character.id);
@@ -141,9 +142,7 @@ export const useCombatAI = ({
         // 2. Safety / Existential Checks
         // Prevent infinite loops with a hard cap on actions per turn (e.g. Move + Action + Bonus)
         // Also requires mapData to be present for pathfinding.
-        // TODO: Replace magic number '3' with a configurable constant (e.g., MAX_AI_ACTIONS_PER_TURN).
-        // Consider making it per-creature (some monsters may have Legendary Actions or Multi-attack).
-        if (aiActionsPerformed >= 3 || !mapData) {
+        if (aiActionsPerformedRef.current >= MAX_AI_ACTIONS_PER_TURN || !mapData) {
             setTimeout(() => setAiState('done'), 0);
             endTurn();
             return;
@@ -174,7 +173,8 @@ export const useCombatAI = ({
                         action.targetPosition || character.position,
                         action.targetCharacterIds || []
                     );
-                    setAiActionsPerformed(prev => prev + 1);
+                    aiActionsPerformedRef.current += 1;
+                    setAiActionsPerformed(aiActionsPerformedRef.current);
                     setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
                 } else {
                     console.warn(`AI Action failed: Ability ${action.abilityId} not found.`);
@@ -189,7 +189,8 @@ export const useCombatAI = ({
 
                 if (success) {
                     // Increment counter to eventually hit determining condition (max actions or end_turn decision)
-                    setAiActionsPerformed(prev => prev + 1);
+                    aiActionsPerformedRef.current += 1;
+                    setAiActionsPerformed(aiActionsPerformedRef.current);
 
                     // 6. Loop Back
                     // After a successful action, we go back to 'thinking'.
@@ -219,7 +220,6 @@ export const useCombatAI = ({
         characters,
         mapData,
         currentCharacterId,
-        aiActionsPerformed,
         executeAction,
         executeAbility,
         endTurn,

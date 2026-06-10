@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { VoyageManager } from '../VoyageManager';
-import { Ship } from '../../../types/naval';
+import { CrewMember, Ship } from '../../../types/naval';
 import { CrewManager } from '../CrewManager';
 import { WeatherState } from '../../../types/environment';
+import { SeededRandom } from '../../../utils/random';
 
 /**
  * ARCHITECTURAL CONTEXT:
@@ -10,32 +11,19 @@ import { WeatherState } from '../../../types/environment';
  * simulates days at sea, supply consumption, and crew morale changes 
  * during naval travel.
  *
- * Recent updates focus on 'Deterministic Simulation'. By mocking `Math.random` 
- * to return a high value (0.99), we suppress random 'Voyage Events' (like 
- * pirate encounters) that would otherwise compete with the specific 
- * mechanical assertions (like starvation warnings) in the event log. 
- * This ensures the tests validate the logic they claim to, without 
- * intermittent flakes.
+ * Recent updates focus on deterministic simulation. These tests pass an
+ * explicit seeded source so voyage events, crew updates, and supply changes
+ * stay replay-stable instead of depending on process-global randomness.
  * 
  * @file src/systems/naval/__tests__/VoyageManager.test.ts
  */
 
 describe('VoyageManager', () => {
-    // WHAT CHANGED: Added Math.random mocking in beforeEach.
-    // WHY IT CHANGED: VoyageManager rolls for random events every day. 
-    // If a random encounter triggers during a supply test, it might 
-    // overwrite or precede the 'Starvation' log entry, causing 
-    // assertion failures. Mocking it to 0.99 effectively disables 
-    // random events for these specific unit tests.
-    const originalRandom = Math.random;
-
-    beforeEach(() => {
-        Math.random = vi.fn().mockReturnValue(0.99);
-    });
-
-    afterEach(() => {
-        Math.random = originalRandom;
-    });
+    const noEventRng = {
+        next: () => 0.99,
+        nextInt: (min: number) => min,
+        pick: <T>(values: T[]) => values[0],
+    } as SeededRandom;
 
     // Mock Ship
     const createMockShip = (): Ship => {
@@ -55,6 +43,28 @@ describe('VoyageManager', () => {
             capacityUsed: 0,
             supplies: { food: 100, water: 200 }
         };
+        const baseCrewMembers: CrewMember[] = [
+            {
+                id: 'crew-captain',
+                name: 'Ada Tide',
+                role: 'Captain',
+                skills: { navigation: 5, leadership: 4 },
+                morale: 80,
+                loyalty: 50,
+                dailyWage: 10,
+                traits: ['Loyal']
+            },
+            {
+                id: 'crew-sailor',
+                name: 'Borin Wake',
+                role: 'Sailor',
+                skills: { navigation: 2, seamanship: 3 },
+                morale: 78,
+                loyalty: 48,
+                dailyWage: 2,
+                traits: []
+            }
+        ];
 
         return ({
         id: 'ship-1',
@@ -63,19 +73,7 @@ describe('VoyageManager', () => {
         size: 'Small',
         description: 'A fast sloop.',
         stats: baseStats,
-        crew: CrewManager.recruitCrew({
-            id: 'mock',
-            name: 'Mock',
-            type: 'Sloop',
-            size: 'Small',
-            description: '',
-            stats: baseStats,
-            crew: { members: [], averageMorale: 80, unrest: 0, quality: 'Average' },
-            cargo: baseCargo,
-            modifications: [],
-            weapons: [],
-            flags: {}
-        }, 'Captain', 1).crew,
+        crew: CrewManager.calculateCrewStats(baseCrewMembers),
         cargo: baseCargo,
         modifications: [],
         weapons: [],
@@ -101,7 +99,7 @@ describe('VoyageManager', () => {
     it('should advance the day and move the ship', () => {
         const ship = createMockShip();
         let voyage = VoyageManager.startVoyage(ship, 500);
-        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
 
         voyage = result.newState;
 
@@ -119,7 +117,7 @@ describe('VoyageManager', () => {
         const initialFood = ship.cargo.supplies.food;
         const initialWater = ship.cargo.supplies.water;
 
-        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
         const updatedShip = result.updatedShip;
 
         // 1 food per person, 2 water per person
@@ -138,7 +136,7 @@ describe('VoyageManager', () => {
         const startingMorale = ship.crew.averageMorale;
         // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 500);
-        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
         const updatedShip = result.updatedShip;
 
         // Check logs for warning
@@ -154,9 +152,23 @@ describe('VoyageManager', () => {
         const ship = createMockShip();
         // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
         const voyage = VoyageManager.startVoyage(ship, 50); // Short trip
-        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000);
+        const result = VoyageManager.advanceDay(voyage, ship, mockWeather, 1000, noEventRng);
 
         expect(result.newState.status).toBe('Docked');
         expect(result.newState.log[result.newState.log.length - 1].event).toContain('Land ho');
+    });
+
+    it('should repeat the same voyage outcome for identical seeded inputs', () => {
+        const firstShip = createMockShip();
+        const secondShip = createMockShip();
+        const firstVoyage = VoyageManager.startVoyage(firstShip, 500);
+        const secondVoyage = VoyageManager.startVoyage(secondShip, 500);
+
+        const first = VoyageManager.advanceDay(firstVoyage, firstShip, mockWeather, 1000, new SeededRandom(42));
+        const second = VoyageManager.advanceDay(secondVoyage, secondShip, mockWeather, 1000, new SeededRandom(42));
+
+        expect(first.newState).toEqual(second.newState);
+        expect(first.updatedShip).toEqual(second.updatedShip);
+        expect(first.remainingFunds).toBe(second.remainingFunds);
     });
 });

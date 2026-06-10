@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 23/05/2026, 00:19:43
+ * Last Sync: 09/06/2026, 04:23:01
  * Dependents: hooks/combat/useActionEconomy.ts, hooks/combat/useTurnManager.ts, hooks/useAbilitySystem.ts, utils/combat/index.ts
- * Imports: 3 files
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,10 +23,63 @@
  * and the UI reads the same state to decide which buttons are still legal.
  */
 
-import { CombatCharacter, ActionEconomyState, AbilityCost } from '../../types/combat';
+import { CombatCharacter, ActionEconomyState, AbilityCost, ActiveEffect, StatusEffect } from '../../types/combat';
 import { SpellSlots } from '../../types';
 import { resolveRacialSpellLimitedUseId } from '../character/characterUtils';
 import { isIncapacitated, isMovementBlocked } from './deathSaveUtils';
+
+const SPEED_ZERO_CONDITIONS = new Set(['grappled', 'paralyzed', 'petrified', 'restrained', 'unconscious']);
+
+const getStatusEffectMovementDelta = (effect: StatusEffect): number => {
+    const statModifier = effect.effect?.type === 'stat_modifier' && effect.effect.stat === 'speed' && typeof effect.effect.value === 'number'
+        ? effect.effect.value
+        : 0;
+    const legacyMovementBonus = typeof effect.modifiers?.movementSpeed === 'number'
+        ? effect.modifiers.movementSpeed
+        : 0;
+
+    return statModifier + legacyMovementBonus;
+};
+
+const getActiveEffectMovementDelta = (effect: ActiveEffect): number => {
+    const mechanics = effect.mechanics as (ActiveEffect['mechanics'] & {
+        movementSpeed?: number;
+        speedChange?: { value?: number };
+    }) | undefined;
+
+    const movementBonus = typeof mechanics?.movementSpeed === 'number' ? mechanics.movementSpeed : 0;
+    const speedChange = typeof mechanics?.speedChange?.value === 'number' ? mechanics.speedChange.value : 0;
+
+    return movementBonus + speedChange;
+};
+
+/**
+ * Computes the movement pool a combatant should have after live effects are
+ * applied. This keeps turn-start resets and mid-combat effect updates aligned
+ * so speed changes can actually flow into movement.total instead of being left
+ * behind on the character sheet.
+ */
+export function calculateMovementTotal(character: CombatCharacter): number {
+    const hasZeroSpeedCondition = [
+        ...(character.statusEffects ?? []),
+        ...(character.conditions ?? [])
+    ].some(effect => SPEED_ZERO_CONDITIONS.has(effect.name.toLowerCase()));
+
+    if (hasZeroSpeedCondition || isMovementBlocked(character)) {
+        return 0;
+    }
+
+    const statusEffectDelta = (character.statusEffects ?? []).reduce(
+        (total, effect) => total + getStatusEffectMovementDelta(effect),
+        0
+    );
+    const activeEffectDelta = (character.activeEffects ?? []).reduce(
+        (total, effect) => total + getActiveEffectMovementDelta(effect),
+        0
+    );
+
+    return Math.max(0, character.stats.speed + statusEffectDelta + activeEffectDelta);
+}
 
 const canAffordActionByType = (economy: ActionEconomyState, cost: AbilityCost): boolean => {
     switch (cost.type) {
@@ -99,7 +152,7 @@ export function resetEconomy(character: CombatCharacter): CombatCharacter {
             used: 0, 
             total: character.stats.legendaryActionsPerRound || 0 
         },
-        movement: { used: 0, total: character.stats.speed },
+        movement: { used: 0, total: calculateMovementTotal(character) },
         freeActions: 1, // Reset free actions
     };
 

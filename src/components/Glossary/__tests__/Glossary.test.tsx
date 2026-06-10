@@ -168,6 +168,30 @@ describe('Glossary', () => {
     expect(screen.queryByTitle('Spell JSON not found')).not.toBeInTheDocument();
   });
 
+  it('loads a tagged leveled spell from its real spell JSON folder when gate checks are hidden', async () => {
+    const taggedSpellEntries: GlossaryEntry[] = [
+      {
+        id: 'absorb-elements',
+        title: 'Absorb Elements',
+        category: 'Spells',
+        tags: ['level 1'],
+        filePath: null,
+      },
+    ];
+
+    renderGlossary({ isDevModeEnabled: false }, taggedSpellEntries);
+
+    fireEvent.click(screen.getByText('Spells (1)'));
+    fireEvent.click(screen.getByText('Absorb Elements'));
+
+    await waitFor(() => {
+      expect(fetchWithTimeoutMock).toHaveBeenCalledWith(
+        '/data/spells/level-1/absorb-elements.json',
+        expect.any(Object),
+      );
+    });
+  });
+
   it('requests a dev-only glossary index rebuild when the glossary opens in dev mode', async () => {
     renderGlossary({ isDevModeEnabled: true });
 

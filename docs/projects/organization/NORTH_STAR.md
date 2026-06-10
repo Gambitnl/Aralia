@@ -1,3 +1,43 @@
+---
+schema_version: 1
+project: Organization
+slug: organization
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/organization
+gap_signal: "5 open project gaps; permissions and persistence remain the current blockers"
+protocol: living project doc set
+next_step: Resolve the org permission and persistence boundary before the next implementation slice.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - app_smoke
+  - persistence_test
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Organization North Star
 
 Status: active

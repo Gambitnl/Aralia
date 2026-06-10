@@ -1,7 +1,7 @@
 # 3D Combat Map Audit / Proof
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 This file holds durable proof summaries and the standing acceptance checks for the
 3D combat map. It is not a raw log archive - keep entries concise and link to the
@@ -59,6 +59,8 @@ pass/fail bars live here so the proof survives the chat session.
 | 2026-06-08 | NC1 browser visual smoke | pass for original post-processing guard | Battle Map Demo loaded from saved party state, 3D view mounted one 766x1068 canvas, and the console showed no repeated `GL_INVALID_OPERATION`, `glBlitFramebuffer`, `SSAO`, or `NormalPass` errors. A single terrain shader warning was routed to G6 instead of blocking G2 closure. |
 | 2026-06-08 | NC1 independent reproduction (Claude/Opus) | pass | Second headless run (port 5174, forest, canvas 918px, software GL): 0 `GL_INVALID_OPERATION`/`glBlitFramebuffer`/`SSAO`/`NormalPass` across a ~6.5s camera-movement window; settled screenshot shows terrain+tree variety+gold active actor+red enemy rings. Reusable harness: `.agent/3d-visual-quality/captures/nc1-console.mjs`, `nc1-forest.png`. Corroborates G2 closure. |
 | 2026-06-08 | NC2 integration | **BLOCKED (not run)** | Offline autosave fixture loads the World3D exploration surface (Controls→Open Map/Exit to Menu, 3D, Atlas, CHAT History) with no ActionPane System Menu, so the headless Dev Menu → Generate Encounter → Simulate Battle → `CombatView` path is unreachable. Ready harness once a 2D-exploration fixture exists: `.agent/3d-visual-quality/captures/nc2-combatview.mjs`. See F-2026-06-08-03; G3 stays open. |
+| 2026-06-09 | G4 browser slope-click proof | pass | Battle Map Demo 3D view. After advancing to a valid move state, a 3D terrain click moved the active token to tile `38-4` in 2D, and the landed tile's neighbors showed a slope profile (`38-3` elevation 1, `39-4` elevation 1, `37-4` elevation 0, `38-5` elevation 0). |
+| 2026-06-09 | G6 terrain shader warning | pass | `src/components/BattleMap/terrain/TerrainMesh.tsx` plus a targeted console sweep of the Battle Map Demo 3D path. `getTerrainColor` now seeds a default terrain color before branch overrides, and the runtime capture found no `f_getTerrainColor` / `X4000` / `potentially uninitialized` messages. |
 
 ## Findings
 
@@ -88,9 +90,8 @@ pass/fail bars live here so the proof survives the chat session.
   still pending". The structural hit mapping is now covered by
   `terrainTileMapping.test.ts`; the remaining open question is whether the
   browser raycast path on a steep slope matches the intended visual tile in a
-  live pass.
-- Next proof: browser slope-click confirmation if the scene can be run; otherwise
-  keep the structural clamp proof as the durable evidence for the current slice.
+  live pass. That question is resolved by the 2026-06-09 browser proof below.
+- Next proof: NC2 pop-out lifecycle check or the remaining G3/G5 follow-ups.
 
 ### F-2026-06-08-02 - NC1 browser smoke closes the stale SSAO/NormalPass gap
 
@@ -104,8 +105,24 @@ pass/fail bars live here so the proof survives the chat session.
 - Non-blocking finding: the console emitted one shader warning:
   `THREE.WebGLProgram ... warning X4000: use of potentially uninitialized variable (f_getTerrainColor)`.
   This is tracked separately as G6 because it is not the stale SSAO/NormalPass
-  failure mode and did not prevent rendering.
-- Next proof: G4 browser slope-click confirmation or NC2 pop-out lifecycle check.
+  failure mode and did not prevent rendering; it is now closed by the 2026-06-09
+  targeted terrain-shader sweep below.
+- Next proof: NC2 pop-out lifecycle check or the remaining G3/G5 follow-ups.
+
+### F-2026-06-09-04 - G4 browser slope-click proof confirms live terrain hit mapping
+
+- Source: Browser Battle Map Demo at `http://localhost:5174/Aralia/?phase=battle_map_demo`.
+- Setup: loaded the demo from the saved journey, advanced turns until the map exposed valid moves, switched to 3D, and clicked a visible slope region in the live canvas.
+- Result: pass. The click moved the active token to tile `38-4` when the view was switched back to 2D. The landed tile is a slope tile because adjacent tiles differed in elevation (`38-3` = 1, `39-4` = 1, `37-4` = 0, `38-5` = 0).
+- Impact: G4 is now closed in the tracker and gap registry. The browser proof covers the remaining live confirmation that the structural clamp test left open.
+- Next proof: NC2 pop-out lifecycle check or the remaining G3/G5 follow-ups.
+
+### F-2026-06-09-05 - Terrain shader warning closed by an explicitly initialized color path
+
+- Source: `src/components/BattleMap/terrain/TerrainMesh.tsx` and a targeted Battle Map Demo 3D console sweep.
+- Finding: `getTerrainColor` now initializes a default terrain color (`getGrassColor`) before applying the type-specific overrides. That preserves the same visual branching while removing the compiler's uninitialized-return path.
+- Impact: the earlier `f_getTerrainColor` / `X4000` warning is no longer present in the targeted runtime capture, so G6 is now closed.
+- Next proof: None unless the terrain shader branch logic changes again.
 
 ### F-2026-06-08-03 - NC2 cannot be reached headlessly from the current save fixture (World3D surface)
 

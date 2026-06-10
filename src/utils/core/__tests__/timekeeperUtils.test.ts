@@ -35,6 +35,7 @@ const createOpenExplorationClockState = (overrides: Partial<PassiveGameClockStat
   isNpcTestModalVisible: false,
   isLogbookVisible: false,
   isGameGuideVisible: false,
+  isInvestmentBoardVisible: false,
   isMerchantModalOpen: false,
   isMissingChoiceModalOpen: false,
   ...overrides,
@@ -66,6 +67,14 @@ describe('shouldPassiveGameClockRun', () => {
     // an exploration action that should silently spend world time.
     expect(shouldPassiveGameClockRun(createOpenExplorationClockState({
       isEncounterModalVisible: true,
+    }))).toBe(false);
+  });
+
+  it('pauses passive ticking while the investment board is open', () => {
+    // Economy modal decisions should not silently spend world time while the
+    // player is choosing caravan investments or loan terms.
+    expect(shouldPassiveGameClockRun(createOpenExplorationClockState({
+      isInvestmentBoardVisible: true,
     }))).toBe(false);
   });
 });

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 02:44:58
+ * Dependents: state/reducers/craftingReducer.ts, types/index.ts, utils/world/sceneUtils.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { GamePhase } from './core.js';
 import { Item } from './items.js';
 import { PlayerCharacter, TempPartyMember } from './character.js';
@@ -270,6 +286,7 @@ export interface GameState {
   isNavalDashboardVisible: boolean;
   isNobleHouseListVisible: boolean;
   isTradeRouteDashboardVisible: boolean;
+  isInvestmentBoardVisible: boolean;
   isEconomyLedgerVisible: boolean;
   isCourierPouchVisible: boolean;
 

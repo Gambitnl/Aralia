@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Events System
+slug: events
+category: Gameplay Systems
+main_category: "Game & Simulation"
+subcategory: Core Sim Systems
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/events
+gap_signal: "2 open project gaps; G3/G4 review-required; G1/G2/G5/G6 resolved 2026-06-08"
+protocol: living project doc set
+next_step: Keep the replay/scheduling gap set aligned with source evidence, and do not assign forward implementation work until the lane-contract review is resolved.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Events System North Star
 
 Status: review-required

@@ -13,7 +13,6 @@ interface SystemMenuProps {
   disabled: boolean;
   unreadDiscoveryCount: number;
   hasNewRateLimitError: boolean;
-  isDevDummyActive: boolean; // Retained prop for completeness, though specific usage might be implicitly handled by permissions
   isDevModeEnabled: boolean;
   autoSaveEnabled: boolean;
 }
@@ -23,7 +22,6 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   disabled,
   unreadDiscoveryCount,
   hasNewRateLimitError,
-  isDevDummyActive: _isDevDummyActive,
   isDevModeEnabled,
   autoSaveEnabled,
 }) => {

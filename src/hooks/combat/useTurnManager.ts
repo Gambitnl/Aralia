@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 08/06/2026, 16:01:00
+ * Last Sync: 09/06/2026, 06:46:55
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
  * Imports: 11 files
  *
@@ -28,10 +28,10 @@
  * @file hooks/combat/useTurnManager.ts
  */
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource } from '../../types/combat';
+import { CombatCharacter, CombatLogEntry, BattleMapData, LightSource, Ability } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId } from '../../utils/combatUtils';
-import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
+import { calculateMovementTotal, resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { useActionEconomy } from './useActionEconomy';
 
 import { useCombatVisuals } from './useCombatVisuals';
@@ -54,9 +54,14 @@ interface UseTurnManagerProps {
     attackerId: string,
     targetId: string,
     triggerType: 'on_hit' | 'on_cast' | 'on_move' | 'on_take_damage' | 'opportunity_attack',
-    reactionSpells?: import('../../types/spells').Spell[],
+    reactionSpells?: Array<import('../../types/spells').Spell | Ability>,
     reactionWeapons?: import('../../types/combat').Ability[]
   ) => Promise<string | null>;
+  executeReactionSpell?: (
+    attacker: CombatCharacter,
+    target: CombatCharacter,
+    spellAbility: Ability
+  ) => Promise<void> | void;
 }
 
 export const useTurnManager = ({
@@ -68,7 +73,8 @@ export const useTurnManager = ({
   autoCharacters,
   onMapUpdate,
   difficulty = 'normal',
-  requestReaction
+  requestReaction,
+  executeReactionSpell
 }: UseTurnManagerProps) => {
 
   // --- Decomposed Sub-Systems ---
@@ -100,6 +106,24 @@ export const useTurnManager = ({
   const lastCharactersRef = useRef(characters);
   const getStatusCleanupKey = (characterId: string, effectId: string) => `status:${characterId}:${effectId}`;
   const getConditionCleanupKey = (characterId: string, source: string) => `condition:${characterId}:${source}`;
+  const syncMovementEconomy = (character: CombatCharacter): CombatCharacter => {
+    const movementTotal = calculateMovementTotal(character);
+
+    if (character.actionEconomy.movement.total === movementTotal) {
+      return character;
+    }
+
+    return {
+      ...character,
+      actionEconomy: {
+        ...character.actionEconomy,
+        movement: {
+          ...character.actionEconomy.movement,
+          total: movementTotal
+        }
+      }
+    };
+  };
 
   // Wrapped character update callback to handle immediate concentration drop when a character is downed (0 HP)
   const handleCharacterUpdateWrapped = useCallback((updatedChar: CombatCharacter) => {
@@ -170,7 +194,7 @@ export const useTurnManager = ({
       setActiveLightSources(prev => prev.filter(ls => ls.sourceSpellId !== previousSpellId && !trackedEffectIds.has(ls.id)));
     }
 
-    onCharacterUpdate(finalChar);
+    onCharacterUpdate(syncMovementEconomy(finalChar));
   }, [characters, onCharacterUpdate, onLogEntry]);
 
   // Ref to executeActionRef — set after useActionExecutor initializes.
@@ -546,7 +570,8 @@ export const useTurnManager = ({
     movementDebuffs,
     reactiveTriggers,
     setMovementDebuffs,
-    requestReaction
+    requestReaction,
+    executeReactionSpell
   });
 
   // Keep the ref in sync so endTurn can invoke executeAction without a circular dependency.

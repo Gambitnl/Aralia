@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:35:24
- * Dependents: memoryUtils.ts, world/index.ts
+ * Last Sync: 09/06/2026, 05:08:19
+ * Dependents: services/gemini/items.ts, utils/memoryUtils.ts, utils/world/index.ts
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -15,8 +15,9 @@
 // @dependencies-end
 
 /**
- * @file src/utils/memoryUtils.ts
- * Utilities for managing NPC memories, including formation, retrieval, and forgetting (decay).
+ * @file src/utils/world/memoryUtils.ts
+ * Canonical world-layer memory helpers for AI formatting, retrieval, and forgetting (decay).
+ * The deprecated bridge in src/utils/memoryUtils.ts stays only for older imports.
  */
 
 import { NPCMemory, Interaction, Fact, MemoryImportance, GameDate } from '../../types/memory';

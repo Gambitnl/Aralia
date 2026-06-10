@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Providers
+slug: providers
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/providers
+gap_signal: "G2/G3 resolved; G4 waiting; G5 provider modularization review required"
+protocol: living project doc set
+next_step: Await provider modularization boundary decision before assigning further Providers work.
+agent_comments: "G2/G3 provider startup and boundary docs are resolved; G4 is safe only after the review-required G5 decision is recorded."
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Providers North Star
 
 Status: review-required

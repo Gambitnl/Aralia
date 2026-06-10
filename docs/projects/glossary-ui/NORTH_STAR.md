@@ -3,15 +3,15 @@ schema_version: 1
 project: Glossary UI
 slug: glossary-ui
 category: Feature/UI Projects
-main_category: Interface & Experience
+main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: active
+status: review-required
 last_updated: 2026-06-09
 confidence: medium
 evidence: docs/projects/glossary-ui
-gap_signal: "4 open gaps"
+gap_signal: 5 open gaps
 protocol: living project doc set
-next_step: Track item metadata and categorization assumptions affecting this UI.
+next_step: Await human/product decision on generated item metadata ownership and shared schema scope.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -38,12 +38,11 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: no
+human_decision_required: "yes"
 ---
-
 # Glossary UI North Star
 
-Status: active
+Status: review-required
 Last updated: 2026-06-09
 
 ## Purpose
@@ -103,15 +102,37 @@ Dev-server shortcut: `POST /api/glossary/rebuild-index` triggers Stage 2 via the
 - `docs/tasks/glossary` is the broader planning area for glossary intent outside this UI-focused folder.
 - `docs/projects/PROJECT_TRACKER.md` is the registry anchor and cross-project handoff point.
 
+## Required Review Brief
+
+Title: Generated item metadata contract
+
+Question: Should the item metadata consumed by `GlossaryItemStatBlock` remain a glossary-local display contract, or should it be promoted into a shared typed schema for both glossary rendering and item registry generation?
+
+Issue: `scripts/ingestPhbGlossary.ts` emits `itemMetadata` from source item fields, `src/components/Glossary/GlossaryItemStatBlock.tsx` renders those fields directly, and `scripts/generateItemRegistry.ts` consumes overlapping metadata for the gameplay item registry. The surface is intentionally small, but future additions can drift if no owner is named.
+
+Current behavior: the UI expects `type`, `rarity`, `tier`, `reqAttune`, `cost`, `weight`, `damage`, `properties`, and `ac`. `GlossaryItemStatBlock` hides the `None` rarity sentinel, renders cost as gp, and treats missing fields as absent rather than failing the card.
+
+Why blocked: without a single owner, future metadata additions can be made in ingest or registry code without a matching render update.
+
+Option A: keep the glossary-local display contract here, document the allowed fields explicitly, and leave registry conversion independent.
+
+Option B: promote a shared typed item metadata contract that both the glossary and the item registry import.
+
+Evidence: `scripts/ingestPhbGlossary.ts`, `scripts/generateItemRegistry.ts`, `src/components/Glossary/GlossaryItemStatBlock.tsx`, `src/components/Glossary/GlossaryEntryTemplate.tsx`, `src/types/ui.ts`.
+
+Decision owner: human/product owner for glossary and item metadata boundaries.
+
+Proof after decision: refresh this brief, update the tracker and gaps, and add a narrow contract test or proof note if the owner chooses a shared schema.
+
 ## Open Issues and Next Checks
-- Keep the named `npm run glossary:rebuild` entry point in sync if the pipeline
-  stages change again.
+- Keep the named `npm run glossary:rebuild` entry point in sync if the pipeline stages change again.
 - Decide whether Equipment grouping taxonomy should stay based on `itemType` strings or move to a curated canonical list.
+- Decide whether generated item metadata stays glossary-local display data or moves into a shared typed schema.
 - Validate whether all generated glossary fields consumed by UI, including `itemMetadata`, are consistently typed and preserved in all item pipelines.
 
 ## Current Focus
 - T2 is done: the non-dev rebuild contract is now captured in `RUNBOOK.md`, and the full glossary rebuild has a named `npm run glossary:rebuild` entry point.
-- T3 is the next active slice: track item metadata and categorization assumptions.
+- T3 is now review-required: the item metadata render contract is documented, but ownership for future schema additions still needs a human/product decision.
 - Keep the item-categorization boundary: this folder records the dependency, but `docs/projects/item_categorization` owns the taxonomy decision.
 
 ## Resume Path

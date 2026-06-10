@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Tiered Autosave
+slug: tiered-autosave
+category: active project
+main_category: Other / Unsorted
+subcategory: Unsorted
+status: active
+last_updated: ""
+confidence: unknown
+evidence: "docs/projects/tiered-autosave/TRACKER.md; docs/projects/tiered-autosave/GAPS.md"
+gap_signal: present
+protocol: living-project
+next_step: Resume from TRACKER.md and keep the gap log aligned.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - ARCHITECTURE_NOTES.md
+required_verification:
+  - docs consistency
+completed_verification:
+  - docs refresh
+last_proof: 2026-06-05
+workflow_gaps_reviewed: ""
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH STAR: Tiered Autosave Checkpoint System
 
 ## Dashboard Card Schema

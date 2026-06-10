@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 17:22:06
+ * Last Sync: 09/06/2026, 04:34:00
  * Dependents: state/reducers/worldReducer.ts, systems/world/NobleIntrigueManager.ts
- * Imports: 17 files
+ * Imports: 18 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -27,6 +27,7 @@ import { MarketEventType } from '../../types/economy';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay } from '../../utils/core';
 import { SeededRandom } from '@/utils/random';
+import { DEFAULT_WEATHER } from '../environment/EnvironmentSystem';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';
 import { generateNobleIntrigue } from './NobleIntrigueManager';
@@ -64,9 +65,7 @@ export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // RALPH: Geopolitical Simulation.
     // 1. Weather Check: Logic-gate. Military activity is hindered by storms (90% cancellation).
-    // DEBT: Cast state to any to probe optional weather property without full GameState schema mapping here.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const weather = (state as any).weather;
+    const weather = state.environment ?? DEFAULT_WEATHER;
     if (weather) {
         const p = weather.precipitation;
         if (p === 'storm' || p === 'blizzard') {
@@ -337,9 +336,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     ];
 
     // Modify weights based on weather
-    // DEBT: Cast state to any to probe optional weather property without full GameState schema mapping here.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const weather = (state as any).weather;
+    const weather = state.environment ?? DEFAULT_WEATHER;
     if (weather) {
         const p = weather.precipitation;
         const t = weather.temperature;

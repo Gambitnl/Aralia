@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useCompanionBanter } from '../useCompanionBanter';
 import { GamePhase } from '../../types/core';
 import { OllamaService } from '../../services/ollama';
+import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
 
 /**
  * ARCHITECTURAL CONTEXT:
@@ -123,7 +124,7 @@ describe('useCompanionBanter', () => {
             banterCooldowns: {},
             currentLocationId: 'test_loc',
             dynamicLocations: { 'test_loc': { name: 'Test Location' } },
-            environment: { currentWeather: 'Clear' },
+            environment: { ...DEFAULT_WEATHER },
             gameTime: new Date().toISOString()
         };
     });

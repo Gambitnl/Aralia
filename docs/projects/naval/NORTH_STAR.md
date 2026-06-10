@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Naval System
+slug: naval
+category: Gameplay / World Systems
+main_category: "Game & Simulation"
+subcategory: "Combat & Encounters"
+status: partial
+last_updated: 2026-06-05
+confidence: high
+evidence: docs/projects/naval/NORTH_STAR.md
+gap_signal: "6 open gaps; voyage coupling, combat handoff, action wiring, and legacy ownership remain unresolved."
+protocol: living project doc set
+next_step: Resolve T2 by wiring sea travel into movement, routing combat handoff, and closing NAVAL_REPAIR_SHIP handling.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Naval System North Star
 
 Status: active

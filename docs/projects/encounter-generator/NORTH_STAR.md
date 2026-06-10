@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Encounter Generator
+slug: encounter-generator
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-09
+confidence: medium
+evidence: docs/projects/encounter-generator
+gap_signal: 1 open gap (G4 AI determinism boundary)
+protocol: living project doc set
+next_step: Resolve G4 human decision (full AI replay vs local-only replay contract), then resume T3/T4 implementation if approved.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Encounter Generator North Star
 
 Status: review-required

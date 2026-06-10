@@ -153,7 +153,6 @@ describe('ActionPane', () => {
     onAction: vi.fn(),
     disabled: false,
     geminiGeneratedActions: null as Action[] | null,
-    isDevDummyActive: false,
     isDevModeEnabled: false,
     unreadDiscoveryCount: 0,
     hasNewRateLimitError: false,
@@ -190,6 +189,11 @@ describe('ActionPane', () => {
     fireEvent.click(screen.getByText('Take Ancient Coin'));
     expect(defaultProps.onAction).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'take_item', targetId: 'item-1' })
+    );
+
+    fireEvent.click(screen.getByText('Go Market'));
+    expect(defaultProps.onAction).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'move', targetId: 'market_1' })
     );
   });
 
@@ -261,13 +265,20 @@ describe('ActionPane', () => {
     expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'ANALYZE_SITUATION' }));
   });
 
-  it('converts non-string move targetIds when invoking onAction', () => {
+  it('passes string move targetIds through without rewriting them', () => {
     const onAction = vi.fn();
-    const geminiActions: Action[] = [{ type: 'move', label: 'Move to point', targetId: 123 } as unknown as Action];
+    const geminiActions: Action[] = [
+      {
+        type: 'move',
+        label: 'Move to point',
+        payload: { query: 'Move to point' },
+        targetId: 'market_1',
+      },
+    ];
     render(<ActionPane {...defaultProps} geminiGeneratedActions={geminiActions} onAction={onAction} />);
 
     fireEvent.click(screen.getByText('Move to point'));
-    expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'move', targetId: '123' }));
+    expect(onAction).toHaveBeenCalledWith(geminiActions[0]);
   });
 
   it('emits the visible system-menu action types and keeps the discovery badge visible', () => {

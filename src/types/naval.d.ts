@@ -113,6 +113,10 @@ export interface VoyageLogEntry {
     event: string;
     type: 'Info' | 'Warning' | 'Combat' | 'Discovery' | 'Fluff';
 }
+/**
+ * Optional random callback for voyage event effects that need replay-safe dice.
+ */
+export type VoyageEventRandomSource = () => number;
 export interface VoyageEvent {
     id: string;
     name: string;
@@ -120,7 +124,7 @@ export interface VoyageEvent {
     type: 'Weather' | 'Encounter' | 'Discovery' | 'Crew' | 'Fluff';
     probability: number;
     conditions?: (state: VoyageState) => boolean;
-    effect: (state: VoyageState, ship: Ship) => {
+    effect: (state: VoyageState, ship: Ship, random?: VoyageEventRandomSource) => {
         log: string;
         type: VoyageLogEntry['type'];
     };

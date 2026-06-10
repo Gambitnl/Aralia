@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:22
- * Dependents: appState.ts
+ * Last Sync: 09/06/2026, 02:44:59
+ * Dependents: state/appState.ts
  * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
@@ -215,6 +215,14 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         isTradeRouteDashboardVisible: !state.isTradeRouteDashboardVisible,
         isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false
+      };
+
+    case 'TOGGLE_INVESTMENT_BOARD':
+      return {
+        isInvestmentBoardVisible: !state.isInvestmentBoardVisible,
+        isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
+        characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false,
+        isTradeRouteDashboardVisible: false, isEconomyLedgerVisible: false, isCourierPouchVisible: false
       };
 
     case 'TOGGLE_LOCKPICKING_MODAL':

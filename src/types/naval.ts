@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
+ *
+ * Last Sync: 09/06/2026, 03:06:22
+ * Dependents: components/Naval/ShipPane.tsx, data/dev/mockShips.ts, data/naval/crewTraits.ts, data/naval/voyageEvents.ts, data/naval/voyageEvents/index.ts, data/shipModifications.ts, data/ships.ts, state/initialState.ts, systems/naval/CrewManager.ts, systems/naval/NavalCombatSystem.ts, systems/naval/NavalLogic.ts, systems/naval/VoyageManager.ts, types/index.ts, utils/naval/navalCombatUtils.ts, utils/naval/navalUtils.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -162,6 +178,10 @@ export interface VoyageLogEntry {
   type: 'Info' | 'Warning' | 'Combat' | 'Discovery' | 'Fluff';
 }
 
+// Event effects can use the voyage manager's seeded stream when replay fidelity
+// matters, while older callers remain valid because the argument is optional.
+export type VoyageEventRandomSource = () => number;
+
 export interface VoyageEvent {
   id: string;
   name: string;
@@ -169,7 +189,7 @@ export interface VoyageEvent {
   type: 'Weather' | 'Encounter' | 'Discovery' | 'Crew' | 'Fluff';
   probability: number; // 0-1
   conditions?: (state: VoyageState) => boolean;
-  effect: (state: VoyageState, ship: Ship) => { log: string; type: VoyageLogEntry['type'] };
+  effect: (state: VoyageState, ship: Ship, random?: VoyageEventRandomSource) => { log: string; type: VoyageLogEntry['type'] };
 }
 
 // ============================================================================

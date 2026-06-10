@@ -1,7 +1,7 @@
 # Religion System Cold Start Agent Handoff
 
-Status: active
-Last updated: 2026-06-06
+Status: review-required
+Last updated: 2026-06-09
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -17,10 +17,21 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 Project entry point:
 docs/projects/religion/NORTH_STAR.md
 
+agent_comments: none
+
+## Iteration Ledger
+
+| Iteration | Agent/Model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 2 | Codex / gpt-5.4-mini high | local foreman docs pass | certain | 2026-06-09 | Schema repair, required-doc creation, and dashboard verification in this thread |
+| 3 | Codex / gpt-5 | CLI agent | certain | 2026-06-09 | G1 reducer compatibility helper, focused reducer/default-state tests, and Religion docs proof refresh |
+| 4 | Codex / gpt-5 | CLI agent | certain | 2026-06-09 | G2 typed temple service effect union, non-heal regression test, and Religion docs refresh in this thread |
+| 5 | Codex / gpt-5 | CLI agent | certain | 2026-06-09 | G3 combat taxonomy expansion, focused CombatReligionAdapter regression tests, and Religion docs refresh in this thread |
+
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Religion System
 Project folder: docs/projects/religion
-Iteration: 2
+Iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,75 +41,44 @@ Gaps: docs/projects/religion/GAPS.md
 
 ## Previous Agent Handoff
 
-Iteration 1 seeded the project docs and current gap registry. This pass refreshed
-the dashboard-facing North Star schema, marked the cold-start checklist task
-complete, and tightened the next-resume order so the next agent starts from G1,
-then G2.
+Iteration 5 resolved G3 with deity-authored combat taxonomy labels, legacy trigger fallbacks, and focused CombatReligionAdapter regression tests. That left G4 as the next implementation slice until source review showed the ritual consequence contract is shared with the Rituals project.
 
 ## Current Mission
 
 Active task:
-Resume implementation from G1, then G2, using the refreshed handoff and the
-compact gap order in TRACKER.md.
+Pause forward Religion implementation until the ritual ownership decision is recorded in the Required Review Brief. Keep the G1 compatibility helper, G2 temple service adapter, and G3 combat taxonomy map intact.
 
 Acceptance criteria:
-Keep the dual-state migration decision and the service-effect typing decision
-aligned. If a blocker appears, record it in GAPS.md with evidence instead of
-widening into unrelated religion work.
+Religion is marked review-required. The Required Review Brief is present in `NORTH_STAR.md`, the tracker and gap rows point to it, and no further sub-agent assignment should happen for Religion until the owner boundary is decided.
 
-Key files to touch:
-- docs/projects/religion/NORTH_STAR.md
-- docs/projects/religion/TRACKER.md
-- docs/projects/religion/GAPS.md
-- docs/projects/religion/COLD_START_AGENT_PROMPT.md
-- docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-
-Scoped verification:
-Use the tracker or North Star verification path for the active gap being worked.
-For this docs pass, the durable proof is the refreshed project documentation and
-the shared workflow-gap testimony.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-North Star now carries the dashboard card schema. TRACKER and GAPS are trimmed
-to the current queue, and WFG-001 received another testimony because the stale
-shared-path issue recurred during this pass.
-
-Key files to touch:
-- docs/projects/religion/NORTH_STAR.md
-- docs/projects/religion/TRACKER.md
-- docs/projects/religion/GAPS.md
-- docs/projects/religion/COLD_START_AGENT_PROMPT.md
-- docs/projects/religion/DECISIONS.md
-- docs/projects/religion/AUDIT_OR_PROOF.md
-- docs/projects/religion/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
+Key files touched:
+- `docs/projects/religion/NORTH_STAR.md`
+- `docs/projects/religion/TRACKER.md`
+- `docs/projects/religion/GAPS.md`
+- `docs/projects/religion/COLD_START_AGENT_PROMPT.md`
+- `docs/projects/religion/DECISIONS.md`
+- `docs/projects/religion/AUDIT_OR_PROOF.md`
+- `docs/projects/religion/RUNBOOK.md`
+- `docs/projects/PROJECT_TRACKER.md`
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Run the living-project docs audit and a diff check after the review-gate edits. No runtime ritual tests are expected until the owner boundary is decided.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Stay inside the Religion docs boundary. Do not touch runtime ritual consequence code, and do not assign forward Religion work until the Required Review Brief is answered.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+The ritual interruption path in `ritualReducer` and `RitualManager` still shows placeholder backlash logic, but the same consequence gap is already tracked in the Rituals project. The Religion project now carries a review gate rather than pretending the ownership is settled.
+
+Workflow-gap review result:
+A Required Review Brief is now required because the ritual consequence contract crosses the Religion and Rituals project boundary.
+
+Dashboard schema updates:
+Religion is now review-required. The gap signal names the G4 ownership decision, the next step points at the Required Review Brief, and the schema wrapper should remain valid after the docs refresh.
 
 ## Required End State For This Iteration
 
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
+Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard schema updates. Keep only the current handoff between the same BEGIN/END markers, account for every required doc, mention optional docs touched or skipped, and leave `agent_comments` empty unless an out-of-flow note is actually useful.
 
 Final response must report:
 - files updated

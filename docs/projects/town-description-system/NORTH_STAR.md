@@ -1,3 +1,45 @@
+---
+schema_version: 1
+project: Town Description System
+slug: town-description-system
+category: active project
+main_category: "Content & Rules"
+subcategory: "Items & Content Pipelines"
+status: active
+last_updated: 2026-06-05
+confidence: unknown
+evidence: "docs/projects/town-description-system/TRACKER.md; docs/projects/town-description-system/GAPS.md"
+gap_signal: present
+protocol: living-project
+next_step: Resume from TRACKER.md and keep the gap log aligned.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - IMPLEMENTATION_PLAN.md
+  - QUICK_START.md
+  - README.md
+  - TASKS.md
+  - TECHNICAL_SPEC.md
+required_verification:
+  - docs consistency
+completed_verification:
+  - docs refresh
+last_proof: 2026-06-05
+workflow_gaps_reviewed: ""
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Town Description System North Star
 
 Status: active

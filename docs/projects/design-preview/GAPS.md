@@ -1,7 +1,7 @@
 # Design Preview Gaps
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 Use this file for durable unresolved findings that genuinely belong to this
 project.
@@ -10,10 +10,10 @@ project.
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | active | adjacent_follow_up | Worker B | `docs/projects/design-preview/TRACKER.md` | Tracker refresh | Capture design workflow and owners | `docs/projects/PROJECT_TRACKER.md` | Ownership drift can hide who approves new lanes, variants, and glossary surfaces | Keep provisional steward notes in NORTH_STAR and add named owners when approved | Lane/variant steward note recorded in NORTH_STAR |
+| G1 | closed | adjacent_follow_up | Worker B | `docs/projects/design-preview/TRACKER.md` | Tracker refresh | Capture design workflow and owners. Closed 2026-06-09 after the source-backed lane steward map landed in `NORTH_STAR.md`. | `docs/projects/PROJECT_TRACKER.md` | Ownership drift is now covered by the source-backed lane map | The active preview lanes now have stable local stewards in `NORTH_STAR.md` | `docs/projects/design-preview/NORTH_STAR.md` lane steward map |
 | G2 | closed | support_needed_now | Worker B | `docs/projects/design-preview/TRACKER.md` | Scan of preview controls | Add explicit launch and verification checks for Design Preview. Closed 2026-06-08 after the checklist was captured in `RUNBOOK.md` | `misc/design.html`, `src/components/DesignPreview/DesignPreviewPage.tsx`, `docs/projects/design-preview/NORTH_STAR.md`, `docs/projects/design-preview/RUNBOOK.md` | Manual visual surfaces can silently regress without a repeatable check surface | N/A; use `RUNBOOK.md` on the next manual pass | Checklist added in `RUNBOOK.md` and referenced from the handoff |
-| G3 | not_started | adjacent_follow_up | Worker B | `docs/projects/design-preview/NORTH_STAR.md` | Step and lane audit | Decide if all Design Preview steps should have stable local owners | `src/components/DesignPreview/DesignPreviewPage.tsx` | Some lanes are specialized and can be owned by different domain owners, but this is not currently documented | Add a per-lane steward map for handoff safety | Steward mapping exists in a project doc or linked task slice |
-| G4 | not_started | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G3 | Code modularization audit routing | `PreviewComponents.tsx` and sibling preview steps are large enough to need step-owner and visual-proof routing before any split. | `src/components/DesignPreview/steps/PreviewComponents.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G3 | Design preview is a visual verification surface; modular movement without screenshots/tests can silently break preview lanes. | Add a split checklist that names lane owners, existing step tests, and required visual checks before moving preview components. | `PreviewEnvironment`/`PreviewTables` tests plus a rendered preview check are named in the implementation handoff. |
+| G3 | closed | adjacent_follow_up | Worker B | `docs/projects/design-preview/NORTH_STAR.md` | Step and lane audit | Decide if all Design Preview steps should have stable local owners. Closed 2026-06-09 after the source-backed lane steward map was added. | `src/components/DesignPreview/DesignPreviewPage.tsx` | Some lanes are specialized and can be owned by different domain owners, but this is now documented | Add a per-lane steward map for handoff safety | Steward mapping exists in `NORTH_STAR.md` |
+| G4 | closed | adjacent_follow_up | Codex | `docs/projects/code-modularization-audit` CMA-G3 | Code modularization audit routing | `PreviewComponents.tsx` and sibling preview steps are large enough to need step-owner and visual-proof routing before any split. Closed 2026-06-09 after the split-readiness map was added. | `src/components/DesignPreview/steps/PreviewComponents.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G3 | Design preview is a visual verification surface; modular movement without screenshots/tests can silently break preview lanes. | Add a split checklist that names lane owners, existing step tests, and required visual checks before moving preview components. | `misc/design.html?step=components` screenshot plus `PreviewTables.test.tsx` as the current test anchor |
 
 ## Classification Reference
 

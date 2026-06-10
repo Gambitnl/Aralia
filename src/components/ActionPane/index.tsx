@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 02:11:07
+ * Dependents: components/Submap/SubmapPane.tsx, components/layout/GameLayout.tsx
+ * Imports: 6 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file ActionPane/index.tsx
  * This component displays available actions to the player.
@@ -24,7 +40,6 @@ interface ActionPaneProps {
   onAction: (action: Action) => void;
   disabled: boolean;
   geminiGeneratedActions: Action[] | null;
-  isDevDummyActive: boolean;
   isDevModeEnabled: boolean;
   unreadDiscoveryCount: number;
   autoSaveEnabled?: boolean;
@@ -41,7 +56,6 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   onAction,
   disabled,
   geminiGeneratedActions,
-  isDevDummyActive,
   isDevModeEnabled,
   unreadDiscoveryCount,
   autoSaveEnabled = true,
@@ -195,7 +209,6 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         disabled={disabled}
         unreadDiscoveryCount={unreadDiscoveryCount}
         hasNewRateLimitError={hasNewRateLimitError}
-        isDevDummyActive={isDevDummyActive}
         isDevModeEnabled={isDevModeEnabled}
         autoSaveEnabled={autoSaveEnabled}
       />

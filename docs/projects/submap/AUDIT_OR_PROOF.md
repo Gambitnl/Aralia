@@ -1,12 +1,16 @@
 # Submap Audit and Proof
 
-Status: review-required
+Status: active
 Last updated: 2026-06-09
 
 ## 2026-06-09 Dependency Inventory Refresh
 
 This pass was a source-backed documentation pass only. No runtime systems were
 deleted, moved, or replaced.
+
+The 2026-06-09 user clarification makes this an active pre-deprecation
+extraction packet. This proof is the starting evidence for inventorying
+dependents and extracting retained functions before any component deprecation.
 
 | Surface checked | Evidence | Finding |
 |---|---|---|
@@ -17,6 +21,7 @@ deleted, moved, or replaced.
 
 ## Conclusion
 
-The dependency contract is stronger, but the project remains blocked on the
-Submap renderer-authority decision. Future implementation agents should not be
-assigned to this project until the Required Review Brief is answered.
+The dependency contract is stronger, but the project is not ready for deletion.
+Future agents may be assigned extraction-only passes that inventory dependents,
+lift retained contracts, or write proof. They must not remove Submap components
+until retained behavior has owners and replacement proof.

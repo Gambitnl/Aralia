@@ -35,6 +35,12 @@ export const QuestHistoryRow: React.FC<QuestHistoryRowProps> = ({ quest }) => {
         </div>
         <span className={`text-xs uppercase border px-1 rounded ${style.badge}`}>{style.label}</span>
       </div>
+      {/* Surface the legacy quest note trail so deadline-specific failure details stay visible in the history card. */}
+      {quest.notes && (
+        <p className="mt-2 whitespace-pre-line text-xs text-gray-300">
+          {quest.notes}
+        </p>
+      )}
     </div>
   );
 };

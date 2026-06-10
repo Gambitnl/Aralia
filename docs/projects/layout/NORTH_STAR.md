@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Layout Project
+slug: layout
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/layout
+gap_signal: "1 review-required gap (G3); 1 blocked follow-up (G4)"
+protocol: living project doc set
+next_step: Await human review on the isUIInteractive modal contract and keep the prop surface intact until the owner chooses wire-or-retire.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Layout Project North Star
 
 Status: review-required

@@ -1,7 +1,7 @@
 # TRACKER: Command Effects Runtime
 
-Status: active
-Last updated: 2026-06-08
+Status: review-required
+Last updated: 2026-06-09
 
 ## Status Vocabulary
 
@@ -18,15 +18,15 @@ Last updated: 2026-06-08
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
 |---|---|---|---|---|---|---|---|
 | T1 | done | Document command-effects runtime state and gap surface from `src/commands/effects` | Worker C | 2026-05-31 | `src/commands/effects`, `src/commands/factory`, `src/types/spells.ts` | Keep docs aligned if source changes | `NORTH_STAR.md` and this tracker remain source-accurate |
-| T2 | active | Track and close core execution gaps: reactive execution, teleport/budget behavior, ability movement mapping | Worker C | 2026-06-08 | `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/effects/MovementCommand.ts`, `src/commands/factory/AbilityEffectMapper.ts` | Keep G1 and G4 as the active slice; G2 is resolved and documented in `GAPS.md` | Run focused grep on effect and factory files after each change |
+| T2 | blocked | Resolve the delegated reactive payload ownership question before any forward implementation | Human/product owner | 2026-06-09 | `src/commands/effects/ReactiveEffectCommand.ts`, `src/commands/base/SpellCommand.ts`, `src/hooks/combat/useActionExecutor.ts` | Record the Required Review Brief decision, then resume G1 only if a concrete payload-owner contract is approved | Source-backed command/effect tests after the decision |
 
 ## Gap Log
 
 - `T1` closed by this docs update.
-- `T2` remains active and is currently centered on `G1` and `G4`.
+- `T2` is now blocked on the G1 review brief; `G4` remains resolved through explicit teleport dispatch in `AbilityCommandFactory`.
 - Gap surface tracked in `docs/projects/command-effects-runtime/GAPS.md`:
-  - `G1` Reactive callback path is incomplete.
+  - `G1` Reactive callback path is review-required until the delegated payload owner is decided.
   - `G3` Rider support scope is limited.
-  - `G4` Ability movement mapping can collapse semantics.
+  - `G4` Ability movement mapping can collapse semantics. This is now resolved through explicit teleport dispatch in `AbilityCommandFactory`.
   - `G5` Status cleanup lifecycle is cross-system.
   - `G2` Teleport budget and movement metadata behavior is resolved with source-backed log proof.

@@ -39,7 +39,7 @@ import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
-import { createQuickCombatCharacter } from '../../utils/sandbox/quickCharacterGenerator';
+import { createQuickCombatCharacter, AVAILABLE_RACE_IDS, getRaceDisplayName } from '../../utils/sandbox/quickCharacterGenerator';
 import SpellContext from '../../context/SpellContext';
 import { Spell } from '../../types/spells';
 
@@ -57,6 +57,62 @@ function makeTestEnemies(spells: Record<string, Spell>): CombatCharacter[] {
   configs.forEach((c, i) => {
     const cc = createQuickCombatCharacter(c, spells as unknown as Record<string, unknown>);
     if (cc) out.push({ ...cc, id: `test-enemy-${i}`, name: c.name, team: 'enemy' });
+  });
+  return out;
+}
+
+// Dev-only verification harness: spawn one fighter of every choosable race as the
+// player team so race-driven character visuals can be judged side by side at a
+// deterministic camera pose. Enabled by `window.__BM3D_RACE_LINEUP` (the headless
+// capture rig sets it via addInitScript). Guarded by canUseDevTools.
+function makeRaceLineup(spells: Record<string, Spell>): CombatCharacter[] {
+  // A tight, visually-distinct curated set (keeps the scene light enough to
+  // capture and lets a close pose frame them all). Fall back to the first few
+  // available ids if a preferred id is missing from the data set.
+  const PREFERRED = ['human', 'dwarf', 'elf', 'half_orc', 'tiefling', 'halfling'];
+  const available = new Set(AVAILABLE_RACE_IDS);
+  let ids = PREFERRED.filter(id => available.has(id));
+  if (ids.length < 4) ids = AVAILABLE_RACE_IDS.slice(0, 6);
+  const out: CombatCharacter[] = [];
+  ids.forEach((raceId) => {
+    const cc = createQuickCombatCharacter(
+      { raceId, classId: 'fighter', level: 1, useRecommendedStats: true },
+      spells as unknown as Record<string, unknown>,
+    );
+    if (cc) out.push({ ...cc, id: `lineup-${raceId}`, name: getRaceDisplayName(raceId), team: 'player' });
+  });
+  return out;
+}
+
+// Dev-only verification harness: an enemy creature lineup. Builds humanoid base
+// combatants then overrides creatureTypes/size/name so CharacterActor renders
+// distinct creature forms (undead/beast/giant + size scaling). Enabled by
+// `window.__BM3D_CREATURE_LINEUP`. Guarded by canUseDevTools.
+function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
+  const specs: Array<{ name: string; size?: string; creatureTypes: string[] }> = [
+    { name: 'Goblin',         creatureTypes: ['Humanoid', 'Goblinoid'] },
+    { name: 'Skeleton',       creatureTypes: ['Undead'] },
+    { name: 'Dire Wolf',      creatureTypes: ['Beast'] },
+    { name: 'Orc Reaver',     creatureTypes: ['Humanoid'] },
+    { name: 'Ogre',           size: 'Large', creatureTypes: ['Giant'] },
+    { name: 'Red Dragon',     size: 'Huge', creatureTypes: ['Dragon'] },
+  ];
+  const out: CombatCharacter[] = [];
+  specs.forEach((s, i) => {
+    const cc = createQuickCombatCharacter(
+      { raceId: 'human', classId: 'fighter', level: 1, useRecommendedStats: true },
+      spells as unknown as Record<string, unknown>,
+    );
+    if (cc) {
+      out.push({
+        ...cc,
+        id: `creature-${i}`,
+        name: s.name,
+        team: 'enemy',
+        creatureTypes: s.creatureTypes,
+        stats: { ...cc.stats, size: (s.size ?? cc.stats.size) as typeof cc.stats.size },
+      });
+    }
   });
   return out;
 }
@@ -161,7 +217,20 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   );
 
   const getBaseCombatants = useCallback((): CombatCharacter[] => {
+    // Dev-only race-lineup verification mode (see makeRaceLineup).
+    if (typeof window !== 'undefined'
+      && (window as unknown as { __BM3D_RACE_LINEUP?: boolean }).__BM3D_RACE_LINEUP
+      && canUseDevTools()) {
+      return makeRaceLineup(spellsRecord);
+    }
     const partyCombatants = party.map(p => createPlayerCombatCharacter(p, spellsRecord));
+    // Dev-only enemy creature lineup (see makeCreatureLineup): keep the party so
+    // the encounter is valid, add the creatures as the enemy team to frame.
+    if (typeof window !== 'undefined'
+      && (window as unknown as { __BM3D_CREATURE_LINEUP?: boolean }).__BM3D_CREATURE_LINEUP
+      && canUseDevTools()) {
+      return [...partyCombatants, ...makeCreatureLineup(spellsRecord)];
+    }
     const enemies = initialCharacters.length > 0
       ? initialCharacters
       : (canUseDevTools() ? makeTestEnemies(spellsRecord) : []);
@@ -235,6 +304,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     onActiveLightSourcesUpdate: turnManager.setActiveLightSources,
     onMapUpdate: setMapData,
     onAddSpellZone: turnManager.addSpellZone,
+    spellZones: turnManager.spellZones,
     onAddScheduledSpellEffect: turnManager.addScheduledSpellEffect,
     onAddMovementDebuff: turnManager.addMovementDebuff,
     onAddSpellMovementVisual: turnManager.addSpellMovementVisual

@@ -1,7 +1,7 @@
 # Action Pane Runbook
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 This runbook gives the next agent the shortest safe path for this project slice.
 
@@ -16,12 +16,12 @@ This runbook gives the next agent the shortest safe path for this project slice.
 
 ## Current Work
 
-- T3 remains the next safe implementation slice.
-- Do not delete legacy action surfaces unless a source-backed decision is recorded first.
+- T4 is complete; the move target contract is now source-backed and the button path is passive.
+- Do not widen beyond the ActionPane move-target contract unless a new mixed-type producer appears.
 - If a product decision is required, add a Required Review Brief and stop forward iteration until the decision is recorded.
 
 ## Resume Notes
 
 - The system-menu and quick-command coverage gap is resolved.
-- The next concrete question is whether `isDevDummyActive` still belongs on the ActionPane path.
-- Keep `move.targetId` normalization tracked until the generator layer is proven strict enough.
+- `isDevDummyActive` is no longer part of the ActionPane path.
+- Keep town action ownership tracked as the next adjacent follow-up if it needs its own slice.

@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 08/06/2026, 13:34:25
+ * Last Sync: 09/06/2026, 07:25:51
  * Dependents: components/CharacterCreator/CharacterCreator.tsx, components/CharacterCreator/FeatSelection.tsx, components/ConversationPanel/ConversationPanel.tsx, components/layout/GameModals.tsx, components/ui/GameGuideModal.tsx, components/ui/NotificationSystem.tsx, hooks/actions/actionHandlers.ts, hooks/actions/handleEncounter.ts, hooks/actions/handleGeminiCustom.ts, hooks/actions/handleItemInteraction.ts, hooks/actions/handleMerchantInteraction.ts, hooks/actions/handleMovement.ts, hooks/actions/handleNpcInteraction.ts, hooks/actions/handleObservation.ts, hooks/actions/handleOracle.ts, hooks/actions/handleResourceActions.ts, hooks/actions/handleSystemAndUi.ts, hooks/actions/handleWorldEvents.ts, hooks/useCompanionBanter.ts, hooks/useConversation.ts, hooks/useDialogueSystem.ts, hooks/useGameActions.ts, hooks/useGameInitialization.ts, hooks/useHistorySync.ts, hooks/useOllamaCheck.ts, state/GameContext.tsx, state/actions/crimeActions.ts, state/appState.ts, state/reducers/characterReducer.ts, state/reducers/companionReducer.ts, state/reducers/conversationReducer.ts, state/reducers/craftingReducer.ts, state/reducers/crimeReducer.ts, state/reducers/dialogueReducer.ts, state/reducers/economyReducer.ts, state/reducers/encounterReducer.ts, state/reducers/identityReducer.ts, state/reducers/journalReducer.ts, state/reducers/legacyReducer.ts, state/reducers/logReducer.ts, state/reducers/navalReducer.ts, state/reducers/npcReducer.ts, state/reducers/questReducer.ts, state/reducers/religionReducer.ts, state/reducers/ritualReducer.ts, state/reducers/townReducer.ts, state/reducers/uiReducer.ts, state/reducers/worldReducer.ts, systems/religion/CombatReligionAdapter.ts, systems/religion/TempleSystem.ts, types/index.ts, utils/context/entityIntegrationUtils.ts
  * Imports: None
  *
@@ -268,6 +268,7 @@ export type AppAction =
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
   | { type: 'TOGGLE_NAVAL_DASHBOARD' }
   | { type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }
+  | { type: 'TOGGLE_INVESTMENT_BOARD' }
   // Economy & Investment Actions
   | { type: 'INVEST_IN_CARAVAN'; payload: { tradeRouteId: string; goldAmount: number } }
   | { type: 'COLLECT_INVESTMENT'; payload: { investmentId: string } }
@@ -316,7 +317,10 @@ export type AppAction =
   | { type: 'RESTART_WITH_PROCEDURAL_PARTY'; payload: PlayerCharacter[] }
   // Journal Actions
   | { type: 'INIT_JOURNAL_STATE' }
-  | { type: 'ADD_JOURNAL_ENTRY'; payload: import('../types/journal.js').JournalEntry }
+  // The runtime producer can send a lightweight prompt; the reducer fills the
+  // rest from the live journal state so queued quest events stay attached to
+  // the visible entry that is actually created in play.
+  | { type: 'ADD_JOURNAL_ENTRY'; payload: Partial<import('../types/journal.js').JournalEntry> }
   | { type: 'UPDATE_JOURNAL_ENTRY'; payload: { entryId: string; updates: Partial<import('../types/journal.js').JournalEntry> } }
   | { type: 'LOG_JOURNAL_EVENT'; payload: import('../types/journal.js').JournalEvent }
   | { type: 'CLEAR_PENDING_EVENTS' }

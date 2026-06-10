@@ -3,16 +3,16 @@ schema_version: 1
 project: Submap
 slug: submap
 category: Feature/UI Projects
-main_category: Interface & Experience
+main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
+status: active
 last_updated: 2026-06-09
 confidence: medium
-evidence: docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; docs/projects/submap/TRACKER.md; docs/projects/submap/GAPS.md
-gap_signal: "dependency inventory preserved; G2 proof pending; G3 renderer authority review required"
+evidence: "docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; docs/projects/submap/TRACKER.md; docs/projects/submap/GAPS.md"
+gap_signal: "pre-deprecation extraction active; dependent-system inventory needed; replacement questions open"
 protocol: living project doc set
-next_step: Await renderer-authority decision before assigning further Submap implementation or proof work.
-agent_comments: "DOM/tile Submap remains the live surface; this pass only made its renderer-independent dependency contract explicit."
+next_step: Assign extraction-only passes: inventory all Submap dependents, lift retained navigation/generation/action contracts into reusable owners, and keep the current UI components intact until proof shows they can be removed.
+agent_comments: "Clarified 2026-06-09: Submap is not deprecated immediately; this is an active pre-deprecation extraction/modularization project."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -30,19 +30,18 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-09 dependency inventory refresh
+last_proof: 2026-06-09
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: active
-deprecation_confidence: none
-deprecation_reason: ""
-canonical_owner: ""
-human_decision_required: yes
+lifecycle_status: pre-deprecation-extraction
+deprecation_confidence: strong
+deprecation_reason: pending_extraction_before_component_deprecation
+canonical_owner: docs/projects/submap until replacement map/navigation owner is named
+human_decision_required: "no"
 ---
-
 # Submap North Star
 
-Status: review-required
+Status: active
 Last updated: 2026-06-09
 
 ## Dashboard Card Schema
@@ -54,38 +53,41 @@ Last updated: 2026-06-09
 | Category | Feature/UI Projects |
 | Main category | Interface & Experience |
 | Subcategory | Player UI Surfaces |
-| Status | review-required |
+| Status | active |
 | Last updated | 2026-06-09 |
 | Confidence | medium |
 | Evidence | docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; docs/projects/submap/TRACKER.md; docs/projects/submap/GAPS.md |
-| Gap signal | dependency inventory preserved; G2 proof pending; G3 renderer authority review required |
+| Gap signal | pre-deprecation extraction active; dependent-system inventory needed; replacement questions open |
 | Protocol | living project doc set |
-| Next step | Await renderer-authority decision before assigning further Submap implementation or proof work. |
+| Next step | Assign extraction-only passes: inventory all Submap dependents, lift retained navigation/generation/action contracts into reusable owners, and keep the current UI components intact until proof shows they can be removed. |
 | Required verification | docs_consistency |
 | Completed verification | docs_consistency |
 | Last proof | 2026-06-09 dependency inventory refresh |
 | Workflow gaps reviewed | 2026-06-08 |
-| Agent comments | DOM/tile Submap remains the live surface; this pass only made its renderer-independent dependency contract explicit. |
+| Agent comments | Clarified 2026-06-09: Submap is not deprecated immediately; this is an active pre-deprecation extraction/modularization project. |
 | Required docs | NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md |
 | Optional docs | tasks/, architecture notes, migration notes, DEPENDENCY_CONTRACT.md |
 | Compaction status | not_needed |
-| Lifecycle status | active |
-| Deprecation confidence | none |
-| Deprecation reason |  |
-| Canonical owner |  |
-| Human decision required | yes |
+| Lifecycle status | pre-deprecation-extraction |
+| Deprecation confidence | strong |
+| Deprecation reason | pending_extraction_before_component_deprecation |
+| Canonical owner | docs/projects/submap until replacement map/navigation owner is named |
+| Human decision required | no |
 
 ## Why This Project Exists
 
-The Submap project owns the in-play map surface, not the generator internals.
-It covers the UI that exposes local map state, quick travel, inspection, and
-travel handoff, while the generation feature project owns map-content creation.
+The Submap project is now the pre-deprecation extraction project for the local
+map surface. The goal is not to delete the DOM/tile or painter components now;
+it is to inventory every system that depends on Submap behavior, extract the
+functions and contracts that should be retained, prove those retained contracts
+elsewhere, and only then deprecate the UI/code components that become obsolete.
 
 ## Intended Outcome
 
-Create a durable handoff for Submap UI ownership: what exists today, which
-systems it consumes, and which dependencies must remain stable if the current
-DOM/tile surface is replaced later.
+Create a durable extraction plan: what exists today, which systems consume it,
+which functions should be lifted into reusable navigation/generation/action
+owners, which parts may be repurposed, and which product/architecture questions
+must be answered before the current Submap can go away.
 
 ## Current State
 
@@ -95,9 +97,9 @@ DOM/tile surface is replaced later.
   player-facing map interactions.
 - Out of scope: world-submap generation algorithms and content pipelines.
 - Boundary target: `docs/projects/submap-generation/` for generative internals.
-- The current DOM/tile submap remains the live gameplay surface; the new
-  dependency contract only preserves the behavior that future renderers must
-  honor.
+- The current DOM/tile submap remains in place while extraction proceeds. The
+  dependency contract records behavior that future renderers or navigation
+  surfaces must consciously preserve, replace, or retire with proof.
 
 ### Live file map
 
@@ -118,7 +120,7 @@ DOM/tile surface is replaced later.
 - `docs/projects/submap/DEPENDENCY_CONTRACT.md` - explicit contract for the
   preserved quick-travel, inspect, and tooltip dependencies.
 - `docs/projects/submap/AUDIT_OR_PROOF.md` - proof note for source dependency
-  inventory and the still-active review gate.
+  inventory and the deprecated replacement-owner review gate.
 - `src/components/CompassPane/index.tsx` and `src/components/GameLayout.tsx` -
   submap launch controls and route into modals.
 - `src/components/Minimap.tsx` and `src/components/MapPane.tsx` - adjacent map
@@ -158,51 +160,69 @@ DOM/tile surface is replaced later.
   hover/path preview, tile hit-testing, inspect-vs-travel click behavior, and
   stepwise movement/time handling.
 
+### Dependent-System Inventory Snapshot
+
+This is the starting inventory for extraction passes, not a complete closure
+proof.
+
+| Dependent area | Current dependency | Extraction concern |
+|---|---|---|
+| Action menu and compass | `src/components/ActionPane/useActionGeneration.ts`, `src/components/ActionPane/index.tsx`, `src/components/CompassPane/index.tsx` call or expose Submap movement, visibility, and local tile checks. | Decide whether local movement actions remain as an action-menu mode, move to a navigation service, or disappear with the replacement surface. |
+| Movement and observation handlers | `src/hooks/actions/handleMovement.ts`, `src/hooks/actions/handleObservation.ts`, `src/types/actions.ts` consume `QUICK_TRAVEL` and `inspect_submap_tile` payloads. | Extract payload contracts and tests before removing the UI source that currently creates them. |
+| Modal/layout state | `src/components/layout/GameLayout.tsx`, `src/components/layout/GameModals.tsx`, `src/hooks/actions/handleSystemAndUi.ts`, `src/state/reducers/uiReducer.ts`, `src/types/state.ts`, `src/types/ui.ts` route Submap visibility and modal conflicts. | Preserve or retire `toggle_submap_visibility` only after replacement entry points are named. |
+| Minimap and local terrain preview | `src/components/Minimap.tsx` consumes `useSubmapProceduralData`, biome visuals, seeded features, villages, ponds, paths, and local terrain. | Decide whether Minimap keeps a local-detail preview independent of the deprecated Submap UI. |
+| Generation hooks and visuals | `src/hooks/useSubmapProceduralData.ts`, `src/components/Submap/submapVisuals.ts`, `src/components/Submap/useSubmapGrid.ts`, `src/components/Submap/submapData.ts`, `src/config/submapVisualsConfig.ts` own deterministic local terrain, feature, path, CA/WFC, and biome visual rules. | Split reusable generation functions from React/UI projection and route them to map generation, navigation, or world preview owners. |
+| Painter path | `src/components/Submap/painters/*` contains alternate renderer assumptions, doodads, overlays, path, feature, and player marker drawing. | Inventory painter semantics before moving or deleting; large painter files are modularization candidates, not cleanup targets. |
+| Town and village generation | `src/services/villageGenerator.ts`, `src/components/Town/*`, `src/services/RealmSmithTownGenerator.ts`, `src/services/BuildingGenerator.ts`, and seeded village features in local terrain generation overlap conceptually. | Decide whether village/town generation should consume local terrain features, replace them, or become the owner of settlement-local layouts. |
+| Biome and procedural services | `src/services/cellularAutomataService.ts`, `src/services/wfcService.ts`, `src/services/DoodadGenerator.ts`, `src/services/TerrainGenerator.ts`, `src/data/biomes.ts`, and world-sim biome services provide reusable generation primitives. | Determine which Submap biome/path/scatter rules are still useful and which duplicate newer world/3D generation paths. |
+| Spell/material targeting | `src/systems/spells/ai/MaterialTagService.ts`, `src/components/ActionPane/useActionGeneration.ts`, and `src/utils/submapUtils.ts` ask for submap tile info and terrain materials. | Extract `getSubmapTileInfo`-style material/terrain lookup into a map-query contract before Submap UI removal. |
+| Puzzles and dungeon hooks | `src/systems/puzzles/*` contains TODOs to integrate locks, mechanisms, and puzzles with dungeon Submap tiles. | Decide if dungeon/local interaction targets belong to the replacement navigation map, battle map, or a new dungeon interaction surface. |
+| Save/map compatibility | `src/services/mapService.ts`, `src/services/saveLoadService.ts`, `src/state/migrations/worldDataMigration.ts`, `src/utils/mapDataToWorldData.ts`, `src/hooks/useGameInitialization.ts` keep legacy tile-grid world data alive. | Do not remove local map assumptions until save/load, migration, and world data backfill are proven independent. |
+| Design and tooling references | `src/components/DesignPreview/*`, `src/components/BattleMap/*`, CSS z-index variables, READMEs, and component registries still reference Submap concepts. | Clean references only after extraction decisions; references may be useful examples for the replacement surface. |
+
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Preserve and clarify Submap UI ownership, including concrete integration points and open contract gaps. |
-| Acceptance criteria | This file, `TRACKER.md`, and `GAPS.md` document scope, file map, integration state, and concrete next checks. |
+| Task | Extract functions and contracts that should be retained before deprecating Submap components. |
+| Acceptance criteria | This file, `TRACKER.md`, and `GAPS.md` keep Submap active for extraction-only work, name dependent systems, and block component removal until retained contracts have replacement owners and proof. |
 | Allowed boundaries | Documentation under `docs/projects/submap/`. |
 | Owner | Codex integration pass |
-| Next action | Await the renderer-authority decision before assigning further Submap implementation or proof work. |
+| Next action | Run bounded extraction passes over the dependent-system inventory, starting with action menu / quick-travel / inspect contracts and generation hook modularization candidates. |
 
 ## Known Gaps And Follow-Ups
 
 | Gap | Status | Why it matters | Evidence |
 |---|---|---|---|
-| Submap UI contract for generated map output is implicit | active | Different consumers must agree on tile metadata and timing assumptions | `src/components/Submap/useSubmapProceduralData.ts`, `src/components/Submap/useQuickTravel.ts`, `docs/projects/submap/DEPENDENCY_CONTRACT.md` |
-| Travel payload consistency between Submap UI and MapPane action paths | active | Prevents desync in delay/cost/encounter handling | `src/components/Submap/SubmapPane.tsx`, `src/components/MapPane.tsx`, `src/hooks/actions/handleMovement.ts`, `src/hooks/actions/handleObservation.ts`, `src/types/actions.ts` |
-| Legacy painter path in `Submap/painters` may diverge from DOM/SVG rendering | review_required | Can create hidden behavior and styling drift; renderer replacement is held until authority is decided | `src/components/Submap/painters`, `src/components/Submap/SubmapPane.tsx` |
+| Submap dependent-system inventory is incomplete | active | The component cannot be safely deprecated until every caller and concept user is classified. | `rg -n -e Submap -e submap -e QUICK_TRAVEL -e inspect_submap_tile src`; `docs/projects/submap/DEPENDENCY_CONTRACT.md` |
+| Action menu movement behavior needs an owner before Submap UI removal | active | The action menu currently exposes context actions that depend on local terrain/material lookups and movement affordances. | `src/components/ActionPane/useActionGeneration.ts`; `src/components/CompassPane/index.tsx`; `src/hooks/actions/handleMovement.ts` |
+| Quick-travel and inspect contracts need extraction proof | active | Payload semantics must survive even if `SubmapPane` stops creating them. | `src/components/Submap/SubmapPane.tsx`; `src/components/Submap/useQuickTravel.ts`; `src/hooks/actions/handleMovement.ts`; `src/hooks/actions/handleObservation.ts`; `src/types/actions.ts` |
+| Generation hook needs UI-independent modularization candidates | active | Biome, CA, WFC, path, seeded-feature, town/village, and scatter rules may be useful after the Submap UI goes away. | `src/hooks/useSubmapProceduralData.ts`; `src/components/Submap/submapVisuals.ts`; `src/services/cellularAutomataService.ts`; `src/services/wfcService.ts`; `src/services/villageGenerator.ts` |
+| Replacement surface questions remain open | blocked_human_decision | Extraction can continue, but final component deprecation requires deciding what replaces local map navigation and settlement/local terrain presentation. | `src/components/Submap/SubmapPane.tsx`; `src/components/Minimap.tsx`; `src/components/Town`; `src/systems/travel` |
 
-## Required Review Brief
+## Open Architecture Questions
 
-Title: Submap renderer authority
-Question: Which renderer is authoritative for Submap visuals and interaction
-routing: the DOM/SVG tile surface, the painter classes, or an explicit dual
-path with documented ownership boundaries?
-Issue: `SubmapPane` still owns the live DOM/SVG grid, quick-travel overlays, and
-inspect gating, while `src/components/Submap/painters` exists as an alternate
-render path. The current docs can preserve the contract, but they cannot safely
-move or replace the renderer until ownership is decided.
-Current behavior: The DOM/tile Submap is the active gameplay surface. It
-initiates quick travel, inspect, tooltip, and hover behavior, and the painter
-path remains present in the repo.
-Why blocked: Forward agents must not replace or delete the live renderer until
-the authority decision is recorded; otherwise gameplay semantics can be lost or
-duplicated.
-Option A: Keep the DOM/SVG surface authoritative and treat the painter path as
-non-canonical unless a separate contract is written.
-Option B: Make the painter classes authoritative and define a migration/parity
-plan that preserves hit-testing, path overlays, and inspect affordances.
-Option C: Keep both paths, but document a strict dual-path contract with clear
-ownership for gameplay routing and visual output.
-Evidence: `src/components/Submap/SubmapPane.tsx`,
-`src/components/Submap/painters`, `docs/projects/submap/DEPENDENCY_CONTRACT.md`.
-Decision owner: Human/product owner.
-Proof after decision: Renderer parity checklist, focused playtest or screenshot
-comparison, and a follow-up docs update.
+- What replaces the Submap as the local navigation surface: a new navigation
+  map, Minimap expansion, 3D/world surface, Town/settlement surface, or a
+  split by context?
+- Should the action menu keep local movement actions, or should local movement
+  become a navigation-service concern independent of UI surface?
+- Should `QUICK_TRAVEL` remain a Submap-originated action shape, become a
+  generic navigation payload, or merge with world-map movement?
+- Should `inspect_submap_tile` become a generic local-terrain inspection
+  action that can be emitted by other map/navigation surfaces?
+- Which biome generation code is still relevant: CA caves/dungeons, WFC
+  above-ground clusters, path/rivers/cliffs, seeded ponds/villages, scatter
+  icons, biome blending, or only material/terrain lookups?
+- Can settlement-local logic from village/town generation replace the
+  Submap's seeded village feature, or should both feed a shared local-layout
+  service?
+- What should happen to puzzle/lock/mechanism TODOs that expected dungeon
+  Submap tiles?
+- Which renderer assumptions from `src/components/Submap/painters` should be
+  retained as data contracts, and which are obsolete visual experiments?
+- What proof is required before removing `toggle_submap_visibility` and
+  `isSubmapVisible` state?
 
 ## Global Gap Imports
 
@@ -215,8 +235,8 @@ comparison, and a follow-up docs update.
 1. Read this file.
 2. Read `docs/projects/submap/TRACKER.md`.
 3. Read `docs/projects/submap/GAPS.md`.
-4. Validate the preserved quick-travel and inspect payload contract before
-   changing behavior.
+4. Continue with extraction-only work. Do not delete or replace components
+   until extracted contracts have owners and proof.
 
 ## Cold-Start Gap Routing
 

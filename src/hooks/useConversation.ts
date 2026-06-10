@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 00:04:52
+ * Last Sync: 09/06/2026, 04:34:00
  * Dependents: components/ConversationPanel/ConversationPanel.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -36,6 +36,7 @@
  */
 import { useCallback, useEffect, useRef } from 'react';
 import { GameState } from '../types';
+import { getWeatherSummary } from '../types/environment';
 import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext } from '../services/ollama';
 import { ConversationMessage } from '../types/conversation';
@@ -78,7 +79,7 @@ export function useConversation(
         const state = gameStateRef.current;
         const locId = state.currentLocationId;
         const locName = state.dynamicLocations?.[locId]?.name || locId;
-        const weather = state.environment?.currentWeather || 'Clear';
+        const weather = getWeatherSummary(state.environment);
         const hour = new Date(state.gameTime).getHours();
         const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
         

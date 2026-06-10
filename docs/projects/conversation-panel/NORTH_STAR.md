@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Conversation Panel
+slug: conversation-panel
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: partial
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/conversation-panel
+gap_signal: 1 open gap
+protocol: living project doc set
+next_step: Close current slice, keep activeConversation/activeDialogueSession exclusivity intent in CMA-G12 and continue next planned project action.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Conversation Panel North Star
 
 Status: active  

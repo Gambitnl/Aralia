@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Planar System
+slug: planar
+category: Systems
+main_category: "Content & Rules"
+subcategory: "Rules, Spells & Source Data"
+status: partial
+last_updated: 2026-06-05
+confidence: high
+evidence: docs/projects/planar
+gap_signal: 5 open gaps, with 3 support-needed-now items at the front of the queue
+protocol: living project doc set
+next_step: Start with G1 canonical plane resolution, then G2 portal spell/time semantics.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_review
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Planar System North Star
 
 Status: active

@@ -10,10 +10,11 @@ This file records stable decisions that affect the Action Pane contract surface.
 | ID | Decision | Status | Evidence | Notes |
 |---|---|---|---|---|
 | D-01 | The visible ActionPane system-menu and quick-command contract is validated by focused integration tests rather than by deleting legacy action surfaces. | recorded | src/components/ActionPane/__tests__/ActionPane.test.tsx | Preserves current behavior while making the emitted-action contract explicit for future slices. |
+| D-02 | `isDevDummyActive` does not belong on the ActionPane contract and is removed from the ActionPane render path. | recorded | src/components/ActionPane/index.tsx, src/components/ActionPane/SystemMenu.tsx, src/components/layout/GameLayout.tsx, src/App.tsx | Keeps the ActionPane boundary narrower without changing the developer-entry flow owned by the menu surfaces. |
+| D-03 | Move actions should arrive with string `targetId` values from `useActionGeneration`, and `ActionButton` should pass them through without rewriting them. | recorded | src/components/ActionPane/useActionGeneration.ts, src/components/ActionPane/ActionButton.tsx, src/components/ActionPane/__tests__/ActionPane.test.tsx | Removes the defensive click-time rewrite and makes upstream contract drift visible at the source. |
 
 ## Open Decision Follow-Ups
 
 | Item | Why it remains open | Next owner | Next proof |
 |---|---|---|---|
-| `isDevDummyActive` on ActionPane props | The prop still appears in the pane path and needs a stable owner-level decision. | Action Pane owner | Update G2/G2 docs after the prop contract is decided. |
 | `APPROACH_TOWN` and `OBSERVE_TOWN` ownership | The pane emits these actions, but ownership may still move with a later scene-level decision. | Action Pane owner | Update G4 or the next town-surface tracker row. |

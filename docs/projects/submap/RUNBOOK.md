@@ -1,24 +1,27 @@
 # Submap Runbook
 
-Status: review-required
+Status: active
 Last updated: 2026-06-09
 
 ## Before Any Future Work
 
-1. Read `NORTH_STAR.md`, especially the Required Review Brief.
+1. Read `NORTH_STAR.md`, especially the dependent-system inventory and Open
+   Architecture Questions.
 2. Read `DEPENDENCY_CONTRACT.md`.
-3. Confirm the project is no longer `review-required` before accepting forward
-   implementation work.
+3. Accept only extraction/inventory/proof work. Do not accept deletion,
+   renderer replacement, or broad UI removal work.
 
 ## Review-Gated Rule
 
-Do not delete, replace, or bypass the DOM/tile Submap surface while renderer
-authority is unresolved. The only safe work before the decision is
-documentation, dependency inventory, or reviewer-facing proof capture.
+Do not delete, replace, or bypass the DOM/tile Submap surface while extraction
+is incomplete. Safe work includes dependent-system inventory, modularization
+plans, small retained-function extraction with proof, and reviewer-facing proof
+capture.
 
 ## After The Decision
 
-1. Record the chosen renderer authority in `DECISIONS.md`.
+1. Record the replacement owner and chosen renderer authority in
+   `DECISIONS.md`.
 2. Update `NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, and
    `COLD_START_AGENT_PROMPT.md`.
 3. Run a focused proof comparing:
@@ -27,3 +30,13 @@ documentation, dependency inventory, or reviewer-facing proof capture.
      `handleInspectSubmapTile`
 4. Keep world `MapData` and combat `BattleMapData` contracts separate unless a
    dedicated migration plan proves a replacement.
+
+## Current Extraction Targets
+
+- Action menu and compass local movement affordances.
+- `QUICK_TRAVEL` and `inspect_submap_tile` payload contracts.
+- `getSubmapTileInfo` / material and terrain lookup behavior.
+- `useSubmapProceduralData` CA/WFC/path/seeded-feature/biome-blend rules.
+- `submapVisuals`, `useSubmapGrid`, and painter-path reusable visual semantics.
+- Town/village generation overlap with seeded village features.
+- Dungeon puzzle/lock/mechanism expectations.

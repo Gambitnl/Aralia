@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/06/2026, 04:59:05
+ * Dependents: commands/effects/MovementCommand.ts, state/appState.ts, state/initialState.ts, state/reducers/worldReducer.ts, systems/world/WorldEventManager.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/systems/environment/EnvironmentSystem.ts
@@ -25,20 +40,22 @@ import {
 import { Spell, DamageType as _DamageType } from '../../types/spells';
 import { BattleMapTerrain } from '../../types/combat';
 import { NATURAL_HAZARDS } from './hazards';
+import { TERRAIN_RULES as CANONICAL_TERRAIN_RULES } from './TerrainSystem';
 
 export { NATURAL_HAZARDS };
 export * from './hazards';
 
 /**
- * Standard movement costs for base terrain types.
+ * Battle-map compatibility terrain rules.
+ *
+ * TerrainSystem owns the canonical shared terrain registry. This overlay keeps
+ * the legacy battle-map terrain surface intact where its semantics differ while
+ * reusing canonical entries for matching keys.
  */
 export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
   grass: {
-    id: 'grass',
-    name: 'Grass',
-    movementCost: 1,
-    cover: 'none',
-    stealthAdvantage: false
+    ...CANONICAL_TERRAIN_RULES.grass,
+    name: 'Grass'
   },
   rock: {
     id: 'rock',
@@ -47,16 +64,7 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     cover: 'none',
     stealthAdvantage: false
   },
-  water: {
-    id: 'water',
-    name: 'Deep Water',
-    movementCost: 2, // Swimming is difficult terrain usually
-    cover: 'three_quarters', // Submerged
-    stealthAdvantage: true,
-    // Example: Water could have 'Strong Current' in specific maps,
-    // but base water is just difficult.
-    // We can leave this optional or add a low-level hazard if needed.
-  },
+  water: CANONICAL_TERRAIN_RULES.water,
   difficult: {
     id: 'difficult',
     name: 'Difficult Terrain',
@@ -78,19 +86,11 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     cover: 'none',
     stealthAdvantage: false
   },
-  sand: {
-    id: 'sand',
-    name: 'Deep Sand',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
-  },
+  sand: CANONICAL_TERRAIN_RULES.sand,
   mud: {
-    id: 'mud',
+    ...CANONICAL_TERRAIN_RULES.mud,
     name: 'Thick Mud',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
+    movementCost: 2
   }
 };
 

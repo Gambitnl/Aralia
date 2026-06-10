@@ -1,11 +1,22 @@
 
 import { describe, it, expect } from 'vitest';
 import { navalReducer } from '../navalReducer';
-import { initialGameState } from '../../initialState';
 import { AppAction } from '../../actionTypes';
+import { createMockGameState } from '../../../utils/factories';
 
 describe('navalReducer', () => {
+  const normalizeShip = (ship: NonNullable<ReturnType<typeof navalReducer>['naval']['playerShips']>[number]) => {
+    const { id, ...rest } = ship;
+    return rest;
+  };
+
+  const normalizeVoyage = (voyage: NonNullable<ReturnType<typeof navalReducer>['naval']['currentVoyage']>) => {
+    const { shipId, ...rest } = voyage;
+    return rest;
+  };
+
   it('should initialize the fleet', () => {
+    const initialGameState = createMockGameState({ worldSeed: 12345 });
     const action: AppAction = { type: 'NAVAL_INITIALIZE_FLEET' };
     const newState = navalReducer(initialGameState, action);
 
@@ -15,6 +26,7 @@ describe('navalReducer', () => {
   });
 
   it('should not re-initialize fleet if ships exist', () => {
+    const initialGameState = createMockGameState({ worldSeed: 12345 });
     // Setup state with existing ship
     const actionInit: AppAction = { type: 'NAVAL_INITIALIZE_FLEET' };
     let state = navalReducer(initialGameState, actionInit);
@@ -28,6 +40,7 @@ describe('navalReducer', () => {
   });
 
   it('should start a voyage', () => {
+    const initialGameState = createMockGameState({ worldSeed: 12345 });
     // 1. Init fleet
     let state = navalReducer(initialGameState, { type: 'NAVAL_INITIALIZE_FLEET' });
 
@@ -44,6 +57,7 @@ describe('navalReducer', () => {
   });
 
   it('should advance voyage and dock when distance reached', () => {
+    const initialGameState = createMockGameState({ worldSeed: 12345 });
     // 1. Init & Start
     let state = navalReducer(initialGameState, { type: 'NAVAL_INITIALIZE_FLEET' });
     state = navalReducer(state, {
@@ -63,6 +77,7 @@ describe('navalReducer', () => {
   });
 
   it('should recruit crew', () => {
+    const initialGameState = createMockGameState({ worldSeed: 12345 });
     let state = navalReducer(initialGameState, { type: 'NAVAL_INITIALIZE_FLEET' });
     const initialCrewCount = state.naval.playerShips[0].crew.members.length;
 
@@ -70,5 +85,41 @@ describe('navalReducer', () => {
 
     expect(state.naval.playerShips[0].crew.members).toHaveLength(initialCrewCount + 1);
     expect(state.naval.playerShips[0].crew.members[initialCrewCount].role).toBe('Sailor');
+  });
+
+  it('should recruit the same crew member for identical seeded states', () => {
+    const baseStateA = createMockGameState({ worldSeed: 24680 });
+    const baseStateB = createMockGameState({ worldSeed: 24680 });
+
+    const initializedA = navalReducer(baseStateA, { type: 'NAVAL_INITIALIZE_FLEET' });
+    const initializedB = navalReducer(baseStateB, { type: 'NAVAL_INITIALIZE_FLEET' });
+
+    const stateA = navalReducer(initializedA, { type: 'NAVAL_RECRUIT_CREW', payload: { role: 'Sailor' } });
+    const stateB = navalReducer(initializedB, { type: 'NAVAL_RECRUIT_CREW', payload: { role: 'Sailor' } });
+
+    expect(stateA.naval.playerShips[0].crew.members).toEqual(stateB.naval.playerShips[0].crew.members);
+  });
+
+  it('should advance voyages deterministically for identical seeded states', () => {
+    const baseStateA = createMockGameState({ worldSeed: 24680 });
+    const baseStateB = createMockGameState({ worldSeed: 24680 });
+
+    const initializedA = navalReducer(baseStateA, { type: 'NAVAL_INITIALIZE_FLEET' });
+    const initializedB = navalReducer(baseStateB, { type: 'NAVAL_INITIALIZE_FLEET' });
+
+    const voyageStartedA = navalReducer(initializedA, {
+        type: 'NAVAL_START_VOYAGE',
+        payload: { destinationId: 'test_port', distance: 120 }
+    });
+    const voyageStartedB = navalReducer(initializedB, {
+        type: 'NAVAL_START_VOYAGE',
+        payload: { destinationId: 'test_port', distance: 120 }
+    });
+
+    const advancedA = navalReducer(voyageStartedA, { type: 'NAVAL_ADVANCE_VOYAGE' });
+    const advancedB = navalReducer(voyageStartedB, { type: 'NAVAL_ADVANCE_VOYAGE' });
+
+    expect(normalizeVoyage(advancedA.naval.currentVoyage!)).toEqual(normalizeVoyage(advancedB.naval.currentVoyage!));
+    expect(advancedA.naval.playerShips.map(normalizeShip)).toEqual(advancedB.naval.playerShips.map(normalizeShip));
   });
 });

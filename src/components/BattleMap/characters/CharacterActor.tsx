@@ -56,6 +56,128 @@ const TEAM_COLORS = {
   },
 };
 
+// Defense badge labels stay tiny and fixed so the 3D actor can mirror the 2D
+// token language without stealing space from the model, HP orb, or nameplate.
+type DefenseBadgeKind = 'resistance' | 'vulnerability' | 'immunity';
+
+interface DefenseBadgeConfig {
+  kind: DefenseBadgeKind;
+  label: string;
+  tooltip: string;
+  toneClass: string;
+}
+
+const formatDefenseTooltip = (title: string, primary?: string[], secondary?: string[]) => {
+  const segments: string[] = [];
+
+  if (primary?.length) {
+    segments.push(`${title}: ${primary.join(', ')}`);
+  }
+
+  if (secondary?.length) {
+    segments.push(`Non-magical ${title.toLowerCase()}: ${secondary.join(', ')}`);
+  }
+
+  return segments.join(' | ');
+};
+
+const buildDefenseBadges = (character: CombatCharacter): DefenseBadgeConfig[] => {
+  const badges: DefenseBadgeConfig[] = [];
+
+  const resistanceTooltip = formatDefenseTooltip('Resistance', character.resistances, character.nonMagicalResistances);
+  if (resistanceTooltip) {
+    badges.push({
+      kind: 'resistance',
+      label: 'R',
+      tooltip: resistanceTooltip,
+      toneClass: 'border-emerald-200/70 bg-emerald-950/90 text-emerald-100 shadow-[0_0_10px_rgba(16,185,129,0.24)]'
+    });
+  }
+
+  const vulnerabilityTooltip = formatDefenseTooltip('Vulnerability', character.vulnerabilities);
+  if (vulnerabilityTooltip) {
+    badges.push({
+      kind: 'vulnerability',
+      label: 'V',
+      tooltip: vulnerabilityTooltip,
+      toneClass: 'border-rose-200/70 bg-rose-950/90 text-rose-100 shadow-[0_0_10px_rgba(244,63,94,0.24)]'
+    });
+  }
+
+  const immunityTooltip = formatDefenseTooltip('Immunity', character.immunities, character.nonMagicalImmunities);
+  if (immunityTooltip) {
+    badges.push({
+      kind: 'immunity',
+      label: 'I',
+      tooltip: immunityTooltip,
+      toneClass: 'border-sky-200/70 bg-sky-950/90 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.24)]'
+    });
+  }
+
+  return badges;
+};
+
+const DefenseBadgeRow: React.FC<{ character: CombatCharacter }> = ({ character }) => {
+  const defenseBadges = useMemo(() => buildDefenseBadges(character), [character]);
+
+  if (defenseBadges.length === 0) {
+    return null;
+  }
+
+  // This strip is the 3D counterpart to the 2D token-perimeter badges. It
+  // stays compact and always visible so the renderer shows the same tactical
+  // facts without replacing the existing HP/nameplate stack.
+  return (
+    <Html
+      position={[0, 3.24, 0]}
+      center
+      distanceFactor={10}
+      style={{ pointerEvents: 'none' }}
+    >
+      <div
+        data-testid="character-defense-badges"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '3px',
+          padding: '2px 5px',
+          borderRadius: '999px',
+          border: '1px solid rgba(148, 163, 184, 0.3)',
+          background: 'rgba(2, 6, 23, 0.78)',
+          boxShadow: '0 0 12px rgba(0, 0, 0, 0.32)',
+          pointerEvents: 'none',
+        }}
+      >
+        {defenseBadges.map(badge => (
+          <span
+            key={badge.kind}
+            data-testid={`defense-badge-${badge.kind}`}
+            title={badge.tooltip}
+            aria-label={badge.tooltip}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '14px',
+              height: '14px',
+              borderRadius: '999px',
+              border: '1px solid currentColor',
+              fontSize: '7px',
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: 0,
+            }}
+            className={badge.toneClass}
+          >
+            {badge.label}
+          </span>
+        ))}
+      </div>
+    </Html>
+  );
+};
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -86,6 +208,203 @@ function getArchetype(className: string): CharacterArchetype {
 }
 
 // ---------------------------------------------------------------------------
+// Race visual profile — skin tone, body proportions, and silhouette cues
+// ---------------------------------------------------------------------------
+
+/**
+ * Derives a race-specific look from the character's race (carried in
+ * `creatureTypes[1]` by createPlayerCombatCharacter, falling back to the name
+ * for monster-style enemies like "Orc Reaver" / "Goblin Skulker").
+ *
+ * Team color still owns friend/foe (armor + ground ring stay team-colored);
+ * race only changes exposed skin tone, overall build, and a cheap silhouette
+ * cue (dwarf beard, tiefling horns), so tactical readability is preserved while
+ * a dwarf / elf / orc / tiefling no longer look identical.
+ */
+interface RaceVisual {
+  skin: number;
+  heightScale: number;
+  buildScale: number;
+  horns: boolean;
+  beard: boolean;
+  /** Body plan — non-humanoid forms render dedicated geometry. */
+  form: 'humanoid' | 'beast' | 'dragon';
+}
+
+function getRaceVisual(creatureTypes: string[] | undefined, name: string): RaceVisual {
+  // Match against the whole creature-type array plus the name so both player
+  // races (['Humanoid','Elf']) and monster enemies (['Undead'] / 'Skeleton') read.
+  const hay = `${(creatureTypes ?? []).join(' ')} ${name}`.toLowerCase();
+  const has = (s: string) => hay.includes(s);
+  const base: RaceVisual = { skin: 0xd4a57b, heightScale: 1.0, buildScale: 1.0, horns: false, beard: false, form: 'humanoid' };
+
+  // --- Non-humanoid enemy creature forms (checked first) ---
+  if (has('undead') || has('skeleton') || has('zombie') || has('ghoul') || has('wraith') || has('lich'))
+    return { ...base, skin: 0xccc6ad, heightScale: 1.02, buildScale: 0.72 }; // gaunt, bone-pale
+  if (has('beast') || has('wolf') || has('bear') || has('boar') || has('hound'))
+    return { ...base, skin: 0x6f5538, heightScale: 0.95, buildScale: 1.0, form: 'beast' }; // quadruped
+  if ((has('dragon') || has('wyvern') || has('drake')) && !has('dragonborn'))
+    return { ...base, skin: 0x7a2b2b, heightScale: 1.0, buildScale: 1.0, form: 'dragon' }; // winged
+
+  // Order: strongest / most specific cue first.
+  if (has('goliath') || has('giant') || has('firbolg') || has('minotaur') || has('loxodon') || has('ogre') || has('troll')) return { ...base, skin: 0x9aa7b0, heightScale: 1.24, buildScale: 1.32 };
+  if (has('dwarf') || has('duergar')) return { ...base, skin: 0xc9885a, heightScale: 0.82, buildScale: 1.24, beard: true };
+  if (has('orc') || has('bugbear') || has('hobgoblin')) return { ...base, skin: 0x8fa36b, heightScale: 1.12, buildScale: 1.26 };
+  if (has('goblin') || has('kobold')) return { ...base, skin: 0x9bbf5a, heightScale: 0.74, buildScale: 0.96 };
+  if (has('tiefling') || has('infernal') || has('abyssal') || has('chthonic')) return { ...base, skin: 0xb24a68, heightScale: 1.04, horns: true };
+  if (has('dragonborn') || has('lizardfolk') || has('yuan')) return { ...base, skin: 0x5f9a63, heightScale: 1.1, buildScale: 1.16 };
+  if (has('drow') || has('shadar')) return { ...base, skin: 0x7163a0, heightScale: 1.08, buildScale: 0.86 };
+  if (has('elf') || has('eladrin') || has('fairy')) return { ...base, skin: 0xe9d6bd, heightScale: 1.1, buildScale: 0.84 };
+  if (has('halfling') || has('gnome') || has('kender') || has('harengon')) return { ...base, skin: 0xd9a878, heightScale: 0.7, buildScale: 0.94 };
+  return base; // human / default
+}
+
+// ---------------------------------------------------------------------------
+// Procedural quadruped model (Beast creatures)
+// ---------------------------------------------------------------------------
+
+/**
+ * A simple four-legged creature (wolf/hound/bear) so Beasts read as animals
+ * rather than low humanoids. Built facing +Z to match the humanoid (the actor
+ * group applies facing). The body carries the team color (friend/foe stays
+ * obvious); head/legs/tail use the fur tone.
+ */
+const BeastModel: React.FC<{
+  teamColor: number;
+  isPlayerTeam: boolean;
+  animTime: number;
+  furColor: number;
+}> = ({ teamColor, isPlayerTeam, animTime, furColor }) => {
+  const breathe = Math.sin(animTime * 2.2) * 0.008;
+  const fur = new THREE.Color(furColor);
+  const furDark = fur.clone().multiplyScalar(0.7);
+  const emissiveIntensity = isPlayerTeam ? 0.12 : 0.6;
+
+  return (
+    <group position={[0, breathe, 0]}>
+      {/* Body — team-colored so friend/foe still reads at a glance */}
+      <mesh position={[0, 0.24, 0]} castShadow>
+        <boxGeometry args={[0.18, 0.16, 0.42]} />
+        <meshStandardMaterial color={teamColor} emissive={teamColor} emissiveIntensity={emissiveIntensity} roughness={0.6} metalness={0.1} />
+      </mesh>
+      {/* Haunches — slight rise at the rear */}
+      <mesh position={[0, 0.27, -0.16]} castShadow>
+        <boxGeometry args={[0.2, 0.18, 0.16]} />
+        <meshStandardMaterial color={furDark} roughness={0.85} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, 0.3, 0.26]} castShadow>
+        <boxGeometry args={[0.14, 0.14, 0.16]} />
+        <meshStandardMaterial color={fur} roughness={0.8} />
+      </mesh>
+      {/* Snout */}
+      <mesh position={[0, 0.26, 0.37]} castShadow>
+        <boxGeometry args={[0.07, 0.07, 0.1]} />
+        <meshStandardMaterial color={furDark} roughness={0.8} />
+      </mesh>
+      {/* Ears */}
+      {[-0.045, 0.045].map((x, i) => (
+        <mesh key={i} position={[x, 0.4, 0.24]} rotation={[-0.2, 0, 0]}>
+          <coneGeometry args={[0.03, 0.07, 4]} />
+          <meshStandardMaterial color={furDark} roughness={0.85} />
+        </mesh>
+      ))}
+      {/* Legs */}
+      {([[0.07, 0.15], [-0.07, 0.15], [0.07, -0.15], [-0.07, -0.15]] as const).map(([x, z], i) => (
+        <mesh key={i} position={[x, 0.11, z]} castShadow>
+          <boxGeometry args={[0.05, 0.22, 0.06]} />
+          <meshStandardMaterial color={furDark} roughness={0.85} />
+        </mesh>
+      ))}
+      {/* Tail — swept up and back */}
+      <mesh position={[0, 0.32, -0.26]} rotation={[0.9, 0, 0]} castShadow>
+        <coneGeometry args={[0.035, 0.22, 6]} />
+        <meshStandardMaterial color={fur} roughness={0.85} />
+      </mesh>
+    </group>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Procedural winged-dragon model (Dragon creatures)
+// ---------------------------------------------------------------------------
+
+/**
+ * A winged, long-necked, four-legged dragon so true Dragons read as iconic
+ * monsters (pair with a Large/Huge `stats.size` to make them loom). Faces +Z.
+ * The body/wings carry the team color so friend/foe stays readable; scales use
+ * a darker shade. Wings give a slow idle flap.
+ */
+const DragonModel: React.FC<{
+  teamColor: number;
+  isPlayerTeam: boolean;
+  animTime: number;
+  scaleColor: number;
+}> = ({ teamColor, isPlayerTeam, animTime, scaleColor }) => {
+  const team = new THREE.Color(teamColor);
+  const scale = new THREE.Color(scaleColor);
+  const scaleDark = scale.clone().multiplyScalar(0.6);
+  const emissiveIntensity = isPlayerTeam ? 0.12 : 0.5;
+  const flap = Math.sin(animTime * 3) * 0.35; // wing idle flap
+  const breathe = Math.sin(animTime * 1.8) * 0.01;
+
+  return (
+    <group position={[0, breathe, 0]}>
+      {/* Body */}
+      <mesh position={[0, 0.34, -0.02]} castShadow>
+        <boxGeometry args={[0.26, 0.22, 0.5]} />
+        <meshStandardMaterial color={team} emissive={team} emissiveIntensity={emissiveIntensity} roughness={0.55} metalness={0.15} />
+      </mesh>
+      {/* Neck — angled up toward the head */}
+      <mesh position={[0, 0.5, 0.26]} rotation={[0.7, 0, 0]} castShadow>
+        <boxGeometry args={[0.12, 0.26, 0.12]} />
+        <meshStandardMaterial color={scaleDark} roughness={0.7} />
+      </mesh>
+      {/* Head + snout */}
+      <mesh position={[0, 0.64, 0.36]} castShadow>
+        <boxGeometry args={[0.14, 0.13, 0.16]} />
+        <meshStandardMaterial color={scale} roughness={0.65} />
+      </mesh>
+      <mesh position={[0, 0.61, 0.47]} castShadow>
+        <boxGeometry args={[0.08, 0.07, 0.12]} />
+        <meshStandardMaterial color={scaleDark} roughness={0.7} />
+      </mesh>
+      {/* Horns */}
+      {[-0.045, 0.045].map((x, i) => (
+        <mesh key={i} position={[x, 0.72, 0.32]} rotation={[-0.6, 0, 0]}>
+          <coneGeometry args={[0.022, 0.1, 5]} />
+          <meshStandardMaterial color={0x201018} roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Wings — large membranes that idle-flap (team-colored for friend/foe) */}
+      {([-1, 1] as const).map((side, i) => (
+        <mesh
+          key={i}
+          position={[side * 0.16, 0.46, -0.04]}
+          rotation={[0.1, side * 0.3, side * (0.5 + flap)]}
+          castShadow
+        >
+          <boxGeometry args={[0.5, 0.02, 0.34]} />
+          <meshStandardMaterial color={team} emissive={team} emissiveIntensity={emissiveIntensity * 0.8} roughness={0.6} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+      {/* Legs */}
+      {([[0.1, 0.16], [-0.1, 0.16], [0.1, -0.16], [-0.1, -0.16]] as const).map(([x, z], i) => (
+        <mesh key={i} position={[x, 0.13, z]} castShadow>
+          <boxGeometry args={[0.07, 0.26, 0.08]} />
+          <meshStandardMaterial color={scaleDark} roughness={0.75} />
+        </mesh>
+      ))}
+      {/* Tail — long, tapering, swept back */}
+      <mesh position={[0, 0.3, -0.4]} rotation={[-1.3, 0, 0]} castShadow>
+        <coneGeometry args={[0.07, 0.5, 6]} />
+        <meshStandardMaterial color={scale} roughness={0.7} />
+      </mesh>
+    </group>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Procedural humanoid model (placeholder for glTF)
 // ---------------------------------------------------------------------------
 
@@ -102,7 +421,8 @@ const HumanoidModel: React.FC<{
   animState: AnimationState;
   animTime: number;
   archetype: CharacterArchetype;
-}> = ({ teamColor, isPlayerTeam, isAlive, animState, animTime, archetype }) => {
+  race: RaceVisual;
+}> = ({ teamColor, isPlayerTeam, isAlive, animState, animTime, archetype, race }) => {
   const groupRef = useRef<THREE.Group>(null);
 
   // Animation parameters
@@ -116,7 +436,7 @@ const HumanoidModel: React.FC<{
   const deathFall = animState === 'death'
     ? Math.min(animTime * 2, Math.PI / 2) : 0;
 
-  const skinColor = 0xd4a57b;
+  const skinColor = race.skin;
   const armorColor = teamColor;
   const armorDark = new THREE.Color(armorColor).multiplyScalar(0.7);
   const armorDarker = new THREE.Color(armorColor).multiplyScalar(0.5);
@@ -178,6 +498,28 @@ const HumanoidModel: React.FC<{
         <sphereGeometry args={[0.08, 12, 8]} />
         <meshStandardMaterial color={skinColor} roughness={0.7} metalness={0.0} />
       </mesh>
+
+      {/* ---- RACE SILHOUETTE CUES ---- */}
+      {/* Dwarf beard — downward cone under the chin */}
+      {race.beard && (
+        <mesh position={[0, 0.47, 0.035]} rotation={[Math.PI, 0, 0]} castShadow>
+          <coneGeometry args={[0.075, 0.13, 8]} />
+          <meshStandardMaterial color={0x6b4a2a} roughness={0.95} />
+        </mesh>
+      )}
+      {/* Tiefling horns — a pair of dark cones swept up and back from the brow */}
+      {race.horns && (
+        <group position={[0, 0.63, -0.005]}>
+          <mesh position={[-0.05, 0.01, 0]} rotation={[-0.5, 0, -0.35]} castShadow>
+            <coneGeometry args={[0.022, 0.12, 6]} />
+            <meshStandardMaterial color={0x241015} roughness={0.6} />
+          </mesh>
+          <mesh position={[0.05, 0.01, 0]} rotation={[-0.5, 0, 0.35]} castShadow>
+            <coneGeometry args={[0.022, 0.12, 6]} />
+            <meshStandardMaterial color={0x241015} roughness={0.6} />
+          </mesh>
+        </group>
+      )}
 
       {/* ---- HEADGEAR ---- */}
       {archetype === 'caster' ? (
@@ -513,6 +855,20 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   const teamKey = isPlayer ? 'player' : character.team === 'enemy' ? 'enemy' : 'neutral';
   const teamColors = TEAM_COLORS[teamKey];
   const archetype = useMemo(() => getArchetype(character.class?.name ?? ''), [character.class?.name]);
+  const raceVisual = useMemo(
+    () => getRaceVisual(character.creatureTypes, character.name),
+    [character.creatureTypes, character.name],
+  );
+  // Creature size category → overall scale, so Large+ enemies (ogres, trolls,
+  // dragons) physically tower over Medium humanoids instead of all matching.
+  const sizeScale = useMemo(() => {
+    switch (character.stats?.size) {
+      case 'Large': return 1.55;
+      case 'Huge': return 2.15;
+      case 'Gargantuan': return 2.9;
+      default: return 1.0; // Tiny/Small/Medium
+    }
+  }, [character.stats?.size]);
 
   const activeCharacter = useMemo(() => {
     if (!activeCharacterId) return undefined;
@@ -639,17 +995,45 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         position={[0, 0.05, 0]}
       />
 
+      {/* Defense badges stay on the actor itself so the 3D map exposes the
+          same resistance / vulnerability / immunity facts as the 2D token. */}
+      <DefenseBadgeRow character={character} />
+
       {/* Character model — scaled up so the party reads as the focal point
           rather than being dwarfed by terrain/trees (GOAL #3). */}
-      <group scale={[3.7, 3.7, 3.7]} rotation={[0, facingRotation, 0]}>
-        <HumanoidModel
-          teamColor={teamColors.primary}
-          isPlayerTeam={isPlayer}
-          isAlive={isAlive}
-          animState={isAlive ? animState : 'death'}
-          animTime={animTimeRef.current}
-          archetype={archetype}
-        />
+      <group
+        scale={[
+          3.7 * raceVisual.buildScale * sizeScale,
+          3.7 * raceVisual.heightScale * sizeScale,
+          3.7 * raceVisual.buildScale * sizeScale,
+        ]}
+        rotation={[0, facingRotation, 0]}
+      >
+        {raceVisual.form === 'beast' ? (
+          <BeastModel
+            teamColor={teamColors.primary}
+            isPlayerTeam={isPlayer}
+            animTime={animTimeRef.current}
+            furColor={raceVisual.skin}
+          />
+        ) : raceVisual.form === 'dragon' ? (
+          <DragonModel
+            teamColor={teamColors.primary}
+            isPlayerTeam={isPlayer}
+            animTime={animTimeRef.current}
+            scaleColor={raceVisual.skin}
+          />
+        ) : (
+          <HumanoidModel
+            teamColor={teamColors.primary}
+            isPlayerTeam={isPlayer}
+            isAlive={isAlive}
+            animState={isAlive ? animState : 'death'}
+            animTime={animTimeRef.current}
+            archetype={archetype}
+            race={raceVisual}
+          />
+        )}
       </group>
 
       {/* Target reticle glow when targetable */}

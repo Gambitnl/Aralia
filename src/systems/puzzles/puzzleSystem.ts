@@ -8,10 +8,8 @@
 
 import { Puzzle, PuzzleResult } from './types';
 import { CharacterStats } from '../../types/combat';
-// TODO(lint-intent): 'rollDice' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { rollDice as _rollDice } from '../../utils/combatUtils';
+import { rollDice } from '../../utils/combatUtils';
+import { getAbilityModifierValue } from '../../utils/statUtils';
 
 /**
  * Attempts to solve a step of the puzzle or the whole puzzle.
@@ -148,24 +146,17 @@ export function attemptPuzzleInput(
  * @param puzzle The puzzle.
  */
 export function getPuzzleHint(
-  character: CharacterStats, // Using simplified stats or just passing the object with stats
+  character: CharacterStats,
   puzzle: Puzzle
 ): string | null {
   if (!puzzle.hint) return null;
 
-  // Assuming character has ability modifiers.
-  // We need to calculate the check.
-  // Since CharacterStats in types/combat might differ, we'll assume we pass an object with ability modifiers map
-  // or we pass the 'intelligence' score.
+  // Keep the hint roll inside the puzzle domain so a caller can ask for a live
+  // hint without re-implementing check math in UI code.
+  const intelligenceModifier = getAbilityModifierValue(character.intelligence);
+  const checkResult = rollDice('1d20') + intelligenceModifier;
 
-  // For now, let's assume we pass the roll result or we need to access the modifier.
-  // But to keep this pure and simple given imports:
-
-  // Actually, we should probably pass the check result (roll + mod) to this function,
-  // rather than calculating it here to avoid dependency coupling with Character implementation details.
-  // OR we accept a number: "checkResult".
-
-  return null;
+  return checkPuzzleHint(checkResult, puzzle);
 }
 
 /**

@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Battle Map
+slug: battle-map
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/battle-map
+gap_signal: "1 open gap; G3 naming contract is review-required, parity proof recorded"
+protocol: living project doc set
+next_step: "Wait for the G3 naming decision before any rename or caller sweep; keep the parity checklist as the renderer gate."
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - PARITY_CHECKLIST.md
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Battle Map North Star
 
 Status: review-required

@@ -5,6 +5,7 @@ import { GameState } from '../../types';
 import { GamePhase } from '../../types/core';
 import { COMPANIONS } from '../../data/companions';
 import { CompanionReactionRule, Companion } from '../../types/companions';
+import { DEFAULT_WEATHER } from '../../systems/environment/EnvironmentSystem';
 
 describe('useCompanionCommentary', () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -43,7 +44,7 @@ describe('useCompanionCommentary', () => {
       // Provide minimal state for commentary context construction.
       questLog: [],
       dynamicLocations: { loc_1: { name: 'Test Location' } },
-      environment: { currentWeather: 'Clear' },
+      environment: { ...DEFAULT_WEATHER },
       gameTime: new Date().toISOString()
     } as unknown as GameState;
     vi.useFakeTimers();

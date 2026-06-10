@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Intrigue System
+slug: intrigue
+category: Feature/System Projects
+main_category: "Game & Simulation"
+subcategory: Core Sim Systems
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/intrigue
+gap_signal: 7 open gaps in GAPS.md
+protocol: living project doc set
+next_step: Continue I2 by deciding whether LeverageSystem gets production wiring or a documented deferment.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Intrigue System North Star
 
 Status: active

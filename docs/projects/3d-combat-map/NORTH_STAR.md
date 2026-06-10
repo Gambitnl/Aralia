@@ -3,15 +3,15 @@ schema_version: 1
 project: 3D Combat Map
 slug: 3d-combat-map
 category: Feature/UI Projects
-main_category: Game & Simulation
-subcategory: Combat & Encounters
+main_category: "Game & Simulation"
+subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 confidence: medium
 evidence: docs/projects/3d-combat-map
-gap_signal: "5 open gaps (G1/G2 closed; NC1 done. Open: G3 pop-out proof, G4 slope proof, G5 style policy, G6 shader warning, G7 NC2 blocked by World3D save fixture)"
+gap_signal: "3 open gaps (G1/G2/G4/G6 closed; NC1 done. Open: G3 pop-out proof, G5 style policy, G7 NC2 blocked by World3D save fixture)"
 protocol: living project doc set
-next_step: Unblock NC2 (G7 — capture a 2D-exploration save fixture or add a dev hook to reach a battle-map encounter, then run nc2-combatview.mjs), or run the G4 terrain raycast browser proof.
+next_step: "Unblock NC2 (G7 — capture a 2D-exploration save fixture or add a dev hook to reach a battle-map encounter, then run nc2-combatview.mjs), or continue with the remaining G3/G5 follow-ups."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -31,20 +31,19 @@ required_verification:
 completed_verification:
   - docs_consistency
   - browser_visual_smoke
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: no
+human_decision_required: "no"
 ---
-
 # 3D Combat Map North Star
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ## Purpose
 
@@ -90,16 +89,16 @@ Project: 3D Combat Map
 Slug: 3d-combat-map
 Category: Feature/UI Projects
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 Confidence: medium
 Evidence: docs/projects/3d-combat-map
-Gap signal: 5 open gaps (G2/NC1 closed; G3 pop-out proof, G4 slope proof, G5 style policy, G6 shader warning, G7 blocker remain)
+Gap signal: 3 open gaps (G2/NC1/G4/G6 closed; G3 pop-out proof, G5 style policy, G7 blocker remain)
 Protocol: living project doc set
-Next step: Run the G4 terrain raycast browser proof, or run NC2 pop-out lifecycle proof.
+Next step: Run NC2 pop-out lifecycle proof, or continue with the remaining G3/G5 follow-ups.
 Required verification: docs_consistency, scoped_tests
 Completed verification: docs_consistency, scoped_tests, browser_visual_smoke
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-07
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 Agent comments:
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
 Optional docs: tasks/, architecture notes, migration notes
@@ -154,7 +153,7 @@ Not required for MVP:
 2. Read `docs/projects/3d-combat-map/TRACKER.md` (Next-Check List NC1/NC2).
 3. Read `docs/projects/3d-combat-map/GAPS.md`.
 4. Read `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` for the durable NC1/NC2 step definitions and proof log.
-5. Continue with the G4 browser slope-click proof, or execute NC2 to close out the pop-out concern.
+5. Continue with NC2 to close out the pop-out concern, or continue with the remaining G3/G5 follow-ups.
 
 
 ## Cold-Start Gap Routing

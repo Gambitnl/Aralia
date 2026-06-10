@@ -1,7 +1,49 @@
+---
+schema_version: 1
+project: Combat System
+slug: combat
+category: Gameplay Systems
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-09
+confidence: medium
+evidence: docs/projects/combat
+gap_signal: "G30 review-required; modularization ownership and test-boundary decision pending"
+protocol: living project doc set
+next_step: Resolve the G30 modularization ownership decision in the Required Review Brief before assigning more Combat implementation work.
+agent_comments: "G20 is closed; Combat has no remaining assignable open gaps until the G30 ownership/test-boundary decision is answered."
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Combat System North Star
 
-Status: active
-Last updated: 2026-06-08
+Status: review-required
+Last updated: 2026-06-09
 
 ## Why This Project Exists
 Combat has a live implementation split across systems, hooks, and UI surfaces that were added in different slices. This project doc keeps ownership, execution paths, and unresolved behavior gaps visible for next agents so future work does not restart discovery or collapse unfinished intent.
@@ -19,16 +61,16 @@ Preserve a working cold-start map for the Combat domain that stays implementatio
 Project: Combat System
 Slug: combat
 Category: Gameplay Systems
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/combat
-Gap signal: 9 open gaps, 1 imported from global; G11 class palette generation, G12 premade weapon coverage, G26 async AI turn sequencing, G27 OA reach inspection, and G28/G29 concentration cleanup work completed
+Gap signal: G30 review-required; modularization ownership and test-boundary decision pending after all current combat behavior gaps closed
 Protocol: living project doc set
-Next step: Choose the next open combat rules gap after checking `TRACKER.md`; G26, G28, and G29 are resolved, keep G30 modularization review-gated.
+Next step: Resolve the G30 modularization ownership decision in the Required Review Brief before assigning more Combat implementation work.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 
 ## Project Scope (Evidence-Bound)
 
@@ -56,9 +98,10 @@ The combat runtime is now clearly split:
 - `useTurnManager.ts` coordinates initiative flow, round boundaries, end-of-turn processing, summon join points, and delegates execution/engine concerns.
 - `useTurnOrder.ts` owns schedule math (initiative ordering, skipping dead entries, round wrap).
 - `useCombatEngine.ts` owns damage/saving throw pipelines, tile effects, zones, repeat saves, and tick-like state transitions.
-- `useActionExecutor.ts` owns action semantics including movement legality, dash/disengage handling, OA processing, and logging.
-- `useCombatAI.ts` provides timer-driven AI state loops (`idle -> thinking -> acting -> done`) with a 3-action turn cap.
+- `useActionExecutor.ts` owns action semantics including movement legality, dash/disengage handling, OA processing, War Caster spell-option selection, Sentinel stop-in-place handling, and logging.
+- `useCombatAI.ts` provides timer-driven AI state loops (`idle -> thinking -> acting -> done`) with an explicit 3-action turn cap and supports auto-controlled allies through the same turn path.
 - `useCombatOutcome.ts` computes battle victory/defeat and rewards based on character HP state.
+- `useTurnManager.ts`, `deathSaveUtils.ts`, and `DamageCommand.ts` now cover the death-save, unconscious, revive, and concentration-drop path that G4 used to describe as missing; the old architecture note is stale on that point.
 
 ### Combat systems (implemented, partial)
 
@@ -70,29 +113,33 @@ The combat runtime is now clearly split:
 ### Combat UI (implemented)
 
 - `CombatView.tsx` wires map, logs, turn manager, AI hook, rich messaging bridge, victory/defeat hooks, and encounter simulation controls.
-- `ReactionPrompt.tsx` provides ARIA dialog + spell selection UI for reaction prompts.
+- `useCombatLog.ts` keeps the simple combat log bounded, mirrors it to localStorage under an encounter-scoped key, and restores the same fight's history after a refresh while leaving unrelated encounters isolated.
+- `ReactionPrompt.tsx` provides ARIA dialog + spell/weapon selection UI for reaction prompts, including War Caster OA spell choices.
 - `EncounterModal.tsx` and `MonsterPicker.tsx` support AI/custom/bestiary encounter building and live difficulty recalculation.
+- `src/components/BattleMap/CharacterToken.tsx` now exposes compact resistance, vulnerability, and immunity badges with tooltips on the 2D token perimeter, and `src/components/BattleMap/characters/CharacterActor.tsx` mirrors the same facts as a compact always-on 3D actor badge row. This slice stays intentionally scoped to the combat token/actor layers rather than widening into a renderer rewrite.
 
 ### Combat utilities (implemented, partial)
 
 - `src/utils/combat/combatUtils.ts` converts player and monster state into combat-facing data; G11 added combat-palette generation for Barbarian Rage, Monk Flurry of Blows, Bardic Inspiration, Divine Smite, and Pact Magic.
+- `src/utils/combat/actionEconomyUtils.ts` now recalculates `movement.total` from live speed modifiers at turn reset, and `src/hooks/combat/useTurnManager.ts` re-syncs that movement pool when status or active-effect updates land so temporary slows and haste-like speed changes do not drift out of date.
 - `src/utils/combat/createEnemyFromMonster.ts`, `src/utils/combat/resistanceUtils.ts`, and `src/utils/combat/combatAI.ts` remain supporting utility surfaces with their own open gaps in `GAPS.md`.
+- `src/utils/combat/resistanceUtils.ts` now threads live spell-zone context through damage calculation so area auras and similar map-bound defenses can affect the current hit while the target remains inside the zone.
 
 ## Known Partial / Open Areas (Evidence-Backed)
 
 These are direct code/docs observations, not guesses:
 
-- `TODO(lint-intent)` comments indicate testability or typing debt in `AttackRiderSystem.ts`, `SustainActionSystem.ts`, `useCombatAI.ts`, `useActionExecutor.ts`, `useCombatEngine.ts`, and `useTurnManager.ts` (unused imports/parameters, stale-closure workaround notes, singleton extraction concerns, centralization opportunities).
+- `TODO(lint-intent)` comments indicate testability or typing debt in `AttackRiderSystem.ts`, `SustainActionSystem.ts`, `useActionExecutor.ts`, `useCombatEngine.ts`, and `useTurnManager.ts` (unused imports/parameters, stale-closure workaround notes, singleton extraction concerns, centralization opportunities).
 - Event/sustain singletons are shared via `getInstance()` and may require explicit reset hooks for strict unit isolation (noted in file comments and `Combat_Ralph.md`).
-- `docs/architecture/domains/combat.md` records known mechanics omissions, so implementation behavior should be validated before assuming full D&D parity.
-- `useCombatAI.ts` still has explicit TODOs to cover state-machine transition tests in test suite terms.
+- `docs/architecture/domains/combat.md` still carries some historical omission text, so implementation behavior should be validated against code/tests rather than the stale note alone.
+- `useCombatAI.ts` now has focused regression coverage for the move/ability loop cap and auto-controlled ally turns; any future per-creature AI budget tuning should be tracked as a separate follow-up.
 - G11 class-feature palette generation is complete for the named classes, but downstream execution semantics may still need feature-specific command/effect work in later combat slices.
 
 ## Uncertain / Open Questions (Needs Follow-Up)
 
 - Whether singleton-backed emitters/systems should be refactored to injectable instances before broad AI/automated combat test expansion.
 - Whether reaction/OA edge cases are complete enough for non-combat-map movement paths and special conditions.
-- Whether combat math and map-aware rules need a separate pass for one-to-one parity validation versus `BattleMap3D` rendering.
+- Whether any future renderer-only defense cue should go denser than the current token/actor badge language.
 
 ## What Must Not Be Lost
 
@@ -100,20 +147,61 @@ These are direct code/docs observations, not guesses:
 - 3D/2D combat rendering logic is a separate layer under `src/components/BattleMap` and should not be treated as the rule owner.
 - `GLOBAL_GAPS.md` contains historical logs of cross-project tracking gaps.
 
+## Required Review Brief
+
+Title: Combat modularization ownership and preservation boundary
+Question: Which owner should define the safe split plan for `useAbilitySystem.ts`, `useCombatEngine.ts`, and any App-shell/provider movement before G30 can proceed?
+
+### Decision Panel
+
+```text
+G30 modularization candidate
+          |
+          v
+large orchestration surfaces
+          |
+          v
+ownership + test boundary needed
+      /                         \
+     v                           v
+Combat owns                 Code Modularization
+combat-engine split         Audit/Layout owns shell
+     |                           |
+     v                           v
+Combat tests protect        Cross-project plan names
+rules semantics             App/provider invariants
+```
+
+| Decision point | Option A: Combat-owned split | Option B: Cross-project modularization plan |
+|---|---|---|
+| Source of truth | Combat owns `useCombatEngine` split plan and names required behavior tests | Code Modularization Audit owns the split plan, with Layout owning App/provider shell movement |
+| Combat responsibility | Preserve combat rules, action sequencing, reaction behavior, and combat log semantics | Provide invariants and focused regression tests before another owner moves code |
+| Main risk | Combat may accidentally absorb App/spell/provider work outside its boundary | Modularization may proceed without enough combat-specific behavior protection |
+| First proof after decision | Focused combat engine tests plus a small no-behavior-change extraction plan | Cross-project plan with App/provider invariants and combat regression tests named before edits |
+
+Issue: G30 identifies `useAbilitySystem.ts`, `useCombatEngine.ts`, and `App.tsx` as large modularization candidates, but these surfaces bridge combat rules, spell/command execution, and app shell wiring.
+Current behavior: All current Combat behavior gaps are closed or already verified, and G30 is the only remaining blocker.
+Why blocked: Moving code before the owner boundary and test invariants are explicit could silently change combat semantics or turn a Combat pass into a broad App/Layout refactor.
+Option A: Combat owns the engine split only, with `useAbilitySystem.ts` and `App.tsx` left to their owning projects.
+Option B: Code Modularization Audit owns the whole split plan, with Combat contributing required invariants and tests before any movement.
+Evidence: `docs/projects/combat/GAPS.md` G30; `docs/projects/code-modularization-audit/GAPS.md` CMA-G4; `src/hooks/useAbilitySystem.ts`; `src/hooks/combat/engine/useCombatEngine.ts`; `src/App.tsx`.
+Decision owner: Human/product owner with Combat, Layout, and Code Modularization Audit owners.
+Proof after decision: A named split plan that lists files allowed to move, files not allowed to move, required tests, and behavior-preservation notes before code movement starts.
+
 ## Global Gap Imports
 
 | Global ID | Target ID | Import Date | Status | Notes |
 |---|---|---|---|---|
-| GG-13 | G23 | 2026-06-02 | imported | Combat log state is transient and cleared upon page reload. |
+| GG-13 | G23 | 2026-06-02 | done | Combat log state now persists per encounter through `useCombatLog.ts` and `CombatView.tsx`. |
 
 ## Active Task (Current Combat Mechanic Slice)
 
 | Field | Value |
 |---|---|
-| Task | Next open combat rules gap selected from `TRACKER.md`; G11, G12, and G26 are complete. |
-| Acceptance criteria | Preserve combat utility behavior and add focused tests for the selected gap. |
-| Allowed boundaries | Match the selected gap; avoid crossing into battle-map rendering or events ownership unless explicitly routed. |
-| Stop condition | Focused tests pass and project docs name any new blockers or follow-up gaps. |
+| Task | G20 is now closed with 2D token badges and a mirrored 3D actor badge row; all current Combat behavior gaps are complete. |
+| Acceptance criteria | Do not assign more Combat implementation work until the Required Review Brief is answered. |
+| Allowed boundaries | Review only; do not split `useAbilitySystem.ts`, `useCombatEngine.ts`, or `App.tsx` during a normal Combat pass. |
+| Stop condition | Resolve the G30 review gate with a named owner, allowed file boundary, and required preservation tests before implementation resumes. |
 
 ## Resume Path for Cold Start
 
@@ -121,7 +209,7 @@ These are direct code/docs observations, not guesses:
 2. Read `docs/projects/combat/TRACKER.md`.
 3. Read `docs/projects/combat/GAPS.md`.
 4. Cross-check architecture boundaries in `docs/architecture/domains/combat.md` and `docs/architecture/COMBAT_MAP_ENGINE.md`.
-5. Continue with the active `TRACKER.md` row. If no row is active, take the highest `not_started` gap row in `TRACKER.md` or `GAPS.md`.
+5. Stop unless the Required Review Brief has been answered. Combat has no assignable implementation gap while G30 is review-required.
 
 
 ## Cold-Start Gap Routing

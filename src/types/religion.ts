@@ -1,3 +1,18 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/06/2026, 06:37:00
+ * Dependents: components/Religion/TempleModal.tsx, state/initialState.ts, types/index.ts, utils/world/religionUtils.ts, utils/world/templeUtils.ts
+ * Imports: None
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
 /**
  * @file src/types/religion.ts
@@ -93,6 +108,11 @@ export interface DeityActionTrigger {
   trigger: string;
   description: string;
   favorChange: number;
+  /**
+   * Optional combat taxonomy labels that let the combat adapter map structured
+   * log fields to this trigger without guessing from the trigger name alone.
+   */
+  combatTags?: string[];
 }
 
 export interface DeityRelationship {
@@ -149,6 +169,82 @@ export interface TempleServiceRequirement {
   itemCost?: { itemId: string; count: number };
 }
 
+/**
+ * Temple service effects stay backward-compatible with legacy string IDs, but
+ * the structured branch is now typed explicitly so non-heal services do not
+ * get lumped into the heal path by default.
+ */
+export type TempleServiceLegacyEffect =
+  | 'grant_blessing_minor'
+  | 'heal_20_hp'
+  | 'remove_curse'
+  | 'Divine Intervention'
+  | 'Prevent Undeath'
+  | `grant_blessing_${string}`
+  | `grant_favor_${string}`
+  | `restore_hp_${string}`
+  | `remove_condition_${string}`
+  | `Spell: ${string}`;
+
+export interface TempleHealEffect {
+  type: 'heal';
+  value?: number;
+  description?: string;
+}
+
+export interface TempleBuffEffect {
+  type: 'buff';
+  value?: number;
+  stat?: AbilityScoreName;
+  duration?: number;
+  description?: string;
+}
+
+export interface TempleCureEffect {
+  type: 'cure';
+  value?: number;
+  description?: string;
+}
+
+export interface TempleIdentifyEffect {
+  type: 'identify';
+  description?: string;
+  itemId?: string;
+}
+
+export interface TempleQuestEffect {
+  type: 'quest';
+  questId?: string;
+  description?: string;
+}
+
+export interface TempleFavorEffect {
+  type: 'favor';
+  value?: number;
+  deityId?: string;
+  description?: string;
+}
+
+export interface TempleRestorationEffect {
+  type: 'restoration';
+  subtype?: 'heal' | 'cure_condition' | 'restore_slot';
+  value?: number;
+  spellLevel?: number;
+  conditions?: string[];
+  description?: string;
+}
+
+export type TempleStructuredEffect =
+  | TempleHealEffect
+  | TempleBuffEffect
+  | TempleCureEffect
+  | TempleIdentifyEffect
+  | TempleQuestEffect
+  | TempleFavorEffect
+  | TempleRestorationEffect;
+
+export type TempleServiceEffect = TempleServiceLegacyEffect | TempleStructuredEffect;
+
 export interface TempleService {
   id: string;
   name: string;
@@ -156,13 +252,7 @@ export interface TempleService {
   costGp?: number; // Simplified cost
   minFavor?: number; // Simplified requirement
   requirement?: TempleServiceRequirement;
-  effect: string | { // Allow string description or complex object
-    type: 'heal' | 'buff' | 'cure' | 'identify' | 'quest' | 'favor' | 'restoration';
-    value?: number;
-    stat?: AbilityScoreName;
-    duration?: number; // in minutes
-    description?: string;
-  };
+  effect: TempleServiceEffect;
 }
 
 export interface Temple {

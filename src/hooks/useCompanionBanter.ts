@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 08/06/2026, 14:53:18
+ * Last Sync: 09/06/2026, 04:34:00
  * Dependents: App.tsx
- * Imports: 6 files
+ * Imports: 7 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -70,6 +70,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState, GamePhase } from '../types';
+import { getWeatherSummary } from '../types/environment';
 import { isPlayerFocused, isNpcOccupied } from '../utils/world/sceneUtils';
 import { AppAction } from '../state/actionTypes';
 import { OllamaService, BanterContext, extractDiscoveredFacts } from '../services/ollama';
@@ -685,7 +686,7 @@ export const useCompanionBanter = (
   ) => {
     const locId = state.currentLocationId;
     const locName = state.dynamicLocations?.[locId]?.name || locId;
-    const weather = state.environment?.currentWeather || 'Clear';
+    const weather = getWeatherSummary(state.environment);
     const hour = new Date(state.gameTime).getHours();
     const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
     // DEBT: Cast status to any to bridge case sensitivity mismatch between legacy and modern quest schemas.

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/06/2026, 10:28:01
+ * Last Sync: 09/06/2026, 04:59:05
  * Dependents: commands/factory/SpellCommandFactory.ts, hooks/combat/engine/useCombatEngine.ts
- * Imports: 7 files
+ * Imports: 9 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,10 +23,12 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, Position } from '@/types/combat'
+import { CombatState, CombatCharacter, Position, StatusEffect } from '@/types/combat'
 import { getDistance } from '../../utils/combatUtils'
 import { findPath } from '../../utils/pathfinding'
 import { calculatePathMovementCost } from '../../utils/combat/movementUtils'
+import { getTerrainHazards, getTerrainMovementCost } from '../../systems/environment/EnvironmentSystem'
+import { evaluateHazard } from '../../systems/environment/hazards'
 
 /**
  * Command responsible for applying movement effects to characters.
@@ -135,12 +137,12 @@ export class MovementCommand extends BaseEffectCommand {
         const updatedState = this.updateCharacter(state, target.id, {
             position: { x: bestX, y: bestY }
         })
-
+        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, { x: bestX, y: bestY })
         const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
 
-        return this.addLogEntry(updatedState, {
+        return this.addLogEntry(landingState, {
             type: 'action',
-            message: `${target.name} is pushed ${distanceMoved} feet`,
+            message: `${target.name} is pushed ${distanceMoved} feet${this.describeLandingTerrain(state, { x: bestX, y: bestY })}`,
             characterId: target.id
         })
     }
@@ -199,12 +201,12 @@ export class MovementCommand extends BaseEffectCommand {
         const updatedState = this.updateCharacter(state, target.id, {
             position: { x: bestX, y: bestY }
         })
-
+        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, { x: bestX, y: bestY })
         const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
 
-        return this.addLogEntry(updatedState, {
+        return this.addLogEntry(landingState, {
             type: 'action',
-            message: `${target.name} is pulled ${distanceMoved} feet`,
+            message: `${target.name} is pulled ${distanceMoved} feet${this.describeLandingTerrain(state, { x: bestX, y: bestY })}`,
             characterId: target.id
         })
     }
@@ -263,6 +265,7 @@ export class MovementCommand extends BaseEffectCommand {
         }
 
         const updatedState = this.updateCharacter(state, target.id, { position: finalDestination })
+        const landingState = this.applyLandingTerrainEffects(updatedState, target.id, finalDestination)
         const actualDistanceTiles = getDistance(origin, finalDestination)
         const actualDistanceFeet = actualDistanceTiles * 5
         const teleportLogData = {
@@ -280,9 +283,9 @@ export class MovementCommand extends BaseEffectCommand {
             maxDistance: effect.distance ?? undefined
         }
 
-        return this.addLogEntry(updatedState, {
+        return this.addLogEntry(landingState, {
             type: 'action',
-            message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${finalDestination.x}, ${finalDestination.y})`,
+            message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${finalDestination.x}, ${finalDestination.y})${this.describeLandingTerrain(state, finalDestination)}`,
             characterId: target.id,
             // The log keeps the teleport budget contract inspectable without
             // changing how the command resolves movement.
@@ -407,10 +410,11 @@ export class MovementCommand extends BaseEffectCommand {
             const updatedState = this.updateCharacter(nextState, nextTarget.id, {
                 position: { x: bestX, y: bestY }
             })
+            const landingState = this.applyLandingTerrainEffects(updatedState, nextTarget.id, { x: bestX, y: bestY })
 
-            return this.addLogEntry(updatedState, {
+            return this.addLogEntry(landingState, {
                 type: 'action',
-                message: `${target.name} is forced to move ${distanceFeet} ft ${dir.replace('_', ' ')}`,
+                message: `${target.name} is forced to move ${distanceFeet} ft ${dir.replace('_', ' ')}${this.describeLandingTerrain(nextState, { x: bestX, y: bestY })}`,
                 characterId: target.id,
                 data: { forcedMovement: effect.forcedMovement }
             })
@@ -643,6 +647,95 @@ export class MovementCommand extends BaseEffectCommand {
         }
 
         return bestDestination
+    }
+
+    /**
+     * Applies terrain hazards after movement resolves onto a destination tile.
+     *
+     * The movement command already owns the final landing spot, so this is the
+     * narrowest place to attach battle-map hazard resolution without inventing
+     * a new movement pipeline. We preserve the existing compatibility overlay
+     * and only attach effects when the tile registry says there is something to
+     * apply.
+     */
+    private applyLandingTerrainEffects(
+        state: CombatState,
+        characterId: string,
+        position: Position
+    ): CombatState {
+        const tile = state.mapData?.tiles.get(`${position.x}-${position.y}`)
+        if (!tile) {
+            return state
+        }
+
+        const hazards = getTerrainHazards(tile.terrain)
+        if (hazards.length === 0) {
+            return state
+        }
+
+        const currentCharacter = state.characters.find(character => character.id === characterId)
+        if (!currentCharacter) {
+            return state
+        }
+
+        let nextState = state
+        let updatedCharacter = currentCharacter
+
+        for (const hazard of hazards) {
+            const result = evaluateHazard(hazard, updatedCharacter, 'enter')
+            if (!result.triggered || !result.statusEffect) {
+                continue
+            }
+
+            // Keep hazard status ids deterministic so forced movement can be
+            // replayed and tested without a clock value changing the result.
+            const statusEffect: StatusEffect = {
+                id: `hazard-${hazard.id}-${characterId}-${position.x}-${position.y}`,
+                name: result.statusEffect.name,
+                type: 'debuff',
+                duration: result.statusEffect.duration,
+                description: `${hazard.name}: ${hazard.description}`,
+                source: hazard.name,
+                effect: {
+                    type: 'condition'
+                }
+            }
+
+            // Older bridge fixtures may omit the status list even though the
+            // current combat type requires it. Treat that as an empty list
+            // rather than letting terrain resolution crash mid-move.
+            const existingStatusEffects = updatedCharacter.statusEffects ?? []
+            updatedCharacter = {
+                ...updatedCharacter,
+                statusEffects: [...existingStatusEffects, statusEffect]
+            }
+
+            nextState = this.updateCharacter(nextState, characterId, {
+                statusEffects: updatedCharacter.statusEffects
+            })
+        }
+
+        return nextState
+    }
+
+    /**
+     * Produces a short log suffix for the landing tile so the existing move
+     * message shows when the terrain helper mattered.
+     */
+    private describeLandingTerrain(state: CombatState, position: Position): string {
+        const tile = state.mapData?.tiles.get(`${position.x}-${position.y}`)
+        if (!tile) {
+            return ''
+        }
+
+        const terrainLabel = tile.terrain.replace(/_/g, ' ')
+        const terrainCost = getTerrainMovementCost(tile.terrain)
+
+        if (terrainCost > 1) {
+            return ` through ${terrainLabel}`
+        }
+
+        return ` onto ${terrainLabel}`
     }
 
     get description(): string {

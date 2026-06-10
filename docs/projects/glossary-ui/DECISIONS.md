@@ -29,3 +29,14 @@ Last updated: 2026-06-09
   dependency rather than a glossary-local implementation detail.
 - **Next check:** Continue routing grouping questions to the item-categorization
   project instead of duplicating the decision here.
+
+## 4. Generated item metadata contract
+- **Decision:** Keep the current generated item metadata contract documented as
+  glossary-local display data until a human/product owner decides whether the
+  schema should be shared with item registry generation.
+- **Status:** Pending review.
+- **Evidence:** `docs/projects/glossary-ui/NORTH_STAR.md` now carries the
+  required review brief, and `docs/projects/glossary-ui/AUDIT_OR_PROOF.md`
+  records the source-backed field contract.
+- **Next check:** Once the owner decides on shared schema vs local display
+  contract, update the tracker and gaps before any source refactor.

@@ -12,6 +12,10 @@ describe('TerrainSystem', () => {
     expect(getTerrainMovementCost('mud')).toBe(3);
   });
 
+  it('preserves hazard metadata for terrain that can trigger natural hazards', () => {
+    expect(TERRAIN_RULES.mud.hazards?.map(hazard => hazard.id)).toEqual(['quicksand']);
+  });
+
   it('returns correct cover type for terrain', () => {
     expect(getTerrainCover('grass')).toBe('none');
     expect(getTerrainCover('dense_forest')).toBe('half');

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 00:04:52
+ * Last Sync: 09/06/2026, 08:56:11
  * Dependents: hooks/actions/actionHandlers.ts
- * Imports: 11 files
+ * Imports: 12 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -30,6 +30,7 @@ import { generateNPC, NPCGenerationConfig } from '../../services/npcGenerator';
 import { generateId } from '../../utils/core/idGenerator';
 import { OllamaService } from '../../services/ollama';
 import { ConversationMessage } from '../../types/conversation';
+import { getWeatherSummary } from '../../types/environment';
 
 interface BanterContext {
     locationName: string;
@@ -71,7 +72,7 @@ function getConversationTarget(action: Action, gameState: GameState): string | n
 function buildConversationContext(state: GameState): BanterContext {
     const locId = state.currentLocationId;
     const locName = state.dynamicLocations?.[locId]?.name || locId;
-    const weather = state.environment?.currentWeather || 'Clear';
+    const weather = getWeatherSummary(state.environment);
     const hour = new Date(state.gameTime).getHours();
     const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
 
@@ -135,6 +136,12 @@ export async function handleStartDialogue({
     };
     dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: generatedNpc.id, fact: metFact } });
     dispatch({ type: 'ADD_MET_NPC', payload: { npcId: generatedNpc.id } });
+    // First contact now counts as a fresh memory touch so the new fact and the
+    // interaction clock stay aligned before the dialogue session opens.
+    dispatch({
+      type: 'UPDATE_NPC_INTERACTION_TIMESTAMP',
+      payload: { npcId: generatedNpc.id, timestamp: gameState.gameTime.getTime() },
+    });
 
     addMessage(`You greet ${generatedNpc.name}, a ${generatedNpc.biography.age}-year-old ${generatedNpc.biography.classId}.`, "system");
   }

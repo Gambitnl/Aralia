@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 08/06/2026, 23:31:42
+ * Last Sync: 09/06/2026, 03:54:07
  * Dependents: components/BattleMap/characters/CharacterActor.tsx, components/DesignPreview/steps/PreviewCombatSandbox.tsx, services/DiceService.ts, state/reducers/characterReducer.ts, systems/spells/mechanics/DiceRoller.ts, utils/character/checkUtils.ts, utils/character/savingThrowUtils.ts, utils/combat/index.ts, utils/combat/mechanicsUtils.ts, utils/combatUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: 10 files
  *
@@ -605,7 +605,8 @@ export function calculateDamage(
   baseDamage: number,
   caster: CombatCharacter | null,
   target: CombatCharacter,
-  damageType?: string
+  damageType?: string,
+  zoneContext?: Parameters<typeof ResistanceCalculator.applyResistances>[5]
 ): number {
   if (!damageType || baseDamage <= 0) return Math.max(0, baseDamage);
 
@@ -613,7 +614,9 @@ export function calculateDamage(
     baseDamage,
     damageType as DamageType,
     target,
-    caster
+    caster,
+    undefined,
+    zoneContext
   );
 }
 
@@ -939,6 +942,11 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     id: player.id || `player_${player.name.toLowerCase().replace(' ', '_')}`,
     name: player.name,
     level: player.level || 1,
+    // Carry the race so combat surfaces can use it — drives 3D race-specific
+    // character visuals (CharacterActor) and makes race-gated targeting (e.g.
+    // Hold/Charm Person, Sleep) correct. Shape matches the documented intent
+    // (`['Humanoid', 'Elf']`).
+    creatureTypes: ['Humanoid', player.race?.name].filter((s): s is string => !!s),
     class: player.class,
     position: { x: 0, y: 0 },
     stats,

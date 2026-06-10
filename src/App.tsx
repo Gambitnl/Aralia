@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * This file appears to be an ISOLATED UTILITY or ORPHAN.
  *
- * Last Sync: 31/05/2026, 23:30:41
+ * Last Sync: 09/06/2026, 02:06:29
  * Dependents: None (Orphan)
- * Imports: 50 files
+ * Imports: 54 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -439,6 +439,7 @@ const App: React.FC = () => {
       isNpcTestModalVisible: gameState.isNpcTestModalVisible,
       isLogbookVisible: gameState.isLogbookVisible,
       isGameGuideVisible: gameState.isGameGuideVisible,
+      isInvestmentBoardVisible: gameState.isInvestmentBoardVisible,
       isMerchantModalOpen: gameState.merchantModal.isOpen,
       isMissingChoiceModalOpen: missingChoiceModal.isOpen,
     });
@@ -470,6 +471,7 @@ const App: React.FC = () => {
     gameState.isNpcTestModalVisible,
     gameState.isLogbookVisible,
     gameState.isGameGuideVisible,
+    gameState.isInvestmentBoardVisible,
     gameState.merchantModal.isOpen,
     missingChoiceModal.isOpen,
     dispatch
@@ -918,6 +920,7 @@ const App: React.FC = () => {
     !gameState.isLogbookVisible &&
     !gameState.isQuestLogVisible &&
     !gameState.isGameGuideVisible &&
+    !gameState.isInvestmentBoardVisible &&
     !gameState.merchantModal.isOpen &&
     !gameState.isEconomyLedgerVisible &&
     !gameState.isCourierPouchVisible &&
@@ -936,6 +939,7 @@ const App: React.FC = () => {
     gameState.isLogbookVisible ||
     gameState.isQuestLogVisible ||
     gameState.isGameGuideVisible ||
+    gameState.isInvestmentBoardVisible ||
     gameState.merchantModal.isOpen ||
     missingChoiceModal.isOpen;
 
@@ -1092,7 +1096,6 @@ const App: React.FC = () => {
         unreadDiscoveryCount={gameState.unreadDiscoveryCount}
         hasNewRateLimitError={gameState.hasNewRateLimitError}
         worldSeed={gameState.worldSeed}
-        isDevDummyActive={canUseDevTools()}
         isDevModeEnabled={gameState.isDevModeEnabled ?? false}
         autoSaveEnabled={autoSaveEnabled}
         disabled={!isUIInteractive}

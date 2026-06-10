@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: History System
+slug: history
+category: Feature / Simulation Systems
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/history/NORTH_STAR.md
+gap_signal: "4 open gaps; T2 still needs a complete producer map"
+protocol: living project doc set
+next_step: Finish the T2 source map, then decide whether the unwired event types stay gaps or move out of scope.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - source_audit
+completed_verification:
+  - docs_consistency
+  - source_audit
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # History System North Star
 
 Status: active

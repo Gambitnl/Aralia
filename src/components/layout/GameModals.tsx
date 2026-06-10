@@ -85,6 +85,7 @@ const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
 const LongRestModal = lazy(() => import('../ui/LongRestModal'));
 const OllamaDependencyModal = lazy(() => import('../ui/OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
 const TradeRouteDashboard = lazy(() => import('../Trade/TradeRouteDashboard'));
+const InvestmentBoard = lazy(() => import('../Economy/InvestmentBoard'));
 const LedgerBook = lazy(() => import('../Economy/LedgerBook'));
 const CourierPouch = lazy(() => import('../Economy/CourierPouch'));
 const NobleHouseList = lazy(() => import('../debug/NobleHouseList'));
@@ -182,6 +183,7 @@ const GameModals: React.FC<GameModalsProps> = ({
         if (gameState.isDiceRollerVisible) { dispatch({ type: 'TOGGLE_DICE_ROLLER' }); return; }
         if (gameState.isGlossaryVisible) { handleOpenGlossary(); return; }
         if (gameState.isQuestLogVisible) { dispatch({ type: 'TOGGLE_QUEST_LOG' }); return; }
+        if (gameState.isInvestmentBoardVisible) { dispatch({ type: 'TOGGLE_INVESTMENT_BOARD' }); return; }
         if (gameState.isCourierPouchVisible) { dispatch({ type: 'TOGGLE_COURIER_POUCH' }); return; }
         if (gameState.isEconomyLedgerVisible) { dispatch({ type: 'TOGGLE_ECONOMY_LEDGER' }); return; }
         if (gameState.isMapVisible) { onAction({ type: 'toggle_map', label: 'Close Map' }); return; }
@@ -202,6 +204,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     const isGeminiLogViewerOpen = gameState.isGeminiLogViewerVisible;
     const isUnifiedDebugLogViewerOpen = gameState.isUnifiedLogViewerVisible;
     const isNpcTestModalOpen = gameState.isNpcTestModalVisible;
+    const isInvestmentBoardModalOpen = gameState.isInvestmentBoardVisible;
 
     const mapPaneFocusRef = useFocusTrap<HTMLDivElement>(isMapModalOpen);
     const questLogFocusRef = useFocusTrap<HTMLDivElement>(isQuestLogModalOpen);
@@ -217,6 +220,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     const geminiLogFocusRef = useFocusTrap<HTMLDivElement>(isGeminiLogViewerOpen);
     const unifiedDebugLogFocusRef = useFocusTrap<HTMLDivElement>(isUnifiedDebugLogViewerOpen);
     const npcInteractionTestFocusRef = useFocusTrap<HTMLDivElement>(isNpcTestModalOpen);
+    const investmentBoardFocusRef = useFocusTrap<HTMLDivElement>(isInvestmentBoardModalOpen);
 
     useEffect(() => {
         document.addEventListener('keydown', handleFallbackEscape, true);
@@ -734,6 +738,35 @@ const GameModals: React.FC<GameModalsProps> = ({
                         />
                     </ErrorBoundary>
                 </Suspense>
+            )}
+
+            {/* Investment Board */}
+            {gameState.isInvestmentBoardVisible && (
+                <div ref={investmentBoardFocusRef} tabIndex={-1}>
+                    <Suspense fallback={<LoadingSpinner />}>
+                        <ErrorBoundary fallbackMessage="Error in Investment Board.">
+                            <InvestmentBoard
+                                isOpen={gameState.isInvestmentBoardVisible}
+                                onClose={() => dispatch({ type: 'TOGGLE_INVESTMENT_BOARD' })}
+                                onInvestInCaravan={(routeId, amount) =>
+                                    dispatch({ type: 'INVEST_IN_CARAVAN', payload: { tradeRouteId: routeId, goldAmount: amount } })
+                                }
+                                onTakeLoan={(offer, amount, duration) =>
+                                    dispatch({
+                                        type: 'TAKE_LOAN',
+                                        payload: {
+                                            lenderId: offer.lenderId,
+                                            factionId: offer.factionId,
+                                            amount,
+                                            interestRate: offer.interestRate,
+                                            durationDays: duration,
+                                        },
+                                    })
+                                }
+                            />
+                        </ErrorBoundary>
+                    </Suspense>
+                </div>
             )}
 
             {/* Trade Route Dashboard */}

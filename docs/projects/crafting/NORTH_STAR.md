@@ -1,7 +1,49 @@
+---
+schema_version: 1
+project: Crafting System
+slug: crafting
+category: Gameplay Systems
+main_category: "Game & Simulation"
+subcategory: Core Sim Systems
+status: active
+last_updated: 2026-06-09
+confidence: high
+evidence: docs/projects/crafting
+gap_signal: "G1 compatibility proof closed; G5 blocked on UX ownership; G13 provenance follow-up completed"
+protocol: living project doc set
+next_step: "Keep both craft engines separate; the G1 compatibility proof is closed, and any future migration work should start from a new evidence-backed gap. Keep G5 blocked until refining/enchanting placement is decided."
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Crafting System North Star
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ## Why this project exists
 The crafting project is active in registry and has substantial existing implementation, but previous handoff notes were limited to scaffolding.  
@@ -26,7 +68,7 @@ The two core crafting implementations are intentionally not interchangeable yet:
 
 - `src/systems/crafting/craftingSystem.ts` is the legacy callback-driven path. It checks materials by `itemId`, supports optional `qualityOutcomes`, and only speaks the legacy `poor/standard/superior/masterwork` quality vocabulary from `src/systems/crafting/types.ts`.
 - `src/systems/crafting/craftingEngine.ts` is the enhanced path. It resolves craftability with ingredient, gold, tool, and known-recipe checks, then returns roll metadata, XP, time, gold, and the `ruined/flawed/standard/masterwork/legendary` quality vocabulary from `src/systems/crafting/crafterProgression.ts`.
-- `src/systems/crafting/craftingCompatibility.ts` now makes the bridge explicit instead of implicit. It normalizes legacy results into an enhanced-facing payload for quality and side-effect fields, and it keeps the reverse quality map lossy only where the older vocabulary has no equivalent tier.
+- `src/systems/crafting/craftingCompatibility.ts` now makes the bridge explicit instead of implicit. It normalizes legacy results into an enhanced-facing payload for quality and side-effect fields, and it keeps the reverse quality map lossy only where the older vocabulary has no equivalent tier. Focused regression coverage now exercises explicit success/failure normalization, the full documented quality matrix in both directions, and the unavailable enhanced fields that remain intentionally absent from the legacy contract.
 
 Compatibility matrix:
 
@@ -63,7 +105,7 @@ Acceptance criteria:
 
 1. `src/systems/crafting/__tests__/craftingSystem.test.ts` must continue to pass for the legacy path, including insufficient-material failure, default DC checks, custom `qualityOutcomes`, `itemIdOverride`, and `quantityMultiplier`.
 2. `src/systems/crafting/craftingEngine.ts` must continue to preserve the enhanced craftability contract: ingredient/gold/tool/known gating in `checkRecipeCraftability`, and time/gold/material/XP output in `attemptCrafting`.
-3. `src/systems/crafting/__tests__/craftingCompatibility.test.ts` proves adapter mapping for all documented quality pairs in both directions and for both successful and failed legacy-path normalization with stable side-effect fields.
+3. `src/systems/crafting/__tests__/craftingCompatibility.test.ts` proves adapter mapping for all documented quality pairs in both directions and for both successful and failed legacy-path normalization with stable side-effect fields, explicit provenance, and a stable unavailable-field list.
 
 Blocker gate:
 
@@ -89,7 +131,7 @@ Blocker gate:
 
 ## Known partials and uncertainty
 1. **Engine duplication**
-   - `craftingSystem.ts` and `craftingEngine.ts` overlap on core behavior with different contracts and quality models. The compatibility contract above now has a concrete adapter helper and expanded regression proof for bidirectional quality mapping plus success/failure normalization, but the stack still needs broader coverage before any consolidation work is safe.
+   - `craftingSystem.ts` and `craftingEngine.ts` overlap on core behavior with different contracts and quality models. The compatibility contract above now has a concrete adapter helper and broader regression proof for bidirectional quality mapping plus success/failure normalization, but the stack still needs to stay separate until any future consolidation is backed by more migration evidence.
 2. **Input/model fidelity drift**
    - `craftingService.ts` now preserves exact-ID material checks and falls back to existing item type/category metadata for legacy recipes.
    - `craftingEngine.ts` includes fuzzy substring checks for tool names, which is useful but brittle.
@@ -107,7 +149,7 @@ Blocker gate:
    - `ExperimentPanel.tsx` now has an additive drag-and-drop staging path into the bench cauldron, so the missing interaction wiring is no longer the open issue.
    - `ingredientGlossary.ts` now exposes missing creature CR as `unknown` rarity instead of silently treating it as common.
 9. **Compatibility provenance**
-   - `craftingCompatibility.ts` now records explicit provenance (`source`, `outcomeSource`, `unavailableEnhancedFields`) so unmapped roll/DC/quality-result fields from the legacy path remain traceable for migration and diagnostics.
+  - `craftingCompatibility.ts` now records explicit provenance (`source`, `outcomeSource`, `unavailableEnhancedFields`) so unmapped roll/DC/quality-result fields from the legacy path remain traceable for migration and diagnostics. The current proof pass extends that trace with explicit success/failure and full quality-mapping assertions.
 ## Dashboard Card Schema
 
 Project: Crafting System
@@ -116,13 +158,13 @@ Category: Gameplay System
 Status: active
 Confidence: high
 Evidence: docs/projects/crafting
-Gap signal: G1 compatibility contract documented, G2 adapter proof closed, G3/G4/G8 resolved, G5 blocked on UX ownership, G7 drag-and-drop proof closed, G9 modularization split closed, G10 adapter proof expanded, G11 stacked-reagent accounting closed, G12 batch/craftability quantity proof closed, and G13 provenance follow-up completed 2026-06-08
+Gap signal: G1 compatibility proof closed, G2 adapter proof closed, G3/G4/G8 resolved, G5 blocked on UX ownership, G7 drag-and-drop proof closed, G9 modularization split closed, G10 adapter proof expanded, G11 stacked-reagent accounting closed, G12 batch/craftability quantity proof closed, and G13 provenance follow-up completed 2026-06-09
 Protocol: living project doc set
-Next step: Continue G1 compatibility regression hardening while preserving both craft engines; keep G5 blocked until refining/enchanting placement is decided.
+Next step: Preserve both craft engines; G1 compatibility proof is closed, and any future migration work should start from a new evidence-backed gap. Keep G5 blocked until refining/enchanting placement is decided.
 Required verification: docs_consistency
-Completed verification: focused craftingCompatibility tests; focused Crafting panel adapter tests; focused ExperimentPanel damage routing test; focused stacked-reagent ExperimentPanel test; focused ExperimentPanel drag-and-drop test; focused batchCrafting quantity regression test; focused alchemyBenchSelectors test
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-08
+Completed verification: focused craftingCompatibility tests; living-project schema audit with Crafting now schema_status valid; git diff --check
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 
 ## Evidence map (for handoff)
 - Systems: `src/systems/crafting/craftingEngine.ts`, `craftingSystem.ts`, `batchCrafting.ts`, `craftingLocations.ts`, `craftingAchievements.ts`, `crafterProgression.ts`, `craftingService.ts`, `ingredientGlossary.ts`.

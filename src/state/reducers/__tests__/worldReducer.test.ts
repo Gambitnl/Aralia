@@ -149,7 +149,8 @@ describe('worldReducer', () => {
         expect(WeatherSystem.updateWeather).toHaveBeenCalledWith(
             expect.anything(),
             'plains',
-            expect.stringContaining('Day')
+            expect.stringContaining('Day'),
+            expect.anything()
         );
     });
 
@@ -212,9 +213,58 @@ describe('worldReducer', () => {
         expect(WeatherSystem.updateWeather).toHaveBeenCalledWith(
             expect.anything(),
             'forest',
-            expect.stringContaining('Day')
+            expect.stringContaining('Day'),
+            expect.anything()
         );
         expect(result.environment).toEqual(weatherUpdate);
+    });
+
+    it('produces the same environment for identical seeded day advances', () => {
+        const baseStateA = createMockGameState({
+            worldSeed: 24680,
+            gameTime: new Date('2024-01-01T12:00:00Z'),
+            currentLocationId: 'coord_2_3',
+            mapData: {
+                gridSize: { rows: 8, cols: 8 },
+                tiles: Array.from({ length: 8 }, (_, y) =>
+                    Array.from({ length: 8 }, (_, x) => ({
+                        x,
+                        y,
+                        discovered: true,
+                        isPlayerCurrent: false,
+                        biomeId: y === 3 && x === 2 ? 'forest' : 'plains',
+                    }))
+                ),
+            },
+        });
+        const baseStateB = createMockGameState({
+            worldSeed: 24680,
+            gameTime: new Date('2024-01-01T12:00:00Z'),
+            currentLocationId: 'coord_2_3',
+            mapData: {
+                gridSize: { rows: 8, cols: 8 },
+                tiles: Array.from({ length: 8 }, (_, y) =>
+                    Array.from({ length: 8 }, (_, x) => ({
+                        x,
+                        y,
+                        discovered: true,
+                        isPlayerCurrent: false,
+                        biomeId: y === 3 && x === 2 ? 'forest' : 'plains',
+                    }))
+                ),
+            },
+        });
+
+        const action = {
+            type: 'ADVANCE_TIME' as const,
+            payload: { seconds: 86400 } // 1 day
+        };
+
+        const resultA = worldReducer(baseStateA, action);
+        const resultB = worldReducer(baseStateB, action);
+
+        expect(resultA.environment).toEqual(resultB.environment);
+        expect(resultA.gameTime?.toISOString()).toBe(resultB.gameTime?.toISOString());
     });
 
     it('resets shortRestTracker when advancing across multiple days', () => {

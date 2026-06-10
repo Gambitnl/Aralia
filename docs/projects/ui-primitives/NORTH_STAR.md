@@ -1,3 +1,43 @@
+---
+schema_version: 1
+project: Ui Primitives
+slug: ui-primitives
+category: active project
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: active
+last_updated: 2026-06-08
+confidence: unknown
+evidence: "docs/projects/ui-primitives/TRACKER.md; docs/projects/ui-primitives/GAPS.md"
+gap_signal: G5 validation feedback, G9 focus-trap manager coverage, G10/G11 ARIA labeling passes, and G12 coin-display semantics done
+protocol: living-project
+next_step: "No open UI primitive gap remains after G12; run a fresh source-backed gap scan before assigning another forward pass."
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs consistency
+completed_verification:
+  - docs refresh
+  - focused GameModals
+  - Input
+  - and coin-display tests
+last_proof: 2026-06-08
+workflow_gaps_reviewed: ""
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # UI Primitives North Star
 
 Status: active  

@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Scripts: Archive
+slug: scripts-archive
+category: Docs / Continuity
+main_category: Review / Archive
+subcategory: Deprecation Review
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/scripts-archive
+gap_signal: 2 open gaps
+protocol: living project doc set
+next_step: Document the archive tombstone policy decision and keep the temp-auth cleanup check in the tracker.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTHSTAR: Scripts: Archive
 
 Status: active

@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { calculateDamage } from '../../combat/combatUtils';
 import { CombatCharacter } from '../../../types/combat';
 import { DamageType } from '../../../types/spells';
+import { createSpellZone } from '@/systems/spells/effects/triggerHandler';
 
 describe('calculateDamage Logic Fixes', () => {
     // Helper to create a dummy character with specific resistance/vulnerability
@@ -10,16 +11,18 @@ describe('calculateDamage Logic Fixes', () => {
         name: string,
         resistances: DamageType[] = [],
         vulnerabilities: DamageType[] = [],
-        immunities: DamageType[] = []
+        immunities: DamageType[] = [],
+        position = { x: 0, y: 0 },
+        team: 'player' | 'enemy' = 'player'
     ): CombatCharacter => ({
         id: name,
         name,
         level: 1,
         class: { id: 'test', name: 'Test', description: '', hitDie: 8, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
-        position: { x: 0, y: 0 },
+        position,
         stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' },
         abilities: [],
-        team: 'player',
+        team,
         currentHP: 10,
         maxHP: 10,
         initiative: 0,
@@ -56,5 +59,36 @@ describe('calculateDamage Logic Fixes', () => {
     it('should still apply vulnerability if no resistance', () => {
         const target = createTestChar('Vulnerable', [], ['cold']);
         expect(calculateDamage(25, caster, target, 'cold')).toBe(50); // 25 * 2
+    });
+
+    it('should honor spell-zone resistance when context is provided', () => {
+        const target = createTestChar('Protected', [], [], [], { x: 1, y: 0 });
+        const zone = createSpellZone(
+            'protective-aura',
+            caster.id,
+            caster.position,
+            { shape: 'sphere', size: 20 },
+            [
+                {
+                    type: 'DEFENSIVE',
+                    trigger: { type: 'immediate' },
+                    condition: { type: 'always' },
+                    defenseType: 'resistance',
+                    damageType: ['Fire'],
+                    duration: { type: 'minutes', value: 10 },
+                    description: 'Fire resistance aura'
+                } as any
+            ],
+            1,
+            10,
+            undefined,
+            undefined,
+            ['point']
+        );
+
+        expect(calculateDamage(25, caster, target, 'fire', {
+            spellZones: [zone],
+            characters: [caster, target]
+        })).toBe(12);
     });
 });

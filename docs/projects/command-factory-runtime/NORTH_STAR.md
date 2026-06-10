@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Command Factory Runtime
+slug: command-factory-runtime
+category: Runtime / Systems
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: active
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/command-factory-runtime
+gap_signal: 4 open project gaps
+protocol: living project doc set
+next_step: Re-check src/commands/factory and src/hooks/useAbilitySystem.ts after the next source edit, then update GAPS.md if drift appears.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Command Factory Runtime
 
 Status: active  

@@ -545,7 +545,10 @@ export const useCombatEngine = ({
         // Apply Resistance/Vulnerability if damageType provided
         // We pass null for caster as environmental damage has no specific caster usually,
         // or we don't have the caster object handy here.
-        const finalAmount = calculateDamage(amount, null, character, damageType);
+        const finalAmount = calculateDamage(amount, null, character, damageType, {
+            spellZones,
+            characters
+        });
 
         const updatedTarget = applyDamageAndCheckDowned(character, finalAmount);
         updatedCharacter = {
@@ -581,7 +584,7 @@ export const useCombatEngine = ({
         updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
 
         return updatedCharacter;
-    }, [addDamageNumber, onLogEntry, processRepeatSaves]);
+    }, [addDamageNumber, characters, onLogEntry, processRepeatSaves, spellZones]);
 
     const shouldKeepScheduledEffectAfterTrigger = useCallback((
         scheduledEffect: ScheduledSpellEffect,

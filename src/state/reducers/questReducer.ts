@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:29:20
- * Dependents: appState.ts
- * Imports: 4 files
+ * Last Sync: 09/06/2026, 02:06:39
+ * Dependents: state/appState.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -24,11 +24,14 @@
  *    marked complete, or explicitly via COMPLETE_QUEST.
  *  - Failed status is preserved if external systems ever flag it, and
  *    objective updates will not resurrect a failed quest.
+ *  - Accepted, completed, and failed transitions also queue matching journal
+ *    events so the quest log and the journal can stay in sync later.
  */
 import { GameState, QuestStatus, Quest } from '../../types';
 import { AppAction } from '../actionTypes';
 import { ITEMS } from '../../constants';
 import { generateId } from '../../utils/core/idGenerator';
+import { appendQuestJournalEvent, createQuestJournalEvent } from '../../systems/quests/questJournal';
 
 // TODO(Schemer): Migrate questReducer to use the new `src/types/quests.ts` structure (QuestDefinition, QuestStage, QuestObjectiveType).
 // Currently, it relies on the legacy flat `objectives` array from `src/types/world.ts`.
@@ -68,6 +71,8 @@ const applyQuestCompletion = (
   questIndex: number,
   quest: Quest
 ): Partial<GameState> => {
+  // Complete the quest once so manual completion and auto-complete from the
+  // objective tracker leave the same reward path and the same journal trail.
   const completedQuest: Quest = {
     ...quest,
     status: QuestStatus.Completed,
@@ -100,11 +105,19 @@ const applyQuestCompletion = (
     }
   }
 
+  const completionJournalEvent = createQuestJournalEvent(state, {
+    type: 'quest_completed',
+    quest: completedQuest,
+    title: `Quest Completed: ${completedQuest.title}`,
+    description: `Completed "${completedQuest.title}" and claimed its rewards.`,
+  });
+
   return {
     questLog: newQuestLog,
     gold: updatedGold,
     inventory: updatedInventory,
     party: updatedParty,
+    ...appendQuestJournalEvent(state, completionJournalEvent),
     ...pushNotification(state, `Quest Completed: ${completedQuest.title}`, 'success', 5000),
   };
 };
@@ -118,8 +131,16 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
         return {};
       }
 
+      const acceptJournalEvent = createQuestJournalEvent(state, {
+        type: 'quest_accepted',
+        quest: incomingQuest,
+        title: `Quest Accepted: ${incomingQuest.title}`,
+        description: `Accepted "${incomingQuest.title}" and added it to the quest log.`,
+      });
+
       return {
         questLog: [...state.questLog, incomingQuest],
+        ...appendQuestJournalEvent(state, acceptJournalEvent),
         ...pushNotification(state, `Quest Accepted: ${incomingQuest.title}`, 'info'),
       };
     }

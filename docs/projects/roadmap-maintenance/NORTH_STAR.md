@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Roadmap Maintenance
+slug: roadmap-maintenance
+category: Projectized Planning Areas
+main_category: "Content & Rules"
+subcategory: "Items & Content Pipelines"
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/roadmap-maintenance
+gap_signal: 2 open gaps, 2 resolved gaps
+protocol: living project doc set
+next_step: Keep the remaining roadmap-local open items routed here until a fresh audit run changes the evidence set.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Roadmap Maintenance North Star
 
 Status: active

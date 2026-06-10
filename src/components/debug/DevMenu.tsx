@@ -61,6 +61,7 @@ type DevMenuActionType =
   | 'toggle_thieves_guild'
   | 'toggle_naval_dashboard'
   | 'toggle_trade_route_dashboard'
+  | 'toggle_investment_board'
   | 'toggle_economy_ledger'
   | 'toggle_courier_pouch'
   | 'restart_dynamic_party';
@@ -125,6 +126,11 @@ const DevMenu: React.FC<DevMenuProps> = ({
   // whether the modal was opened from the main menu or from in-game play.
   const handleToggleDevMode = () => {
     onSetDevModeEnabled(!isDevModeEnabled);
+  };
+
+  const openInvestmentBoard = () => {
+    dispatch({ type: 'TOGGLE_INVESTMENT_BOARD' });
+    onClose();
   };
 
   const openTestTemple = () => {
@@ -211,6 +217,7 @@ const DevMenu: React.FC<DevMenuProps> = ({
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
         { label: 'Naval Dashboard', action: 'toggle_naval_dashboard', style: 'bg-slate-700 hover:bg-slate-600 border border-slate-500' },
         { label: 'Trade Routes', action: 'toggle_trade_route_dashboard', style: 'bg-amber-700 hover:bg-amber-600 border border-amber-500' },
+        { label: 'Investment Board', action: 'toggle_investment_board', style: 'bg-amber-800 hover:bg-amber-700 border border-amber-500', onClick: openInvestmentBoard },
         { label: 'Ledger Book', action: 'toggle_economy_ledger', style: 'bg-emerald-700 hover:bg-emerald-600 border border-emerald-500' },
         { label: 'Courier Pouch', action: 'toggle_courier_pouch', style: 'bg-indigo-700 hover:bg-indigo-600 border border-indigo-500' },
       ],

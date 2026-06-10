@@ -6,13 +6,15 @@
  * Tests for the Puzzle system.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { attemptPuzzleInput, checkPuzzleHint } from '../puzzleSystem';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { attemptPuzzleInput, checkPuzzleHint, getPuzzleHint } from '../puzzleSystem';
 import { Puzzle } from '../types';
+import { CharacterStats } from '../../../types/combat';
 
 describe('Puzzle System', () => {
   let riddlePuzzle: Puzzle;
   let sequencePuzzle: Puzzle;
+  let hintCharacter: CharacterStats;
 
   beforeEach(() => {
     riddlePuzzle = {
@@ -46,6 +48,22 @@ describe('Puzzle System', () => {
       onSuccess: { message: 'Clank!' },
       onFailure: { message: 'Bzzt!', damage: { count: 1, sides: 6, bonus: 0 } }
     };
+
+    hintCharacter = {
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 16,
+      wisdom: 10,
+      charisma: 10,
+      baseInitiative: 0,
+      speed: 30,
+      cr: '1'
+    };
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('Riddle Puzzles', () => {
@@ -115,6 +133,14 @@ describe('Puzzle System', () => {
     it('returns null if check fails', () => {
       const hint = checkPuzzleHint(5, riddlePuzzle);
       expect(hint).toBeNull();
+    });
+
+    it('returns a live hint when the puzzle check passes', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.4); // 1d20 => 9, plus INT mod +3 = 12.
+
+      const hint = getPuzzleHint(hintCharacter, riddlePuzzle);
+
+      expect(hint).toBe('Think about aging.');
     });
   });
 });

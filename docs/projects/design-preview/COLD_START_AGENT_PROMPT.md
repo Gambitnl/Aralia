@@ -1,7 +1,7 @@
 # Design Preview Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 This file is the project-specific context package and directive checklist for
 the next cold-start agent. It does not duplicate the full workflow rules. The
@@ -23,7 +23,7 @@ docs/projects/design-preview/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Design Preview
 Project folder: docs/projects/design-preview
-Iteration: 6
+Iteration: 7
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -38,10 +38,11 @@ Audit/proof: docs/projects/design-preview/AUDIT_OR_PROOF.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 5 | Gemini CLI | CLI agent | certain | 2026-06-08 | T2 closure, self-contained workflow update |
+| 6 | gpt-5.4-mini high | CLI agent | certain | 2026-06-09 | Source-backed lane steward map, split-readiness proof gates, and G1/G3/G4 closure |
 
 ## Previous Agent Handoff
 
-Iteration 5 updated `NORTH_STAR.md` to include a fully self-contained workflow loop for cold-start agents, allowing them to bypass reading the generic shared protocol. It closed task T2 and updated `TRACKER.md` to reflect that all tracked implementation and workflow capture tasks are complete.
+Iteration 6 updated `NORTH_STAR.md` to include a source-backed lane steward and split-readiness map for the active Design Preview router. It closed G1, G3, and G4 in the project gap registry, corrected the large-step proof anchor to the actual `PreviewTables.test.tsx` file, and called out `PreviewMdLibrary.tsx` as a dormant helper rather than an active lane.
 
 ## Current Mission
 
@@ -49,7 +50,7 @@ Active task:
 None.
 
 Acceptance criteria:
-The project is currently in a steady state. The next agent should focus on resolving G3 (assigning stable local owners for lanes) or awaiting new feature requests. Maintain doc consistency if addressing G3.
+The project is in a steady documented state. The next agent should preserve the source-backed lane steward map, keep the split-readiness proof anchors current, and only touch runtime code if a new request or a routed split plan makes that necessary.
 
 Key files to touch:
 - docs/projects/design-preview/NORTH_STAR.md
@@ -60,6 +61,7 @@ Key files to touch:
 - docs/projects/design-preview/AUDIT_OR_PROOF.md
 
 Optional docs to check when present or named by tracker:
+- DECISIONS.md
 - tasks/
 - architecture notes
 - migration notes
@@ -67,19 +69,20 @@ Optional docs to check when present or named by tracker:
 
 Scoped verification:
 - `git diff --check` for all touched files, including any new file.
-- Visual checks using `RUNBOOK.md` if any runtime or styling features are added.
+- `npm run projects:audit` and a Design Preview row check to confirm the registry still points at this project folder.
+- Visual checks using `RUNBOOK.md` only if any runtime or styling features are added later.
 
 Blocking dependencies / do-not-touch:
 Stay inside this project's scope boundaries. Do not implement large new lanes without a registered task or explicitly updating the scope in `NORTH_STAR.md`.
 
 Recent progress:
-T2 is closed. A self-contained cold-start resume path exists in `NORTH_STAR.md`. The manual launch and smoke checklist is maintained in `RUNBOOK.md`. G1 and G3 remain open, waiting for domain owner decisions.
+T2 is closed. A self-contained cold-start resume path exists in `NORTH_STAR.md`. The manual launch and smoke checklist is maintained in `RUNBOOK.md`. The lane steward map now covers the active router, and the only large helper called out as dormant is `PreviewMdLibrary.tsx`.
 
 Workflow gaps reviewed:
-Checked `WORKFLOW_GAPS.md` and `GLOBAL_GAPS.md`. No new workflow-level gaps were found affecting this state. 
+Checked `WORKFLOW_GAPS.md` and `GLOBAL_GAPS.md`. No new workflow-level gaps were found affecting this state.
 
 Dashboard schema updates:
-`gap_signal` is still 3 open gaps. `next_step` changed to indicate G3 is the primary candidate for future work.
+`gap_signal` now reads as 0 open gaps. `next_step` now points at maintaining the lane steward map and awaiting new preview work.
 
 ## Required End State For This Iteration
 

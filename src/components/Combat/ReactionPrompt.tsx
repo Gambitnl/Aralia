@@ -21,6 +21,8 @@ import { Spell } from '../../types/spells';
 import { Ability } from '../../types/combat';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
+type ReactionSpellOption = Spell | Ability;
+
 // ============================================================================
 // Reaction Prompt Properties
 // ============================================================================
@@ -33,7 +35,7 @@ interface ReactionPromptProps {
     // The name of the target being attacked or moving away (useful for Opportunity Attacks)
     targetName?: string;
     // Spells available to cast as a reaction
-    reactionSpells?: Spell[];
+    reactionSpells?: ReactionSpellOption[];
     // Melee weapons/attacks available to execute as an Opportunity Attack reaction
     reactionWeapons?: Ability[];
     // The category/trigger type of this reaction (e.g., 'on_hit', 'opportunity_attack')
@@ -139,8 +141,8 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                         );
                     })}
 
-                    {/* Render reaction spells for magical protection/countermeasures */}
-                    {!isOpportunityAttack && reactionSpells.map((spell) => (
+                    {/* Render reaction spells for magical protection/countermeasures, including War Caster Opportunity Attack substitutions. */}
+                    {reactionSpells.map((spell) => (
                         <button
                             key={spell.id}
                             onClick={() => onResolve(spell.id)}
@@ -156,7 +158,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                                 </span>
                             </div>
                             <div className="text-xs text-gray-400 mt-1 line-clamp-1">
-                                {spell.description}
+                                {isOpportunityAttack ? `War Caster spell option. ${spell.description}` : spell.description}
                             </div>
                         </button>
                     ))}

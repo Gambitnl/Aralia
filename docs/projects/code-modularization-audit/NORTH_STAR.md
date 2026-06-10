@@ -3,33 +3,43 @@ schema_version: 1
 project: Code Modularization Audit
 slug: code-modularization-audit
 category: tools
+main_category: "Tools, Docs & Agents"
+subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 confidence: high
 evidence: "docs/projects/code-modularization-audit/GAPS.md; repo line-count scans run 2026-06-08"
 gap_signal: "next tranche of large-file candidates routed in G14-G19; owner acceptance pending"
 protocol: living-project-task-protocol
 next_step: wait for owning projects to accept the routed candidate clusters, then create bounded split plans with preservation tests
+agent_comments: ""
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
   - GAPS.md
   - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
 optional_docs:
   - AUDIT_OR_PROOF.md if future passes preserve detailed scan outputs
-workflow_gaps_reviewed: 2026-06-08
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+last_proof: ""
+workflow_gaps_reviewed: 2026-06-09
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: no
+human_decision_required: "no"
 ---
-
 # Code Modularization Audit North Star
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ## Dashboard Card Schema
 
@@ -40,7 +50,7 @@ Last updated: 2026-06-08
 | slug | code-modularization-audit |
 | category | tools |
 | status | active |
-| last_updated | 2026-06-08 |
+| last_updated | 2026-06-09 |
 | confidence | high |
 | evidence | `docs/projects/code-modularization-audit/GAPS.md`; repo line-count scans run 2026-06-08 |
 | gap_signal | next tranche of large-file candidates routed in G14-G19; owner acceptance pending |
@@ -48,7 +58,7 @@ Last updated: 2026-06-08
 | next_step | wait for owning projects to accept the routed candidate clusters, then create bounded split plans with preservation tests |
 | required_docs | NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md |
 | optional_docs | AUDIT_OR_PROOF.md if future passes preserve detailed scan outputs |
-| workflow_gaps_reviewed | 2026-06-08 |
+| workflow_gaps_reviewed | 2026-06-09 |
 | compaction_status | not_needed |
 
 ## Why This Exists

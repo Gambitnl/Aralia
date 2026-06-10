@@ -1,14 +1,35 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 04:59:05
+ * Dependents: systems/environment/EnvironmentSystem.ts
+ * Imports: 2 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/environment/TerrainSystem.ts
  * Defines the mechanical rules for different terrain types.
  * Maps string identifiers to Movement Costs, Cover, and other tactical properties.
+ *
+ * This file owns the canonical shared terrain registry. EnvironmentSystem keeps
+ * a battle-map compatibility overlay for the few terrain keys whose semantics
+ * intentionally differ from the broader exploration/world terrain set.
  */
 
 import { TerrainRule, CoverType } from '../../types/environment';
+import { NATURAL_HAZARDS } from './hazards';
 
 /**
  * Registry of terrain rules.
- * Maps the string keys used in BattleMap to mechanical properties.
+ * This is the canonical terrain source for the wider terrain system.
  */
 export const TERRAIN_RULES: Record<string, TerrainRule> = {
   // Base Terrain
@@ -105,7 +126,8 @@ export const TERRAIN_RULES: Record<string, TerrainRule> = {
     name: 'Deep Mud',
     movementCost: 3, // Very difficult
     cover: 'none',
-    stealthAdvantage: false
+    stealthAdvantage: false,
+    hazards: [NATURAL_HAZARDS.quicksand]
   }
 } as unknown as Record<string, TerrainRule>;
 

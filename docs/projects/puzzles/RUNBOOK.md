@@ -28,22 +28,23 @@ Read the following first:
 - If a blocker is found, document it in `GAPS.md` with next action and proof target before widening scope.
 - After each pass, update `COLD_START_AGENT_PROMPT.md` with a single current handoff block.
 
-## Current Iteration (Iteration 3) Flow
+## Current Iteration (Iteration 4) Flow
 
-1. Confirm `T2` is marked done in `TRACKER.md` and `PZ-001` is marked done in `GAPS.md`.
-2. Keep evidence in this pass to world feature -> action generation -> handler dispatch -> tested payload.
+1. Confirm `T3` is marked done in `TRACKER.md`, `PZ-002` is marked done in `GAPS.md`, and `PZ-007` is review-required.
+2. Keep evidence in this pass to puzzle helper -> deterministic hint test -> caller-gap split, then stop if no runtime `Puzzle` owner exists.
 3. Update required docs:
    - `NORTH_STAR.md`
    - `TRACKER.md`
    - `GAPS.md`
    - `COLD_START_AGENT_PROMPT.md`
 4. Add iteration records to:
-   - `DECISIONS.md`
    - `AUDIT_OR_PROOF.md`
    - `RUNBOOK.md`
+   - `DECISIONS.md` only if a new decision is introduced.
 5. Run scoped verification:
-   - `npm run test -- src/components/ActionPane/__tests__/ActionPane.test.tsx`
-   - `git diff --check -- <tracked touched files>` before finish.
+   - `npm test -- --run src/systems/puzzles/__tests__/puzzleSystem.test.ts`
+   - `node scripts/audit-living-project-docs.cjs`
+   - `git diff --check` before finish.
 
 ## Verification
 
@@ -52,3 +53,11 @@ A pass is considered settled when:
 - Production lockpicking dispatch route is validated in test or equivalent proof.
 - Dashboard files reflect aligned status/proof.
 - No review-required decision has surfaced requiring cross-team/blocking handoff.
+
+## Review-Required Branch
+
+If the source scan finds no runtime caller that can own a real `Puzzle` object, stop the implementation slice there and record the ownership question in the Required Review Brief.
+
+- Keep `PZ-002` as resolved helper work.
+- Mark `PZ-007` review-required until a human owner chooses the first gameplay surface.
+- Do not widen into PZ-003 key unlock work or BattleMap/Submap integration from this branch.

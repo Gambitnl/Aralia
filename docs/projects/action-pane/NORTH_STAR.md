@@ -3,15 +3,15 @@ schema_version: 1
 project: Action Pane
 slug: action-pane
 category: Feature/UI Projects
-main_category: Interface & Experience
+main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-09
 confidence: medium
 evidence: docs/projects/action-pane
-gap_signal: "2 active gaps, 1 adjacent follow-up"
+gap_signal: 1 adjacent follow-up
 protocol: living project doc set
-next_step: Continue with T3 prop-contract cleanup.
+next_step: "Keep the move contract source-backed; revisit only if town ownership needs a separate slice."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -31,20 +31,19 @@ required_verification:
 completed_verification:
   - docs_consistency
   - scoped_tests
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-09
+workflow_gaps_reviewed: 2026-06-09
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: no
+human_decision_required: "no"
 ---
-
 # Action Pane North Star
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ## Why This Project Exists
 
@@ -63,7 +62,8 @@ Capture a concrete, implementation-grounded snapshot of:
 - The action dispatch entrypoint is still processAction in src/hooks/useGameActions.ts.
 - handleAction routing stays centralized in src/hooks/actions/actionHandlers.ts with system UI handling in src/hooks/actions/handleSystemAndUi.ts.
 - The action surface still includes dynamic context actions from useActionGeneration, manual commands such as ask_oracle, ANALYZE_SITUATION, SHORT_REST, and LONG_REST, Gemini action rendering, and SystemMenu toggles.
-- Current contract drift is still tracked in TRACKER.md and GAPS.md, especially isDevDummyActive intent and move.targetId normalization.
+- `isDevDummyActive` no longer belongs on the ActionPane path; the prop is removed from the pane and its immediate render chain, while the dev-entry flow remains owned by the menu surfaces.
+- Current contract drift around move.targetId normalization is now resolved at the generator layer: useActionGeneration emits string ids and ActionButton no longer rewrites them at click time.
 - System-menu and quick-command emission now has focused contract proof in src/components/ActionPane/__tests__/ActionPane.test.tsx, so the menu coverage gap is no longer the next blocker.
 
 ## Dashboard Card Schema
@@ -74,25 +74,25 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/action-pane
-Gap signal: 2 active gaps, 1 adjacent follow-up
+Gap signal: 1 adjacent follow-up
 Protocol: living project doc set
-Next step: Continue with T3 prop-contract cleanup.
+Next step: Keep the move contract source-backed; revisit only if town ownership needs a separate slice.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-08
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Document concrete Action Pane state, file map, and unresolved contract points |
-| Acceptance criteria | This living-doc set contains implemented-state mapping, action contracts, integration points, and clear next checks |
-| Allowed boundaries | docs/projects/action-pane/ only |
+| Task | Reduce reliance on runtime move.targetId coercion |
+| Acceptance criteria | This living-doc set contains source-backed move-target cleanup evidence, a concrete next proof, and no stale prop-contract ambiguity on the ActionPane path |
+| Allowed boundaries | docs/projects/action-pane/ and the narrow ActionPane action-contract surface |
 | Stop condition | Do not widen into unrelated gameplay systems |
-| Verification | Verify this folder plus tracker/gaps fields are filled with current, cross-referenced implementation evidence |
+| Verification | Verify this folder plus the focused ActionPane contract test and supporting docs checks are filled with current, cross-referenced implementation evidence |
 | Owner | Action Pane doc owner |
-| Next action | Move to prop-contract cleanup in the next implementation slice |
+| Next action | Keep the move contract source-backed; revisit only if town ownership needs a separate slice |
 
 ## Scope Boundaries
 
@@ -121,7 +121,7 @@ Out of scope:
 ## What Must Not Be Lost
 
 - Existing pane behaviors tied to movement and interaction:
-  - talk, take_item, move (with normalization),
+  - talk, take_item, move (source-backed string ids),
   - ENTER_VILLAGE, APPROACH_TOWN, OBSERVE_TOWN,
   - ANALYZE_SITUATION, ask_oracle, SHORT_REST, LONG_REST.
 - System action coverage:
@@ -137,8 +137,8 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| Move ActionPane prop contracts to stable, non-legacy form | in_scope_now | Action Pane owner | src/components/ActionPane/index.tsx | Replace stale isDevDummyActive usages or update docs/tests for expected behavior |
-| Normalize action payload expectations across generators and handlers | support_needed_now | Action Pane owner | src/components/ActionPane/useActionGeneration.ts, src/types/actions.ts | Add contract test that no numeric targetId needs runtime normalization |
+| Move ActionPane prop contracts to stable, non-legacy form | resolved | Action Pane owner | src/components/ActionPane/index.tsx, src/components/ActionPane/SystemMenu.tsx, src/components/layout/GameLayout.tsx, src/App.tsx, src/components/ActionPane/__tests__/ActionPane.test.tsx | Keep the prop removed from the ActionPane path unless a new dev-entry requirement is recorded |
+| Normalize action payload expectations across generators and handlers | resolved | Action Pane owner | src/components/ActionPane/useActionGeneration.ts, src/types/actions.ts, src/components/ActionPane/__tests__/ActionPane.test.tsx | Keep the producer contract string-only and the button path passive |
 
 ## Global Gap Imports
 
@@ -178,17 +178,22 @@ Keep this project scope to:
 
 Avoid adding ad hoc runtime logs, screenshots, or process notes that do not affect action contracts.
 
+## Resolved Clarifications
+
+| Question | Resolution | Evidence |
+|---|---|---|
+| Does isDevDummyActive still belong on ActionPane props? | No. The prop was removed from the ActionPane path and the developer-entry flow stays owned by the menu surfaces. | src/components/ActionPane/index.tsx, src/components/ActionPane/SystemMenu.tsx, src/components/layout/GameLayout.tsx, src/App.tsx |
+| Does ActionButton still need to rewrite move target ids at click time? | No. Move actions now arrive with string ids from `useActionGeneration`, and the button path passes them through unchanged. | src/components/ActionPane/useActionGeneration.ts, src/components/ActionPane/ActionButton.tsx, src/components/ActionPane/__tests__/ActionPane.test.tsx |
+
 ## Open Questions
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Does isDevDummyActive still belong on ActionPane props? | The prop is passed but currently unused in main action flow | Action Pane owner | Next UI contract pass |
 | Should APPROACH_TOWN and OBSERVE_TOWN live in this pane or be moved to village scene controls? | Prevents duplicated behavior and conflicting affordances across views | Action Pane owner | Next phase planning |
-| Is ActionButton normalization for move.targetId still needed if generators are tightened? | Keeps the contract clean and avoids silent runtime coercion | Action Pane owner | Next handler/validation pass |
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
 2. Read [docs/projects/action-pane/TRACKER.md](docs/projects/action-pane/TRACKER.md) and [docs/projects/action-pane/GAPS.md](docs/projects/action-pane/GAPS.md).
 3. Confirm no imported gaps are needed in [docs/projects/GLOBAL_GAPS.md](docs/projects/GLOBAL_GAPS.md) and recheck [docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md](docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md).
-4. Continue with T3 first, then T4 only if the prop-contract pass exposes a real blocker.
+4. Continue with G4 only if town ownership needs its own slice.

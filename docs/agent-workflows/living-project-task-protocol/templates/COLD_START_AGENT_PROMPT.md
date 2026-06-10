@@ -90,6 +90,15 @@ blocked reason, options, evidence, decision owner, and proof-after-decision.
 Once marked review-required, do not assign forward implementation agents until
 the decision is recorded.>
 
+Decision visualizations:
+<If the required decision is user-facing or observable, create an isolated
+"this is what I mean" visual page before requesting the decision. Register it
+in a `Decision Visualizations` table in NORTH_STAR.md, TRACKER.md, or GAPS.md:
+| Decision | Status | Visual page | Summary | Owner |
+|---|---|---|---|---|
+| <decision> | <draft/needs decision/approved/rejected> | <relative or /Aralia/ link> | <what the page shows> | <owner> |
+If the decision is not visual, state why no visualization page is needed.>
+
 Recent progress:
 <brief handoff summary from the previous agent>
 

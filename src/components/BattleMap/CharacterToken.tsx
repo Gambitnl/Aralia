@@ -21,6 +21,7 @@
  * CURRENT FUNCTIONALITY:
  * - Renders character tokens with team-based coloring
  * - Displays status effects as badge overlays
+ * - Shows compact resistance / vulnerability / immunity badges with tooltips
  * - Shows concentration indicator for spellcasters
  * - Implements selection and targeting states
  * - Uses React.memo for basic render optimization
@@ -58,8 +59,87 @@ const getClassIcon = (classId: string) => {
   }
 };
 
+type DefenseBadgeKind = 'resistance' | 'vulnerability' | 'immunity';
+
+interface DefenseBadgeConfig {
+  kind: DefenseBadgeKind;
+  label: string;
+  tooltip: string;
+  positionClass: string;
+  toneClass: string;
+}
+
+const formatDefenseTooltip = (title: string, primary?: string[], secondary?: string[]) => {
+  const segments: string[] = [];
+
+  if (primary?.length) {
+    segments.push(`${title}: ${primary.join(', ')}`);
+  }
+
+  if (secondary?.length) {
+    segments.push(`Non-magical ${title.toLowerCase()}: ${secondary.join(', ')}`);
+  }
+
+  return segments.join(' | ');
+};
+
+const buildDefenseBadges = (character: CombatCharacter): DefenseBadgeConfig[] => {
+  const badges: DefenseBadgeConfig[] = [];
+
+  const resistanceTooltip = formatDefenseTooltip('Resistance', character.resistances, character.nonMagicalResistances);
+  if (resistanceTooltip) {
+    badges.push({
+      kind: 'resistance',
+      label: 'R',
+      tooltip: resistanceTooltip,
+      // The badges stay on the token perimeter so the center icon, status row,
+      // and concentration marker keep their current spacing.
+      positionClass: 'left-0 top-0',
+      toneClass: 'border-emerald-200/70 bg-emerald-950/90 text-emerald-100 shadow-[0_0_10px_rgba(16,185,129,0.24)]'
+    });
+  }
+
+  const vulnerabilityTooltip = formatDefenseTooltip('Vulnerability', character.vulnerabilities);
+  if (vulnerabilityTooltip) {
+    badges.push({
+      kind: 'vulnerability',
+      label: 'V',
+      tooltip: vulnerabilityTooltip,
+      positionClass: 'left-0 top-1/2 -translate-y-1/2',
+      toneClass: 'border-rose-200/70 bg-rose-950/90 text-rose-100 shadow-[0_0_10px_rgba(244,63,94,0.24)]'
+    });
+  }
+
+  const immunityTooltip = formatDefenseTooltip('Immunity', character.immunities, character.nonMagicalImmunities);
+  if (immunityTooltip) {
+    badges.push({
+      kind: 'immunity',
+      label: 'I',
+      tooltip: immunityTooltip,
+      positionClass: 'left-0 bottom-0',
+      toneClass: 'border-sky-200/70 bg-sky-950/90 text-sky-100 shadow-[0_0_10px_rgba(56,189,248,0.24)]'
+    });
+  }
+
+  return badges;
+};
+
+const DefenseBadge: React.FC<DefenseBadgeConfig> = ({ kind, label, tooltip, positionClass, toneClass }) => (
+  <Tooltip content={tooltip}>
+    <span
+      data-testid={`defense-badge-${kind}`}
+      className={`absolute flex h-3.5 w-3.5 items-center justify-center rounded-full border text-[6px] font-black uppercase leading-none tracking-tight ${positionClass} ${toneClass}`}
+      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.45)' }}
+      aria-label={tooltip}
+    >
+      {label}
+    </span>
+  </Tooltip>
+);
+
 const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, position, isSelected, isTargetable, targetingMode, isTurn, onCharacterClick }) => {
   const multiplier = getCharacterSizeMultiplier(character.stats.size);
+  const defenseBadges = buildDefenseBadges(character);
 
   // Memoized container style: only recalculates when position, size, or interaction
   // state changes — prevents redundant style-object allocation on unrelated renders.
@@ -124,6 +204,14 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
           {icon}
         </div>
       </Tooltip>
+
+      {/* Defense badges stay tiny and pinned to the perimeter so they expose
+          the important damage traits without growing the token footprint or
+          colliding with the center icon. The 3D renderer still needs a separate
+          parity pass, so this slice deliberately stops at the 2D token layer. */}
+      {defenseBadges.map(badge => (
+        <DefenseBadge key={badge.kind} {...badge} />
+      ))}
 
       {/* Status effect badges hover near the token to visualize buffs/debuffs without opening a sheet. */}
       {character.statusEffects.length > 0 && (

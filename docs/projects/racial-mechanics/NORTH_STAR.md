@@ -1,3 +1,42 @@
+---
+schema_version: 1
+project: Racial Mechanics / Race Hierarchy
+slug: racial-mechanics
+category: Feature/Systems Projects
+main_category: "Content & Rules"
+subcategory: "Rules, Spells & Source Data"
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/racial-mechanics
+gap_signal: Open items remain in glossary sync, long-rest choice follow-up, and adjacent parser/UI debt.
+protocol: living project doc set
+next_step: Keep RM-032 moving by auditing Character Creator choice coverage against every race and recording any skipped steps.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - traits-implementation-mapping.json
+  - traits-implementation-mapping.md
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Racial Mechanics / Race Hierarchy North Star
 
 Last updated: 2026-06-05

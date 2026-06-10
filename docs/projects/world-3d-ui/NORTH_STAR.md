@@ -1,3 +1,44 @@
+---
+schema_version: 1
+project: World 3D UI
+slug: world-3d-ui
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-08
+confidence: high
+evidence: docs/projects/world-3d-ui
+gap_signal: "Plan 4 HUD gaps closed; monitor nameplate density/perf only"
+protocol: living project doc set
+next_step: "No open world-3d-ui implementation task; monitor nameplate density/perf during broader 3D passes."
+agent_comments: "W3DUI-27 completed by MCP subagent; no required-review blocker found."
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - PERF.md
+  - Plan 4 design notes
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - scoped_tests
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # World 3D UI North Star
 
 Status: active

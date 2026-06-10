@@ -1,10 +1,10 @@
 // @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
- * DEPRECATED BRIDGE / MIDDLEMAN: Redirects to a new location. (Clean me up!)
+ * RE-EXPORT BRIDGE / MIDDLEMAN: Forwards exports to another file.
  *
- * Last Sync: 27/02/2026, 09:32:47
- * Dependents: items.ts
+ * Last Sync: 09/06/2026, 05:08:18
+ * Dependents: None (Orphan)
  * Imports: 1 files
  *
  * MULTI-AGENT SAFETY:
@@ -15,6 +15,7 @@
 // @dependencies-end
 
 /**
- * @deprecated Import from '@/utils/world' instead.
+ * @deprecated Legacy bridge kept for compatibility with older imports.
+ * New callers should import from '@/utils/world/memoryUtils' so the world helper stays canonical.
  */
 export * from './world/memoryUtils';

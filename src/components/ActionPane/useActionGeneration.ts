@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 02:20:35
+ * Dependents: components/ActionPane/index.tsx
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 import { useMemo } from 'react';
 import { Action, Location, NPC, Item } from '../../types';
 import { getSubmapTileInfo } from '../../utils/submapUtils';
@@ -40,7 +56,8 @@ export const useActionGeneration = ({
     if (currentLocation.exits) {
       Object.entries(currentLocation.exits).forEach(([direction, exit]) => {
         if (!['North', 'South', 'East', 'West', 'NorthEast', 'NorthWest', 'SouthEast', 'SouthWest'].includes(direction)) {
-          // Handle exit being string (legacy) or object
+          // Handle exit being string (legacy) or object.
+          // Both branches resolve to the string target id expected by Action.
           const targetId = typeof exit === 'string' ? exit : exit.targetId;
           // Optionally verify exit is visible if it's an object
           if (typeof exit === 'string' || !exit.isHidden) {

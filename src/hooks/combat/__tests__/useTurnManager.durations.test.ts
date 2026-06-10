@@ -273,4 +273,92 @@ describe('useTurnManager duration tick-down & AC recalculation', () => {
     expect(finalUpdate?.activeEffects?.[0].duration.value).toBe(1);
     expect(finalUpdate?.armorClass).toBe(17); // AC remains boosted!
   });
+
+  it('recalculates movement total when a speed debuff expires at the next turn boundary', async () => {
+    const lead = makeCharacter({
+      id: 'lead',
+      name: 'Lead',
+      stats: {
+        strength: 10,
+        dexterity: 18,
+        constitution: 12,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 8,
+        baseInitiative: 4,
+        speed: 30,
+        cr: '1'
+      }
+    });
+    const target = makeCharacter({
+      id: 'target',
+      name: 'Target',
+      stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 12,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 8,
+        baseInitiative: 0,
+        speed: 30,
+        cr: '1'
+      },
+      statusEffects: [{
+        id: 'slasher-slow',
+        name: 'Slasher Slow',
+        type: 'debuff',
+        duration: 1,
+        effect: {
+          type: 'stat_modifier',
+          stat: 'speed',
+          value: -10
+        }
+      }],
+      conditions: [{
+        name: 'Slasher Slow',
+        duration: { type: 'rounds', value: 1 },
+        appliedTurn: 0,
+        source: 'Slasher Slow'
+      }]
+    });
+    const onCharacterUpdate = vi.fn();
+    const onLogEntry = vi.fn();
+    const randomSpy = vi.spyOn(Math, 'random')
+      .mockReturnValueOnce(0.99)
+      .mockReturnValueOnce(0.0);
+
+    const { result } = renderHook(() => useTurnManager({
+      characters: [lead, target],
+      mapData: null,
+      onCharacterUpdate,
+      onLogEntry
+    }));
+
+    act(() => {
+      result.current.initializeCombat([lead, target]);
+    });
+
+    const slowedTarget = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .reverse()
+      .find(character => character.id === target.id && character.actionEconomy.movement.total === 20);
+
+    expect(slowedTarget).toBeDefined();
+
+    await act(async () => {
+      await result.current.endTurn();
+    });
+
+    const restoredTarget = onCharacterUpdate.mock.calls
+      .map(call => call[0] as CombatCharacter)
+      .reverse()
+      .find(character => character.id === target.id && character.actionEconomy.movement.total === 30);
+
+    expect(restoredTarget).toBeDefined();
+    expect(restoredTarget?.statusEffects).toEqual([]);
+    expect(restoredTarget?.conditions).toEqual([]);
+
+    randomSpy.mockRestore();
+  });
 });

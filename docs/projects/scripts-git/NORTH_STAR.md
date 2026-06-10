@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Scripts: Git
+slug: scripts-git
+category: Tools, Automation, and Infrastructure
+main_category: "Tools, Docs & Agents"
+subcategory: "Scripts & Automation"
+status: partial
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/scripts-git
+gap_signal: 2 open gaps, 1 in-scope and 1 follow-up
+protocol: living project doc set
+next_step: Pick G1 and define the smallest believable verification path for hook-policy behavior.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTHSTAR: Scripts: Git
 
 Status: active

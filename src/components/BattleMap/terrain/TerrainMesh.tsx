@@ -379,14 +379,22 @@ const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
 
   vec3 getTerrainColor(float idx, vec2 wXZ) {
     int t = int(idx + 0.5);
-    if (t == 0) return getGrassColor(wXZ);
-    if (t == 1) return getRockColor(wXZ);
-    if (t == 2) return getDirtColor(wXZ);
-    if (t == 3) return getSandColor(wXZ);
-    if (t == 4) return getWaterBedColor(wXZ);
-    if (t == 5) return getWallColor(wXZ);
-    if (t == 6) return getFloorColor(wXZ);
-    return getGrassColor(wXZ);
+    // Seed the output with grass so the compiler sees every path as initialized.
+    vec3 color = getGrassColor(wXZ);
+    if (t == 1) {
+      color = getRockColor(wXZ);
+    } else if (t == 2) {
+      color = getDirtColor(wXZ);
+    } else if (t == 3) {
+      color = getSandColor(wXZ);
+    } else if (t == 4) {
+      color = getWaterBedColor(wXZ);
+    } else if (t == 5) {
+      color = getWallColor(wXZ);
+    } else if (t == 6) {
+      color = getFloorColor(wXZ);
+    }
+    return color;
   }
 `;
 

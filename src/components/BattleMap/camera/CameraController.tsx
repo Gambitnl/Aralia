@@ -197,6 +197,49 @@ const CameraController: React.FC<CameraControllerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [characters, snapToCharacter, onCameraSelectCharacter]);
 
+  // Dev-only deterministic camera posing for headless capture/verification.
+  // The visual-quality capture rig (.agent/3d-visual-quality/captures) can only
+  // dolly via wheel events and cannot tilt the camera, so it could never frame
+  // the horizon — which blocked verifying distant-terrain / silhouette work.
+  // This exposes a `pose(distance, polarDeg, azimuthDeg)` helper on window that
+  // positions the camera on a sphere around the map center. No effect in prod.
+  useEffect(() => {
+    if (!import.meta.env?.DEV) return;
+    const w = window as unknown as { __bm3dCam?: unknown };
+    const poseAround = (tx: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) => {
+      const controls = controlsRef.current;
+      if (!controls) return false;
+      const polar = THREE.MathUtils.degToRad(polarDeg);
+      const azim = THREE.MathUtils.degToRad(azimuthDeg);
+      controls.target.set(tx, 0, tz);
+      const sinP = Math.sin(polar);
+      camera.position.set(
+        tx + distance * sinP * Math.sin(azim),
+        distance * Math.cos(polar),
+        tz + distance * sinP * Math.cos(azim),
+      );
+      // Stop the smooth-pan state machine from yanking the camera back.
+      modeRef.current = 'tactical';
+      controls.update();
+      return true;
+    };
+    w.__bm3dCam = {
+      pose(distance: number, polarDeg: number, azimuthDeg: number) {
+        return poseAround(mapCenter[0], mapCenter[2], distance, polarDeg, azimuthDeg);
+      },
+      // Frame the centroid of a team (e.g. 'player') — used to reliably capture
+      // the dev race-lineup regardless of which side it spawns on.
+      poseTeam(team: string, distance: number, polarDeg: number, azimuthDeg: number) {
+        const members = characters.filter(c => c.team === team);
+        if (members.length === 0) return poseAround(mapCenter[0], mapCenter[2], distance, polarDeg, azimuthDeg);
+        const tx = members.reduce((s, c) => s + c.position.x + 0.5, 0) / members.length;
+        const tz = members.reduce((s, c) => s + c.position.y + 0.5, 0) / members.length;
+        return poseAround(tx, tz, distance, polarDeg, azimuthDeg);
+      },
+    };
+    return () => { delete (window as unknown as { __bm3dCam?: unknown }).__bm3dCam; };
+  }, [camera, mapCenter, characters]);
+
   // Frame update: smooth camera transitions
   useFrame((_, delta) => {
     if (!controlsRef.current) return;

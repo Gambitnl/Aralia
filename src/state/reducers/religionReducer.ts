@@ -1,17 +1,78 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 05:39:30
+ * Dependents: state/appState.ts
+ * Imports: 4 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
-import { GameState, DeityAction } from '../../types';
+import { GameState, DeityAction, DivineFavor, ReligionState } from '../../types';
 import { AppAction } from '../actionTypes';
 import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/religionUtils';
 import { DEITIES } from '../../data/deities';
 
-export function religionReducer(state: GameState, action: AppAction): Partial<GameState> {
-    const religionState = state.religion ?? {
-        divineFavor: state.divineFavor ?? {},
-        temples: state.temples ?? {},
+// Keep the canonical religion slice and the legacy flat favor map in one
+// place during the migration. The helper reads both shapes, prefers the
+// canonical value when it exists, and backfills missing entries from the
+// legacy map so old saves and partial loads stay readable.
+const createNeutralFavor = (): DivineFavor => ({
+    score: 0,
+    rank: 'Neutral',
+    consecutiveDaysPrayed: 0,
+    history: [],
+    blessings: []
+});
+
+const getReligionCompatibilityState = (state: GameState): ReligionState => {
+    const canonicalReligion = state.religion ?? {
+        divineFavor: {},
         discoveredDeities: [],
-        knownDeities: [],
-        activeBlessings: [],
+        activeBlessings: []
     };
+
+    return {
+        ...canonicalReligion,
+        divineFavor: {
+            ...(state.divineFavor ?? {}),
+            ...(canonicalReligion.divineFavor ?? {})
+        },
+        discoveredDeities: canonicalReligion.discoveredDeities ?? [],
+        activeBlessings: canonicalReligion.activeBlessings ?? []
+    };
+};
+
+const getFavorRecord = (religionState: ReligionState, legacyFavor: GameState['divineFavor'], deityId: string): DivineFavor => {
+    return religionState.divineFavor[deityId] ?? legacyFavor?.[deityId] ?? createNeutralFavor();
+};
+
+const buildReligionCompatibilityPatch = (
+    state: GameState,
+    religionState: ReligionState,
+    divineFavorUpdates: Record<string, DivineFavor>
+): Partial<GameState> => ({
+    religion: {
+        ...religionState,
+        divineFavor: {
+            ...religionState.divineFavor,
+            ...divineFavorUpdates
+        }
+    },
+    divineFavor: {
+        ...(state.divineFavor ?? {}),
+        ...divineFavorUpdates
+    }
+});
+
+export function religionReducer(state: GameState, action: AppAction): Partial<GameState> {
+    const religionState = getReligionCompatibilityState(state);
 
     switch (action.type) {
         case 'PRAY': {
@@ -20,14 +81,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
             if (!deity) return {};
 
-            // Adapting to ReligionState from src/types/religion.ts
-            const existingFavor = religionState.divineFavor[deityId] || {
-                score: 0,
-                rank: 'Neutral',
-                consecutiveDaysPrayed: 0,
-                history: [],
-                blessings: []
-            };
+            const existingFavor = getFavorRecord(religionState, state.divineFavor, deityId);
 
             // Simple logic: Praying gives +1 favor. Offering gold gives +1 per 10gp (capped).
             let favorBoost = 1;
@@ -50,17 +104,9 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const newFavor = calculateFavorChange(existingFavor, prayerAction);
 
             return {
-                religion: {
-                    ...religionState,
-                    divineFavor: {
-                        ...religionState.divineFavor,
-                        [deityId]: newFavor
-                    }
-                },
-                divineFavor: {
-                    ...state.divineFavor,
+                ...buildReligionCompatibilityPatch(state, religionState, {
                     [deityId]: newFavor
-                },
+                }),
                 gold: offering ? state.gold - offering : state.gold,
                 messages: [
                     ...state.messages,
@@ -76,7 +122,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
         case 'TRIGGER_DEITY_ACTION': {
             const { trigger } = action.payload;
-            const updates: Record<string, import('../../types').DivineFavor> = {};
+            const updates: Record<string, DivineFavor> = {};
             const messages: GameState['messages'] = [];
             const timestamp = Date.now();
 
@@ -84,13 +130,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             DEITIES.forEach(deity => {
                 const deityAction = evaluateAction(deity.id, trigger);
                 if (deityAction) {
-                    const existingFavor = religionState.divineFavor[deity.id] || {
-                        score: 0,
-                        rank: 'Neutral',
-                        consecutiveDaysPrayed: 0,
-                        history: [],
-                        blessings: []
-                    };
+                    const existingFavor = getFavorRecord(religionState, state.divineFavor, deity.id);
 
                     const newFavor = calculateFavorChange(existingFavor, deityAction);
                     updates[deity.id] = newFavor;
@@ -113,17 +153,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             }
 
             return {
-                religion: {
-                    ...religionState,
-                    divineFavor: {
-                        ...religionState.divineFavor,
-                        ...updates
-                    }
-                },
-                divineFavor: {
-                    ...state.divineFavor,
-                    ...updates
-                },
+                ...buildReligionCompatibilityPatch(state, religionState, updates),
                 messages: [
                     ...state.messages,
                     ...messages
@@ -184,10 +214,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     timestamp: new Date(timestamp)
                 });
             } else if (effectId === 'remove_curse') {
-                 party = party.map(char => ({
+                party = party.map(char => ({
                     ...char,
                     statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'cursed') as import('../../types').StatusEffect[]
-                 }));
+                }));
                 messages.push({
                     id: timestamp,
                     text: 'A heavy weight lifts as the curse is broken.',
@@ -195,18 +225,18 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     timestamp: new Date(timestamp)
                 });
             } else if (effectId === 'grant_favor_small' && deityId) {
-                 const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
-                 favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_small', description: 'Temple Donation', favorChange: 5 });
-                 messages.push({
+                const existing = favorUpdates[deityId] || getFavorRecord(religionState, state.divineFavor, deityId);
+                favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_small', description: 'Temple Donation', favorChange: 5 });
+                messages.push({
                     id: timestamp,
                     text: 'You feel a sense of approval from the deity.',
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
             } else if (effectId === 'grant_favor_large' && deityId) {
-                 const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
-                 favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_large', description: 'Major Temple Donation', favorChange: 15 });
-                 messages.push({
+                const existing = favorUpdates[deityId] || getFavorRecord(religionState, state.divineFavor, deityId);
+                favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_large', description: 'Major Temple Donation', favorChange: 15 });
+                messages.push({
                     id: timestamp,
                     text: 'The very air hums with divine gratitude.',
                     sender: 'system',
@@ -232,7 +262,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     }));
 
                     // 2. Add Blessing to Favor Record
-                    const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
+                    const existing = favorUpdates[deityId] || getFavorRecord(religionState, state.divineFavor, deityId);
                     const blessingRecord = {
                         id: blessingId,
                         name: name,
@@ -257,14 +287,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 gold: newGold,
                 party: partyWithEffects,
                 messages,
-                religion: {
-                    ...religionState,
-                    divineFavor: favorUpdates
-                },
-                divineFavor: {
-                    ...state.divineFavor,
-                    ...favorUpdates
-                }
+                ...buildReligionCompatibilityPatch(state, religionState, favorUpdates)
             };
         }
 

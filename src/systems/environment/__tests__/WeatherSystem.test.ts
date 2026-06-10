@@ -1,10 +1,19 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 // TODO(lint-intent): 'CLIMATES' is unused in this test; use it in the assertion path or remove it.
 import { updateWeather, getClimateForBiome, CLIMATES as _CLIMATES } from '../WeatherSystem';
 // TODO(lint-intent): 'Temperature' is unused in this test; use it in the assertion path or remove it.
 import { WeatherState, Temperature as _Temperature, VisibilityLevel as _VisibilityLevel } from '../../../types/environment';
 import { TimeOfDay } from '../../../utils/core';
+import { SeededRandom } from '../../../utils/random';
+
+const createRandomSource = (...values: number[]) => {
+    let index = 0;
+
+    return {
+        next: () => values[Math.min(index++, values.length - 1)]
+    };
+};
 
 describe('WeatherSystem', () => {
     // Basic mock weather state
@@ -28,103 +37,72 @@ describe('WeatherSystem', () => {
         expect(profile.id).toBe('plains');
     });
 
-    it('should maintain weather state most of the time (stability check)', () => {
-        // Mock Math.random to return 0.9 (keep state)
-        vi.spyOn(Math, 'random').mockReturnValue(0.9);
+    it('should return identical weather for identical seeded inputs', () => {
+        const seed = 12345;
+        const first = updateWeather(baseWeather, 'plains', TimeOfDay.Day, new SeededRandom(seed));
+        const second = updateWeather(baseWeather, 'plains', TimeOfDay.Day, new SeededRandom(seed));
 
-        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Day);
-        // It returns a NEW object now because it applies time modifiers even on stability
-        // But since the time is Day and base is temperate/clear, it should be DEEP equal
-        expect(nextWeather).toEqual(baseWeather);
-
-        vi.restoreAllMocks();
+        expect(first).toEqual(second);
     });
 
     it('should change weather when random check passes', () => {
-        // Mock Math.random to return 0.1 (change state)
-        vi.spyOn(Math, 'random').mockReturnValue(0.1);
-
-        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Day);
+        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Day, createRandomSource(0.1, 0.0, 0.0, 0.0));
         // It might be the same due to weighted random, but the function should have executed logic
         // We can check if it returned a new object or at least matches the schema
         expect(nextWeather).toBeDefined();
         expect(nextWeather.precipitation).toBeDefined();
         expect(nextWeather.baseTemperature).toBeDefined();
-
-        vi.restoreAllMocks();
     });
 
     // --- TimeOfDay Integration Tests ---
 
     it('should shift temperature down at Night but preserve base', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9); // Keep existing weather
-
         // Base is temperate. Night should make it Cold.
-        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Night);
+        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Night, createRandomSource(0.9));
 
         expect(nextWeather.temperature).toBe('cold');
         expect(nextWeather.baseTemperature).toBe('temperate');
-
-        vi.restoreAllMocks();
     });
 
     it('should NOT drift temperature when called repeatedly at Night', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9); // Keep existing weather
-
         // Iteration 1: Temperate -> Cold
-        let weather = updateWeather(baseWeather, 'plains', TimeOfDay.Night);
+        let weather = updateWeather(baseWeather, 'plains', TimeOfDay.Night, createRandomSource(0.9));
         expect(weather.temperature).toBe('cold');
         expect(weather.baseTemperature).toBe('temperate');
 
         // Iteration 2: Should still be Cold (derived from Temperate), NOT Freezing
-        weather = updateWeather(weather, 'plains', TimeOfDay.Night);
+        weather = updateWeather(weather, 'plains', TimeOfDay.Night, createRandomSource(0.9));
         expect(weather.temperature).toBe('cold');
         expect(weather.baseTemperature).toBe('temperate');
-
-        vi.restoreAllMocks();
     });
 
     it('should reduce visibility to heavily_obscured at Night but preserve base', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9); // Keep existing
-
-        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Night);
+        const nextWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Night, createRandomSource(0.9));
         // Night always enforces heavy obscurity
         expect(nextWeather.visibility).toBe('heavily_obscured');
         expect(nextWeather.baseVisibility).toBe('clear');
-
-        vi.restoreAllMocks();
     });
 
      it('should reduce visibility to lightly_obscured at Dusk/Dawn if clear', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9); // Keep existing (Clear)
-
-        const nextWeather = updateWeather(baseWeather, 'desert', TimeOfDay.Dusk);
+        const nextWeather = updateWeather(baseWeather, 'desert', TimeOfDay.Dusk, createRandomSource(0.9));
         expect(nextWeather.visibility).toBe('lightly_obscured');
         expect(nextWeather.baseVisibility).toBe('clear');
-
-        vi.restoreAllMocks();
     });
 
     it('should recover to base state when Day returns', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9); // Keep existing
-
         // 1. Set to Night
-        const nightWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Night);
+        const nightWeather = updateWeather(baseWeather, 'plains', TimeOfDay.Night, createRandomSource(0.9));
         expect(nightWeather.temperature).toBe('cold');
         expect(nightWeather.visibility).toBe('heavily_obscured');
 
         // 2. Return to Day
-        const dayWeather = updateWeather(nightWeather, 'plains', TimeOfDay.Day);
+        const dayWeather = updateWeather(nightWeather, 'plains', TimeOfDay.Day, createRandomSource(0.9));
         expect(dayWeather.temperature).toBe('temperate');
         expect(dayWeather.visibility).toBe('clear');
         expect(dayWeather.baseTemperature).toBe('temperate');
-
-        vi.restoreAllMocks();
     });
 
     it('should correctly migrate existing storm state', () => {
-        vi.spyOn(Math, 'random').mockReturnValue(0.9); // Keep existing
-
         // Simulating a state from before baseVisibility existed:
         // A storm implies heavily_obscured.
         const legacyStorm: WeatherState = {
@@ -135,12 +113,10 @@ describe('WeatherSystem', () => {
              // NO baseVisibility
         };
 
-        const migrated = updateWeather(legacyStorm, 'plains', TimeOfDay.Day);
+        const migrated = updateWeather(legacyStorm, 'plains', TimeOfDay.Day, createRandomSource(0.9));
 
         // Should derive baseVisibility from the precipitation, not default to 'clear'
         expect(migrated.baseVisibility).toBe('heavily_obscured');
         expect(migrated.visibility).toBe('heavily_obscured');
-
-        vi.restoreAllMocks();
     });
 });

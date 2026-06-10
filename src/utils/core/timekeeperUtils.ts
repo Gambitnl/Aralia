@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 01/05/2026, 01:35:50
+ * Last Sync: 09/06/2026, 02:44:59
  * Dependents: App.tsx
  * Imports: 1 files
  *
@@ -48,6 +48,7 @@ export interface PassiveGameClockState {
   isNpcTestModalVisible: boolean;
   isLogbookVisible: boolean;
   isGameGuideVisible: boolean;
+  isInvestmentBoardVisible: boolean;
   isMerchantModalOpen: boolean;
   isMissingChoiceModalOpen: boolean;
 }
@@ -84,6 +85,7 @@ export const shouldPassiveGameClockRun = (state: PassiveGameClockState): boolean
     !state.isNpcTestModalVisible &&
     !state.isLogbookVisible &&
     !state.isGameGuideVisible &&
+    !state.isInvestmentBoardVisible &&
     !state.isMerchantModalOpen &&
     !state.isMissingChoiceModalOpen;
 };

@@ -1,3 +1,45 @@
+---
+schema_version: 1
+project: Party UI
+slug: party-ui
+category: Feature/UI Projects
+main_category: "Content & Rules"
+subcategory: "Rules, Spells & Source Data"
+status: partial
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/party-ui
+gap_signal: "5 open gaps (G3 resolved 2026-06-08; G5 blocked on human decision; G9/G10 registered 2026-06-08; G7 depends on G5)"
+protocol: living project doc set
+next_step: "G5 (roster acceptance rule) blocked on human decision; G7 (companion data in overlay) next safe lane once G5 is decided; G9 (PartyMemberCard tests) and G4 (warning placement rule) are independent tasks."
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - docs_consistency
+  - focused short-rest persistence tests
+  - companion-context regression tests (2026-06-08)
+  - T5 mismatch-warning evaluation (2026-06-08)
+  - G3 README audit (2026-06-08)
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Party UI North Star
 
 Status: active

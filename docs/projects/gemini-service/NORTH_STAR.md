@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Gemini Service
+slug: gemini-service
+category: Service Systems
+main_category: "Game & Simulation"
+subcategory: "Combat & Encounters"
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/gemini-service
+gap_signal: "5 tracked gaps; G1 and G2 are the priority follow-ups"
+protocol: living project doc set
+next_step: Start with G2 in src/services/gemini/encounters.ts, then re-check G1 and G3.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Gemini Service
 
 Status: active  

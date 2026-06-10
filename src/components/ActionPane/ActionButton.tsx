@@ -52,15 +52,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   }
 
   const handleClick = () => {
-    // RALPH: Type Safety Patch.
-    // Coordinates (x,y) are sometimes sent as numbers via generic AI payloads.
-    // We normalize to string here to satisfy the `Action` interface expectation.
-    // Ensure targetId for movement actions is a string to avoid type errors, without mutating prop
-    if (action.type === 'move' && 'targetId' in action && action.targetId && typeof action.targetId !== 'string') {
-      onClick({ ...action, targetId: String(action.targetId) });
-    } else {
-      onClick(action);
-    }
+    // Move actions now arrive with string target ids from the generator layer.
+    // Keep this button path passive so it does not hide producer contract drift.
+    onClick(action);
   };
 
   const motionProps: MotionProps = {

@@ -139,6 +139,41 @@ describe('createSpellZone', () => {
     expect(zone.direction?.x).toBeCloseTo(1)
     expect(zone.direction?.y).toBeCloseTo(0)
   })
+
+  it('preserves defensive resistance and immunity effects for zone-based damage checks', () => {
+    // Area defense spells need their resistance/immunity payload to survive
+    // zone registration so downstream damage math can inspect the live map.
+    const defensiveEffect = {
+      type: 'DEFENSIVE',
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      defenseType: 'resistance',
+      damageType: ['Fire'],
+      duration: { type: 'minutes', value: 10 },
+      description: 'Targets inside the area have fire resistance.'
+    } as unknown as SpellEffect
+
+    const zone = createSpellZone(
+      'protective-circle',
+      'caster',
+      { x: 0, y: 0 },
+      { shape: 'sphere', size: 20 },
+      [defensiveEffect],
+      1,
+      10,
+      undefined,
+      undefined,
+      ['point']
+    )
+
+    expect(zone.effects).toHaveLength(1)
+    expect(zone.effects[0]).toMatchObject({
+      type: 'DEFENSIVE',
+      defenseType: 'resistance',
+      damageType: ['Fire']
+    })
+    expect(zone.targetingValidTargets).toEqual(['point'])
+  })
 })
 
 describe('processAreaEndTurnTriggers', () => {

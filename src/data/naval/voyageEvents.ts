@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 03:06:22
+ * Dependents: systems/naval/VoyageManager.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -40,8 +56,10 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Dark clouds gather and the waves swell to mountainous heights.',
         type: 'Weather',
         probability: 0.08,
-        effect: (state, ship) => {
-            const damage = rollDamage('4d10', false);
+        effect: (state, ship, random) => {
+            // Use the voyage manager's seeded stream when available so event
+            // damage replays with the same selected event.
+            const damage = rollDamage('4d10', false, 1, random);
             ship.stats.hullPoints = Math.max(0, ship.stats.hullPoints - damage);
 
             // Check for seasickness/injury
@@ -120,9 +138,9 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'A high-stakes dice game has caused tension among the watches.',
         type: 'Crew',
         probability: 0.08,
-        effect: (state, ship) => {
+        effect: (state, ship, random) => {
             // 50/50 chance of it being good bonding or bad fighting
-            if (rollDice('1d20') > 10) {
+            if (rollDice('1d20', { rng: random }) > 10) {
                  CrewManager.modifyCrewMorale(ship.crew, 2, 'Fun gambling');
                  return {
                      log: 'The crew bonds over dice and grog.',
@@ -184,12 +202,12 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Hauntingly beautiful melody drifts across the waves.',
         type: 'Encounter',
         probability: 0.03,
-        effect: (state, ship) => {
+        effect: (state, ship, random) => {
             const saveDC = 15;
             // Abstract save for the whole crew
             // If average morale is high, they resist better
             const resistBonus = Math.floor(ship.crew.averageMorale / 10);
-            const roll = rollDice('1d20') + resistBonus;
+            const roll = rollDice('1d20', { rng: random }) + resistBonus;
 
             if (roll >= saveDC) {
                 return {
@@ -265,9 +283,9 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         // TODO(lint-intent): 'state' is an unused parameter, which suggests a planned input for this flow.
         // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
         // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
-        effect: (_state, _ship) => {
+        effect: (_state, _ship, random) => {
             // Simple loot
-            const goldFound = rollDice('5d10');
+            const goldFound = rollDice('5d10', { rng: random });
             // We don't have a direct 'ship gold' prop easily accessible in Ship interface (it's usually on player),
             // but we can log it. Or assume it goes to captain's stash.
             return {

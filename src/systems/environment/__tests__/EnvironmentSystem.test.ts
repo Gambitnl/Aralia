@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
-// TODO(lint-intent): 'TERRAIN_RULES' is unused in this test; use it in the assertion path or remove it.
-import { getWeatherModifiers, getTerrainMovementCost, TERRAIN_RULES as _TERRAIN_RULES } from '../EnvironmentSystem';
+import { getWeatherModifiers, getTerrainMovementCost, getTerrainHazards, TERRAIN_RULES as ENVIRONMENT_TERRAIN_RULES } from '../EnvironmentSystem';
+import { getTerrainMovementCost as getCanonicalTerrainMovementCost, TERRAIN_RULES as CANONICAL_TERRAIN_RULES } from '../TerrainSystem';
 import { WeatherState } from '../../../types/environment';
 import { Spell } from '../../../types/spells';
 
@@ -90,6 +90,14 @@ describe('EnvironmentSystem', () => {
 
     it('should return 999 for wall', () => {
         expect(getTerrainMovementCost('wall')).toBe(999);
+    });
+
+    it('should keep the EnvironmentSystem compatibility overlay distinct from the canonical registry where terrain semantics differ', () => {
+      expect(CANONICAL_TERRAIN_RULES.mud.movementCost).toBe(3);
+      expect(ENVIRONMENT_TERRAIN_RULES.mud.movementCost).toBe(2);
+      expect(getCanonicalTerrainMovementCost('mud')).toBe(3);
+      expect(getTerrainMovementCost('mud')).toBe(2);
+      expect(getTerrainHazards('mud').map(hazard => hazard.id)).toEqual(['quicksand']);
     });
   });
 });

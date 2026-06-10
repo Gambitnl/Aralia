@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Worldsim Service
+slug: worldsim-service
+category: active project
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: review-required
+last_updated: 2026-06-08
+confidence: unknown
+evidence: "docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md"
+gap_signal: "WSS-005 review-required; WSS-006/WSS-007 remediated; WSS-008 remediated for bootstrap/save wiring"
+protocol: living-project
+next_step: "Do not assign WSS-005 forward implementation until source-of-truth review clears; WSS-008 is now closed and future birth-entry points should reuse the same bridge."
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs consistency
+completed_verification:
+  - docs refresh
+  - focused worldSim + migration test runs
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # NORTH_STAR: WorldSim Service
 
 Status: review-required

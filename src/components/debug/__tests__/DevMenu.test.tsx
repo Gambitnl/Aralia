@@ -13,11 +13,13 @@ import { describe, expect, it, vi } from 'vitest';
 import DevMenu from '../DevMenu';
 import { GamePhase } from '../../../types';
 
+const mockDispatch = vi.fn();
+
 // The DevMenu reaches into game context for a dispatch helper used by a temple test button.
 // These tests do not exercise that path, so a small stable mock keeps the modal renderable.
 vi.mock('../../../state/GameContext', () => ({
   useGameState: () => ({
-    dispatch: vi.fn(),
+    dispatch: mockDispatch,
     state: {},
   }),
 }));
@@ -94,5 +96,17 @@ describe('DevMenu', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Courier Pouch' }));
     expect(onDevAction).toHaveBeenCalledWith('toggle_courier_pouch');
+  });
+
+  it('opens the Investment Board by dispatching the modal toggle and closing the menu', () => {
+    const onClose = vi.fn();
+
+    mockDispatch.mockClear();
+    render(<DevMenu {...baseProps} onClose={onClose} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Investment Board' }));
+
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'TOGGLE_INVESTMENT_BOARD' });
+    expect(onClose).toHaveBeenCalled();
   });
 });

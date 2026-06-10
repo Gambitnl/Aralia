@@ -3,21 +3,23 @@
 Status: active
 Last updated: 2026-06-09
 
-This note records the renderer-independent contract that the current DOM/tile
-Submap already depends on. It is intentionally narrow: the goal is to preserve
-quick-travel, inspection, tooltip, and travel-timing behavior so a future
-renderer can be built later without reverse-engineering gameplay rules from the
-current UI.
+This note records the renderer-independent contract that the DOM/tile Submap
+depends on before its components can be deprecated. It is intentionally narrow:
+the goal is to extract quick-travel, inspection, tooltip, local-terrain,
+material, and travel-timing behavior into reusable owners so a future
+replacement map/navigation surface can work without reverse-engineering
+gameplay rules from the current UI.
 
 ## Preserved Behavior
 
-- The DOM/tile Submap remains the live interactive surface.
+- The DOM/tile Submap remains present in the repo while extraction proceeds.
 - It owns the local mode toggles for inspect, quick travel, glossary, and the
   3D preview handoff.
 - It still computes tile visuals, hover state, path overlays, tooltip text, and
   the action payloads that drive travel and inspection.
-- The phase-out path is contract extraction first, replacement later. This note
-  does not authorize renderer replacement.
+- The phase-out path is inventory, extraction, proof, replacement-owner
+  decision, and only then component deprecation. This note does not authorize
+  deletion or renderer replacement.
 
 ## Renderer-Independent Inputs
 
@@ -78,24 +80,32 @@ current UI.
 
 ## Source Dependency Inventory
 
-This inventory captures the current dependency edges that replacement work must
-preserve. It is not a replacement plan and does not authorize deleting the
-current DOM/tile surface.
+This inventory captures the current dependency edges that extraction work must
+preserve or explicitly retire. It is not a replacement plan and does not
+authorize deleting the current DOM/tile surface.
 
 | Dependency | Source evidence | Preserve before replacement |
 |---|---|---|
 | Submap modal visibility | `src/components/CompassPane/index.tsx`, `src/components/layout/GameLayout.tsx`, `src/components/layout/GameModals.tsx`, `src/hooks/actions/actionHandlers.ts`, `src/hooks/actions/handleSystemAndUi.ts`, `src/state/reducers/uiReducer.ts` | `toggle_submap_visibility` must continue to close conflicting map/3D/dev surfaces and reset NPC interaction context through `TOGGLE_SUBMAP_VISIBILITY`. |
+| Action menu local context | `src/components/ActionPane/useActionGeneration.ts`, `src/components/ActionPane/index.tsx`, `src/systems/spells/ai/MaterialTagService.ts`, `src/utils/submapUtils.ts` | Preserve local terrain/material lookup behavior before changing action menu movement, gather, inspect, or spell-material options. |
 | Quick-travel dispatch | `src/components/Submap/SubmapPane.tsx`, `src/types/actions.ts`, `src/hooks/actions/actionHandlers.ts`, `src/hooks/actions/handleMovement.ts` | Preserve `destination`, `durationSeconds`, `orderedPath`, `stepDurationsSeconds`, `encounterChancePerStep`, and `stepDelayMs` semantics, including handler clamping and ordered-path fallback. |
 | Inspect dispatch and storage | `src/components/Submap/SubmapPane.tsx`, `src/types/actions.ts`, `src/hooks/actions/actionHandlers.ts`, `src/hooks/actions/handleObservation.ts` | Preserve `inspect_submap_tile` payload fields, parent-world-tile storage via `UPDATE_INSPECTED_TILE_DESCRIPTION`, and the five-minute time advance. |
+| Minimap local preview | `src/components/Minimap.tsx`, `src/hooks/useSubmapProceduralData.ts`, `src/config/submapVisualsConfig.ts` | Decide whether Minimap keeps local generated features after the large Submap surface is retired. |
+| Generation services | `src/hooks/useSubmapProceduralData.ts`, `src/components/Submap/submapVisuals.ts`, `src/services/cellularAutomataService.ts`, `src/services/wfcService.ts`, `src/services/DoodadGenerator.ts`, `src/services/TerrainGenerator.ts` | Extract CA, WFC, path, seeded-feature, scatter, and biome-blend rules that remain useful outside the Submap UI. |
+| Town/village overlap | `src/services/villageGenerator.ts`, `src/components/Town`, `src/services/RealmSmithTownGenerator.ts`, `src/services/BuildingGenerator.ts` | Decide whether settlement-local layout replaces seeded village features, consumes them, or lives in a separate town owner. |
+| Dungeon/puzzle hooks | `src/systems/puzzles/lockSystem.ts`, `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/mechanism.ts` | Route dungeon tile interactions to the replacement local navigation surface, battle map, or a new dungeon interaction owner. |
 | World `MapData` compatibility | `src/hooks/useGameInitialization.ts`, `src/services/mapService.ts`, `src/services/saveLoadService.ts`, `src/state/migrations/worldDataMigration.ts`, `src/utils/mapDataToWorldData.ts`, `src/App.tsx` | Keep legacy tile-grid data, `worldData` v2 backfill, save/load migration, and 3D world-data resolution available until a replacement contract is proven. |
 | Combat map data adjacency | `src/types/combat.ts`, `src/hooks/useBattleMap.ts`, `src/hooks/combat/useGridMovement.ts`, `src/utils/spatial/pathfinding.ts`, `src/utils/spatial/lineOfSight.ts` | Do not collapse world `MapData` and `BattleMapData`; pathfinding, line-of-sight, terrain, and AI consumers still rely on battle-map tile maps. |
+| Design/tooling references | `src/components/DesignPreview`, `src/components/BattleMap`, `src/components/Components_Ralph.md`, CSS z-index variables | Preserve useful examples and update stale references only after extraction choices are made. |
 
 ## Next Proof Path
 
-After the renderer-authority decision, the next safe proof should compare one
+Before component deprecation, the next safe proof should compare one
 real `QUICK_TRAVEL` payload from `SubmapPane` against `handleQuickTravel`
 assumptions and one real `inspect_submap_tile` payload against
-`handleInspectSubmapTile` storage and time behavior.
+`handleInspectSubmapTile` storage and time behavior. A separate generation
+proof should show whether CA/WFC/path/seeded-feature behavior has been retained
+or consciously retired.
 
-If a future renderer replaces the tile surface, it should satisfy this contract
-before changing visuals or input routing.
+If a future renderer or navigation surface replaces the tile surface, it should
+satisfy this contract before changing visuals or input routing.

@@ -1,3 +1,43 @@
+---
+schema_version: 1
+project: Documentation Cleanup
+slug: documentation-cleanup
+category: Documentation / Project Ops
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/documentation-cleanup
+gap_signal: 1 review-blocked gap (G3), 4 resolved (G1, G2, G4, G5)
+protocol: living project doc set
+next_step: Human/project decision: formally widen duplicate-cleanup scope, close it as complete enough, or keep it as adjacent evidence only.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - source-backed decision
+  - docs_consistency
+completed_verification:
+  - source-backed decision (path-drift verification D-01)
+  - docs_consistency (G2 resolved
+  - G4 resolved)
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: human-review-required
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Documentation Cleanup North Star
 
 Status: review-required

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:25:25
+ * Last Sync: 09/06/2026, 04:34:01
  * Dependents: App.tsx
- * Imports: 5 files
+ * Imports: 6 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -35,6 +35,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState, OllamaLogEntry } from '../types';
+import { getWeatherSummary } from '../types/environment';
 import { isPlayerFocused } from '../utils/world/sceneUtils';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
 import { OllamaService, BanterContext } from '../services/ollama';
@@ -164,7 +165,7 @@ export const useCompanionCommentary = (
       
       const context: BanterContext = {
         locationName: locName,
-        weather: gameState.environment?.currentWeather,
+        weather: getWeatherSummary(gameState.environment),
         timeOfDay: new Date(gameState.gameTime).getHours() < 12 ? 'Morning' : 'Afternoon',
         currentTask: activeQuest?.title,
       };

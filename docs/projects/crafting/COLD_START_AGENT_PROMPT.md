@@ -1,7 +1,7 @@
 # Crafting System Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -20,7 +20,7 @@ docs/projects/crafting/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Crafting System
 Project folder: docs/projects/crafting
-Iteration: 4
+Iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,32 +30,35 @@ Gaps: docs/projects/crafting/GAPS.md
 
 Agent identity / runtime:
 Next agent must identify its model and runtime surface before selecting work.
-This handoff was refreshed from a Codex desktop foreman review after MCP
-subagent Mill completed the G13 source pass.
+This handoff was refreshed from a Codex desktop foreman review after the G1
+compatibility proof closed and the Crafting living-project docs stayed schema-valid.
 
 ## Iteration Agent Ledger
 
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 3 | Mill / gpt-5.3-codex-spark high | MCP/subagent | certain | 2026-06-08 | Subagent completion notification `019ea7bb-81a9-7113-9692-65b27e500704` |
+| 4 | Codex desktop foreman / gpt-5 | desktop | certain | 2026-06-09 | Crafting G1 compatibility proof closure, schema-valid North Star refresh, focused test run, and living-project audit |
 
 ## Previous Agent Handoff
 
-Iteration 3 closed G13 by adding `craftingCompatibility.ts` provenance fields
-and focused compatibility tests. The pass preserved both craft engines, did not
-move refining/enchanting UX ownership, and left G5 review-blocked.
+Iteration 4 broadened G1 compatibility proof with explicit success/failure
+normalization, full quality-matrix coverage, and an audit-backed schema-valid
+Crafting North Star. Iteration 5 closed that proof with stable side-effect
+field coverage and the unavailable enhanced field list. The pass preserved both
+craft engines, did not move refining/enchanting UX ownership, and left G5 blocked.
 
 ## Current Mission
 
 Active task:
-T5 - Continue G1 compatibility regression hardening while preserving both
-craft engines.
+None for G1. Preserve both craft engines, keep G5 blocked, and wait for the
+next evidence-backed Crafting gap before changing implementation.
 
 Acceptance criteria:
-Expand the compatibility proof beyond the current provenance adapter without
-deleting, merging, or replacing `craftingSystem.ts` or `craftingEngine.ts`.
-Keep quality, material loss, time, gold, XP, and unavailable enhanced fields
-explicit in tests and docs.
+Do not delete, merge, or replace `craftingSystem.ts` or `craftingEngine.ts`.
+Keep the Crafting living-project schema valid and keep the dashboard card
+aligned with the current proof state. Preserve the closed G1 compatibility
+contract unless new evidence reopens it.
 
 Key files to touch:
 - docs/projects/crafting/NORTH_STAR.md
@@ -67,8 +70,9 @@ Key files to touch:
 - Any additional source/docs named by the active tracker task
 
 Scoped verification:
-Run the focused compatibility tests and any adjacent crafting tests touched by
-the change. Re-run dependency sync if exported signatures change.
+Run the focused compatibility tests, the living-project schema audit, and any
+adjacent crafting tests touched by the change. Re-run dependency sync if
+exported signatures change.
 
 Blocking dependencies / do-not-touch:
 Do not advance G5 until a human/product decision places refining/enchanting in
@@ -78,9 +82,10 @@ docs.
 
 Recent progress:
 G13 now records legacy-result provenance with explicit unavailable enhanced
-fields. Focused tests cover success/failure normalization and bidirectional
-quality mapping. The dashboard schema reports Crafting as active and assignable;
-G5 remains blocked by review.
+fields. Focused tests now cover success/failure normalization, bidirectional
+quality mapping, stable side-effect fields, and a stable unavailable-field
+list. The Crafting North Star is schema-valid, the dashboard card reflects the
+closed G1 proof, and G5 remains blocked by review.
 
 ## Required End State For This Iteration
 

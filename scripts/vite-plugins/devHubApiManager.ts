@@ -9,6 +9,15 @@ import {
 } from '../spellFieldInventory';
 import { toProjectDisplayName, projectSlugFromNorthStarPath, toProjectSlug, stripMarkdownInline } from './utils';
 
+/**
+ * This file adds local-only API routes to the Vite development server.
+ *
+ * The Dev Hub browser pages call these routes to read project documentation,
+ * spell inventories, GitHub status, and editable markdown files without adding
+ * a separate database. The project dashboard routes below read docs/projects
+ * directly and return small status signals that shared browser components turn
+ * into visual cards.
+ */
 export const devHubApiManager = () => ({
   name: 'devhub-api-manager',
   configureServer(server: any) {
@@ -92,6 +101,8 @@ export const devHubApiManager = () => ({
       'project',
       'slug',
       'category',
+      'maincategory',
+      'subcategory',
       'status',
       'lastupdated',
       'confidence',
@@ -99,10 +110,19 @@ export const devHubApiManager = () => ({
       'gapsignal',
       'protocol',
       'nextstep',
+      'agentcomments',
       'requireddocs',
       'optionaldocs',
+      'requiredverification',
+      'completedverification',
+      'lastproof',
       'workflowgapsreviewed',
       'compactionstatus',
+      'lifecyclestatus',
+      'deprecationconfidence',
+      'deprecationreason',
+      'canonicalowner',
+      'humandecisionrequired',
     ];
 
     // ============================================================================
@@ -404,6 +424,50 @@ export const devHubApiManager = () => ({
       };
     };
 
+    const markdownSectionContent = (content: string, headingName: string) => {
+      // Small table-driven project features use named markdown sections so the
+      // dashboard can render them without requiring a database. This helper
+      // extracts one section body and stops at the next second-level heading.
+      const lines = content.split(/\r?\n/);
+      const headingPattern = new RegExp('^##\\s+' + headingName + '\\s*$', 'i');
+      const startIndex = lines.findIndex((line) => headingPattern.test(stripMarkdownInline(line).trim()));
+      if (startIndex < 0) return '';
+      const body: string[] = [];
+      for (const line of lines.slice(startIndex + 1)) {
+        if (/^##\s+/.test(line)) break;
+        body.push(line);
+      }
+      return body.join('\n').trim();
+    };
+
+    const decisionVisualizationsFromDocs = (
+      northStarContent: string,
+      trackerContent: string,
+      gapsContent: string,
+    ) => {
+      // Decision visualizations are isolated "this is what I mean" pages for
+      // choices a human has to make. Agents register them in a compact markdown
+      // table so project detail pages can link to the examples directly.
+      const sections = [northStarContent, trackerContent, gapsContent]
+        .map((content) => markdownSectionContent(content, 'Decision Visualizations'))
+        .filter(Boolean);
+
+      return sections.flatMap((section) => section.split(/\r?\n/).flatMap((line) => {
+        if (!line.startsWith('|')) return [];
+        const rawCells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+        const cells = rawCells.map((cell) => stripMarkdownInline(cell).trim());
+        if (cells.length < 5 || /^-+$/.test(cells.join('')) || /^decision$/i.test(cells[0])) return [];
+        const visualHref = rawCells[2].match(/\(([^)]+)\)/)?.[1] || cells[2] || '';
+        return [{
+          decision: cells[0] || 'Unnamed decision',
+          status: cells[1] || 'draft',
+          href: visualHref,
+          summary: cells[3] || '',
+          owner: cells[4] || '',
+        }];
+      }));
+    };
+
     const nextStepFromTracker = (trackerContent: string) => {
       // The active task queue is the strongest source for the next visible
       // dashboard action.
@@ -591,12 +655,18 @@ export const devHubApiManager = () => ({
       const agentPromptContent = readOptionalProjectText(projectDir, 'COLD_START_AGENT_PROMPT.md');
       const iteration = iterationFromAgentPrompt(agentPromptContent);
       const iterationAgents = iterationAgentsFromPrompt(agentPromptContent, iteration);
+      // The YAML badge needs a stricter signal than the general dashboard
+      // schema. Legacy markdown sections and PROJECT_CARD.json still power the
+      // card, but only frontmatter should count as "yaml" for the visible chip.
+      const frontmatterSchema = {
+        ...markdownFrontmatterFields(trackerContent),
+        ...markdownFrontmatterFields(northStarContent),
+      };
       const dashboardSchema = {
         ...readProjectCardJson(projectDir),
         ...markdownSectionFields(trackerContent, 'Dashboard Card Schema'),
         ...markdownSectionFields(northStarContent, 'Dashboard Card Schema'),
-        ...markdownFrontmatterFields(trackerContent),
-        ...markdownFrontmatterFields(northStarContent),
+        ...frontmatterSchema,
       };
       const northStarDate = normalizeProjectDate(markdownField(northStarContent, 'Last updated'));
       const docSet = projectDocRoles.map((role) => readProjectDocSignal(projectDir, slug, role, northStarDate));
@@ -606,6 +676,12 @@ export const devHubApiManager = () => ({
       const schemaKeys = new Set(Object.keys(dashboardSchema));
       const missingSchemaFields = requiredProjectSchemaFields.filter((field) => !schemaKeys.has(field));
       const schemaStatus = !schemaKeys.size ? 'inferred' : missingSchemaFields.length ? 'partial' : 'valid';
+      // A project earns the green YAML chip only when frontmatter covers every
+      // field listed as required by PROJECT_CARD_SCHEMA.md. Missing fields stay
+      // visible so future agents can fix the project docs instead of guessing.
+      const yamlSchemaKeys = new Set(Object.keys(frontmatterSchema));
+      const missingYamlSchemaFields = requiredProjectSchemaFields.filter((field) => !yamlSchemaKeys.has(field));
+      const yamlStatus = missingYamlSchemaFields.length ? 'not-yaml' : 'yaml';
       const declaredRequiredDocs = projectCardSchemaList(dashboardSchema, 'requireddocs', 'requiredDocs');
       const declaredOptionalDocs = projectCardSchemaList(dashboardSchema, 'optionaldocs', 'optionalDocs');
       const requiredDocNames = declaredRequiredDocs.length ? declaredRequiredDocs : projectDocRoles.map((role) => role.fileName);
@@ -630,11 +706,14 @@ export const devHubApiManager = () => ({
       const resumePath = firstProjectParagraph(northStarContent, 'Resume Path');
       const trackerNextStep = nextStepFromTracker(trackerContent);
       const requiredReviewBrief = requiredReviewBriefFromDocs(northStarContent, trackerContent, gapsContent);
+      const decisionVisualizations = decisionVisualizationsFromDocs(northStarContent, trackerContent, gapsContent);
 
       return {
         slug,
         name: projectCardSchemaField(dashboardSchema, 'project') || trackerFallback.project || projectTitleFromDocs(slug, northStarContent, trackerContent),
         category: projectCardSchemaField(dashboardSchema, 'category') || trackerFallback.category || 'Unregistered Project Folder',
+        mainCategory: projectCardSchemaField(dashboardSchema, 'maincategory', 'mainCategory'),
+        subcategory: projectCardSchemaField(dashboardSchema, 'subcategory'),
         status: projectCardSchemaField(dashboardSchema, 'status') || markdownField(northStarContent, 'Status') || markdownField(trackerContent, 'Status') || trackerFallback.status || 'tracked',
         lastUpdated: projectCardSchemaField(dashboardSchema, 'lastupdated', 'lastUpdated') || inferredLastUpdated || '',
         confidence: projectCardSchemaField(dashboardSchema, 'confidence') || trackerFallback.confidence || 'unknown',
@@ -659,9 +738,13 @@ export const devHubApiManager = () => ({
         canonicalOwner: projectCardSchemaField(dashboardSchema, 'canonicalowner', 'canonicalOwner'),
         humanDecisionRequired: projectCardSchemaField(dashboardSchema, 'humandecisionrequired', 'humanDecisionRequired') || 'no',
         requiredReviewBrief,
+        decisionVisualizations,
         dashboardSchemaPresent: schemaKeys.size > 0,
         schemaStatus,
         missingSchemaFields,
+        yamlSchemaPresent: yamlSchemaKeys.size > 0,
+        yamlStatus,
+        missingYamlSchemaFields,
         schemaWarnings,
         declaredRequiredDocs,
         declaredOptionalDocs,

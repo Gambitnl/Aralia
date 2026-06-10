@@ -60,6 +60,36 @@ describe('actionEconomyUtils', () => {
       expect(resetCharacter.actionEconomy.freeActions).toBe(1);
     });
 
+    it('recalculates movement total from live speed modifiers when a turn resets', () => {
+      const character = createMockCombatCharacter({
+        stats: { speed: 30, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, cr: "1" },
+        statusEffects: [{
+          id: 'slasher-slow',
+          name: 'Slasher Slow',
+          type: 'debuff',
+          duration: 1,
+          effect: { type: 'stat_modifier', stat: 'speed', value: -10 }
+        }],
+        activeEffects: [{
+          id: 'haste-buff',
+          spellId: 'haste',
+          casterId: 'caster',
+          sourceName: 'Haste',
+          type: 'buff',
+          duration: { type: 'rounds', value: 1 },
+          startTime: 0,
+          mechanics: {
+            movementSpeed: 20
+          }
+        }]
+      });
+
+      const resetCharacter = resetEconomy(character);
+
+      expect(resetCharacter.actionEconomy.movement.used).toBe(0);
+      expect(resetCharacter.actionEconomy.movement.total).toBe(40);
+    });
+
     it('should handle characters with 0 speed', () => {
        const character = createMockCombatCharacter({
         stats: { speed: 0, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, cr: "1" }

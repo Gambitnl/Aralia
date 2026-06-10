@@ -69,4 +69,8 @@ Iteration ledger:
 - Optional docs (`DECISIONS.md`, `AUDIT_OR_PROOF.md`, `RUNBOOK.md`) were not found in this project folder.
 - Documentation compaction performed by replacing legacy handoff text with a compact handoff block.
 - No Required Review Brief was added because this pass did not reach an unresolved human decision gate.
+## Required End State For This Iteration
+
+Before ending, update this handoff with the next iteration number, previous agent context, agent identity/runtime surface, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers.
+
 ---END NEXT AGENT HANDOFF---

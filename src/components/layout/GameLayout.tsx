@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 02:11:18
+ * Dependents: App.tsx
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file GameLayout.tsx
  * @description
@@ -47,8 +63,6 @@ interface GameLayoutProps {
     hasNewRateLimitError: boolean;
     /** The seed value used for procedural generation, ensuring consistent rendering. */
     worldSeed: number;
-    /** Debug flag indicating if the developer dummy character is active. */
-    isDevDummyActive: boolean;
     /** Flag indicating if developer mode logic (menus, cheats) is enabled. */
     isDevModeEnabled: boolean;
     /** User preference: if true, the game periodically saves to the auto-save slot. */
@@ -78,7 +92,6 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     unreadDiscoveryCount,
     hasNewRateLimitError,
     worldSeed,
-    isDevDummyActive,
     isDevModeEnabled,
     autoSaveEnabled,
     disabled,
@@ -113,7 +126,6 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         onAction={onAction}
                         disabled={disabled}
                         geminiGeneratedActions={geminiGeneratedActions || []}
-                        isDevDummyActive={isDevDummyActive}
                         isDevModeEnabled={isDevModeEnabled}
                         unreadDiscoveryCount={unreadDiscoveryCount}
                         autoSaveEnabled={autoSaveEnabled}

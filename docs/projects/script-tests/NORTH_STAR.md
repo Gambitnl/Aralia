@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Script Tests
+slug: script-tests
+category: Test Infrastructure
+main_category: Review / Archive
+subcategory: Deprecation Review
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/script-tests
+gap_signal: "4 open gaps; ST-GAP-001 is the safest next slice"
+protocol: living project doc set
+next_step: Human review should decide whether this remains a standalone test project or merges into Scripts Quality/Audits before worker assignment.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: merge-candidate
+deprecation_confidence: weak
+deprecation_reason: possible_support_surface_for_scripts_quality_or_audits
+canonical_owner: docs/projects/scripts-quality or docs/projects/scripts-audits pending review
+human_decision_required: "yes"
+---
 # NORTH_STAR: Script Tests
 
 Status: review-required

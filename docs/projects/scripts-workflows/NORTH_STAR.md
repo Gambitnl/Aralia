@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Scripts: Workflows
+slug: scripts-workflows
+category: Tools, Automation, and Infrastructure
+main_category: "Runtime & Services"
+subcategory: "Commands & Runtime Support"
+status: partial
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/scripts-workflows
+gap_signal: 2 open project gaps (G1 command matrix, G2 env-var matrix)
+protocol: living project doc set
+next_step: Consolidate the canonical command matrix in project-owned docs, then normalize env-var defaults if the slice stays stable.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Scripts: Workflows
 
 Status: active

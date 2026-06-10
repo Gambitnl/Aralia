@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 27/02/2026, 09:28:09
- * Dependents: actionHandlers.ts
+ * Last Sync: 09/06/2026, 08:43:51
+ * Dependents: hooks/actions/actionHandlers.ts
  * Imports: 11 files
  *
  * MULTI-AGENT SAFETY:
@@ -127,6 +127,12 @@ export async function handleGeminiCustom({
         lifespan: 999,
       };
       dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: npc.id, fact: outcomeFact } });
+      // Direct social checks now count as a fresh memory touch so long-rest drift
+      // and later AI prompts see them as recent interactions, just like talk does.
+      dispatch({
+        type: 'UPDATE_NPC_INTERACTION_TIMESTAMP',
+        payload: { npcId: npc.id, timestamp: gameState.gameTime.getTime() },
+      });
 
       if (outcomeResult.data.goalUpdate) {
         const { npcId, goalId, newStatus } = outcomeResult.data.goalUpdate;
@@ -178,6 +184,12 @@ export async function handleGeminiCustom({
       };
       if (targetNpcIdForGossip) {
         dispatch({ type: 'ADD_NPC_KNOWN_FACT', payload: { npcId: targetNpcIdForGossip, fact: outcomeFact } });
+        // Targeted custom prompts already create a direct fact, so they should
+        // also refresh the NPC's interaction clock like talk and social checks.
+        dispatch({
+          type: 'UPDATE_NPC_INTERACTION_TIMESTAMP',
+          payload: { npcId: targetNpcIdForGossip, timestamp: gameState.gameTime.getTime() },
+        });
       }
 
       // --- Linker Coherence Check ---
@@ -224,6 +236,16 @@ export async function handleGeminiCustom({
     if (witnesses.length > 0) {
       addMessage(`Your actions have been witnessed by others in the area.`, 'system');
       await handleImmediateGossip(gameState, dispatch, addGeminiLog, witnesses, outcomeFact, targetNpcIdForGossip);
+
+      // Egregious actions now refresh witness recency after gossip lands so the
+      // same people who just learned about the event are treated as recently involved.
+      const witnessTimestamp = gameState.gameTime.getTime();
+      for (const witnessId of witnesses) {
+        dispatch({
+          type: 'UPDATE_NPC_INTERACTION_TIMESTAMP',
+          payload: { npcId: witnessId, timestamp: witnessTimestamp },
+        });
+      }
     }
   }
 

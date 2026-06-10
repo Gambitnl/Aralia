@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Dice
+slug: dice
+category: Feature/UI Projects
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/dice
+gap_signal: "1 open gap (D-G2); 1 review-required gap (D-G3); D-G1 seeded silent-path API added"
+protocol: living project doc set
+next_step: Resolve Dice D-2 decisions for deterministic policy across visual rolls and roll-history retention before expanding visible history UX.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - scoped_tests (combatUtils + DiceRoller seeded-path tests)
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Dice North Star
 
 Status: review-required

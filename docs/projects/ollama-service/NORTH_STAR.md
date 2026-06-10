@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Ollama Service
+slug: ollama-service
+category: Service / AI Integration
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: partial
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/ollama-service
+gap_signal: "4 open project gaps; local/remote boundary and /api/ollama ownership remain unresolved"
+protocol: living project doc set
+next_step: Confirm the shared provider adapter and /api/ollama owner, then record the verification path in the tracker.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Ollama Service
 
 Status: active

@@ -1,9 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { handleShortRest } from '../handleResourceActions';
+import { handleLongRest, handleShortRest } from '../handleResourceActions';
 import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 import { getGameDay } from '../../../utils/core';
 import type { GameState } from '../../../types';
+import { createInitialJournalState } from '../../../types/journal';
 import type { AddMessageFn } from '../../actions/actionHandlerTypes';
+
+vi.mock('../../../systems/planar/rest', () => ({
+  checkPlanarRestRules: vi.fn(() => ({ messages: [], deniedCharacterIds: [] })),
+}));
+
+vi.mock('../handleWorldEvents', () => ({
+  handleResidueChecks: vi.fn().mockResolvedValue(undefined),
+  handleGossipEvent: vi.fn().mockResolvedValue(undefined),
+  handleLongRestWorldEvents: vi.fn((gameState) => gameState.npcMemory),
+}));
 
 describe('handleShortRest', () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -78,5 +89,45 @@ describe('handleShortRest', () => {
     );
     expect(advanceTimeAction).toBeDefined();
     expect(advanceTimeAction?.[0].payload.seconds).toBe(3600);
+  });
+
+  it('opens a new journal entry after long rest so queued quest events can flush into it', async () => {
+    const gameTime = new Date(Date.UTC(351, 0, 1, 21, 0, 0));
+    const state = createMockGameState({
+      party: [createMockPlayerCharacter({ id: 'rest-1', hp: 5, maxHp: 10 })],
+      gameTime,
+      journal: {
+        ...createInitialJournalState(),
+        pendingEvents: [
+          {
+            id: 'pending-quest-1',
+            type: 'quest_completed',
+            timestamp: gameTime.getTime(),
+            gameTime: gameTime.toISOString(),
+            title: 'Quest Completed: Courier Run',
+            description: 'Completed "Courier Run" and claimed its rewards.',
+            questId: 'quest-1',
+          },
+        ],
+      },
+    });
+
+    await handleLongRest({
+      gameState: state,
+      dispatch: mockDispatch as any,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: vi.fn() as any,
+    });
+
+    const advanceTimeIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'ADVANCE_TIME');
+    const addJournalIndex = mockDispatch.mock.calls.findIndex(([action]) => action.type === 'ADD_JOURNAL_ENTRY');
+    const addJournalAction = mockDispatch.mock.calls.find(([action]) => action.type === 'ADD_JOURNAL_ENTRY');
+
+    expect(advanceTimeIndex).toBeGreaterThan(-1);
+    expect(addJournalIndex).toBeGreaterThan(-1);
+    expect(addJournalIndex).toBeGreaterThan(advanceTimeIndex);
+    expect(addJournalAction?.[0].payload).toMatchObject({
+      narrativeText: expect.stringContaining('long rest'),
+    });
   });
 });

@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 07:25:50
+ * Dependents: hooks/actions/actionHandlers.ts
+ * Imports: 9 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/hooks/actions/handleResourceActions.ts
  * Handles resource management actions like spellcasting and ability usage.
@@ -81,6 +97,16 @@ export async function handleLongRest({ gameState, dispatch, addMessage, addGemin
 
     // Step 7: Advance the in-game clock.
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 8 * 3600 } }); // 8 hours
+
+    // Long rest is the session boundary this codebase already exposes in play,
+    // so this is where we open a new visible journal page. The reducer now
+    // fills in the live date, session/page counters, and queued quest events.
+    dispatch({
+        type: 'ADD_JOURNAL_ENTRY',
+        payload: {
+            narrativeText: "The party settles in for a long rest and records the day before sleep.",
+        },
+    });
 
     if (restOutcome.deniedCharacterIds.length === gameState.party.length) {
          addMessage("The party awakes, but finds no comfort in their rest.", "system");

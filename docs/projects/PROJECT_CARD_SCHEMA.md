@@ -93,6 +93,15 @@ notes, architecture notes, generated proof summaries, or domain-specific docs.
 The point is awareness: agents should scan whether these exist or are named by
 the tracker before claiming the project docs are current.
 
+During schema migration, any real project-specific document that is not part of
+the canonical living-project surface belongs in `optional_docs` first. If the
+same kind of artifact appears across multiple projects and agents need a stable
+dashboard field for it, promote that artifact into this schema instead of
+leaving it as an unnamed one-off.
+
+Schema-fit decisions for project-specific artifacts are tracked in
+`docs/projects/PROJECT_SCHEMA_MIGRATION_NOTES.md`.
+
 ## Required `Dashboard Card Schema` Section
 
 This markdown section is still supported for projects that have not migrated to
@@ -104,6 +113,8 @@ frontmatter yet.
 Project: Readable Project Name
 Slug: readable-project-name
 Category: Feature/UI Projects
+Main category: Interface & Experience
+Subcategory: Player UI Surfaces
 Status: active
 Last updated: 2026-06-04
 Confidence: medium
@@ -111,14 +122,19 @@ Evidence: docs/projects/readable-project-name
 Gap signal: 3 open gaps
 Protocol: living project doc set
 Next step: Define the next concrete handoff action.
+Agent comments: Optional note outside the normal flow; keep empty when not needed.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-04
 Workflow gaps reviewed: 2026-06-04
-Agent comments: Optional note outside the normal flow; keep empty when not needed.
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
 Optional docs: tasks/, architecture notes, migration notes
 Compaction status: not_needed
+Lifecycle status: active
+Deprecation confidence: none
+Deprecation reason:
+Canonical owner:
+Human decision required: no
 ```
 
 For any project marked `review-required`, `human-review-required`,
@@ -177,6 +193,8 @@ Field meanings:
 {
   "project": "Readable Project Name",
   "category": "Feature/UI Projects",
+  "mainCategory": "Interface & Experience",
+  "subcategory": "Player UI Surfaces",
   "status": "active",
   "lastUpdated": "2026-06-04",
   "confidence": "medium",

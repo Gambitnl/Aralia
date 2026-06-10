@@ -3,22 +3,24 @@ schema_version: 1
 project: Creatures System
 slug: creatures
 category: Gameplay Systems
-main_category: Gameplay Systems
-subcategory: Creatures and Encounters
-status: active
-last_updated: 2026-06-08
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-09
 confidence: medium
 evidence: docs/projects/creatures
-gap_signal: "1 open gap; G4 remains adjacent"
+gap_signal: "G4 review-required; no safe implementation slice"
 protocol: living project doc set
-next_step: Keep G4 adjacent until product direction is recorded; G5 is resolved via generator-owned proof.
-agent_comments: "G5 proof added in AUDIT_OR_PROOF.md; no generated corpus edits were made."
+next_step: Pause forward iteration until the hybrid/multi-type semantics decision is recorded in the Required Review Brief.
+agent_comments: "G4 source review confirmed CreatureTaxonomy remains binary include/exclude logic; no source changes were made."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
   - GAPS.md
   - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
   - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
 optional_docs:
   - DECISIONS.md
   - RUNBOOK.md
@@ -38,13 +40,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: no
+human_decision_required: "yes"
 ---
-
 # Creatures System North Star
 
-Status: active, cold-start ready
-Last updated: 2026-06-08
+Status: review-required, cold-start paused
+Last updated: 2026-06-09
 
 ## Why This Project Exists
 
@@ -63,6 +64,7 @@ Create a concise, evidence-backed current-state map that lets a future agent res
 ## Current State (Evidence-Backed)
 
 - `src/systems/creatures/CreatureTaxonomy.ts` centralizes include/exclude logic, legacy `creatureType` fallback, and case normalization, and is now used by both spell and manual combat validators through `CreatureTaxonomy.isValidTarget`.
+- Hybrid/multi-type semantics remain design-only in `src/systems/creatures/Creatures_Ralph.md`; runtime validation still uses a binary include/exclude contract, so G4 is now review-required instead of implementation-ready.
 - CT-3 schema policy is resolved: new spell-targeting filters should write plural fields (`creatureTypes`, `sizes`, `alignments`, `excludeCreatureTypes`), while validators may read legacy singular aliases (`creatureType`, `size`, `alignment`) only to preserve existing data.
 - Stat and monster source is generated through `scripts/ingestMonsters.ts` from `vendor/5etools-src` bestiary files, converted by `src/data/adapters/5eTools/index.ts`, and checked in as `src/data/monsters.generated.ts` plus `src/data/monsters.ts`.
 - G5 is resolved by source-backed proof: `scripts/ingestMonsters.ts` owns the generated monster corpus, `src/data/monsters.generated.ts` remains intact, and `src/data/monsters.ts` stays a re-export instead of a manual shard boundary.
@@ -74,17 +76,32 @@ Create a concise, evidence-backed current-state map that lets a future agent res
 Project: Creatures System
 Slug: creatures
 Category: Gameplay Systems
-Status: active
+Status: review-required
 Confidence: medium
 Evidence: docs/projects/creatures
-Gap signal: 1 open gap; G4 remains adjacent
+Gap signal: G4 review-required; no safe implementation slice
 Protocol: living project doc set
-Next step: CT-2 is complete. G5 is resolved; next safe follow-up is G4 adjacency-only work, not this validator gate.
+Next step: CT-2 is complete. G5 is resolved; G4 is now review-required, so pause forward implementation until the hybrid semantics decision is recorded.
 Required verification: docs_consistency, git_diff_check
 Completed verification: docs_consistency, git_diff_check
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-08
-Agent comments: G5 proof added in AUDIT_OR_PROOF.md; no generated corpus edits were made.
+Last proof: 2026-06-09
+Workflow gaps reviewed: 2026-06-09
+Agent comments: G4 source review confirmed CreatureTaxonomy remains binary include/exclude logic; no source changes were made.
+Human decision required: yes
+
+## Required Review Brief
+
+Title: Hybrid / multi-type creature semantics
+Question: Should creature targeting stay on the current binary include/exclude contract, or should the project define and implement a canonical hybrid semantics model before any further creature-targeting expansion?
+Issue: `CreatureTaxonomy.ts` only performs binary whitelist/blacklist matching, while `Creatures_Ralph.md` sketches a dominance/partial-effect model that has no approved schema or runtime contract.
+Current behavior: Spell and manual combat validators share the same binary include/exclude helper and still accept legacy alias reads; multi-type creatures are treated as ordinary type arrays.
+Why blocked: Any implementation would need an owner-approved decision on whether hybrid creatures are dominant, layered, partially effective, or something else, and that choice changes validation, schema migration, and tests.
+Option A: Keep the current binary contract and explicitly defer hybrid semantics until a later product/schema decision, preserving the current runtime and keeping this cycle docs-only.
+Option B: Approve a hybrid model now and update taxonomy, target filters, and downstream consumers to match it, which unlocks implementation work but requires schema migration and focused regression tests.
+Evidence: `src/systems/creatures/CreatureTaxonomy.ts`, `src/systems/creatures/Creatures_Ralph.md`, `src/systems/spells/targeting/TargetValidationUtils.ts`, `src/hooks/combat/useTargetValidator.ts`, and the existing shared tests.
+Decision owner: product/system owner for creature taxonomy and spell targeting semantics.
+Proof after decision: Focused validator tests and a source-backed schema note for the approved hybrid contract, or a deliberate defer note if Option A is chosen.
+Resumes after decision: If Option A is chosen, no implementation resumes; if Option B is chosen, taxonomy updates, validator tests, and any required downstream schema adjustments resume.
 
 ## File Map
 
@@ -104,28 +121,28 @@ Agent comments: G5 proof added in AUDIT_OR_PROOF.md; no generated corpus edits w
 
 | Field | Value |
 |---|---|
-| Task | G4 - preserve adjacent hybrid semantics notes while keeping CT-2 runtime behavior stable. |
-| Allowed files | `src/systems/creatures/CreatureTaxonomy.ts`, `src/systems/spells/targeting/TargetValidationUtils.ts`, `src/hooks/combat/useTargetValidator.ts`, focused tests for those paths, and this project doc set. |
-| Acceptance | RT2 stays complete: both validator paths share `CreatureTaxonomy` include/exclude semantics with legacy-read alias compatibility. G4 remains adjacent and documentation-only for this cycle. |
-| Stop condition | Validator behavior is shared without removing legacy filter support or changing hybrid semantics. |
-| Owner | Worker A |
+| Task | G4 review gate - record the hybrid/multi-type semantics decision before any implementation work. |
+| Allowed files | `docs/projects/creatures/NORTH_STAR.md`, `docs/projects/creatures/TRACKER.md`, `docs/projects/creatures/GAPS.md`, `docs/projects/creatures/COLD_START_AGENT_PROMPT.md`, and `docs/projects/PROJECT_TRACKER.md`. |
+| Acceptance | The Required Review Brief is present and clear, the project is marked review-required, and no forward implementation is assigned until the decision is recorded. |
+| Stop condition | The project remains review-required until the product/schema owner records a hybrid semantics decision. |
+| Owner | human/product owner |
 
 ## Scope Boundaries
 
-- In scope: validator sharing through existing taxonomy helpers, schema-compatible tests, and gap/documentation updates.
-- Adjacent but not in scope for this pass: hybrid/multi-type semantics, generated monster sharding, or broader spell-effect migration.
+- In scope: Required Review Brief maintenance, tracker alignment, and gap/documentation updates for the hybrid semantics decision.
+- Adjacent but not in scope for this pass: hybrid/multi-type semantics until the Required Review Brief is answered, generated monster sharding, or broader spell-effect migration.
 - Out of scope: deleting legacy aliases, changing spell corpus format, or replacing encounter-generation behavior.
 
 ## Current Partial and Uncertain Areas
 
 - `TargetConditionFilter` still carries mixed legacy/new shape fields and is consumed across multiple call paths, but CT-3 now defines the migration rule: plural fields are canonical for new writes; singular fields are read-only compatibility inputs.
-- `CreatureTaxonomy` is now the shared enforcement point for both automated spell and manual combat creature filtering. Hybrid/multi-type behavior remains adjacent in G4.
-- Hybrid/multi-type semantics are explicitly modeled in `src/systems/creatures/Creatures_Ralph.md` and project docs but are not implemented in runtime validator logic.
+- `CreatureTaxonomy` is now the shared enforcement point for both automated spell and manual combat creature filtering. Hybrid/multi-type behavior is now review-required in G4 rather than merely adjacent.
+- Hybrid/multi-type semantics are explicitly modeled in `src/systems/creatures/Creatures_Ralph.md` and project docs, but the runtime validator logic still uses the binary contract until the review decision is recorded.
 - The monster corpus stays generator-owned: `scripts/ingestMonsters.ts` writes `src/data/monsters.generated.ts`, and `src/data/monsters.ts` is only the runtime re-export. G5 is resolved as a documentation/proof task rather than a data-sharding task.
 
 ## Known Gaps (durable)
 
-- G4 in `docs/projects/creatures/GAPS.md`; G1/CT-2, G2/CT-3, G3, and G5 are resolved.
+- G4 in `docs/projects/creatures/GAPS.md` is review-required; G1/CT-2, G2/CT-3, G3, and G5 are resolved.
 - Global fallback: none imported yet; re-evaluate `docs/projects/GLOBAL_GAPS.md` if ownership drifts beyond this project.
 
 ## Evidence and Proof Log
@@ -153,7 +170,7 @@ When resuming this project:
 
 1. Read this file fully.
 2. Read `docs/projects/creatures/TRACKER.md` and `docs/projects/creatures/GAPS.md`.
-3. Start with G4/G5 as adjacent follow-ups: review semantics and corpus/data-ownership decisions first.
+3. Start with the G4 review gate and keep G5 resolved; do not assign forward implementation until the hybrid semantics decision is recorded.
 4. Use the file map above to pick the owned slice with the least ambiguity.
 5. Confirm `AGENTS.md`, `docs/projects/PROJECT_TRACKER.md`, and `docs/projects/GLOBAL_GAPS.md` before cross-project routing.
 

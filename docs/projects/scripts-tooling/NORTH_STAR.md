@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Scripts: Tooling
+slug: scripts-tooling
+category: Developer Tooling
+main_category: "Tools, Docs & Agents"
+subcategory: "Scripts & Automation"
+status: active
+last_updated: 2026-06-05
+confidence: medium
+evidence: docs/projects/scripts-tooling
+gap_signal: 3 open gaps
+protocol: living project doc set
+next_step: Review ST-2 in TRACKER.md and decide whether trackRun() coverage should stay selective or be expanded.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Scripts: Tooling
 
 Status: active

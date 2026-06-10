@@ -1,11 +1,11 @@
 ﻿# Creatures System Tracker
 
-Status: active
-Last updated: 2026-06-08
+Status: review-required
+Last updated: 2026-06-09
 
 Docs refresh and schema-policy passes are complete. CT-2 and G1 are validated
-and complete; G5 is resolved with source-backed corpus proof, and G4 remains
-the next safe adjacent slice.
+and complete; G5 is resolved with source-backed corpus proof, and G4 is now
+review-required on a hybrid/multi-type semantics decision.
 
 ## Status Vocabulary
 
@@ -33,7 +33,7 @@ the next safe adjacent slice.
 | G1 | done | in_scope_now | Worker A | `docs/projects/creatures/GAPS.md` | This pass | `TargetValidationUtils` and manual combat validators were not routed through `CreatureTaxonomy`. | `src/systems/creatures/CreatureTaxonomy.ts`, `src/systems/spells/targeting/TargetValidationUtils.ts`, and `src/hooks/combat/useTargetValidator.ts`. | Behavioral divergence risk between spell and manual targeting was real before this pass. | N/A. `CreatureTaxonomy` is now the shared helper path in both validators. | `TargetValidationUtils.test.ts` and `useTargetValidator.test.ts` assert include/exclude and legacy alias parity. |
 | G2 | done | support_needed_now | Codex | `docs/projects/creatures/GAPS.md` | This pass | Creature-type schema is partially duplicated across models and filters. | `CreatureType` / `CreatureSize` enums in `src/types/creatures.ts`, `TargetConditionFilter` in `src/types/spells.ts`, `targetingSchemas.ts`, `src/types/combat.ts`, and `CreatureTaxonomy.ts` establish the compatibility boundary. | New integrations can silently diverge between spell targeting and monster payload models. | N/A. Policy resolved: plural fields are canonical writes; singular aliases are compatibility reads only. | CT-2 can start without inventing a new schema or deleting legacy aliases. |
 | G3 | done | in_scope_now | Worker A | `docs/projects/creatures/GAPS.md` | This pass (2026-06-08) | Encounter policy used two different monster-count caps across paths (`4` vs `6`). | `src/utils/world/encounterUtils.ts` exports `MAX_ENCOUNTER_MONSTER_COUNT`, and both `src/services/geminiServiceFallback.ts` and `src/services/gemini/encounters.ts` now use it. | Mixed path policy produced inconsistent encounter cardinality. | N/A (implemented). | `src/services/__tests__/geminiServiceFallback.test.ts` asserts fallback count cap and prompt contract alignment. |
-| G4 | not_started | adjacent_follow_up | Worker A | `docs/projects/creatures/GAPS.md` | `Creatures_Ralph.md` review | Hybrid/multi-type semantics are planned but not implemented. | `CreatureTaxonomy.ts` uses binary inclusion/exclusion; `Creatures_Ralph.md` calls out dominance/partial-effect model as a gap. | Existing logic misses more complex creature identity behavior and can misclassify edge-cases. | Keep design in adjacent scope until base schema/workflow is stable. | Record chosen schema before any hybrid implementation begins. |
+| G4 | blocked | blocked_human_decision | human/product owner | `docs/projects/creatures/GAPS.md` | `Creatures_Ralph.md` review | Hybrid/multi-type semantics are planned but not implemented, and the runtime validator still uses a binary include/exclude contract. | `CreatureTaxonomy.ts` uses binary inclusion/exclusion; `Creatures_Ralph.md` calls out dominance/partial-effect model as a gap. | Existing logic misses more complex creature identity behavior and can misclassify edge-cases, but any implementation now requires an owner-approved schema decision first. | Record the Required Review Brief in `NORTH_STAR.md`, then resume only after a hybrid semantics decision is recorded. | Decision record plus focused validator tests or an explicit defer note. |
 | G5 | done | adjacent_follow_up | Codex | `docs/projects/creatures/AUDIT_OR_PROOF.md` | Creatures docs pass (source-backed corpus boundary review) | `scripts/ingestMonsters.ts` generates `src/data/monsters.generated.ts`, and `src/data/monsters.ts` re-exports it without manual sharding. | `scripts/ingestMonsters.ts`, `src/data/monsters.generated.ts`, `src/data/monsters.ts`, `docs/projects/creatures/AUDIT_OR_PROOF.md` | Manual splitting would fight the data pipeline and hide the real ownership boundary. | Keep future shard-policy discussion in the ingestion pipeline; do not manually partition the generated corpus. | `AUDIT_OR_PROOF.md` captures the source-backed boundary and preserves expansion space without changing the corpus. |
 
 ## Update Rules

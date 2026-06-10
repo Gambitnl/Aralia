@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/06/2026, 02:48:37
+ * Dependents: data/naval/voyageEvents.ts, data/naval/voyageEvents/index.ts, state/reducers/navalReducer.ts, systems/naval/VoyageManager.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -6,28 +22,36 @@
  * Logic for crew generation, management, and daily updates.
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { Crew, CrewMember, CrewRole, Ship } from '../../types/naval';
 import { CREW_NAMES, CREW_SURNAMES, CREW_TRAITS, ROLE_BASE_SKILLS, ROLE_DAILY_WAGE } from '../../data/naval/crewTraits';
 import { SeededRandom } from '@/utils/random';
 
-// Initialize a seeded random generator (using date for now, can be replaced)
-const rng = new SeededRandom(Date.now());
+const hashStringToSeed = (value: string): number => {
+  let hash = 2166136261;
+
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
 
 export class CrewManager {
   /**
    * Generates a new crew member with personality and skills.
    */
-  static generateCrewMember(role: CrewRole, level: number = 1): CrewMember {
-    const firstName = rng.pick(CREW_NAMES);
-    const surname = rng.pick(CREW_SURNAMES);
+  static generateCrewMember(role: CrewRole, level: number = 1, rng?: SeededRandom): CrewMember {
+    const randomSource = rng ?? new SeededRandom(hashStringToSeed(`${role}|${level}|crew-generate`));
+    const firstName = randomSource.pick(CREW_NAMES);
+    const surname = randomSource.pick(CREW_SURNAMES);
 
     // Pick 1-2 random traits
     const traitKeys = Object.keys(CREW_TRAITS);
-    const numTraits = rng.nextInt(1, 3); // 1 or 2
+    const numTraits = randomSource.nextInt(1, 3); // 1 or 2
     const traits: string[] = [];
     for (let i = 0; i < numTraits; i++) {
-        const trait = rng.pick(traitKeys);
+        const trait = randomSource.pick(traitKeys);
         if (!traits.includes(trait)) {
             traits.push(trait);
         }
@@ -38,7 +62,7 @@ export class CrewManager {
 
     // Add randomness to skills based on level
     for (const skill in skills) {
-        skills[skill] += rng.nextInt(0, level);
+        skills[skill] += randomSource.nextInt(0, level);
     }
 
     // Apply trait bonuses
@@ -63,7 +87,9 @@ export class CrewManager {
     morale = Math.max(0, Math.min(100, morale));
 
     return {
-      id: uuidv4(),
+      // The id is derived from the seeded draw stream so repeated runs with
+      // the same seed produce the same crew roster.
+      id: `crew_${randomSource.nextInt(0, 2147483646).toString(36)}`,
       name: `${firstName} ${surname}`,
       role,
       skills,
@@ -125,8 +151,8 @@ export class CrewManager {
   /**
    * Adds a new crew member to the ship.
    */
-  static recruitCrew(ship: Ship, role: CrewRole, level: number = 1): Ship {
-    const newMember = this.generateCrewMember(role, level);
+  static recruitCrew(ship: Ship, role: CrewRole, level: number = 1, rng?: SeededRandom): Ship {
+    const newMember = this.generateCrewMember(role, level, rng);
     const newMembers = [...ship.crew.members, newMember];
 
     // Recalculate crew stats
@@ -142,14 +168,24 @@ export class CrewManager {
    * Processes daily updates for the crew: wages, morale decay, mutiny checks.
    * @param ship The ship to update
    * @param availableFunds The captain's gold available for wages
+   * @param rng Optional seeded source used by callers that already have a replay seed.
+   *            If omitted, the current ship/funds snapshot is hashed so the
+   *            fallback path still behaves deterministically.
    * @returns Updated ship, remaining funds, and logs
    */
-  static processDailyCrewUpdate(ship: Ship, availableFunds: number): {
+  static processDailyCrewUpdate(ship: Ship, availableFunds: number, rng?: SeededRandom): {
       ship: Ship;
       remainingFunds: number;
       logs: string[];
       mutinyTriggered: boolean;
   } {
+      const randomSource = rng ?? new SeededRandom(hashStringToSeed([
+          ship.id,
+          ship.crew.members.length,
+          ship.crew.averageMorale,
+          ship.crew.unrest,
+          availableFunds
+      ].join('|')));
       const logs: string[] = [];
       let currentFunds = availableFunds;
       let totalWages = 0;
@@ -202,7 +238,7 @@ export class CrewManager {
           // Reduce chance if Loyalty is high (already factored into unrest, but maybe individual loyalists help?)
           const loyaltyBuffer = Math.max(0, (updatedCrew.averageMorale + 50) / 10); // Placeholder logic
 
-          if (rng.nextInt(0, 100) < (unrest - 50 - loyaltyBuffer)) {
+          if (randomSource.nextInt(0, 100) < (unrest - 50 - loyaltyBuffer)) {
               mutinyTriggered = true;
               logs.push('MUTINY! The crew has risen up against you!');
           } else {

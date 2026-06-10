@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 01/06/2026, 13:33:35
- * Dependents: components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts
- * Imports: 5 files
+ * Last Sync: 09/06/2026, 03:54:07
+ * Dependents: components/BattleMap/BattleMapOverlay.tsx, components/BattleMap/vfx/VFXSystem.tsx, hooks/useAbilitySystem.ts, systems/spells/effects/AreaEffectTracker.ts, systems/spells/effects/index.ts, utils/combat/resistanceUtils.ts
+ * Imports: 4 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -23,7 +23,7 @@
 // TODO(lint-intent): 'EffectCondition' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import type { AreaOfEffect, SpellEffect, TerrainEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
+import type { AreaOfEffect, SpellEffect, TerrainEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter, TargetFilter } from '../../../types/spells';
 import type { CombatCharacter, Position } from '../../../types/combat';
 import type { RepeatSave, EscapeCheck, ConditionBreakTrigger } from '../../../types/spells';
 import type { AoEParams } from '../../../utils/combat/aoeCalculations';
@@ -42,6 +42,8 @@ export interface ActiveSpellZone {
     direction?: Position;
     /** Spell save DC captured at cast time so delayed zone saves do not drift with later caster stat changes. */
     saveDC?: number;
+    /** Source targeting is preserved so defensive auras can distinguish universal zones from ally-only ones. */
+    targetingValidTargets?: TargetFilter[];
     effects: SpellEffect[];
     /** Track entities that have already triggered "first_per_turn" effects this turn */
     triggeredThisTurn: Set<string>;
@@ -615,7 +617,8 @@ export function createSpellZone(
     currentRound: number,
     durationRounds?: number,
     direction?: Position,
-    saveDC?: number
+    saveDC?: number,
+    targetingValidTargets?: TargetFilter[]
 ): ActiveSpellZone {
     return {
         id: `zone-${spellId}-${Date.now()}`,
@@ -625,6 +628,10 @@ export function createSpellZone(
         areaOfEffect,
         direction,
         saveDC,
+        targetingValidTargets,
+        // Area zones now preserve defensive resistance/immunity payloads in
+        // addition to trigger-driven effects so the damage pipeline can read
+        // the live zone state instead of flattening those spells into logs.
         effects: effects.filter(e => {
             // DEBT: Cast trigger to any to probe optional type property without complex typing in this zone factory.
             const t = e.trigger as any;
@@ -633,7 +640,8 @@ export function createSpellZone(
                 t?.type === 'on_end_turn_in_area' ||
                 t?.type === 'on_move_in_area' ||
                 t?.type === 'turn_end' ||
-                t?.type === 'turn_start';
+                t?.type === 'turn_start' ||
+                (e.type === 'DEFENSIVE' && (e.defenseType === 'resistance' || e.defenseType === 'immunity'));
         }),
         triggeredThisTurn: new Set(),
         triggeredEver: new Set(),
@@ -655,7 +663,8 @@ export function createSpellZoneFromAoEParams(
     effects: SpellEffect[],
     currentRound: number,
     durationRounds?: number,
-    saveDC?: number
+    saveDC?: number,
+    targetingValidTargets?: TargetFilter[]
 ): ActiveSpellZone {
     return createSpellZone(
         spellId,
@@ -666,7 +675,8 @@ export function createSpellZoneFromAoEParams(
         currentRound,
         durationRounds,
         directionFromAoEParams(aoeParams),
-        saveDC
+        saveDC,
+        targetingValidTargets
     );
 }
 

@@ -1,4 +1,42 @@
-﻿# Scripts: Audits North Star
+---
+schema_version: 1
+project: Scripts: Audits
+slug: scripts-audits
+category: Tools, Automation, and Infrastructure
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: review-required
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/scripts-audits
+gap_signal: 4 open gaps in GAPS.md, including 1 blocked_human_decision
+protocol: living project doc set
+next_step: Human/policy decision: decide which audits are mandatory gates versus optional/manual checks before assigning forward automation work.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - scoped_checks
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: policy-review-required
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
+# Scripts: Audits North Star
 
 Status: review-required
 Last updated: 2026-06-08

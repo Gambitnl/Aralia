@@ -1,8 +1,20 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { TempleSystem } from '../TempleSystem';
-// TODO(lint-intent): 'DivineFavor' is unused in this test; use it in the assertion path or remove it.
-import { GameState, TempleService, DivineFavor as _DivineFavor } from '../../../types';
+import { GameState, TempleService } from '../../../types';
+
+/**
+ * This file checks the temple-service runtime used by the religion project.
+ *
+ * Temple services are loaded from seeded temple data and then executed through
+ * `TempleSystem`, which validates gold/favor requirements, deducts cost, and
+ * dispatches concrete game effects. These tests protect both the older string
+ * service IDs and the newer structured effect objects so future religion work
+ * can add service types without accidentally changing healing behavior.
+ *
+ * Called by: Vitest Religion System checks
+ * Depends on: TempleSystem.ts and the shared religion/game-state types
+ */
 
 describe('TempleSystem', () => {
     // Mock State
@@ -86,7 +98,8 @@ describe('TempleSystem', () => {
         });
     });
 
-    it('should handle complex object effects', () => {
+    // The structured branch should still heal when asked, but only that branch.
+    it('should heal when the structured effect is heal', () => {
         const complexService: TempleService = {
             id: 'complex_heal',
             name: 'Greater Healing',
@@ -115,5 +128,64 @@ describe('TempleSystem', () => {
              type: 'HEAL_CHARACTER',
              payload: expect.objectContaining({ amount: 50 })
         }));
+    });
+
+    // This is the regression guard for G2: object-shaped services must not
+    // inherit the heal path just because they are structured.
+    it('should keep structured non-heal services off the heal path', () => {
+        const buffService: TempleService = {
+            id: 'warding_blessing',
+            name: 'Warding Blessing',
+            description: 'A blessing that fortifies the party.',
+            costGp: 25,
+            effect: {
+                type: 'buff',
+                value: 2,
+                stat: 'Strength',
+                duration: 60,
+                description: 'A blessing of warding settles over the party.'
+            }
+        };
+
+        const dispatch = vi.fn();
+        const result = TempleSystem.performService(
+            buffService,
+            mockGameState,
+            mockDeityId,
+            dispatch
+        );
+
+        expect(result.success).toBe(true);
+        expect(result.costDeducted).toBe(25);
+        expect(result.effectApplied).toContain('"type":"buff"');
+
+        const healDispatches = dispatch.mock.calls.filter(([action]) => action.type === 'HEAL_CHARACTER');
+        expect(healDispatches).toHaveLength(0);
+    });
+
+    // Procedural village temples still use compact legacy IDs. This protects
+    // that generator path while the structured service model grows around it.
+    it('should keep procedural restore services in the legacy healing adapter', () => {
+        const restoreService: TempleService = {
+            id: 'restore_hp_full',
+            name: 'Restore Health',
+            description: 'Restores the party to full health.',
+            costGp: 25,
+            effect: 'restore_hp_full'
+        };
+
+        const dispatch = vi.fn();
+        const result = TempleSystem.performService(
+            restoreService,
+            mockGameState,
+            mockDeityId,
+            dispatch
+        );
+
+        expect(result.success).toBe(true);
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'HEAL_CHARACTER',
+            payload: { characterId: 'char1', amount: 20 }
+        });
     });
 });

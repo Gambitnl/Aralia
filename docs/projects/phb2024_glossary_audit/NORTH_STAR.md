@@ -1,4 +1,41 @@
-﻿# NORTH STAR: PHB 2024 Glossary Audit
+---
+schema_version: 1
+project: PHB 2024 Glossary Audit
+slug: phb2024_glossary_audit
+category: Documentation / Living Project Rollout
+main_category: Review / Archive
+subcategory: Deprecation Review
+status: review-required
+last_updated: 2026-06-08
+confidence: high
+evidence: docs/projects/phb2024_glossary_audit/NORTH_STAR.md, docs/projects/phb2024_glossary_audit/TRACKER.md, docs/projects/phb2024_glossary_audit/GAPS.md
+gap_signal: "3 open gaps; remaining work is routed to adjacent owners"
+protocol: living project doc set
+next_step: Wait for human review to decide whether this audit becomes reference-only or continues as a coordination surface.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: merge-candidate
+deprecation_confidence: medium
+deprecation_reason: audit_slice_complete_remaining_gaps_routed_to_adjacent_owners
+canonical_owner: "docs/projects/item_categorization for itemMetadata parity; docs/tasks/glossary for rebuild workflow"
+human_decision_required: "yes"
+---
+# NORTH STAR: PHB 2024 Glossary Audit
 
 Status: partial
 Last updated: 2026-06-08

@@ -1,83 +1,149 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 09/06/2026, 06:37:00
+ * Dependents: components/Combat/CombatView.tsx, systems/religion/index.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
 
-import { CombatLogEntry } from '../../types/combat';
+import { DEITIES } from '../../data/deities';
 import { AppAction } from '../../state/actionTypes';
-// TODO(lint-intent): 'DEITIES' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { DEITIES as _DEITIES } from '../../data/deities';
-// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { logger as _logger } from '../../utils/logger';
+import { CombatLogEntry } from '../../types/combat';
+
+type CombatTaxonomyValue = string | string[] | undefined | null;
+
+// Combat logs arrive from several systems with inconsistent casing and labels.
+// This normalizes each label into simple searchable words so deity-authored tags
+// can match "uNdEaD", "undead creature", or similar mixed sources.
+const tokenizeCombatValue = (value: string): string[] => value.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+
+const collectCombatTokens = (...values: CombatTaxonomyValue[]): Set<string> => {
+    const tokens = new Set<string>();
+
+    values.forEach(value => {
+        if (Array.isArray(value)) {
+            value.forEach(item => tokenizeCombatValue(item).forEach(token => tokens.add(token)));
+            return;
+        }
+
+        if (typeof value === 'string') {
+            tokenizeCombatValue(value).forEach(token => tokens.add(token));
+        }
+    });
+
+    return tokens;
+};
+
+const buildCombatTriggerTaxonomy = (): Map<string, Set<string>> => {
+    const taxonomy = new Map<string, Set<string>>();
+
+    // Deity data owns doctrine intent. The adapter compiles those combat tags
+    // once so runtime log processing can stay cheap and does not need to know
+    // every individual deity or trigger by hand.
+    DEITIES.forEach(deity => {
+        [...deity.approves, ...deity.forbids].forEach(trigger => {
+            if (!trigger.combatTags?.length) return;
+
+            const tags = taxonomy.get(trigger.trigger) ?? new Set<string>();
+            trigger.combatTags.forEach(tag => tokenizeCombatValue(tag).forEach(token => tags.add(token)));
+            taxonomy.set(trigger.trigger, tags);
+        });
+    });
+
+    return taxonomy;
+};
+
+const COMBAT_TRIGGER_TAXONOMY = buildCombatTriggerTaxonomy();
 
 /**
- * Adapter to translate Combat Log events into Religion System triggers.
- * It listens to the log stream and dispatches 'TRIGGER_DEITY_ACTION' when appropriate.
+ * Adapter to translate combat log events into religion triggers.
+ * It keeps the legacy fixed triggers working, but now prefers deity-authored
+ * combat taxonomy labels when they exist so new doctrine hooks can be added
+ * without widening this file again.
  */
 export class CombatReligionAdapter {
     /**
      * Analyzes a log entry and dispatches deity triggers if matches are found.
      */
-    static processLogEntry(
-        entry: CombatLogEntry,
-        dispatch: React.Dispatch<AppAction>
-    ): void {
+    static processLogEntry(entry: CombatLogEntry, dispatch: React.Dispatch<AppAction>): void {
         const { type, data } = entry;
         if (!data) return;
 
-        // 1. Handle Death Events (e.g., Kill Undead, Kill Elf)
-        if (type === 'damage' && data.isDeath && data.targetTags) {
-            const tags = (data.targetTags as string[]).map(t => t.toLowerCase());
+        const emittedTriggers = new Set<string>();
+        const emitTrigger = (trigger: string): void => {
+            if (emittedTriggers.has(trigger)) return;
+            emittedTriggers.add(trigger);
 
-            if (tags.includes('undead')) {
-                dispatch({
-                    type: 'TRIGGER_DEITY_ACTION',
-                    payload: { trigger: 'DESTROY_UNDEAD' }
-                });
-            }
-
-            if (tags.includes('elf')) {
-                dispatch({
-                    type: 'TRIGGER_DEITY_ACTION',
-                    payload: { trigger: 'KILL_ELF' }
-                });
-            }
-
-            // Check for specific deity approvals on kill types
-            // This is a simplified check. Ideally we'd look up every tag against every deity trigger map.
-            // But 'DESTROY_UNDEAD' and 'KILL_ELF' are the primary ones in data right now.
-        }
-
-        // 2. Handle Healing (Heal Ally)
-        // Note: CombatLog doesn't explicitly say "Ally", but usually players heal allies.
-        // We assume positive healing during combat is benevolent.
-        if (type === 'heal' && (data.healAmount || 0) > 0) {
-            // Threshold to avoid spamming for +1 HP
-            if ((data.healAmount as number) >= 5) {
-                dispatch({
-                    type: 'TRIGGER_DEITY_ACTION',
-                    payload: { trigger: 'HEAL_ALLY' }
-                });
-            }
-        }
-
-        // 3. Handle Necromancy (Cast Spell)
-        // Requires spellSchool in data. useAbilitySystem needs to provide this.
-        if (type === 'action' && data.spellSchool === 'necromancy') {
-             dispatch({
+            dispatch({
                 type: 'TRIGGER_DEITY_ACTION',
-                payload: { trigger: 'USE_NECROMANCY' } // Often a forbidden action
+                payload: { trigger }
             });
-             dispatch({
-                type: 'TRIGGER_DEITY_ACTION',
-                payload: { trigger: 'CAST_NECROMANCY' } // Vecna approves
+        };
+
+        const emitTaxonomyMatches = (eventTokens: Set<string>): void => {
+            COMBAT_TRIGGER_TAXONOMY.forEach((triggerTokens, trigger) => {
+                const hasMatch = [...triggerTokens].some(token => eventTokens.has(token));
+                if (hasMatch) {
+                    emitTrigger(trigger);
+                }
             });
+        };
+
+        if (type === 'damage' && data.isDeath) {
+            const deathTokens = collectCombatTokens(
+                data.targetTags ?? [],
+                data.damageType,
+                data.statusEffectName
+            );
+
+            emitTaxonomyMatches(deathTokens);
+
+            // Preserve the original core death heuristics so seeded content still
+            // responds even when a deity does not yet carry explicit combat tags.
+            if (deathTokens.has('undead')) {
+                emitTrigger('DESTROY_UNDEAD');
+            }
+
+            if (deathTokens.has('elf')) {
+                emitTrigger('KILL_ELF');
+            }
+
+            if (deathTokens.has('orc')) {
+                emitTrigger('DEFEAT_ORC');
+            }
+
+            if (deathTokens.has('poison')) {
+                emitTrigger('POISON_ENEMY');
+            }
         }
 
-        // 4. Handle Spellcasting (General)
+        if (type === 'heal' && (data.healAmount || 0) >= 5) {
+            emitTrigger('HEAL_ALLY');
+        }
+
         if (type === 'action' && data.spellSchool) {
-             // Corellon likes high level spells, but we need spell level info.
-             // For now, simple school checks.
+            const spellTokens = collectCombatTokens(
+                data.spellSchool,
+                data.spellName,
+                data.source,
+                data.abilityName,
+                data.statusEffectName
+            );
+
+            emitTaxonomyMatches(spellTokens);
+
+            if (spellTokens.has('necromancy')) {
+                emitTrigger('USE_NECROMANCY');
+                emitTrigger('CAST_NECROMANCY');
+            }
         }
     }
 }

@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Demo Area
+slug: demo-area
+category: Feature/UI Projects
+main_category: Review / Archive
+subcategory: Deprecation Review
+status: reference-only
+last_updated: 2026-06-08
+confidence: medium
+evidence: docs/projects/demo-area
+gap_signal: 2 open gaps, 1 blocker
+protocol: living project doc set
+next_step: Human review must decide keep, move, or remove for src/components/demo/CombatMessagingDemo.tsx before any forward iteration.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: reference-only
+deprecation_confidence: medium
+deprecation_reason: orphaned_component_human_decision
+canonical_owner: ""
+human_decision_required: "yes"
+---
 # Demo Area North Star
 
 Status: reference-only-due-to-orphaned-component

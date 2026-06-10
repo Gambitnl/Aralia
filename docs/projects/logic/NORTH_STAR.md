@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Logic System
+slug: logic
+category: Systems
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: partial
+last_updated: 2026-06-05
+confidence: high
+evidence: docs/projects/logic
+gap_signal: 5 open gaps (1 active, 2 support-needed, 2 adjacent follow-up)
+protocol: living project doc set
+next_step: Decide the first runtime callsite for ConditionEvaluator, then bridge the predicate contract and status source.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Logic System North Star
 
 Status: active

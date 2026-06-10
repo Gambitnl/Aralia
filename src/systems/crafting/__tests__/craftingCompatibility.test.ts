@@ -1,23 +1,45 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ENHANCED_TO_LEGACY_QUALITY,
+  LEGACY_COMPATIBILITY_SOURCE,
   LEGACY_TO_ENHANCED_QUALITY,
   mapEnhancedQualityToLegacyQuality,
-  ENHANCED_TO_LEGACY_QUALITY,
-  normalizeLegacyCraftingResult,
-  LEGACY_COMPATIBILITY_SOURCE
+  normalizeLegacyCraftingResult
 } from '../craftingCompatibility';
 import type { Recipe } from '../types';
 import type { CraftingQuality as LegacyCraftingQuality, CraftingResult } from '../types';
 import type { CraftingQuality as EnhancedCraftingQuality } from '../crafterProgression';
 
+/**
+ * This file protects the compatibility bridge between the legacy crafting core
+ * and the enhanced crafting engine.
+ *
+ * Aralia intentionally keeps both craft engines alive because they use different
+ * quality labels and expose different side-effect details. These tests make sure
+ * the adapter preserves legacy success/failure, output, material-loss, XP, time,
+ * and provenance fields while clearly naming the enhanced roll fields that the
+ * legacy path cannot provide.
+ *
+ * Called by: Vitest Crafting System checks
+ * Depends on: craftingCompatibility.ts, legacy crafting types, enhanced quality types
+ */
+
 describe('craftingCompatibility', () => {
   const recipe: Pick<Recipe, 'timeMinutes'> = {
-    // Keep the recipe fixture small: the adapter only needs the duration to
-    // prove that the legacy result can be normalized into the enhanced payload.
+    // The adapter only needs duration to prove that the legacy contract keeps
+    // its timing side effect when it is translated into the enhanced shape.
     timeMinutes: 45
   };
 
-  const legacyResult: CraftingResult = {
+  const unavailableEnhancedFields = [
+    'roll',
+    'rawRoll',
+    'dc',
+    'qualityResult',
+    'modifiersApplied'
+  ] as const;
+
+  const successfulLegacyResult: CraftingResult = {
     success: true,
     quality: 'superior',
     outputs: [{ itemId: 'iron_sword', quantity: 2 }],
@@ -27,58 +49,74 @@ describe('craftingCompatibility', () => {
     materialsLost: false
   };
 
-  it('normalizes a legacy success into the enhanced-facing fields', () => {
-    const normalized = normalizeLegacyCraftingResult(recipe, legacyResult);
+  const failedLegacyResult: CraftingResult = {
+    success: false,
+    quality: 'poor',
+    outputs: [],
+    consumedMaterials: [{ itemId: 'iron_bar', quantity: 2 }],
+    message: 'Your hand slips and the reagents are ruined.',
+    materialsLost: true
+  };
 
-    expect(normalized.legacyQuality).toBe('superior');
-    expect(normalized.enhancedQuality).toBe(LEGACY_TO_ENHANCED_QUALITY.superior);
-    expect(normalized.success).toBe(true);
-    expect(normalized.materialsConsumed).toBe(true);
-    expect(normalized.goldSpent).toBe(0);
-    expect(normalized.xpGained).toBe(18);
-    expect(normalized.timeSpentMinutes).toBe(45);
-    expect(normalized.outputItem).toEqual({ itemId: 'iron_sword', quantity: 2 });
-    expect(normalized.message).toBe('Crafted cleanly.');
-    expect(normalized.provenance.source).toBe(LEGACY_COMPATIBILITY_SOURCE);
-    expect(normalized.provenance.outcomeSource.success).toBe(true);
-    expect(normalized.provenance.outcomeSource.quality).toBe('superior');
-    expect(normalized.provenance.outcomeSource.materialsLost).toBe(false);
-    expect(normalized.provenance.outcomeSource.sourceMessage).toBe('Crafted cleanly.');
-    expect(normalized.provenance.sourceContractFile).toContain('craftingSystem.ts');
-    expect(normalized.provenance.unavailableEnhancedFields).toEqual(
-      expect.arrayContaining(['roll', 'rawRoll', 'dc', 'qualityResult', 'modifiersApplied'])
-    );
+  it('normalizes a legacy success into the enhanced-facing side-effect contract', () => {
+    const normalized = normalizeLegacyCraftingResult(recipe, successfulLegacyResult);
+
+    expect(normalized).toMatchObject({
+      legacyQuality: 'superior',
+      enhancedQuality: LEGACY_TO_ENHANCED_QUALITY.superior,
+      success: true,
+      materialsConsumed: true,
+      goldSpent: 0,
+      xpGained: 18,
+      timeSpentMinutes: 45,
+      outputItem: { itemId: 'iron_sword', quantity: 2 },
+      message: 'Crafted cleanly.'
+    });
+
+    expect(normalized.provenance).toMatchObject({
+      source: LEGACY_COMPATIBILITY_SOURCE,
+      sourceContractFile: 'src/systems/crafting/craftingSystem.ts',
+      outcomeSource: {
+        success: true,
+        quality: 'superior',
+        materialsLost: false,
+        sourceMessage: 'Crafted cleanly.'
+      }
+    });
+    expect(normalized.provenance.unavailableEnhancedFields).toEqual(unavailableEnhancedFields);
     expect(normalized.provenance.unavailableReason).toContain('not emitted by that path');
   });
 
   it('normalizes a legacy failure into an explicit no-output path', () => {
-    const failedLegacyResult: CraftingResult = {
-      success: false,
-      quality: 'poor',
-      outputs: [],
-      consumedMaterials: [{ itemId: 'iron_bar', quantity: 2 }],
-      message: 'Your hand slips and the reagents are ruined.',
-      materialsLost: true
-    };
-
     const normalized = normalizeLegacyCraftingResult(recipe, failedLegacyResult);
 
-    expect(normalized.legacyQuality).toBe('poor');
-    expect(normalized.enhancedQuality).toBe(LEGACY_TO_ENHANCED_QUALITY.poor);
-    expect(normalized.success).toBe(false);
-    expect(normalized.materialsConsumed).toBe(true);
-    expect(normalized.goldSpent).toBe(0);
-    expect(normalized.xpGained).toBe(0);
-    expect(normalized.timeSpentMinutes).toBe(45);
+    expect(normalized).toMatchObject({
+      legacyQuality: 'poor',
+      enhancedQuality: LEGACY_TO_ENHANCED_QUALITY.poor,
+      success: false,
+      materialsConsumed: true,
+      goldSpent: 0,
+      xpGained: 0,
+      timeSpentMinutes: 45,
+      message: 'Your hand slips and the reagents are ruined.'
+    });
     expect(normalized.outputItem).toBeUndefined();
-    expect(normalized.message).toBe('Your hand slips and the reagents are ruined.');
-    expect(normalized.provenance.outcomeSource.success).toBe(false);
-    expect(normalized.provenance.outcomeSource.quality).toBe('poor');
-    expect(normalized.provenance.outcomeSource.materialsLost).toBe(true);
-    expect(normalized.provenance.outcomeSource.sourceMessage).toBe('Your hand slips and the reagents are ruined.');
+
+    expect(normalized.provenance).toMatchObject({
+      source: LEGACY_COMPATIBILITY_SOURCE,
+      sourceContractFile: 'src/systems/crafting/craftingSystem.ts',
+      outcomeSource: {
+        success: false,
+        quality: 'poor',
+        materialsLost: true,
+        sourceMessage: 'Your hand slips and the reagents are ruined.'
+      }
+    });
+    expect(normalized.provenance.unavailableEnhancedFields).toEqual(unavailableEnhancedFields);
+    expect(normalized.provenance.unavailableReason).toContain('craftingSystem');
   });
 
-  it('keeps provenance explicit when legacy quality is remapped through legacy loss states', () => {
+  it('keeps the adapter honest when a failed legacy craft preserves its inputs', () => {
     const failedButNoLossResult: CraftingResult = {
       success: false,
       quality: 'poor',
@@ -92,38 +130,65 @@ describe('craftingCompatibility', () => {
 
     expect(normalized.success).toBe(false);
     expect(normalized.materialsConsumed).toBe(false);
-    expect(normalized.provenance.outcomeSource.success).toBe(false);
-    expect(normalized.provenance.outcomeSource.materialsLost).toBe(false);
-    expect(normalized.provenance.sourceContractFile).toBe('src/systems/crafting/craftingSystem.ts');
     expect(normalized.outputItem).toBeUndefined();
-    expect(normalized.provenance.unavailableEnhancedFields).toHaveLength(5);
+    expect(normalized.provenance.outcomeSource).toMatchObject({
+      success: false,
+      quality: 'poor',
+      materialsLost: false,
+      sourceMessage: 'The forge rejected your attempt, but materials were returned.'
+    });
+    expect(normalized.provenance.unavailableEnhancedFields).toEqual(unavailableEnhancedFields);
+    expect(normalized.provenance.sourceContractFile).toBe('src/systems/crafting/craftingSystem.ts');
   });
 
-  it('maps every legacy quality to its enhanced counterpart', () => {
-    const legacyMappings = Object.entries(LEGACY_TO_ENHANCED_QUALITY) as [
-      LegacyCraftingQuality,
-      EnhancedCraftingQuality
-    ][];
-
-    legacyMappings.forEach(([legacyQuality, expectedEnhancedQuality]) => {
+  it.each([
+    ['poor', 'ruined'],
+    ['standard', 'standard'],
+    ['superior', 'masterwork'],
+    ['masterwork', 'legendary']
+  ] as const satisfies ReadonlyArray<readonly [LegacyCraftingQuality, EnhancedCraftingQuality]>)(
+    'maps legacy quality %s to enhanced quality %s',
+    (legacyQuality, expectedEnhancedQuality) => {
       const normalized = normalizeLegacyCraftingResult(recipe, {
-        ...legacyResult,
+        ...successfulLegacyResult,
         quality: legacyQuality
       });
 
       expect(normalized.legacyQuality).toBe(legacyQuality);
       expect(normalized.enhancedQuality).toBe(expectedEnhancedQuality);
-    });
-  });
+      expect(normalized.success).toBe(true);
+      expect(normalized.provenance.outcomeSource.quality).toBe(legacyQuality);
+    }
+  );
 
-  it('maps every enhanced quality to the documented legacy fallback label', () => {
-    const enhancedMappings = Object.entries(ENHANCED_TO_LEGACY_QUALITY) as [
-      EnhancedCraftingQuality,
-      LegacyCraftingQuality
-    ][];
-
-    enhancedMappings.forEach(([enhancedQuality, expectedLegacyQuality]) => {
+  it.each([
+    ['ruined', 'poor'],
+    ['flawed', 'standard'],
+    ['standard', 'standard'],
+    ['masterwork', 'superior'],
+    ['legendary', 'masterwork']
+  ] as const satisfies ReadonlyArray<readonly [EnhancedCraftingQuality, LegacyCraftingQuality]>)(
+    'maps enhanced quality %s back to legacy quality %s',
+    (enhancedQuality, expectedLegacyQuality) => {
       expect(mapEnhancedQualityToLegacyQuality(enhancedQuality)).toBe(expectedLegacyQuality);
-    });
+    }
+  );
+
+  it('keeps the bidirectional mapping tables in lockstep with the documented compatibility contract', () => {
+    expect(Object.keys(LEGACY_TO_ENHANCED_QUALITY)).toHaveLength(4);
+    expect(Object.keys(ENHANCED_TO_LEGACY_QUALITY)).toHaveLength(5);
+    expect(Object.values(LEGACY_TO_ENHANCED_QUALITY)).toEqual([
+      'ruined',
+      'standard',
+      'masterwork',
+      'legendary'
+    ]);
+    expect(Object.values(ENHANCED_TO_LEGACY_QUALITY)).toEqual([
+      'poor',
+      'standard',
+      'standard',
+      'superior',
+      'masterwork'
+    ]);
   });
 });

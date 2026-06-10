@@ -1,3 +1,45 @@
+---
+schema_version: 1
+project: Command Base Runtime
+slug: command-base-runtime
+category: Runtime Infrastructure
+main_category: "Interface & Experience"
+subcategory: Player UI Surfaces
+status: active
+last_updated: 2026-06-08
+confidence: high
+evidence: docs/projects/command-base-runtime
+gap_signal: 0 open gaps
+protocol: living project doc set
+next_step: Keep the contract test and docs comments aligned when context/command interfaces evolve.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+  - tasks/
+  - architecture notes
+  - migration notes
+required_verification:
+  - docs_consistency
+  - scoped_tests
+completed_verification:
+  - docs_consistency
+  - scoped_tests
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # NORTH_STAR: Command Base Runtime
 
 Status: active

@@ -1,7 +1,7 @@
 # Design Preview Tracker
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-09
 
 ## Status Vocabulary
 
@@ -25,7 +25,7 @@ Last updated: 2026-06-08
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|---|
-| G1 | active | adjacent_follow_up | Worker B | `docs/projects/design-preview/GAPS.md` | scope review | Capture design workflow and owners | `docs/projects/PROJECT_TRACKER.md` | Prevents repeated ownership drift between preview lanes and owners | Keep provisional steward notes in NORTH_STAR and add named owners when approved | Lane/variant steward note recorded in NORTH_STAR |
+| G1 | done | adjacent_follow_up | Worker B | `docs/projects/design-preview/GAPS.md` | scope review | Capture design workflow and owners. Closed 2026-06-09 after the lane steward map landed in `NORTH_STAR.md`. | `docs/projects/PROJECT_TRACKER.md` | Prevents repeated ownership drift between preview lanes and owners | Lane/variant steward map recorded in `NORTH_STAR.md` | Source-backed lane steward map in `NORTH_STAR.md` |
 | G2 | done | support_needed_now | Worker B | `docs/projects/design-preview/RUNBOOK.md` | scope review | No explicit visual-check runbook for Design Preview surfaces. Closed 2026-06-08 after the checklist was captured in RUNBOOK.md | `misc/design.html`, `src/components/DesignPreview/DesignPreviewPage.tsx`, `docs/projects/design-preview/NORTH_STAR.md`, `docs/projects/design-preview/RUNBOOK.md` | Manual checks are now standardized for launch, lane navigation, variant changes, and visualizer endpoints | Use RUNBOOK.md on the next manual pass | Checklist present in RUNBOOK.md and linked from the handoff |
 
 ## Update Rules

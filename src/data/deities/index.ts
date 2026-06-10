@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 09/06/2026, 06:37:00
+ * Dependents: components/Religion/DivineFavorPanel.tsx, components/Religion/TempleModal.tsx, state/appState.ts, state/initialState.ts, state/reducers/religionReducer.ts, systems/religion/CombatReligionAdapter.ts, utils/world/religionUtils.ts, utils/world/templeUtils.ts
+ * Imports: 1 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/data/deities/index.ts
  * =========================================================================================
@@ -89,12 +105,12 @@ export const DEITIES: Deity[] = [
         favoredWeapon: 'Mace',
         approves: [
             { trigger: 'HEAL_ALLY', description: 'Heal an ally below 50% HP', favorChange: 2 },
-            { trigger: 'DESTROY_UNDEAD', description: 'Destroy an undead creature', favorChange: 1 },
+            { trigger: 'DESTROY_UNDEAD', description: 'Destroy an undead creature', favorChange: 1, combatTags: ['undead'] },
             { trigger: 'GIVE_CHARITY', description: 'Donate gold to the poor', favorChange: 1 }
         ],
         forbids: [
             { trigger: 'CAUSE_SUFFERING', description: 'Torture or cause unnecessary pain', favorChange: -10 },
-            { trigger: 'USE_NECROMANCY', description: 'Cast a necromantic spell', favorChange: -5 },
+            { trigger: 'USE_NECROMANCY', description: 'Cast a necromantic spell', favorChange: -5, combatTags: ['necromancy'] },
             { trigger: 'IGNORE_PLAGUE', description: 'Ignore sickness or disease', favorChange: -2 }
         ],
         relationships: [
@@ -117,7 +133,7 @@ export const DEITIES: Deity[] = [
         ],
         favoredWeapon: 'Sickle',
         approves: [
-            { trigger: 'DESTROY_UNDEAD', description: 'Destroy an undead creature', favorChange: 3 },
+            { trigger: 'DESTROY_UNDEAD', description: 'Destroy an undead creature', favorChange: 3, combatTags: ['undead'] },
             { trigger: 'LAST_RITES', description: 'Perform rites for the fallen', favorChange: 1 },
             { trigger: 'ACCEPT_FATE', description: 'Accept a critical failure without complaint', favorChange: 1 }
         ],
@@ -149,7 +165,7 @@ export const DEITIES: Deity[] = [
         approves: [
             { trigger: 'BETRAY_ALLY', description: 'Successfully betray an ally for gain', favorChange: 5 },
             { trigger: 'SACRIFICE_FOLLOWER', description: 'Sacrifice a follower to Lolth', favorChange: 3 },
-            { trigger: 'POISON_ENEMY', description: 'Defeat an enemy with poison', favorChange: 1 }
+            { trigger: 'POISON_ENEMY', description: 'Defeat an enemy with poison', favorChange: 1, combatTags: ['poison'] }
         ],
         forbids: [
             { trigger: 'SHOW_MERCY', description: 'Spare a defeated enemy', favorChange: -5 },
@@ -178,7 +194,7 @@ export const DEITIES: Deity[] = [
         approves: [
             { trigger: 'CAST_SPELL_HIGHEST', description: 'Cast a spell of your highest level', favorChange: 1 },
             { trigger: 'CREATE_ART', description: 'Create a work of art or song', favorChange: 2 },
-            { trigger: 'DEFEAT_ORC', description: 'Defeat an orc or follower of Gruumsh', favorChange: 1 }
+            { trigger: 'DEFEAT_ORC', description: 'Defeat an orc or follower of Gruumsh', favorChange: 1, combatTags: ['orc'] }
         ],
         forbids: [
             { trigger: 'DESTROY_ART', description: 'Destroy a work of art or beauty', favorChange: -5 },
@@ -206,7 +222,7 @@ export const DEITIES: Deity[] = [
         ],
         favoredWeapon: 'Spear',
         approves: [
-            { trigger: 'KILL_ELF', description: 'Kill an elf', favorChange: 3 },
+            { trigger: 'KILL_ELF', description: 'Kill an elf', favorChange: 3, combatTags: ['elf'] },
             { trigger: 'PILLAGE_SETTLEMENT', description: 'Loot or destroy a settlement', favorChange: 2 },
             { trigger: 'SHOW_STRENGTH', description: 'Intimidate a foe successfully', favorChange: 1 }
         ],
@@ -293,7 +309,7 @@ export const DEITIES: Deity[] = [
         favoredWeapon: 'Dagger',
         approves: [
             { trigger: 'LEARN_SECRET', description: 'Uncover a hidden truth or secret', favorChange: 2 },
-            { trigger: 'CAST_NECROMANCY', description: 'Cast a necromancy spell', favorChange: 1 },
+            { trigger: 'CAST_NECROMANCY', description: 'Cast a necromancy spell', favorChange: 1, combatTags: ['necromancy'] },
             { trigger: 'BETRAY_TRUST', description: 'Use a secret to betray someone', favorChange: 3 }
         ],
         forbids: [

@@ -1,6 +1,34 @@
 import { describe, it, expect } from 'vitest'
 import { ResistanceCalculator } from '../resistanceUtils'
 import type { CombatCharacter } from '@/types'
+import type { DamageType } from '@/types/spells'
+import { createSpellZone } from '@/systems/spells/effects/triggerHandler'
+
+const createTestChar = (
+  name: string,
+  resistances: DamageType[] = [],
+  vulnerabilities: DamageType[] = [],
+  immunities: DamageType[] = [],
+  position = { x: 0, y: 0 },
+  team: 'player' | 'enemy' = 'player'
+): CombatCharacter => ({
+  id: name,
+  name,
+  level: 1,
+  class: { id: 'test', name: 'Test', description: '', hitDie: 8, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
+  position,
+  stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' },
+  abilities: [],
+  team,
+  currentHP: 10,
+  maxHP: 10,
+  initiative: 0,
+  statusEffects: [],
+  actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, legendary: { used: 0, total: 0 }, movement: { used: 0, total: 30 }, freeActions: 1 },
+  resistances,
+  vulnerabilities,
+  immunities
+})
 
 describe('ResistanceCalculator', () => {
   it('should return base damage when no resistances apply (default)', () => {
@@ -211,5 +239,107 @@ describe('ResistanceCalculator', () => {
 
     const damageCold = ResistanceCalculator.applyResistances(10, 'Cold', mockCharacter)
     expect(damageCold).toBe(20) // 10 * 2
+  })
+
+  it('should halve damage while the target stands inside a resistance-granting zone', () => {
+    const caster = createTestChar('Caster')
+    const target = createTestChar('Target', [], [], [], { x: 1, y: 0 })
+    const zone = createSpellZone(
+      'protective-aura',
+      caster.id,
+      caster.position,
+      { shape: 'sphere', size: 20 },
+      [
+        {
+          type: 'DEFENSIVE',
+          trigger: { type: 'immediate' },
+          condition: { type: 'always' },
+          defenseType: 'resistance',
+          damageType: ['Fire'],
+          duration: { type: 'minutes', value: 10 },
+          description: 'Fire resistance aura'
+        } as any
+      ],
+      1,
+      10,
+      undefined,
+      undefined,
+      ['point']
+    )
+
+    const damageFire = ResistanceCalculator.applyResistances(10, 'Fire', target, caster, false, {
+      spellZones: [zone],
+      characters: [caster, target]
+    })
+
+    expect(damageFire).toBe(5)
+  })
+
+  it('should not apply zone resistance once the target moves outside the area', () => {
+    const caster = createTestChar('Caster')
+    const targetOutside = createTestChar('Target', [], [], [], { x: 5, y: 0 })
+    const zone = createSpellZone(
+      'protective-aura',
+      caster.id,
+      caster.position,
+      { shape: 'sphere', size: 20 },
+      [
+        {
+          type: 'DEFENSIVE',
+          trigger: { type: 'immediate' },
+          condition: { type: 'always' },
+          defenseType: 'resistance',
+          damageType: ['Fire'],
+          duration: { type: 'minutes', value: 10 },
+          description: 'Fire resistance aura'
+        } as any
+      ],
+      1,
+      10,
+      undefined,
+      undefined,
+      ['point']
+    )
+
+    const damageFire = ResistanceCalculator.applyResistances(10, 'Fire', targetOutside, caster, false, {
+      spellZones: [zone],
+      characters: [caster, targetOutside]
+    })
+
+    expect(damageFire).toBe(10)
+  })
+
+  it('should grant immunity while the target stands inside an immunity zone', () => {
+    const caster = createTestChar('Caster')
+    const target = createTestChar('Target', [], [], [], { x: 1, y: 0 })
+    const zone = createSpellZone(
+      'silent-field',
+      caster.id,
+      caster.position,
+      { shape: 'sphere', size: 20 },
+      [
+        {
+          type: 'DEFENSIVE',
+          trigger: { type: 'immediate' },
+          condition: { type: 'always' },
+          defenseType: 'immunity',
+          damageType: ['Thunder'],
+          duration: { type: 'minutes', value: 10 },
+          description: 'Thunder immunity field'
+        } as any
+      ],
+      1,
+      10,
+      undefined,
+      undefined,
+      ['point']
+    )
+
+    const damageThunder = ResistanceCalculator.applyResistances(22, 'Thunder', target, caster, false, {
+      spellZones: [zone],
+      characters: [caster, target]
+    })
+
+    expect(damageThunder).toBe(0)
   })
 })

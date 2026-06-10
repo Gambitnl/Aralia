@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * This file appears to be an ISOLATED UTILITY or ORPHAN.
+ *
+ * Last Sync: 09/06/2026, 03:06:22
+ * Dependents: None (Orphan)
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * Copyright (c) 2024 Aralia RPG.
  * Licensed under the MIT License.
@@ -23,8 +39,10 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         type: 'Weather',
         probability: 0.1,
         conditions: (state) => state.currentWeather !== 'Storm',
-        effect: (state, ship) => {
-            const damage = rollDice('3d10');
+        effect: (state, ship, random) => {
+            // Accept the voyage manager's seeded stream so this alternate event
+            // table can stay replayable if it is wired back in later.
+            const damage = rollDice('3d10', { rng: random });
             ship.stats.hullPoints = Math.max(0, ship.stats.hullPoints - damage);
             state.currentWeather = 'Storm';
 
@@ -127,8 +145,8 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Crew members are distracted by high-stakes dice games.',
         type: 'Crew',
         probability: 0.1,
-        effect: (state, ship) => {
-            if (Math.random() > 0.5) {
+        effect: (state, ship, random) => {
+            if ((random ?? Math.random)() > 0.5) {
                 CrewManager.modifyCrewMorale(ship.crew, 5, 'Fun distractions');
                 return {
                     log: `The crew organized a dice tournament. Morale is high!`,
@@ -205,8 +223,8 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Wreckage from another ship.',
         type: 'Discovery',
         probability: 0.1,
-        effect: (state, ship) => {
-            const foundSupplies = rollDice('2d6');
+        effect: (state, ship, random) => {
+            const foundSupplies = rollDice('2d6', { rng: random });
             ship.cargo.supplies.food += foundSupplies;
             return {
                 log: `Salvaged some floating barrels. Gained ${foundSupplies} days of rations.`,

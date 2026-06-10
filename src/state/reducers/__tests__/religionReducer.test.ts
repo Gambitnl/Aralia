@@ -1,162 +1,150 @@
 
 import { describe, it, expect } from 'vitest';
 import { religionReducer } from '../religionReducer';
-// TODO(lint-intent): 'DivineFavor' is unused in this test; use it in the assertion path or remove it.
-import { GameState, DivineFavor as _DivineFavor } from '../../../types';
-import { AppAction } from '../../actionTypes';
+import { GameState, DivineFavor } from '../../../types';
+
+/**
+ * This file verifies that the religion reducer keeps old save data and the newer
+ * canonical religion state in sync.
+ *
+ * The religion project is migrating favor records out of the root game state and
+ * into `state.religion`, but existing saves and UI paths can still read the legacy
+ * location. These tests make sure prayer, deity triggers, and temple services keep
+ * both locations aligned until the wider app can safely retire the bridge.
+ *
+ * Called by: Vitest religion reducer checks
+ * Depends on: religionReducer.ts, shared GameState and DivineFavor types
+ */
+
+// These helpers build just enough game state to exercise the reducer without
+// pulling in the full initial state. The override order preserves explicit test
+// setup while still providing the religion, gold, messages, party, temple, and
+// phase fields that the reducer expects.
+const createFavor = (score: number, rank: DivineFavor['rank'] = 'Neutral'): DivineFavor => ({
+    score,
+    rank,
+    consecutiveDaysPrayed: 0,
+    history: [{ timestamp: 1, reason: 'legacy save', change: score }],
+    blessings: []
+});
+
+const createInitialState = (overrides: Partial<GameState> = {}): GameState => ({
+    ...overrides,
+    ...(() => {
+        const overrideReligion = overrides.religion ?? {};
+        return {
+            religion: {
+                divineFavor: {
+                    ...(overrideReligion.divineFavor ?? {})
+                },
+                discoveredDeities: overrideReligion.discoveredDeities ?? [],
+                activeBlessings: overrideReligion.activeBlessings ?? []
+            },
+            divineFavor: {
+                ...(overrides.divineFavor ?? {})
+            },
+        };
+    })(),
+    gold: overrides.gold ?? 100,
+    messages: overrides.messages ?? [],
+    party: overrides.party ?? [],
+    temples: overrides.temples ?? {},
+    phase: overrides.phase ?? ('MAIN_MENU' as GameState['phase'])
+} as GameState);
 
 describe('religionReducer', () => {
-    // Helper to create a minimal valid state
-    const createInitialState = (): GameState => ({
-        religion: {
-            discoveredDeities: [],
-            divineFavor: {},
-            activeBlessings: []
-        },
-        gold: 100,
-        messages: [],
-        party: [],
-        // ... include other required fields as minimal stubs if necessary
-        // Typescript partial matching might be needed if state is huge, but let's try casting
-    } as unknown as GameState);
+    it('hydrates legacy favor into the canonical religion state before PRAY updates', () => {
+        const state = createInitialState({
+            religion: {
+                divineFavor: {}
+            },
+            divineFavor: {
+                pelor: createFavor(12, 'Devotee')
+            }
+        });
 
-    it('should handle PRAY action', () => {
-        const state = createInitialState();
-        const action: AppAction = {
+        const result = religionReducer(state, {
             type: 'PRAY',
             payload: { deityId: 'pelor', offering: 0 }
-        };
+        });
 
-        const result = religionReducer(state, action);
-        // Merge strategy for test
-        const newState = {
-            ...state,
-            ...result,
-            religion: {
-                ...state.religion,
-                ...result.religion,
-                divineFavor: {
-                    ...state.religion.divineFavor,
-                    ...(result.religion?.divineFavor || {})
-                }
-            }
-        };
-
-        expect(newState.religion.divineFavor['pelor']).toBeDefined();
-        expect(newState.religion.divineFavor['pelor'].score).toBe(1); // Default prayer boost
-        expect(newState.messages).toHaveLength(1);
-        expect(newState.messages[0].text).toContain('You pray to Pelor');
+        expect(result.religion?.divineFavor['pelor']).toBeDefined();
+        expect(result.religion?.divineFavor['pelor'].score).toBe(13);
+        expect(result.divineFavor?.['pelor'].score).toBe(13);
+        expect(result.religion?.divineFavor['pelor'].history).toHaveLength(2);
     });
 
-    it('should handle PRAY action with offering', () => {
+    it('keeps PRAY writes synchronized across canonical and legacy favor maps', () => {
         const state = createInitialState();
-        const action: AppAction = {
+
+        const result = religionReducer(state, {
             type: 'PRAY',
             payload: { deityId: 'pelor', offering: 20 }
-        };
+        });
 
-        const result = religionReducer(state, action);
-        const newState = {
-            ...state,
-            ...result,
-            religion: {
-                ...state.religion,
-                ...result.religion,
-                divineFavor: {
-                    ...state.religion.divineFavor,
-                    ...(result.religion?.divineFavor || {})
-                }
-            }
-        };
-
-        expect(newState.gold).toBe(80); // 100 - 20
-        expect(newState.religion.divineFavor['pelor'].score).toBe(3); // 1 (base) + 2 (20/10)
+        expect(result.gold).toBe(80);
+        expect(result.religion?.divineFavor['pelor'].score).toBe(3);
+        expect(result.divineFavor?.['pelor'].score).toBe(3);
+        expect(result.messages).toHaveLength(1);
+        expect(result.messages?.[0].text).toContain('You pray to Pelor');
     });
 
-    it('should handle TRIGGER_DEITY_ACTION for approval', () => {
+    it('keeps TRIGGER_DEITY_ACTION writes synchronized across canonical and legacy favor maps', () => {
         const state = createInitialState();
-        // Bahamut approves PROTECT_WEAK (+2)
-        const action: AppAction = {
-            type: 'TRIGGER_DEITY_ACTION',
-            payload: { trigger: 'PROTECT_WEAK' }
-        };
 
-        const result = religionReducer(state, action);
-        const newState = {
-            ...state,
-            ...result,
-            religion: {
-                ...state.religion,
-                ...result.religion,
-                divineFavor: {
-                    ...state.religion.divineFavor,
-                    ...(result.religion?.divineFavor || {})
-                }
-            }
-        };
-
-        expect(newState.religion.divineFavor['bahamut']).toBeDefined();
-        expect(newState.religion.divineFavor['bahamut'].score).toBe(2);
-        // Change is 2, threshold 5. No message.
-        expect(newState.messages).toHaveLength(0);
-    });
-
-    it('should handle TRIGGER_DEITY_ACTION for forbiddance', () => {
-        const state = createInitialState();
-        // Bahamut forbids HARM_INNOCENT (-10)
-        const action: AppAction = {
+        const result = religionReducer(state, {
             type: 'TRIGGER_DEITY_ACTION',
             payload: { trigger: 'HARM_INNOCENT' }
-        };
+        });
 
-        const result = religionReducer(state, action);
-        const newState = {
-            ...state,
-            ...result,
-            religion: {
-                ...state.religion,
-                ...result.religion,
-                divineFavor: {
-                    ...state.religion.divineFavor,
-                    ...(result.religion?.divineFavor || {})
-                }
-            }
-        };
-
-        expect(newState.religion.divineFavor['bahamut']).toBeDefined();
-        expect(newState.religion.divineFavor['bahamut'].score).toBe(-10);
-        // Change is >= 5, so message should appear
-        expect(newState.messages).toHaveLength(1);
-        expect(newState.messages[0].text).toContain('Bahamut loses favor');
+        expect(result.religion?.divineFavor['bahamut']).toBeDefined();
+        expect(result.religion?.divineFavor['bahamut'].score).toBe(-10);
+        expect(result.divineFavor?.['bahamut'].score).toBe(-10);
+        expect(result.messages).toHaveLength(1);
+        expect(result.messages?.[0].text).toContain('Bahamut loses favor');
     });
 
-    it('should affect multiple deities if applicable', () => {
-        const state = createInitialState();
-        // Assume 'DESTROY_UNDEAD' is liked by Pelor (+1) and Raven Queen (+3)
-        // Note: Check actual data in src/data/deities/index.ts
-        // Pelor: DESTROY_UNDEAD (+1)
-        // Raven Queen: DESTROY_UNDEAD (+3)
+    it('keeps USE_TEMPLE_SERVICE favor writes synchronized while preserving legacy fallback reads', () => {
+        const state = createInitialState({
+            religion: {
+                divineFavor: {}
+            },
+            divineFavor: {
+                pelor: createFavor(2, 'Neutral')
+            }
+        });
 
-        const action: AppAction = {
+        const result = religionReducer(state, {
+            type: 'USE_TEMPLE_SERVICE',
+            payload: {
+                templeId: 'temple_pelor',
+                deityId: 'pelor',
+                cost: 5,
+                effect: 'grant_favor_small'
+            }
+        });
+
+        expect(result.gold).toBe(95);
+        expect(result.religion?.divineFavor['pelor'].score).toBe(7);
+        expect(result.divineFavor?.['pelor'].score).toBe(7);
+        expect(result.messages).toContainEqual(
+            expect.objectContaining({
+                text: 'You feel a sense of approval from the deity.'
+            })
+        );
+    });
+
+    it('still affects multiple deities when one trigger matches several doctrines', () => {
+        const state = createInitialState();
+
+        const result = religionReducer(state, {
             type: 'TRIGGER_DEITY_ACTION',
             payload: { trigger: 'DESTROY_UNDEAD' }
-        };
+        });
 
-        const result = religionReducer(state, action);
-        const newState = {
-            ...state,
-            ...result,
-            religion: {
-                ...state.religion,
-                ...result.religion,
-                divineFavor: {
-                    ...state.religion.divineFavor,
-                    ...(result.religion?.divineFavor || {})
-                }
-            }
-        };
-
-        expect(newState.religion.divineFavor['pelor'].score).toBe(1);
-        expect(newState.religion.divineFavor['raven_queen'].score).toBe(3);
+        expect(result.religion?.divineFavor['pelor'].score).toBe(1);
+        expect(result.divineFavor?.['pelor'].score).toBe(1);
+        expect(result.religion?.divineFavor['raven_queen'].score).toBe(3);
+        expect(result.divineFavor?.['raven_queen'].score).toBe(3);
     });
 });

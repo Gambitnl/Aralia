@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 09/06/2026, 01:05:21
+ * Last Sync: 09/06/2026, 04:34:01
  * Dependents: state/appState.ts
- * Imports: 16 files
+ * Imports: 17 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -22,6 +22,7 @@
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, DiscoveryResidue as _DiscoveryResidue, Location as _Location, Faction as _Faction } from '../../types';
+import { withLegacyWeatherBridge } from '../../types/environment';
 import { AppAction } from '../actionTypes';
 import { LOCATIONS } from '../../data/world/locations';
 import { getTimeOfDay, getGameDay } from '../../utils/core';
@@ -39,6 +40,17 @@ import { processPlayerBusinessManagement } from '../../systems/economy/BusinessM
 import { SeededRandom } from '@/utils/random';
 
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const hashStringToSeed = (value: string): number => {
+  let hash = 2166136261;
+
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
 
 const resolveBiomeId = (state: GameState): string => {
     const staticLocation = LOCATIONS[state.currentLocationId];
@@ -136,12 +148,23 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
 
         for (let dayOffset = 0; dayOffset < daysPassed; dayOffset++) {
           const dayProgressTime = new Date(newTime.getTime() - ((daysPassed - dayOffset - 1) * MILLIS_PER_DAY));
-          nextWeather = updateWeather(nextWeather, biomeId, getTimeOfDay(dayProgressTime));
+          const weatherSeed = hashStringToSeed([
+            nextState.worldSeed,
+            biomeId,
+            dayProgressTime.toISOString(),
+            nextWeather.precipitation,
+            nextWeather.temperature,
+            nextWeather.wind.direction,
+            nextWeather.wind.speed
+          ].join('|'));
+          nextWeather = updateWeather(nextWeather, biomeId, getTimeOfDay(dayProgressTime), new SeededRandom(weatherSeed));
         }
 
         nextState = {
           ...nextState,
-          environment: nextWeather
+          // Reattach the legacy label bridge so older narrative consumers keep
+          // seeing a string while the reducer still owns the canonical weather state.
+          environment: withLegacyWeatherBridge(nextWeather)
         };
 
         // 4. Daily World Simulation

@@ -26,11 +26,12 @@ docs/projects/glossary-ui/NORTH_STAR.md
 | 3 | Antigravity (Claude Opus 4.6 Thinking) | application agent | certain | 2026-06-08 | Existing ledger note |
 | 4 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-09 | Sub-agent final receipt |
 | 5 | Codex / gpt-5.4-mini high | MCP-subagent | certain | 2026-06-09 | Handoff prepared after verified rebuild pass |
+| 6 | Hubble / gpt-5.4-mini high | MCP-subagent docs-only contract pass | certain | 2026-06-09 | Source-backed item metadata contract review and review-required gate |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Glossary UI
 Project folder: docs/projects/glossary-ui
-Iteration: 5
+Iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -43,12 +44,15 @@ Audit/proof: docs/projects/glossary-ui/AUDIT_OR_PROOF.md
 
 ## Previous Agent Handoff
 
-Iteration 4 closed T4 by adding `npm run glossary:rebuild`, delegating `build:data` to the named rebuild path, and verifying the bundle refresh path. Updated RUNBOOK.md, NORTH_STAR.md, TRACKER.md, GAPS.md, DECISIONS.md, and AUDIT_OR_PROOF.md. G1 and G6 are now resolved; the glossary bundle rebuild has a named non-dev entry point and the item-registry ordering note is no longer live.
+Iteration 5 closed the rebuild-contract work and then this pass documented the source-backed item metadata render contract, moved T3 to a review-required state, and recorded the remaining ownership decision. Updated NORTH_STAR.md, TRACKER.md, GAPS.md, DECISIONS.md, AUDIT_OR_PROOF.md, and this handoff prompt. G3 is now review-gated and G7 records the remaining enforcement gap around the untyped ingest builder.
 
 ## Current Mission
 
 Active task:
 T3 - Track item metadata and categorization assumptions affecting this UI
+
+Status:
+review-required
 
 Secondary task:
 None; T4 is complete.
@@ -56,20 +60,19 @@ None; T4 is complete.
 Acceptance criteria:
 - Glossary UI assumptions about `itemMetadata` fields are documented and evidence-backed.
 - The boundary between this project and `docs/projects/item_categorization` is clear.
-- `GAPS.md` G2 and G3 are updated with any new evidence.
+- `GAPS.md` G2, G3, and the newly exposed guardrail gap are updated with any new evidence.
 
 Key files to touch:
 - docs/projects/glossary-ui/NORTH_STAR.md
 - docs/projects/glossary-ui/TRACKER.md
 - docs/projects/glossary-ui/GAPS.md
 - docs/projects/glossary-ui/COLD_START_AGENT_PROMPT.md
-- docs/projects/glossary-ui/RUNBOOK.md
-- scripts/ingestPhbGlossary.ts (read for itemMetadata contract)
-- scripts/generateGlossaryIndex.js (read for Equipment grouping logic)
-- src/components/Glossary/GlossaryItemStatBlock.tsx (read for field consumption)
-- package.json (for the named rebuild entry point already added)
 - docs/projects/glossary-ui/DECISIONS.md
 - docs/projects/glossary-ui/AUDIT_OR_PROOF.md
+- scripts/ingestPhbGlossary.ts (read-only source for the itemMetadata contract)
+- scripts/generateItemRegistry.ts (read-only overlap check for item metadata)
+- src/components/Glossary/GlossaryItemStatBlock.tsx (read-only field consumption surface)
+- src/types/ui.ts (read-only declared contract)
 
 Optional docs to check when present or named by tracker:
 - docs/projects/item_categorization/NORTH_STAR.md
@@ -77,13 +80,13 @@ Optional docs to check when present or named by tracker:
 - docs/tasks/glossary/
 
 Scoped verification:
-For T3: docs consistency check and targeted contract review. T4 has already been verified by running `npm run glossary:rebuild` and checking the generated bundle output.
+For T3: docs consistency check, living-project audit row review, and targeted contract review. T4 has already been verified by running `npm run glossary:rebuild` and checking the generated bundle output.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route item-categorization decisions to `docs/projects/item_categorization`. Do not edit the Equipment taxonomy without confirming the decision with the item-categorization owner.
+Stay inside this project's scope boundaries. Route item-categorization decisions to `docs/projects/item_categorization`. Do not edit the Equipment taxonomy without confirming the decision with the item-categorization owner. Do not expand the item metadata contract into source changes until the ownership decision is recorded.
 
 Recent progress:
-T2 is complete. T4 is complete. G1 and G6 are resolved. The glossary rebuild now has a named non-dev entry point with proof in AUDIT_OR_PROOF.md. Use TRACKER.md and GAPS.md as current source of truth.
+T2 is complete. T4 is complete. G1 and G6 are resolved. The glossary rebuild now has a named non-dev entry point with proof in AUDIT_OR_PROOF.md. The source-backed item metadata contract is documented, T3 is review-required, and G7 records the remaining enforcement gap. Use TRACKER.md and GAPS.md as current source of truth.
 
 ## Required End State For This Iteration
 

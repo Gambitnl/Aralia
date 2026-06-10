@@ -117,6 +117,55 @@ describe('MovementCommand - forced movement routing', () => {
 });
 
 // ----------------------------------------------------------------------------
+// Terrain and Hazard Landing
+// ----------------------------------------------------------------------------
+// A live combat move should not stop at position changes. The landing tile can
+// also carry environment metadata, so the movement command now resolves the
+// battle-map terrain overlay and applies any attached hazard statuses.
+// ----------------------------------------------------------------------------
+describe('MovementCommand - terrain and hazard landing effects', () => {
+  it('applies quicksand status when a pushed target lands on mud', () => {
+    const caster = createMockCombatCharacter({ id: 'caster', name: 'Caster', position: { x: 0, y: 0 } });
+    const target = createMockCombatCharacter({ id: 'target', name: 'Target', position: { x: 1, y: 0 } });
+    const tiles = new Map([
+      ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
+      ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'grass', elevation: 0, movementCost: 1, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }],
+      ['2-0', { id: '2-0', coordinates: { x: 2, y: 0 }, terrain: 'mud', elevation: 0, movementCost: 2, blocksMovement: false, blocksLoS: false, decoration: null, effects: [] }]
+    ]);
+    const mapData = { id: 'mud-hazard-map', name: 'Mud Hazard Map', dimensions: { width: 3, height: 1 }, tiles } as any;
+    const state = createMockCombatState({
+      characters: [caster, target],
+      mapData,
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: 'caster', phase: 'planning', actionsThisTurn: [] }
+    });
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'push',
+      distance: 5,
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate', frequency: 'every_time', movementType: 'any' },
+      condition: { type: 'always' }
+    };
+    const context: CommandContext = {
+      spellId: 'mud-hazard',
+      spellName: 'Mud Hazard',
+      castAtLevel: 1,
+      caster,
+      targets: [target],
+      gameState: createMockGameState()
+    };
+
+    const nextState = new MovementCommand(effect, context).execute(state);
+    const updatedTarget = nextState.characters.find(character => character.id === 'target')!;
+    const movementLog = nextState.combatLog[nextState.combatLog.length - 1];
+
+    expect(updatedTarget.position).toEqual({ x: 2, y: 0 });
+    expect(updatedTarget.statusEffects.some(status => status.name === 'Restrained')).toBe(true);
+    expect(movementLog.message).toContain('through mud');
+  });
+});
+
+// ----------------------------------------------------------------------------
 // Per-Target Teleport Destinations
 // ----------------------------------------------------------------------------
 // Scatter-style spells choose several creatures and then choose a different

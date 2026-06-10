@@ -1,4 +1,42 @@
-﻿# NORTH STAR: Item Categorization
+---
+schema_version: 1
+project: Item Categorization
+slug: item_categorization
+category: Feature/UI Projects
+main_category: "Content & Rules"
+subcategory: "Items & Content Pipelines"
+status: review-required
+last_updated: ""
+confidence: high
+evidence: docs/projects/item_categorization
+gap_signal: "5 open project gaps; itemGroup semantics is now gated on taxonomy review"
+protocol: living project doc set
+next_step: Await human/product decision on whether itemGroup becomes a first-class grouping primitive.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs_consistency
+  - build_typecheck
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-08
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "yes"
+---
+# NORTH STAR: Item Categorization
 
 ## Dashboard Card Schema
 Project: Item Categorization

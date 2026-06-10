@@ -67,6 +67,19 @@ interface SpellReferencedRulesEnrichmentFile {
   };
 }
 
+// Spell entries in the glossary index carry tags such as "level 1". The normal
+// player-facing spell card loader must read that tag because the richer gate
+// checker is a developer-only diagnostic surface and is usually disabled.
+const resolveSpellJsonLevelFromEntry = (entry: GlossaryEntry): number | null => {
+  const levelTag = entry.tags?.find((tag) => /^level\s+\d+$/i.test(tag.trim()));
+  if (!levelTag) return null;
+
+  const [, levelText] = levelTag.trim().match(/^level\s+(\d+)$/i) ?? [];
+  if (!levelText) return null;
+
+  return Number.parseInt(levelText, 10);
+};
+
 interface GlossaryProps {
   isOpen: boolean;
   onClose: () => void;
@@ -315,7 +328,12 @@ const Glossary: React.FC<GlossaryProps> = ({
 
     const controller = new AbortController();
     const gateResult = gateResults[selectedEntry.id];
-    const level = gateResult?.level ?? 0;
+    const level = gateResult?.level ?? resolveSpellJsonLevelFromEntry(selectedEntry);
+    if (level === null) {
+      setSpellJsonData(null);
+      setSpellJsonLoading(false);
+      return;
+    }
 
     setSpellJsonLoading(true);
     fetchWithTimeout<SpellData>(

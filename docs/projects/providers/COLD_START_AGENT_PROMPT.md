@@ -60,4 +60,8 @@ Gaps: docs/projects/providers/GAPS.md
 ## Next Safe Resume Action
 
 - Await the G5 provider-boundary decision before assigning further Providers work.
+## Required End State For This Iteration
+
+Before ending, update this handoff with the next iteration number, previous agent context, agent identity/runtime surface, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers.
+
 ---END NEXT AGENT HANDOFF---

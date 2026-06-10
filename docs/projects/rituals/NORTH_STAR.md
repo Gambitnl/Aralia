@@ -1,3 +1,41 @@
+---
+schema_version: 1
+project: Rituals System
+slug: rituals
+category: Gameplay Systems
+main_category: "Game & Simulation"
+subcategory: "World, Travel & Maps"
+status: active
+last_updated: 2026-06-05
+confidence: high
+evidence: docs/projects/rituals
+gap_signal: "8 open gaps remain; start-path wiring, typed events, interruption branches, and ritual economy math are still open"
+protocol: living project doc set
+next_step: Keep RIT-3 evidence current by mapping the first live startRitual(...) caller and confirming the caller contract.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - scoped_tests
+  - docs_consistency
+completed_verification:
+  - docs_consistency
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-05
+compaction_status: not_needed
+lifecycle_status: active
+deprecation_confidence: none
+deprecation_reason: ""
+canonical_owner: ""
+human_decision_required: "no"
+---
 # Rituals System North Star
 
 Status: active  

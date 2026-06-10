@@ -46,7 +46,7 @@ import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import { useVisibility } from '../../hooks/combat/useVisibility';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer } from './terrain';
+import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain } from './terrain';
 import { CharacterActor } from './characters';
 import { CameraController } from './camera';
 import { VFXSystem, LivingWorld } from './vfx';
@@ -201,8 +201,9 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
   );
 };
 
-/** Procedural gradient sky dome — prevents fade-to-void at map edges */
-const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
+/** Procedural gradient sky dome — prevents fade-to-void at map edges. Centered
+ *  on the map and enlarged so the distant-terrain ridge band sits inside it. */
+const SkyDome: React.FC<{ biome: string; mapCenter: readonly [number, number, number] }> = ({ biome, mapCenter }) => {
   const skyMaterial = useMemo(() => {
     // Per-biome sky colors
     const skyPresets: Record<string, { top: string; horizon: string; bottom: string }> = {
@@ -221,15 +222,19 @@ const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
     return new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
+      fog: false,
       uniforms: {
         uTopColor:     { value: new THREE.Color(p.top) },
         uHorizonColor: { value: new THREE.Color(p.horizon) },
         uBottomColor:  { value: new THREE.Color(p.bottom) },
       },
       vertexShader: /* glsl */ `
-        varying vec3 vWorldPos;
+        varying vec3 vDir;
         void main() {
-          vWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;
+          // Key the gradient to the dome's own latitude (object space) so it
+          // stays correct no matter where the dome is centered or how large it
+          // is — lets us recenter on the map and enlarge it freely.
+          vDir = normalize(position);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -237,9 +242,9 @@ const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
         uniform vec3 uTopColor;
         uniform vec3 uHorizonColor;
         uniform vec3 uBottomColor;
-        varying vec3 vWorldPos;
+        varying vec3 vDir;
         void main() {
-          float h = normalize(vWorldPos).y;
+          float h = vDir.y;
           vec3 color;
           if (h > 0.0) {
             color = mix(uHorizonColor, uTopColor, smoothstep(0.0, 0.5, h));
@@ -253,8 +258,12 @@ const SkyDome: React.FC<{ biome: string }> = ({ biome }) => {
   }, [biome]);
 
   return (
-    <mesh material={skyMaterial} renderOrder={-1}>
-      <sphereGeometry args={[45, 32, 16]} />
+    <mesh
+      material={skyMaterial}
+      renderOrder={-1}
+      position={[mapCenter[0], 0, mapCenter[2]]}
+    >
+      <sphereGeometry args={[140, 48, 24]} />
     </mesh>
   );
 };
@@ -404,7 +413,9 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         camera={{
           fov: 50,
           near: 0.1,
-          far: 100,
+          // Far plane pushed out so the enlarged sky dome and the distant-terrain
+          // ridge band (out to ~radius 92 around the map center) are not clipped.
+          far: 220,
           position: [
             cameraTarget[0] + 8,
             10,
@@ -422,7 +433,13 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         }}
       >
         {/* Sky dome — gradient background prevents fade-to-void */}
-        <SkyDome biome={biome} />
+        <SkyDome biome={biome} mapCenter={cameraTarget} />
+
+        {/* Distant terrain — procedural ridge band ringing the battlefield so the
+            map reads as part of a larger landscape (rolling hills/mesas on open
+            biomes, dark cavern walls on cave/dungeon) instead of a flat slab in
+            fog. Sits on the apron and dissolves into the scene fog. */}
+        <DistantTerrain mapData={mapData} />
 
         {/* Ground apron — a large biome-colored plane at sea level beyond the map
             edges. On open biomes (desert/cave/dungeon) the terrain plane otherwise

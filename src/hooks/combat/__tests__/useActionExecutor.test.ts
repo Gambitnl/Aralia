@@ -4,6 +4,20 @@ import { renderHook } from '@testing-library/react';
 import { useActionExecutor } from '../useActionExecutor';
 import { CombatCharacter, CombatAction, TurnState, Ability } from '../../../types/combat';
 
+/**
+ * This file protects the combat action executor, which is the runtime path that
+ * spends turn resources, moves characters, resolves opportunity attacks, and
+ * reports combat log entries.
+ *
+ * The hook sits between the turn manager and lower-level combat utilities, so
+ * these tests focus on small rules slices where a regression would change live
+ * gameplay. New coverage for Sentinel keeps the opportunity-attack stop effect
+ * tied to a successful hit without widening into the battle-map renderer.
+ *
+ * Called by: Vitest combat hook checks
+ * Depends on: useActionExecutor.ts and shared combat types
+ */
+
 describe('useActionExecutor', () => {
     // Mocks
     const mockEndTurn = vi.fn();
@@ -18,6 +32,7 @@ describe('useActionExecutor', () => {
     const mockOnCharacterUpdate = vi.fn();
     const mockOnLogEntry = vi.fn();
     const mockSetMovementDebuffs = vi.fn();
+    const mockExecuteReactionSpell = vi.fn().mockResolvedValue(undefined);
 
     // Test Data
     const mockCharacter: CombatCharacter = {
@@ -381,6 +396,93 @@ describe('useActionExecutor', () => {
         }));
     });
 
+    it('should stop a target in place when a Sentinel character hits with an Opportunity Attack', async () => {
+        const spear: Ability = {
+            id: 'spear',
+            name: 'Spear',
+            description: 'A close melee attack.',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
+            weapon: { id: 'spear_item', name: 'Spear', description: 'A spear', type: 'weapon', properties: ['versatile'] },
+            range: 1,
+            effects: [{ type: 'damage' as const, value: 4, damageType: 'physical' as const, dice: '1d6' }]
+        };
+        const mover = {
+            ...mockCharacter,
+            id: 'runner',
+            name: 'Runner',
+            team: 'player' as const,
+            position: { x: 0, y: 1 }
+        };
+        const sentinelAttacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'sentinel_guard',
+            name: 'Sentinel Guard',
+            team: 'enemy' as const,
+            position: { x: 0, y: 0 },
+            abilities: [spear],
+            feats: ['Sentinel'],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue({
+            ...mover,
+            actionEconomy: {
+                ...mover.actionEconomy,
+                movement: { used: 5, total: 30 }
+            }
+        });
+        mockProcessTileEffects.mockImplementation((char) => char);
+        mockHandleDamage.mockImplementation((char) => char);
+
+        const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.99);
+
+        try {
+            const { result } = renderHook(() => useActionExecutor({
+                ...defaultProps,
+                characters: [mover, sentinelAttacker]
+            }));
+
+            const action: CombatAction = {
+                id: 'runner-leaves-reach',
+                characterId: mover.id,
+                type: 'move' as const,
+                targetPosition: { x: 0, y: 2 },
+                cost: { type: 'movement-only' as const, movementCost: 5 },
+                timestamp: Date.now()
+            };
+
+            const success = await result.current.executeAction(action);
+
+            expect(success).toBe(true);
+
+            const movedUpdate = mockOnCharacterUpdate.mock.calls
+                .map(call => call[0] as CombatCharacter)
+                .find(character => character.id === mover.id);
+
+            expect(movedUpdate).toBeDefined();
+            expect(movedUpdate?.statusEffects).toEqual(expect.arrayContaining([
+                expect.objectContaining({
+                    name: 'Sentinel Stop',
+                    effect: expect.objectContaining({
+                        type: 'stat_modifier',
+                        stat: 'speed',
+                        value: -30
+                    })
+                })
+            ]));
+            expect(movedUpdate?.actionEconomy.movement).toEqual({ used: 0, total: 0 });
+            expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
+                message: expect.stringContaining('Sentinel feat stops Runner in place')
+            }));
+        } finally {
+            randomSpy.mockRestore();
+        }
+    });
+
     it('should prompt player for Opportunity Attack weapon choice and execute swing with selected weapon properties', async () => {
         const rapier: Ability = {
             id: 'rapier',
@@ -512,5 +614,84 @@ describe('useActionExecutor', () => {
         expect(mockOnLogEntry).toHaveBeenCalledWith(expect.objectContaining({
             message: expect.stringContaining('declines the Opportunity Attack reaction')
         }));
+    });
+
+    it('should offer War Caster-eligible spells in the Opportunity Attack prompt and cast the chosen spell', async () => {
+        const spellStrike: Ability = {
+            id: 'spell_strike',
+            name: 'Spell Strike',
+            description: 'A single-target spell attack.',
+            type: 'spell' as const,
+            cost: { type: 'action' as const, spellSlotLevel: 1 },
+            targeting: 'single_enemy' as const,
+            range: 6,
+            spell: {
+                id: 'spell_strike',
+                name: 'Spell Strike',
+                description: 'A single-target spell attack.'
+            } as any,
+            effects: [{ type: 'damage' as const, value: 6, damageType: 'force' as const, dice: '1d6' }]
+        };
+        const rapier: Ability = {
+            id: 'rapier',
+            name: 'Rapier',
+            description: 'A finesse melee attack.',
+            type: 'attack' as const,
+            cost: { type: 'action' as const },
+            targeting: 'single_enemy' as const,
+            weapon: { id: 'rapier_item', name: 'Rapier', description: 'A rapier', type: 'weapon', properties: ['finesse'] },
+            range: 1,
+            effects: [{ type: 'damage' as const, value: 8, damageType: 'physical' as const, dice: '1d8' }]
+        };
+        const mover = { ...mockCharacter, id: 'goblin', team: 'enemy' as const, position: { x: 0, y: 1 } };
+        const warCasterAttacker: CombatCharacter = {
+            ...mockCharacter,
+            id: 'war_caster_hero',
+            team: 'player' as const,
+            feats: ['War Caster'],
+            position: { x: 0, y: 0 },
+            abilities: [spellStrike, rapier],
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                reaction: { used: false, remaining: 1 }
+            }
+        };
+        mockConsumeAction.mockReturnValue(mover);
+        mockProcessTileEffects.mockImplementation((char) => char);
+        mockHandleDamage.mockImplementation((char) => char);
+
+        const mockRequestReaction = vi.fn().mockResolvedValue('spell_strike');
+
+        const { result } = renderHook(() => useActionExecutor({
+            ...defaultProps,
+            characters: [mover, warCasterAttacker],
+            requestReaction: mockRequestReaction,
+            executeReactionSpell: mockExecuteReactionSpell
+        } as any));
+
+        const action = {
+            id: 'mover-leaves-reach',
+            characterId: mover.id,
+            type: 'move' as const,
+            targetPosition: { x: 0, y: 2 },
+            cost: { type: 'movement-only' as const, movementCost: 5 },
+            timestamp: Date.now()
+        };
+
+        const success = await result.current.executeAction(action);
+
+        expect(success).toBe(true);
+        expect(mockRequestReaction).toHaveBeenCalledWith(
+            warCasterAttacker.id,
+            mover.id,
+            'opportunity_attack',
+            expect.arrayContaining([expect.objectContaining({ id: 'spell_strike' })]),
+            expect.arrayContaining([expect.objectContaining({ id: 'rapier' })])
+        );
+        expect(mockExecuteReactionSpell).toHaveBeenCalledWith(
+            expect.objectContaining({ id: 'war_caster_hero' }),
+            expect.objectContaining({ id: 'goblin' }),
+            expect.objectContaining({ id: 'spell_strike' })
+        );
     });
 });

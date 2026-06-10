@@ -45,6 +45,29 @@ registry, and then ran the full glossary rebuild chain without errors.
 project build, so its delegation to `npm run glossary:rebuild` needed a fresh
 end-to-end proof after the script change.
 
+## Item Metadata Contract Review
+
+**What was checked:** the source-backed item metadata fields that flow from
+ingest into glossary entries and then into the glossary stat block.
+
+**Surfaces reviewed:** `scripts/ingestPhbGlossary.ts`,
+`scripts/generateItemRegistry.ts`, `src/types/ui.ts`,
+`src/components/Glossary/GlossaryItemStatBlock.tsx`, and
+`src/components/Glossary/GlossaryEntryTemplate.tsx`.
+
+**Observed contract:** the glossary stat block renders the current generated
+fields `type`, `rarity`, `tier`, `reqAttune`, `cost`, `weight`, `damage`,
+`properties`, and `ac`. The render layer hides the `None` rarity sentinel,
+treats cost as gp, and tolerates missing fields as absence instead of failure.
+
+**Why this matters:** the glossary UI can now point to a concrete source-backed
+contract instead of only a code comment. That makes the current display shape
+auditable even though the ownership decision for future schema additions is
+still pending.
+
+**Open question:** whether future metadata additions should stay glossary-local
+display data or move into a shared typed contract with the item registry.
+
 ## Local Review Rerun
 
 Reviewed and re-ran on 2026-06-09 in the main Codex session:

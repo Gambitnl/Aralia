@@ -1,3 +1,40 @@
+---
+schema_version: 1
+project: Three D Modal
+slug: three-d-modal
+category: active project
+main_category: "Interface & Experience"
+subcategory: "UI Shell & Components"
+status: human-review-required
+last_updated: 2026-06-08
+confidence: unknown
+evidence: "docs/projects/three-d-modal/TRACKER.md; docs/projects/three-d-modal/GAPS.md"
+gap_signal: present
+protocol: living-project
+next_step: Human review should confirm whether ThreeD Modal remains a separate UX entrypoint owner or merges with World 3D UI before worker assignment.
+agent_comments: ""
+required_docs:
+  - NORTH_STAR.md
+  - TRACKER.md
+  - GAPS.md
+  - COLD_START_AGENT_PROMPT.md
+  - DECISIONS.md
+  - AUDIT_OR_PROOF.md
+  - RUNBOOK.md
+optional_docs:
+required_verification:
+  - docs consistency
+completed_verification:
+  - docs refresh
+last_proof: 2026-06-05
+workflow_gaps_reviewed: 2026-06-08
+compaction_status: not_needed
+lifecycle_status: human-review-required
+deprecation_confidence: weak
+deprecation_reason: possible_overlap_with_world_3d_ui_entrypoint_work
+canonical_owner: "pending decision; possible relation to docs/projects/world-3d-ui"
+human_decision_required: "yes"
+---
 # ThreeD Modal North Star
 
 Status: human-review-required

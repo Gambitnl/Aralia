@@ -3,16 +3,16 @@ schema_version: 1
 project: Character Sheet
 slug: character-sheet
 category: Feature/UI Projects
-main_category: Interface & Experience
+main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: review-required
 last_updated: 2026-06-08
 confidence: high
 evidence: docs/projects/character-sheet
-gap_signal: 1 open gap (G5); 1 review-required gap (G7); 3 untriaged gaps (G8, G9, G10); G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed
+gap_signal: "1 open gap (G5); 1 review-required gap (G7); 3 untriaged gaps (G8, G9, G10); G3 resolved; G4 README drift closed; G6 intentional placeholder verified and closed"
 protocol: living project doc set
 next_step: Await decision on food freshness timestamp semantics before implementing G7.
-agent_comments: README drift audit closed; journal payload omission is intentional and render-tested; the Skills expertise column remains visible but intentionally zero until the character model exposes expertise state; food freshness cannot be computed safely from the current item model alone.
+agent_comments: "README drift audit closed; journal payload omission is intentional and render-tested; the Skills expertise column remains visible but intentionally zero until the character model exposes expertise state; food freshness cannot be computed safely from the current item model alone."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -36,9 +36,8 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: yes
+human_decision_required: "yes"
 ---
-
 # Character Sheet North Star
 
 Status: review-required
