@@ -207,8 +207,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The struck target must succeed on a Strength save or be Restrained for up to 1 minute while the spell persists.",
+      "conditionalEndings": [],
+      "tags": [
+        "restrained",
+        "strength-save",
+        "strike-rider"
+      ]
     },
     {
       "type": "DAMAGE",
@@ -271,8 +276,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "A restrained target takes 1d6 Piercing damage from the conjured vines, increasing by 1d6 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "piercing-damage",
+        "restrained-rider",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

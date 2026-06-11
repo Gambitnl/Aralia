@@ -154,8 +154,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One target within 60 feet makes a Dexterity save against 1d8 Radiant damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "radiant-damage",
+        "dexterity-save",
+        "cantrip-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

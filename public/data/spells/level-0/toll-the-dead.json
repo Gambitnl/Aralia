@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1 die (d8 or d12)",
         "customFormula": "1d8 (or 1d12 if damaged) at level 1; increases by 1 die at levels 5, 11, and 17"
       },
-      "description": "",
+      "description": "One target within 60 feet makes a Wisdom save against Necrotic damage, using d8 or d12 dice per the row's scaling formula and cantrip tiers.",
       "conditionalEndings": [],
       "soundEmission": {
         "audibleRadius": 10,
@@ -153,7 +153,12 @@
         "source": "target",
         "trigger": "on_cast",
         "description": "A single dolorous bell chime is audible within 10 feet of the target when the spell is cast."
-      }
+      },
+      "tags": [
+        "necrotic-damage",
+        "wisdom-save",
+        "cantrip-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

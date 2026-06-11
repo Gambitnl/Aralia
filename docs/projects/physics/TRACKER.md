@@ -1,4 +1,4 @@
-# Physics System Tracker
+# Physics System Living Tracker
 
 Status: review-required
 Last updated: 2026-06-05
@@ -34,3 +34,11 @@ Last updated: 2026-06-05
 | G6 | open | adjacent_follow_up | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | Object-level collision/AC/HP hooks are still utility stubs and are not connected to combat target flow. | `src/utils/physicsUtils.ts`, `src/systems/physics/ElementalInteractionSystem.ts` | Missing behavior may block future rules work and keep combat targeting assumptions implicit. | Classify the object-combat hooks as near-term work or deferred debt. | Add a concrete owner and next proof once the route is chosen.
 | G7 | open | blocked_human_decision | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | Suffocation remains a TODO in `physicsUtils` and has no tracked integration path into combat or environment resolution. | `src/utils/physicsUtils.ts` | Oxygen and pressure style rules can stay invisible to later tasks if they remain unowned. | Pick an owner and either slot it into near-term scope or explicitly defer it. | Add a narrow task or a documented deferral decision.
 | G8 | open | adjacent_follow_up | Physics worker | `docs/projects/physics/GAPS.md` | Documentation pass | Throw-distance integration remains a TODO and is not linked to inventory or forced-movement flow. | `src/utils/physicsUtils.ts` | Future throw and shove rules need a stable distance contract. | Define the distance source and route it to the owning system. | Add one physics or combat proof once the route is chosen.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

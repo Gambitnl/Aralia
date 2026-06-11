@@ -145,7 +145,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 4d8 Necrotic damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

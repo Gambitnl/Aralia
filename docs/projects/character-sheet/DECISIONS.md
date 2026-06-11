@@ -26,3 +26,24 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Food freshness expiration semantics (G7)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+Should inventory food expiration be computed from a durable acquisition timestamp in the item model, or from an existing authoritative game-date source / deferred lifecycle system? (Required Review Brief in `NORTH_STAR.md`.)
+
+Decision made:
+Option A — add durable `acquiredAt` acquisition-timestamp semantics to the item model, backfill/migrate existing inventory data, then implement food expiration from that source.
+
+Rationale and evidence:
+- A durable per-item timestamp is the only source that lets `InventoryList.tsx` compute freshness without guessing when food entered inventory.
+- Backfill/migration is part of the approved scope so existing saves stay coherent.
+- Proof: focused InventoryList render test covering fresh and expired food plus the source-backed model/migration update.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D16).
+
+Follow-up:
+Implement the G7 slice: `acquiredAt` field on the item model, inventory backfill/migration, expiration computation in `InventoryList.tsx`, and the focused render test.

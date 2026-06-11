@@ -142,8 +142,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": "1d6 at 1, 2d6 at 5, 3d6 at 11, 4d6 at 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, one target takes 1d6 Piercing damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "piercing-damage",
+        "ranged-hit",
+        "cantrip-scaling"
+      ]
     },
     {
       "type": "MOVEMENT",
@@ -221,8 +226,14 @@
         "direction": "toward_caster",
         "maxDistance": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On the same hit, a Large or smaller target is affected by the spell's pull movement rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "forced-movement",
+        "pull",
+        "large-or-smaller",
+        "hit-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

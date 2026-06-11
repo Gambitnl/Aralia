@@ -145,8 +145,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One target within 60 feet makes a Wisdom save against 3d6 Psychic damage, taking half damage on a success; damage increases by 1d6 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "psychic-damage",
+        "wisdom-save",
+        "slot-scaling"
+      ]
     },
     {
       "type": "MOVEMENT",
@@ -221,8 +226,13 @@
         "value": 0,
         "unit": "feet"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a failed Wisdom save, the target uses its reaction to move away from the caster by the safest route.",
+      "conditionalEndings": [],
+      "tags": [
+        "forced-movement",
+        "reaction-move",
+        "wisdom-save"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

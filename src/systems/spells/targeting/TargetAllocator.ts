@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * LOCAL HELPER: This file has a small, manageable dependency footprint.
+ *
+ * Last Sync: 10/06/2026, 22:17:54
+ * Dependents: systems/spells/targeting/TargetResolver.ts
+ * Imports: 3 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/systems/spells/targeting/TargetAllocator.ts
  * Provides logic for complex target allocation strategies, such as the HP pool mechanics
@@ -22,14 +38,11 @@ export interface AllocationResult {
 }
 
 /**
- * TODO(Steward): Integrate `TargetAllocator` into `TargetResolver` or `SpellService`.
- * The `TargetAllocation` system (for Sleep/Color Spray) is built but not wired up.
- *
- * Steps:
- * 1. In `TargetResolver.resolveTargets`, check if `spell.targeting.allocation` exists.
- * 2. If it does, call `TargetAllocator.allocateTargets` with the resolved candidates.
- * 3. Pass the `allocation.logs` to the combat log.
- * 4. Use `allocation.selectedTargets` as the final target list for effects.
+ * Runtime integration note:
+ * `TargetResolver` now calls this allocator after normal range, sight, plane,
+ * and creature-filter checks. Combat execution also calls the resolver bridge
+ * with the already selected UI candidates so area spells keep their clicked
+ * footprint while pool rules reduce the final affected target list.
  */
 
 export interface AllocatorContext {
@@ -82,12 +95,11 @@ export class TargetAllocator {
   ): AllocationResult {
     const { resource, dice, sortOrder, strictLimit = true } = poolConfig;
 
-    // 1. Roll the pool
-    // TODO: Handle scaling dice (e.g. +2d8 per level).
-    // For now, we assume the dice string is fully resolved or we use base.
-    // In a full implementation, we'd use context.castLevel and poolConfig.scaling to adjust the dice string.
-    const finalDice = dice;
-    // NOTE: Simple scaling injection could happen here if we had a dice string builder.
+    // 1. Roll the pool after applying any safe, data-backed dice replacement.
+    // Tier maps are exact dice strings keyed by slot/character level, so they
+    // can be applied without knowing the spell's base level. Linear bonus text
+    // stays logged but unresolved until allocation receives that missing anchor.
+    const finalDice = this.resolvePoolDice(dice, poolConfig.scaling, context, logs);
 
     const poolTotal = rollDice(finalDice);
     let remainingPool = poolTotal;
@@ -157,5 +169,49 @@ export class TargetAllocator {
       return character.level ?? 0;
     }
     return 0;
+  }
+
+  private static resolvePoolDice(
+    baseDice: string,
+    scaling: ScalingFormula | undefined,
+    context: AllocatorContext,
+    logs: string[]
+  ): string {
+    // Spells without pool scaling use the declared dice exactly as written.
+    if (!scaling) {
+      return baseDice;
+    }
+
+    // Explicit scaling tiers are the safest representation because each
+    // threshold already names the complete replacement dice string.
+    if (scaling.scalingTiers && context.castLevel !== undefined) {
+      const activeTier = Object.keys(scaling.scalingTiers)
+        .map(levelText => Number.parseInt(levelText, 10))
+        .filter(level => Number.isFinite(level) && context.castLevel !== undefined && level <= context.castLevel)
+        .sort((a, b) => b - a)[0];
+
+      if (activeTier !== undefined) {
+        const tierDice = scaling.scalingTiers[activeTier.toString()];
+        logs.push(`Applied allocation scaling tier ${activeTier}: ${tierDice}`);
+        return tierDice;
+      }
+    }
+
+    // The older scaling shape can also expose a numeric resolver callback. That
+    // is useful for flat numeric payloads, but a dice pool needs a dice string,
+    // so we leave the original dice in place instead of converting a number
+    // into a misleading fake dice expression.
+    if (context.resolveScaling) {
+      logs.push('Allocation scaling resolver was provided but skipped because pool allocation needs dice text.');
+    }
+
+    // Linear text such as "+2d8 per slot level" cannot be safely expanded here
+    // because this context does not know the spell's base level. Logging the
+    // deferral makes the runtime behavior visible while preserving the base dice.
+    if (scaling.bonusPerLevel || scaling.customFormula) {
+      logs.push(`Allocation scaling not applied; base dice preserved: ${baseDice}`);
+    }
+
+    return baseDice;
   }
 }

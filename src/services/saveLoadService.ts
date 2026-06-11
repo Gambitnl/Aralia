@@ -876,11 +876,15 @@ function buildSlotIndex(): SaveSlotSummary[] {
   const parsedIndex: SaveSlotSummary[] = safeJSONParse<SaveSlotSummary[]>(storedIndex || '') || [];
   
   // RALPH: Ghost Mitigation.
-  // Filter out any entries from the index that no longer have a matching 
-  // payload in LocalStorage. This prevents the UI from showing "Continue"
-  // buttons for saves that were manually deleted or lost.
-  const allKeys = SafeStorage.getAllKeys();
-  const validIndex = parsedIndex.filter(slot => allKeys.includes(slot.slotId));
+  // Filter out any entries from the index that no longer have a matching
+  // payload. This prevents the UI from showing "Continue" buttons for saves
+  // that were manually deleted or lost.
+  // When IndexedDB is active, payloads live in IDB (not localStorage), so we
+  // trust the persisted metadata index as authoritative. Ghost entries will
+  // naturally fail during loadGame and can be cleaned up at that point.
+  const validIndex = idbAvailable
+    ? parsedIndex
+    : parsedIndex.filter(slot => SafeStorage.getAllKeys().includes(slot.slotId));
 
   return mergeWithLegacySaves(validIndex).sort((a, b) => b.lastSaved - a.lastSaved);
 }

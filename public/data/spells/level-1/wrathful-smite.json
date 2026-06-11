@@ -139,8 +139,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On the triggering weapon hit, the target takes 1d6 Necrotic damage, increasing by 1d6 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "necrotic-damage",
+        "smite-rider",
+        "slot-scaling"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -213,8 +218,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The target must succeed on a Wisdom save or be Frightened for up to 1 minute as part of the smite rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "frightened",
+        "wisdom-save",
+        "smite-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -224,5 +234,9 @@
   },
   "description": "The target takes an extra 1d6 Necrotic damage from the attack, and it must succeed on a Wisdom saving throw or have the Frightened condition until the spell ends. At the end of each of its turns, the Frightened target repeats the save, ending the spell on itself on a success.",
   "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.",
-  "tags": []
+  "tags": [
+    "smite",
+    "necrotic",
+    "control"
+  ]
 }

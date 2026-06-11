@@ -64,7 +64,9 @@ vi.mock('../terrain', () => ({
   DecorationProps: (...args: unknown[]) => mockDecorationProps(...args),
   GroundScatter: (...args: unknown[]) => mockGroundScatter(...args),
   EzTreeLayer: (...args: unknown[]) => mockEzTreeLayer(...args),
-  DistantTerrain: () => null
+  DistantTerrain: () => null,
+  GroundMist: () => null,
+  makeTerrainHeightSampler: () => () => 0
 }));
 
 vi.mock('../characters', () => ({

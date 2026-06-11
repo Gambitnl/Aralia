@@ -92,8 +92,12 @@ export function useAutoSave(gameState: GameState, enabledOverride?: boolean) {
     };
 
     const handleBeforeUnload = () => {
-      // Best-effort flush on refresh/close. localStorage writes are synchronous;
-      // the promise may not resolve, but the write usually happens.
+      // Write a synchronous emergency save to localStorage as a safety net.
+      // IndexedDB is async and may not complete before the browser kills
+      // the page. The emergency save is recovered into IDB on next startup
+      // via recoverEmergencySave() in saveLoadService.
+      SaveLoadService.emergencySaveSync(latestStateRef.current);
+      // Also attempt the normal async save — it may complete in time.
       void saveNow();
     };
 

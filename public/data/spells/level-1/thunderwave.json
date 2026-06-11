@@ -150,7 +150,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Creatures in the 15-foot cube make a Constitution save against 2d8 Thunder damage, taking half damage on a success; damage increases by 1d8 per slot level above 1st.",
       "soundEmission": {
         "audibleRadius": 300,
         "radiusUnit": "feet",
@@ -158,7 +158,13 @@
         "trigger": "on_cast",
         "description": "A thunderous boom is audible within 300 feet when the wave is released."
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "thunder-damage",
+        "constitution-save",
+        "area",
+        "slot-scaling"
+      ]
     },
     {
       "type": "UTILITY",

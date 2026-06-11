@@ -139,8 +139,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "While active, the caster's weapon hits gain an extra 1d4 Radiant damage rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "radiant-rider",
+        "weapon-hit",
+        "self-buff"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

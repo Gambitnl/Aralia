@@ -143,8 +143,13 @@
         "bonusPerLevel": "+2d4",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One creature within 60 feet regains 2d4 hit points, increasing by 2d4 for each slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "healing",
+        "ranged",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

@@ -1,4 +1,23 @@
-# Phb2024 Glossary Audit Cold Start Agent Handoff
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: PHB 2024 Glossary Audit
+slug: phb2024_glossary_audit
+status: review-required
+last_updated: "2026-06-08"
+iteration: 3
+source_agent: Not recorded
+target_agent: next cold-start agent
+runtime_surface: unknown
+certainty: unknown
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/phb2024_glossary_audit/NORTH_STAR.md
+tracker: docs/projects/phb2024_glossary_audit/TRACKER.md
+gaps: docs/projects/phb2024_glossary_audit/GAPS.md
+---
+# PHB 2024 Glossary Audit Cold Start Agent Handoff
 
 Status: review-required
 Last updated: 2026-06-08
@@ -16,6 +35,12 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 
 Project entry point:
 docs/projects/phb2024_glossary_audit/NORTH_STAR.md
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Phb2024 Glossary Audit

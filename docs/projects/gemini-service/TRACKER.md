@@ -1,4 +1,4 @@
-# TRACKER: Gemini Service
+# Gemini Service Living Tracker
 
 Status: active  
 Last updated: 2026-06-05
@@ -30,3 +30,11 @@ Last updated: 2026-06-05
 - Source of truth: `src/services/gemini/core.ts`, `src/services/gemini/encounters.ts`, `src/services/gemini/items.ts`, `src/services/geminiService.ts`.
 - Integration proof: handlers in `src/hooks/actions/*` plus `src/hooks/useGameActions.ts`, `src/components/debug/GeminiLogViewer.tsx`.
 - Registry anchor: `docs/projects/PROJECT_TRACKER.md` row "Gemini Service".
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

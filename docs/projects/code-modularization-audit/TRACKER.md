@@ -1,8 +1,17 @@
-# Code Modularization Audit Tracker
+# Code Modularization Audit Living Tracker
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10
 
+## Status Vocabulary
+
+- `not_started`
+- `active`
+- `waiting`
+- `blocked`
+- `done`
+- `superseded`
+- `out_of_scope`
 ## Current Queue
 
 | ID | Status | Owner | Task | Evidence | Next proof |
@@ -29,3 +38,24 @@ Last updated: 2026-06-08
 ## Next Assignment
 
 Continue scoring new candidates only after owner projects have consumed these routes. Implementation should wait until an owning project has accepted the candidate, preserved behavior is explicit, and a focused test boundary exists. If fresh unscored large files appear before that acceptance, record them as routed candidates only; do not start source rewrites.
+
+## Active Task Queue
+
+| ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
+|---|---|---|---|---|---|---|---|
+| T1 | done | Normalize this tracker to the living-project workflow contract | Amazon Q (iteration 4) | 2026-06-10 | docs/projects/PROJECT_CARD_SCHEMA.md; docs/agent-workflows/living-project-task-protocol/templates/LIVING_TRACKER.md | Completed: owner-acceptance scan run for CMA-G14..G19; no owner has accepted any route; project stays in routing/evidence posture | Re-run acceptance check when any of the six owning projects (three-d-modal, battle-map, submap, layout, combat, scripts-audits) records a gap row for their respective CMA-G14..G19 route |
+| T2 | waiting | Monitor owner acceptance of CMA-G14..G19 candidate routes | future agent | 2026-06-10 | CMA-G14..G19 rows in GAPS.md; all six owner GAPS files now contain a stub row (not_started, adjacent_follow_up) as of iteration 6; no owner has changed status to accepted/active | Check each owner GAPS.md for a row whose status has changed from not_started to accepted/active; when one appears and the owner project is not review-gated, create a bounded owner-local split plan with preservation tests | Owner GAPS.md row status changes to accepted/active and that owner project is not review-gated |
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

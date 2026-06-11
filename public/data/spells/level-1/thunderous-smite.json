@@ -139,7 +139,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
+      "description": "On the triggering weapon hit, the target takes 2d6 Thunder damage, increasing by 1d6 per slot level above 1st.",
       "soundEmission": {
         "audibleRadius": 300,
         "radiusUnit": "feet",
@@ -147,7 +147,12 @@
         "trigger": "on_hit",
         "description": "The empowered strike rings with thunder audible within 300 feet of the caster."
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "thunder-damage",
+        "smite-rider",
+        "slot-scaling"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -214,8 +219,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The target must succeed on a Strength save or fall Prone as part of the smite rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "prone",
+        "strength-save",
+        "smite-rider"
+      ]
     },
     {
       "type": "MOVEMENT",
@@ -290,8 +300,14 @@
         "value": 0,
         "unit": "feet"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The target must succeed on a Strength save or be pushed by the smite's movement rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "forced-movement",
+        "push",
+        "strength-save",
+        "smite-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -301,5 +317,9 @@
   },
   "description": "Your strike rings with thunder that is audible within 300 feet of you, and the target takes an extra 2d6 Thunder damage from the attack. Additionally, if the target is a creature, it must succeed on a Strength saving throw or be pushed 10 feet away from you and have the Prone condition.",
   "higherLevels": "Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 1.",
-  "tags": []
+  "tags": [
+    "smite",
+    "thunder",
+    "control"
+  ]
 }

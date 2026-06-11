@@ -21,7 +21,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { BattleMapData } from '../../../types/combat';
+import { BattleMapData, BattleMapTile } from '../../../types/combat';
+import { makeTerrainHeightSampler } from './TerrainMesh';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -33,6 +34,15 @@ const ELEVATION_SCALE = 0.3;
 const WATER_SUBDIVISIONS = 6;
 /** How far above terrain elevation the water surface sits */
 const WATER_SURFACE_OFFSET = 0.04;
+/**
+ * How far (world units) the water sheet extends past a water tile into
+ * adjacent land tiles. The carved bank (see TerrainMesh WATER_BASIN_DEPTH)
+ * rises through the extended sheet, so the depth test clips the water at a
+ * natural waterline instead of a hard tile-boundary seam.
+ */
+const SHORE_EXTEND = 0.5;
+/** Depth (world units) at which water color/opacity reach their "deep" values */
+const DEPTH_FULL = 0.42;
 
 // ---------------------------------------------------------------------------
 // Per-biome water color palettes
@@ -84,8 +94,10 @@ function getBiomeWaterColors(biome: string): WaterColors {
  */
 const WATER_VERTEX_PREAMBLE = /* glsl */ `
   uniform float uWaterTime;
+  attribute float aWaterDepth;
   varying vec3  vWaterWorldPos;
   varying float vWaterWaveDisp;
+  varying float vWaterDepth;
 `;
 
 /**
@@ -105,6 +117,7 @@ const WATER_VERTEX_DISPLACEMENT = /* glsl */ `
 
   // Re-derive world pos after displacement so fragment samples displaced surface
   vWaterWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+  vWaterDepth = aWaterDepth;
 `;
 
 /**
@@ -118,6 +131,7 @@ const WATER_FRAGMENT_PREAMBLE = /* glsl */ `
   uniform vec3  uWaterCaustic;
   varying vec3  vWaterWorldPos;
   varying float vWaterWaveDisp;
+  varying float vWaterDepth;
 
   float wHash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -153,23 +167,41 @@ const WATER_FRAGMENT_PREAMBLE = /* glsl */ `
 const WATER_FRAGMENT_COLOR = /* glsl */ `
   vec2 _wxz = vWaterWorldPos.xz;
 
-  // Scrolling noise for base color blend — world-space, no tile seams
+  // True depth below the surface (baked per-vertex from the carved terrain)
+  float _depth = max(vWaterDepth, 0.0);
+  float _dF = smoothstep(0.0, ${DEPTH_FULL.toFixed(2)}, _depth);
+
+  // Scrolling noise modulates the depth gradient — world-space, no tile seams
   float _cNoise = wFbm(_wxz * 0.35 + vec2(uWaterTime * 0.040,  uWaterTime * 0.028))
                 * 0.55
                 + wFbm(_wxz * 0.50 - vec2(uWaterTime * 0.025,  uWaterTime * 0.042))
                 * 0.45;
-  vec3 _wCol = mix(uWaterShallow, uWaterDeep, clamp(_cNoise * 0.9 + 0.05, 0.0, 1.0));
+  vec3 _wCol = mix(uWaterShallow, uWaterDeep,
+                   clamp(_dF * 0.80 + _cNoise * 0.30, 0.0, 1.0));
 
-  // Caustic overlay — two FBM layers scrolling in opposite directions
+  // Caustic overlay — two FBM layers scrolling in opposite directions.
+  // Strongest in the shallows where light reaches the bed.
   float _cauA = wFbm(_wxz * 4.8 + vec2( uWaterTime * 0.18,  uWaterTime * 0.13));
   float _cauB = wFbm(_wxz * 4.8 - vec2( uWaterTime * 0.13,  uWaterTime * 0.18));
   float _cau  = pow((_cauA + _cauB) * 0.5, 2.4) * 0.40;
-  _wCol += uWaterCaustic * _cau;
+  _wCol += uWaterCaustic * _cau * (1.0 - _dF * 0.55);
 
   // Wave crest brightening — peaks catch light
   _wCol += vec3(max(vWaterWaveDisp, 0.0) * 5.0);
 
+  // Shoreline foam — animated breakup in a thin band where depth → 0
+  float _foamBand = 1.0 - smoothstep(0.0, 0.09, _depth);
+  float _foamN = wNoise(_wxz * 9.0  + vec2(uWaterTime * 0.35, -uWaterTime * 0.27)) * 0.6
+               + wNoise(_wxz * 17.0 - vec2(uWaterTime * 0.22,  uWaterTime * 0.30)) * 0.4;
+  float _foam = _foamBand * smoothstep(0.30, 0.75, _foamN + _foamBand * 0.35);
+  vec3 _foamCol = mix(uWaterCaustic, vec3(0.94, 0.97, 0.94), 0.55);
+  _wCol = mix(_wCol, _foamCol, clamp(_foam, 0.0, 1.0) * 0.85);
+
   diffuseColor.rgb = _wCol;
+
+  // Depth-based transparency: shallow edges reveal the bed, deep water reads solid
+  diffuseColor.a *= mix(0.42, 1.0, _dF);
+  diffuseColor.a = max(diffuseColor.a, _foam * 0.9);
 `;
 
 /**
@@ -250,7 +282,7 @@ function createWaterMaterial(colors: WaterColors): {
 
   // Cache key prevents shader reuse across different biomes
   mat.customProgramCacheKey = () =>
-    `water-v3-${colors.shallow.getHex()}-${colors.deep.getHex()}`;
+    `water-v4-${colors.shallow.getHex()}-${colors.deep.getHex()}`;
 
   return { material: mat, uniforms };
 }
@@ -274,9 +306,19 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
     ?? mapData.theme
     ?? 'forest';
 
-  // Collect all water tiles
-  const waterTiles = useMemo(() => {
+  const { width, height } = mapData.dimensions;
+
+  // Collect all water tiles + a lookup set for neighbor (shoreline) checks
+  const { waterTiles, waterSet, tileGrid } = useMemo(() => {
     const tiles: { x: number; y: number; elevation: number }[] = [];
+    const set = new Set<string>();
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
     for (const [, tile] of mapData.tiles) {
       if (tile.terrain === 'water') {
         tiles.push({
@@ -284,32 +326,53 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
           y: tile.coordinates.y,
           elevation: tile.elevation,
         });
+        set.add(`${tile.coordinates.x}-${tile.coordinates.y}`);
       }
     }
-    return tiles;
-  }, [mapData]);
+    return { waterTiles: tiles, waterSet: set, tileGrid: grid };
+  }, [mapData, width, height]);
 
-  // Build merged water geometry — one mesh covering all water tiles
+  // Build merged water geometry — one mesh covering all water tiles.
+  // Each tile's sheet extends SHORE_EXTEND into adjacent land tiles so the
+  // carved bank (TerrainMesh WATER_BASIN_DEPTH) rises through the surface at a
+  // natural depth-tested waterline. Per-vertex aWaterDepth carries the true
+  // depth to the carved bed for the shader's gradient/transparency/foam.
   const geometry = useMemo(() => {
     if (waterTiles.length === 0) return null;
 
+    const heightSampler = makeTerrainHeightSampler(
+      tileGrid, width, height, mapData.seed ?? 42,
+    );
+    const isWater = (x: number, y: number) => waterSet.has(`${x}-${y}`);
+
     const allPositions: number[] = [];
     const allUVs: number[] = [];
+    const allDepths: number[] = [];
     const allIndices: number[] = [];
     let vertexOffset = 0;
 
     for (const tile of waterTiles) {
-      const subX = WATER_SUBDIVISIONS;
-      const subZ = WATER_SUBDIVISIONS;
+      // Extend toward land neighbors only; stop at map bounds and at fellow
+      // water tiles (their own sheets cover that area).
+      const x0 = tile.x - (tile.x > 0          && !isWater(tile.x - 1, tile.y) ? SHORE_EXTEND : 0);
+      const x1 = tile.x + 1 + (tile.x < width - 1  && !isWater(tile.x + 1, tile.y) ? SHORE_EXTEND : 0);
+      const z0 = tile.y - (tile.y > 0          && !isWater(tile.x, tile.y - 1) ? SHORE_EXTEND : 0);
+      const z1 = tile.y + 1 + (tile.y < height - 1 && !isWater(tile.x, tile.y + 1) ? SHORE_EXTEND : 0);
+      const spanX = x1 - x0;
+      const spanZ = z1 - z0;
+      const subX = Math.max(1, Math.round(spanX * WATER_SUBDIVISIONS));
+      const subZ = Math.max(1, Math.round(spanZ * WATER_SUBDIVISIONS));
       const y = tile.elevation * ELEVATION_SCALE + WATER_SURFACE_OFFSET;
 
       for (let iz = 0; iz <= subZ; iz++) {
         for (let ix = 0; ix <= subX; ix++) {
-          const x = tile.x * TILE_SIZE + (ix / subX) * TILE_SIZE;
-          const z = tile.y * TILE_SIZE + (iz / subZ) * TILE_SIZE;
+          const x = (x0 + (ix / subX) * spanX) * TILE_SIZE;
+          const z = (z0 + (iz / subZ) * spanZ) * TILE_SIZE;
           allPositions.push(x, y, z);
           // UVs in world scale so noise frequencies are consistent across tiles
           allUVs.push(x, z);
+          // True depth from the surface plane down to the carved terrain bed
+          allDepths.push(y - heightSampler(x / TILE_SIZE, z / TILE_SIZE));
         }
       }
 
@@ -328,12 +391,13 @@ const WaterSystem: React.FC<WaterSystemProps> = ({ mapData }) => {
     }
 
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
-    geo.setAttribute('uv',       new THREE.Float32BufferAttribute(allUVs,       2));
+    geo.setAttribute('position',    new THREE.Float32BufferAttribute(allPositions, 3));
+    geo.setAttribute('uv',          new THREE.Float32BufferAttribute(allUVs,       2));
+    geo.setAttribute('aWaterDepth', new THREE.Float32BufferAttribute(allDepths,    1));
     geo.setIndex(allIndices);
     geo.computeVertexNormals();
     return geo;
-  }, [waterTiles]);
+  }, [waterTiles, waterSet, tileGrid, width, height, mapData.seed]);
 
   // Material + uniform handle — recreated only when biome changes
   const { material, uniforms } = useMemo(() => {

@@ -1,4 +1,4 @@
-# Conversation Panel Gaps
+# Conversation Panel Gap Registry
 
 Status: active  
 Last updated: 2026-06-08

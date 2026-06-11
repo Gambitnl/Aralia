@@ -139,8 +139,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On the triggering weapon hit, the target takes 1d6 Fire damage as the smite damage rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "fire-damage",
+        "smite-rider",
+        "weapon-hit"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -227,8 +232,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The same target gains the Ignited condition for up to 1 minute as the modeled burning rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "ignited",
+        "burning-rider",
+        "smite-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -238,5 +248,9 @@
   },
   "description": "As you hit the target, it takes an extra 1d6 Fire damage from the attack. At the start of each of its turns until the spell ends, the target takes 1d6 Fire damage and then makes a Constitution saving throw. On a failed save, the spell continues. On a successful save, the spell ends.",
   "higherLevels": "Using a Higher-Level Spell Slot. All the damage increases by 1d6 for each spell slot level above 1.",
-  "tags": []
+  "tags": [
+    "smite",
+    "fire",
+    "concentration"
+  ]
 }

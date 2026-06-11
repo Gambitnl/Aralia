@@ -142,8 +142,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, one target takes 2d8 Poison damage, increasing by 1d8 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "poison-damage",
+        "ranged-hit",
+        "slot-scaling"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -208,8 +213,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On the same modeled hit, the target gains the Poisoned condition for 1 round.",
+      "conditionalEndings": [],
+      "tags": [
+        "poisoned",
+        "hit-rider",
+        "status"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

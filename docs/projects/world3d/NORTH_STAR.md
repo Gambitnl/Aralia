@@ -5,13 +5,13 @@ slug: world3d
 category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
-status: review-required
-last_updated: 2026-06-08
+status: active
+last_updated: 2026-06-10
 confidence: unknown
-evidence: "docs/projects/world3d/TRACKER.md; docs/projects/world3d/GAPS.md"
-gap_signal: "T6 and T14-T18 remediated; T7/W3D-G10 now review-blocked on loader LOD contract and seam strategy; W3D-G16 also needs view-window/LOD contract review"
+evidence: "docs/projects/world3d/TRACKER.md; docs/projects/world3d/GAPS.md; docs/projects/DECISION_BLITZ_2026-06-10.md (D4)"
+gap_signal: "T6 and T14-T18 remediated; T7/W3D-G10 loader-LOD/seam decision recorded 2026-06-10 (requested-LOD loader contract + skirt geometry); implementation lane open. W3D-G16 view-window work remains a separate follow-up."
 protocol: living-project
-next_step: "Resume from TRACKER.md; do not reassign W3D-G19/W3D-G23/W3D-G24/W3D-G25/W3D-G26, and do not assign T7 until the loader/LOD review clears."
+next_step: "Resume from TRACKER.md; T7 lane reopens under the decided contract — extend the chunk-loader request with the requested LOD tier and use skirt geometry for mixed-resolution seams; add mixed near/mid/low regression tests with the implementation."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -33,12 +33,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # World 3D System North Star
 
-Status: review-required
-Last updated: 2026-06-08 (T19)
+Status: active — decision recorded 2026-06-10; implementation lane open
+Last updated: 2026-06-10 (D4 decision recorded)
 
 > The **3D rendering engine** for Aralia's Azgaar-driven streamed 3D world: chunk streaming,
 > per-chunk mesh generation, and the R3F scene. One of three distinct surfaces (not
@@ -55,12 +55,12 @@ Last updated: 2026-06-08 (T19)
 | Project | World3d |
 | Slug | world3d |
 | Category | active project |
-| Status | review-required |
+| Status | active — decision recorded 2026-06-10; implementation lane open |
 | Confidence | unknown |
-| Evidence | docs/projects/world3d/TRACKER.md; docs/projects/world3d/GAPS.md |
-| Gap signal | T6 and T14-T18 remediated; T7/W3D-G10 now review-blocked on loader LOD contract and seam strategy; W3D-G16 also needs view-window/LOD contract review |
+| Evidence | docs/projects/world3d/TRACKER.md; docs/projects/world3d/GAPS.md; docs/projects/DECISION_BLITZ_2026-06-10.md (D4) |
+| Gap signal | T6 and T14-T18 remediated; T7/W3D-G10 loader-LOD/seam decision recorded 2026-06-10 (requested-LOD loader contract + skirt geometry); W3D-G16 view-window work remains a separate follow-up |
 | Protocol | living-project |
-| Next step | Resume from TRACKER.md; do not reassign W3D-G19/W3D-G23/W3D-G24/W3D-G25/W3D-G26, and do not assign T7 until the loader/LOD review clears. |
+| Next step | Resume from TRACKER.md; T7 lane reopens — extend the chunk-loader request with the requested LOD tier, use skirt geometry for mixed-resolution seams, add mixed near/mid/low regression tests. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
 | Last proof | 2026-06-08 focused world3d scene lifecycle proof plus useChunkStreaming StrictMode coverage |
@@ -83,6 +83,14 @@ Options:
 Evidence: `src/components/World3D/createWorkerChunkLoader.ts`, `src/systems/world3d/chunkStreamer.ts`, `src/systems/world3d/chunkGeometry.ts`, and `src/systems/world3d/lod.ts`.
 
 After decision: add mixed near/mid/low chunk regression tests, then reassign T7 only with the selected loader/seam contract.
+
+### Decision (2026-06-10)
+
+Resolved — option 1 selected. **Extend the chunk-loader request contract to carry the requested LOD tier, and use skirt geometry to hide mixed-resolution seams.** The T7 lane reopens under this contract; implementation must add mixed near/mid/low chunk regression tests alongside the loader/seam changes.
+
+- Decider: Remy (project owner), batched decision session 2026-06-10.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D4); local record: `docs/projects/world3d/DECISIONS.md` (D2).
+- Status: decision recorded 2026-06-10; implementation lane open. (W3D-G16 view-window widening remains a separate follow-up, not covered by this decision.)
 
 ## Why This Project Exists
 
@@ -181,7 +189,7 @@ the exaggerated terrain (→ W3D-G15, next task) and duplicate site React keys (
 | Stop condition | Focused scene lifecycle proof and streamer lifecycle tests remain green. |
 | Verification | `World3DScene.lifecycle.test.tsx` covers visible shell, camera/origin wiring, first stream update, rendered chunk content, and WebGL context listeners; `useChunkStreaming.test.tsx` keeps the StrictMode streamer guard. |
 | Owner | Codex worker |
-| Next action | T7/W3D-G10 is review-blocked until the loader API can carry requested LOD/resolution and a mixed-LOD seam strategy is chosen. Next safe World3D work is documentation-only contract extraction. |
+| Next action | T7/W3D-G10 decision recorded 2026-06-10 (DECISION_BLITZ D4): loader request carries the requested LOD tier; skirt geometry hides mixed-resolution seams. T7 lane is open — implement the extended loader contract + skirts with mixed near/mid/low regression tests. |
 
 ## Scope Boundaries
 
@@ -228,7 +236,7 @@ See `docs/projects/world3d/GAPS.md`. Headline rendering-owned gaps:
 | Sites quantized to integer grid → seat at chunk NW corner (W3D-G22) | adjacent_follow_up | unassigned | T12 replay: all 58 sites integer-grid → `localX=localZ=0` | sub-cell placement (likely `worldsim-service`) or document as intended |
 | Hard biome-color seams (no blending) (W3D-G12) | adjacent_follow_up | unassigned | `sampleBiomeNearest` + per-vertex color | feather biome colors across boundaries |
 | `WorldData.lakes` polygons not meshed (only river ribbons) | **done** | Codex worker | T6: `chunkSampler` carries lake polygons and `waterGeometry` triangulates lake fills | resolved by T6 |
-| Per-LOD geometry detail (LOD only tints) | **blocked** | review required | loader requests only `cx/cy`; `ChunkStreamer` records LOD after dispatch; no mixed-resolution seam/skirt contract | choose loader LOD API + seam strategy before implementation |
+| Per-LOD geometry detail (LOD only tints) | decided 2026-06-10 — implementation open | unassigned | loader requests only `cx/cy`; `ChunkStreamer` records LOD after dispatch; decision (DECISION_BLITZ D4): loader carries requested LOD tier + skirt geometry for seams | implement extended loader contract + skirts; mixed near/mid/low regression tests |
 | `culled` LOD tier unreachable / floating-origin never rebases (W3D-G13/G14) | adjacent_follow_up | unassigned | prior scan 2026-06-01 | see GAPS.md |
 | Worker loader unused by demo (inline path) | adjacent_follow_up | unassigned | `World3DDemo.tsx` inline `handleChunkRequest` | decide inline vs worker (with `world-3d-ui` entry choice) |
 | Cold-load `?phase=world3d` bounce | — | `world-3d-ui` | live debug 2026-06-01 | **owned by `world-3d-ui`** (entry/transition); see its GAPS |

@@ -5,13 +5,13 @@ slug: documentation-cleanup
 category: Documentation / Project Ops
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-08
+status: complete
+last_updated: 2026-06-10
 confidence: medium
-evidence: docs/projects/documentation-cleanup
-gap_signal: 1 review-blocked gap (G3), 4 resolved (G1, G2, G4, G5)
+evidence: docs/projects/documentation-cleanup; docs/projects/DECISION_BLITZ_2026-06-10.md (D23)
+gap_signal: "G3 decision recorded 2026-06-10 (close as complete-enough; scope not widened); all gaps G1-G5 resolved or closed; evidence preserved"
 protocol: living project doc set
-next_step: Human/project decision: formally widen duplicate-cleanup scope, close it as complete enough, or keep it as adjacent evidence only.
+next_step: "Project closed as complete-enough 2026-06-10 (DECISION_BLITZ D23). No further iteration agents; duplicate findings remain preserved as historical evidence. Re-open only via an explicitly scoped future cleanup campaign."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -32,16 +32,16 @@ completed_verification:
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: human-review-required
-deprecation_confidence: none
-deprecation_reason: ""
+lifecycle_status: closed-complete-enough
+deprecation_confidence: strong
+deprecation_reason: closed_complete_enough_2026-06-10_evidence_preserved
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Documentation Cleanup North Star
 
-Status: review-required
-Last updated: 2026-06-08
+Status: complete — G3 decision recorded 2026-06-10; project closed as complete-enough
+Last updated: 2026-06-10
 
 ## Why This Project Exists
 
@@ -68,19 +68,19 @@ keeping ignored local cleanup artifacts out of tracked project history.
 Project: Documentation Cleanup
 Slug: documentation-cleanup
 Category: Documentation / Project Ops
-Status: review-required
+Status: complete — G3 decision recorded 2026-06-10; closed as complete-enough
 Confidence: medium
-Evidence: docs/projects/documentation-cleanup
-Gap signal: 1 review-blocked gap (G3), 4 resolved (G1, G2, G4, G5)
+Evidence: docs/projects/documentation-cleanup; docs/projects/DECISION_BLITZ_2026-06-10.md (D23)
+Gap signal: G3 closed as complete-enough 2026-06-10; all gaps G1-G5 resolved or closed; evidence preserved
 Protocol: living project doc set
-Next step: Human/project decision: formally widen duplicate-cleanup scope, close it as complete enough, or keep it as adjacent evidence only.
+Next step: Project closed; no further iteration agents. Re-open only via an explicitly scoped future cleanup campaign.
 Required verification: source-backed decision, docs_consistency
 Completed verification: source-backed decision (path-drift verification D-01), docs_consistency (G2 resolved, G4 resolved)
 Last proof: 2026-06-08
 Workflow gaps reviewed: 2026-06-08
 
-Dashboard lifecycle: human-review-required
-Assignment rule: Do not assign forward Documentation Cleanup agents until the duplicate-cleanup completion-scope decision is recorded.
+Dashboard lifecycle: closed-complete-enough (was human-review-required; cleared 2026-06-10)
+Assignment rule: Do not assign forward Documentation Cleanup agents until the duplicate-cleanup completion-scope decision is recorded. *(Decision recorded 2026-06-10: project closed as complete-enough — no further agents needed.)*
 
 ## Required Review Brief
 
@@ -96,6 +96,14 @@ Evidence: `docs/tasks/documentation-cleanup/GAPS.md`; `docs/tasks/documentation-
 Decision owner: Human/project owner.
 Proof after decision: Record the chosen policy in `DECISIONS.md`, update G3 in `GAPS.md` and `TRACKER.md`, then run `npm run projects:audit` and `git diff --check`.
 
+### Decision (2026-06-10)
+
+Resolved — **Option B selected: close G3 as complete enough for this living-project cycle.** The duplicate-cleanup scope is not widened; prior duplicate findings are kept as historical evidence (expansion-first — nothing deleted).
+
+- Decider: Remy (project owner), batched decision session 2026-06-10.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D23); local record: `docs/projects/documentation-cleanup/DECISIONS.md` D-04.
+- Status: decision recorded 2026-06-10; the project closes as complete-enough. No further iteration agents are assigned; a future duplicate-cleanup campaign would be scoped as a new decision.
+
 ## Active Task
 
 | Field | Value |
@@ -106,7 +114,7 @@ Proof after decision: Record the chosen policy in `DECISIONS.md`, update G3 in `
 | Stop condition | Stop after the current open gaps are registered and the next resume path is clear. |
 | Verification | Confirm the doc set is internally consistent and the gap rows cite evidence. |
 | Owner | Iteration 2 agent |
-| Next action | Wait for the G3 scope decision before assigning more Documentation Cleanup iteration work. |
+| Next action | G3 scope decision recorded 2026-06-10 (DECISION_BLITZ D23): closed as complete-enough; no more Documentation Cleanup iteration work is assigned. |
 
 ## Scope Boundaries
 
@@ -126,7 +134,7 @@ Out of scope:
 |---|---|---|---|---|
 | Stale/duplicate docs need evidence-backed curation (G1). | resolved | iteration 2 | `DECISIONS.md`, `docs/projects/documentation-cleanup/AUDIT_OR_PROOF.md`, `docs/tasks/documentation-cleanup/1G.7-REDUCER-LOGIC.md`, `docs/tasks/documentation-cleanup/1G.8-POINT-BUY-UI.md`, `docs/tasks/documentation-cleanup/1G.9-LOADING-TRANSITION.md`, `docs/tasks/documentation-cleanup/1G.10-SUBMAP-GENERATION.md` | G1 wording was corrected in place where stale and preserved as historical context. |
 | Historical packets `1G.7`-`1G.10` path-drift (G2). | resolved | iteration 2 | `DECISIONS.md` D-01, `AUDIT_OR_PROOF.md` | Reconciliation complete. Packets preserved as historical intent. |
-| Duplicate-cleanup scope is partial with no completion check (G3). | blocked_human_decision | human/project owner | `docs/tasks/documentation-cleanup/GAPS.md`, `docs/tasks/documentation-cleanup/TRACKER.md` | Choose whether to widen, close, or preserve as adjacent evidence before assigning more agents. |
+| Duplicate-cleanup scope is partial with no completion check (G3). | resolved (decision recorded 2026-06-10) | human/project owner | `docs/tasks/documentation-cleanup/GAPS.md`, `docs/tasks/documentation-cleanup/TRACKER.md`, `docs/projects/DECISION_BLITZ_2026-06-10.md` (D23) | Decided 2026-06-10: closed as complete-enough; scope not widened; evidence preserved (DECISIONS.md D-04). |
 | PROJECT_TRACKER.md stale link (G4). | resolved | iteration 2 | `DECISIONS.md` D-02 | Corrected this iteration; resolved with no further action needed unless the tracker link changes. |
 | Documentation Cleanup is still missing the repo-required `RUNBOOK.md` (G5). | resolved | iteration 3 | `npm run projects:audit`, `docs/projects/PROJECT_TRACKER.md`, `docs/projects/documentation-cleanup/NORTH_STAR.md`, `docs/projects/documentation-cleanup/RUNBOOK.md` | Resolved by `docs/projects/documentation-cleanup/RUNBOOK.md`; rerun the audit to confirm the warning is gone. |
 
@@ -148,7 +156,7 @@ Out of scope:
 3. Read `docs/projects/documentation-cleanup/GAPS.md`.
 4. Read `docs/projects/documentation-cleanup/DECISIONS.md` for prior evidence-backed decisions.
 5. Review ignored `docs/tasks/documentation-cleanup` files only as evidence if present.
-6. Do not continue G3 until the duplicate-cleanup completion-scope decision is recorded.
+6. Do not continue G3 until the duplicate-cleanup completion-scope decision is recorded. *(Recorded 2026-06-10: G3 closed as complete-enough — DECISIONS.md D-04; the project is closed and needs no further iteration.)*
 
 ## Cold-Start Gap Routing
 

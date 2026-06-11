@@ -26,3 +26,24 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Event-lane contract — keep split lanes, document the bridge (G3/G4)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+The Required Review Brief asked whether `CombatEvents`, movement/attack emitters, turn sequencing, and world-day scheduling should remain separate lanes with an explicit bridge, or converge on a shared scheduler/marker contract.
+
+Decision made:
+**Keep the split lanes; document the bridge.** Write an explicit compatibility envelope with documented `combat_turn` / `world_day` markers. No shared scheduler is built this cycle.
+
+Rationale and evidence:
+- The lanes have different lifecycles and consumers; converging on a shared scheduler now would encode a cross-system ordering policy with more risk than benefit this cycle.
+- An explicit documented envelope plus markers gives the combined-timeline proof surface without a migration.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D8).
+- Brief and gaps: `docs/projects/events/NORTH_STAR.md` Required Review Brief; `docs/projects/events/GAPS.md` G3/G4.
+
+Follow-up:
+Write the compatibility-envelope documentation (lane boundaries, ordering assumptions, `combat_turn` / `world_day` marker contract), then add the ordering and marker proof tests (including the `ADVANCE_TIME` day tick + turn advance proof named in G4).

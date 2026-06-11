@@ -54,6 +54,42 @@ function getSpells(level: number): Spell[] {
 }
 
 // ---------------------------------------------------------------------------
+// Reviewed monolithic-effect clearances
+// ---------------------------------------------------------------------------
+// These spell IDs were manually checked and confirmed as legitimate single-effect
+// rows. Keeping the list shared prevents the level-specific visibility scan and
+// the all-spell monolithic scan from disagreeing about the same reviewed data.
+const MONOLITHIC_SAFE_LIST: string[] = [
+  // Light is one structured light-emission effect with object targeting, radius
+  // metadata, color choice, cover blocking, and recast ending data. Its long
+  // top-level prose does not imply a missing second combat effect.
+  'light',
+  // Gentle Repose is one structured corpse/remains protection utility. The
+  // target special-identity filter carries the important mechanical gate, so
+  // splitting it would create artificial effects rather than real behavior.
+  'gentle-repose',
+  // See Invisibility is one self-applied sensory utility. Its single effect
+  // already names sensory behavior, duration, and self targeting; there is no
+  // separate damage/status/action payload to extract.
+  'see-invisibility',
+  // Enhance Ability is one advantage-granting utility effect. The important
+  // complexity lives in targeting metadata: scalable target count and a
+  // required per-target ability choice, so splitting the effect would duplicate
+  // that already structured target-side rule.
+  'enhance-ability'
+];
+
+const filterReviewedMonolithicClearance = (spell: Spell, errors: string[]): string[] => {
+  // Reviewed one-effect spells should stop appearing as monolithic warnings,
+  // but every other integrity rule must remain visible for those rows.
+  if (!MONOLITHIC_SAFE_LIST.includes(spell.id)) {
+    return errors;
+  }
+
+  return errors.filter(error => error !== 'Monolithic Effect Description');
+};
+
+// ---------------------------------------------------------------------------
 // Test suite
 // ---------------------------------------------------------------------------
 
@@ -95,6 +131,55 @@ describe('SpellIntegrityValidator', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Unit tests: Effect Description Completeness rule
+  // -------------------------------------------------------------------------
+  // These tests lock G8/G9's cleanup into the validator itself. A spell effect
+  // with valid structured mechanics but an empty or placeholder description is
+  // still too opaque for UI, glossary, audits, and runtime trace debugging.
+  describe('Rule: Effect Description Completeness', () => {
+
+    it('fails if an effect description is blank', () => {
+      const badSpell = {
+        id: 'blank-effect-description',
+        duration: { concentration: false },
+        tags: [],
+        school: 'Evocation',
+        targeting: { type: 'single' },
+        effects: [
+          {
+            type: 'DAMAGE',
+            description: '   '
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Effect Description Gap: effect 0 has a blank description');
+    });
+
+    it('fails if an effect description is a generic placeholder', () => {
+      const badSpell = {
+        id: 'generic-effect-description',
+        duration: { concentration: false },
+        tags: [],
+        school: 'Evocation',
+        targeting: { type: 'single' },
+        effects: [
+          {
+            type: 'UTILITY',
+            description: 'See description.'
+          }
+        ]
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown as Spell;
+
+      const errors = SpellIntegrityValidator.validate(badSpell);
+      expect(errors).toContain('Effect Description Placeholder: effect 0 uses generic placeholder "See description."');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Regression test: all Level 2 spells (hard failure gate)
   // -------------------------------------------------------------------------
   // This test loads every Level 2 spell from disk and validates them all.
@@ -112,7 +197,7 @@ describe('SpellIntegrityValidator', () => {
 
       // Run every Level 2 spell through the validator and collect all failures.
       spells.forEach(spell => {
-        const errors = SpellIntegrityValidator.validate(spell);
+        const errors = filterReviewedMonolithicClearance(spell, SpellIntegrityValidator.validate(spell));
         if (errors.length > 0) {
           failures.push(`${spell.name}: ${errors.join(', ')}`);
         }
@@ -131,22 +216,21 @@ describe('SpellIntegrityValidator', () => {
       // HARD GATE: No Enchantment targeting gaps allowed. This was fully remediated.
       const enchantmentFailures = failures.filter(f => f.includes('Enchantment Gap'));
       expect(enchantmentFailures).toHaveLength(0);
+
+      // HARD GATE: No blank or generic effect descriptions allowed. G8/G9 were
+      // fully remediated, and future opaque descriptions should fail locally.
+      const descriptionFailures = failures.filter(f => f.includes('Effect Description'));
+      expect(descriptionFailures).toHaveLength(0);
     });
   });
 
   // -------------------------------------------------------------------------
-  // Systematic all-spell scan: Monolithic Effect tracking (soft warning)
+  // Systematic all-spell scan: Monolithic Effect tracking
   // -------------------------------------------------------------------------
-  // This test scans every spell across all 10 levels (0–9) to generate the
-  // working hit list of monolithic spell effects. It is currently a SOFT TEST
-  // — it prints the hit list as a console.warn but does NOT fail the test run.
-  //
-  // This design lets the team see the hit list shrink as spells are fixed
-  // during Phase 2, without blocking CI on a known and tracked debt.
-  //
-  // PHASE 3 UPGRADE: Once the hit list reaches zero, uncomment the
-  // expect(monolithicFailures).toHaveLength(0) assertion at the bottom of
-  // this test. That permanently locks the rule as a hard failure.
+  // This test scans every spell across all 10 levels (0-9) to generate the
+  // working hit list of monolithic spell effects. G5 cleared the current hit
+  // list, so this is now a hard regression gate: future one-effect copy-paste
+  // blobs should fail locally instead of re-entering the corpus silently.
   describe('Systematic All-Spell Validation', () => {
 
     // Load every spell across all levels into one flat array.
@@ -155,22 +239,11 @@ describe('SpellIntegrityValidator', () => {
       allSpells.push(...getSpells(level));
     }
 
-    // Safe-list: spell IDs that genuinely have only one effect despite sounding
-    // like they might have more. Any spell on this list is skipped by the
-    // monolithic check to prevent false positives.
-    // Example entry: 'blade-ward' (one effect, long description, no copy-paste).
-    const MONOLITHIC_SAFE_LIST: string[] = [
-      // Add spell IDs here as they are reviewed and confirmed as legitimate.
-    ];
-
-    it('flags monolithic spell effects without failing (for now)', () => {
+    it('hard-fails monolithic spell effects across all spells', () => {
       const monolithicFailures: string[] = [];
 
       allSpells.forEach(spell => {
-        // Skip any spells the team has manually confirmed as genuine one-effect spells.
-        if (MONOLITHIC_SAFE_LIST.includes(spell.id)) return;
-
-        const errors = SpellIntegrityValidator.validate(spell);
+        const errors = filterReviewedMonolithicClearance(spell, SpellIntegrityValidator.validate(spell));
 
         // Collect only the monolithic-effect failures; ignore other rule errors.
         if (errors.some(e => e === 'Monolithic Effect Description')) {
@@ -178,15 +251,32 @@ describe('SpellIntegrityValidator', () => {
         }
       });
 
-      // Print the full hit list so the team can track progress during Phase 2.
+      // Print the full hit list before failing so the next repair pass knows
+      // exactly which rows reintroduced monolithic effect descriptions.
       if (monolithicFailures.length > 0) {
         console.warn(`Monolithic Effect Failures (${monolithicFailures.length}):\n${monolithicFailures.join('\n')}`);
       }
 
-      // TODO(next-agent / Phase 3): When the hit list above reaches zero spells,
-      // uncomment this assertion to permanently lock the rule as a hard failure.
-      // This prevents any new monolithic spell from being merged going forward.
-      // expect(monolithicFailures).toHaveLength(0);
+      expect(monolithicFailures).toHaveLength(0);
+    });
+
+    it('hard-fails blank or generic effect descriptions across all spells', () => {
+      const descriptionFailures: string[] = [];
+
+      allSpells.forEach(spell => {
+        const errors = filterReviewedMonolithicClearance(spell, SpellIntegrityValidator.validate(spell));
+        const relevantErrors = errors.filter(error => error.includes('Effect Description'));
+
+        if (relevantErrors.length > 0) {
+          descriptionFailures.push(`${spell.id || spell.name}: ${relevantErrors.join(', ')}`);
+        }
+      });
+
+      if (descriptionFailures.length > 0) {
+        console.warn(`Effect Description Failures (${descriptionFailures.length}):\n${descriptionFailures.join('\n')}`);
+      }
+
+      expect(descriptionFailures).toHaveLength(0);
     });
   });
 });

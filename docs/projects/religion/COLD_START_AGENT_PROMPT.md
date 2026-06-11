@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Religion System
+slug: religion
+status: review-required
+last_updated: "2026-06-09"
+iteration: 6
+source_agent: Codex / gpt-5
+target_agent: next cold-start agent
+runtime_surface: CLI agent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/religion/NORTH_STAR.md
+tracker: docs/projects/religion/TRACKER.md
+gaps: docs/projects/religion/GAPS.md
+---
 # Religion System Cold Start Agent Handoff
 
 Status: review-required

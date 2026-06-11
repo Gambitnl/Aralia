@@ -1,4 +1,4 @@
-# TRACKER: Scripts: Git
+# Scripts: Git Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -33,3 +33,11 @@ Last updated: 2026-06-05
   - `G2` not started: no runbook file exists yet for explicit one-command policy verification.
 
 - Runtime/hook behavior questions remain in implementation ownership and are not edited in this pass.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

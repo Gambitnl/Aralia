@@ -155,8 +155,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Chosen visible creatures in the 5-foot emanation make a Constitution save against 1d6 Radiant damage, with cantrip-tier damage scaling.",
+      "conditionalEndings": [],
+      "tags": [
+        "radiant-damage",
+        "constitution-save",
+        "caster-choice-area"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

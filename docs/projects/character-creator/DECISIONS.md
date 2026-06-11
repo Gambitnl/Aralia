@@ -26,3 +26,23 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Housekeeping — G2 sidebar navigation policy was already resolved 2026-06-08
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session (housekeeping confirmation, not a new decision)
+
+Decision point:
+The 2026-06-10 decision blitz reviewed every pending review hold across `docs/projects/*`. Character Creator's G2 (sidebar navigation policy) still read as a review hold in some status fields.
+
+Decision made:
+No new decision was needed: G2 was already resolved on 2026-06-08 — permissive sidebar navigation with locked placeholders is the intentional design (`StepLockedPlaceholder` exists to avoid the dispatch-during-render anti-pattern). The project docs were updated so they no longer present G2 as a pending review hold; the historical Required Review Brief and resolution text are preserved unchanged.
+
+Rationale and evidence:
+- `docs/projects/character-creator/NORTH_STAR.md` Required Review Brief already carried "Status: Resolved - Permissive Navigation Intentional" with decision owner recorded 2026-06-08.
+- `GAPS.md` G2 and `TRACKER.md` T3/G2 were already `done`/`decision_recorded`.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` ("Items converted to work" — Character Creator G2 row: "Already resolved 2026-06-08 (permissive navigation). No action; tracker row should drop the review hold").
+
+Follow-up:
+None for G2. Open lanes remain T4 (doc drift reconciliation) and gaps G1, G3-G8.

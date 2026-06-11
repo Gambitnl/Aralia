@@ -6,8 +6,10 @@ import {
   processAreaEndTurnTriggers,
   processAreaEntryTriggers,
   processAreaExitTriggers,
+  processMovementTriggers,
   resetZoneTurnTracking,
-  type ActiveSpellZone
+  type ActiveSpellZone,
+  type MovementTriggerDebuff
 } from '../triggerHandler'
 import { AoECalculator } from '@/systems/spells/targeting/AoECalculator'
 import type { CombatCharacter, Position } from '@/types/combat'
@@ -291,5 +293,85 @@ describe('processAreaExitTriggers', () => {
     // Even if moverA tries again, still blocked
     const secondA = processAreaExitTriggers([zone], moverA, { x: 3, y: 0 }, { x: 2, y: 0 })
     expect(secondA.length).toBe(0)
+  })
+})
+
+describe('trigger source context', () => {
+  it('carries zone source context through entry, exit, and end-turn helpers', () => {
+    // Trigger helper callers use these processed effects after the original
+    // spell cast has already finished. The source context is what lets later
+    // save and audit code use the original spell and caster instead of guessing
+    // from the affected target.
+    const entryEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_enter_area', frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d4', type: 'Fire' }
+    } as unknown as SpellEffect
+    const exitEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_exit_area', frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d4', type: 'Cold' }
+    } as unknown as SpellEffect
+    const endTurnEffect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_end_turn_in_area', frequency: 'every_time' },
+      condition: { type: 'always' },
+      damage: { dice: '1d4', type: 'Poison' }
+    } as unknown as SpellEffect
+    const zone: ActiveSpellZone = {
+      ...makeZone([entryEffect, exitEffect, endTurnEffect]),
+      spellId: 'source-zone',
+      casterId: 'source-caster',
+      saveDC: 19
+    }
+    const mover = makeCharacter({ x: 0, y: 0 })
+
+    expect(processAreaEntryTriggers([zone], mover, { x: 0, y: 0 }, { x: 2, y: 0 }, 1)[0].effects[0].sourceContext).toEqual({
+      spellId: 'source-zone',
+      casterId: 'source-caster',
+      saveDC: 19
+    })
+    expect(processAreaExitTriggers([zone], mover, { x: 2, y: 0 }, { x: 0, y: 0 })[0].effects[0].sourceContext).toEqual({
+      spellId: 'source-zone',
+      casterId: 'source-caster',
+      saveDC: 19
+    })
+    expect(processAreaEndTurnTriggers([zone], mover, 1)[0].effects[0].sourceContext).toEqual({
+      spellId: 'source-zone',
+      casterId: 'source-caster',
+      saveDC: 19
+    })
+  })
+
+  it('carries movement-debuff source context into processed target-move effects', () => {
+    // Booming Blade-style movement debuffs fire from state saved at cast time.
+    // The processed effect must carry the original caster and DC so downstream
+    // save handling does not accidentally use the moving target as the source.
+    const effect = {
+      type: 'DAMAGE',
+      trigger: { type: 'on_target_move', frequency: 'once' },
+      condition: { type: 'always' },
+      damage: { dice: '1d8', type: 'Thunder' }
+    } as unknown as SpellEffect
+    const debuff: MovementTriggerDebuff = {
+      id: 'movement-source',
+      spellId: 'booming-source',
+      casterId: 'blade-caster',
+      targetId: 'target',
+      effects: [effect],
+      expiresAtRound: 3,
+      hasTriggered: false,
+      saveDC: 18
+    }
+
+    const results = processMovementTriggers([debuff], makeCharacter({ x: 1, y: 0 }), 2)
+
+    expect(results[0].effects[0].sourceContext).toEqual({
+      spellId: 'booming-source',
+      casterId: 'blade-caster',
+      saveDC: 18
+    })
   })
 })

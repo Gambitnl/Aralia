@@ -141,8 +141,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a hit against the marked target, the spell adds 1d6 Necrotic damage as the modeled curse damage rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "necrotic-rider",
+        "marked-target",
+        "hit-rider"
+      ]
     },
     {
       "type": "UTILITY",

@@ -145,7 +145,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 10d8 Lightning damage on a failed Dexterity save, or half as much on success.",
       "conditionalEndings": []
     }
   ],

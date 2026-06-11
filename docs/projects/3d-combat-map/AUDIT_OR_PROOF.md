@@ -155,5 +155,5 @@ pass/fail bars live here so the proof survives the chat session.
   (`save-bridge.mjs` while the app is in classic exploration) so the System Menu is
   present; (b) add a small dev hook to jump straight to a battle-map encounter; or
   (c) script the World3D→combat trigger if/when that path is documented. Then run
-  `nc2-combatview.mjs` and record canvas-vs-ErrorBoundary-fallback + pop-out
+  `nc2-combatview.mjs` and record intended canvas vs ErrorBoundary diagnostic state + pop-out
   renderMode persistence.

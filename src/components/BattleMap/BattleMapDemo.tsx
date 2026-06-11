@@ -89,13 +89,17 @@ function makeRaceLineup(spells: Record<string, Spell>): CombatCharacter[] {
 // distinct creature forms (undead/beast/giant + size scaling). Enabled by
 // `window.__BM3D_CREATURE_LINEUP`. Guarded by canUseDevTools.
 function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
-  const specs: Array<{ name: string; size?: string; creatureTypes: string[] }> = [
+  const specs: Array<{ name: string; size?: string; creatureTypes: string[]; hp?: number }> = [
     { name: 'Goblin',         creatureTypes: ['Humanoid', 'Goblinoid'] },
     { name: 'Skeleton',       creatureTypes: ['Undead'] },
     { name: 'Dire Wolf',      creatureTypes: ['Beast'] },
     { name: 'Orc Reaver',     creatureTypes: ['Humanoid'] },
     { name: 'Ogre',           size: 'Large', creatureTypes: ['Giant'] },
     { name: 'Red Dragon',     size: 'Huge', creatureTypes: ['Dragon'] },
+    { name: 'Gray Ooze',      creatureTypes: ['Ooze'] },
+    { name: 'Beholder',       size: 'Large', creatureTypes: ['Aberration'] },
+    // Spawns already dead — verifies the death/unconscious visual (GOAL #20).
+    { name: 'Slain Orc',      creatureTypes: ['Humanoid'], hp: 0 },
   ];
   const out: CombatCharacter[] = [];
   specs.forEach((s, i) => {
@@ -110,6 +114,7 @@ function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
         name: s.name,
         team: 'enemy',
         creatureTypes: s.creatureTypes,
+        currentHP: s.hp ?? cc.currentHP,
         stats: { ...cc.stats, size: (s.size ?? cc.stats.size) as typeof cc.stats.size },
       });
     }
@@ -117,6 +122,27 @@ function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
   return out;
 }
 
+
+// Dev-only verification harness: one human per class archetype (fighter /
+// caster / rogue) as the player team, so class-silhouette readability can be
+// judged at a deterministic camera pose with race held constant. Enabled by
+// `window.__BM3D_CLASS_LINEUP`. Guarded by canUseDevTools.
+function makeClassLineup(spells: Record<string, Spell>): CombatCharacter[] {
+  const specs = [
+    { classId: 'fighter', name: 'Fighter' },
+    { classId: 'wizard',  name: 'Wizard' },
+    { classId: 'rogue',   name: 'Rogue' },
+  ];
+  const out: CombatCharacter[] = [];
+  specs.forEach((s, i) => {
+    const cc = createQuickCombatCharacter(
+      { raceId: 'human', classId: s.classId, level: 1, useRecommendedStats: true },
+      spells as unknown as Record<string, unknown>,
+    );
+    if (cc) out.push({ ...cc, id: `class-${i}`, name: s.name, team: 'player' });
+  });
+  return out;
+}
 
 interface BattleMapDemoProps {
   onExit: () => void;
@@ -205,7 +231,15 @@ const ControlsHelp: React.FC<{ visible: boolean }> = ({ visible }) => {
 const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters, party }) => {
   const initialBiome: BiomeType = 'forest';
   const [biome, setBiome] = useState<BiomeType>(initialBiome);
-  const [seed, setSeed] = useState(() => Date.now());
+  const [seed, setSeed] = useState(() => {
+    // Dev-only deterministic seed override so the headless capture rig can take
+    // same-map before/after shots (`SEED=` in shoot.mjs → window.__BM3D_SEED).
+    if (typeof window !== 'undefined' && canUseDevTools()) {
+      const s = (window as unknown as { __BM3D_SEED?: number }).__BM3D_SEED;
+      if (typeof s === 'number' && Number.isFinite(s)) return s;
+    }
+    return Date.now();
+  });
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
   // [2026-05-21] 3D render mode toggle
   const [renderMode, setRenderMode] = useState<'2d' | '3d'>('2d');
@@ -222,6 +256,12 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
       && (window as unknown as { __BM3D_RACE_LINEUP?: boolean }).__BM3D_RACE_LINEUP
       && canUseDevTools()) {
       return makeRaceLineup(spellsRecord);
+    }
+    // Dev-only class-silhouette lineup (see makeClassLineup).
+    if (typeof window !== 'undefined'
+      && (window as unknown as { __BM3D_CLASS_LINEUP?: boolean }).__BM3D_CLASS_LINEUP
+      && canUseDevTools()) {
+      return makeClassLineup(spellsRecord);
     }
     const partyCombatants = party.map(p => createPlayerCombatCharacter(p, spellsRecord));
     // Dev-only enemy creature lineup (see makeCreatureLineup): keep the party so

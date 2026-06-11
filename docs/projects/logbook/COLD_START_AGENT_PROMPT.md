@@ -1,7 +1,26 @@
-# Logbook Project Cold Start Agent Handoff
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Logbook
+slug: logbook
+status: active
+last_updated: "2026-06-10"
+iteration: 3
+source_agent: Qoder CLI
+target_agent: next cold-start agent
+runtime_surface: CLI agent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/logbook/NORTH_STAR.md
+tracker: docs/projects/logbook/TRACKER.md
+gaps: docs/projects/logbook/GAPS.md
+---
+# Logbook Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-06
+Last updated: 2026-06-10
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -17,10 +36,17 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 Project entry point:
 docs/projects/logbook/NORTH_STAR.md
 
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Qoder CLI | CLI agent | certain | 2026-06-10 | Shell terminal with tool access, invoked via /clear directive |
+
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Logbook Project
 Project folder: docs/projects/logbook
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -30,43 +56,28 @@ Gaps: docs/projects/logbook/GAPS.md
 
 ## Previous Agent Handoff
 
-This pass refreshed the Logbook handoff docs, added the North Star dashboard
-schema, and kept G1 as the resume anchor for implementation work. Use
-NORTH_STAR.md for project scope and intent, TRACKER.md for the active queue,
-and GAPS.md for unresolved findings.
+Iteration 2 carried forward all Logbook gaps with a source-code-backed scan,
+defined the G1 retention policy implementation slice (cap at
+MAX_DISCOVERY_LOG_ENTRIES, prune oldest, adjust unread count, saveLoadService
+load-time prune), and registered two new gaps: G5 (unread count drift on quest
+updates — bug) and G6 (quest update content accumulation without bounds). T2
+was closed and T3 was created as the new active task: implement G1 and fix G5.
+No code changes were made; this was a docs-and-design pass.
 
 ## Current Mission
 
 Active task:
-T2 - Carry forward Logbook gaps before implementation
+T3 - Implement discovery log retention policy (G1) and fix unread count drift (G5)
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+`logReducer.ts` has a MAX_DISCOVERY_LOG_ENTRIES cap with correct unread count
+adjustment on prune; UPDATE_QUEST_IN_DISCOVERY_LOG correctly tracks unread
+transitions; saveLoadService prunes oversized logs on load.
 
 Key files to touch:
-- docs/projects/logbook/NORTH_STAR.md
-- docs/projects/logbook/TRACKER.md
-- docs/projects/logbook/GAPS.md
-- docs/projects/logbook/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
-
-Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
-
-Recent progress:
-North Star now carries a dashboard card schema, tracker/gap timestamps were
-refreshed, and the cold-start path now starts from this handoff before the
-project docs. No code changes were made in this pass.
-
-Key files to touch:
+- src/state/reducers/logReducer.ts
+- src/services/saveLoadService.ts
+- Unit tests for logReducer (create if not present)
 - docs/projects/logbook/NORTH_STAR.md
 - docs/projects/logbook/TRACKER.md
 - docs/projects/logbook/GAPS.md
@@ -76,7 +87,6 @@ Key files to touch:
 - docs/projects/logbook/RUNBOOK.md
 - docs/projects/PROJECT_CARD_SCHEMA.md
 - docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
 
 Optional docs to check when present or named by tracker:
 - tasks/
@@ -85,13 +95,21 @@ Optional docs to check when present or named by tracker:
 - project-specific proof or design notes
 
 Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
+Unit tests for retention cap behavior, unread count accuracy after quest
+updates, and save/load round-trip with >200 entries. Run via vitest.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
+Stay inside this project's scope boundaries. Route sibling-project blockers
+instead of editing their docs. The quest-entry exemption question in G1 is
+a deferred sub-decision — if it blocks implementation, record as
+`blocked_human_decision`.
 
 Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
+Iteration 2 completed a full source scan of logReducer, DiscoveryLogPane,
+DossierPane, and saveLoadService. All 4 existing gaps (G1-G4) confirmed with
+line-level evidence. G5 (unread drift bug) and G6 (quest content accumulation)
+registered. G1 implementation slice designed and recorded in DECISIONS.md D2
+and GAPS.md G1 row. T3 created as the implementation task.
 
 ## Required End State For This Iteration
 

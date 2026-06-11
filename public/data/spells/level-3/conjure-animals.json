@@ -178,7 +178,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Summons creatures through the row's current always-on summoning scaffold.",
       "conditionalEndings": []
     }
   ],

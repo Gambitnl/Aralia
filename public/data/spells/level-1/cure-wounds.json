@@ -146,8 +146,13 @@
         "bonusPerLevel": "+2d8",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One touched creature regains 2d8 hit points, increasing by 2d8 for each slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "healing",
+        "touch",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

@@ -137,7 +137,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "For the duration, you hide a target that you touch from Divination spells. The target can be a willing creature, or it can be a place or an object no larger than 10 feet in any dimension. The target can't be targeted by any Divination spell or perceived through magical scrying sensors.",
+      "description": "Protects the touched willing creature, place, or up-to-10-foot object from Divination targeting and magical scrying sensors for 8 hours.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -183,5 +183,9 @@
   },
   "description": "For the duration, you hide a target that you touch from Divination spells. The target can be a willing creature, or it can be a place or an object no larger than 10 feet in any dimension. The target can't be targeted by any Divination spell or perceived through magical scrying sensors.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "abjuration",
+    "protection",
+    "anti-divination"
+  ]
 }

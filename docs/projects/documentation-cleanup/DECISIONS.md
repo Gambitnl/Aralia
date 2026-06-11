@@ -1,7 +1,7 @@
 # Documentation Cleanup Decisions
 
-Status: active
-Last updated: 2026-06-08
+Status: complete — project closed as complete-enough 2026-06-10
+Last updated: 2026-06-10
 
 ## D-01: Path-Drift Packets 1G.7–1G.10 Evidence Reconciliation
 
@@ -84,3 +84,40 @@ For G1, I am recording a **correct-and-preserve** handling pattern:
 
 No broad deletion or pruning is performed; only curation of wording for evidence
 consistency was required.
+
+## D-04: Duplicate-Cleanup Completion Scope — Close As Complete Enough (G3)
+
+Date: 2026-06-10
+Gap addressed: G3 (duplicate-cleanup scope partial with no completion check)
+Decider: Remy (project owner), batched decision session 2026-06-10
+
+### Question
+
+Should Documentation Cleanup formally widen G3 into a new duplicate-cleanup
+pass, close the duplicate-cleanup scope as complete enough, or preserve it
+only as adjacent historical evidence? (Required Review Brief in
+`NORTH_STAR.md`.)
+
+### Decision
+
+**Option B — close G3 as complete enough for this living-project cycle.**
+The duplicate-cleanup scope is not widened. Prior duplicate findings in
+`docs/tasks/documentation-cleanup/` remain preserved as historical evidence
+(expansion-first; nothing deleted). The project closes with its current
+evidence preserved.
+
+### Rationale
+
+- G1/G2/G4/G5 were already resolved with source-backed evidence; the only
+  remaining row was a policy question, not a concrete cleanup task.
+- Widening scope now would force an agent to invent targets without an owner
+  mandate; an explicit close establishes the missing stop rule.
+- A future duplicate-cleanup campaign can be scoped as a new decision if the
+  need returns.
+
+### Record
+
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D23).
+- Follow-up applied: G3 marked resolved in `GAPS.md` and `TRACKER.md`; T3
+  closed; `NORTH_STAR.md` status set to complete with the review brief
+  resolution appended.

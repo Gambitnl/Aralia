@@ -139,7 +139,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 3d8 Radiant damage on the row's current hit-based resolution.",
       "conditionalEndings": []
     },
     {
@@ -210,7 +210,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Blinded on the row's current hit-based resolution for 1 minute; repeat Constitution save at turn end can end the condition; slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

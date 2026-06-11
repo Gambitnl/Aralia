@@ -152,7 +152,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Creatures in the 5-foot burst make a Constitution save against 1d6 Thunder damage, with cantrip-tier damage scaling.",
       "conditionalEndings": [],
       "soundEmission": {
         "audibleRadius": 100,
@@ -160,7 +160,12 @@
         "source": "spell_area",
         "trigger": "on_cast",
         "description": "The thunderous sound can be heard up to 100 feet away when the spell is cast."
-      }
+      },
+      "tags": [
+        "thunder-damage",
+        "constitution-save",
+        "area"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

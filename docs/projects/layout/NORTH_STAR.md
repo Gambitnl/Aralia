@@ -5,13 +5,13 @@ slug: layout
 category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
-status: review-required
-last_updated: 2026-06-08
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/layout
-gap_signal: "1 review-required gap (G3); 1 blocked follow-up (G4)"
+gap_signal: "G3/G4 decided 2026-06-10 (D7); implementation lane open"
 protocol: living project doc set
-next_step: Await human review on the isUIInteractive modal contract and keep the prop surface intact until the owner chooses wire-or-retire.
+next_step: "Implement the approved app-shell split: move provider composition out of App.tsx into a dedicated app-shell module with preservation tests (provider order, DataLoaderGate, GameProvider boundaries); keep isUIInteractive as a documented compatibility pass-through."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -33,24 +33,24 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Layout Project North Star
 
-Status: review-required
-Last updated: 2026-06-08
+Status: active (decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Dashboard Card Schema
 
 Project: Layout Project
 Slug: layout
 Category: Feature/UI Projects
-Status: review-required
+Status: active (decision recorded 2026-06-10; implementation lane open)
 Confidence: medium
 Evidence: docs/projects/layout
-Gap signal: 1 review-required gap (G3); 1 blocked follow-up (G4)
+Gap signal: G3/G4 decided 2026-06-10 (D7); implementation lane open
 Protocol: living project doc set
-Next step: Await human review on the `isUIInteractive` modal contract and keep the prop surface intact until the owner chooses wire-or-retire.
+Next step: Implement the approved app-shell split (provider composition moves to a dedicated app-shell module) with preservation tests for provider order, `DataLoaderGate`, and `GameProvider` boundaries; keep `isUIInteractive` as a documented compatibility pass-through.
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-08
@@ -134,9 +134,23 @@ Evidence: `src/App.tsx:899`, `src/App.tsx:1047`, `src/App.tsx:1090`, `src/App.ts
 Decision owner: Human/product owner for the Layout interaction and focus policy.
 Proof after decision: Either a focused App/GameModals test update that exercises the chosen modal-lock behavior, or a source-backed pass-through removal with matching call-site cleanup.
 
+### Decision (2026-06-10)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D7 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`):
+
+- **G3 — Option A.** `isUIInteractive` stays as a documented compatibility pass-through.
+  `GameModals` continues to ignore it; wiring it into a modal-lock policy or retiring it
+  is a later, separate decision.
+- **G4 — App-shell split approved.** Provider composition moves out of `App.tsx` into a
+  dedicated app-shell module, with explicit preservation tests covering provider order,
+  `DataLoaderGate`, and `GameProvider` boundaries (joint decision with Providers / G5).
+
+Status: decision recorded 2026-06-10; implementation lane open.
+
 ## Next Checks
 
-1. Await the owner decision recorded in the Required Review Brief.
+1. Await the owner decision recorded in the Required Review Brief. (Done 2026-06-10 — see Decision subsection above; D7.)
 2. Record exact modal ownership for each overlay and whether each one is window-frame based.
 3. Verify responsive behavior and boundary coverage for non-playing phases after the interaction-lock rule is fixed.
 4. If the owner keeps the compatibility hook, wire the flag into the chosen modal-lock surface and add focused tests.

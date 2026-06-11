@@ -26,3 +26,23 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Merge into Scripts: Quality
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+The North Star asked whether Script Tests remains a standalone test project or merges into Scripts Quality/Audits before worker assignment (lifecycle status was merge-candidate).
+
+Decision made:
+**Merge into Scripts: Quality.** `script-tests` becomes a support surface of `docs/projects/scripts-quality`; this project's status and tracker row become merged-reference. Open gaps ST-GAP-001 through ST-GAP-004 transfer to scripts-quality ownership; the docs in this folder are retained as the reference record of the `scripts/__tests__` continuity contract.
+
+Rationale and evidence:
+- The test surface guards the same script-layer quality posture scripts-quality already owns; a standalone project added tracker overhead without a distinct owner.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D21).
+- Receiving-side record: `docs/projects/scripts-quality/DECISIONS.md` D2.
+
+Follow-up:
+Continue ST-GAP test slices under the scripts-quality tracker; do not assign workers through this project. Expansion-first: nothing in this folder is deleted.

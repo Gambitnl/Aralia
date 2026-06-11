@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 22:23:51
- * Dependents: systems/spells/targeting/index.ts
- * Imports: 4 files
+ * Last Sync: 10/06/2026, 22:07:45
+ * Dependents: hooks/useAbilitySystem.ts, systems/spells/targeting/index.ts
+ * Imports: 5 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -19,6 +19,8 @@ import type { SpellTargeting, TargetFilter, TargetConditionFilter, CombatCharact
 import { hasLineOfSight } from '../../../utils/lineOfSight'
 import { TargetValidationUtils } from './TargetValidationUtils'
 import { canInteract, canSeeTarget } from '../../../utils/planarTargeting'
+import { TargetAllocator } from './TargetAllocator'
+import type { AllocationResult, AllocatorContext } from './TargetAllocator'
 
 /**
  * Minimal runtime shape for object spell targets.
@@ -41,6 +43,13 @@ export interface TargetableObject {
 export interface TargetCandidateSet {
   creatures: CombatCharacter[]
   objects: TargetableObject[]
+}
+
+export interface TargetResolutionResult extends AllocationResult {
+  /** Every creature that passed normal range, sight, plane, and filter checks before final allocation. */
+  candidateTargets: CombatCharacter[]
+  /** Whether an explicit targeting allocation rule changed the final target list. */
+  allocationApplied: boolean
 }
 
 const OBJECT_SIZE_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan']
@@ -137,6 +146,61 @@ export class TargetResolver {
     return allCharacters.filter(target =>
       this.isValidTarget(targeting, caster, target, gameState)
     )
+  }
+
+  /**
+   * Resolve the final creature targets for a spell.
+   *
+   * `getValidTargets` intentionally remains a candidate query because UI panels
+   * and previews still need to show every legal target. This method is the
+   * cast-time bridge: it first gathers those legal candidates, then applies
+   * targeting allocation rules such as Sleep's hit-point pool.
+   */
+  static resolveTargets(
+    targeting: SpellTargeting,
+    caster: CombatCharacter,
+    gameState: CombatState,
+    allocationContext: AllocatorContext = {}
+  ): TargetResolutionResult {
+    const candidateTargets = this.getValidTargets(targeting, caster, gameState)
+
+    return this.resolveTargetCandidates(targeting, candidateTargets, allocationContext)
+  }
+
+  /**
+   * Resolve a caller-provided list of already-valid creature candidates.
+   *
+   * Combat UI code often knows more than this generic resolver, such as the
+   * exact clicked area footprint. This bridge lets that UI-selected candidate
+   * set keep its area/shape meaning while still sharing the same pool allocation
+   * logic used by resolver-driven callers.
+   */
+  static resolveTargetCandidates(
+    targeting: SpellTargeting,
+    candidateTargets: CombatCharacter[],
+    allocationContext: AllocatorContext = {}
+  ): TargetResolutionResult {
+
+    if (!targeting.allocation) {
+      return {
+        candidateTargets,
+        selectedTargets: candidateTargets,
+        allocationApplied: false,
+        logs: ['No target allocation rule; all valid creature targets remain selected.']
+      }
+    }
+
+    const allocation = TargetAllocator.allocateTargets(
+      candidateTargets,
+      targeting.allocation,
+      allocationContext
+    )
+
+    return {
+      ...allocation,
+      candidateTargets,
+      allocationApplied: true
+    }
   }
 
   /**

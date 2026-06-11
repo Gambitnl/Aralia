@@ -5,13 +5,13 @@ slug: glossary-ui
 category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-09
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/glossary-ui
-gap_signal: 5 open gaps
+gap_signal: "open gaps remain; G3 decided 2026-06-10 (D18): item metadata stays glossary-local display-only"
 protocol: living project doc set
-next_step: Await human/product decision on generated item metadata ownership and shared schema scope.
+next_step: "G3 decided 2026-06-10 (D18): item metadata stays a glossary-local display-only contract; shared ingest/registry schema deferred. Keep the documented field contract current; G7 (optional typed builder/guard) remains the adjacent follow-up."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -38,12 +38,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Glossary UI North Star
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (G3 decision recorded 2026-06-10; review gate cleared)
+Last updated: 2026-06-10
 
 ## Purpose
 Keep the glossary feature discoverable as a working project surface. The feature is already implemented; this folder now captures current behavior, integration points, and open risks before further extension.
@@ -124,15 +124,29 @@ Decision owner: human/product owner for glossary and item metadata boundaries.
 
 Proof after decision: refresh this brief, update the tracker and gaps, and add a narrow contract test or proof note if the owner chooses a shared schema.
 
+### Decision (2026-06-10)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D18 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`):
+
+- **Option A — item metadata stays glossary-local.** The `itemMetadata` consumed by
+  `GlossaryItemStatBlock` remains a glossary-local, display-only contract with the
+  allowed fields documented here; registry conversion stays independent.
+- **A shared ingest/registry schema is deferred** — no shared typed contract is promoted
+  this cycle. No contract test is required by this decision (the shared-schema proof path
+  only applied to Option B); G7's optional typed builder/guard remains an adjacent follow-up.
+
+Status: decision recorded 2026-06-10; the G3 review gate is cleared.
+
 ## Open Issues and Next Checks
 - Keep the named `npm run glossary:rebuild` entry point in sync if the pipeline stages change again.
 - Decide whether Equipment grouping taxonomy should stay based on `itemType` strings or move to a curated canonical list.
-- Decide whether generated item metadata stays glossary-local display data or moves into a shared typed schema.
+- Decide whether generated item metadata stays glossary-local display data or moves into a shared typed schema. (Decided 2026-06-10, D18: stays glossary-local display-only; shared schema deferred.)
 - Validate whether all generated glossary fields consumed by UI, including `itemMetadata`, are consistently typed and preserved in all item pipelines.
 
 ## Current Focus
 - T2 is done: the non-dev rebuild contract is now captured in `RUNBOOK.md`, and the full glossary rebuild has a named `npm run glossary:rebuild` entry point.
-- T3 is now review-required: the item metadata render contract is documented, but ownership for future schema additions still needs a human/product decision.
+- T3 is now review-required: the item metadata render contract is documented, but ownership for future schema additions still needs a human/product decision. (Update 2026-06-10: decided — D18, Option A — the contract stays glossary-local display-only and the shared schema is deferred; T3 closes against that decision.)
 - Keep the item-categorization boundary: this folder records the dependency, but `docs/projects/item_categorization` owns the taxonomy decision.
 
 ## Resume Path

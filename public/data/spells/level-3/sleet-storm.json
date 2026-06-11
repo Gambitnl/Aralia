@@ -156,7 +156,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Prone unless the target succeeds on a Dexterity save for 1 minute.",
       "conditionalEndings": []
     },
     {

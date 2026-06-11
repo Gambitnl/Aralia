@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: reference-only
-last_updated: 2026-06-08
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/demo-area
-gap_signal: 2 open gaps, 1 blocker
+gap_signal: "G1 decided 2026-06-10 (D19: retain as reference artifact); 1 open gap (G2 registry alignment)"
 protocol: living project doc set
-next_step: Human review must decide keep, move, or remove for src/components/demo/CombatMessagingDemo.tsx before any forward iteration.
+next_step: "G1 decided 2026-06-10 (D19): retain src/components/demo/CombatMessagingDemo.tsx as a reference artifact — no re-home, no removal. Remaining open item is G2 (registry evidence path alignment)."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -33,14 +33,14 @@ lifecycle_status: reference-only
 deprecation_confidence: medium
 deprecation_reason: orphaned_component_human_decision
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Demo Area North Star
 
-Status: reference-only-due-to-orphaned-component
-Last updated: 2026-06-08
+Status: reference-only-due-to-orphaned-component (retention decision recorded 2026-06-10: retain as reference artifact)
+Last updated: 2026-06-10
 
-Project classification for this cycle: Reference-only, with retention/removal decision pending.
+Project classification for this cycle: Reference-only, with retention/removal decision pending. (Update 2026-06-10: the retention decision is recorded — D19, retain as reference artifact; the classification stays reference-only by choice rather than pending review.)
 
 ## Purpose And Scope
 
@@ -87,9 +87,21 @@ Runtime references checked for this update:
 - Why does registry evidence path remain `src/components/demo` while active demo flow now renders from `components/BattleMap` and `components/World3D`?
 - Does the demo area include `Design Preview` as a scoped sample surface, given the code comment about `/Aralia/misc/design.html`?
 
+## Decision (2026-06-10)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D19 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`):
+
+- **Retain `src/components/demo/CombatMessagingDemo.tsx` as a reference artifact.**
+  No re-home, no removal (expansion-first policy).
+- The component may stay runtime-orphaned; that is now an accepted, documented state
+  rather than a pending review question.
+
+Status: decision recorded 2026-06-10; the G1/T3 review gate is closed as "keep".
+
 ## Current State
 
-- T3 is still active: decide whether `src/components/demo/CombatMessagingDemo.tsx` should be retained, moved, or removed.
+- T3 is still active: decide whether `src/components/demo/CombatMessagingDemo.tsx` should be retained, moved, or removed. (Decided 2026-06-10, D19: retain as reference artifact — no re-home, no removal.)
 - The component is still orphaned in runtime terms; no import path or route points to it.
 - The registry row in `docs/projects/PROJECT_TRACKER.md` still points at `src/components/demo`, so registry evidence and runtime evidence remain out of sync.
 - This pass refreshed the handoff docs only. No runtime files were changed.
@@ -97,7 +109,7 @@ Runtime references checked for this update:
 ## Resume Path
 
 1. Re-read `TRACKER.md` and `GAPS.md`.
-2. Decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx`.
+2. Decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx`. (Decided 2026-06-10, D19: keep as a reference artifact; no re-home, no removal — a mount path is not required by this decision.)
 3. If keeping, add a mount path so it is no longer orphaned.
 4. If removing, record the decision in `GAPS.md` before deletion or re-homing.
 5. If registry alignment becomes in-scope, update `docs/projects/PROJECT_TRACKER.md`; otherwise keep the mismatch visible here.
@@ -110,18 +122,18 @@ Category: Feature/UI Projects
 Status: reference-only
 Confidence: medium
 Evidence: `docs/projects/demo-area`
-Gap signal: 2 open gaps, 1 blocker
+Gap signal: G1 decided 2026-06-10 (D19: retain as reference artifact); 1 open gap (G2 registry alignment)
 Protocol: living project doc set
-Next step: Human review must decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx` before any forward iteration.
+Next step: G1 decided 2026-06-10 (D19): retain `src/components/demo/CombatMessagingDemo.tsx` as a reference artifact — no re-home, no removal. Remaining open item is G2 (registry evidence path alignment).
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
 Workflow gaps reviewed: 2026-06-08
 Lifecycle status: reference-only
 Deprecation confidence: medium
-Deprecation reason: orphaned_component_human_decision
+Deprecation reason: orphaned_component_human_decision (resolved 2026-06-10: retained as reference artifact per D19)
 Canonical owner:
-Human decision required: yes
+Human decision required: no (retention decision recorded 2026-06-10)
 
 
 

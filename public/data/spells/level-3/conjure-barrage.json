@@ -147,7 +147,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 5d8 Force damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

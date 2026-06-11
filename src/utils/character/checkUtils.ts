@@ -1,3 +1,19 @@
+// @dependencies-start
+/**
+ * ARCHITECTURAL ADVISORY:
+ * SHARED UTILITY: Multiple systems rely on these exports.
+ *
+ * Last Sync: 11/06/2026, 00:50:33
+ * Dependents: systems/crafting/batchCrafting.ts, systems/crafting/craftingEngine.ts, systems/puzzles/mechanism.ts, utils/character/index.ts
+ * Imports: 5 files
+ *
+ * MULTI-AGENT SAFETY:
+ * If you modify exports/imports, re-run the sync tool to update this header:
+ * > npx tsx misc/dev_hub/codebase-visualizer/server/index.ts --sync [this-file-path]
+ * See misc/dev_hub/codebase-visualizer/VISUALIZER_README.md for more info.
+ */
+// @dependencies-end
+
 /**
  * @file src/utils/character/checkUtils.ts
  * Utility functions for handling ability checks and skill checks in D&D 5e.
@@ -20,6 +36,34 @@ export interface CheckResult {
     modifiersApplied?: { source: string; value: number }[];
 }
 
+// ---------------------------------------------------------------------------
+// Modifier text matching
+// ---------------------------------------------------------------------------
+// Many character modifiers are still stored as readable text. Generic entries
+// like "advantage on ability checks" should affect every ability check, while
+// structured spell bridges such as Enhance Ability write targeted entries like
+// "advantage on Strength ability checks". This helper keeps targeted ability
+// names from accidentally becoming global just because the phrase also contains
+// "ability check".
+const ABILITY_NAMES: AbilityScoreName[] = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+
+function modifierAppliesToCheck(text: string, ability: AbilityScoreName, skill?: string): boolean {
+    const normalized = text.toLowerCase();
+    const requestedAbility = ability.toLowerCase();
+    const requestedSkill = skill?.toLowerCase();
+    const namesSpecificAbility = ABILITY_NAMES.some(abilityName => normalized.includes(abilityName.toLowerCase()));
+
+    if (requestedSkill && normalized.includes(requestedSkill)) {
+        return true;
+    }
+
+    if (namesSpecificAbility) {
+        return normalized.includes(requestedAbility);
+    }
+
+    return normalized.includes('ability check');
+}
+
 /**
  * Rolls an ability check or skill check for a character (Player or Combatant).
  */
@@ -34,18 +78,12 @@ export function rollAbilityCheck(
 
     // Check racial advantage/disadvantage
     character.modifiers?.advantage.forEach(adv => {
-        const text = adv.toLowerCase();
-        if (text.includes('ability check') || 
-            text.includes(ability.toLowerCase()) || 
-            (skill && text.includes(skill.toLowerCase()))) {
+        if (modifierAppliesToCheck(adv, ability, skill)) {
             hasAdvantage = true;
         }
     });
     character.modifiers?.disadvantage.forEach(dis => {
-        const text = dis.toLowerCase();
-        if (text.includes('ability check') || 
-            text.includes(ability.toLowerCase()) || 
-            (skill && text.includes(skill.toLowerCase()))) {
+        if (modifierAppliesToCheck(dis, ability, skill)) {
             hasDisadvantage = true;
         }
     });
@@ -96,10 +134,7 @@ export function rollAbilityCheck(
 
     // Racial Intuition / Bonuses
     character.modifiers?.bonuses.forEach(bonus => {
-        const text = bonus.toLowerCase();
-        const isTargetMatch = text.includes('ability check') || 
-                             text.includes(ability.toLowerCase()) || 
-                             (skill && text.includes(skill.toLowerCase()));
+        const isTargetMatch = modifierAppliesToCheck(bonus, ability, skill);
 
         if (isTargetMatch) {
             const diceMatch = bonus.match(/(\d*d\d+)/i);

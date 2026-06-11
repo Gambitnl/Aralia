@@ -5,13 +5,13 @@ slug: scripts-audits
 category: Tools, Automation, and Infrastructure
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-08
+status: active
+last_updated: 2026-06-10
 confidence: medium
-evidence: docs/projects/scripts-audits
-gap_signal: 4 open gaps in GAPS.md, including 1 blocked_human_decision
+evidence: docs/projects/scripts-audits; docs/projects/DECISION_BLITZ_2026-06-10.md (D20)
+gap_signal: "S4 policy decided 2026-06-10 (audits stay optional/manual, no CI gates this cycle); S1/S2/S3 remain open; CMA-G19 unblocked under the manual policy"
 protocol: living project doc set
-next_step: Human/policy decision: decide which audits are mandatory gates versus optional/manual checks before assigning forward automation work.
+next_step: "Decision recorded 2026-06-10; implementation lane open: forward automation work proceeds under the optional/manual policy (no CI gates this cycle); CMA-G19 routing may be accepted under that policy. Revisit gating when the audit suite stabilizes."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -30,16 +30,16 @@ completed_verification:
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: policy-review-required
+lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Scripts: Audits North Star
 
-Status: review-required
-Last updated: 2026-06-08
+Status: active — S4 decision recorded 2026-06-10; implementation lane open
+Last updated: 2026-06-10
 
 ## Why This Project Exists
 
@@ -58,19 +58,32 @@ documented, and recoverable for future maintainers.
 Project: Scripts: Audits
 Slug: scripts-audits
 Category: Tools, Automation, and Infrastructure
-Status: review-required
+Status: active — S4 decision recorded 2026-06-10; implementation lane open
 Confidence: medium
-Evidence: docs/projects/scripts-audits
-Gap signal: 4 open gaps in GAPS.md, including 1 blocked_human_decision
+Evidence: docs/projects/scripts-audits; docs/projects/DECISION_BLITZ_2026-06-10.md (D20)
+Gap signal: S4 policy decided 2026-06-10 (audits optional/manual, no CI gates this cycle); S1/S2/S3 remain open; CMA-G19 unblocked under the manual policy
 Protocol: living project doc set
-Next step: Human/policy decision: decide which audits are mandatory gates versus optional/manual checks before assigning forward automation work.
+Next step: Proceed under the optional/manual audit policy; no CI gates this cycle. CMA-G19 routing may be accepted under the manual policy. Revisit gating when the audit suite stabilizes.
 Required verification: docs_consistency, scoped_checks
 Completed verification: docs_consistency
 Last proof: 2026-06-08 review-gate classification
 Workflow gaps reviewed: 2026-06-08
 
-Dashboard lifecycle: policy-review-required
-Assignment rule: Do not assign forward iteration agents until mandatory-vs-optional audit policy is decided.
+Dashboard lifecycle: active (policy review cleared 2026-06-10)
+Assignment rule: Do not assign forward iteration agents until mandatory-vs-optional audit policy is decided. *(Cleared 2026-06-10: policy decided — audits stay optional/manual; forward iteration agents may be assigned under that policy.)*
+
+## Decision (2026-06-10): Audit Policy — Optional/Manual, No CI Gates (S4)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session.
+
+- **Audits stay optional/manual; no CI gates this cycle.** Revisit gating when
+  the audit suite stabilizes.
+- This unblocks CMA-G19 (large spell-script modularization routing) under the
+  manual policy — modularization work on those scripts does not need to wait
+  for a gating decision, but any split still needs stage-boundary proof.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D20); local
+  record: `docs/projects/scripts-audits/DECISIONS.md` D2.
+- Status: decision recorded 2026-06-10; implementation lane open.
 
 ## File Map
 
@@ -115,7 +128,7 @@ Assignment rule: Do not assign forward iteration agents until mandatory-vs-optio
 - The project docs are now dashboard-ready: the North Star has a card schema,
   the tracker is aligned to the durable gap list, and the cold-start handoff
   names the canonical protocol paths.
-- Live command and report validation is still pending in T2, but forward automation/gating work is blocked by S4 policy review.
+- Live command and report validation is still pending in T2, but forward automation/gating work is blocked by S4 policy review. *(S4 resolved 2026-06-10: audits stay optional/manual, no CI gates this cycle — see the Decision section above; forward work is unblocked under that policy.)*
 - The shared workflow path mismatch is already tracked centrally in
   `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` as
   WFG-001.
@@ -153,7 +166,7 @@ Assignment rule: Do not assign forward iteration agents until mandatory-vs-optio
 
 - Which checks should be the canonical local entrypoint versus standalone commands?
 - What freshness threshold makes generated reports safe to treat as current evidence?
-- Should the CI/manual policy decision stay project-local or be routed to a broader workflow note?
+- Should the CI/manual policy decision stay project-local or be routed to a broader workflow note? *(Answered 2026-06-10: recorded project-locally in DECISIONS.md D2 with the master record at `docs/projects/DECISION_BLITZ_2026-06-10.md` D20 — audits stay optional/manual, no CI gates this cycle.)*
 
 ## Next Checks
 

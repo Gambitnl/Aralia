@@ -5,14 +5,14 @@ slug: companions
 category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-08
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/companions/NORTH_STAR.md
-gap_signal: "G1/G2/G3/G4/G5/G7/G8/G9 resolved; G6 remains a human-decision blocker"
+gap_signal: "G1/G2/G3/G4/G5/G7/G8/G9 resolved; G6 decision recorded 2026-06-10 (hysteresis romance exit) — implementation lane open"
 protocol: living project doc set
-next_step: Human/story decision: choose automatic, event-driven, or hysteresis breakup semantics for romance lock-in before assigning more companion work.
-agent_comments: ""
+next_step: Implement the G6 hysteresis romance-exit policy in RelationshipManager (specify threshold + sustained-duration in the slice) with a focused romance-to-hostile regression.
+agent_comments: "G6 Required Review Brief resolved 2026-06-10 (Option C: hysteresis). See docs/projects/DECISION_BLITZ_2026-06-10.md D10."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -31,16 +31,16 @@ completed_verification:
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: human-review-required
+lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Companions System North Star
 
-Status: review-required
-Last updated: 2026-06-08
+Status: active (G6 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Why This Project Exists
 The project tracker already marks Companions as implemented (`docs/projects/PROJECT_TRACKER.md`), but ownership context was still scaffold-only. This project now captures the current behavior and risk surface so future agents can continue without re-deriving intent.
@@ -82,19 +82,19 @@ Create a durable, evidence-backed handoff for the companion social stack (relati
 Project: Companions System
 Slug: companions
 Category: Feature/UI Projects
-Status: review-required
+Status: active (G6 decision recorded 2026-06-10; implementation lane open)
 Confidence: medium
 Evidence: docs/projects/companions/NORTH_STAR.md
-Gap signal: G1/G2/G3/G4/G5/G7/G8/G9 resolved; G6 remains a human-decision blocker
+Gap signal: G1/G2/G3/G4/G5/G7/G8/G9 resolved; G6 decided 2026-06-10 (hysteresis romance exit) and is now an open implementation lane
 Protocol: living project doc set
-Next step: Human/story decision: choose automatic, event-driven, or hysteresis breakup semantics for romance lock-in before assigning more companion work.
+Next step: Implement the G6 hysteresis romance-exit policy in `RelationshipManager` (specify threshold + sustained-duration in the slice) with a focused romance-to-hostile regression.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
 Last proof: 2026-06-08
 Workflow gaps reviewed: 2026-06-08
 
-Dashboard lifecycle: human-review-required
-Assignment rule: Do not assign forward iteration agents until the romance downgrade policy is decided or a fresh source-backed scan finds a non-G6 gap.
+Dashboard lifecycle: active
+Assignment rule: Do not assign forward iteration agents until the romance downgrade policy is decided or a fresh source-backed scan finds a non-G6 gap. Update (2026-06-10): the policy is decided (hysteresis — DECISION_BLITZ D10); the G6 implementation slice is assignable.
 
 ## Required Review Brief
 
@@ -110,6 +110,13 @@ Evidence: `src/systems/companions/Companions_Ralph.md`; `src/systems/companions/
 Decision owner: Human/story owner.
 Proof after decision: Update G6, encode the chosen policy in `RelationshipManager`, and add a focused regression that drops approval from romance to hostile and verifies the chosen exit behavior.
 
+### Decision (2026-06-10)
+
+Outcome: **Option C — hysteresis romance exit.** Romance survives temporary approval dips but exits after sustained low approval. The specific threshold and sustained-duration values are to be specified as the first step of the implementation slice.
+Decider: Remy (project owner), batched decision session.
+Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D10).
+Effect: the G6 review gate is lifted. Next slice: encode the hysteresis policy in `RelationshipManager` and add the focused regression that drops approval from romance to hostile and verifies the exit only fires after the sustained-low-approval condition.
+
 ## Active Task
 
 | Field | Value |
@@ -120,7 +127,7 @@ Proof after decision: Update G6, encode the chosen policy in `RelationshipManage
 | Stop condition | G1/G2/G3/G4/G5/G7/G8/G9 are implemented or contract-locked, tested or documented, and reflected in the companion docs. |
 | Verification | Focused reaction-system, reaction-queue, relationship-manager, companion-card, and banter-hook tests plus updated docs reference explicit source files/tests and project trackers; the G5 and G8 contracts are documented at the reducer, hook, and split-plan edges. |
 | Owner | Worker A |
-| Next action | Use `TRACKER.md` + `GAPS.md` to prioritize the next execution slice; avoid `G6` until its human decision clears, and use the documented G8 split contract when the later code pass starts extracting helpers. |
+| Next action | Use `TRACKER.md` + `GAPS.md` to prioritize the next execution slice; avoid `G6` until its human decision clears, and use the documented G8 split contract when the later code pass starts extracting helpers. Update (2026-06-10): the G6 decision has cleared (hysteresis exit, DECISION_BLITZ D10) — G6 is now the next execution slice. |
 
 ## Scope Boundaries
 
@@ -149,7 +156,7 @@ Out of scope:
 | `CompanionReactionSystem` requirement bounds are now enforced during evaluation. | done | Worker A | `src/systems/companions/CompanionReactionSystem.ts`, `src/systems/companions/__tests__/CompanionReactionSystem.test.ts` | Keep the regression coverage in place when adding new reaction content. |
 | `RelationshipManager.checkLoyalty` now has an explicit retention-floor contract; leave/betrayal remains a separate future slice. | done | Worker A | `src/systems/companions/RelationshipManager.ts`, `src/systems/companions/__tests__/RelationshipManager.test.ts` | Keep the floor proof in place and only add departure behavior when the story policy is chosen. |
 | Companion approval `source` and player-directed banter flow are now explicitly routed in docs and comments. | done | Worker A | `src/state/reducers/companionReducer.ts`, `src/hooks/useCompanionBanter.ts`, `src/state/appState.ts`, `docs/projects/companions/GAPS.md` | Keep the provenance field and player-response window documented as separate contracts. |
-| Romance state lock-in: once a companion reaches `romance`, approval can collapse without the state downgrading or breaking. | blocked_human_decision | Worker A | `src/systems/companions/Companions_Ralph.md`, `src/systems/companions/RelationshipManager.ts` | Choose automatic, event-driven, or hysteresis breakup semantics and encode them in `RelationshipManager`. |
+| Romance state lock-in: once a companion reaches `romance`, approval can collapse without the state downgrading or breaking. Decided 2026-06-10: hysteresis exit (DECISION_BLITZ D10). | in_scope_now | Worker A | `src/systems/companions/Companions_Ralph.md`, `src/systems/companions/RelationshipManager.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D10 | Encode the hysteresis breakup semantics (threshold + sustained duration, specified in the slice) in `RelationshipManager` with a romance-to-hostile regression. |
 | `RelationshipManager` ID generation now uses the shared `generateId()` helper. | done | Worker A | `src/systems/companions/RelationshipManager.ts`, `src/systems/companions/__tests__/RelationshipManager.test.ts`, `src/utils/core/idGenerator.ts` | Keep the helper as the single ID-generation entrypoint. |
 | Relationship scale inconsistency resolved: type comments, runtime clamp, threshold tests, and `CompanionCard` approval marker all use `-500..500`. | done | Worker A | `src/types/companions.ts`, `src/systems/companions/RelationshipManager.ts`, `src/components/ui/CompanionCard.tsx`, `src/components/ui/CompanionCard.test.tsx` | Keep future UI math and type comments aligned with the runtime clamp. |
 | `CompanionReaction.tsx` now queues repeated bubbles with a conservative duplicate window. | done | Worker A | `src/components/ui/CompanionReaction.tsx`, `src/components/ui/CompanionReaction.test.tsx` | Keep the FIFO queue and duplicate window in place when adding new reaction sources. |
@@ -200,6 +207,7 @@ Check the global gap tracker before creating this project surface:
 3. Read `docs/projects/companions/GAPS.md`.
 4. Verify evidence by opening referenced `src` files + tests.
 5. Continue from the highest-priority open gap row: avoid `G6` until the relationship-policy decision clears, and treat `G8` as the documented companion-banter split contract for the next code pass.
+6. Update (2026-06-10): the G6 relationship-policy decision has cleared (hysteresis exit — `docs/projects/DECISION_BLITZ_2026-06-10.md` D10). G6 is now the highest-priority open implementation slice.
 
 ## Cold-Start Gap Routing
 

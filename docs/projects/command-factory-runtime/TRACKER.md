@@ -1,4 +1,4 @@
-# TRACKER: Command Factory Runtime
+# Command Factory Runtime Living Tracker
 
 Status: active  
 Last updated: 2026-06-08
@@ -24,3 +24,11 @@ Last updated: 2026-06-08
 
 - Durable gaps for this runtime are tracked in `docs/projects/command-factory-runtime/GAPS.md`.
 - No implementation blockers were discovered in the docs-only pass.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

@@ -3,9 +3,9 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 09/06/2026, 06:46:55
+ * Last Sync: 10/06/2026, 22:29:00
  * Dependents: components/BattleMap/BattleMap.tsx, components/BattleMap/BattleMap3D.tsx, components/BattleMap/BattleMapDemo.tsx, components/Combat/CombatView.tsx, components/DesignPreview/steps/PreviewCombatScenarios.tsx, hooks/useBattleMap.ts
- * Imports: 21 files
+ * Imports: 22 files
  *
  * MULTI-AGENT SAFETY:
  * If you modify exports/imports, re-run the sync tool to update this header:
@@ -94,6 +94,7 @@ import {
   buildCommandGameState,
   resolveMultiTargetIds
 } from './actionUtils';
+import { TargetResolver } from '../systems/spells/targeting/TargetResolver';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -334,13 +335,39 @@ export const useAbilitySystem = ({
       };
 
       const commandGameState = buildCommandGameState(commandCharacters, currentMapData, activePlane);
+      const targetResolution = TargetResolver.resolveTargetCandidates(
+        spell.targeting,
+        targets,
+        // Allocation uses the same cast level that command creation receives,
+        // so upcast pool dice and downstream effect commands stay aligned.
+        { castLevel: castAtLevel }
+      );
+      const executionTargets = targetResolution.selectedTargets;
+
+      if (targetResolution.allocationApplied && onLogEntry) {
+        targetResolution.logs.forEach(message => {
+          // Pool allocation is a real targeting outcome, not just debugging
+          // text. Logging each step makes Sleep/Color Spray-style selection
+          // visible to the player before the effect commands apply damage,
+          // conditions, or other payloads to the reduced target list.
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'action',
+            message: `${spell.name}: ${message}`,
+            characterId: caster.id,
+            targetIds: executionTargets.map(target => target.id),
+            data: { spellId: spell.id, allocationApplied: true }
+          });
+        });
+      }
 
       try {
         // Asynchronously generate the chain of effect commands
         const commands = await SpellCommandFactory.createCommands(
           spell,
           caster,
-          targets,
+          executionTargets,
           castAtLevel,
           commandGameState,
           playerInput,
@@ -353,11 +380,11 @@ export const useAbilitySystem = ({
 
         if (result.success) {
           const movementEffects = spell.effects.filter(isMovementEffect);
-          const finalState = resolveImmediateAfterForcedMovementRepeatSaves(result.finalState, targets, movementEffects);
+          const finalState = resolveImmediateAfterForcedMovementRepeatSaves(result.finalState, executionTargets, movementEffects);
 
           // 4. Propagate State Changes
           finalState.characters.forEach(finalChar => {
-            const isTarget = targets.some(t => t.id === finalChar.id);
+            const isTarget = executionTargets.some(t => t.id === finalChar.id);
             const isCaster = caster.id === finalChar.id;
 
             if (isTarget || isCaster) {
@@ -393,7 +420,7 @@ export const useAbilitySystem = ({
 
           if (onAddSpellMovementVisual && movementEffects.length > 0) {
             const movementVisualType = getMovementVisualType(movementEffects);
-            targets.forEach(target => {
+            executionTargets.forEach(target => {
               const finalTarget = finalState.characters.find(candidate => candidate.id === target.id);
               if (!finalTarget) return;
               if (target.position.x === finalTarget.position.x && target.position.y === finalTarget.position.y) return;
@@ -460,7 +487,7 @@ export const useAbilitySystem = ({
               const scheduledEffects = spell.effects.filter(effect => effect.trigger?.type === timing);
               if (scheduledEffects.length === 0) return;
 
-              targets.forEach(target => {
+              executionTargets.forEach(target => {
                 onAddScheduledSpellEffect(createScheduledSpellEffect(
                   spell.id,
                   caster.id,
@@ -476,7 +503,7 @@ export const useAbilitySystem = ({
           }
 
           if (onAddMovementDebuff && spell.effects.some(hasTargetMovementTrigger)) {
-            targets.forEach(target => {
+            executionTargets.forEach(target => {
               // Target-move triggers need their own runtime debuff record so the
               // movement executor can notice the later move and apply the stored
               // spell payload. Capture save DC here for parity with zones and

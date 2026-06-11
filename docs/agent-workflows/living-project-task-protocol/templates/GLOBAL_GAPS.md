@@ -39,5 +39,8 @@ critical scope review.
   project's `GAPS.md`, then mark the global row `imported` and link the
   destination. Preserve the global row as routing history.
 - When the gap clearly belongs to another established subsystem, mark the row
-  `routed` and link that subsystem's tracker.
+  `routed`, link that subsystem's tracker, and add a minimal inbound stub row
+  to the destination project's `GAPS.md` in the same pass. The stub should
+  cross-reference this global gap ID, evidence/source, classification, why it
+  matters, next action, and next proof/check.
 - When scope review rejects a gap, mark it `declined` with a concise reason.

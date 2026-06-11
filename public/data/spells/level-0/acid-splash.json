@@ -151,8 +151,13 @@
         "customFormula": "{\"5\": \"2d6\", \"11\": \"3d6\", \"17\": \"4d6\"}",
         "bonusPerLevel": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures in the 5-foot sphere make a Dexterity save against 1d6 Acid damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "acid-damage",
+        "dexterity-save",
+        "cantrip-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

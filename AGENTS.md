@@ -207,6 +207,13 @@ For UI and UX work, rendered output is the source of truth.
 Do not mark a visual issue as fixed from source code, DOM state, or computed styles alone.
 Use Playwright screenshots or direct rendered inspection before claiming a visual fix is verified.
 
+For UI changes, a focused rendered browser check is part of the normal proof step and does
+not require a separate permission request. This includes opening or refreshing the relevant
+local page, interacting with the changed UI surface, and inspecting the rendered result needed
+to prove the requested visual behavior. Keep the check scoped to the changed UI. Broader test
+suites, unrelated validation passes, destructive actions, external submissions, or long-running
+automation still require explicit operator request.
+
 If only structural checks were completed, say that explicitly instead of collapsing them into a visual verification claim.
 
 ## Roadmap And Discoverability

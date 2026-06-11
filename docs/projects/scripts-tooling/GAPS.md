@@ -1,4 +1,4 @@
-# GAPS: Scripts: Tooling
+# Scripts: Tooling Gap Registry
 
 Status: active
 Last updated: 2026-06-05

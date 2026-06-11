@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Conversation Panel
+slug: conversation-panel
+status: active
+last_updated: "2026-06-08"
+iteration: 3
+source_agent: "Codex / gpt-5.3-codex-spark (MCP-subagent)"
+target_agent: next cold-start agent
+runtime_surface: "MCP-subagent / Terminal+Docs"
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/conversation-panel/NORTH_STAR.md
+tracker: docs/projects/conversation-panel/TRACKER.md
+gaps: docs/projects/conversation-panel/GAPS.md
+---
 # Conversation Panel Cold Start Agent Handoff
 
 Status: active
@@ -14,6 +33,12 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 
 Project entry point:
 docs/projects/conversation-panel/NORTH_STAR.md
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Conversation Panel

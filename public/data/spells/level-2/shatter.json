@@ -193,7 +193,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 3d8 thunder damage on a failed Constitution save, or half as much on success; constructs have disadvantage and slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

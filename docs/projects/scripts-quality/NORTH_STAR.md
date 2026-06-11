@@ -6,12 +6,12 @@ category: Documentation
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-10
 confidence: medium
-evidence: docs/projects/scripts-quality
-gap_signal: "repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git"
+evidence: docs/projects/scripts-quality; docs/projects/script-tests (merged support surface); docs/projects/DECISION_BLITZ_2026-06-10.md (D21)
+gap_signal: "repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git; script-tests merged in 2026-06-10 (ST-GAP-001..004 now owned here)"
 protocol: living project doc set
-next_step: Run npm run quality:debt at each quality-scope change and keep the routed scripts-git follow-up outside this project unless ownership changes.
+next_step: Run npm run quality:debt at each quality-scope change, keep the routed scripts-git follow-up outside this project unless ownership changes, and pick up the inherited script-tests gaps (ST-GAP-001 first) as the next test slices.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -40,7 +40,7 @@ human_decision_required: "no"
 # NORTH_STAR: Scripts: Quality
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10 (script-tests merge recorded)
 
 ## Why This Project Exists
 
@@ -64,9 +64,26 @@ Category: Documentation
 Status: active
 Confidence: medium
 Evidence: docs/projects/scripts-quality
-Gap signal: repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git
+Gap signal: repeatable checkpoint convention established; 1 adjacent follow-up remains routed to scripts-git; script-tests merged in 2026-06-10 (ST-GAP-001..004 owned here)
 Protocol: living project doc set
-Next step: Run `npm run quality:debt` at each quality-scope change and keep the routed scripts-git follow-up outside this project unless ownership changes.
+Next step: Run `npm run quality:debt` at each quality-scope change, keep the routed scripts-git follow-up outside this project unless ownership changes, and pick up the inherited script-tests gaps (ST-GAP-001 first).
+
+## Decision (2026-06-10): Script Tests Merged Into This Project
+
+Recorded from the receiving side of DECISION_BLITZ D21 (Remy, project owner,
+batched decision session 2026-06-10; master record
+`docs/projects/DECISION_BLITZ_2026-06-10.md`).
+
+- **Scripts: Quality now owns the script-tests surface.**
+  `docs/projects/script-tests` becomes a merged-reference support surface of
+  this project; its tracker row becomes merged-reference.
+- Inherited scope: the `scripts/__tests__` continuity contract (file map and
+  integration points documented in `docs/projects/script-tests/NORTH_STAR.md`)
+  and the open gaps ST-GAP-001 through ST-GAP-004 in
+  `docs/projects/script-tests/GAPS.md` (ST-GAP-001 — `spellFieldInventory`
+  fixture test — remains the safest first slice).
+- Local records: `docs/projects/scripts-quality/DECISIONS.md` D2 (receiving
+  side) and `docs/projects/script-tests/DECISIONS.md` D2 (merged side).
 Required verification: quality_debt_command, docs_consistency
 Completed verification: quality_debt_command (2026-06-08), docs_consistency
 Last proof: 2026-06-08
@@ -115,7 +132,8 @@ larger push policy chain:
 
 In scope:
 - documentation for quality reporting ownership and policy integration,
-- tracker and gap alignment for this scripts-quality workstream.
+- tracker and gap alignment for this scripts-quality workstream,
+- (since 2026-06-10, D21 merge) the script-tests support surface: `scripts/__tests__` coverage continuity and the inherited ST-GAP-001..004 test slices.
 
 Out of scope:
 - rewriting `scripts/quality/debt-summary.cjs`,

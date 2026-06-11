@@ -23,6 +23,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { CombatCharacter } from '../../../types/combat';
 import { getDistance } from '../../../utils/combat/combatUtils';
+import { useFresnelRim } from './useFresnelRim';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -179,6 +180,118 @@ const DefenseBadgeRow: React.FC<{ character: CombatCharacter }> = ({ character }
 };
 
 // ---------------------------------------------------------------------------
+// Condition badge row (task 76, GOAL #19) — buff/debuff/condition chips
+// ---------------------------------------------------------------------------
+
+/**
+ * Visual map for 5e conditions: 2-letter chip + tone color. Unknown/custom
+ * condition strings fall back to their first two letters in neutral slate so
+ * homebrew conditions still surface instead of silently disappearing.
+ */
+const CONDITION_BADGES: Record<string, { label: string; color: string }> = {
+  Blinded: { label: 'BL', color: '#94a3b8' },
+  Charmed: { label: 'CH', color: '#f472b6' },
+  Deafened: { label: 'DF', color: '#a8a29e' },
+  Exhaustion: { label: 'EX', color: '#b45309' },
+  Frightened: { label: 'FR', color: '#a78bfa' },
+  Grappled: { label: 'GR', color: '#fb923c' },
+  Incapacitated: { label: 'IN', color: '#f87171' },
+  Invisible: { label: 'IV', color: '#bae6fd' },
+  Paralyzed: { label: 'PA', color: '#22d3ee' },
+  Petrified: { label: 'PE', color: '#9ca3af' },
+  Poisoned: { label: 'PO', color: '#4ade80' },
+  Prone: { label: 'PR', color: '#d6a05a' },
+  Restrained: { label: 'RE', color: '#fbbf24' },
+  Stunned: { label: 'ST', color: '#fde047' },
+  Unconscious: { label: 'UN', color: '#cbd5e1' },
+  Ignited: { label: 'IG', color: '#fb7185' },
+  Slowed: { label: 'SL', color: '#7dd3fc' },
+  'Slasher Slow': { label: 'SL', color: '#7dd3fc' },
+};
+
+/**
+ * The 3D counterpart of the 2D token's condition indicators (GOAL #19 — the
+ * defense badges landed earlier; buff/debuff/condition icons were the missing
+ * half). Sits below the HP pip; deduped by condition name; tooltip carries
+ * the source when known. Inline styles (not Tailwind) so the chips are immune
+ * to content-path gaps in 3D-embedded Html.
+ */
+const ConditionBadgeRow: React.FC<{ character: CombatCharacter }> = ({ character }) => {
+  const badges = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { name: string; label: string; color: string; tooltip: string }[] = [];
+    for (const cond of character.conditions ?? []) {
+      const name = String(cond.name);
+      if (seen.has(name)) continue;
+      seen.add(name);
+      const visual = CONDITION_BADGES[name] ?? {
+        label: name.slice(0, 2).toUpperCase(),
+        color: '#e2e8f0',
+      };
+      out.push({
+        name,
+        label: visual.label,
+        color: visual.color,
+        tooltip: cond.source ? `${name} (${cond.source})` : name,
+      });
+    }
+    return out;
+  }, [character.conditions]);
+
+  if (badges.length === 0) return null;
+
+  return (
+    <Html
+      position={[0, 2.86, 0]}
+      center
+      distanceFactor={10}
+      style={{ pointerEvents: 'none' }}
+    >
+      <div
+        data-testid="character-condition-badges"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '3px',
+          padding: '2px 5px',
+          borderRadius: '999px',
+          border: '1px solid rgba(148, 163, 184, 0.3)',
+          background: 'rgba(2, 6, 23, 0.78)',
+          boxShadow: '0 0 12px rgba(0, 0, 0, 0.32)',
+          pointerEvents: 'none',
+        }}
+      >
+        {badges.map(badge => (
+          <span
+            key={badge.name}
+            data-testid={`condition-badge-${badge.name}`}
+            title={badge.tooltip}
+            aria-label={badge.tooltip}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '14px',
+              height: '14px',
+              borderRadius: '999px',
+              border: `1px solid ${badge.color}`,
+              color: badge.color,
+              fontSize: '7px',
+              fontWeight: 900,
+              lineHeight: 1,
+              letterSpacing: 0,
+            }}
+          >
+            {badge.label}
+          </span>
+        ))}
+      </div>
+    </Html>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -186,6 +299,9 @@ interface CharacterActorProps {
   character: CombatCharacter;
   allCharacters: CombatCharacter[];
   tileElevation: number;
+  /** Sampled terrain surface height at the actor's tile center — the same
+   * formula the terrain mesh is built from. Falls back to tile elevation. */
+  groundY?: number;
   isSelected: boolean;
   isTurn: boolean;
   isTargetable: boolean;
@@ -228,7 +344,7 @@ interface RaceVisual {
   horns: boolean;
   beard: boolean;
   /** Body plan — non-humanoid forms render dedicated geometry. */
-  form: 'humanoid' | 'beast' | 'dragon';
+  form: 'humanoid' | 'beast' | 'dragon' | 'ooze' | 'aberration';
 }
 
 function getRaceVisual(creatureTypes: string[] | undefined, name: string): RaceVisual {
@@ -245,6 +361,10 @@ function getRaceVisual(creatureTypes: string[] | undefined, name: string): RaceV
     return { ...base, skin: 0x6f5538, heightScale: 0.95, buildScale: 1.0, form: 'beast' }; // quadruped
   if ((has('dragon') || has('wyvern') || has('drake')) && !has('dragonborn'))
     return { ...base, skin: 0x7a2b2b, heightScale: 1.0, buildScale: 1.0, form: 'dragon' }; // winged
+  if (has('ooze') || has('slime') || has('pudding') || has('jelly') || has('gelatinous'))
+    return { ...base, skin: 0x86a83e, heightScale: 1.0, buildScale: 1.0, form: 'ooze' }; // translucent blob
+  if (has('aberration') || has('beholder') || has('mind flayer') || has('illithid') || has('aboleth'))
+    return { ...base, skin: 0x6a4a8a, heightScale: 1.0, buildScale: 1.0, form: 'aberration' }; // floating eye + tentacles
 
   // Order: strongest / most specific cue first.
   if (has('goliath') || has('giant') || has('firbolg') || has('minotaur') || has('loxodon') || has('ogre') || has('troll')) return { ...base, skin: 0x9aa7b0, heightScale: 1.24, buildScale: 1.32 };
@@ -274,8 +394,9 @@ const BeastModel: React.FC<{
   isPlayerTeam: boolean;
   animTime: number;
   furColor: number;
-}> = ({ teamColor, isPlayerTeam, animTime, furColor }) => {
-  const breathe = Math.sin(animTime * 2.2) * 0.008;
+  idlePhase?: number;
+}> = ({ teamColor, isPlayerTeam, animTime, furColor, idlePhase = 0 }) => {
+  const breathe = Math.sin((animTime + idlePhase) * 2.2) * 0.008;
   const fur = new THREE.Color(furColor);
   const furDark = fur.clone().multiplyScalar(0.7);
   const emissiveIntensity = isPlayerTeam ? 0.12 : 0.6;
@@ -340,13 +461,14 @@ const DragonModel: React.FC<{
   isPlayerTeam: boolean;
   animTime: number;
   scaleColor: number;
-}> = ({ teamColor, isPlayerTeam, animTime, scaleColor }) => {
+  idlePhase?: number;
+}> = ({ teamColor, isPlayerTeam, animTime, scaleColor, idlePhase = 0 }) => {
   const team = new THREE.Color(teamColor);
   const scale = new THREE.Color(scaleColor);
   const scaleDark = scale.clone().multiplyScalar(0.6);
   const emissiveIntensity = isPlayerTeam ? 0.12 : 0.5;
-  const flap = Math.sin(animTime * 3) * 0.35; // wing idle flap
-  const breathe = Math.sin(animTime * 1.8) * 0.01;
+  const flap = Math.sin((animTime + idlePhase) * 3) * 0.35; // wing idle flap
+  const breathe = Math.sin((animTime + idlePhase) * 1.8) * 0.01;
 
   return (
     <group position={[0, breathe, 0]}>
@@ -405,6 +527,133 @@ const DragonModel: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
+// Procedural ooze model (Ooze creatures)
+// ---------------------------------------------------------------------------
+
+/**
+ * A low translucent wobbling blob so Oozes read as amorphous slime rather than
+ * upright humanoids. The blob carries the team color (translucency keeps it
+ * clearly non-armored); a darker nucleus hints at the engulfed-core look.
+ */
+const OozeModel: React.FC<{
+  teamColor: number;
+  isPlayerTeam: boolean;
+  animTime: number;
+  slimeColor: number;
+  idlePhase?: number;
+}> = ({ teamColor, isPlayerTeam, animTime, slimeColor, idlePhase = 0 }) => {
+  // Volume-ish preserving squish: x/z swell as y flattens
+  const squish = Math.sin((animTime + idlePhase) * 2.6) * 0.06;
+  const slime = new THREE.Color(slimeColor).lerp(new THREE.Color(teamColor), 0.45);
+  const nucleus = new THREE.Color(slimeColor).multiplyScalar(0.45);
+  const emissiveIntensity = isPlayerTeam ? 0.2 : 0.55;
+
+  return (
+    <group>
+      {/* Main blob — flattened, translucent, wobbling */}
+      <mesh position={[0, 0.14, 0]} scale={[1 + squish, 0.55 - squish * 0.5, 1 + squish]} castShadow>
+        <sphereGeometry args={[0.26, 12, 10]} />
+        <meshStandardMaterial
+          color={slime}
+          emissive={slime}
+          emissiveIntensity={emissiveIntensity}
+          transparent
+          opacity={0.72}
+          roughness={0.15}
+          metalness={0.0}
+        />
+      </mesh>
+      {/* Nucleus — dark core visible through the translucent body */}
+      <mesh position={[0, 0.12, 0]}>
+        <sphereGeometry args={[0.09, 8, 6]} />
+        <meshStandardMaterial color={nucleus} roughness={0.6} />
+      </mesh>
+      {/* Pseudopods — small trailing lobes around the base */}
+      {([[0.2, 0.04, 0.08], [-0.16, 0.04, 0.14], [-0.06, 0.04, -0.2]] as const).map(([px, py, pz], i) => (
+        <mesh
+          key={i}
+          position={[px, py, pz]}
+          scale={[1, 0.6 + Math.sin((animTime + idlePhase) * 2.6 + i * 2.1) * 0.15, 1]}
+        >
+          <sphereGeometry args={[0.08, 8, 6]} />
+          <meshStandardMaterial color={slime} transparent opacity={0.6} roughness={0.15} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Procedural aberration model (Aberration creatures)
+// ---------------------------------------------------------------------------
+
+/**
+ * A hovering eye-orb with hanging tentacles (beholder-like) so Aberrations read
+ * as alien monsters. The orb carries the team color; the great eye and
+ * tentacles use the alien skin tone. Bobs slowly to sell the levitation.
+ */
+const AberrationModel: React.FC<{
+  teamColor: number;
+  isPlayerTeam: boolean;
+  animTime: number;
+  fleshColor: number;
+  idlePhase?: number;
+}> = ({ teamColor, isPlayerTeam, animTime, fleshColor, idlePhase = 0 }) => {
+  const bob = Math.sin((animTime + idlePhase) * 1.6) * 0.03;
+  const flesh = new THREE.Color(fleshColor);
+  const fleshDark = flesh.clone().multiplyScalar(0.6);
+  const emissiveIntensity = isPlayerTeam ? 0.15 : 0.55;
+
+  return (
+    <group position={[0, bob, 0]}>
+      {/* Hovering body orb — team-colored */}
+      <mesh position={[0, 0.46, 0]} castShadow>
+        <sphereGeometry args={[0.18, 12, 10]} />
+        <meshStandardMaterial
+          color={teamColor}
+          emissive={teamColor}
+          emissiveIntensity={emissiveIntensity}
+          roughness={0.55}
+          metalness={0.1}
+        />
+      </mesh>
+      {/* Great central eye — white sclera + dark pupil facing forward (+Z) */}
+      <mesh position={[0, 0.47, 0.15]}>
+        <sphereGeometry args={[0.08, 10, 8]} />
+        <meshStandardMaterial color={0xe8e4d8} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.47, 0.22]}>
+        <sphereGeometry args={[0.035, 8, 6]} />
+        <meshStandardMaterial color={0x1a1020} roughness={0.2} />
+      </mesh>
+      {/* Eye stalks on top — short angled cones */}
+      {([[-0.08, 0.35], [0.02, 0.0], [0.09, -0.3]] as const).map(([sx, tilt], i) => (
+        <mesh key={i} position={[sx, 0.63, -0.02]} rotation={[tilt * 0.4, 0, -sx * 4]}>
+          <coneGeometry args={[0.018, 0.12, 5]} />
+          <meshStandardMaterial color={fleshDark} roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Hanging tentacles — slowly swaying cones below the orb */}
+      {([[0.1, 0.06], [-0.1, 0.06], [0.06, -0.1], [-0.06, -0.1], [0, 0]] as const).map(([tx, tz], i) => (
+        <mesh
+          key={i}
+          position={[tx, 0.24, tz]}
+          rotation={[
+            Math.sin((animTime + idlePhase) * 1.8 + i * 1.3) * 0.12 + tz * 0.6,
+            0,
+            Math.cos((animTime + idlePhase) * 1.8 + i * 1.3) * 0.12 - tx * 0.6,
+          ]}
+          castShadow
+        >
+          <coneGeometry args={[0.025, 0.26, 5]} />
+          <meshStandardMaterial color={flesh} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Procedural humanoid model (placeholder for glTF)
 // ---------------------------------------------------------------------------
 
@@ -422,12 +671,14 @@ const HumanoidModel: React.FC<{
   animTime: number;
   archetype: CharacterArchetype;
   race: RaceVisual;
-}> = ({ teamColor, isPlayerTeam, isAlive, animState, animTime, archetype, race }) => {
+  stance: { phase: number; lean: number; armL: number; armR: number };
+}> = ({ teamColor, isPlayerTeam, isAlive, animState, animTime, archetype, race, stance }) => {
   const groupRef = useRef<THREE.Group>(null);
 
-  // Animation parameters
-  const idleSway = Math.sin(animTime * 1.5) * 0.02;
-  const idleBreathe = Math.sin(animTime * 2.0) * 0.01;
+  // Animation parameters — sway/breathe are phase-offset per character so the
+  // battlefield doesn't bob in unison
+  const idleSway = Math.sin(animTime * 1.5 + stance.phase) * 0.02;
+  const idleBreathe = Math.sin(animTime * 2.0 + stance.phase) * 0.01;
   const walkBob = animState === 'walk' ? Math.abs(Math.sin(animTime * 8)) * 0.05 : 0;
   const attackSwing = animState === 'attack_melee'
     ? Math.sin(Math.min(animTime * 4, Math.PI)) * 0.8 : 0;
@@ -450,7 +701,7 @@ const HumanoidModel: React.FC<{
       rotation={[
         deathFall > 0 ? -deathFall : 0,
         0,
-        hitRecoil,
+        hitRecoil + (deathFall > 0 ? 0 : stance.lean),
       ]}
       position={[0, walkBob + idleBreathe, 0]}
     >
@@ -523,16 +774,17 @@ const HumanoidModel: React.FC<{
 
       {/* ---- HEADGEAR ---- */}
       {archetype === 'caster' ? (
-        /* Caster: pointed wizard hat */
+        /* Caster: pointed wizard hat — tall and wide so "caster" reads at
+           tactical zoom (GOAL #2), not just in close-ups */
         <group position={[0, 0.66, 0]}>
           {/* Brim */}
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[0.06, 0.11, 12]} />
+            <ringGeometry args={[0.06, 0.14, 12]} />
             <meshStandardMaterial color={armorDarker} roughness={0.8} side={THREE.DoubleSide} />
           </mesh>
           {/* Cone */}
-          <mesh position={[0, 0.06, 0]}>
-            <coneGeometry args={[0.06, 0.14, 8]} />
+          <mesh position={[0, 0.13, 0]}>
+            <coneGeometry args={[0.085, 0.26, 8]} />
             <meshStandardMaterial color={armorDarker} roughness={0.8} />
           </mesh>
         </group>
@@ -543,15 +795,23 @@ const HumanoidModel: React.FC<{
           <meshStandardMaterial color={isPlayerTeam ? new THREE.Color(0x4a2a12) : new THREE.Color(0x0d0505)} roughness={0.8} />
         </mesh>
       ) : (
-        /* Fighter: half-sphere helmet */
-        <mesh position={[0, 0.63, 0]}>
-          <sphereGeometry args={[0.07, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial
-            color={new THREE.Color(armorColor).multiplyScalar(0.6)}
-            roughness={0.4}
-            metalness={0.6}
-          />
-        </mesh>
+        /* Fighter: half-sphere helmet + crest so the head silhouette differs
+           from hat (caster) and hood (rogue) at tactical zoom */
+        <group>
+          <mesh position={[0, 0.63, 0]}>
+            <sphereGeometry args={[0.07, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+            <meshStandardMaterial
+              color={new THREE.Color(armorColor).multiplyScalar(0.6)}
+              roughness={0.4}
+              metalness={0.6}
+            />
+          </mesh>
+          {/* Front-to-back crest ridge */}
+          <mesh position={[0, 0.71, 0]} castShadow>
+            <boxGeometry args={[0.018, 0.07, 0.13]} />
+            <meshStandardMaterial color={armorDarker} roughness={0.6} metalness={0.3} />
+          </mesh>
+        </group>
       )}
 
       {/* ---- LEFT ARM ---- */}
@@ -560,7 +820,7 @@ const HumanoidModel: React.FC<{
         rotation={[
           archetype === 'caster' ? -0.3 + idleSway : idleSway,
           0,
-          archetype === 'caster' ? -0.4 : -0.1 + idleSway * 0.5,
+          (archetype === 'caster' ? -0.4 : -0.1 + idleSway * 0.5) + stance.armL,
         ]}
       >
         <mesh castShadow>
@@ -585,7 +845,7 @@ const HumanoidModel: React.FC<{
         rotation={[
           archetype === 'caster' ? 0.2 + attackSwing * 0.3 : attackSwing,
           0,
-          archetype === 'caster' ? 0.3 : 0.1 - idleSway * 0.5,
+          (archetype === 'caster' ? 0.3 : 0.1 - idleSway * 0.5) + stance.armR,
         ]}
       >
         <mesh castShadow>
@@ -596,19 +856,20 @@ const HumanoidModel: React.FC<{
           />
         </mesh>
         {archetype === 'caster' ? (
-          /* Staff — tall wooden rod with glowing orb on top */
+          /* Staff — tall wooden rod with glowing orb on top. Rises well above
+             the head so the staff+orb silhouette reads at tactical zoom */
           <group position={[0, -0.08, 0.03]}>
             <mesh castShadow>
-              <cylinderGeometry args={[0.012, 0.015, 0.50, 6]} />
+              <cylinderGeometry args={[0.014, 0.018, 0.66, 6]} />
               <meshStandardMaterial color={0x5a3a18} roughness={0.7} metalness={0.0} />
             </mesh>
             {/* Glowing orb at staff top */}
-            <mesh position={[0, 0.28, 0]}>
-              <sphereGeometry args={[0.03, 8, 6]} />
+            <mesh position={[0, 0.37, 0]}>
+              <sphereGeometry args={[0.045, 8, 6]} />
               <meshStandardMaterial
                 color={armorColor}
                 emissive={armorColor}
-                emissiveIntensity={1.0}
+                emissiveIntensity={1.6}
                 transparent
                 opacity={0.9}
               />
@@ -663,16 +924,27 @@ const HumanoidModel: React.FC<{
         </>
       )}
 
-      {/* ---- SHIELD (Fighter only) ---- */}
+      {/* ---- SHIELD + PAULDRONS (Fighter only) ---- */}
       {archetype === 'fighter' && (
-        <mesh position={[-0.20, 0.32, 0.06]} rotation={[0, 0.3, 0]} castShadow>
-          <boxGeometry args={[0.02, 0.16, 0.13]} />
-          <meshStandardMaterial
-            color={new THREE.Color(armorColor).multiplyScalar(0.8)}
-            roughness={0.4}
-            metalness={0.5}
-          />
-        </mesh>
+        <>
+          {/* Bigger shield so "sword and board" reads at tactical zoom */}
+          <mesh position={[-0.22, 0.34, 0.06]} rotation={[0, 0.3, 0]} castShadow>
+            <boxGeometry args={[0.024, 0.22, 0.18]} />
+            <meshStandardMaterial
+              color={new THREE.Color(armorColor).multiplyScalar(0.8)}
+              roughness={0.4}
+              metalness={0.5}
+            />
+          </mesh>
+          {/* Shoulder pauldrons — widen the upper silhouette vs the slim rogue
+              and robed caster */}
+          {[-0.15, 0.15].map((sx, i) => (
+            <mesh key={i} position={[sx, 0.49, 0]} castShadow>
+              <sphereGeometry args={[0.065, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2]} />
+              <meshStandardMaterial color={armorDark} roughness={0.4} metalness={0.6} />
+            </mesh>
+          ))}
+        </>
       )}
 
       {/* ---- CASTER: shoulder cape ---- */}
@@ -683,12 +955,24 @@ const HumanoidModel: React.FC<{
         </mesh>
       )}
 
-      {/* ---- ROGUE: belt with buckle ---- */}
+      {/* ---- ROGUE: belt with buckle + back cape ---- */}
       {archetype === 'rogue' && (
-        <mesh position={[0, 0.24, 0]}>
-          <boxGeometry args={[0.19, 0.025, 0.13]} />
-          <meshStandardMaterial color={0x4a3a1a} roughness={0.6} metalness={0.2} />
-        </mesh>
+        <>
+          <mesh position={[0, 0.24, 0]}>
+            <boxGeometry args={[0.19, 0.025, 0.13]} />
+            <meshStandardMaterial color={0x4a3a1a} roughness={0.6} metalness={0.2} />
+          </mesh>
+          {/* Short trailing cape — gives the slim profile a distinct swept
+              shape at tactical zoom without bulking it toward fighter */}
+          <mesh position={[0, 0.36, -0.09]} rotation={[0.18, 0, 0]} castShadow>
+            <boxGeometry args={[0.17, 0.3, 0.015]} />
+            <meshStandardMaterial
+              color={isPlayerTeam ? new THREE.Color(0x3a2210) : new THREE.Color(0x140808)}
+              roughness={0.9}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </>
       )}
     </group>
   );
@@ -836,6 +1120,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   character,
   allCharacters,
   tileElevation,
+  groundY,
   isSelected,
   isTurn,
   isTargetable,
@@ -844,6 +1129,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   activeCharacterId
 }) => {
   const groupRef = useRef<THREE.Group>(null);
+  const modelGroupRef = useRef<THREE.Group>(null);
   const [animState, setAnimState] = useState<AnimationState>('idle');
   const [hovered, setHovered] = useState(false);
   const animTimeRef = useRef(0);
@@ -859,6 +1145,28 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
     () => getRaceVisual(character.creatureTypes, character.name),
     [character.creatureTypes, character.name],
   );
+  // Fresnel rim on the model meshes (GOAL #7). Re-runs when the body plan or
+  // identity changes so rebuilt mesh trees get patched too.
+  useFresnelRim(modelGroupRef, [raceVisual.form, character.id]);
+  // Per-character idle stance (GOAL #8): seeded lean + arm-angle offsets and a
+  // sway/breathe phase so units don't stand and breathe in lockstep.
+  const stance = useMemo(() => {
+    let h = 0;
+    for (let i = 0; i < character.id.length; i++) {
+      h = ((h << 5) - h) + character.id.charCodeAt(i);
+      h |= 0;
+    }
+    const r = (n: number) => {
+      const x = Math.sin(h + n * 374761) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    return {
+      phase: r(1) * Math.PI * 2,
+      lean: (r(2) - 0.5) * 0.10,
+      armL: (r(3) - 0.5) * 0.22,
+      armR: (r(4) - 0.5) * 0.18,
+    };
+  }, [character.id]);
   // Creature size category → overall scale, so Large+ enemies (ogres, trolls,
   // dragons) physically tower over Medium humanoids instead of all matching.
   const sizeScale = useMemo(() => {
@@ -951,8 +1259,9 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
   // Target highlight color
   const showTargetHighlight = isTargetable && targetingMode;
 
-  // Elevation from tile data — match terrain mesh (ELEVATION_SCALE = 0.3)
-  const elevation = tileElevation * ELEVATION_SCALE;
+  // Ground height: prefer the sampled terrain surface (exact match with the
+  // rendered mesh — no hovering over carved banks); fall back to tile elevation.
+  const elevation = groundY ?? tileElevation * ELEVATION_SCALE;
 
   // HP percentage for health bar
   const hpPercent = Math.max(0, character.currentHP / character.maxHP);
@@ -984,6 +1293,26 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
         baseOpacity={isSelected || isTurn ? 0.90 : 0.50}
       />
 
+      {/* Facing wedge — small ground pointer on the team ring showing which way
+          the unit faces (GOAL #9); rotates with the model's facing. */}
+      {isAlive && (
+        <group rotation={[0, facingRotation, 0]}>
+          <mesh position={[0, 0.03, 0.78]} rotation={[-Math.PI / 2, 0, 0]}>
+            {/* thetaStart -π/2 puts the triangle's point outward (+Z = forward) */}
+            <circleGeometry args={[0.24, 3, -Math.PI / 2]} />
+            <meshStandardMaterial
+              color={teamColors.selection}
+              emissive={teamColors.selection}
+              emissiveIntensity={1.5}
+              transparent
+              opacity={0.9}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+            />
+          </mesh>
+        </group>
+      )}
+
       {/* Active turn golden ring */}
       <TurnIndicator active={isTurn} />
 
@@ -999,9 +1328,16 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
           same resistance / vulnerability / immunity facts as the 2D token. */}
       <DefenseBadgeRow character={character} />
 
+      {/* Active condition chips (GOAL #19) — the buff/debuff half of the
+          status story, below the HP pip. */}
+      <ConditionBadgeRow character={character} />
+
       {/* Character model — scaled up so the party reads as the focal point
-          rather than being dwarfed by terrain/trees (GOAL #3). */}
+          rather than being dwarfed by terrain/trees (GOAL #3). Model meshes
+          get a fresnel rim (task 73, GOAL #7) so silhouettes separate from
+          terrain at tactical zoom; indicators outside this group stay clean. */}
       <group
+        ref={modelGroupRef}
         scale={[
           3.7 * raceVisual.buildScale * sizeScale,
           3.7 * raceVisual.heightScale * sizeScale,
@@ -1015,6 +1351,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
             isPlayerTeam={isPlayer}
             animTime={animTimeRef.current}
             furColor={raceVisual.skin}
+            idlePhase={stance.phase}
           />
         ) : raceVisual.form === 'dragon' ? (
           <DragonModel
@@ -1022,6 +1359,23 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
             isPlayerTeam={isPlayer}
             animTime={animTimeRef.current}
             scaleColor={raceVisual.skin}
+            idlePhase={stance.phase}
+          />
+        ) : raceVisual.form === 'ooze' ? (
+          <OozeModel
+            teamColor={teamColors.primary}
+            isPlayerTeam={isPlayer}
+            animTime={animTimeRef.current}
+            slimeColor={raceVisual.skin}
+            idlePhase={stance.phase}
+          />
+        ) : raceVisual.form === 'aberration' ? (
+          <AberrationModel
+            teamColor={teamColors.primary}
+            isPlayerTeam={isPlayer}
+            animTime={animTimeRef.current}
+            fleshColor={raceVisual.skin}
+            idlePhase={stance.phase}
           />
         ) : (
           <HumanoidModel
@@ -1032,6 +1386,7 @@ const CharacterActor: React.FC<CharacterActorProps> = ({
             animTime={animTimeRef.current}
             archetype={archetype}
             race={raceVisual}
+            stance={stance}
           />
         )}
       </group>

@@ -136,7 +136,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "Until the spell ends, when you make a Charisma check, you can replace the number you roll with a 15. Additionally, no matter what you say, magic that would determine if you are telling the truth indicates that you are being truthful.",
+      "description": "For the duration, the caster can treat any Charisma check roll as 15 and magic that checks truthfulness reads the caster's statements as truthful.",
       "utilityType": "other",
       "grantedActions": [],
       "attackAugments": [],
@@ -177,7 +177,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "charisma-floor",
+        "truth-magic-countermeasure",
+        "self-buff"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -187,5 +192,9 @@
   },
   "description": "Until the spell ends, when you make a Charisma check, you can replace the number you roll with a 15. Additionally, no matter what you say, magic that would determine if you are telling the truth indicates that you are being truthful.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "enchantment",
+    "charisma-buff",
+    "truth-magic-countermeasure"
+  ]
 }

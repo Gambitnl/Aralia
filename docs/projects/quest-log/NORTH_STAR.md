@@ -5,13 +5,13 @@ slug: quest-log
 category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-09
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/quest-log/AUDIT_OR_PROOF.md
-gap_signal: "G3 review-required; no safe implementation slice"
+gap_signal: "G3 decided 2026-06-10 (D14, Option A); implementation lane open"
 protocol: living project doc set
-next_step: Resolve NPC quest handoff ownership in the Required Review Brief before implementation.
+next_step: "Implement the quest-giver bridge in handleNpcInteraction.ts (Option A): define a minimal quest-offer payload as part of the work and cover the handoff with focused source-backed tests."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -34,16 +34,16 @@ completed_verification:
 last_proof: 2026-06-09
 workflow_gaps_reviewed: 2026-06-09
 compaction_status: not_needed
-lifecycle_status: human-review-required
+lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Quest Log North Star
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Purpose and Scope
 
@@ -71,12 +71,12 @@ What is out of scope:
 Project: Quest Log
 Slug: quest-log
 Category: Feature/UI Projects
-Status: review-required
+Status: active (decision recorded 2026-06-10; implementation lane open)
 Confidence: medium
 Evidence: docs/projects/quest-log/AUDIT_OR_PROOF.md
-Gap signal: G3 review-required; no safe implementation slice
+Gap signal: G3 decided 2026-06-10 (D14, Option A); implementation lane open
 Protocol: living project doc set
-Next step: Resolve NPC quest handoff ownership in the Required Review Brief before implementation.
+Next step: Implement the quest-giver bridge in `handleNpcInteraction.ts` (Option A): define a minimal quest-offer payload as part of the work and cover the handoff with focused source-backed tests.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
 Last proof: 2026-06-09
@@ -181,10 +181,24 @@ Evidence: `src/hooks/actions/handleNpcInteraction.ts`, `src/hooks/actions/action
 Decision owner: Quest Log owner with dialogue/NPC and quests-schema owners if the contract crosses project boundaries.
 Proof after decision: A focused source-backed test for the chosen handoff path plus `node scripts\audit-living-project-docs.cjs --project quest-log`.
 
+### Decision (2026-06-10)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D14 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`):
+
+- **Option A — wire the quest-giver bridge now.** `handleNpcInteraction.ts` owns the NPC
+  quest handoff; add the bridge that dispatches quest acceptance from dialogue outcomes,
+  with focused source-backed test coverage.
+- The owner chose this over deferring for a broader dialogue/quest contract. The bridge
+  implementation should **define a minimal quest-offer payload as it goes** rather than
+  waiting on the broader quests/dialogue schema lane.
+
+Status: decision recorded 2026-06-10; implementation lane open.
+
 ## Next Checks
 
 - Confirm quest-log behavior after any quest-state schema migration.
-- Resolve the NPC quest handoff ownership decision in the Required Review Brief.
+- Resolve the NPC quest handoff ownership decision in the Required Review Brief. (Done 2026-06-10 — see Decision subsection above; implement Option A with the minimal quest-offer payload and focused tests.)
 
 ## Resume Path
 

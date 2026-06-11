@@ -147,7 +147,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 5d10 Radiant damage through the row's always-on damage scaffold.",
       "conditionalEndings": []
     }
   ],

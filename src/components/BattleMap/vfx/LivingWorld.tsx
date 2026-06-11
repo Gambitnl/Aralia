@@ -166,6 +166,41 @@ function seededRandom(seed: number): () => number {
 }
 
 // ---------------------------------------------------------------------------
+// Soft-dot sprite texture (task 72 — GOAL #57 particle visibility)
+// ---------------------------------------------------------------------------
+//
+// Bare `pointsMaterial` renders hard squares, which caps how large a particle
+// can be before it looks like a pixel artifact. A radial-gradient sprite lets
+// us scale particles up to tactical-zoom-visible sizes while they still read
+// as soft glowing motes. Lazily created once; falls back to null (untextured
+// squares) in canvas-less environments like jsdom (see GLOBAL_GAPS GG-14) —
+// tests mock LivingWorld anyway.
+
+let softDotTexture: THREE.Texture | null | undefined;
+function getSoftDotTexture(): THREE.Texture | null {
+  if (softDotTexture !== undefined) return softDotTexture;
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d');
+    if (!g) {
+      softDotTexture = null;
+      return null;
+    }
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(255,255,255,1)');
+    grad.addColorStop(0.35, 'rgba(255,255,255,0.55)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    softDotTexture = new THREE.CanvasTexture(c);
+  } catch {
+    softDotTexture = null;
+  }
+  return softDotTexture;
+}
+
+// ---------------------------------------------------------------------------
 // Ambient Particles — pollen, dust, spores, embers
 // ---------------------------------------------------------------------------
 
@@ -174,18 +209,29 @@ const AmbientParticles: React.FC<{
   mapWidth: number;
   mapHeight: number;
   seed: number;
-}> = ({ config, mapWidth, mapHeight, seed }) => {
+  /**
+   * Task 72: scaling knobs so LivingWorld can render this twice — the original
+   * fine close-range layer (defaults, unchanged behavior) plus a sparse "hero
+   * mote" layer large enough to survive tactical zoom (GOAL #57). seedOffset
+   * keeps the two layers from overlapping particle-for-particle.
+   */
+  countScale?: number;
+  sizeScale?: number;
+  opacityScale?: number;
+  seedOffset?: number;
+}> = ({ config, mapWidth, mapHeight, seed, countScale = 1, sizeScale = 1, opacityScale = 1, seedOffset = 0 }) => {
   const pointsRef = useRef<THREE.Points>(null);
+  const count = Math.max(1, Math.round(config.particleCount * countScale));
 
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
-    const rand = seededRandom(seed + 5555);
-    const positions = new Float32Array(config.particleCount * 3);
+    const rand = seededRandom(seed + 5555 + seedOffset);
+    const positions = new Float32Array(count * 3);
 
     const worldW = mapWidth * TILE_SIZE;
     const worldH = mapHeight * TILE_SIZE;
 
-    for (let i = 0; i < config.particleCount; i++) {
+    for (let i = 0; i < count; i++) {
       positions[i * 3] = rand() * worldW;
       positions[i * 3 + 1] = rand() * 3.0; // 0-3 units above ground
       positions[i * 3 + 2] = rand() * worldH;
@@ -193,7 +239,7 @@ const AmbientParticles: React.FC<{
 
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     return geo;
-  }, [config.particleCount, mapWidth, mapHeight, seed]);
+  }, [count, mapWidth, mapHeight, seed, seedOffset]);
 
   useFrame((state) => {
     if (!pointsRef.current) return;
@@ -202,7 +248,7 @@ const AmbientParticles: React.FC<{
     const worldW = mapWidth * TILE_SIZE;
     const worldH = mapHeight * TILE_SIZE;
 
-    for (let i = 0; i < config.particleCount; i++) {
+    for (let i = 0; i < count; i++) {
       let x = positions.getX(i);
       let y = positions.getY(i);
       let z = positions.getZ(i);
@@ -232,9 +278,10 @@ const AmbientParticles: React.FC<{
     <points ref={pointsRef} geometry={geometry}>
       <pointsMaterial
         color={config.particleColor}
-        size={config.particleSize}
+        size={config.particleSize * sizeScale}
+        map={getSoftDotTexture() ?? undefined}
         transparent
-        opacity={config.particleOpacity}
+        opacity={Math.min(0.95, config.particleOpacity * opacityScale)}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
         sizeAttenuation
@@ -315,15 +362,30 @@ const Fireflies: React.FC<{
             distance={4}
             decay={2}
           />
-          {/* Visible glow sphere */}
+          {/*
+            Visible glow core — radius 0.06→0.13 (task 72, GOAL #58): the old
+            size was subpixel at the ~18-unit tactical camera, so fireflies
+            only existed as local light pools. The light itself is unchanged.
+          */}
           <mesh>
-            <sphereGeometry args={[0.06, 8, 6]} />
+            <sphereGeometry args={[0.13, 8, 6]} />
             <meshBasicMaterial
               color={config.fireflyColor}
               transparent
-              opacity={0.8}
+              opacity={0.85}
             />
           </mesh>
+          {/* Soft halo sprite so the glow blooms at distance (camera-facing, additive) */}
+          <sprite scale={[0.55, 0.55, 1]}>
+            <spriteMaterial
+              color={config.fireflyColor}
+              map={getSoftDotTexture() ?? undefined}
+              transparent
+              opacity={0.4}
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+            />
+          </sprite>
         </group>
       ))}
     </group>
@@ -419,18 +481,22 @@ const WeatherParticles: React.FC<{
 
   if (!config.hasWeather || !geometry) return null;
 
-  // Particle shape based on weather type
-  const size = config.weatherType === 'rain' ? 0.01
-    : config.weatherType === 'snow' ? 0.02
-    : 0.015;
+  // Particle shape based on weather type. Sizes raised ~3x (task 72, GOAL #57):
+  // the old 0.01-0.02 values were invisible at the tactical camera distance —
+  // the desert sandstorm read as nothing at all. Soft sprite keeps them from
+  // becoming hard squares at the new size.
+  const size = config.weatherType === 'rain' ? 0.03
+    : config.weatherType === 'snow' ? 0.06
+    : 0.05;
 
   return (
     <points ref={pointsRef} geometry={geometry}>
       <pointsMaterial
         color={config.weatherColor}
         size={size}
+        map={getSoftDotTexture() ?? undefined}
         transparent
-        opacity={config.weatherType === 'sandstorm' ? 0.3 : 0.5}
+        opacity={config.weatherType === 'sandstorm' ? 0.4 : 0.5}
         depthWrite={false}
         sizeAttenuation
       />
@@ -615,12 +681,31 @@ const LivingWorld: React.FC<LivingWorldProps> = ({ mapData }) => {
         biome={biome}
       />
 
-      {/* Ambient particles — pollen, dust, spores */}
+      {/* Ambient particles — pollen, dust, spores (fine close-range layer) */}
       <AmbientParticles
         config={config}
         mapWidth={width}
         mapHeight={height}
         seed={seed}
+        sizeScale={1.5}
+      />
+
+      {/*
+        Hero motes (task 72, GOAL #57): a sparse layer of much larger soft
+        particles so the "living world" survives tactical zoom. ~12% of the
+        base count at ~5x size — at the ~18-unit play distance these render
+        as faint drifting glows instead of vanishing subpixel specks. The
+        fine layer above is preserved for close-range richness.
+      */}
+      <AmbientParticles
+        config={config}
+        mapWidth={width}
+        mapHeight={height}
+        seed={seed}
+        countScale={0.12}
+        sizeScale={5}
+        opacityScale={1.15}
+        seedOffset={4242}
       />
 
       {/* Fireflies / bioluminescent lights */}

@@ -150,8 +150,14 @@
         "bonusPerLevel": "+1 dart (1d4+1 each)",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creates three auto-hit force darts that each deal 1d4 + 1 Force damage; higher slots add one dart per slot level.",
+      "conditionalEndings": [],
+      "tags": [
+        "force-damage",
+        "auto-hit",
+        "multi-dart",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

@@ -1,7 +1,7 @@
 # Living Project Workflow Gaps
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 This file tracks gaps in the living-project workflow itself. It is not a
 project blocker list. Use it only when an agent finds ambiguity, unsafe
@@ -63,7 +63,143 @@ Do not add anonymous vote counts. The testimony is the evidence.
 
 | ID | Status | Severity | Workflow Area | Issue | Testimonies | Next Action | Owner | Last Updated |
 |---|---|---|---|---|---|---|---|---|
-| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-001 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-09 |
+| _None_ | _n/a_ | _n/a_ | _n/a_ | No active workflow gaps after WFG-006 resolution. | _n/a_ | Keep checking this file during each iteration. | _n/a_ | 2026-06-10 |
+
+### WFG-002 - Routing projects have no required write obligation into owner project docs
+
+Status: resolved
+Severity: medium
+Workflow area: Bounded Gap Sweep / Required Closeout Updates
+Opened: 2026-06-10
+Last updated: 2026-06-10
+
+#### Problem
+
+When a project like `code-modularization-audit` routes a gap to an owner project
+(e.g. "route CMA-G17 to layout"), the workflow only says to record the routing
+in the source project's `GAPS.md`. It does not require the routing agent to also
+write a stub row into the owner project's `GAPS.md`. The result is that the
+route exists only in the routing project's docs. An agent working on `layout`
+has no way to discover it through normal workflow steps.
+
+This was confirmed by scanning all six owner GAPS.md files for CMA-G14..G19:
+none of them contain a row referencing the inbound route, even though CMA marked
+all six as "routed" in June 2026.
+
+#### Why This Is Workflow-Level
+
+This affects every project that acts as a routing source (code-modularization-audit,
+global gaps, architecture sweep, etc.) across all owner projects. Any routing
+project that follows the current workflow instructions faithfully will produce
+the same invisible-route problem.
+
+#### Current Safe Handling
+
+When a routing agent records a gap as "routed" to an owner project, it should
+also write a minimal stub gap row directly into the owner project's `GAPS.md`
+at the same time. The stub must include: gap ID (cross-referencing the source
+gap), classification `adjacent_follow_up`, owner, source evidence path, why it
+matters, and next action. Do not wait for the owner project's agent to discover
+the route on their own.
+
+#### Testimonies
+
+- 2026-06-10 | docs/projects/code-modularization-audit iteration 5 | Amazon Q:
+  I ran the owner-acceptance scan for CMA-G14..G19 and found that none of the
+  six owner GAPS.md files contain a row referencing their inbound CMA route,
+  despite the routing project marking them "routed" in a prior iteration. The
+  workflow has no rule that required the routing agent to write anything into
+  the owner docs. I avoided assuming the owner projects had failed; the
+  routing project simply had no obligation to push the route.
+
+#### Proposed Workflow Refinement
+
+Add a rule to the "Required Closeout Updates" section:
+
+> When a gap is marked `routed` to an owner project, the routing agent must
+> also write a stub gap row into the owner project's `GAPS.md` in the same
+> iteration. The stub must cross-reference the source gap ID, name the
+> classification, owner, evidence, why it matters, and next action. A routed
+> gap is not complete until the owner stub exists.
+
+#### Resolution
+
+Resolved on 2026-06-10 by updating the protocol README, shared iteration
+workflow, and gap templates. Routing agents must now write a minimal inbound
+stub row into the destination owner's `GAPS.md` when marking a gap as routed,
+or explicitly record why the stub could not be written. The rule now appears in
+the README Global Gap Routing and Iteration Pass Closing Rule sections, the
+shared workflow Required Closeout Updates section, and the `GAPS.md` /
+`GLOBAL_GAPS.md` templates.
+
+---
+
+### WFG-003 - Owner-project agents have no required inbound-route discovery step
+
+Status: resolved
+Severity: medium
+Workflow area: Bounded Gap Sweep
+Opened: 2026-06-10
+Last updated: 2026-06-10
+
+#### Problem
+
+The bounded gap sweep in the shared workflow tells agents to check their own
+`GAPS.md`, `GLOBAL_GAPS.md`, and `WORKFLOW_GAPS.md`. It does not tell owner-project
+agents to check whether any routing project (code-modularization-audit,
+architecture sweep, global gaps) has an open row naming their project as the
+destination owner.
+
+Even if WFG-002 is fixed and routing agents do write stubs into owner docs, an
+owner agent could still miss the stub if they do not read their own full
+`GAPS.md` before choosing work. The current sweep instruction says "this
+project's GAPS.md" but does not explicitly call out inbound cross-project rows
+as a required check category.
+
+#### Why This Is Workflow-Level
+
+This affects every owner-project agent operating under the living-project
+workflow. Without an explicit inbound-route discovery step, routing signals from
+any routing project are silently invisible to the agents who need to act on them.
+
+#### Current Safe Handling
+
+During the bounded gap sweep, explicitly search the project's `GAPS.md` for any
+row whose evidence path or owning-tracker field references a routing project
+(e.g. `code-modularization-audit`, `GLOBAL_GAPS.md`, `architecture`). Treat any
+unacknowledged inbound route as an `adjacent_follow_up` gap if it is not already
+represented.
+
+#### Testimonies
+
+- 2026-06-10 | docs/projects/code-modularization-audit iteration 5 | Amazon Q:
+  I reviewed all six owner project GAPS.md files (three-d-modal, battle-map,
+  submap, layout, combat, scripts-audits) and confirmed that none of them
+  contain a row for their respective CMA-G14..G19 inbound route. Their bounded
+  gap sweeps would not surface these routes under the current workflow rules
+  because the routes were never written into their docs (WFG-002) and the sweep
+  does not require checking routing-project sources (this gap). Both problems
+  are needed together to close the discovery path.
+
+#### Proposed Workflow Refinement
+
+Add a step to the "Bounded Gap Sweep" section:
+
+> Also check whether any known routing project (`code-modularization-audit`,
+> `docs/projects/GLOBAL_GAPS.md`, architecture sweep, or similar) has an open
+> row naming this project as the destination owner that is not yet reflected
+> in this project's `GAPS.md`. If found, add a stub row or acknowledge the
+> inbound route explicitly before closing the sweep.
+
+#### Resolution
+
+Resolved on 2026-06-10 by adding inbound-route discovery to the bounded gap
+sweep in both the protocol README and shared iteration workflow. Iteration
+agents must now check known routing projects, including
+`code-modularization-audit`, architecture sweep docs, global gaps, roadmap
+reviews, or any tracker/gap file that names the current project as destination
+owner. The cold-start prompt template now includes this sweep requirement so
+project-specific handoffs carry the same discovery rule.
 
 ### WFG-001 - Living-project file paths still point at moved or stale locations
 
@@ -157,13 +293,229 @@ Canonical Aralia Paths section and by confirming current project
 older project docs may still mention generic template filenames, but the active
 shared workflow and active handoff path now point agents at canonical files.
 
+### WFG-004 - Cold-start "active task: None" is ambiguous between stop and pick-up-next
+
+Status: resolved
+Severity: medium
+Workflow area: Choose The Work / Idle Mission
+Opened: 2026-06-10
+Last updated: 2026-06-10
+
+#### Problem
+
+When a cold-start handoff says `Current Mission: None for G1` (or any "no
+active task" phrasing), agents read it as a hard stop: preserve state, do not
+touch implementation, do not pick up new work. The intended behavior is a
+two-phase sequence:
+
+1. **Scan phase** (always runs): read the workflow, North Star, Tracker, Gaps,
+   and this file; orient to current state.
+2. **Decision gate**: if an active task exists, execute it. If not, scan the
+   project's `GAPS.md`, `GLOBAL_GAPS.md`, and `WORKFLOW_GAPS.md` for the next
+   actionable item.
+3. **Build phase**: pick up the selected gap as the new active task and execute
+   it.
+
+The current wording gives step 1 but does not explicitly trigger step 2 → 3
+when the mission is empty, so agents stop after step 1.
+
+#### Why This Is Workflow-Level
+
+This affects every living-project cold-start handoff where the prior iteration
+closed its active task but did not pre-assign the next one. Any project in
+"active" status with an empty mission field will produce the same stop-short
+behavior across all future iteration agents.
+
+#### Current Safe Handling
+
+When the cold-start mission reads as "None" or empty, treat that as a trigger
+to perform the scan → gate → pick-up → build sequence. Record the picked-up
+gap as the new active task in the iteration handoff before executing. If no
+actionable gap is found, register the idle state per WFG-005 instead of
+silently ending the iteration.
+
+#### Testimonies
+
+- 2026-06-10 | docs/projects/crafting iteration 6 review | Qoder CLI: Reading
+  the crafting cold-start prompt, I interpreted "Current Mission: None for G1"
+  as a directive to hold and not build, and reported the correct action as
+  "verification and gap routing, not code changes." The user confirmed the
+  intended behavior was scan-first, then build. Avoided assuming the idle
+  mission meant the project was done; the ambiguity is in the handoff wording,
+  not the project state.
+
+#### Proposed Workflow Refinement
+
+Update the cold-start prompt template's "Current Mission" section to include
+an explicit two-branch instruction:
+
+> If the active task field is "None" or empty, the agent must still complete
+> the scan phase, then pick up the next actionable gap from the project's
+> `GAPS.md`, `GLOBAL_GAPS.md`, or `WORKFLOW_GAPS.md` as the new active task.
+> If no actionable gap exists, register the project idle per WFG-005.
+
+And update the shared `ITERATION_AGENT_WORKFLOW.md` "Choose The Work" step to
+state the scan → gate → pick-up → build sequence explicitly, so the idle
+mission is not a terminal state.
+
+#### Resolution
+
+Resolved on 2026-06-10 by updating the shared iteration workflow, protocol
+README, and cold-start prompt template. The Choose The Work step now requires a
+scan phase before declaring no work, treats `None` or empty active-task fields
+as a decision gate, requires agents to pick the next actionable project/global/
+workflow gap when one exists, and records the selected item as the new active
+task before execution. The cold-start template now carries the same instruction
+inside Current Mission so project handoffs do not read as terminal when the
+prior agent left no assigned task.
+
+---
+
+### WFG-005 - Active projects with no actionable gaps have no idle-status registration
+
+Status: resolved
+Severity: medium
+Workflow area: End Of Iteration Response / Project Status
+Opened: 2026-06-10
+Last updated: 2026-06-10
+
+#### Problem
+
+When a project's status is `active` but a cold-start agent (after performing
+the WFG-004 scan → gate → pick-up sequence) finds no actionable gap in the
+project's `GAPS.md`, `GLOBAL_GAPS.md`, or `WORKFLOW_GAPS.md`, the workflow
+gives no way to record that outcome. The project stays `active`, the next
+handoff still says `status: active`, and the next iteration agent repeats the
+same empty scan. The project is functionally idle but the dashboard and
+tracker have no field that says so.
+
+#### Why This Is Workflow-Level
+
+This affects any long-running living project that has closed its known gaps
+but is not yet done as a product. Without an idle status, the project keeps
+appearing on active dashboards, keeps triggering cold-start iterations that
+do nothing, and silently hides the fact that it is waiting for new evidence
+rather than active work.
+
+#### Current Safe Handling
+
+Until an idle status is defined, when the scan finds no actionable gap, the
+iteration agent should record the "no gaps found" outcome explicitly in the
+cold-start handoff's `Recent progress` and `Current Mission` fields, and note
+the idle state in the iteration ledger. Do not change the project status to
+`done` or `dormant` without human confirmation — but do surface the idle
+signal so dispatchers see it.
+
+#### Testimonies
+
+- 2026-06-10 | docs/projects/crafting iteration 6 review | Qoder CLI: After
+  the crafting G1 compatibility proof closed and G5 remained blocked, the
+  project is functionally idle — no actionable gaps, but the status stays
+  `active` and the handoff keeps producing "preserve and wait" iterations.
+  Avoided assuming the project was done; the state is "waiting for evidence,"
+  which the schema has no place to record.
+
+#### Proposed Workflow Refinement
+
+Add an `idle` status value to the project card schema
+(`docs/projects/PROJECT_CARD_SCHEMA.md`) with defined semantics distinct from
+`active`, `paused`, and `done`:
+
+- `idle`: project is alive and may be resumed, but no actionable gap exists
+  right now. Cold-start agents should not launch new iterations unless a new
+  gap is registered.
+
+Also update `docs/projects/PROJECT_TRACKER.md` and the cold-start prompt
+template to recognize `idle` as a valid project status and to require the
+registering agent to write the idle transition into the handoff's `Recent
+progress` and `Current Mission` fields when moving a project from `active`
+to `idle`.
+
+#### Resolution
+
+Resolved on 2026-06-10 by defining `idle` in the shared protocol status
+vocabulary, adding it to `docs/projects/PROJECT_CARD_SCHEMA.md`, adding it to
+the `docs/projects/PROJECT_TRACKER.md` legend, and updating the shared workflow
+and cold-start prompt template with idle-registration rules. When no actionable
+project, global, or workflow gap exists after the required scan, agents must
+mark the project `idle`, record the checked surfaces and resume trigger in the
+North Star/tracker/handoff/project tracker row when applicable, and avoid
+marking the project done, dormant, or paused without source evidence or human
+direction.
+
+---
+
+### WFG-006 - Agents are not required to look for expansion opportunities continuously
+
+Status: resolved
+Severity: medium
+Workflow area: Choose The Work / Bounded Gap Sweep / End Of Iteration Response
+Opened: 2026-06-10
+Last updated: 2026-06-10
+
+#### Problem
+
+The living-project workflow says to preserve future possibility and record
+adjacent findings, but it mostly frames discovery as a bounded closeout sweep.
+Agents can follow the workflow faithfully while treating expansion discovery as
+optional or only end-of-iteration bookkeeping. That encourages narrow execution
+and makes agents miss opportunities to grow the project safely while evidence
+is fresh.
+
+#### Why This Is Workflow-Level
+
+This affects every living project. The protocol exists to preserve expanding
+tasks and future optionality, so expansion discovery cannot depend on each
+agent's personal initiative. It needs to be a required behavior that coexists
+with bounded execution.
+
+#### Current Safe Handling
+
+Agents should maintain an expansion radar during execution. When a source file,
+doc, test, proof result, or integration point reveals a new capability,
+project slice, reusable system, automation target, adjacent owner task, or
+scope boundary worth preserving, the agent should classify it with the normal
+gap classifications and record it in the owning project tracker, project
+`GAPS.md`, or `docs/projects/GLOBAL_GAPS.md`. This does not authorize widening
+the active slice unless the finding is `in_scope_now` or `support_needed_now`.
+
+#### Testimonies
+
+- 2026-06-10 | living-project protocol ownership | User/operator: Noted that
+  agents seem not to look for opportunities to expand at all times and
+  identified that as a workflow gap. This matches the protocol-level problem
+  because it affects the default behavior of every future iteration agent, not
+  one project's product scope.
+
+#### Proposed Workflow Refinement
+
+Add a continuous expansion-radar rule to the shared workflow, protocol README,
+and cold-start prompt template. Require agents to report expansion
+opportunities found, routed, or explicitly not found in the final response.
+Clarify that expansion discovery records future work but does not widen the
+active slice unless the opportunity is required now.
+
+#### Resolution
+
+Resolved on 2026-06-10 by adding a Continuous Expansion Radar section to the
+shared iteration workflow, adding expansion-radar language to Choose The Work,
+Bounded Gap Sweep, and End Of Iteration Response, updating the protocol README
+During The Task and Gap Classification sections, and adding expansion-radar
+instructions to the cold-start prompt, GAPS template, and living tracker
+template. Agents must now actively look for source-backed expansion
+opportunities during execution, route them to the right tracker, and report
+whether any were found without inventing speculative work.
+
 ## Resolved Workflow Gaps
 
 | ID | Status | Severity | Workflow Area | Issue | Resolution | Last Updated |
 |---|---|---|---|---|---|---|
 | WFG-001 | resolved | medium | Start Of Iteration | Shared living-project docs still pointed at moved or stale canonical paths. | Added explicit Canonical Aralia Paths to the protocol README and verified active handoffs use canonical workflow/schema paths. | 2026-06-09 |
-
-## Gap Detail Template
+| WFG-002 | resolved | medium | Bounded Gap Sweep / Required Closeout Updates | Routing projects had no required write obligation into owner project docs. | Added destination-owner stub row requirement to README, shared workflow, and gap templates. | 2026-06-10 |
+| WFG-003 | resolved | medium | Bounded Gap Sweep | Owner-project agents had no required inbound-route discovery step. | Added inbound routed gap discovery to bounded sweeps and cold-start prompt template. | 2026-06-10 |
+| WFG-004 | resolved | medium | Choose The Work / Idle Mission | "Active task: None" in a cold-start handoff was read as a terminal stop instead of a scan-and-self-assign trigger. | Added scan -> decision gate -> pick-up -> build behavior to shared workflow and cold-start prompt template. | 2026-06-10 |
+| WFG-005 | resolved | medium | End Of Iteration Response / Project Status | Active projects with no actionable gaps had no status for "idle / no gaps found," causing repeated scan-only iterations. | Added `idle` status semantics to protocol, schema, tracker legend, shared workflow, and cold-start prompt template. | 2026-06-10 |
+| WFG-006 | resolved | medium | Choose The Work / Bounded Gap Sweep / End Of Iteration Response | Agents were not required to look for expansion opportunities continuously during execution. | Added continuous expansion radar rules to workflow, protocol README, cold-start prompt, and tracker/gap templates. | 2026-06-10 |
 
 Copy this block when opening a new workflow gap.
 

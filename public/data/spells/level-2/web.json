@@ -177,7 +177,7 @@
         },
         "depositDistance": 0
       },
-      "description": "",
+      "description": "Creates the row's always-on web terrain effect for 60 minutes using the current terrain scaffold.",
       "conditionalEndings": [
         {
           "trigger": "unsupported_area_collapses_next_turn",

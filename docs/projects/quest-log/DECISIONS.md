@@ -1,7 +1,7 @@
 # Quest Log Decisions
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active
+Last updated: 2026-06-10
 
 ## D1: Quest transitions queue journal events before any journal entry materialization
 
@@ -44,3 +44,13 @@ Why: the system log already carries the immediate deadline message, but the ques
 What stayed unchanged: `log_only` deadlines still keep the quest active, remain system-log only, and do not queue a failed quest journal event.
 
 Evidence: `src/systems/quests/QuestManager.ts`, `src/components/QuestLog/QuestHistoryRow.tsx`, `src/systems/quests/__tests__/QuestManager.test.ts`, `src/components/QuestLog/__tests__/QuestLog.test.tsx`.
+
+## D5: `handleNpcInteraction.ts` owns the quest-giver bridge (G3, 2026-06-10)
+
+Decision: wire the NPC quest handoff now (Required Review Brief Option A). `handleNpcInteraction.ts` owns the quest-giver bridge that dispatches quest acceptance from dialogue outcomes, with focused source-backed test coverage. The bridge implementation defines a minimal quest-offer payload as it goes instead of waiting for a broader dialogue/quest contract.
+
+Why: the owner (Remy, 2026-06-10 batched decision session) chose immediate wiring over deferring for a domain-wide dialogue/quest contract; the minimal payload keeps the slice narrow while giving the dialogue layer a concrete shape that the broader quests lane can later widen.
+
+What stayed unchanged: item/location quest triggers, the quest/journal bridge, and `docs/projects/quests` ownership of the broader quest-schema migration all remain as documented.
+
+Evidence: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D14), `docs/projects/quest-log/NORTH_STAR.md` Required Review Brief + Decision (2026-06-10), `src/hooks/actions/handleNpcInteraction.ts`.

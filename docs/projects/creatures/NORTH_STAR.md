@@ -5,14 +5,14 @@ slug: creatures
 category: Gameplay Systems
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-09
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/creatures
-gap_signal: "G4 review-required; no safe implementation slice"
+gap_signal: "G4 decision recorded 2026-06-10 (Option A: keep binary, defer hybrid) — docs-only closure; no open implementation gap"
 protocol: living project doc set
-next_step: Pause forward iteration until the hybrid/multi-type semantics decision is recorded in the Required Review Brief.
-agent_comments: "G4 source review confirmed CreatureTaxonomy remains binary include/exclude logic; no source changes were made."
+next_step: G4 is closed as a deliberate defer (binary include/exclude stays canonical). Resume from a fresh source-backed scan or a new gap; hybrid semantics waits for a later product/schema decision.
+agent_comments: "G4 Required Review Brief resolved 2026-06-10 (Option A: keep binary targeting, defer hybrid; docs-only closure). See docs/projects/DECISION_BLITZ_2026-06-10.md D11."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -40,12 +40,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Creatures System North Star
 
-Status: review-required, cold-start paused
-Last updated: 2026-06-09
+Status: active (G4 decision recorded 2026-06-10; review hold lifted, docs-only closure)
+Last updated: 2026-06-10
 
 ## Why This Project Exists
 
@@ -76,18 +76,18 @@ Create a concise, evidence-backed current-state map that lets a future agent res
 Project: Creatures System
 Slug: creatures
 Category: Gameplay Systems
-Status: review-required
+Status: active (G4 decision recorded 2026-06-10; docs-only closure)
 Confidence: medium
 Evidence: docs/projects/creatures
-Gap signal: G4 review-required; no safe implementation slice
+Gap signal: G4 decided 2026-06-10 (keep binary, defer hybrid); no open implementation gap
 Protocol: living project doc set
-Next step: CT-2 is complete. G5 is resolved; G4 is now review-required, so pause forward implementation until the hybrid semantics decision is recorded.
+Next step: CT-2 is complete. G5 is resolved; G4 is closed as a deliberate defer (binary include/exclude stays canonical per DECISION_BLITZ D11). Resume from a fresh source-backed scan or a new gap.
 Required verification: docs_consistency, git_diff_check
 Completed verification: docs_consistency, git_diff_check
 Last proof: 2026-06-09
 Workflow gaps reviewed: 2026-06-09
-Agent comments: G4 source review confirmed CreatureTaxonomy remains binary include/exclude logic; no source changes were made.
-Human decision required: yes
+Agent comments: G4 source review confirmed CreatureTaxonomy remains binary include/exclude logic; no source changes were made. Decision recorded 2026-06-10: keep the binary contract, defer hybrid semantics (docs-only closure).
+Human decision required: no (G4 decision recorded 2026-06-10)
 
 ## Required Review Brief
 
@@ -102,6 +102,13 @@ Evidence: `src/systems/creatures/CreatureTaxonomy.ts`, `src/systems/creatures/Cr
 Decision owner: product/system owner for creature taxonomy and spell targeting semantics.
 Proof after decision: Focused validator tests and a source-backed schema note for the approved hybrid contract, or a deliberate defer note if Option A is chosen.
 Resumes after decision: If Option A is chosen, no implementation resumes; if Option B is chosen, taxonomy updates, validator tests, and any required downstream schema adjustments resume.
+
+### Decision (2026-06-10)
+
+Outcome: **Option A — keep the current binary include/exclude contract and explicitly defer hybrid semantics** to a later product/schema decision. This cycle's closure is docs-only: no taxonomy, validator, or schema changes. The June 2026 campaign's entity generation pipeline may inform the eventual hybrid model when that later decision is taken.
+Decider: Remy (project owner), batched decision session.
+Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D11).
+Effect: the G4 review gate is lifted and G4 closes as a deliberate defer note (this section is that note). `CreatureTaxonomy.isValidTarget` binary semantics remain canonical; any future hybrid work starts with a new product/schema decision, not by reopening G4.
 
 ## File Map
 
@@ -121,11 +128,11 @@ Resumes after decision: If Option A is chosen, no implementation resumes; if Opt
 
 | Field | Value |
 |---|---|
-| Task | G4 review gate - record the hybrid/multi-type semantics decision before any implementation work. |
+| Task | G4 review gate resolved 2026-06-10 (Option A: keep binary, defer hybrid — DECISION_BLITZ D11); propagate the docs-only closure across project docs. |
 | Allowed files | `docs/projects/creatures/NORTH_STAR.md`, `docs/projects/creatures/TRACKER.md`, `docs/projects/creatures/GAPS.md`, `docs/projects/creatures/COLD_START_AGENT_PROMPT.md`, and `docs/projects/PROJECT_TRACKER.md`. |
-| Acceptance | The Required Review Brief is present and clear, the project is marked review-required, and no forward implementation is assigned until the decision is recorded. |
-| Stop condition | The project remains review-required until the product/schema owner records a hybrid semantics decision. |
-| Owner | human/product owner |
+| Acceptance | The Required Review Brief carries the recorded decision, G4 is closed as a deliberate defer, and no hybrid implementation is assigned without a fresh product/schema decision. |
+| Stop condition | Docs reflect the recorded decision; the project has no open implementation gap until a new source-backed gap is registered. |
+| Owner | Remy (decision) / docs pass (propagation) |
 
 ## Scope Boundaries
 
@@ -143,6 +150,7 @@ Resumes after decision: If Option A is chosen, no implementation resumes; if Opt
 ## Known Gaps (durable)
 
 - G4 in `docs/projects/creatures/GAPS.md` is review-required; G1/CT-2, G2/CT-3, G3, and G5 are resolved.
+- Update (2026-06-10): G4 is resolved as a deliberate defer (keep binary targeting; hybrid semantics deferred — DECISION_BLITZ D11). All registered gaps are now closed.
 - Global fallback: none imported yet; re-evaluate `docs/projects/GLOBAL_GAPS.md` if ownership drifts beyond this project.
 
 ## Evidence and Proof Log
@@ -170,7 +178,7 @@ When resuming this project:
 
 1. Read this file fully.
 2. Read `docs/projects/creatures/TRACKER.md` and `docs/projects/creatures/GAPS.md`.
-3. Start with the G4 review gate and keep G5 resolved; do not assign forward implementation until the hybrid semantics decision is recorded.
+3. Start with the G4 review gate and keep G5 resolved; do not assign forward implementation until the hybrid semantics decision is recorded. (Update 2026-06-10: the decision is recorded — keep binary, defer hybrid. G4 is closed; resume from a fresh source-backed scan instead.)
 4. Use the file map above to pick the owned slice with the least ambiguity.
 5. Confirm `AGENTS.md`, `docs/projects/PROJECT_TRACKER.md`, and `docs/projects/GLOBAL_GAPS.md` before cross-project routing.
 

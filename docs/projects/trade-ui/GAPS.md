@@ -1,10 +1,11 @@
-# Trade UI Gaps
+# Trade Ui Gap Registry
 
 Status: active
 Last updated: 2026-06-05
 
 Use this file for durable findings that belong to trade-ui and may outlive the docs pass.
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |

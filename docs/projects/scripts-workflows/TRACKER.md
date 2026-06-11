@@ -1,4 +1,4 @@
-# TRACKER: Scripts: Workflows
+# Scripts: Workflows Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -28,3 +28,11 @@ T3 and T4 are the only open docs tasks; keep the slice inside project-owned refe
 
 - `G1` (adjacent_follow_up): Canonical workflow command matrix is still split across `docs/guides/MCP_INTEGRATION.md`, `docs/portraits/race_portrait_regen_handoff.md`, and package scripts.
 - `G2` (support_needed_now): Shared workflow environment-variable matrix is documented in comments and scripts but not in one project-owned place.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Compass Pane
+slug: compass-pane
+status: active
+last_updated: "2026-06-08"
+iteration: 3
+source_agent: Codex / gpt-5.4-mini high
+target_agent: next cold-start agent
+runtime_surface: MCP-subagent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/compass-pane/NORTH_STAR.md
+tracker: docs/projects/compass-pane/TRACKER.md
+gaps: docs/projects/compass-pane/GAPS.md
+---
 # Compass Pane Cold Start Agent Handoff
 
 Status: active

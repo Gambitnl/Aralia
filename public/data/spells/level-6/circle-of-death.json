@@ -151,7 +151,7 @@
         "bonusPerLevel": "+2d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 8d8 Necrotic damage on a failed Constitution save, or half as much on success; slot scaling adds +2d8.",
       "conditionalEndings": []
     }
   ],

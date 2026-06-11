@@ -1,8 +1,9 @@
-# Naval System Gaps
+# Naval System Gap Registry
 
 Status: active
 Last updated: 2026-06-05
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -14,3 +15,22 @@ Last updated: 2026-06-05
 | G5 | not_started | adjacent_follow_up | Worker A | `docs/projects/naval/TRACKER.md` | UI scan | `NavalCombatSystem` is implemented and tested but not invoked by encounter or action selectors. | `src/systems/naval/NavalCombatSystem.ts`, `src/state`, `src/hooks` | Combat path exists as an islanded module and is not usable in gameplay flow. | Decide if naval combat uses generic encounter state or dedicated naval reducer path. | Add route-level verification that combat status emits into one authoritative battle flow. |
 | G6 | not_started | adjacent_follow_up | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | `ShipPane` mostly reads state and has limited action controls despite available reducer actions. | `src/components/Naval/ShipPane.tsx`, `src/state/reducers/navalReducer.ts`, `src/state/actionTypes.ts` | Players can observe state but cannot initiate key naval operations consistently from dashboard. | Either add command controls or route operations through a dedicated naval action surface. | Add UI acceptance test for one crew/recruit or repair control path. |
 | G7 | not_started | adjacent_follow_up | Worker A | `docs/projects/naval/TRACKER.md` | Baseline scan | Legacy `NavalLogic.ts` overlaps modern voyage/combat helpers; ownership boundaries are still unclear. | `src/systems/naval/NavalLogic.ts`, `src/systems/naval/VoyageManager.ts`, `src/systems/naval/CrewManager.ts` | Duplicate logic increases risk of forked behavior if both paths are invoked in future refactors. | Document the intended owner for legacy functions and retire or isolate unused exports. | Static import map check for calls into `NavalLogic.ts` outside explicit compatibility needs. |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

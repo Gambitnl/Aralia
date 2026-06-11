@@ -5,14 +5,14 @@ slug: puzzles
 category: Gameplay Systems
 main_category: "Game & Simulation"
 subcategory: Core Sim Systems
-status: review-required
-last_updated: 2026-06-09
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/puzzles
-gap_signal: "5 open project gaps; hint caller is review-required"
+gap_signal: "5 open project gaps; PZ-007 decision recorded 2026-06-10 (dedicated puzzle-facing runtime surface approved) — implementation lane open"
 protocol: living project doc set
-next_step: Await the hint-caller ownership decision, then continue with PZ-003.
-agent_comments: getPuzzleHint is live, but no runtime Puzzle owner exists yet.
+next_step: Build the approved dedicated puzzle-facing runtime surface and wire the first gameplay getPuzzleHint caller there with a focused test (PZ-007), then continue with PZ-003.
+agent_comments: PZ-007 Required Review Brief resolved 2026-06-10 (Option A). See docs/projects/DECISION_BLITZ_2026-06-10.md D13.
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -40,12 +40,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Puzzles System North Star
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (PZ-007 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Why This Project Exists
 This project owns the existing puzzle-family runtime in `src/systems/puzzles` and the lockpicking UI bridge. It was previously represented in the registry but had only a scaffold-level project doc. This pass preserves the actual working boundaries so future work does not erase partial systems.
@@ -109,6 +109,13 @@ Evidence: `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/
 Decision owner: Human/product owner for puzzle hint UX and runtime ownership.
 Proof after decision: A focused runtime caller test plus the chosen caller wiring, or a documented handoff to the owning project with the gap removed from this queue.
 
+### Decision (2026-06-10)
+
+Outcome: **Option A — approve a dedicated puzzle-facing runtime surface** and wire the first gameplay `getPuzzleHint` caller there with a focused test. The Puzzles project owns the runtime `Puzzle` instance and the hint UI contract; no adapter through another project's surface is needed.
+Decider: Remy (project owner), batched decision session.
+Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D13).
+Effect: the PZ-007 review gate is lifted. Next slice: build the puzzle-facing runtime surface, wire the first gameplay `getPuzzleHint` callsite, and add the focused runtime caller test named in the brief. PZ-003 (key path) continues after that.
+
 ### Test Coverage
 
 - `src/systems/puzzles/__tests__/lockSystem.test.ts`
@@ -124,12 +131,12 @@ Proof after decision: A focused runtime caller test plus the chosen caller wirin
 Project: Puzzles System
 Slug: puzzles
 Category: Gameplay Systems
-Status: review-required
+Status: active (PZ-007 decision recorded 2026-06-10; implementation lane open)
 Confidence: medium
 Evidence: docs/projects/puzzles
-Gap signal: 5 open project gaps; hint caller is review-required
+Gap signal: 5 open project gaps; PZ-007 decided 2026-06-10 (dedicated puzzle-facing runtime surface approved)
 Protocol: living project doc set
-Next step: Await the hint-caller ownership decision, then continue with PZ-003.
+Next step: Build the approved puzzle-facing runtime surface and wire the first gameplay `getPuzzleHint` caller with a focused test, then continue with PZ-003.
 Required verification: scoped_tests, docs_consistency, git_diff_check
 Completed verification: scoped_tests, docs_consistency, git_diff_check
 Last proof: 2026-06-09
@@ -139,13 +146,13 @@ Workflow gaps reviewed: 2026-06-09
 
 | Field | Value |
 |---|---|
-| Task | Resolve `getPuzzleHint` runtime caller ownership. |
-| Acceptance criteria | The hint helper remains source-backed, the caller ownership question is recorded in a Required Review Brief, and the next safe resume action is explicit. |
-| Allowed boundaries | `docs/projects/puzzles/` plus the smallest source-scan evidence needed to prove no runtime caller exists yet. |
-| Stop condition | Do not wire a fake caller without a gameplay owner decision. |
-| Verification | `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/TRACKER.md`, `docs/projects/puzzles/GAPS.md`, `docs/projects/puzzles/AUDIT_OR_PROOF.md`, and `docs/projects/puzzles/RUNBOOK.md` stay aligned with the blocker state. |
-| Owner | human/product owner |
-| Next action | Await the hint-caller ownership decision, then continue with `PZ-003` if a runtime surface is approved. |
+| Task | Resolve `getPuzzleHint` runtime caller ownership. Decision recorded 2026-06-10 (DECISION_BLITZ D13): dedicated puzzle-facing runtime surface approved — implement it as the next slice. |
+| Acceptance criteria | The puzzle-facing runtime surface exists, the first gameplay `getPuzzleHint` callsite is wired there, and a focused runtime caller test proves the path. |
+| Allowed boundaries | `src/systems/puzzles/`, `src/components/puzzles/`, the modal/state wiring files already in the file map, nearby tests, and `docs/projects/puzzles/`. |
+| Stop condition | Stop after the first gameplay hint caller and its focused test land; do not widen into map-integration follow-ups (PZ-005) in the same slice. |
+| Verification | Focused runtime caller test plus `docs/projects/puzzles/NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md` aligned with the decided state. |
+| Owner | Worker A (decision: Remy 2026-06-10) |
+| Next action | Implement the approved puzzle-facing runtime surface and the first gameplay `getPuzzleHint` caller with a focused test, then continue with `PZ-003`. |
 
 ## Scope and Boundaries
 
@@ -173,7 +180,7 @@ Out of scope:
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| `getPuzzleHint` is live, but no runtime `Puzzle` owner exists yet. | review-required | human/product owner | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `src/components/puzzles/LockpickingModal.tsx` | Resolve the Required Review Brief before wiring a gameplay caller. |
+| `getPuzzleHint` is live, but no runtime `Puzzle` owner exists yet. Decided 2026-06-10: dedicated puzzle-facing runtime surface approved (DECISION_BLITZ D13). | in_scope_now | Worker A | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `src/components/puzzles/LockpickingModal.tsx`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D13 | Build the approved runtime surface and wire the first gameplay `getPuzzleHint` caller with a focused test. |
 | Lockpicking modal has only dev entry (`test_lockpicking`) for state dispatch. | done | Worker A | `src/data/world/locations.ts`, `src/components/ActionPane/useActionGeneration.ts`, `src/hooks/actions/actionHandlers.ts` | Production path now routes a cave location lock interaction through `OPEN_LOCKPICKING_MODAL`. |
 | `Lock.keyId` exists in the type model but is not consumed by lock resolution logic. | in_scope_now | Worker A | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/components/puzzles/LockpickingModal.tsx` | Clarify key ownership and the unlock path before any lock-key progression work. |
 | Legacy character fallback flow spans many puzzle modules and tests. | support_needed_now | Worker A | `src/systems/puzzles/*.ts`, `src/types/character.ts` | Preserve shim behavior and define the migration target before expanding puzzle checks. |

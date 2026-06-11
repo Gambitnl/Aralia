@@ -161,7 +161,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Restrained unless the target succeeds on a Strength save for 1 minute; repeat Strength save at turn end can end the condition.",
       "conditionalEndings": []
     }
   ],

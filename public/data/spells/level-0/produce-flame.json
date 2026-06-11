@@ -235,8 +235,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The produced flame can be hurled as a spell attack that deals 1d8 Fire damage on hit, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "fire-damage",
+        "ranged-hit",
+        "cantrip-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

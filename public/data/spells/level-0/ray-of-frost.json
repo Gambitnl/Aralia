@@ -145,8 +145,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, one target takes 1d8 Cold damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "cold-damage",
+        "ranged-hit",
+        "cantrip-scaling"
+      ]
     },
     {
       "type": "MOVEMENT",
@@ -219,8 +224,13 @@
         "direction": "away_from_caster",
         "maxDistance": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On the same hit, the target is affected by the spell's movement-control slow rider as modeled by the movement effect.",
+      "conditionalEndings": [],
+      "tags": [
+        "speed-reduction",
+        "movement-control",
+        "hit-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

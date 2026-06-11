@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
  *
- * Last Sync: 23/05/2026, 00:13:21
- * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Town/TownCanvas.tsx, components/puzzles/LockpickingModal.tsx, hooks/combat/useSummons.ts, hooks/useCharacterAssembly.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/sandbox/quickCharacterGenerator.ts
+ * Last Sync: 11/06/2026, 01:02:58
+ * Dependents: components/DesignPreview/steps/PreviewCombatSandbox.tsx, components/Town/TownCanvas.tsx, components/puzzles/LockpickingModal.tsx, hooks/combat/useSummons.ts, hooks/useCharacterAssembly.ts, services/travelService.ts, systems/crafting/craftingService.ts, systems/crime/SmugglingSystem.ts, systems/crime/fencing/FenceSystem.ts, systems/puzzles/arcaneGlyphSystem.ts, systems/puzzles/lockSystem.ts, systems/puzzles/mechanism.ts, systems/puzzles/pressurePlateSystem.ts, systems/puzzles/secretDoorSystem.ts, systems/travel/TravelCalculations.ts, types/index.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -460,6 +460,19 @@ export type HitPointDiceSpendMap = Record<string, HitPointDiceSpend>;
 
 export interface RacialSelectionData {
   choiceId?: string;
+  spellAbility?: AbilityScoreName;
+  skillIds?: string[];
+  toolIds?: string[];
+  selectedSpellIds?: string[];
+}
+
+// Racial rest choices are selected during rest resolution instead of initial
+// character creation. Keep this shape intentionally permissive so species
+// features can store a selected option plus optional spell/ability/tool payloads
+// without forcing every rest-powered feature into a separate character field.
+export interface RacialRestChoiceData {
+  choiceId?: string;
+  optionId?: string;
   spellAbility?: AbilityScoreName;
   skillIds?: string[];
   toolIds?: string[];

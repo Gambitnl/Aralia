@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Command Base Runtime
+slug: command-base-runtime
+status: active
+last_updated: "2026-06-08"
+iteration: 4
+source_agent: Not recorded
+target_agent: next cold-start agent
+runtime_surface: unknown
+certainty: unknown
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/command-base-runtime/NORTH_STAR.md
+tracker: docs/projects/command-base-runtime/TRACKER.md
+gaps: docs/projects/command-base-runtime/GAPS.md
+---
 # Command Base Runtime Cold Start Agent Handoff
 
 Status: active
@@ -9,6 +28,12 @@ Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGE
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
 Project entry point: docs/projects/command-base-runtime/NORTH_STAR.md
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Command Base Runtime

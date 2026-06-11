@@ -150,7 +150,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 8d6 Lightning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d6.",
       "conditionalEndings": []
     }
   ],

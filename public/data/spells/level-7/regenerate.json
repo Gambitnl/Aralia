@@ -141,7 +141,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Restores 4d8 + 15 hit points through the row's always-on healing scaffold.",
       "conditionalEndings": []
     },
     {

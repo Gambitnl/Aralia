@@ -199,6 +199,8 @@ scripts/workflows/gemini/
 scripts/tooling/
 .agent/workflows/
 .agent/project-progress/
+.agent/3d-visual-quality/captures/
+docs/projects/
 
 # Local-only agent/runtime artifacts from external or desktop-side processes.
 .agent/rules/environment-learnings/codex-desktop-terminal.md

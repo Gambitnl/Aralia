@@ -1,7 +1,7 @@
-# World 3D System Living Tracker
+# World3d Living Tracker
 
-Status: review-required
-Last updated: 2026-06-08 (T19)
+Status: active — T7/W3D-G10 decision recorded 2026-06-10; implementation lane open
+Last updated: 2026-06-10 (D4 decision recorded)
 
 North Star: `docs/projects/world3d/NORTH_STAR.md`
 Gap registry: `docs/projects/world3d/GAPS.md`
@@ -25,12 +25,12 @@ Gap registry: `docs/projects/world3d/GAPS.md`
 | T13 | done | Make river/road polyline clip half-open on max edges so boundary-coincident segments are owned by one chunk (W3D-G21) | claude | 2026-06-02 | `clipSegment` max-edge tests are now half-open: parallel-coincident segments are rejected with `q <= 0` on the two max edges (`x < maxX`, `y < maxY`) while min edges stay inclusive (`q < 0`) — mirrors the W3D-G20 site rule. 2 new unit tests (boundary-coincident polyline → upper chunk only; min-edge-coincident → still admitted); 67 world3d tests pass; tsc clean. Verified by deterministic in-page replay (seed 2026): 116 boundary-coincident road segments exist; old inclusive clipper double-counted 31/34 roads (length ratio up to 2.0×), half-open clipper yields 1.0× for all 34. Live `?phase=world3d` re-verified: terrain + site render intact (no regression). New gaps: W3D-G23 (roads drawn at hardcoded uniform width, `type` ignored), W3D-G24 (no spatial pre-filter — every polyline clipped against every chunk). | — | — |
 | T9 | done | Blend biome colors across boundaries (W3D-G12) | claude | 2026-06-08 | `chunkSampler` now precomputes optional per-vertex `biomeColors` via bilinear blend and `chunkGeometry` uses precomputed colors when present; focused tests added in `chunkSampler.test.ts` and `buildTerrainMesh.test.ts`. | mark W3D-G12 complete and keep adjacent follow-on tasks in order | — |
 | T6 | done | Mesh `WorldData.lakes` polygons (only river ribbons today) | Codex worker | 2026-06-08 | `chunkSampler.ts` now carries clipped lake polygons with a shared surface height; `waterGeometry.ts` triangulates lake fills before river ribbons. | — | `waterGeometry.test.ts` and `chunkSampler.test.ts` cover lake payload sampling and fill triangles |
-| T7 | blocked | Per-LOD geometry detail (lower mesh resolution for mid/low tiers, W3D-G10) | review required | 2026-06-08 | Worker review found the current loader request only carries `cx/cy`; `ChunkStreamer` computes/stores `lod` after load dispatch, and `chunkGeometry.ts` has no mixed-resolution seam/skirt contract. | Decide loader API shape for requested LOD/resolution and mixed-LOD seam strategy before any implementation. | Review decision names the loader contract and seam policy; then add a near/mid/low mixed-resolution regression. |
+| T7 | not_started | Per-LOD geometry detail (lower mesh resolution for mid/low tiers, W3D-G10) | unassigned | 2026-06-10 | Worker review found the current loader request only carries `cx/cy`; `ChunkStreamer` computes/stores `lod` after load dispatch, and `chunkGeometry.ts` has no mixed-resolution seam/skirt contract. **Decision recorded 2026-06-10 (Remy, `docs/projects/DECISION_BLITZ_2026-06-10.md` D4):** extend the chunk-loader request contract to carry the requested LOD tier; skirt geometry hides mixed-resolution seams. Lane reopened. | Implement the extended loader contract (requested LOD tier on chunk loads) + skirt geometry per the decided contract. | Mixed near/mid/low chunk regression tests land with the implementation. |
 | T14 | done | Fix town footprint radius formula (W3D-G19) | claude | 2026-06-08 | `siteGeometry.ts` now uses a bounded kind/population visual radius (`8`-`30`m) instead of Voronoi footprint radius. | — | Focused `siteGeometry.test.ts` coverage |
 | T15 | done | Width-by-road-type for road ribbons (W3D-G23) | claude | 2026-06-08 | `chunkSampler.ts` maps `road.type` to width and carries output widths per vertex. | — | Focused `chunkSampler.test.ts` coverage |
 | T16 | done | Spatial pre-filter for polyline clipping (W3D-G24) | claude | 2026-06-08 | `chunkSampler.ts` skips road/river polylines whose bbox misses the chunk before clipping. | — | Focused `chunkSampler.test.ts` coverage |
 | T17 | done | Bounded vegetation scatter payload cache (W3D-G25) | Codex worker | 2026-06-08 | `vegetationScatter.ts` now keeps a 256-entry payload-aware LRU cache and reuses typed arrays for identical chunk payloads. | — | `vegetationScatter.test.ts` verifies identity reuse and invalidation on payload mutation. |
-| T18 | done | Skip renderer-side vegetation instance matrix rewrites for unchanged scatter payloads (W3D-G26) | Codex worker | 2026-06-08 | `World3DScene.tsx` routes vegetation instancing through `vegetationInstanceMatrices.ts`; stable `VegetationScatter.cacheKey` skips repeat `setMatrixAt` loops. | Do not continue T7 until the loader/LOD contract review clears; next safe World3D slice is documentation-only contract work. | `vegetationInstanceMatrices.test.ts` plus world3d vegetation scatter coverage |
+| T18 | done | Skip renderer-side vegetation instance matrix rewrites for unchanged scatter payloads (W3D-G26) | Codex worker | 2026-06-08 | `World3DScene.tsx` routes vegetation instancing through `vegetationInstanceMatrices.ts`; stable `VegetationScatter.cacheKey` skips repeat `setMatrixAt` loops. | Do not continue T7 until the loader/LOD contract review clears; next safe World3D slice is documentation-only contract work. *(Superseded 2026-06-10: review cleared — DECISION_BLITZ D4 — T7 implementation lane is open.)* | `vegetationInstanceMatrices.test.ts` plus world3d vegetation scatter coverage |
 | T19 | done | Add scene lifecycle/visual proof for World3DScene mount/camera (W3D-G6) | claude | 2026-06-08 | Focused RTL proof keeps the shell visible (`78vh` / `520px`), verifies the camera/origin mount wiring and first update call, and renders loaded chunk content from the scene path. The separate `useChunkStreaming.test.tsx` still guards the streamer's StrictMode lifecycle. | — | — |
 | — | routed | Cold-load `?phase=world3d` entry bounce | world-3d-ui | 2026-06-01 | routed from world3d | Owned by `world-3d-ui` (entry) | see `docs/projects/world-3d-ui/GAPS.md` W3DUI-5 |
 | — | routed | Plan 4: 2D↔3D transition + marker sync + gameplay routing | world-3d-ui | 2026-06-01 | routed from world3d | Owned by `world-3d-ui` (transition) | see `docs/projects/world-3d-ui/` |
@@ -47,3 +47,17 @@ Gap registry: `docs/projects/world3d/GAPS.md`
 | P2 | done | Streaming infra (coords/streamer/worker/scene) | Plan 2 commits; 81-chunk window verified |
 | P3 | done | Real per-chunk meshes via `ChunkMeshBundle` | Plan 3 commits `0fe92629…67502a29`; 61 tests |
 | H1 | done | Rendering hardening (floating origin, vegetation cap, shadows off, context recovery, canvas height) | Hardening commits `1f7eeb42…c134077e`; live render verified |
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

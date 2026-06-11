@@ -139,7 +139,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "creation",
-      "description": "A passage appears at a point of your choice that you can see on a wooden, plaster, or stone surface (such as a wall, a ceiling, or a floor) within range, and lasts for the duration. You choose the opening's dimensions: up to 5 feet wide, 8 feet tall, and 20 feet deep. The passage creates no instability in a structure surrounding it. When the opening disappears, any creatures or objects still in the passage created by the spell are safely ejected to an unoccupied space nearest to the surface on which you cast the spell.",
+      "description": "Creates a temporary passage through a visible wooden, plaster, or stone surface, up to 5 feet wide, 8 feet tall, and 20 feet deep, without destabilizing the surrounding structure.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -175,7 +175,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "terrain-alteration",
+        "passage",
+        "structure-safe"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -186,6 +191,10 @@
   "description": "A passage appears at a point of your choice that you can see on a wooden, plaster, or stone surface (such as a wall, a ceiling, or a floor) within range, and lasts for the duration. You choose the opening's dimensions: up to 5 feet wide, 8 feet tall, and 20 feet deep. The passage creates no instability in a structure surrounding it. When the opening disappears, any creatures or objects still in the passage created by the spell are safely ejected to an unoccupied space nearest to the surface on which you cast the spell.",
   "higherLevels": "",
   "tags": [
-    "legacy"
+    "legacy",
+    "transmutation",
+    "creation",
+    "terrain-alteration",
+    "passage"
   ]
 }

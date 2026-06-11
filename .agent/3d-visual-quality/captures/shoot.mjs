@@ -31,6 +31,16 @@ if (process.env.LINEUP) {
 if (process.env.CREATURELINEUP) {
   await ctx.addInitScript(() => { window.__BM3D_CREATURE_LINEUP = true; });
 }
+// CLASSLINEUP=1 → fighter/wizard/rogue lineup (same race) for judging class
+// silhouettes at a deterministic pose.
+if (process.env.CLASSLINEUP) {
+  await ctx.addInitScript(() => { window.__BM3D_CLASS_LINEUP = true; });
+}
+// SEED=<number> → pin the battle-map seed so before/after shots share the
+// exact same map layout (decorations, terrain, spawns).
+if (process.env.SEED) {
+  await ctx.addInitScript((s) => { window.__BM3D_SEED = s; }, Number(process.env.SEED));
+}
 const page = await ctx.newPage();
 const errors = [];
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });

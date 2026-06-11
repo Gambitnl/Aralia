@@ -158,8 +158,13 @@
         "value": 0,
         "unit": "feet"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One target within 15 feet must succeed on a Strength save or be affected by the spell's movement-control pull toward the caster.",
+      "conditionalEndings": [],
+      "tags": [
+        "forced-movement",
+        "strength-save",
+        "pull"
+      ]
     },
     {
       "type": "DAMAGE",

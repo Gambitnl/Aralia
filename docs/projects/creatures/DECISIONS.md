@@ -26,3 +26,24 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Hybrid/multi-type creature semantics — keep binary, defer hybrid (G4)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+The G4 Required Review Brief asked whether creature targeting should stay on the current binary include/exclude contract (Option A) or define and implement a canonical hybrid semantics model now (Option B).
+
+Decision made:
+Option A — **keep the binary include/exclude contract and explicitly defer hybrid semantics** to a later product/schema decision. This cycle's closure is docs-only: no taxonomy, validator, or schema changes.
+
+Rationale and evidence:
+- The dominance/partial-effect model in `src/systems/creatures/Creatures_Ralph.md` has no approved schema, and implementing it would force validation, migration, and test changes without product need this cycle.
+- The June 2026 campaign's entity generation pipeline may inform the eventual hybrid model when that later decision is taken.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D11).
+- Brief and gap: `docs/projects/creatures/NORTH_STAR.md` Required Review Brief; `docs/projects/creatures/GAPS.md` G4.
+
+Follow-up:
+None this cycle. Any future hybrid/multi-type work starts with a fresh product/schema decision rather than reopening G4; `CreatureTaxonomy.isValidTarget` binary semantics remain canonical until then.

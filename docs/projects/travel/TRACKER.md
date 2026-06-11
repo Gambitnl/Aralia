@@ -1,4 +1,4 @@
-# Travel System Living Tracker
+# Travel Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -31,3 +31,10 @@ Last updated: 2026-06-05
 | G4 | not_started | support_needed_now | Worker A | `docs/projects/travel/TRACKER.md` | Runtime audit | Vehicle and transport behavior is simplified in movement math. | `src/systems/travel/TravelCalculations.ts`, `src/types/travel.ts` | Vehicle-heavy routes can produce incorrect or unrealistic speeds/carry constraints. | Expand transport contract (pull force, terrain interactions, fallback rules). | Add explicit test rows for cart/wagon and water vehicle edge cases. |
 | G5 | not_started | adjacent_follow_up | Worker A | `src/components/Submap` | Submap UX pass | Quick travel lacks explicit fatigue or food/water consumption in UI dispatch path. | `src/components/Submap/SubmapPane.tsx`, `src/components/Submap/useQuickTravel.ts` | Later systems (rest/resource) may undercount travel costs. | Decide scope inclusion before feature work. | Add a TODO/decision note to `SubmapPane` action comments and tests once planned. |
 
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

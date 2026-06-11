@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/logbook
-gap_signal: 4 open gaps (G1-G4)
+gap_signal: 6 open gaps (G1-G6)
 protocol: living project doc set
-next_step: Start implementation planning from G1 and keep G2 as the follow-up UI question.
+next_step: Implement G1 retention policy in logReducer and fix G5 unread count drift, then revisit G2 as the follow-up UI task.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -24,10 +24,11 @@ required_docs:
 optional_docs:
 required_verification:
   - docs_consistency
+  - scoped_tests
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+last_proof: 2026-06-10
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -59,13 +60,13 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/logbook
-Gap signal: 4 open gaps (G1-G4)
+Gap signal: 6 open gaps (G1-G6)
 Protocol: living project doc set
-Next step: Start implementation planning from G1 and keep G2 as the follow-up UI question.
-Required verification: docs_consistency
+Next step: Implement G1 retention policy in logReducer and fix G5 unread count drift, then revisit G2 as the follow-up UI task.
+Required verification: docs_consistency, scoped_tests
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-10
+Workflow gaps reviewed: 2026-06-10
 
 ## Purpose and Scope
 
@@ -120,26 +121,28 @@ Workflow gaps reviewed: 2026-06-05
 
 | Field | Value |
 |---|---|
-| Task | Refresh Logbook project docs for implementation continuity |
-| Acceptance criteria | Three project docs in `docs/projects/logbook/` describe file map, scope, integration points, current state, and unresolved items |
-| Allowed boundaries | `docs/projects/logbook/NORTH_STAR.md`, `docs/projects/logbook/TRACKER.md`, `docs/projects/logbook/GAPS.md` |
-| Stop condition | No code edits requested by this pass; only docs are updated |
-| Verification | Read all three docs and confirm each references current implementation evidence |
+| Task | Implement discovery log retention policy (G1) and fix unread count drift (G5) |
+| Acceptance criteria | `logReducer.ts` has a MAX_DISCOVERY_LOG_ENTRIES cap with correct unread count adjustment on prune; UPDATE_QUEST_IN_DISCOVERY_LOG correctly tracks unread transitions; saveLoadService prunes oversized logs on load |
+| Allowed boundaries | `src/state/reducers/logReducer.ts`, `src/services/saveLoadService.ts`, unit tests |
+| Stop condition | Retention cap and unread fix pass unit tests; no UI changes required in this slice |
+| Verification | Unit tests for cap behavior, unread count accuracy after quest updates, and save/load round-trip |
 | Owner | Current thread |
-| Next action | Carry documented gaps into planning before implementation |
+| Next action | Add MAX_DISCOVERY_LOG_ENTRIES, implement slice + unread adjustment in ADD_DISCOVERY_ENTRY, fix UPDATE_QUEST_IN_DISCOVERY_LOG unread logic |
 
 ## Scope Boundaries
 
 In scope:
 - Project state and continuation docs for Logbook.
 - Gap framing and evidence-backed notes.
+- Implementation of retention policy (G1) and unread count fix (G5) in `logReducer.ts` and `saveLoadService.ts`.
 
 Adjacent but not in this slice:
-- Implementing retention and pagination in code.
-- UX or state refactors.
+- Pagination UI (G2).
+- Dedupe policy expansion (G3).
+- Dossier retention lifecycle (G4).
+- Quest content accumulation cap (G6).
 
 Out of scope:
-- Editing outside `docs/projects/logbook/`.
 - New gameplay mechanics not directly tied to Logbook continuity.
 
 ## What Must Not Be Lost
@@ -148,15 +151,16 @@ Out of scope:
 - Unread-count workflow and visibility toggles.
 - Persistence of `discoveryLog` and `unreadDiscoveryCount`.
 - The existing unresolved signal that pagination and retention are not yet defined.
+- The pattern that other log systems in the same reducer already cap their arrays (`.slice(0, N)`).
 
 ## Gaps And Uncertainties
 
-- Retention policy is undefined (max entries, age policy, auto-truncation timing).
-- No pagination for potentially long discovery logs or dossier lists.
-- Dossier content and discovery log share no explicit global history retention policy.
-- Dedupe is currently location-specific (`locationId`) and may allow duplicate
-  entries across other discovery sources.
-- No visual verification was performed in this docs-only pass.
+- G1 (active): Retention policy for `discoveryLog` — implementation slice defined.
+- G2: No pagination for discovery or dossier lists.
+- G3: Dedupe only covers `LOCATION_DISCOVERY`; other entry types can duplicate.
+- G4: Dossier data has no defined retention lifecycle.
+- G5 (new, bug): `unreadDiscoveryCount` drifts on quest updates — marks all matching entries unread but only increments count by 0 or 1.
+- G6 (new): Quest update content appends without bound, growing entry strings indefinitely.
 
 ## Evidence And Proof
 
@@ -170,8 +174,7 @@ Out of scope:
 2. Read `docs/projects/logbook/NORTH_STAR.md` (this file).
 3. Read `docs/projects/logbook/TRACKER.md`.
 4. Read `docs/projects/logbook/GAPS.md`.
-5. Continue from gap G1 in `GAPS.md` and confirm retention/pagination before
-   implementation planning.
+5. Continue from T3 in `TRACKER.md`: implement G1 retention policy and G5 unread count fix in `logReducer.ts` and `saveLoadService.ts`.
 
 
 ## Cold-Start Gap Routing

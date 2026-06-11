@@ -135,7 +135,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "At your touch, all curses affecting one creature or object end. If the object is a Cursed Magic Item, its curse remains, but the spell breaks its owner's Attunement to the object so it can be removed or discarded.",
+      "description": "Ends active curses on the touched creature or object; for a cursed magic item, the curse remains but owner attunement breaks so the item can be removed or discarded.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -181,5 +181,9 @@
   },
   "description": "At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner's Attunement to the object so it can be removed or discarded.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "abjuration",
+    "curse_removal",
+    "utility"
+  ]
 }

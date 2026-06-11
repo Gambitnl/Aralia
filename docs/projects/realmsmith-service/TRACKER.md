@@ -1,4 +1,4 @@
-# TRACKER: RealmSmith Service
+# RealmSmith Service Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -26,3 +26,11 @@ Last updated: 2026-06-05
 |---|---|---|---|---|---|---|---|---|---|
 | G1 | active | support_needed_now | pending | `docs/projects/realmsmith-service/GAPS.md` | this pass | No explicit RealmSmith API error/retry contract | `src/services/RealmSmithTownGenerator.ts`, `src/services/RealmSmithAssetPainter.ts` | implementation stability and future refactors depend on contract clarity | define the caller contract and failure shape before the next implementation change | update `NORTH_STAR.md` and `GAPS.md` |
 | G2 | active | support_needed_now | pending | `docs/projects/realmsmith-service/GAPS.md` | this pass | world content generation pipeline assumptions not versioned | `src/types/realmsmith.ts`, `src/hooks/useTownController.ts`, `src/components/Town/TownCanvas.tsx` | hidden interface drift can desync generation and rendering | add contract notes before future generator/painter refactors | add a versioned contract summary |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

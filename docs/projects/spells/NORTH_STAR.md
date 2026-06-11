@@ -6,7 +6,7 @@ category: active project
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-11
 confidence: unknown
 evidence: "docs/projects/spells/TRACKER.md; docs/projects/spells/GAPS.md"
 gap_signal: present
@@ -26,7 +26,9 @@ required_verification:
   - docs consistency
 completed_verification:
   - docs refresh
-last_proof: 2026-06-05
+  - SpellIntegrityValidator monolithic soft-hit proof
+  - status docs inventory-runtime boundary refresh
+last_proof: 2026-06-11
 workflow_gaps_reviewed: ""
 compaction_status: not_needed
 lifecycle_status: active
@@ -38,7 +40,7 @@ human_decision_required: "no"
 # Spells System North Star
 
 Status: active
-Last updated: 2026-06-05
+Last updated: 2026-06-11
 
 ## Dashboard Card Schema
 
@@ -54,8 +56,8 @@ Last updated: 2026-06-05
 | Protocol | living-project |
 | Next step | Resume from TRACKER.md and keep the gap log aligned. |
 | Required verification | docs consistency |
-| Completed verification | docs refresh |
-| Last proof | 2026-06-05 docs refresh |
+| Completed verification | docs refresh; spell integrity proof; placeholder-description audit |
+| Last proof | 2026-06-11 placeholder-description cleanup and corpus audit |
 | Workflow gaps reviewed | yes |
 
 ## Why This Project Exists
@@ -73,6 +75,7 @@ Preserve source-backed context for what is already implemented, what is still in
 - Combat integration exists through command and hook adapters.
 - Manifest and schema checks are wired via focused spell scripts.
 - Overhaul task docs provide implementation intent history, not the live runtime contract.
+- `docs/spells/STATUS_LEVEL_*.md` files are inventory and orientation notes, not behavior-complete runtime proof; use validation scripts and focused runtime tests before claiming a level or spell is execution-ready.
 
 ## Active Task
 
@@ -119,17 +122,23 @@ Out of scope:
 | Command bridge | `src/commands/factory/SpellCommandFactory.ts`, `src/commands/base/SpellCommand.ts` | Spell JSON -> combat command conversion |
 | Combat integration | `src/hooks/combat/engine/useCombatEngine.ts`, `src/hooks/combat/useActionExecutor.ts` | Runtime spell zones, movement debuffs, and reactive trigger handling |
 | Validation scripts/tests | `scripts/validateSpellJsons.ts`; `scripts/check-spell-integrity.ts`; `src/systems/spells/validation/__tests__/*`; `src/utils/validation/spellAuditor.ts` | Corpus validation and integrity checks |
-| Spell references | `docs/spells/*`; `docs/spells/reference/*`; `docs/projects/PROJECT_TRACKER.md` | Operational guidance and per-level status context |
+| Spell references | `docs/spells/*`; `docs/spells/reference/*`; `docs/projects/PROJECT_TRACKER.md` | Operational guidance and per-level inventory/status context; not standalone runtime-readiness proof |
 
 ## Known Gaps And Follow-Ups
 
 | Gap | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| `on_move_in_area` path is implemented at runtime but not accepted in validator enum | in_scope_now | Working agent | `src/systems/spells/validation/spellValidator.ts`; `src/systems/spells/effects/AreaEffectTracker.ts` | Update enum and run `npx tsx scripts/validateSpellJsons.ts` |
-| Target allocation logic exists but is not integrated into resolver flow | support_needed_now | Working agent | `src/systems/spells/targeting/TargetAllocator.ts`; comments in `src/systems/spells/targeting/TargetResolver.ts` | Wire allocation for pool-style spells and add regression tests |
-| Trigger handling is duplicated between `triggerHandler.ts` and `AreaEffectTracker.ts` | support_needed_now | Working agent | `src/systems/spells/effects/triggerHandler.ts`; `src/systems/spells/effects/AreaEffectTracker.ts` | Choose one execution path and add shared behavior tests |
-| Processed effects lose source context (spellId/casterId) | support_needed_now | Working agent | `src/systems/spells/effects/triggerHandler.ts` | Add typed source context and validate save/DC dependent flows |
-| Effect scale and mode-choice behavior are present but not consistently wired for all families | support_needed_now | Working agent | `src/commands/factory/SpellCommandFactory.ts` | Run focused combat/repeatability checks for mixed effects |
+| G1 trigger ontology for `on_move_in_area` | done | Working agent | `src/systems/spells/validation/spellValidator.ts`; `src/systems/spells/validation/__tests__/effectTriggers.test.ts`; `src/systems/spells/effects/AreaEffectTracker.ts`; `src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts` | Completed; focused trigger tests and spell validation passed on 2026-06-10 |
+| G2 target allocation bridge | done | Working agent | `src/systems/spells/targeting/TargetAllocator.ts`; `src/systems/spells/targeting/TargetResolver.ts`; `src/hooks/useAbilitySystem.ts`; `src/systems/spells/validation/targetingSchemas.ts`; `src/systems/spells/validation/__tests__/targetingAllocation.test.ts`; `docs/projects/spells/DECISIONS.md` D2 | Completed with no-current-row decision; reopen only when concrete canonical spell data requires `targeting.allocation` |
+| G3 duplicate trigger paths | done | Working agent | `src/systems/spells/effects/triggerHandler.ts`; `src/systems/spells/effects/AreaEffectTracker.ts`; `src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts` | Completed; tracker delegates entry/exit/end-turn effect selection to `triggerHandler` while keeping tracker-owned events |
+| G4 processed source context | done | Working agent | `src/systems/spells/effects/triggerHandler.ts`; `src/systems/spells/effects/__tests__/triggerHandler.test.ts` | Completed; processed trigger effects retain source context for downstream save/DC logic |
+| G7 validator/type contract modularization | done | Working agent | `src/systems/spells/validation/spellValidator.ts`; `src/systems/spells/validation/spellValidator.d.ts`; `src/types/spells.ts`; `src/types/spells.d.ts`; `docs/projects/spells/AUDIT_OR_PROOF.md` | Ownership scorecard complete; future split work must preserve runtime-schema, public-type, and declaration provenance boundaries |
+| G8 generic effect placeholder cleanup | done | Working agent | `public/data/spells/level-4/find-greater-steed.json`; `public/data/spells/level-4/galders-speedy-courier.json`; `public/data/spells/level-4/guardian-of-nature.json`; `public/data/spells/level-4/staggering-smite.json`; `public/data/spells/level-4/summon-greater-demon.json`; `public/data/spells/level-5/bigbys-hand.json`; `public/data/spells/level-5/circle-of-power.json`; `public/data/spells/level-5/conjure-volley.json`; `public/data/spells/level-5/control-winds.json` | Completed; corpus audit now reports 0 generic placeholders |
+| G9 blank effect descriptions | done | Working agent | `public/data/spells/level-3/*.json`; `public/data/spells/level-4/*.json`; `public/data/spells/level-5/*.json`; `public/data/spells/level-6/*.json`; `public/data/spells/level-7/regenerate.json`; `public/data/spells/level-8/abi-dalzims-horrid-wilting.json` | Completed; final audit reports 0 blank descriptions and 0 generic placeholders, now hard-gated by SpellIntegrityValidator |
+
+## Runtime Proof Boundary For Status Docs
+
+The `docs/spells/STATUS_LEVEL_*.md` files are useful for inventory and migration orientation, but they do not prove that every spell in a level has been re-exercised through character creation, spellbook/resource flow, command execution, combat effects, glossary display, and current validator/runtime contracts. Before claiming runtime readiness, use the status docs only as starting maps, then prove the claim with `npm run validate:spells -- --spell <path>`, `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts`, and any mechanic-specific tests named by the active gap row.
 
 ## Relationship To `docs/tasks/spell-system-overhaul`
 
@@ -153,7 +162,10 @@ Check global gaps first:
 |---|---|---|
 | Command and hook integration path | Spells can flow from JSON to combat execution through concrete adapters | `src/commands/factory/SpellCommandFactory.ts`; `src/hooks/combat/engine/useCombatEngine.ts`; `src/hooks/combat/useActionExecutor.ts` |
 | Validation pipeline | Structural and corpus checks are already running and enforce manifest/schema consistency | `src/systems/spells/validation/spellValidator.ts`; `scripts/validateSpellJsons.ts`; `scripts/check-spell-integrity.ts` |
+| Status-doc boundary | Per-level status notes are inventory/orientation inputs and require validation plus targeted runtime tests before behavior-readiness claims | `docs/spells/STATUS_LEVEL_1.md`; `docs/projects/spells/GAPS.md` G6 |
 | Active debt markers | Runtime and architecture debt are explicit and intentional | `src/systems/spells/effects/AreaEffectTracker.ts`; `src/systems/spells/effects/triggerHandler.ts`; `src/systems/spells/targeting/TargetAllocator.ts` |
+| Validator/type modularization boundary | G7 scorecard records why validator/type splitting must be proof-first and declaration-aware | `docs/projects/spells/AUDIT_OR_PROOF.md`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G9 |
+| Effect-description completeness | G8 and G9 cleared generic and blank effect descriptions; SpellIntegrityValidator now hard-gates future blank/generic regressions | `docs/projects/spells/GAPS.md` G8-G9; `src/systems/spells/validation/SpellIntegrityValidator.ts` |
 
 ## Supporting Files
 
@@ -170,8 +182,9 @@ Check global gaps first:
 1. Read this file.
 2. Read `docs/projects/spells/TRACKER.md`.
 3. Read `docs/projects/spells/GAPS.md`.
-4. Re-run `npx tsx scripts/validateSpellJsons.ts` and targeted spell-related tests.
-5. Continue with the first in-project gap that has external verification.
+4. Re-run `npm run validate:spells -- --spell <path>` or the relevant corpus validation command, then run `npm run test -- src/systems/spells/validation/__tests__/SpellIntegrityValidator.test.ts` plus any mechanic-specific tests named by the active gap row.
+5. Treat `docs/spells/STATUS_LEVEL_*.md` as inventory/orientation only, not runtime proof.
+6. Continue with the first in-project gap that has external verification.
 
 
 ## Cold-Start Gap Routing

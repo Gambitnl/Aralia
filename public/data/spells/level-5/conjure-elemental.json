@@ -159,7 +159,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 8d8 variable damage on the row's Dexterity save resolution; the current row records no success-side damage reduction; slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

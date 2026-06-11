@@ -205,13 +205,18 @@
         "bonusPerLevel": "+1 target",
         "customFormula": ""
       },
-      "description": "",
+      "description": "One target within 30 feet must succeed on a Wisdom save or be Charmed for 1 hour; higher slots add one target per slot level.",
       "conditionalEndings": [
         {
           "trigger": "caster_or_ally_damages_target",
           "scope": "spell",
           "description": "The spell ends if the caster or one of the caster's allies damages the target."
         }
+      ],
+      "tags": [
+        "charmed",
+        "wisdom-save",
+        "slot-target-scaling"
       ]
     },
     {

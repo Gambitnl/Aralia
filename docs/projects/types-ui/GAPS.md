@@ -1,4 +1,4 @@
-# types UI Gaps
+# Types Ui Gap Registry
 
 Status: active  
 Last updated: 2026-06-05
@@ -20,3 +20,28 @@ Use this file for durable unresolved findings that belong to this project.
 - `out_of_scope`: explicit exclusion.
 - `blocked_human_decision`: owner decision required.
 - `blocked_external_state`: waits on external actor or system.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

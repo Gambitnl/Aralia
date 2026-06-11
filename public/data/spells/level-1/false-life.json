@@ -141,8 +141,13 @@
         "bonusPerLevel": "+5 temp HP",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The caster gains 2d4 + 4 temporary hit points, increasing by 5 temporary hit points for each slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "temporary-hp",
+        "self-buff",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

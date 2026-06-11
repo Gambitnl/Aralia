@@ -223,7 +223,7 @@
         "ac": 0
       },
       "dispersedByStrongWind": false,
-      "description": "",
+      "description": "Manipulates a 5-foot cube of loose earth within 30 feet as one terrain-control option of the cantrip.",
       "conditionalEndings": [],
       "grantedActions": [
         {
@@ -234,6 +234,11 @@
           "actionKind": "standard_action",
           "notes": "Dismiss an active non-instantaneous effect."
         }
+      ],
+      "tags": [
+        "terrain-shaping",
+        "earth",
+        "cantrip-utility"
       ]
     },
     {
@@ -323,7 +328,7 @@
         "ac": 0
       },
       "dispersedByStrongWind": false,
-      "description": "",
+      "description": "Shapes or marks loose earth or stone in a 5-foot cube as one terrain-control option of the cantrip.",
       "conditionalEndings": [],
       "grantedActions": [
         {
@@ -334,6 +339,11 @@
           "actionKind": "standard_action",
           "notes": "Dismiss an active non-instantaneous effect."
         }
+      ],
+      "tags": [
+        "terrain-shaping",
+        "earth",
+        "cantrip-utility"
       ]
     },
     {
@@ -423,7 +433,7 @@
         "ac": 0
       },
       "dispersedByStrongWind": false,
-      "description": "",
+      "description": "Creates or removes simple difficult-terrain style earth shaping in a 5-foot cube as one terrain-control option of the cantrip.",
       "conditionalEndings": [],
       "grantedActions": [
         {
@@ -434,6 +444,11 @@
           "actionKind": "standard_action",
           "notes": "Dismiss an active non-instantaneous effect."
         }
+      ],
+      "tags": [
+        "terrain-shaping",
+        "earth",
+        "cantrip-utility"
       ]
     },
     {
@@ -523,7 +538,7 @@
         "ac": 0
       },
       "dispersedByStrongWind": false,
-      "description": "",
+      "description": "Produces a harmless earth tremor or similar minor terrain effect in a 5-foot cube as one terrain-control option of the cantrip.",
       "conditionalEndings": [],
       "grantedActions": [
         {
@@ -534,6 +549,11 @@
           "actionKind": "standard_action",
           "notes": "Dismiss an active non-instantaneous effect."
         }
+      ],
+      "tags": [
+        "terrain-shaping",
+        "earth",
+        "cantrip-utility"
       ]
     }
   ],

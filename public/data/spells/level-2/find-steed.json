@@ -157,7 +157,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Summons a steed companion through the row's current always-on summoning scaffold.",
       "conditionalEndings": []
     }
   ],

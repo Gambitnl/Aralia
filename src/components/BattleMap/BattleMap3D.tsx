@@ -40,13 +40,13 @@ import { ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
-import { BattleMapData, CombatCharacter, CombatState, LightSource } from '../../types/combat';
+import { BattleMapData, BattleMapTile, CombatCharacter, CombatState, LightSource } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import { useVisibility } from '../../hooks/combat/useVisibility';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
-import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain } from './terrain';
+import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain, GroundMist, makeTerrainHeightSampler } from './terrain';
 import { CharacterActor } from './characters';
 import { CameraController } from './camera';
 import { VFXSystem, LivingWorld } from './vfx';
@@ -85,6 +85,8 @@ interface BiomeLighting {
   fogColor: number;
   fogNear: number;
   fogFar: number;
+  /** Optional sun offset from map center [dx, y, dz] — lower Y = longer shadows */
+  sunPos?: [number, number, number];
 }
 
 const BIOME_LIGHTING: Record<string, BiomeLighting> = {
@@ -112,12 +114,16 @@ const BIOME_LIGHTING: Record<string, BiomeLighting> = {
     fogColor: 0x1a1520, fogNear: 8, fogFar: 24,
   },
   desert: {
-    sunColor: 0xfff0d0, sunIntensity: 2.2,
-    ambientColor: 0x806040, ambientIntensity: 0.5,
+    // Harsh-light character (GOAL #55): near-white stronger sun, reduced warm
+    // fill, and a lower sun angle so props/characters cast long hard shadows
+    // across the sand instead of the soft photo-studio look.
+    sunColor: 0xfff6e4, sunIntensity: 2.9,
+    ambientColor: 0x806040, ambientIntensity: 0.32,
     hemisphereTop: 0xe8e0c8, hemisphereBottom: 0xc8a060,
     // Fog pushed back now that the ground apron hides the open map edge; far
     // sand fades into the warm horizon haze instead of a hard cliff into void.
     fogColor: 0xd8c8a0, fogNear: 24, fogFar: 70,
+    sunPos: [16, 11, 8],
   },
   swamp: {
     // Readability nudge (kept murky/green on purpose); fog pushed back a little
@@ -161,17 +167,22 @@ const SceneLighting: React.FC<{ biome: string; mapCenter: readonly [number, numb
         ref={directionalRef}
         color={preset.sunColor}
         intensity={preset.sunIntensity}
-        position={[cx + 12, 16, cz + 12]}
+        position={[
+          cx + (preset.sunPos?.[0] ?? 12),
+          preset.sunPos?.[1] ?? 16,
+          cz + (preset.sunPos?.[2] ?? 12),
+        ]}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
         shadow-camera-near={0.5}
         shadow-camera-far={60}
         shadow-camera-left={-25}
         shadow-camera-right={25}
         shadow-camera-top={25}
         shadow-camera-bottom={-25}
-        shadow-bias={-0.001}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.02}
       />
       {/* Cool fill light from opposite side for warm/cool contrast */}
       <directionalLight
@@ -378,6 +389,22 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
     return [cx, 0, cz] as const;
   }, [mapData]);
 
+  // Ground-height sampler — the same surface formula the terrain mesh is built
+  // from, so actors stand exactly on the rendered ground (GOAL #10 / gap #27:
+  // raw tile elevation hovers over banks carved by water basins).
+  const groundSampler = useMemo(() => {
+    if (!mapData) return null;
+    const { width, height } = mapData.dimensions;
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
+    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData]);
+
   // Detect biome from mapData. The generator stores it on `theme`; older callers
   // may pass `biome`. Reading the wrong field silently fell back to 'forest', so
   // every biome rendered with forest lighting/fog/sky/apron — fixed here.
@@ -506,6 +533,11 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
         <EzTreeLayer mapData={mapData} />
         <GroundScatter mapData={mapData} />
 
+        {/* Low-hanging animated mist — biome-gated (swamp thick, forest faint,
+            cave/dungeon subtle, desert none). Flat depth-tested layers pool in
+            hollows while hills and props rise clear of them (GOAL #56). */}
+        <GroundMist mapData={mapData} />
+
         {/* Contact shadows — soft ground darkening under objects (replaces broken SSAO) */}
         <ContactShadows
           position={[cameraTarget[0], 0.01, cameraTarget[2]]}
@@ -529,6 +561,9 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
               character={character}
               allCharacters={characters}
               tileElevation={charTile?.elevation ?? 0}
+              groundY={groundSampler
+                ? groundSampler(character.position.x + 0.5, character.position.y + 0.5)
+                : undefined}
               isSelected={selectedCharacterId === character.id}
               isTurn={turnState.currentCharacterId === character.id}
               isTargetable={isTargetable}

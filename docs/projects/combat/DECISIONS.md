@@ -1,7 +1,7 @@
 # Combat System Decisions
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 This file records the durable combat-rules decisions that matter to the next
 agent. It stays short so the current policy is easy to recover.
@@ -18,8 +18,10 @@ agent. It stays short so the current policy is easy to recover.
 | D-06 | The combat log persists per encounter through localStorage and hydrates on mount when the same encounter key is supplied; `clearLogs` clears the same scoped history. | recorded | `src/hooks/combat/useCombatLog.ts`, `src/components/Combat/CombatView.tsx`, `src/hooks/combat/__tests__/useCombatLog.test.ts` | This keeps refresh recovery without turning the log into a global save file. Export/backfill history remains a separate follow-up if it becomes necessary. |
 | D-07 | Resistance, vulnerability, and immunity exposure should stay as a compact 2D token-perimeter badge row with tooltip detail, not a broad BattleMap rewrite. The 3D renderer can mirror the pattern later, but the current slice should not widen into a renderer refactor. | recorded | `src/components/BattleMap/CharacterToken.tsx`, `src/components/BattleMap/__tests__/CharacterToken.test.tsx`, `misc/design.html?step=scenarios` | This keeps the combat UI readable without touching combat math or reopening the BattleMap architecture boundary. |
 | D-08 | The 3D parity follow-through for resistance, vulnerability, and immunity should stay as a compact always-on actor badge row on `CharacterActor`, mirroring the 2D token language without forcing a VFX or renderer rewrite. | recorded | `src/components/BattleMap/characters/CharacterActor.tsx`, `src/components/BattleMap/characters/__tests__/CharacterActor.defense.test.tsx` | This keeps the 3D combatant readable at a glance while preserving the existing HP orb, nameplate, and selection ring stack. |
-| D-09 | G30 modularization is review-required before implementation because `useAbilitySystem.ts`, `useCombatEngine.ts`, and `App.tsx` cross Combat, Commands, Spells, Layout, and App-shell ownership. | pending human review | `docs/projects/combat/NORTH_STAR.md` Required Review Brief, `docs/projects/combat/GAPS.md` G30, `docs/projects/code-modularization-audit/GAPS.md` CMA-G4 | Do not assign Combat implementation work until the owner boundary and required preservation tests are named. |
+| D-09 | G30 modularization is review-required before implementation because `useAbilitySystem.ts`, `useCombatEngine.ts`, and `App.tsx` cross Combat, Commands, Spells, Layout, and App-shell ownership. | resolved 2026-06-10 (see D-10) | `docs/projects/combat/NORTH_STAR.md` Required Review Brief, `docs/projects/combat/GAPS.md` G30, `docs/projects/code-modularization-audit/GAPS.md` CMA-G4 | Do not assign Combat implementation work until the owner boundary and required preservation tests are named. |
+| D-10 | G30 ownership decision (2026-06-10): Code Modularization Audit owns the split plan for `useAbilitySystem.ts` / `useCombatEngine.ts` (Option B from the Required Review Brief); Combat contributes the required invariants and focused regression tests before any code movement. Question answered: which owner defines the safe split plan. Rationale: modularization is not Combat's directive, and a cross-project plan keeps App/provider invariants named before edits. | recorded | `docs/projects/DECISION_BLITZ_2026-06-10.md` D6; `docs/projects/combat/NORTH_STAR.md` Required Review Brief Decision (2026-06-10) | Decider: Remy (project owner), batched decision session. Combat's open lane is the invariants/tests contribution; code movement waits for the audit project's named split plan. |
 
 ## Open Follow-Up
 
 - Resolve the G30 Required Review Brief before assigning any more Combat implementation work.
+- Update (2026-06-10): resolved via D-10 / DECISION_BLITZ D6. New follow-up: contribute Combat invariants and preservation tests to the Code Modularization Audit split plan before any code movement.

@@ -175,7 +175,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 5d8 Acid/Cold/Fire/Lightning/Thunder damage on a failed Dexterity save, or half as much on success.",
       "conditionalEndings": [
         {
           "trigger": "inscribed_ward_moved_beyond_distance",

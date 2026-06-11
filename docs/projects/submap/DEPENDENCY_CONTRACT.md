@@ -1,7 +1,7 @@
 # Submap Dependency Contract
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 This note records the renderer-independent contract that the DOM/tile Submap
 depends on before its components can be deprecated. It is intentionally narrow:
@@ -98,14 +98,54 @@ authorize deleting the current DOM/tile surface.
 | Combat map data adjacency | `src/types/combat.ts`, `src/hooks/useBattleMap.ts`, `src/hooks/combat/useGridMovement.ts`, `src/utils/spatial/pathfinding.ts`, `src/utils/spatial/lineOfSight.ts` | Do not collapse world `MapData` and `BattleMapData`; pathfinding, line-of-sight, terrain, and AI consumers still rely on battle-map tile maps. |
 | Design/tooling references | `src/components/DesignPreview`, `src/components/BattleMap`, `src/components/Components_Ralph.md`, CSS z-index variables | Preserve useful examples and update stale references only after extraction choices are made. |
 
+## Dependent-System Extraction Matrix
+
+Classification key: **retain** = keep behavior as-is; **extract** = lift to reusable
+owner; **replace** = needs replacement surface (blocked on G5); **retire** = safe to
+drop only after proof.
+
+| Dependent surface | Source evidence | Retained function | Class | Owner / project | Next proof |
+|---|---|---|---|---|---|
+| Submap modal shell | `SubmapPane.tsx`, `GameModals.tsx`, `GameLayout.tsx` | Local map UI, mode toggles, tile hit-testing | retain | `submap` until replacement named | Visual parity check after any extraction wiring |
+| Compass launch | `CompassPane/index.tsx`, `toggle_submap_visibility` | Open/close local map from compass | extract | navigation entry contract | Toggle still closes conflicting modals |
+| Action menu local context | `ActionPane/useActionGeneration.ts`, `submapUtils.ts`, `MaterialTagService.ts` | Terrain/material lookup for gather, inspect, spell targeting | extract | map-query contract | `getSubmapTileInfo` tests survive UI removal |
+| Quick travel dispatch | `SubmapPane.tsx`, `submapActionContracts.ts`, `handleMovement.ts` | Path payload, step durations, encounter timing | extract | `src/utils/spatial/submapActionContracts.ts` | `submapActionContracts.test.ts` green; optional SubmapPane wiring |
+| Inspect dispatch | `SubmapPane.tsx`, `submapActionContracts.ts`, `handleObservation.ts` | Adjacency rule, storage key, 300s time advance | extract | `src/utils/spatial/submapActionContracts.ts` | Contract tests + storage key proof |
+| Movement handler | `handleMovement.ts`, `types/actions.ts` | `QUICK_TRAVEL` clamping, impassable checks, step loop | retain | action pipeline | Handler tests unchanged after UI wiring |
+| Observation handler | `handleObservation.ts` | `inspect_submap_tile` prompt + `UPDATE_INSPECTED_TILE_DESCRIPTION` | retain | action pipeline | Inspect handler test or proof note |
+| UI reducer / modal mutex | `uiReducer.ts`, `handleSystemAndUi.ts` | `isSubmapVisible` mutual exclusion | retain | layout state | Modal conflict matrix documented |
+| Minimap preview | `Minimap.tsx`, `useSubmapProceduralData.ts` | Local terrain/feature preview independent of full Submap UI | extract | Minimap + `GENERATION_MODULARIZATION.md` | Minimap renders from extracted generation core |
+| Procedural generation | `useSubmapProceduralData.ts`, `submapPathContinuity.ts`, CA/WFC services | CA, WFC, paths, seeded features, biome blend | extract | `submap-generation` / `GENERATION_MODULARIZATION.md` | Fixture parity for plains/cave/wetland |
+| Visual projection | `submapVisuals.ts`, `submapVisualsConfig.ts` | `VisualLayerOutput` fields for tiles/tooltips | extract | map preview contract | Field list unchanged after core extraction |
+| Painter path | `Submap/painters/*` | Alternate renderer draw contracts, texture cache | retain | `submap` (G6, CMA-G16) | Inventory before any painter split |
+| Town/village overlap | `villageGenerator.ts`, `Town/*`, `RealmSmithTownGenerator.ts` | Settlement-local layout vs seeded village features | replace | human/product (G5) | Owner decision after inventory complete |
+| Puzzle/dungeon hooks | `systems/puzzles/*` TODOs | Dungeon tile interactions | replace | dungeon/navigation owner | Route decision after G5 |
+| Save/map compatibility | `mapService.ts`, `saveLoadService.ts`, `worldDataMigration.ts` | Legacy `MapData`, v2 backfill | retain | world data | Save/load regression proof |
+| Combat map adjacency | `types/combat.ts`, `useBattleMap.ts`, spatial pathfinding | Separate `BattleMapData` tile maps | retain | combat map | Do not collapse with world `MapData` |
+| Context/LLM prompts | `contextUtils.ts`, `ollamaTextService.ts`, `geminiService.ts` | Submap coords in action context strings | extract | context builder | Context strings still include terrain after UI change |
+| Design/tooling refs | `DesignPreview/*`, `BattleMap/*`, CSS z-index | Examples and stale references | retire | post-extraction cleanup | Remove refs only after owner decisions |
+
+## UI-Independent Action Contract Module
+
+`src/utils/spatial/submapActionContracts.ts` now centralizes:
+
+- inspect adjacency keys (`getInspectableTileKeys`)
+- `QUICK_TRAVEL` payload assembly (`buildQuickTravelPayload`)
+- inspect payload assembly (`buildInspectSubmapTilePayload`)
+- inspect storage key format (`buildInspectTileStorageKey`)
+- handler-side normalization (`normalizeQuickTravelHandlerInputs`)
+
+Focused proof: `src/utils/spatial/__tests__/submapActionContracts.test.ts` (9 tests,
+2026-06-10). SubmapPane still builds payloads inline; wiring callers through the
+module is a follow-up (G7).
+
 ## Next Proof Path
 
-Before component deprecation, the next safe proof should compare one
-real `QUICK_TRAVEL` payload from `SubmapPane` against `handleQuickTravel`
-assumptions and one real `inspect_submap_tile` payload against
-`handleInspectSubmapTile` storage and time behavior. A separate generation
-proof should show whether CA/WFC/path/seeded-feature behavior has been retained
-or consciously retired.
+Before component deprecation:
+
+1. Wire `SubmapPane` through `submapActionContracts` without behavior drift (G7).
+2. Extract `generateLocalTerrainData` per `GENERATION_MODULARIZATION.md` (G8).
+3. Compare Minimap preview output before/after generation-core extraction.
 
 If a future renderer or navigation surface replaces the tile surface, it should
 satisfy this contract before changing visuals or input routing.

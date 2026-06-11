@@ -10,6 +10,7 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 | Date | Check | Result | Evidence |
 |---|---|---|---|
 | 2026-06-10 | Required-doc surface initialized | pass | `docs/projects/dialogue/NORTH_STAR.md` declares this file in `required_docs`; schema migration created the file for audit-clean doc coverage. |
+| 2026-06-10 | D3 session persistence path validated | pass | Reviewed `dialogueReducer.ts` (START/UPDATE/END_DIALOGUE_SESSION), `npcReducer.ts` (DISCUSS_TOPIC), `appState.ts` (LOAD_GAME_STATE, SET_GAME_PHASE, MOVE_PLAYER resets), `useDialogueSystem.ts` (handleTopicOutcome dispatch chain). Session is ephemeral; NPC memory `discussedTopics` is persisted. Unlock propagation in handleTopicOutcome step 4 is confirmed stubbed (TODO marker). |
 
 ## Standing Verification Notes
 

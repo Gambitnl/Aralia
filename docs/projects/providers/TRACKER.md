@@ -1,7 +1,7 @@
-# Providers Tracker
+# Providers Living Tracker
 
-Status: review-required
-Last updated: 2026-06-08
+Status: active (G5 decided 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Status Vocabulary
 
@@ -20,7 +20,8 @@ Last updated: 2026-06-08
 | T1 | done | Create initial living-project scaffold from registry evidence | Worker B | 2026-05-31 | `docs/projects/PROJECT_TRACKER.md` | Keep files in `docs/projects/providers/` and confirm all three protocol files exist | `Get-ChildItem docs/projects/providers/NORTH_STAR.md,docs/projects/providers/TRACKER.md,docs/projects/providers/GAPS.md` |
 | T2 | done | Document current provider dependency graph and failure-order behavior | Worker B | 2026-05-31 | `src/App.tsx`,`src/components/providers/AppProviders.tsx`,`src/components/providers/DataLoaderGate.tsx`,`src/context/SpellContext.tsx`,`src/context/GlossaryContext.tsx`,`src/contexts/DiceContext.tsx`,`src/state/GameContext.tsx` | Keep docs updated with explicit provider order and gating behavior | `Review dependency map section in docs/projects/NORTH_STAR.md` |
 | T3 | done | Close the `G2`/`G3` docs slice and hand off the next provider gap | Worker B | 2026-06-08 | `docs/projects/providers/GAPS.md`,`docs/projects/providers/NORTH_STAR.md`,`src/App.tsx`,`src/components/providers/AppProviders.tsx`,`src/components/providers/DataLoaderGate.tsx`,`src/context/SpellContext.tsx`,`src/context/GlossaryContext.tsx` | `G2` is now documented as non-blocking degraded behavior and `G3` is now the explicit provider boundary note | Next safe slice is `G4` source-doc sync for `GlossaryContext.README.md` |
-| T4 | waiting | Sync `GlossaryContext.README.md` to the current provider implementation | Worker B | 2026-06-08 | `src/context/GlossaryContext.tsx`,`src/context/GlossaryContext.README.md` | Wait for the provider-boundary decision, then refresh the README in a separate source-doc sync pass if still needed | Compare README wording against current fetch path and empty-list fallback |
+| T4 | not_started | Sync `GlossaryContext.README.md` to the current provider implementation | Worker B | 2026-06-10 | `src/context/GlossaryContext.tsx`,`src/context/GlossaryContext.README.md` | Provider-boundary decision recorded 2026-06-10 (D7); refresh the README in a source-doc sync pass | Compare README wording against current fetch path and empty-list fallback |
+| T5 | not_started | Implement the approved app-shell/provider split (D7, Option B) | providers/layout owners | 2026-06-10 | `docs/projects/DECISION_BLITZ_2026-06-10.md` D7; `src/App.tsx`,`src/components/providers/AppProviders.tsx`,`src/components/providers/DataLoaderGate.tsx`,`src/state/GameContext.tsx` | Move provider composition into a dedicated app-shell module with preservation tests for provider order, `DataLoaderGate`, and `GameProvider` boundaries | Preservation tests pass; provider order and gate behavior unchanged |
 
 ## Gap Log
 
@@ -29,7 +30,7 @@ Last updated: 2026-06-08
 | G1 | not_started | adjacent_follow_up | Worker B | `docs/projects/providers/GAPS.md` | registry-to-scaffold upgrade | Specify provider dependency graph | `docs/projects/PROJECT_TRACKER.md` | Registry already flagged this as unresolved scope and it should be preserved | Move to active planning when implementation begins | evidence added to feature-level planning |
 | G2 | done | in_scope_now | Worker B | `docs/projects/providers/GAPS.md` | docs pass | Degraded provider states now resolve as non-blocking startup behavior with visible overlays and empty fallbacks | `src/context/SpellContext.tsx`,`src/context/GlossaryContext.tsx`,`src/components/providers/DataLoaderGate.tsx` | The gate only checks for null today, so warning/error payloads can slip through without a clear startup policy | Keep the startup-state matrix current if provider fallback behavior changes | docs matrix covers null, degraded, and error states |
 | G3 | done | in_scope_now | Worker B | `docs/projects/providers/GAPS.md` | docs pass | The `GameProvider` boundary and provider nesting order are now explicit in the project docs | `src/App.tsx`,`src/components/providers/AppProviders.tsx`,`src/state/GameContext.tsx` | Future refactors can break assumptions if the provider stack is only implied by source code | Keep the boundary note aligned with `App.tsx` if the stack changes | cross-check against `App.tsx` render tree |
-| G5 | blocked | blocked_human_decision | human/product owner + providers/layout owners | `docs/projects/providers/GAPS.md` | code modularization audit route | App/provider modularization is high risk until provider order and degraded-state policy are explicit. | `src/App.tsx`,`src/components/providers/AppProviders.tsx`,`src/components/providers/DataLoaderGate.tsx`,`src/state/GameContext.tsx` | App shell/provider movement could change data loading and game-state boundaries. | Required Review Brief added in `NORTH_STAR.md`; do not assign forward Providers work until the decision is recorded. | owner-approved split plan or defer note |
+| G5 | active | blocked_human_decision | human/product owner + providers/layout owners | `docs/projects/providers/GAPS.md` | code modularization audit route | App/provider modularization is high risk until provider order and degraded-state policy are explicit. | `src/App.tsx`,`src/components/providers/AppProviders.tsx`,`src/components/providers/DataLoaderGate.tsx`,`src/state/GameContext.tsx` | App shell/provider movement could change data loading and game-state boundaries. | Decided 2026-06-10 (Remy, D7, Option B): split approved with preservation tests; implementation lane open (tracker T5). | split lands with preservation tests for provider order, `DataLoaderGate`, and `GameProvider` boundaries |
 
 ## Update Rules
 

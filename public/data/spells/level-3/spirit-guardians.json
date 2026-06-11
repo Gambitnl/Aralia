@@ -147,7 +147,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 3d8 Radiant/Necrotic damage on a failed Wisdom save, or half as much on success; slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

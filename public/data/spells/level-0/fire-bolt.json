@@ -149,8 +149,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, one creature or object takes 1d10 Fire damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "fire-damage",
+        "ranged-hit",
+        "cantrip-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

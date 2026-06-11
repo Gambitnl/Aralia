@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Party UI
+slug: party-ui
+status: active
+last_updated: "2026-06-08"
+iteration: 6
+source_agent: Qoder
+target_agent: next cold-start agent
+runtime_surface: MCP/subagent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/party-ui/NORTH_STAR.md
+tracker: docs/projects/party-ui/TRACKER.md
+gaps: docs/projects/party-ui/GAPS.md
+---
 # Party UI Cold Start Agent Handoff
 
 Status: active

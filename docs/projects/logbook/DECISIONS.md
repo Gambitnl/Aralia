@@ -26,3 +26,25 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Discovery log retention policy slice design
+
+Date: 2026-06-10
+
+Owner: iteration 2 agent
+
+Decision point:
+G1 requires a retention policy for `discoveryLog`. The implementation slice must be defined before code changes.
+
+Decision made:
+Use a simple cap model: add `MAX_DISCOVERY_LOG_ENTRIES` (recommended 200), slice the array after prepend in `ADD_DISCOVERY_ENTRY`, count pruned unread entries and subtract from `unreadDiscoveryCount`, and add load-time prune in `saveLoadService` for old saves that exceed the cap.
+
+Open sub-decision: whether quest-related entries (`isQuestRelated: true`) should be exempt from pruning. Deferred to implementation time.
+
+Rationale and evidence:
+- Other log systems in the same reducer already use `.slice(0, N)` caps (gemini: 100, banter: 50, combat: 50).
+- `saveLoadService` already initializes missing fields on load, making it a natural prune point.
+- A cap of 200 balances long play sessions against save data size.
+
+Follow-up:
+Implement in T3. If the quest-exemption question blocks implementation, record it as a `blocked_human_decision` gap.

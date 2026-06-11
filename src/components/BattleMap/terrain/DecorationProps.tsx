@@ -366,7 +366,8 @@ function createStumpGeometry(): PropGeometrySet[] {
   ];
 }
 
-/** Bush — cluster of small spheres close to the ground */
+/** Bush — leafy clump: noisy multi-lobe cluster with a base→tip light gradient
+ * (GOAL #36 — smooth flat-colored lobes read as "green billiard balls"). */
 function createBushGeometry(): PropGeometrySet[] {
   const s1 = new THREE.SphereGeometry(0.25, 8, 6);
   s1.translate(0, 0.22, 0);
@@ -377,13 +378,41 @@ function createBushGeometry(): PropGeometrySet[] {
   const s4 = new THREE.SphereGeometry(0.15, 6, 4);
   s4.translate(0.05, 0.32, -0.05);
 
+  const geo = mergeGeometries([s1, s2, s3, s4]);
+
+  // Leafy irregularity: hash-noise displacement along normals breaks the
+  // smooth sphere surface; flat shading then gives faceted "leaf cluster"
+  // highlights. Vertex colors run dark interior → lighter sunlit tips.
+  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const norm = geo.attributes.normal as THREE.BufferAttribute;
+  const colors = new Float32Array(pos.count * 3);
+  const baseColor = new THREE.Color(0x1e4212);
+  const tipColor = new THREE.Color(0x4f8226);
+  const c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const n = Math.sin(x * 41.7 + y * 73.3 + z * 57.1) * 43758.5453;
+    const jitter = (n - Math.floor(n) - 0.5) * 0.1; // ±0.05
+    const ny = Math.max(0.01, y + norm.getY(i) * jitter);
+    pos.setXYZ(i, x + norm.getX(i) * jitter, ny, z + norm.getZ(i) * jitter);
+    const t = Math.min(1, Math.max(0, ny / 0.45));
+    c.copy(baseColor).lerp(tipColor, t * t);
+    colors[i * 3] = c.r;
+    colors[i * 3 + 1] = c.g;
+    colors[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x2a5a1a,
-    roughness: 0.85,
+    color: 0xffffff,
+    roughness: 0.9,
     metalness: 0.0,
+    vertexColors: true,
+    flatShading: true,
   });
 
-  return [{ geometry: mergeGeometries([s1, s2, s3, s4]), material: mat }];
+  return [{ geometry: geo, material: mat }];
 }
 
 /** Simple geometry merge (no dependencies on three-stdlib) */
@@ -492,19 +521,27 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
       }[];
     }[] = [];
 
-    /** Build per-instance RGB color variation — subtle brightness jitter for a natural look */
-    const buildColorVariations = (
-      baseColor: THREE.Color,
-      count: number,
-      colorRand: () => number,
-      range = 0.28,
-    ): Float32Array => {
+    // Task 75 (GOAL #49): per-instance variation beyond the original
+    // jitter/rotY/uniform-scale. Drawn from a SEPARATE rng stream so the
+    // original stream's draw count per instance is unchanged — same seed
+    // keeps identical positions/rotations/base scale (clean A/B, no layout
+    // churn for existing saves/captures).
+    const vrand = seededRandom((mapData.seed ?? 42) + 7575);
+
+    /**
+     * Per-instance brightness/warmth tint. Instance colors MULTIPLY the
+     * material color in three.js, so tints are neutral values around 1.0 —
+     * not pre-multiplied base colors (the earlier helper pre-multiplied and
+     * was never wired; this replaces it).
+     */
+    const buildColorVariations = (count: number): Float32Array => {
       const out = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
-        const t = 0.86 + colorRand() * range;
-        out[i * 3 + 0] = Math.min(1, baseColor.r * t);
-        out[i * 3 + 1] = Math.min(1, baseColor.g * t);
-        out[i * 3 + 2] = Math.min(1, baseColor.b * t);
+        const brightness = 0.84 + vrand() * 0.32; // ±16% brightness
+        const warmth = (vrand() - 0.5) * 0.08;    // slight warm/cool shift
+        out[i * 3 + 0] = brightness + warmth;
+        out[i * 3 + 1] = brightness;
+        out[i * 3 + 2] = brightness - warmth;
       }
       return out;
     };
@@ -512,6 +549,7 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
     /** Helper: build instance matrices for a set of tiles */
     const buildMatrices = (
       tiles: { x: number; y: number; elevation: number }[],
+      opts: { tilt: boolean } = { tilt: false },
     ): Float32Array => {
       const matrices = new Float32Array(tiles.length * 16);
       const dummy = new THREE.Object3D();
@@ -522,18 +560,35 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
         const rotY = rand() * Math.PI * 2;
         const scaleVariation = 0.8 + rand() * 0.4;
 
+        // Silhouette variety: independent width/height multipliers on top of
+        // the base scale, so instances read squat/tall/lean instead of being
+        // photocopies (GOAL #49 "every instance identical geometry").
+        const widthMul = 0.88 + vrand() * 0.26;
+        const heightMul = 0.78 + vrand() * 0.5;
+        // Natural settling: small random tilt for ground clutter (boulders,
+        // stumps, logs); upright props (pillars, cacti) opt out.
+        const tiltX = opts.tilt ? (vrand() - 0.5) * 0.22 : 0;
+        const tiltZ = opts.tilt ? (vrand() - 0.5) * 0.22 : 0;
+
         dummy.position.set(
           tile.x * TILE_SIZE + 0.5 * TILE_SIZE + jitterX,
           tile.elevation * ELEVATION_SCALE,
           tile.y * TILE_SIZE + 0.5 * TILE_SIZE + jitterZ,
         );
-        dummy.rotation.set(0, rotY, 0);
-        dummy.scale.setScalar(scaleVariation);
+        dummy.rotation.set(tiltX, rotY, tiltZ);
+        dummy.scale.set(
+          scaleVariation * widthMul,
+          scaleVariation * heightMul,
+          scaleVariation * widthMul,
+        );
         dummy.updateMatrix();
         dummy.matrix.toArray(matrices, i * 16);
       }
       return matrices;
     };
+
+    /** Ground clutter settles at small random tilts; built/living things stay upright. */
+    const TILTABLE = new Set<string>(['boulder', 'stump', 'fallen_log', 'stalagmite']);
 
     for (const [decorationType, tiles] of decorationGroups) {
       // --- Tree tiles are now handled by EzTreeLayer (ez-tree procedural geometry) ---
@@ -547,7 +602,10 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
       if (!factory) continue;
 
       const geoSets = factory();
-      const matrices = buildMatrices(tiles);
+      const matrices = buildMatrices(tiles, { tilt: TILTABLE.has(decorationType) });
+      // One tint per INSTANCE, shared by all parts of that instance so a
+      // prop's pieces (trunk + top, rock + base) stay color-coherent.
+      const colors = buildColorVariations(tiles.length);
 
       result.push({
         key: decorationType,
@@ -556,6 +614,7 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
           material: gs.material,
           matrices,
           count: tiles.length,
+          colors,
         })),
       });
     }

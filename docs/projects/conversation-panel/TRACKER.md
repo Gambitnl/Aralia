@@ -1,4 +1,4 @@
-# Conversation Panel Tracker
+# Conversation Panel Living Tracker
 
 Status: active  
 Last updated: 2026-06-08

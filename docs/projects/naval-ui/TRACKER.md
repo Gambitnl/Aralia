@@ -1,8 +1,17 @@
-# Naval UI Tracker
+# Naval UI Living Tracker
 
 Status: active
 Last updated: 2026-06-05
 
+## Status Vocabulary
+
+- `not_started`
+- `active`
+- `waiting`
+- `blocked`
+- `done`
+- `superseded`
+- `out_of_scope`
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action |
@@ -19,3 +28,11 @@ Last updated: 2026-06-05
 | U-G2 | active | `src/state/reducers/navalReducer.ts` + `src/state/actionTypes.ts` | `NAVAL_REPAIR_SHIP` is declared but not handled | Add reducer case and test, or remove contract and update docs |
 | U-G3 | active | `src/hooks/actions/handleMovement.ts` + naval action surface | Water tiles are blocked before voyage dispatch, so sea travel cannot trigger `NAVAL_START_VOYAGE` | Add verified voyage start transition from intended movement path |
 | U-G4 | active | `src/data/naval/voyageEvents.ts`, `src/data/naval/voyageEvents/index.ts` | Duplicate event catalogs can produce split behavior | Add canonical source decision before adding new UI actions |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

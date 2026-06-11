@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 confidence: medium
-evidence: "docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; docs/projects/submap/TRACKER.md; docs/projects/submap/GAPS.md"
-gap_signal: "pre-deprecation extraction active; dependent-system inventory needed; replacement questions open"
+evidence: "docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; src/utils/spatial/submapActionContracts.ts; docs/projects/submap/GENERATION_MODULARIZATION.md"
+gap_signal: "action contracts extracted with tests; dependent matrix drafted; generation core extraction next; G5 replacement surface decided 2026-06-10 (Azgaar-continuation proc-gen submap system)"
 protocol: living project doc set
-next_step: Assign extraction-only passes: inventory all Submap dependents, lift retained navigation/generation/action contracts into reusable owners, and keep the current UI components intact until proof shows they can be removed.
+next_step: Wire SubmapPane through submapActionContracts, extract generateLocalTerrainData from useSubmapProceduralData, and prove Minimap can consume the extracted core. The G7/G8 extraction contracts plus DEPENDENCY_CONTRACT.md are now the named inventory the replacement Azgaar-continuation proc-gen submap system must honor (DECISION_BLITZ D3).
 agent_comments: "Clarified 2026-06-09: Submap is not deprecated immediately; this is an active pre-deprecation extraction/modularization project."
 required_docs:
   - NORTH_STAR.md
@@ -30,19 +30,19 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-10
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: pre-deprecation-extraction
 deprecation_confidence: strong
 deprecation_reason: pending_extraction_before_component_deprecation
-canonical_owner: docs/projects/submap until replacement map/navigation owner is named
+canonical_owner: docs/projects/submap until the named replacement (Azgaar-continuation proc-gen submap system, decided 2026-06-10) takes ownership with proof
 human_decision_required: "no"
 ---
 # Submap North Star
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 ## Dashboard Card Schema
 
@@ -54,16 +54,16 @@ Last updated: 2026-06-09
 | Main category | Interface & Experience |
 | Subcategory | Player UI Surfaces |
 | Status | active |
-| Last updated | 2026-06-09 |
+| Last updated | 2026-06-10 |
 | Confidence | medium |
-| Evidence | docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; docs/projects/submap/TRACKER.md; docs/projects/submap/GAPS.md |
-| Gap signal | pre-deprecation extraction active; dependent-system inventory needed; replacement questions open |
+| Evidence | docs/projects/submap/DEPENDENCY_CONTRACT.md; docs/projects/submap/AUDIT_OR_PROOF.md; src/utils/spatial/submapActionContracts.ts; docs/projects/submap/GENERATION_MODULARIZATION.md |
+| Gap signal | action contracts extracted with tests; dependent matrix drafted; generation core extraction next; G5 replacement surface decided 2026-06-10 (Azgaar-continuation proc-gen submap system) |
 | Protocol | living project doc set |
-| Next step | Assign extraction-only passes: inventory all Submap dependents, lift retained navigation/generation/action contracts into reusable owners, and keep the current UI components intact until proof shows they can be removed. |
+| Next step | Wire SubmapPane through submapActionContracts, extract generateLocalTerrainData from useSubmapProceduralData, and prove Minimap can consume the extracted core. The G7/G8 contracts + DEPENDENCY_CONTRACT.md are the inventory the named replacement must honor (DECISION_BLITZ D3). |
 | Required verification | docs_consistency |
 | Completed verification | docs_consistency |
-| Last proof | 2026-06-09 dependency inventory refresh |
-| Workflow gaps reviewed | 2026-06-08 |
+| Last proof | 2026-06-10 submapActionContracts tests (9 passed) + extraction matrix |
+| Workflow gaps reviewed | 2026-06-10 |
 | Agent comments | Clarified 2026-06-09: Submap is not deprecated immediately; this is an active pre-deprecation extraction/modularization project. |
 | Required docs | NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md |
 | Optional docs | tasks/, architecture notes, migration notes, DEPENDENCY_CONTRACT.md |
@@ -117,10 +117,14 @@ must be answered before the current Submap can go away.
   inspect adjacency and tooltip fallback logic.
 - `src/components/Submap/submapVisuals.ts` - shared visual resolver for DOM and
   later renderers.
-- `docs/projects/submap/DEPENDENCY_CONTRACT.md` - explicit contract for the
-  preserved quick-travel, inspect, and tooltip dependencies.
-- `docs/projects/submap/AUDIT_OR_PROOF.md` - proof note for source dependency
-  inventory and the deprecated replacement-owner review gate.
+- `docs/projects/submap/DEPENDENCY_CONTRACT.md` - explicit contract plus the
+  dependent-system extraction matrix.
+- `docs/projects/submap/AUDIT_OR_PROOF.md` - durable proof summaries for
+  inventory and contract extraction.
+- `docs/projects/submap/GENERATION_MODULARIZATION.md` - plan for lifting
+  generation logic out of React hooks.
+- `src/utils/spatial/submapActionContracts.ts` - UI-independent quick-travel
+  and inspect payload helpers with focused tests.
 - `src/components/CompassPane/index.tsx` and `src/components/GameLayout.tsx` -
   submap launch controls and route into modals.
 - `src/components/Minimap.tsx` and `src/components/MapPane.tsx` - adjacent map
@@ -188,7 +192,7 @@ proof.
 | Acceptance criteria | This file, `TRACKER.md`, and `GAPS.md` keep Submap active for extraction-only work, name dependent systems, and block component removal until retained contracts have replacement owners and proof. |
 | Allowed boundaries | Documentation under `docs/projects/submap/`. |
 | Owner | Codex integration pass |
-| Next action | Run bounded extraction passes over the dependent-system inventory, starting with action menu / quick-travel / inspect contracts and generation hook modularization candidates. |
+| Next action | Wire SubmapPane through `submapActionContracts`, extract `generateLocalTerrainData`, prove Minimap can use the extracted generation core. |
 
 ## Known Gaps And Follow-Ups
 
@@ -196,11 +200,36 @@ proof.
 |---|---|---|---|
 | Submap dependent-system inventory is incomplete | active | The component cannot be safely deprecated until every caller and concept user is classified. | `rg -n -e Submap -e submap -e QUICK_TRAVEL -e inspect_submap_tile src`; `docs/projects/submap/DEPENDENCY_CONTRACT.md` |
 | Action menu movement behavior needs an owner before Submap UI removal | active | The action menu currently exposes context actions that depend on local terrain/material lookups and movement affordances. | `src/components/ActionPane/useActionGeneration.ts`; `src/components/CompassPane/index.tsx`; `src/hooks/actions/handleMovement.ts` |
-| Quick-travel and inspect contracts need extraction proof | active | Payload semantics must survive even if `SubmapPane` stops creating them. | `src/components/Submap/SubmapPane.tsx`; `src/components/Submap/useQuickTravel.ts`; `src/hooks/actions/handleMovement.ts`; `src/hooks/actions/handleObservation.ts`; `src/types/actions.ts` |
-| Generation hook needs UI-independent modularization candidates | active | Biome, CA, WFC, path, seeded-feature, town/village, and scatter rules may be useful after the Submap UI goes away. | `src/hooks/useSubmapProceduralData.ts`; `src/components/Submap/submapVisuals.ts`; `src/services/cellularAutomataService.ts`; `src/services/wfcService.ts`; `src/services/villageGenerator.ts` |
-| Replacement surface questions remain open | blocked_human_decision | Extraction can continue, but final component deprecation requires deciding what replaces local map navigation and settlement/local terrain presentation. | `src/components/Submap/SubmapPane.tsx`; `src/components/Minimap.tsx`; `src/components/Town`; `src/systems/travel` |
+| Quick-travel and inspect contracts need extraction proof | active (partial) | UI-independent module and tests exist; SubmapPane still inline (G7). | `src/utils/spatial/submapActionContracts.ts`; `src/utils/spatial/__tests__/submapActionContracts.test.ts` |
+| Generation hook needs UI-independent modularization candidates | active | Plan documented in `GENERATION_MODULARIZATION.md`; core module not yet extracted (G8). | `docs/projects/submap/GENERATION_MODULARIZATION.md`; `src/hooks/useSubmapProceduralData.ts` |
+| Replacement surface questions remain open | decision recorded 2026-06-10; implementation lane open | Extraction can continue, but final component deprecation requires deciding what replaces local map navigation and settlement/local terrain presentation. Decided 2026-06-10 (see Decision section below): the Azgaar-continuation proc-gen submap system is the named replacement. | `src/components/Submap/SubmapPane.tsx`; `src/components/Minimap.tsx`; `src/components/Town`; `src/systems/travel`; `docs/projects/DECISION_BLITZ_2026-06-10.md` (D3) |
+
+## Decision (2026-06-10): Replacement Surface Named (G5)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session —
+see `docs/projects/DECISION_BLITZ_2026-06-10.md` (D3) and its
+"Context: the June 2026 campaign" section.
+
+- **The replacement surface is the new Azgaar-continuation proc-gen submap
+  system** from the June 2026 campaign: Azgaar-based generation extended below
+  Azgaar's deepest zoom replaces the Submap, with that zoom continuing into a
+  3D ground-level mode (campaign window 2026-06-10 → 2026-06-22).
+- **The in-flight extraction contracts are the inventory the new system must
+  honor**: G7/G8, `src/utils/spatial/submapActionContracts.ts`, and
+  `docs/projects/submap/DEPENDENCY_CONTRACT.md`.
+- Status: decision recorded 2026-06-10; implementation lane open. Extraction
+  work (G7 SubmapPane wiring, G8 `generateLocalTerrainData`) continues as
+  before — it is now explicitly feeding the named replacement rather than an
+  unnamed future owner. Component deprecation still requires proof that the
+  replacement honors the inventoried contracts.
+- Local record: `docs/projects/submap/DECISIONS.md` D-006.
 
 ## Open Architecture Questions
+
+> Note (2026-06-10): the first question below — what replaces the Submap — is
+> answered by the D3 decision above (Azgaar-continuation proc-gen submap
+> system). The remaining questions stay open and should be settled during the
+> replacement implementation against the dependency contract.
 
 - What replaces the Submap as the local navigation surface: a new navigation
   map, Minimap expansion, 3D/world surface, Town/settlement surface, or a

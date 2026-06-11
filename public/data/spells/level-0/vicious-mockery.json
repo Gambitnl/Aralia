@@ -143,8 +143,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One target within 60 feet makes a Wisdom save against 1d6 Psychic damage, with cantrip-tier damage scaling.",
+      "conditionalEndings": [],
+      "tags": [
+        "psychic-damage",
+        "wisdom-save",
+        "cantrip-scaling"
+      ]
     },
     {
       "type": "UTILITY",

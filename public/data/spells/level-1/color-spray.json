@@ -163,8 +163,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures in the 15-foot cone must succeed on a Constitution save or gain the Blinded condition for 1 round; the current row preserves its turn-end repeat-save metadata as the condition escape path.",
+      "conditionalEndings": [],
+      "tags": [
+        "blinded",
+        "constitution-save",
+        "cone"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -178,6 +183,7 @@
     "control",
     "blindness",
     "illusion",
-    "aoe"
+    "aoe",
+    "constitution-save"
   ]
 }

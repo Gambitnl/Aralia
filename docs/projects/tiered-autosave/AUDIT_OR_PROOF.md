@@ -10,6 +10,7 @@ Use this file for durable proof summaries, scoped verification notes, and accept
 | Date | Check | Result | Evidence |
 |---|---|---|---|
 | 2026-06-10 | Required-doc surface initialized | pass | `docs/projects/tiered-autosave/NORTH_STAR.md` declares this file in `required_docs`; schema migration created the file for audit-clean doc coverage. |
+| 2026-06-10 | A1: initializeStorage wired + ghost mitigation fix + emergencySaveSync | pass (typecheck) | `src/App.tsx` calls `SaveLoadService.initializeStorage()` in mount effect; `buildSlotIndex` skips localStorage ghost filter when `idbAvailable`; `useAutoSave` calls `emergencySaveSync` in `beforeunload`. All three files pass `tsc --noEmit`. Runtime migration + emergency save proof deferred to manual browser test. |
 
 ## Standing Verification Notes
 

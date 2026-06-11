@@ -6,10 +6,10 @@ category: tools
 main_category: "Tools, Docs & Agents"
 subcategory: "Scripts & Automation"
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 confidence: high
-evidence: "docs/projects/code-modularization-audit/GAPS.md; repo line-count scans run 2026-06-08"
-gap_signal: "next tranche of large-file candidates routed in G14-G19; owner acceptance pending"
+evidence: "docs/projects/code-modularization-audit/GAPS.md; repo line-count scans run 2026-06-08; owner-acceptance scan iteration 6 confirmed all six stub rows present"
+gap_signal: "CMA-G14..G19 stub rows now exist in all six owner GAPS files; no owner has accepted/activated their route; project stays in routing/evidence posture"
 protocol: living-project-task-protocol
 next_step: wait for owning projects to accept the routed candidate clusters, then create bounded split plans with preservation tests
 agent_comments: ""
@@ -28,7 +28,7 @@ required_verification:
   - docs_consistency
 completed_verification:
 last_proof: ""
-workflow_gaps_reviewed: 2026-06-09
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -50,7 +50,7 @@ Last updated: 2026-06-09
 | slug | code-modularization-audit |
 | category | tools |
 | status | active |
-| last_updated | 2026-06-09 |
+| last_updated | 2026-06-10 |
 | confidence | high |
 | evidence | `docs/projects/code-modularization-audit/GAPS.md`; repo line-count scans run 2026-06-08 |
 | gap_signal | next tranche of large-file candidates routed in G14-G19; owner acceptance pending |
@@ -58,7 +58,7 @@ Last updated: 2026-06-09
 | next_step | wait for owning projects to accept the routed candidate clusters, then create bounded split plans with preservation tests |
 | required_docs | NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md |
 | optional_docs | AUDIT_OR_PROOF.md if future passes preserve detailed scan outputs |
-| workflow_gaps_reviewed | 2026-06-09 |
+| workflow_gaps_reviewed | 2026-06-10 |
 | compaction_status | not_needed |
 
 ## Why This Exists

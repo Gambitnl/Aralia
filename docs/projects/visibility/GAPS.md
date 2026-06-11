@@ -1,10 +1,11 @@
-# Visibility System Gap Registry
+# Visibility Gap Registry
 
 Status: active
 Last updated: 2026-06-05
 Owner: Worker A
 Parent tracker: `docs/projects/visibility/TRACKER.md`
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -14,3 +15,22 @@ Parent tracker: `docs/projects/visibility/TRACKER.md`
 | V-G3 | not_started | support_needed_now | Worker A | `docs/projects/visibility/TRACKER.md` | Source scan | Deprecated LOS bridge still exists and may hide import drift. | `src/utils/lineOfSight.ts` + `src/utils/spatial/lineOfSight.ts` | Non-fatal now, but complicates migration and ownership boundaries. | Remove dependency bridge only after all callsites are migrated and tested. | Confirm no production import of bridge path. |
 | V-G4 | not_started | adjacent_follow_up | Worker A | `docs/projects/visibility/TRACKER.md` | Source scan | Duplicate and inconsistent lighting checks exist across visibility and attack factories. | `src/hooks/combat/useTargetValidator.ts`, `src/commands/factory/AbilityCommandFactory.ts`, `src/systems/visibility/VisibilitySystem.ts` | Divergence can create inconsistent LOS or disadvantage outcomes in edge cases. | Add shared policy surface for "visibility effect for an attack" decision before behavior changes. | Align one test fixture across both paths and record parity in next tracker row. |
 | V-G5 | not_started | adjacent_follow_up | Worker A | `docs/projects/GLOBAL_GAPS.md` | Design scan | Renderer-layer ownership may belong with combat-map project if it owns tile visibility display policy. | `src/components/BattleMap/*`, `docs/architecture/COMBAT_MAP_ENGINE.md` | Could widen visibility ownership incorrectly and duplicate UI contracts. | Route this ownership decision to the combat map subsystem before work starts. | Add routed decision with owner in `docs/projects/GLOBAL_GAPS.md` if confirmed. |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

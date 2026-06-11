@@ -1,7 +1,7 @@
-# Character Creator Gaps
+# Character Creator Gap Registry
 
-Status: review-required
-Last updated: 2026-06-08
+Status: active (G2 resolved 2026-06-08; no pending review hold — confirmed in the 2026-06-10 decision blitz housekeeping pass)
+Last updated: 2026-06-10
 
 Use this file for durable unresolved findings that genuinely belong to this project.
 

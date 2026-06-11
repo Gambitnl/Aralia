@@ -142,8 +142,13 @@
         "customFormula": "{\"5\": \"2d10\", \"11\": \"3d10\", \"17\": \"4d10\"}",
         "bonusPerLevel": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a melee spell hit, the target takes 1d10 Necrotic damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "necrotic-damage",
+        "melee-hit",
+        "cantrip-scaling"
+      ]
     },
     {
       "type": "STATUS_CONDITION",

@@ -33,64 +33,68 @@ Take a screenshot at default tactical zoom. All of the following must be true si
 
 ## Current State (Honest Assessment)
 
-As of 2026-05-24. Evaluated at tactical zoom (default camera distance).
+Originally assessed 2026-05-24. **Refreshed 2026-06-10** against tracker evidence
+(TRACKER tasks 14–60, captures in `.agent/3d-visual-quality/captures/`) — rows
+updated only where dated proof exists; unverified rows keep their old status.
+See GAPS #8/#26: stale rows in this table repeatedly misdirected agents into
+re-investigating already-fixed work.
 
 ### Character Readability
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 1 | Team color distinction | **FAIL** | Both teams identical blue-gray. No warm/cold split. A new player cannot tell friend from foe. |
-| 2 | Class silhouette at tactical zoom | **FAIL** | All characters look like same-size pawns at play distance. Fighter/caster/rogue distinction invisible. |
-| 3 | Character scale vs terrain | **FAIL** | Characters are dwarfed by trees and terrain. They should be the focal point but they're visual afterthoughts. |
-| 4 | Weapon/equipment visibility | **FAIL** | Swords, staffs, daggers not visible at tactical zoom. Only matter if you zoom to close-up. |
-| 5 | Shield/armor distinction | **FAIL** | Fighter armor vs rogue leather vs caster robes — all read as the same shape at distance. |
-| 6 | Character skin tone variation | **FAIL** | Every character has the same gray-blue skin. No racial/skin diversity. |
-| 7 | Character outline or rim light | **FAIL** | No edge highlighting. Characters blend into terrain. BG3 has subtle rim lighting on characters to pop them out. |
-| 8 | Idle pose variety | **FAIL** | Every character stands in identical T-pose-adjacent stance. No personality in how they hold themselves. |
-| 9 | Facing direction readability | **PARTIAL** | Characters face nearest enemy (implemented) but you can't tell which direction they face at tactical zoom because they're too small and all look the same from every angle. |
-| 10 | Character grounding | **PARTIAL** | Characters sit at tile elevation, but feet may clip into grass or float above uneven terrain edges. |
+| 1 | Team color distinction | **OK** (2026-06-07) | Gold vs crimson armor + bright always-on team ground rings + team ground glow (tasks 44/45/46). teams-forest.png / rings-desert.png: friend/foe at a glance. |
+| 2 | Class silhouette at tactical zoom | **OK** (2026-06-10) | Task 58 exaggerated cues: tall wizard hat + above-head glowing staff orb, fighter pauldrons/crest/big shield, rogue cape. silh2-after-mid-desert.png (13u: all three identifiable), silh2-after-tac-desert.png (18u: caster unmistakable). Residual: fighter-vs-rogue leans on color/bulk at 18u+ (acceptable; gap #15 note). |
+| 3 | Character scale vs terrain | **OK** (2026-06-07) | Model scale 3.7× (task 47). scale2-desert.png: characters are the focal point, well-proportioned to terrain. |
+| 4 | Weapon/equipment visibility | **PARTIAL** (2026-06-10) | Staff+orb and shield now read at tactical zoom (task 58); sword reads at mid zoom; daggers still close-up only. |
+| 5 | Shield/armor distinction | **OK** (2026-06-10) | Plate+pauldrons+shield (fighter) vs robe+cape (caster) vs slim leather+back cape (rogue) — distinct shapes in the task 58 captures. |
+| 6 | Character skin tone variation | **OK** (2026-06-09) | `getRaceVisual` per-race skin tone + build (task 51). lineup-after-clear-desert.png: dwarf/elf/orc/tiefling visibly distinct. Race reads subtly under team armor at far zoom (gap #24, intentional tradeoff). |
+| 7 | Character outline or rim light | **OK** (2026-06-11) | Task 73: fresnel rim injected into model materials via onBeforeCompile (useFresnelRim.ts) — cool backlight on silhouette edges, indicators unpatched. Tuned 0.38→0.75 after a 1.4 diagnostic (rim-diag-desert.png proved the mechanism; 1.4 washed armor). A/B particles-after-desert.png → rim-final-desert.png (edges defined, gold preserved); rim-cave-team-cave.png: BG3-style readability in the dark. |
+| 8 | Idle pose variety | **OK** (2026-06-10) | Seeded per-character stance (lean + arm-angle offsets) and desynchronized sway/breathe/flap/wobble phase across all body plans (task 61). stance-before-desert.png (identical clones) → stance-after-desert.png (each fighter holds itself differently). |
+| 9 | Facing direction readability | **OK** (2026-06-10) | Task 69: BG3-style facing wedge — a bright team-colored triangle on the ground ring rotating with the unit's facing (toward nearest enemy in combat). facing-before-desert.png → facing-after-desert.png / facing-after4-crop.png (wedge clearly readable). Hidden on corpses. |
+| 10 | Character grounding | **OK** (2026-06-10) | Task 71: actors take Y from the same `makeTerrainHeightSampler` that builds the terrain mesh — grounding matches the rendered surface by construction (slopes, micro-noise, carved banks). ground-before/after-swamp.png: no regression. Closes gap #27. |
 
 ### Character Indicators
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 11 | Active turn indicator | **FAIL** | Golden ring exists but invisible at tactical zoom. Needs to be a beacon, not a subtle decal. |
-| 12 | Selection ring visibility | **FAIL** | Selection ring scaled to 0.42-0.48 — only visible when zoomed in close. |
-| 13 | HP pip/bar at distance | **FAIL** | HP sphere is 0.12 radius. Invisible at 15+ units. No health information readable at play distance. |
-| 14 | Targeting indicators | **PARTIAL** | Valid target set exists but red rings on enemies are same-invisible-at-distance problem. |
+| 11 | Active turn indicator | **OK** (2026-06-07) | TurnIndicator is now a 5-unit pulsing golden beam + bobbing chevron + wide ground ring. rings-desert.png: unmissable beacon at tactical zoom. |
+| 12 | Selection ring visibility | **OK** (2026-06-07) | Task 46: always-on team rings thickened (0.42–0.60) and brightened (emissive 1.0); every unit shows a readable team circle, selected/turn units brighter. |
+| 13 | HP pip/bar at distance | **OK** (2026-06-07) | 0.18-radius emissive HP sphere + 0.20–0.36 team ring at y≈3.05 above the 3.7× model (tasks 30/47). Health color (green/yellow/red) reads in all tactical captures. |
+| 14 | Targeting indicators | **PARTIAL** | Red target rings inherit the task-46 brightness boost, but the targeting-mode flow has not been re-captured at tactical zoom. |
 | 15 | AoE preview readability | **PARTIAL** | AoE preview tiles exist but untested at tactical zoom. Likely too subtle. |
 | 16 | Damage number visibility | **PARTIAL** | Floating damage numbers exist but may be too small or fast to catch at distance. |
-| 17 | Movement range highlight | **PARTIAL** | Grid overlay appears in move mode. Visibility untested at tactical zoom — may be too subtle against terrain. |
-| 18 | Nameplate readability | **PARTIAL** | Hover-only nameplates work close-up. At tactical zoom, you'd need to hover tiny invisible shapes. |
-| 19 | Status effect indicators | **FAIL** | No visual indicators for buffs, debuffs, conditions, or status effects on character models. |
-| 20 | Death/unconscious visual | **FAIL** | No visual death state. Dead characters presumably just vanish or stand there. No ragdoll, no fade, no X marker. |
+| 17 | Movement range highlight | **OK** (2026-06-07) | The green valid-move overlay is clearly visible at tactical zoom — bright enough that the biome sweep initially mistook it for stray grass (gap #12). |
+| 18 | Nameplate readability | **OK** (2026-06-07) | BG3-style: full nameplate on hover/selection/turn only, always-on HP pip otherwise (task 15). Verified no text-walling with both teams up (task 45, teams-forest.png). |
+| 19 | Status effect indicators | **PARTIAL** (2026-06-10) | Resistance/vulnerability/immunity badge row renders on the actor (DefenseBadgeRow, mirrors the 2D token). Buff/debuff/condition icons still missing. |
+| 20 | Death/unconscious visual | **OK** (2026-06-10) | Captured (task 67, death3-desert.png): the model topples −90° and persists as a corpse lying flat, still identifiable via team ring + red HP pip. Not vanish/stand. Polish residuals (fade/decal; dimming indicators on corpses) are optional follow-ups. |
 
 ### Terrain
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 21 | Ground texture natural feel | **PARTIAL** | Procedural GLSL noise gives variation but reads as "math" not "nature." No visible grass tufts, dirt patches, or stone outcrops at macro scale. |
+| 21 | Ground texture natural feel | **OK** (2026-06-10) | The shader was always rich (multi-scale FBM, voronoi, per-type palettes — gap #8); the flat look was atmospheric murk, fixed by the fog/ambient passes (tasks 33/34). grassaudit-forest.png: floor reads as forest ground, not math. |
 | 22 | Elevation readability | **PARTIAL** | Hills exist (elevation 0-3) but gentle. Hard to tell where high ground advantage exists without grid overlay. |
 | 23 | Terrain type transitions | **PARTIAL** | Edge blending exists in shader but transitions between grass/rock/dirt are smooth gradients. Natural terrain has sharper edges — rock doesn't gradient into grass over 3 tiles. |
-| 24 | Ground scatter integration | **PARTIAL** | Pebbles/leaves/twigs exist but may float above or sink into terrain on elevation changes. |
+| 24 | Ground scatter integration | **PARTIAL** (2026-06-10) | Scatter sits correctly in flat-area captures (grassaudit-forest.png); float/sink on slopes still unverified. |
 | 25 | Terrain shadow reception | **OK** | ContactShadows provides ground darkening under objects. Directional shadow map covers the map. |
-| 26 | Texture tiling/repetition | **PARTIAL** | Procedural noise avoids exact tiling but the noise frequency creates uniform "speckle" that's its own kind of repetition — everything looks the same at every point. |
-| 27 | Macro-scale color variation | **FAIL** | No large-scale patches of different ground cover. The entire forest floor is the same green-brown. Real forests have dirt paths, mossy patches, bare earth under trees, leaf litter piles. |
-| 28 | Cliff/slope visual clarity | **FAIL** | Elevation changes happen but slopes look the same as flat ground — no exposed rock faces, no erosion lines, no visual cue that this is a hill. |
+| 26 | Texture tiling/repetition | **PARTIAL** (2026-06-10) | The uniform-speckle complaint is resolved at tactical zoom (macro patches now visible post-atmosphere); close-up detail still reads procedural. |
+| 27 | Macro-scale color variation | **OK** (2026-06-10) | grassaudit-forest.png (task 35): dirt path, pond, light/dark grass patches, and scatter all read at tactical zoom. The "uniform green-brown floor" premise is stale. |
+| 28 | Cliff/slope visual clarity | **PARTIAL** (2026-06-10) | Task 65: slope-driven rock exposure (>~20°, erosion streaking) in the terrain shader — desert dune slopes now break into rock (cliff-before-desert.png → cliff-after-desert.png). Limiter is the generator: smoothed 0–3 elevations rarely make ground steep enough to trigger it (gap #28). Shader ready; needs steeper terrain features to shine. |
 | 29 | Walkable vs blocked readability | **PARTIAL** | Wall/rock tiles exist and block movement, but visually they don't always read as "you can't walk here" vs "you can." |
-| 30 | Terrain material variety | **FAIL** | 7 terrain types defined in shader but at tactical zoom they blur into one uniform surface. No moment where you think "that's clearly a rocky area" vs "that's grassland." |
+| 30 | Terrain material variety | **PARTIAL** (2026-06-10) | Desert rock outcrops read clearly as rocky areas (gap #10 verification); forest grass/dirt patches read (grassaudit). Not yet a "wow, distinct materials" moment at every zoom. |
 
 ### Vegetation
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 31 | Tree trunk quality | **FAIL** | Plain brown cylinder. No bark texture, no taper, no root flare at base. Looks like a wooden dowel stuck in the ground. |
-| 32 | Tree canopy shape | **FAIL** | Perfect spheres (oak), perfect cones (pine), perfect flat discs (wide tree). No organic irregularity. Nature doesn't make perfect geometric shapes. |
-| 33 | Tree canopy density/opacity | **FAIL** | Solid opaque meshStandardMaterial spheres. Real tree canopies have gaps, leaf clusters, light filtering through. These are green billiard balls. |
-| 34 | Conifer vs deciduous distinction | **PARTIAL** | Pine trees are cone-shaped, deciduous are sphere-shaped. The silhouette difference exists but both are equally geometric and primitive. |
+| 31 | Tree trunk quality | **OK** (2026-06-08) | Forest trees render via `EzTreeLayer` (ez-tree generated: tapered branched trunks, not dowels). Other biomes intentionally use non-tree props (stalagmites/pillars/cacti/mangroves). Verified across eyetest/overview captures. |
+| 32 | Tree canopy shape | **OK** (2026-06-08) | Ez-tree canopies are irregular leaf-cluster volumes; overview2-forest.png / eyetest-forest.png confirm organic silhouettes and per-instance variety (task 16 weighted species). |
+| 33 | Tree canopy density/opacity | **OK** (2026-06-08) | Leaf-card canopies with gaps + the camera-proximity foliage fade (gap #16 fix) — light filters through, near canopy reveals characters. fade-far/fade-near.png. |
+| 34 | Conifer vs deciduous distinction | **OK** (2026-06-10) | Re-judged post-ez-tree at tactical distance: treejudge-forest.png (24u, SEED 424242) shows pointed/tiered conifer spires clearly distinct from broad rounded deciduous crowns in the same skyline. Capture-only audit, no code change. |
 | 35 | Dead tree quality | **PARTIAL** | Dead trees exist (bare branches) but are thin cylinder-on-cylinder stick figures. |
-| 36 | Bush/shrub quality | **FAIL** | Bushes are small green spheres. Indistinguishable from tree canopies at a different scale. No leaf detail, no shape variety. |
-| 37 | Grass appearance at distance | **PARTIAL** | Grass is visible as a green carpet at tactical zoom. Individual blades invisible. The color variation (warm/cool tint) and bare spots help, but it reads as "fuzzy ground" not "meadow grass." |
+| 36 | Bush/shrub quality | **OK** (2026-06-10) | Premise was partially stale (already 4-lobe clusters). Task 63: hash-noise vertex displacement + flat shading + dark-base→lit-tip vertex gradient — bushes read as faceted leafy clumps. Same-seed A/B: bush-before-forest.png → bush-after-forest.png. Honest note: at far tactical zoom they're still small dark shapes (modest win); clear at mid zoom. |
+| 37 | Grass appearance at distance | **OK** (2026-06-10) | grassaudit-forest.png (task 35): tint variation, height patches, and bare spots read as ground cover with character, and macro terrain shows through. |
 | 38 | Grass-terrain color matching | **OK** | Grass tint roughly matches terrain green. No jarring color mismatch. |
 | 39 | Vegetation density variation | **PARTIAL** | Bare spots near rocks/walls implemented. But the forest feels uniformly forested — no clearings, no dense thickets, no natural variation in tree density. |
 | 40 | Stump/log integration | **PARTIAL** | Scale reduced to reasonable proportions. But they sit on the surface rather than looking like they grew/fell there. No moss, no decay detail. |
@@ -99,51 +103,51 @@ As of 2026-05-24. Evaluated at tactical zoom (default camera distance).
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 41 | Water transparency | **FAIL** | Fully opaque. Cannot see terrain beneath water tiles. Reads as painted floor, not liquid. |
-| 42 | Water surface animation | **FAIL** | No ripples, no wave motion, no scrolling normals. Completely static flat plane. |
-| 43 | Shoreline/edge transition | **FAIL** | Hard edge between water tile and land tile. No foam, no wet sand, no gradient. Water starts and stops like a CSS border. |
-| 44 | Water color per biome | **PARTIAL** | Different tint per biome exists in the shader. But with no transparency or animation, it just looks like different colored paint. |
-| 45 | Depth gradient | **FAIL** | No shallow-to-deep color change. Uniform color across all water tiles regardless of position. |
+| 41 | Water transparency | **OK** (2026-06-10) | `WaterSystem.tsx` renders transparent (α 0.42 shallow → 0.88 deep, depth-driven since task 59). Basin carve (TerrainMesh `WATER_BASIN_DEPTH`) gives the transparency a real silt bed to reveal. |
+| 42 | Water surface animation | **OK** (2026-06-10) | Three-wave vertex displacement + scrolling FBM caustics + animated ripple normal perturbation were already in `WaterSystem.tsx` (the original FAIL was stale — see GAPS #26). |
+| 43 | Shoreline/edge transition | **OK** (2026-06-10) | Both sides treated: water-side foam band at the depth-tested waterline (task 59) + land-side wet-earth darkening within ~0.42u of water tiles (task 64). water-carve-close-swamp.png → wetbank-close-swamp.png. |
+| 44 | Water color per biome | **OK** (2026-06-10) | Per-biome shallow/deep/caustic palettes (swamp murk-green, cave cyan-dark, desert oasis-teal, forest blue) verified in swamp captures. |
+| 45 | Depth gradient | **OK** (2026-06-10) | True per-vertex depth (`aWaterDepth` baked from the carved heightfield) drives shallow→deep color + opacity; no longer noise-faked. |
 
 ### Decorations & Props
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
 | 46 | Boulder natural shape | **PARTIAL** | "Organic boulders" implemented with dodecahedron + vertex noise. Better than cubes, but still reads as lumpy rock primitives, not natural stone formations. |
-| 47 | Decoration scale vs characters | **PARTIAL** | Stumps/logs scaled down. But trees are still much larger than characters, making the party feel like ants in a model train set. |
-| 48 | Dungeon pillar proportions | **FAIL** | Pillars are 10x character height. Should be 3-4x. They look like factory smokestacks, not dungeon columns. |
-| 49 | Prop variety within biome | **PARTIAL** | Forest has 6-7 prop types (4 tree species, boulders, stumps, logs, bushes). Decent count, but every instance of each type is identical geometry — no per-instance variation. |
-| 50 | Biome decoration accuracy | **FAIL** | Swamp biome renders with saguaro cacti (desert assets). Biome→decoration mapping is wrong. Each biome needs its own curated set. |
+| 47 | Decoration scale vs characters | **OK** (2026-06-07) | 3.7× character scale (task 47) rebalanced the ratio; scale2-desert.png shows the party as the focal point, props proportionate. |
+| 48 | Dungeon pillar proportions | **OK** (2026-06-07) | Measured ~2.4–3.7× character height — within the 3–4× target (task 43). The "towering" look was camera framing (gap #13). |
+| 49 | Prop variety within biome | **OK** (2026-06-11) | Task 75: per-instance width/height multipliers, settle-tilt for ground clutter (boulders/stumps/logs/stalagmites), and brightness/warmth instance tints (wired the dead buildColorVariations path) — drawn from a separate RNG stream so layouts are unchanged at the same seed. props75-before/after-crop.png + props75-close-desert.png (16u): varied bulk/stature/shade per instance. Residual: instances still share one base geometry per type; multi-variant geometry is optional polish. |
+| 50 | Biome decoration accuracy | **OK** (2026-06-07) | Generator config verified biome-correct: forest=trees/bushes/logs, cave=stalagmites, dungeon=pillars, desert=cacti, swamp=mangroves (gap #17). The cacti-in-swamp premise is stale. |
 
 ### Lighting & Shadows
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 51 | Key light drama | **PARTIAL** | Sun at 2.2 intensity with warm tone, cool fill from opposite side. The dual-temperature setup is good theory but at tactical zoom the terrain looks flatly lit — no visible light/shadow interplay across the landscape. |
+| 51 | Key light drama | **PARTIAL** (2026-06-07) | Atmosphere passes (tasks 33/34/41) made the lighting readable per biome, but broad landscape light/shadow interplay (dappled sun, long dramatic shadows) is still mild. |
 | 52 | Shadow sharpness/quality | **PARTIAL** | PCFSoftShadowMap with 2048 resolution. Shadows exist but are soft blobs. No crisp tree shadows on the ground. Shadow bias may be hiding detail. |
-| 53 | Ambient occlusion | **PARTIAL** | ContactShadows provides AO substitute. SSAO technically present but broken (NormalPass errors). Ground darkening exists but subtle. |
-| 54 | Per-biome lighting mood | **PARTIAL** | Each biome has distinct sun/ambient/fog colors. But at tactical zoom they all feel similarly lit — cave should feel dramatically darker than forest. The preset differences are too subtle. |
-| 55 | Ground-level light variation | **FAIL** | No dappled light under trees, no pooled torchlight in dungeons, no harsh shadow lines in desert. Uniform ambient everywhere. The terrain looks like it's lit by a photographer's diffuser, not a sun in a sky. |
+| 53 | Ambient occlusion | **PARTIAL** | ContactShadows provides AO substitute. SSAO still broken on three 0.170 + @react-three/postprocessing 3.x (NormalPass errors — gap #1; subject of the pending rendering-stack research). |
+| 54 | Per-biome lighting mood | **OK** (2026-06-07) | The "all biomes feel the same" root cause was the biome-detection bug (task 40 — everything rendered as forest). Post-fix + per-biome tuning (tasks 41/42): dark crystal cave, torchlit dungeon, murky swamp, bright desert, hazy forest — all visually distinct (biomefix/lit/pools captures). |
+| 55 | Ground-level light variation | **PARTIAL** (2026-06-10) | Cave crystal pools + dungeon torch pools (task 42); forest/swamp canopy dapple — warm pooled light + soft shade on the ground (task 66, seed-pinned A/B dapple-before/after-forest.png). Remaining: harsh desert shadow lines / heat character; true god-rays optional (research area 5). |
 
 ### Atmosphere & Environment
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 56 | Fog quality | **PARTIAL** | Distance fog exists per biome. But it's uniform linear fade — no ground-hugging mist, no volumetric layers, no per-biome fog character (swamp should have thick low fog, forest should have light haze). |
-| 57 | Particle visibility at tactical zoom | **FAIL** | Particles were enlarged 3-4x but at tactical zoom they're still subpixel. Fireflies, dust motes, embers — all invisible at play distance. |
-| 58 | Firefly/ambient effect quality | **PARTIAL** | Fireflies have glow spheres and point lights. Visible at close range. But at tactical zoom they vanish — the "living world" only lives when you're close. |
-| 59 | Sky dome quality | **OK** | Gradient shader per biome. Prevents void-at-edges. Does its job — you don't notice it, which is correct. |
+| 56 | Fog quality | **OK** (2026-06-10) | Per-biome distance fog (tasks 33/34/41) + seamless horizon blend (38/49) + **ground-hugging animated mist layers** (task 68, `GroundMist`): swamp thick churning banks, forest faint haze, cave/dungeon floor vapor, desert none. mist-after-swamp.png. Honest note: layered depth-tested planes, not true volumetrics — sufficient for the per-biome fog character this row asks for. |
+| 57 | Particle visibility at tactical zoom | **PARTIAL** (2026-06-10) | Task 72: soft-sprite texture + hero-mote layer (12% count, 5× size) + 3× weather sizes. Dark biomes now read at 18u (cave spores, dungeon dust/embers, swamp motes — particles-after-*.png). Residual: forest/desert daylight motes faint — additive blending washes out on bright ground; needs bloom (postprocessing research, gap #1). |
+| 58 | Firefly/ambient effect quality | **OK** (2026-06-10) | Task 72: glow core r0.06→0.13 + additive halo sprite. Swamp/cave/dungeon show multiple readable glows at tactical zoom (particles-after-swamp-crop.png: 5-6 green fireflies at depth vs 2 faint dots before). The "living world" survives play distance in the biomes that have fireflies. |
+| 59 | Sky dome quality | **OK** (2026-06-09) | Recentered/enlarged dome (r140, object-space gradient, horizon = fog color) + distant-terrain ridge band: no void at edges, no seam, a real skyline behind the battlefield (horizon-after-*.png). |
 | 60 | Postprocessing impact | **PARTIAL** | Bloom, vignette, SSAO (broken) present. Bloom visible on bright surfaces. Vignette adds frame. But the overall image doesn't have a "cinematic" feel — it looks like raw 3D, not composited game output. |
 
 ### Spawn & Layout
 
 | # | Criterion | Status | Problem |
 |---|-----------|--------|---------|
-| 61 | Player spawn spread | **FAIL** | Entire player party spawns in a tight cluster. Should spread across a formation area (front-line fighters forward, casters behind). |
-| 62 | Enemy spawn spread | **FAIL** | Enemies also clustered. Should be placed strategically — behind cover, on high ground, flanking positions. |
-| 63 | Team separation distance | **FAIL** | Both teams spawn near the same area. Should start on opposite sides of the map with terrain between them, creating an approach phase. |
-| 64 | Spawn-terrain interaction | **FAIL** | Characters placed without regard to terrain features. Spawns should use cover, elevation, and chokepoints — not random open ground. |
-| 65 | Map utilization | **FAIL** | 40×30 = 1200 tiles. Combat uses ~25. The map is 98% empty scenic backdrop. Either the map is too big or spawns need to fill it. |
+| 61 | Player spawn spread | **OK** (2026-06-08) | `getSpawnTiles.spreadTiles` enforces MIN_SEP=2 (Chebyshev) — verified spaced formations in eyetest-desert.png (gap #18). Role-based formation (fighters front, casters back) not implemented — refinement, not clustering. |
+| 62 | Enemy spawn spread | **OK** (2026-06-11) | Task 74's tactical scoring applies to both teams (getSpawnTiles scores player AND enemy tiles): cover + high-ground seeking with spread. Flanking logic remains an optional refinement. |
+| 63 | Team separation distance | **OK** (2026-06-08) | Teams spawn on opposite sides with terrain between them (overview-desert.png, eyetest-desert.png). |
+| 64 | Spawn-terrain interaction | **OK** (2026-06-11) | Task 74: tactical spawn scoring in getSpawnTiles (elevation×2 + cover-adjacency tiers, wedged-pocket penalty) — seeded shuffle stays the tiebreak so determinism holds. spawn74b-before/after-desert.png (same seed+pose): open-sand spawns → units tucked beside boulders/rises. 4/4 tests incl. spawn-mean > zone-mean and 5-seed team-centroid separation. Chokepoint logic + role formations remain optional refinements. |
+| 65 | Map utilization | **PARTIAL** (2026-06-08) | Teams now spread across opposite sides with separation, so the engagement crosses the map. Much of the 40×30 field remains scenic backdrop between/around the zones. |
 
 ## Priority Order
 

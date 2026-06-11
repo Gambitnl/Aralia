@@ -26,3 +26,23 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Retain `CombatMessagingDemo.tsx` as a reference artifact (G1)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+Should `src/components/demo/CombatMessagingDemo.tsx` (runtime-orphaned: no imports, actions, or phase wiring) be retained as reference, re-homed into an active demo entry, or removed?
+
+Decision made:
+Retain as a reference artifact. No re-home, no removal. The orphaned runtime state is accepted and documented; no mount path is required.
+
+Rationale and evidence:
+- Expansion-first repo policy: never delete historical artifacts that still carry reference value.
+- The active demo flow already lives in `components/BattleMap` and `components/World3D`; re-homing would add churn without runtime benefit.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D19).
+
+Follow-up:
+G1/T3 close as decided. G2 (registry evidence path alignment in `docs/projects/PROJECT_TRACKER.md`) remains the open follow-up.

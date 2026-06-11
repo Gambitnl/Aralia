@@ -1,4 +1,4 @@
-﻿# UI primitives Gaps
+# Ui Primitives Gap Registry
 
 Status: active
 Last updated: 2026-06-08

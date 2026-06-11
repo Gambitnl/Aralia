@@ -3,6 +3,7 @@
 Status: active
 Last updated: 2026-06-09
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Global gap imports
 
 No entries from `docs/projects/GLOBAL_GAPS.md` are currently imported into this project slice. Global gaps should be added here only when they are cross-project or cannot be resolved inside this subsystem's boundaries.
@@ -24,3 +25,22 @@ No entries from `docs/projects/GLOBAL_GAPS.md` are currently imported into this 
 | G11 | done | adjacent_follow_up | Worker A | `src/components/Crafting/ExperimentPanel.tsx` | Source walk + experiment routing pass | ExperimentPanel now counts inventory `quantity` rather than entries, so stackable reagents are available up to their real stack size. | `src/components/Crafting/ExperimentPanel.tsx`, `src/components/Crafting/__tests__/ExperimentPanel.test.tsx`, `src/state/reducers/characterReducer.ts` | Stackable ingredients no longer disappear behind a per-record count, so the experiment surface reflects the actual reagent pool. | Keep the stacked-quantity regression in place if the selection model changes again. | Regression proof: `npm exec vitest run src/components/Crafting/__tests__/ExperimentPanel.test.tsx`. |
 | G12 | done | support_needed_now | Codex | `src/systems/crafting/batchCrafting.ts` | G9 planning pass | Craftability helpers now count stacked inventory quantity instead of inventory records, so batch previews can reflect the real reagent pool. | `src/systems/crafting/craftingEngine.ts`, `src/systems/crafting/batchCrafting.ts`, `src/components/Crafting/AlchemyBenchPanel.tsx`, `src/systems/crafting/__tests__/batchCrafting.test.ts` | The modularization slice can now rely on the current helpers without inheriting the stale quantity assumption. | Keep the quantity-aware helper in place while G9 continues. | `npm exec vitest run src/systems/crafting/__tests__/batchCrafting.test.ts` |
 | G13 | done | support_needed_now | Worker A | `src/systems/crafting/craftingCompatibility.ts` | Compatibility context trace closure | `normalizeLegacyCraftingResult` now returns explicit provenance (`source`, `outcomeSource`, `unavailableEnhancedFields`) so legacy-origin success/failure and quality remain auditable. | `src/systems/crafting/craftingCompatibility.ts`, `src/systems/crafting/__tests__/craftingCompatibility.test.ts` | Previously, missing roll/DC/quality-result context could regress in hidden ways during migration without a deterministic trace. | Keep provenance assertions in focused tests and call out intentional omissions only in compatibility-facing docs. | `npm exec vitest run src/systems/crafting/__tests__/craftingCompatibility.test.ts`. |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

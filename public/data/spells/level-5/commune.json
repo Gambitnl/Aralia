@@ -132,8 +132,8 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "You contact a deity or a divine proxy and ask up to three questions that can be answered with yes or no. You must ask your questions before the spell ends. You receive a correct answer for each question. Divine beings aren't necessarily omniscient, so you might receive \"unclear\" as an answer if a question pertains to information that lies beyond the deity's knowledge. In a case where a one-word answer could be misleading or contrary to the deity's interests, the DM might offer a short phrase as an answer instead. If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.",
+      "utilityType": "information",
+      "description": "Allows the caster to ask a deity or divine proxy up to three yes-or-no questions during the spell and receive truthful answers, with unclear answers possible when divine knowledge is limited.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -169,7 +169,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "divination",
+        "yes-no-questions",
+        "divine-contact"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -179,5 +184,10 @@
   },
   "description": "You contact a deity or a divine proxy and ask up to three questions that can be answered with yes or no. You must ask your questions before the spell ends. You receive a correct answer for each question. Divine beings aren't necessarily omniscient, so you might receive \"unclear\" as an answer if a question pertains to information that lies beyond the deity's knowledge. In a case where a one-word answer could be misleading or contrary to the deity's interests, the DM might offer a short phrase as an answer instead. If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "divination",
+    "information",
+    "ritual",
+    "divine-contact"
+  ]
 }

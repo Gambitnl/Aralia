@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-05
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/dialogue
-gap_signal: "5 open gaps; DIAL-001 is adjacent and DIAL-002 through DIAL-005 are active follow-up work"
+gap_signal: "6 open gaps; DIAL-001 adjacent, DIAL-002 through DIAL-005 active follow-ups, DIAL-006 routed from code-modularization audit"
 protocol: living project doc set
-next_step: Resume from TRACKER D2 and keep the gap log aligned with the current runtime questions.
+next_step: Resume from TRACKER D2 and decide whether DIAL-002 cross-NPC propagation should use DiscoveryLog or NPC KnownFact path.
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -26,8 +26,8 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
-workflow_gaps_reviewed: 2026-06-05
+last_proof: 2026-06-10
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -38,7 +38,7 @@ human_decision_required: "no"
 # Dialogue North Star
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-10
 
 ## Purpose
 Preserve dialogue project continuity for future workers by documenting the implemented topic-based dialogue system, how it is wired into game state and UI, and where gaps remain.
@@ -54,13 +54,13 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/dialogue
-Gap signal: 5 open gaps; DIAL-001 is adjacent and DIAL-002 through DIAL-005 are active follow-up work
+Gap signal: 6 open gaps; DIAL-001 adjacent, DIAL-002 through DIAL-005 active follow-ups, DIAL-006 routed from code-modularization audit
 Protocol: living project doc set
-Next step: Resume from TRACKER D2 and keep the gap log aligned with the current runtime questions.
+Next step: Resume from TRACKER D2 and decide whether DIAL-002 cross-NPC propagation should use DiscoveryLog or NPC KnownFact path.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
-Workflow gaps reviewed: 2026-06-05
+Last proof: 2026-06-10
+Workflow gaps reviewed: 2026-06-10
 
 ## Current system summary
 - Dialogue is implemented as topic-based interactions, not a linear scripted node graph.
@@ -122,6 +122,14 @@ Workflow gaps reviewed: 2026-06-05
 - `DialogueSession.sessionDispositionMod` and `availableTopicIds` are present in state but mostly passive in current runtime wiring.
 - Topic unlocks are mostly session-scoped and logged locally; global durable unlock behavior is sparse.
 - Companion chat remains a separate flow from Dialogue; the boundary is known in docs but not formalized as an ownership rule.
+
+## Session persistence (verified 2026-06-10)
+- `activeDialogueSession` is ephemeral: load game (`LOAD_GAME_STATE`) and new game (`SET_GAME_PHASE`) both reset it to `null`.
+- `MOVE_PLAYER` also resets session to `null` (moving ends dialogue).
+- `npcMemory[npcId].discussedTopics` IS persisted through save/load as part of full `npcMemory` state.
+- `DISCUSS_TOPIC` in `npcReducer` correctly updates both `activeDialogueSession.discussedTopicIds` and `npcMemory[npcId].discussedTopics[topicId]` in a single action.
+- `handleTopicOutcome` in `useDialogueSystem.ts` dispatches `DISCUSS_TOPIC`, then `GRANT_EXPERIENCE`, `UPDATE_NPC_DISPOSITION`, `MODIFY_GOLD`, `REMOVE_ITEM` as side effects.
+- Unlock propagation (step 4 in `handleTopicOutcome`) is stubbed: the `result.unlocks` forEach body is empty with a `TODO(Dialogist)` marker.
 
 ## Next checks for continuation
 1. Verify whether dialogue outcomes should write shared/global unlock facts instead of session-only memory updates.

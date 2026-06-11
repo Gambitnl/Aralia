@@ -1,5 +1,5 @@
 # DECISIONS: Glossary UI
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 ## 1. Full glossary rebuild entry point
 - **Decision:** Expose `npm run glossary:rebuild` as the named glossary-specific
@@ -40,3 +40,19 @@ Last updated: 2026-06-09
   records the source-backed field contract.
 - **Next check:** Once the owner decides on shared schema vs local display
   contract, update the tracker and gaps before any source refactor.
+- **Resolution (2026-06-10):** Decided — see entry 5 below.
+
+## 5. Generated item metadata contract — decision recorded
+- **Decision:** Item metadata stays a glossary-local, display-only contract
+  (Required Review Brief Option A). The shared ingest/registry schema is
+  deferred to a later product/schema decision.
+- **Decider:** Remy (project owner), 2026-06-10 batched decision session.
+- **Status:** Decided 2026-06-10; review gate cleared.
+- **Evidence:** `docs/projects/DECISION_BLITZ_2026-06-10.md` (D18);
+  `docs/projects/glossary-ui/NORTH_STAR.md` Required Review Brief + Decision
+  (2026-06-10) subsection; `docs/projects/glossary-ui/AUDIT_OR_PROOF.md`
+  source-backed field contract.
+- **Next check:** Keep the documented allowed-fields contract current in
+  NORTH_STAR; route any future shared-schema proposal back through a new
+  review brief. G7 (optional typed builder/guard in ingest) remains the
+  adjacent follow-up in `GAPS.md`.

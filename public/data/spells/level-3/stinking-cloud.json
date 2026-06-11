@@ -157,7 +157,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Poisoned unless the target succeeds on a Constitution save for 1 minute.",
       "conditionalEndings": []
     }
   ],

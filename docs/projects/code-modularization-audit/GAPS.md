@@ -1,4 +1,4 @@
-# Code Modularization Audit Gaps
+# Code Modularization Audit Gap Registry
 
 Status: active
 Last updated: 2026-06-08
@@ -25,6 +25,7 @@ Last updated: 2026-06-08
 | CMA-G18 | routed | high | combat | Combat execution and UI orchestration | `src/hooks/combat/useActionExecutor.ts` (~753 lines); `src/components/Combat/CombatView.tsx` (~619 lines); `src/components/Combat/EncounterModal.tsx` (~586 lines); `src/types/combat.ts` (~704 lines) | Combat core types, action execution, and combat UI are still co-located enough that behavior can drift if modularized without end-to-end combat proof. | Route to combat for a bounded split plan that preserves turn flow, log state, and encounter generation. | `src/hooks/combat/__tests__`, `src/components/Combat/__tests__`, and combat scenario replay/smoke proof. |
 | CMA-G19 | routed | medium | scripts-audits | Spell audit and enrichment scripts | `scripts/generateSpellReferencedRulesEnrichment.ts` (~743 lines); `scripts/auditSpellSubClassesRoster.ts` (~671 lines); `scripts/archive/spell-canonical-retrieval/captureSpellCanonicalData.ts` (~658 lines) | The spell audit/tooling lane is accumulating multi-stage scripts; modularization should preserve the generator/harvest sequence and emitted artifacts. | Route to scripts-audits for stage boundaries and script ownership review. | Script dry-run or diff-check proof against the generated glossary or canonical outputs. |
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Status Notes
 
 - This project is a routing and evidence project, not a cleanup mandate.
@@ -39,3 +40,28 @@ Last updated: 2026-06-08
 ## Next Assignment
 
 Continue scoring new candidates only after owner projects have consumed these routes. Implementation should wait until an owning project has accepted the candidate, preserved behavior is explicit, and a focused test boundary exists.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

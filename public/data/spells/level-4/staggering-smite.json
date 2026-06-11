@@ -264,7 +264,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "See description.",
+      "description": "On the failed Wisdom save, the smite also leaves the target unable to take reactions until the end of its next turn, alongside the existing attack-roll disadvantage rider.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -300,7 +300,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "reaction-denial",
+        "smite-rider",
+        "wisdom-save"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -311,6 +316,10 @@
   "description": "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has disadvantage on attack rolls and ability checks, and can't take reactions, until the end of its next turn.",
   "higherLevels": "",
   "tags": [
-    "legacy"
+    "legacy",
+    "smite",
+    "psychic",
+    "reaction-denial",
+    "concentration"
   ]
 }

@@ -1,4 +1,4 @@
-# Physics System Gaps
+# Physics System Gap Registry
 
 Status: review-required
 Last updated: 2026-06-05
@@ -7,6 +7,7 @@ The routing classes below follow the shared iteration workflow: `in_scope_now`,
 `support_needed_now`, `adjacent_follow_up`, `out_of_scope`,
 `blocked_human_decision`, and `blocked_external_state`.
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -19,3 +20,22 @@ The routing classes below follow the shared iteration workflow: `in_scope_now`,
 | G6 | open | adjacent_follow_up | Physics worker | `docs/projects/physics/TRACKER.md` | Documentation pass | Object-level collision/AC/HP hooks are utility stubs and are not fully connected to combat target flow. | `src/utils/physicsUtils.ts`, `src/systems/physics/ElementalInteractionSystem.ts` | Missing behavior can block future rules work and keep combat targeting assumptions implicit. | Classify the object-combat hooks as near-term work or deferred debt. | Add a concrete owner and next proof once the route is chosen.
 | G7 | open | blocked_human_decision | Physics worker | `docs/projects/physics/TRACKER.md` | Documentation pass | Suffocation integration remains a TODO in `physicsUtils` and is not routed into combat or environment resolution. | `src/utils/physicsUtils.ts` | Oxygen and pressure style rules can stay invisible to later tasks if they remain unowned. | Pick an owner and either slot it into near-term scope or explicitly defer it. | Add a narrow task or a documented deferral decision.
 | G8 | open | adjacent_follow_up | Physics worker | `docs/projects/physics/TRACKER.md` | Documentation pass | Throw-distance integration remains a TODO and is not linked to inventory or forced-movement flow. | `src/utils/physicsUtils.ts` | Future throw and shove rules need a stable distance contract. | Define the distance source and route it to the owning system. | Add one physics or combat proof once the route is chosen.
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

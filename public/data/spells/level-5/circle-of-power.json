@@ -205,7 +205,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "See description.",
+      "description": "When a protected friendly creature succeeds on a save against a spell or magical effect that normally deals half damage on success, it takes no damage instead.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -241,7 +241,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "evasion-vs-magic",
+        "friendly-aura",
+        "save-success-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -252,6 +257,10 @@
   "description": "Divine energy radiates from you, distorting and diffusing magical energy within 30 feet of you. Until the spell ends, the sphere moves with you, centered on you. For the duration, each friendly creature in the area (including you) has advantage on saving throws against spells and other magical effects. Additionally, when an affected creature succeeds on a saving throw made against a spell or magical effect that allows it to make a saving throw to take only half damage, it instead takes no damage if it succeeds on the saving throws.",
   "higherLevels": "",
   "tags": [
-    "legacy"
+    "legacy",
+    "abjuration",
+    "defense",
+    "friendly-aura",
+    "concentration"
   ]
 }

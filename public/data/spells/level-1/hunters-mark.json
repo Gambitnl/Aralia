@@ -143,8 +143,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a hit against the marked target, the spell adds 1d6 Force damage as the modeled tracking damage rider.",
+      "conditionalEndings": [],
+      "tags": [
+        "force-rider",
+        "marked-target",
+        "hit-rider"
+      ]
     },
     {
       "type": "UTILITY",

@@ -133,8 +133,8 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "See description.",
+      "utilityType": "communication",
+      "description": "Summons a magical courier to carry a container and its contents to a known recipient or location, then return with any response before the duration ends.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -170,7 +170,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "courier",
+        "delivery",
+        "container-transfer"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -180,5 +185,10 @@
   },
   "description": "",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "conjuration",
+    "courier",
+    "delivery",
+    "communication"
+  ]
 }

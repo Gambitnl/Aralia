@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 06:08:44
+ * Last Sync: 10/06/2026, 22:04:14
  * Dependents: types/spells.ts
  * Imports: 1 files
  *
@@ -302,6 +302,15 @@ interface BaseTargeting {
   validTargets: TargetFilter[];
   lineOfSight?: boolean;
   filter?: TargetConditionFilter;
+  /**
+   * Optional final-selection rule after raw valid targets are found.
+   *
+   * Sleep and Color Spray do not simply affect every creature in an area; they
+   * spend a rolled pool across eligible creatures. Keeping that rule on the
+   * shared targeting shape lets the resolver apply the same candidate filtering
+   * as every other spell, then hand the remaining list to the allocation helper.
+   */
+  allocation?: TargetAllocation;
   spatialDetails?: SpatialDetails;
   areaTargetSelection?: AreaTargetSelection;
   instanceAllocation?: TargetInstanceAllocation;

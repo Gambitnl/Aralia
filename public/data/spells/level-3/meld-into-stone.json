@@ -133,7 +133,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration. You must touch the stone to do so. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can't see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise can't move. Minor physical damage to the stone doesn't harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 Force damage to you. The stone's complete destruction (or transmutation into a different substance) expels you and deals 50 Force damage to you. If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
+      "description": "The caster merges into a touched stone object or surface large enough to contain them, becoming hidden from nonmagical senses, unable to move except to exit, limited to self-targeting spells, and vulnerable to expulsion if the stone is reshaped or destroyed.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -169,7 +169,23 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [
+        {
+          "trigger": "not_applicable",
+          "scope": "spell",
+          "description": "The caster can spend 5 feet of movement to leave the stone where they entered it, ending the spell."
+        },
+        {
+          "trigger": "not_applicable",
+          "scope": "spell",
+          "description": "If the stone is partially destroyed or reshaped so the caster no longer fits, the caster is expelled, takes 6d6 Force damage, moves to the nearest unoccupied space, and falls Prone."
+        },
+        {
+          "trigger": "not_applicable",
+          "scope": "spell",
+          "description": "If the stone is completely destroyed or transmuted into another substance, the caster is expelled, takes 50 Force damage, moves to the nearest unoccupied space, and falls Prone."
+        }
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -179,5 +195,11 @@
   },
   "description": "You step into a stone object or surface large enough to fully contain your body, merging yourself and your equipment with the stone for the duration. You must touch the stone to do so. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can't see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use 5 feet of movement to leave the stone where you entered it, which ends the spell. You otherwise can't move. Minor physical damage to the stone doesn't harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 Force damage to you. The stone's complete destruction (or transmutation into a different substance) expels you and deals 50 Force damage to you. If expelled, you move into an unoccupied space closest to where you first entered and have the Prone condition.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "utility",
+    "transmutation",
+    "ritual",
+    "movement",
+    "defensive"
+  ]
 }

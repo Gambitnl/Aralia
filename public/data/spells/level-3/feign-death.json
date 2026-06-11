@@ -146,7 +146,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Blinded through the row's always-on status scaffold for 60 minutes.",
       "conditionalEndings": []
     },
     {
@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Incapacitated through the row's always-on status scaffold for 60 minutes.",
       "conditionalEndings": []
     },
     {

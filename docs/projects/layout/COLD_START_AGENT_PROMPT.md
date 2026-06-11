@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Layout Project
+slug: layout
+status: review-required
+last_updated: "2026-06-08"
+iteration: 3
+source_agent: Codex / gpt-5.4-mini high
+target_agent: next cold-start agent
+runtime_surface: MCP-subagent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/layout/NORTH_STAR.md
+tracker: docs/projects/layout/TRACKER.md
+gaps: docs/projects/layout/GAPS.md
+---
 # Layout Project Cold Start Agent Handoff
 
 Status: review-required

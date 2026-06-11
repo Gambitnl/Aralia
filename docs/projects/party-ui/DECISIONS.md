@@ -26,3 +26,23 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Roster acceptance rule for non-companion NPCs (G5)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+Can party roster membership include non-companion NPC party entities, and if so, under what acceptance rule? (GAPS.md G5; NORTH_STAR "Next checks".)
+
+Decision made:
+Yes — the party roster MAY include non-companion NPCs, but only under an explicit acceptance rule. The acceptance rule must be defined as the first step of the implementation slice, covering the membership model, character-sheet context behavior for non-companion entries, and save/load semantics. Writing the rule unblocks G7 (companion data threading into `PartyOverlay`).
+
+Rationale and evidence:
+- The canonical companion/party boundary (separate identity spaces, best-effort id bridge) already tolerates non-companion party members; the missing piece is an explicit acceptance rule, not a structural change.
+- Sequencing the rule first keeps G7 work verifiable against a written contract instead of an inferred one.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D15).
+
+Follow-up:
+Write the acceptance rule into NORTH_STAR as step one of the G5/G7 implementation slice, then proceed with G7.

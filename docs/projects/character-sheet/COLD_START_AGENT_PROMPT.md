@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Character Sheet
+slug: character-sheet
+status: review-required
+last_updated: "2026-06-08"
+iteration: 10
+source_agent: Gemini 3.5 Flash
+target_agent: next cold-start agent
+runtime_surface: MCP-subagent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/character-sheet/NORTH_STAR.md
+tracker: docs/projects/character-sheet/TRACKER.md
+gaps: docs/projects/character-sheet/GAPS.md
+---
 # Character Sheet Cold Start Agent Handoff
 
 Status: review-required

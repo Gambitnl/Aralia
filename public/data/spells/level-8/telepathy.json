@@ -135,8 +135,8 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "You create a telepathic link between yourself and a willing creature with which you are familiar. The creature can be anywhere on the same plane of existence as you. The spell ends if you or the target are no longer on the same plane. Until the spell ends, you and the target can instantly share words, images, sounds, and other sensory messages with each other through the link, and the target recognizes you as the creature it is communicating with. The spell enables a creature to understand the meaning of your words and any sensory messages you send to it.",
-      "utilityType": "other",
+      "description": "Creates a 24-hour same-plane telepathic link with a familiar willing creature, allowing instant exchange of words, images, sounds, and other sensory messages.",
+      "utilityType": "communication",
       "grantedActions": [],
       "attackAugments": [],
       "controlOptions": [
@@ -188,7 +188,13 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "telepathy",
+        "same-plane",
+        "willing-target",
+        "sensory-message"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -198,5 +204,10 @@
   },
   "description": "You create a telepathic link between yourself and a willing creature with which you are familiar. The creature can be anywhere on the same plane of existence as you. The spell ends if you or the target are no longer on the same plane. Until the spell ends, you and the target can instantly share words, images, sounds, and other sensory messages with each other through the link, and the target recognizes you as the creature it is communicating with. The spell enables a creature to understand the meaning of your words and any sensory messages you send to it.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "divination",
+    "communication",
+    "telepathy",
+    "same-plane"
+  ]
 }

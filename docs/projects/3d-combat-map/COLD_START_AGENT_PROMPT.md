@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: 3D Combat Map
+slug: 3d-combat-map
+status: active
+last_updated: "2026-06-09"
+iteration: 7
+source_agent: Bernoulli / gpt-5.4-mini high
+target_agent: next cold-start agent
+runtime_surface: "MCP-subagent + headless runtime proof"
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/3d-combat-map/NORTH_STAR.md
+tracker: docs/projects/3d-combat-map/TRACKER.md
+gaps: docs/projects/3d-combat-map/GAPS.md
+---
 # 3D Combat Map Cold Start Agent Handoff
 
 Status: active
@@ -61,7 +80,7 @@ Key files to touch:
 - .agent/3d-visual-quality/captures/nc2-combatview.mjs
 
 Scoped verification:
-Use the reusable headless capture harness on port 5174, then run `npm run projects:audit` and `git diff --check`. If the shared in-app browser profile is busy again, use the existing headless capture path and record that fallback.
+Use the reusable headless capture harness on port 5174, then run `npm run projects:audit` and `git diff --check`. If the shared in-app browser profile is busy again, use the existing headless capture path and record that alternate harness route.
 
 Blocking dependencies / do-not-touch:
 Stay inside combat-only scope. Do not absorb World3D or ThreeDModal behavior. Do not change combat rules.

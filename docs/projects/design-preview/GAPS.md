@@ -1,4 +1,4 @@
-# Design Preview Gaps
+# Design Preview Gap Registry
 
 Status: active
 Last updated: 2026-06-09

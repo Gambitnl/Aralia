@@ -1,7 +1,7 @@
-# Dialogue Gaps
+# Dialogue Gap Registry
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-10
 
 Use this file for durable unresolved findings that belong to the Dialogue feature.
 
@@ -9,6 +9,8 @@ Use this file for durable unresolved findings that belong to the Dialogue featur
 
 - DIAL-001 remains an adjacent follow-up for future scripted dialogue work.
 - DIAL-002 through DIAL-005 are the active Dialogue follow-ups for this resume path.
+- DIAL-006 was routed from the code-modularization audit (companion banter ownership boundary).
+- No new gaps were added during iteration 2; existing gaps remain evidence-backed.
 - No cross-project gaps were imported during this pass.
 
 ## Gap Log
@@ -32,3 +34,11 @@ Use this file for durable unresolved findings that belong to the Dialogue featur
 | `out_of_scope` | Not part of Dialogue ownership |
 | `blocked_human_decision` | Needs product/owner approval |
 | `blocked_external_state` | Waiting on external service, tool, or runtime dependency |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

@@ -76,6 +76,8 @@
     "@takram/three-clouds": "^0.7.3",
     "@takram/three-geospatial": "^0.7.1",
     "@types/axe-core": "^2.0.2",
+    "alea": "^1.0.1",
+    "delaunator": "^5.1.0",
     "dompurify": "^3.4.0",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.3",

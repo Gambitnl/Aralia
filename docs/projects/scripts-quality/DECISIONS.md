@@ -26,3 +26,23 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Script Tests merged into Scripts: Quality (receiving side)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+`docs/projects/script-tests` was a merge-candidate awaiting a standalone-vs-merge review before worker assignment.
+
+Decision made:
+**Scripts: Quality now owns the script-tests surface.** `docs/projects/script-tests` becomes a merged-reference support surface of this project; its tracker row becomes merged-reference. The inherited scope is the `scripts/__tests__` continuity contract and the open gaps ST-GAP-001 through ST-GAP-004 (tracked here as GAPS.md G4 / TRACKER.md T6).
+
+Rationale and evidence:
+- The script test suite guards the same script-layer quality posture this project owns; a separate project added tracker overhead without a distinct owner.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D21).
+- Merged-side record: `docs/projects/script-tests/DECISIONS.md` D2.
+
+Follow-up:
+Run ST-GAP test slices under this tracker (ST-GAP-001 first); mirror status back into the support-surface gap registry. Expansion-first: the script-tests docs are retained, not deleted.

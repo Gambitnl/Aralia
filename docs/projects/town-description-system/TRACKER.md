@@ -3,6 +3,15 @@
 Status: active
 Last updated: 2026-06-05
 
+## Status Vocabulary
+
+- `not_started`
+- `active`
+- `waiting`
+- `blocked`
+- `done`
+- `superseded`
+- `out_of_scope`
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
@@ -17,3 +26,9 @@ Last updated: 2026-06-05
 - Docs-only for this pass: modify only files under `docs/projects/town-description-system`.
 - Preserve boundary discipline: world contracts stay in `docs/projects/world`, town runtime behavior stays in `docs/projects/town`.
 - Every open gap here needs one next check/proof entry and a known owner signal.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |

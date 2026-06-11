@@ -1,7 +1,7 @@
-# World 3D UI Tracker
+# World 3D UI Living Tracker
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10
 
 North Star: `docs/projects/world-3d-ui/NORTH_STAR.md`
 Scope (clarified 2026-06-01): the **2D->3D transition + in-3D HUD** layer that drives and
@@ -40,6 +40,8 @@ overlays the `world3d` rendering engine. Gaps are authoritative in
 | T18 | done | W3DUI-26: in-3D minimap (deferred Plan 4 UX) -> compact WorldData top-down view + live player marker in HUD | claude | 2026-06-02 | `World3DMinimap.tsx`, `InWorldHUD.tsx`, `World3DWrapper.tsx`, `World3DMinimap.test.tsx` | - | Vitest green (29/29 in suite); minimap mounts bottom-left of HUD when worldData + playerWorldPos present; nameplates now tracked by T20 |
 | T19 | done | DebugHUD world-generation provenance indicator (consumes worldsim-service WSS-004 `MapData.generation`) -> shows world source and fallback reason | claude | 2026-06-02 | `DebugHUD.tsx`, `InWorldHUD.tsx`, `World3DWrapper.tsx`, `DebugHUD.worldGen.test.tsx` | - | Vitest 30/30 in World3D suite; live: DebugHUD renders in 3D dev mode, hides world line gracefully when `generation` absent. Diagnostic source/policy owned by worldsim-service |
 | T20 | done | W3DUI-27: in-3D nameplates over visible `world3d.sites` (LOD, distance, and max-visible gates) | gpt-5.3-codex-spark (MCP-subagent) | 2026-06-08 | `World3DNameplates.tsx`, `World3DScene.tsx`, `World3DWrapper.tsx`, `World3DNameplates.test.tsx` | - | Unit tests cover LOD gate + distance + max-visible cap; full World3D suite green |
+| T21 | done | Iteration 4 monitor pass: re-run scoped World3D verification, bounded gap sweep, close seeded Gap Log row G1 | claude-fable-5 (Claude Code CLI) | 2026-06-10 | `World3DNameplates.test.tsx` 2/2; full `src/components/World3D/__tests__` 11 files/25 tests green; `AUDIT_OR_PROOF.md` 2026-06-10 row | - | Re-run scoped suite before starting any new slice |
+| T22 | not_started | Triage inherited ThreeD Modal entrypoint gaps after the D5 merge (entry/close/focus policy, shared `onMove` contract, submap 3D test coverage, CMA-G14 split route) into W3DUI gap rows | unassigned | 2026-06-10 | `docs/projects/DECISION_BLITZ_2026-06-10.md` D5; `docs/projects/three-d-modal/GAPS.md` (merged-reference); `src/components/ThreeDModal/*`, `src/components/Submap/SubmapPane.tsx`, `src/components/layout/GameModals.tsx` | Open W3DUI rows for the inherited items that get scheduled; keep the merged-reference inventory intact | Inherited items appear as W3DUI rows or an explicit defer note in `GAPS.md` |
 
 Gaps are tracked in `docs/projects/world-3d-ui/GAPS.md` (W3DUI-1..28) - see it for the full gap log, including the routed entry/transition gaps from `world3d`.
 
@@ -48,3 +50,9 @@ Gaps are tracked in `docs/projects/world-3d-ui/GAPS.md` (W3DUI-1..28) - see it f
 - Update this tracker before starting any significant feature-scoped slice.
 - Keep active/blocked/waiting rows current with owner, date, and next proof.
 - Keep unresolved long-lived gaps in `docs/projects/world-3d-ui/GAPS.md`.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | done | adjacent_follow_up | claude-fable-5 (Claude Code) | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization; closed 2026-06-10 | Seeded placeholder row from schema normalization; the 2026-06-10 bounded gap sweep found no remaining project-specific finding to replace it with | 2026-06-10 sweep: W3DUI-1..28 all done; full `src/components/World3D/__tests__` suite 11 files/25 tests green; GLOBAL_GAPS GG-16..GG-27 triaged with none owned by this surface | The workflow requires durable gaps to have a consistent table shape and evidence path | — | GAPS.md and TRACKER.md agree: no open project gaps |

@@ -1,4 +1,4 @@
-# TRACKER: Command Base Runtime
+# Command Base Runtime Living Tracker
 
 Status: active
 Last updated: 2026-06-08
@@ -31,3 +31,11 @@ Last updated: 2026-06-08
 - `G2`: **closed** — undo methods are not required for current non-rollback policy.
 - `G3`: **closed** — failure-path coverage for async errors and immutability guarantees added in tests.
 - `G4`: done — state-freshness contract follow-up complete and locked by focused test.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

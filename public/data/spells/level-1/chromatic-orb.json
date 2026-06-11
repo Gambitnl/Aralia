@@ -159,8 +159,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, one target takes 3d8 damage of the chosen elemental type; damage increases by 1d8 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "chosen-damage-type",
+        "ranged-hit",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

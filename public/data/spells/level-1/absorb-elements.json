@@ -193,8 +193,12 @@
         "noShield": false,
         "targetSelf": false
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "The caster gains defensive protection against the triggering elemental damage type until the start of the caster's next turn.",
+      "conditionalEndings": [],
+      "tags": [
+        "reaction-defense",
+        "elemental-resistance"
+      ]
     },
     {
       "type": "DAMAGE",
@@ -255,13 +259,18 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
+      "description": "The caster's next melee attack deals an extra 1d6 damage of the triggering damage type, increasing by 1d6 per slot level above 1st.",
       "conditionalEndings": [
         {
           "trigger": "on_attack_hit",
           "scope": "spell",
           "description": "The spell ends after the first melee attack hit on the caster's next turn spends the stored energy."
         }
+      ],
+      "tags": [
+        "elemental-rider",
+        "melee-rider",
+        "slot-scaling"
       ]
     }
   ],

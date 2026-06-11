@@ -1,8 +1,9 @@
 # Puzzles System Gap Registry
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (PZ-007 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -10,7 +11,26 @@ Last updated: 2026-06-09
 | PZ-001 | done | in_scope_now | Worker A | `docs/projects/puzzles/TRACKER.md` | Code scan and app flow validation | Added a production producer: `Location.interactableFeatures` supports lock entries that render `OPEN_LOCKPICKING_MODAL` actions. `cave_entrance` now defines an initial lock payload so players can open the modal from a real location. | `src/data/world/locations.ts`, `src/types/world.ts`, `src/components/ActionPane/useActionGeneration.ts`, `src/hooks/actions/actionHandlers.ts`, `src/components/ActionPane/__tests__/ActionPane.test.tsx` | Without a source dispatch, lockpicking stays a test tool; with this path, lock interactions are now reachable from gameplay state. | Keep the payload contract (`Lock` object) stable and add map/world feature authoring follow-up in next tasks. | Confirm this path is still covered by the non-dev action test and a visible UI assertion in the location action pane. |
 | PZ-002 | done | in_scope_now | Worker A | `docs/projects/puzzles/TRACKER.md` | Types and system scan | `getPuzzleHint` now rolls a live Intelligence check using character stats and returns the hint when the DC passes. | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | Riddle and clue delivery can now function when the helper is called. | Keep the helper in the puzzle domain and route the first runtime caller separately. | The deterministic hint test plus the tracker split prove the helper is live, but not yet called from gameplay. |
 | PZ-003 | not_started | support_needed_now | Worker A | `docs/projects/puzzles/TRACKER.md` | Dependency scan | `Lock.keyId` is defined but never used to unlock in lock resolution logic. | `src/systems/puzzles/types.ts`, `src/systems/puzzles/lockSystem.ts`, `src/components/puzzles/LockpickingModal.tsx` | Key-based progression is incomplete and can block future lock content authoring. | Decide whether key matching is puzzle-system owned or inventory-system owned, then make it deterministic. | One production-oriented acceptance test that covers both pick and key paths. |
-| PZ-007 | review-required | blocked_human_decision | human/product owner | `docs/projects/puzzles/TRACKER.md` | Runtime caller scan | No gameplay caller yet invokes `getPuzzleHint`; the live helper exists but the project has not picked a runtime owner for `Puzzle` objects. | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `src/components/puzzles/LockpickingModal.tsx`, `src/components/layout/GameModals.tsx`, `src/hooks/actions/actionHandlers.ts` | Players still cannot ask for a puzzle hint from gameplay, so the helper is only half of the flow. | Decide the gameplay owner for `getPuzzleHint`, then wire that surface or route the caller to another project. | A source-backed callsite or UI action that exercises `getPuzzleHint` in real play. |
+| PZ-007 | not_started | in_scope_now | Worker A (decision: Remy 2026-06-10) | `docs/projects/puzzles/TRACKER.md` | Runtime caller scan | No gameplay caller yet invokes `getPuzzleHint`; the live helper exists but the project has not picked a runtime owner for `Puzzle` objects. Decided 2026-06-10 (DECISION_BLITZ D13): a dedicated puzzle-facing runtime surface is approved; Puzzles owns the runtime `Puzzle` instance and the hint UI contract. | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `src/components/puzzles/LockpickingModal.tsx`, `src/components/layout/GameModals.tsx`, `src/hooks/actions/actionHandlers.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D13 | Players still cannot ask for a puzzle hint from gameplay, so the helper is only half of the flow. | Implementation lane open: build the puzzle-facing runtime surface and wire the first gameplay `getPuzzleHint` caller there. | A source-backed callsite or UI action that exercises `getPuzzleHint` in real play, plus a focused runtime caller test. |
 | PZ-004 | not_started | support_needed_now | Worker A | `docs/projects/puzzles/TRACKER.md` | Character model scan | Legacy `character.stats` fallback remains the primary source for several puzzle checks despite TODOs marking a pending migration. | `src/systems/puzzles/lockSystem.ts`, `src/systems/puzzles/pressurePlateSystem.ts`, `src/systems/puzzles/secretDoorSystem.ts`, `src/types/character.ts` | Mixed model usage risks incorrect check math as systems move to the modern shape. | Confirm the migration target and keep shim behavior stable in the interim. | Add a follow-up checklist and pass/fail marker after the migration scope is finalized. |
 | PZ-005 | not_started | adjacent_follow_up | Worker A | `docs/projects/puzzles/TRACKER.md` | Integration TODO sweep | Mechanism, secret door, pressure plate, and arcane glyph systems still note TODOs for Submap/BattleMap/spell integration. | `src/systems/puzzles/mechanism.ts`, `src/systems/puzzles/secretDoorSystem.ts`, `src/systems/puzzles/pressurePlateSystem.ts`, `src/systems/puzzles/arcaneGlyphSystem.ts` | State changes happen in isolation and may never be visible to movement or rendering systems. | Hand this off to map/world integration with explicit dependencies before puzzle visibility expectations are set. | Keep this out of the lockpicking slice unless the world-rendering dependency is accepted first. |
 | PZ-006 | not_started | adjacent_follow_up | Worker A | `docs/projects/puzzles/TRACKER.md` | Skills integration sweep | `skillChallengeSystem` remains marked as a 4e-style abstraction with TODO integration into Dialogue. | `src/systems/puzzles/skillChallengeSystem.ts` | Social and combat challenges cannot be consumed by narrative scenes until a host integration exists. | Decide whether dialogue or the puzzle system owns the challenge loop, then route the work. | Close or route this gap from a social-integration owner before feature slice work begins. |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

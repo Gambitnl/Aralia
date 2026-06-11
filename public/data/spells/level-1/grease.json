@@ -177,8 +177,13 @@
         },
         "depositDistance": 0
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creates a 10-foot-square slick terrain area within 60 feet as the spell's control surface.",
+      "conditionalEndings": [],
+      "tags": [
+        "terrain-control",
+        "slick-ground",
+        "area"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -255,8 +260,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures affected by the grease area must succeed on a Dexterity save or fall Prone.",
+      "conditionalEndings": [],
+      "tags": [
+        "prone",
+        "dexterity-save",
+        "terrain-rider"
+      ]
     },
     {
       "type": "STATUS_CONDITION",

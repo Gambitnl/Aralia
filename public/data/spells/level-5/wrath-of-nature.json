@@ -150,7 +150,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 4d6 Slashing damage on a failed Dexterity save, or half as much on success.",
       "conditionalEndings": []
     },
     {
@@ -223,7 +223,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Restrained unless the target succeeds on a Strength save for 1 minute; current escape-check metadata is preserved.",
       "conditionalEndings": []
     },
     {
@@ -291,7 +291,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Prone unless the target succeeds on a Strength save for 1 minute.",
       "conditionalEndings": []
     }
   ],

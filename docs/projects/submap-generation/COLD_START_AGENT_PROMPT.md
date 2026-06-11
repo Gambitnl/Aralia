@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Submap Generation
+slug: submap-generation
+status: merged-reference
+last_updated: "2026-06-09"
+iteration: 4
+source_agent: Codex / gpt-5
+target_agent: next cold-start agent
+runtime_surface: direct dashboard correction pass
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/submap-generation/NORTH_STAR.md
+tracker: docs/projects/submap-generation/TRACKER.md
+gaps: docs/projects/submap-generation/GAPS.md
+---
 # Submap Generation Cold Start Agent Handoff
 
 Status: merged-reference

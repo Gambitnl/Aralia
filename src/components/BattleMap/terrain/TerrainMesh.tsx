@@ -51,6 +51,15 @@ const MICRO_NOISE_AMPLITUDE = 0.04;
 /** World unit size of each tile */
 const TILE_SIZE = 1.0;
 
+/**
+ * How deep water basins are carved below their tile's nominal elevation, in
+ * elevation units. The water surface stays at the tile's nominal elevation
+ * (see WaterSystem), so this depth is what transparency, the depth gradient,
+ * and the shoreline foam band reveal. Bicubic interpolation turns the carve
+ * into naturally sloping banks across the shore tiles.
+ */
+export const WATER_BASIN_DEPTH = 1.4;
+
 // ---------------------------------------------------------------------------
 // Helpers — interpolation & noise (CPU side, for geometry generation)
 // ---------------------------------------------------------------------------
@@ -116,6 +125,34 @@ function smoothNoise(x: number, y: number, seed: number): number {
   return nx0 + sy * (nx1 - nx0);
 }
 
+/**
+ * Shared terrain height sampler: tile coordinates → world Y.
+ *
+ * Single source of truth for the surface formula (bicubic elevation +
+ * micro-noise) used by the main heightfield, the perimeter skirt, and
+ * WaterSystem's per-vertex depth bake. Water tiles are carved down by
+ * WATER_BASIN_DEPTH so pools have real beds below their surface plane.
+ */
+export function makeTerrainHeightSampler(
+  tileGrid: (BattleMapTile | null)[][],
+  width: number,
+  height: number,
+  seed: number,
+): (tileX: number, tileZ: number) => number {
+  const getElevation = (tx: number, ty: number): number => {
+    const cx = Math.max(0, Math.min(width - 1, tx));
+    const cy = Math.max(0, Math.min(height - 1, ty));
+    const tile = tileGrid[cy]?.[cx];
+    const elev = tile?.elevation ?? 0;
+    return tile?.terrain === 'water' ? elev - WATER_BASIN_DEPTH : elev;
+  };
+  return (tileX: number, tileZ: number): number => {
+    const smoothElev = bicubicSample(getElevation, tileX, tileZ, width, height);
+    const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
+    return smoothElev * ELEVATION_SCALE + noise * MICRO_NOISE_AMPLITUDE;
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Terrain type encoding for the GPU data texture
 // ---------------------------------------------------------------------------
@@ -167,9 +204,11 @@ function createTerrainTypeTexture(
 
 const TERRAIN_GLSL_PREAMBLE = /* glsl */ `
   varying vec3 vTerrainWorldPos;
+  varying vec3 vTerrainNormal;
   uniform sampler2D uTerrainTypeMap;
   uniform float uMapWidth;
   uniform float uMapHeight;
+  uniform float uDapple;
 
   // ---- Hash / noise functions (Dave Hoskins style) ----
   float hash21(vec2 p) {
@@ -435,6 +474,57 @@ const TERRAIN_COLOR_FRAGMENT = /* glsl */ `
     }
   }
 
+  // ---- Slope-exposed rock: steep ground breaks into rock faces (GOAL #28) ----
+  // Geometric world normal drives a rock blend on grass/dirt/sand so hillsides
+  // and carved banks read as terrain relief instead of tinted flat ground.
+  // Gentle hills (<~20°) stay untouched; erosion streaking breaks up the band.
+  {
+    int _sType = int(_terrainIdx + 0.5);
+    if (_sType == 0 || _sType == 2 || _sType == 3) {
+      float _slope = 1.0 - clamp(vTerrainNormal.y, 0.0, 1.0);
+      float _rocky = smoothstep(0.12, 0.30, _slope);
+      if (_rocky > 0.001) {
+        vec3 _rockC = getRockColor(vTerrainWorldPos.xz) * 0.92;
+        float _streak = fbm4(vTerrainWorldPos.xz * vec2(0.9, 2.6) + vec2(31.0, 5.0));
+        _rocky *= 0.55 + 0.45 * smoothstep(0.35, 0.65, _streak);
+        _terrainColor = mix(_terrainColor, _rockC, clamp(_rocky, 0.0, 1.0) * 0.85);
+      }
+    }
+  }
+
+  // ---- Wet bank: damp, darkened earth in a band along waterlines (GOAL #43) ----
+  // Land fragments near a water tile darken toward wet earth; pairs with the
+  // water sheet's shoreline foam (WaterSystem) so shores read wet on both sides.
+  if (int(_terrainIdx + 0.5) != 4) {
+    float _wetDist = 9.0;
+    for (int _wy = -1; _wy <= 1; _wy++) {
+      for (int _wx = -1; _wx <= 1; _wx++) {
+        if (_wx == 0 && _wy == 0) continue;
+        vec2 _wTile = floor(vTerrainWorldPos.xz) + vec2(float(_wx), float(_wy));
+        vec2 _wUV = (_wTile + 0.5) / vec2(uMapWidth, uMapHeight);
+        if (_wUV.x < 0.0 || _wUV.x > 1.0 || _wUV.y < 0.0 || _wUV.y > 1.0) continue;
+        float _wIdx = texture2D(uTerrainTypeMap, _wUV).r * 255.0;
+        if (int(_wIdx + 0.5) == 4) {
+          vec2 _wNear = clamp(vTerrainWorldPos.xz, _wTile, _wTile + 1.0);
+          _wetDist = min(_wetDist, distance(vTerrainWorldPos.xz, _wNear));
+        }
+      }
+    }
+    float _wet = 1.0 - smoothstep(0.04, 0.42, _wetDist);
+    _terrainColor = mix(_terrainColor, _terrainColor * vec3(0.52, 0.50, 0.52), _wet * 0.65);
+  }
+
+  // ---- Canopy dapple: pooled warm light + soft shade for forested biomes ----
+  // (GOAL #55) Large soft FBM blobs sell "light filtering through trees" at
+  // tactical zoom without real projected shadows. uDapple is 0 outside
+  // forest/swamp, making this a no-op for open/underground biomes.
+  if (uDapple > 0.001) {
+    float _dap = fbm4(vTerrainWorldPos.xz * 0.55 + vec2(17.0, 83.0));
+    float _pool = smoothstep(0.48, 0.72, _dap);
+    _terrainColor = _terrainColor * (1.0 - 0.20 * uDapple)
+                  + _terrainColor * vec3(1.0, 0.96, 0.80) * (0.50 * uDapple) * _pool;
+  }
+
   diffuseColor.rgb = _terrainColor;
 `;
 
@@ -460,6 +550,7 @@ function createTerrainMaterial(
   mapWidth: number,
   mapHeight: number,
   seed: number,
+  dapple: number,
 ): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({
     roughness: 0.88,
@@ -471,15 +562,16 @@ function createTerrainMaterial(
     shader.uniforms.uTerrainTypeMap = { value: terrainTypeTex };
     shader.uniforms.uMapWidth = { value: mapWidth };
     shader.uniforms.uMapHeight = { value: mapHeight };
+    shader.uniforms.uDapple = { value: dapple };
 
-    // --- Vertex shader: pass world position ---
+    // --- Vertex shader: pass world position + world normal (for slope) ---
     shader.vertexShader = shader.vertexShader.replace(
       '#include <common>',
-      '#include <common>\nvarying vec3 vTerrainWorldPos;',
+      '#include <common>\nvarying vec3 vTerrainWorldPos;\nvarying vec3 vTerrainNormal;',
     );
     shader.vertexShader = shader.vertexShader.replace(
       '#include <begin_vertex>',
-      '#include <begin_vertex>\nvTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+      '#include <begin_vertex>\nvTerrainWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvTerrainNormal = normalize(mat3(modelMatrix) * objectNormal);',
     );
 
     // --- Fragment shader: inject noise functions + uniforms ---
@@ -501,7 +593,7 @@ function createTerrainMaterial(
     );
   };
 
-  mat.customProgramCacheKey = () => `terrain-pbr-v2-${mapWidth}-${mapHeight}-${seed}`;
+  mat.customProgramCacheKey = () => `terrain-pbr-v5-${mapWidth}-${mapHeight}-${seed}-${dapple}`;
   return mat;
 }
 
@@ -530,18 +622,8 @@ function buildSkirtGeometry(
   height: number,
   seed: number,
 ): THREE.BufferGeometry {
-  const getElevation = (tx: number, ty: number): number => {
-    const cx = Math.max(0, Math.min(width - 1, tx));
-    const cy = Math.max(0, Math.min(height - 1, ty));
-    return tileGrid[cy]?.[cx]?.elevation ?? 0;
-  };
-
   /** Matches the exact Y formula used in the main geometry useMemo. */
-  const getVertexY = (tileX: number, tileZ: number): number => {
-    const smoothElev = bicubicSample(getElevation, tileX, tileZ, width, height);
-    const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
-    return smoothElev * ELEVATION_SCALE + noise * MICRO_NOISE_AMPLITUDE;
-  };
+  const getVertexY = makeTerrainHeightSampler(tileGrid, width, height, seed);
 
   const segsX = width * SUBDIVISIONS_PER_TILE;
   const segsZ = height * SUBDIVISIONS_PER_TILE;
@@ -670,13 +752,8 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     const positions = geo.attributes.position as THREE.BufferAttribute;
     const vertexCount = positions.count;
 
-    const getElevation = (tx: number, ty: number): number => {
-      const cx = Math.max(0, Math.min(width - 1, tx));
-      const cy = Math.max(0, Math.min(height - 1, ty));
-      return tileGrid[cy]?.[cx]?.elevation ?? 0;
-    };
-
     const seed = mapData.seed ?? 42;
+    const getVertexY = makeTerrainHeightSampler(tileGrid, width, height, seed);
 
     for (let i = 0; i < vertexCount; i++) {
       const vx = positions.getX(i);
@@ -685,11 +762,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       const tileX = (vx / TILE_SIZE) + width / 2;
       const tileZ = (vz / TILE_SIZE) + height / 2;
 
-      const smoothElevation = bicubicSample(getElevation, tileX, tileZ, width, height);
-      const noise = smoothNoise(tileX * 3.7, tileZ * 3.7, seed) * 2 - 1;
-      const microDetail = noise * MICRO_NOISE_AMPLITUDE;
-
-      positions.setY(i, smoothElevation * ELEVATION_SCALE + microDetail);
+      positions.setY(i, getVertexY(tileX, tileZ));
       positions.setX(i, vx + (width / 2) * TILE_SIZE);
       positions.setZ(i, vz + (height / 2) * TILE_SIZE);
     }
@@ -705,10 +778,19 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     [mapData, width, height],
   );
 
+  // Biome drives the dapple strength and skirt tint
+  const biome = useMemo(() => {
+    const m = mapData as BattleMapData & { biome?: string; theme?: string };
+    return m.biome ?? m.theme ?? 'forest';
+  }, [mapData]);
+
+  // Canopy dapple only where trees plausibly overhang the ground
+  const dapple = biome === 'forest' ? 1.0 : biome === 'swamp' ? 0.45 : 0.0;
+
   // Custom material with procedural GLSL texturing
   const material = useMemo(
-    () => createTerrainMaterial(terrainTypeTex, width, height, mapData.seed ?? 42),
-    [terrainTypeTex, width, height, mapData.seed],
+    () => createTerrainMaterial(terrainTypeTex, width, height, mapData.seed ?? 42, dapple),
+    [terrainTypeTex, width, height, mapData.seed, dapple],
   );
 
   // Skirt geometry — vertical panels sealing terrain perimeter edges
@@ -721,8 +803,6 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   // issues. Tinted per biome so the perimeter cliff reads as the same ground the
   // surface is made of (a uniform near-black band looked wrong under desert sand).
   const skirtColor = useMemo(() => {
-    const m = mapData as BattleMapData & { biome?: string; theme?: string };
-    const biome = m.biome ?? m.theme ?? 'forest';
     const palette: Record<string, number> = {
       forest: 0x3a2a18,  // dark loam
       swamp: 0x2a2618,   // dark peat
@@ -731,7 +811,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
       dungeon: 0x34302b, // dressed stone-grey
     };
     return palette[biome] ?? palette.forest;
-  }, [mapData]);
+  }, [biome]);
   const skirtMaterial = useMemo(
     () => new THREE.MeshStandardMaterial({
       color: skirtColor,

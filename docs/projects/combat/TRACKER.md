@@ -1,7 +1,7 @@
 # Combat System Living Tracker
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (G30 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Status Vocabulary
 
@@ -15,7 +15,7 @@ Last updated: 2026-06-09
 
 ## Current Resume Target
 
-- G3 AI/turn-loop assumptions are now verified and closed; G4 death-save/stability cleanup is now verified and closed; G11 class feature generation, G12 premade martial weapon regression coverage, G19 zone resistance/immunity resolution, G21 speed recalculation, G23 combat log persistence, G24 War Caster OA spell option, G25 Sentinel OA stop-in-place, G26 AI ability await sequencing, G27 opportunity-attack reach inspection, and G28 stale-batch concentration cleanup are done; G29 command/hook concentration cleanup parity also completed; G20 now has verified 2D token-badge and 3D actor-overlay parity. G30 is the only remaining hold and requires human review before any more Combat implementation work is assigned.
+- G3 AI/turn-loop assumptions are now verified and closed; G4 death-save/stability cleanup is now verified and closed; G11 class feature generation, G12 premade martial weapon regression coverage, G19 zone resistance/immunity resolution, G21 speed recalculation, G23 combat log persistence, G24 War Caster OA spell option, G25 Sentinel OA stop-in-place, G26 AI ability await sequencing, G27 opportunity-attack reach inspection, and G28 stale-batch concentration cleanup are done; G29 command/hook concentration cleanup parity also completed; G20 now has verified 2D token-badge and 3D actor-overlay parity. G30 is the only remaining hold and requires human review before any more Combat implementation work is assigned. Update (2026-06-10): G30 is decided (DECISION_BLITZ D6 — Code Modularization Audit owns the split plan; Combat contributes invariants/tests). The next Combat slice is the invariants/preservation-tests contribution; code movement stays with the audit project.
 
 ## Active Task Queue
 
@@ -67,3 +67,11 @@ Last updated: 2026-06-09
 | G27 | done | adjacent_follow_up | Worker A | `src/systems/combat/reactions/` | OpportunityAttackSystem reach inspection (2026-06-02) | `OpportunityAttackSystem` now checks distinct threatened reach thresholds per weapon/ability instead of collapsing everything into one maximum reach. | `src/systems/combat/reactions/OpportunityAttackSystem.ts`, `src/systems/combat/__tests__/OpportunityAttackSystem.test.ts` | A character wielding both a 5ft reach weapon and a 10ft reach weapon now provokes at the correct boundary for each threshold, instead of waiting for the maximum reach alone. | Completed and verified with focused 5ft and 10ft threshold tests. | Verified by `OpportunityAttackSystem.test.ts` cases covering both 5ft and 10ft reach boundaries. |
 | G28 | done | adjacent_follow_up | Codex | `src/hooks/combat/` | G22 implementation (2026-06-03) | `handleCharacterUpdateWrapped` uses a stale `characters` React prop closure. If multiple concentrating characters drop to 0 HP in one synchronous batch, ally cleanup may fire redundantly. | `src/hooks/combat/useTurnManager.ts:100,123` | Can produce redundant `onCharacterUpdate` calls and double-log concentration loss messages. | Track already-cleaned effect IDs across calls within a batch via a ref. | Verified with a focused same-batch regression in `useTurnManager.deathSaves.test.ts`; only one ally cleanup update fires when two concentrating characters drop together. |
 | G29 | done | adjacent_follow_up | Codex | `src/hooks/combat/`, `src/commands/effects/` | G22 implementation (2026-06-03) | Concentration-break on 0 HP existed in two separate code paths with different cleanup expectations and no shared integration test. | `src/hooks/combat/useTurnManager.ts:103-147`, `src/commands/effects/DamageCommand.ts:318-335` | If one path is updated without the other, concentration cleanup behavior diverges silently. | Keep parity proof that ally cleanup + light cleanup + concentration logging are equivalent across paths. | `ConcentrationBreakPathParity` in `src/commands/effects/__tests__/ConcentrationBreakPathParity.test.ts` verifies equivalent outcomes for both paths. |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

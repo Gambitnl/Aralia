@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Glossary UI
+slug: glossary-ui
+status: active
+last_updated: "2026-06-09"
+iteration: 6
+source_agent: Hubble / gpt-5.4-mini high
+target_agent: next cold-start agent
+runtime_surface: MCP-subagent docs-only contract pass
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/glossary-ui/NORTH_STAR.md
+tracker: docs/projects/glossary-ui/TRACKER.md
+gaps: docs/projects/glossary-ui/GAPS.md
+---
 # Glossary UI Cold Start Agent Handoff
 
 Status: active

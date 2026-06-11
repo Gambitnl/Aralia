@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 31/05/2026, 23:25:34
+ * Last Sync: 10/06/2026, 22:38:35
  * Dependents: hooks/combat/engine/useCombatEngine.ts, hooks/combat/useActionExecutor.ts
  * Imports: 3 files
  *
@@ -35,6 +35,9 @@ import {
     shouldTriggerForFrequency,
     matchesTargetFilter,
     isPositionInArea,
+    processAreaEntryTriggers,
+    processAreaExitTriggers,
+    processAreaEndTurnTriggers,
     ActiveSpellZone,
     TriggerResult
 } from './triggerHandler';
@@ -175,28 +178,11 @@ export class AreaEffectTracker {
                     spellId: zone.spellId,
                     position: newPosition
                 });
-
-                const entryEffects = zone.effects.filter(effect =>
-                    effect.trigger?.type === 'on_enter_area'
-                );
-
-                for (const effect of entryEffects) {
-                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
-                        continue;
-                    }
-
-                    if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
-                        continue;
-                    }
-
-                    results.push({
-                        triggered: true,
-                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
-                        triggerType: 'on_enter_area'
-                    });
-                }
+                // Keep AreaEffectTracker responsible for combat events, but
+                // share effect filtering/frequency/source-context behavior
+                // with triggerHandler so the two area-trigger paths cannot
+                // drift apart.
+                results.push(...processAreaEntryTriggers([zone], character, newPosition, previousPosition, _currentRound));
             }
         }
 
@@ -229,28 +215,9 @@ export class AreaEffectTracker {
                     spellId: zone.spellId,
                     position: newPosition
                 });
-
-                const exitEffects = zone.effects.filter(effect =>
-                    effect.trigger?.type === 'on_exit_area'
-                );
-
-                for (const effect of exitEffects) {
-                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
-                        continue;
-                    }
-
-                    if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
-                        continue;
-                    }
-
-                    results.push({
-                        triggered: true,
-                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
-                        triggerType: 'on_exit_area'
-                    });
-                }
+                // Event emission stays here, while effect filtering delegates
+                // to the shared trigger handler used by compatibility callers.
+                results.push(...processAreaExitTriggers([zone], character, newPosition, previousPosition));
             }
         }
 
@@ -267,42 +234,11 @@ export class AreaEffectTracker {
         // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
         _currentRound: number
     ): TriggerResult[] {
-        const results: TriggerResult[] = [];
-
-        for (const zone of this.zones) {
-            if (!zone.areaOfEffect) continue;
-
-            const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect, zone.direction);
-
-            if (isInZone) {
-                const endTurnEffects = zone.effects.filter(effect =>
-                    effect.trigger?.type === 'on_end_turn_in_area' ||
-                    // Legacy support for plain 'turn_end' if needed, though strictly that might be global.
-                    // Assuming 'turn_end' on a zone effect implies 'in area' context for now.
-                    effect.trigger?.type === 'turn_end'
-                );
-
-                for (const effect of endTurnEffects) {
-                    // DEBT: Cast trigger to any to probe optional frequency property without complex typing in this tracker.
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
-                        continue;
-                    }
-
-                    if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
-                        continue;
-                    }
-
-                    results.push({
-                        triggered: true,
-                        effects: convertSpellEffectToProcessed(effect, { spellId: zone.spellId, casterId: zone.casterId, saveDC: zone.saveDC }),
-                        triggerType: 'on_end_turn_in_area'
-                    });
-                }
-            }
-        }
-
-        return results;
+        // End-turn zone effects have no tracker-specific event to emit today,
+        // so the tracker can fully delegate this decision path to the shared
+        // trigger handler and preserve one source of truth for frequency gates,
+        // target filters, legacy `turn_end`, and source context.
+        return processAreaEndTurnTriggers(this.zones, character, _currentRound);
     }
 
     /**

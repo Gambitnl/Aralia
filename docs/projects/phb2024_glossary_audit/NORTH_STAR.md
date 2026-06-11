@@ -5,13 +5,13 @@ slug: phb2024_glossary_audit
 category: Documentation / Living Project Rollout
 main_category: Review / Archive
 subcategory: Deprecation Review
-status: review-required
-last_updated: 2026-06-08
+status: reference-only
+last_updated: 2026-06-10
 confidence: high
-evidence: docs/projects/phb2024_glossary_audit/NORTH_STAR.md, docs/projects/phb2024_glossary_audit/TRACKER.md, docs/projects/phb2024_glossary_audit/GAPS.md
-gap_signal: "3 open gaps; remaining work is routed to adjacent owners"
+evidence: docs/projects/phb2024_glossary_audit/NORTH_STAR.md, docs/projects/phb2024_glossary_audit/TRACKER.md, docs/projects/phb2024_glossary_audit/GAPS.md, docs/projects/DECISION_BLITZ_2026-06-10.md (D24)
+gap_signal: "Archived as reference-only 2026-06-10; 3 open gaps remain routed to adjacent owners (Item Categorization and Glossary maintenance)"
 protocol: living project doc set
-next_step: Wait for human review to decide whether this audit becomes reference-only or continues as a coordination surface.
+next_step: "Archived as reference-only (decision recorded 2026-06-10, DECISION_BLITZ D24). Do not assign iteration agents here; remaining gap work runs through docs/projects/item_categorization and docs/tasks/glossary."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -29,37 +29,37 @@ completed_verification:
 last_proof: 2026-06-08
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: merge-candidate
-deprecation_confidence: medium
-deprecation_reason: audit_slice_complete_remaining_gaps_routed_to_adjacent_owners
+lifecycle_status: reference-only
+deprecation_confidence: strong
+deprecation_reason: archived_reference_only_2026-06-10_gaps_routed_to_adjacent_owners
 canonical_owner: "docs/projects/item_categorization for itemMetadata parity; docs/tasks/glossary for rebuild workflow"
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # NORTH STAR: PHB 2024 Glossary Audit
 
-Status: partial
-Last updated: 2026-06-08
+Status: reference-only — decision recorded 2026-06-10 (archived; gaps routed to adjacent owners)
+Last updated: 2026-06-10
 
 ## Dashboard Card Schema
 
 Project: PHB 2024 Glossary Audit
 Slug: phb2024_glossary_audit
 Category: Documentation / Living Project Rollout
-Status: review-required
+Status: reference-only (archived 2026-06-10)
 Confidence: high
-Evidence: docs/projects/phb2024_glossary_audit/NORTH_STAR.md, docs/projects/phb2024_glossary_audit/TRACKER.md, docs/projects/phb2024_glossary_audit/GAPS.md
-Gap signal: 3 open gaps; remaining work is routed to adjacent owners
+Evidence: docs/projects/phb2024_glossary_audit/NORTH_STAR.md, docs/projects/phb2024_glossary_audit/TRACKER.md, docs/projects/phb2024_glossary_audit/GAPS.md, docs/projects/DECISION_BLITZ_2026-06-10.md (D24)
+Gap signal: archived as reference-only 2026-06-10; remaining gaps stay routed to Item Categorization and Glossary maintenance
 Protocol: living project doc set
-Next step: Wait for human review to decide whether this audit becomes reference-only or continues as a coordination surface.
+Next step: Archived; do not assign iteration agents here. Remaining gap work runs through docs/projects/item_categorization and docs/tasks/glossary.
 Required verification: docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-08
 Workflow gaps reviewed: 2026-06-08
-Lifecycle status: merge-candidate
-Deprecation confidence: medium
-Deprecation reason: audit_slice_complete_remaining_gaps_routed_to_adjacent_owners
+Lifecycle status: reference-only
+Deprecation confidence: strong
+Deprecation reason: archived_reference_only_2026-06-10_gaps_routed_to_adjacent_owners
 Canonical owner: docs/projects/item_categorization for itemMetadata parity; docs/tasks/glossary for rebuild workflow
-Human decision required: yes
+Human decision required: no
 
 ## Why This Project Exists
 
@@ -86,6 +86,14 @@ Evidence: GAPS.md shows three open gaps with adjacent owners; NORTH_STAR.md life
 Decision owner: Human/product owner
 Proof after decision: Update NORTH_STAR.md lifecycle_status and canonical_owner fields; update TRACKER.md next checks accordingly.
 
+### Decision (2026-06-10)
+
+Resolved — **Option A selected: archive this project as reference-only.** Remaining gap work stays routed to the adjacent owners: itemMetadata contract parity to Item Categorization (`docs/projects/item_categorization`) and the non-dev rebuild workflow / scope-overlap questions to Glossary maintenance (`docs/tasks/glossary`).
+
+- Decider: Remy (project owner), batched decision session 2026-06-10.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D24); local record: `docs/projects/phb2024_glossary_audit/DECISIONS.md` (2026-06-10 entry).
+- Status: decision recorded 2026-06-10; merge-candidate review cleared. This surface is now reference-only — no forward iteration agents; the docs remain as the durable record of the PHB 2024 family audit.
+
 ## Active Task
 
 | Field | Value |
@@ -96,7 +104,7 @@ Proof after decision: Update NORTH_STAR.md lifecycle_status and canonical_owner 
 | Stop condition | Do not assign forward iteration work until human review is complete |
 | Verification | None required for this review-gated state |
 | Owner | Human review |
-| Next action | After review, either archive this project as reference-only or continue with routed gap work in owning projects |
+| Next action | Review complete 2026-06-10 (DECISION_BLITZ D24): archived as reference-only; routed gap work continues in the owning projects (Item Categorization, Glossary maintenance) |
 
 ## Scope Boundaries
 
@@ -173,4 +181,4 @@ Track durable intent, decisions, verification summaries, promoted proof, and nex
 2. Read TRACKER.md.
 3. Read GAPS.md.
 4. Review docs/projects/PROJECT_CARD_SCHEMA.md and docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md for dashboard and workflow context.
-5. Do not assign forward iteration work until the human review clears the merge-candidate status. The remaining gaps are routed to adjacent owners (itemMetadata parity to docs/projects/item_categorization, rebuild workflow to docs/tasks/glossary).
+5. Do not assign forward iteration work until the human review clears the merge-candidate status. The remaining gaps are routed to adjacent owners (itemMetadata parity to docs/projects/item_categorization, rebuild workflow to docs/tasks/glossary). *(Review cleared 2026-06-10: archived as reference-only — DECISION_BLITZ D24. No forward iteration here; work only in the routed owners.)*

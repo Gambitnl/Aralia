@@ -6,13 +6,13 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-08
+last_updated: 2026-06-10
 confidence: high
 evidence: docs/projects/world-3d-ui
-gap_signal: "Plan 4 HUD gaps closed; monitor nameplate density/perf only"
+gap_signal: "All W3DUI gaps closed; seeded G1 row resolved; monitor nameplate density/perf; inherited ThreeD Modal entrypoint gaps (D5 merge 2026-06-10) await triage"
 protocol: living project doc set
-next_step: "No open world-3d-ui implementation task; monitor nameplate density/perf during broader 3D passes."
-agent_comments: "W3DUI-27 completed by MCP subagent; no required-review blocker found."
+next_step: "D5 merge recorded 2026-06-10: this project now owns all 3D entrypoints (modal launch, phase transition, close/focus policy) including the merged ThreeD Modal contracts; triage the inherited three-d-modal gaps (entry/close/focus policy, onMove contract, submap test coverage, CMA-G14) into this surface's queue. Otherwise monitor nameplate density/perf."
+agent_comments: "Historical '29/29'/'30/30' suite counts in tracker notes were measured over a broader scope; the __tests__ directory is 11 files/25 tests as of 2026-06-10 and its inventory only grew since 06-02 — do not read the lower count as lost tests."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -30,8 +30,8 @@ required_verification:
 completed_verification:
   - scoped_tests
   - docs_consistency
-last_proof: 2026-06-08
-workflow_gaps_reviewed: 2026-06-08
+last_proof: 2026-06-10
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -42,13 +42,18 @@ human_decision_required: "no"
 # World 3D UI North Star
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative:
 > - `world3d` — the 3D **rendering engine** (chunk streaming, meshes, R3F scene).
 > - `worldsim-service` — world **generation + simulation** (geometry + first-build history/story).
 > - **this surface (`world-3d-ui`)** — the **transition + HUD** layer.
 > These are not consolidated; each owns a separate concern. Owner: claude.
+>
+> Merge update (2026-06-10, D5): the former `three-d-modal` project merged into this
+> surface. World 3D UI is now the **single owner of all 3D entrypoints** — modal launch,
+> phase transition, and close/focus policy — including the legacy `ThreeDModal`
+> entrypoint contracts. `docs/projects/three-d-modal` is merged-reference.
 
 ## Dashboard Card Schema
 
@@ -58,14 +63,14 @@ Category: Feature/UI Projects
 Status: active
 Confidence: high
 Evidence: docs/projects/world-3d-ui
-Gap signal: Plan 4 HUD gaps closed; monitor nameplate density/perf only
+Gap signal: All W3DUI gaps closed; seeded G1 row resolved; monitor nameplate density/perf; inherited ThreeD Modal entrypoint gaps (D5 merge 2026-06-10) await triage
 Protocol: living project doc set
-Next step: No open world-3d-ui implementation task; monitor nameplate density/perf during broader 3D passes.
+Next step: D5 merge recorded 2026-06-10 — this surface now owns all 3D entrypoints (modal launch, phase transition, close/focus policy); triage the inherited three-d-modal gaps into this queue, otherwise monitor nameplate density/perf.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
-Last proof: 2026-06-08
-Workflow gaps reviewed: 2026-06-08
-Agent comments: W3DUI-27 completed by MCP subagent; no required-review blocker found.
+Last proof: 2026-06-10
+Workflow gaps reviewed: 2026-06-10
+Agent comments: Historical "29/29"/"30/30" suite counts in tracker notes were measured over a broader scope; the __tests__ directory is 11 files/25 tests as of 2026-06-10 and its inventory only grew since 06-02.
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md
 Optional docs: PERF.md, Plan 4 design notes
 Compaction status: not_needed
@@ -113,7 +118,7 @@ atlas↔3D bridge a clear owner.
 | Verification | `World3DNameplates.test.tsx` and full `World3D` suite pass |
 | Owner | gpt-5.3-codex-spark |
 | Status | done |
-| Next action | None queued on world-3d-ui; monitor thresholds in broader perf sweep |
+| Next action | None queued on world-3d-ui; monitor thresholds in broader perf sweep. Re-verified green on 2026-06-10 (iteration 4 monitor pass, 25/25) |
 
 ## Scope Boundaries
 
@@ -122,6 +127,11 @@ In scope:
 - Bidirectional Azgaar atlas ↔ 3D position marker sync; `playerWorldPos` game-state anchor.
 - Phase/entry wiring that makes the 3D world reachable (`WORLD3D_DEMO` today; real routing later).
 - In-3D HUD: control panel, view-mode toggle, nameplates, minimap, debug overlays.
+- Since 2026-06-10 (D5 merge): **all 3D entrypoint contracts** — modal launch, phase
+  transition, and close/focus policy — including the legacy `ThreeDModal` surface
+  (`src/components/ThreeDModal/*`, its `GameModals`/`SubmapPane` entry paths, and the
+  `isThreeDVisible`/`TOGGLE_THREE_D_VISIBILITY` wiring) formerly owned by
+  `docs/projects/three-d-modal` (now merged-reference).
 
 Out of scope (owned elsewhere):
 - Chunk streaming, mesh generation, the R3F scene/camera-controller, materials — `world3d`.
@@ -133,6 +143,23 @@ Out of scope (owned elsewhere):
 - The `world3d` URL slug for entry; the existing `WORLD3D_DEMO` phase as the current entry seam.
 - The eventual transition must **reuse** `world3d`'s scene rather than re-implement rendering.
 - Worker utilities exist in `world3d` but are unused by the demo entry — an entry-strategy decision lives here, not a reason to delete them.
+
+## Merge Record (2026-06-10): ThreeD Modal → World 3D UI
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D5 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`), recorded here from the receiving side:
+
+- World 3D UI is now the **single owner of all 3D entrypoints**: modal launch, phase
+  transition, and close/focus policy.
+- The `three-d-modal` project's docs (`docs/projects/three-d-modal/*`) become
+  merged-reference; its implementation record stays there, but forward work routes
+  through this project.
+- Inherited open items from `docs/projects/three-d-modal/GAPS.md` to triage into this
+  surface's queue: the global-vs-submap entry/close/focus policy (their G1/G4), the
+  shared `onMove` movement-action contract (their G2 / NORTH_STAR follow-up), submap 3D
+  launch/close test coverage, and the CMA-G14 split route for `Scene3D.tsx`/`PropsLayer.tsx`.
+- Existing W3DUI-22 work (legacy `ThreeDModal` gated to non-PLAYING + submap) remains the
+  current behavior contract for the merged surface.
 
 ## Known Gaps And Follow-Ups
 
@@ -156,14 +183,17 @@ See `docs/projects/world-3d-ui/GAPS.md`. Headline:
 
 ## Global Gap Imports
 
-Checked `docs/projects/GLOBAL_GAPS.md` on **2026-06-02**.
+Checked `docs/projects/GLOBAL_GAPS.md` on **2026-06-10** (previous check 2026-06-02).
 
 | Global gap | Pertains to this surface? | Imported? | Destination | Scope rationale |
 |---|---|---|---|---|
 | GG-1..GG-3, GG-5..GG-13 | No | no | — | Character/economy/combat/inventory surfaces — not transition/HUD |
 | GG-4 (vegetation scatter perf) | No | no | already routed → `world3d` | Rendering-engine perf; owned by sibling `world3d`, not this layer |
-| GG-14 (jsdom canvas getContext) | Partially (touches `World3DMinimap`/`WorldAtlasStrip` tests) | no | — | Repo-wide test-infra fix (`vitest-canvas-mock`); not a transition/HUD feature — left global for tooling owner |
+| GG-14 (jsdom canvas getContext) | Partially (touches `World3DMinimap`/`WorldAtlasStrip` tests) | no | — | Repo-wide test-infra fix (`vitest-canvas-mock`); not a transition/HUD feature — left global for tooling owner. Warnings still observed (non-failing) in the 2026-06-10 suite run |
 | GG-15 (Ollama proxy log flood) | No | no | — | Vite dev-tooling config; unrelated to this surface |
+| GG-16..GG-25 (dep headers, type drift, character/combat/spell debt, coverage) | No | no | — | Tooling/types/character/combat surfaces — none owned by transition/HUD |
+| GG-26 (project-card schema migration) | Already satisfied here | no | — | This folder has full `NORTH_STAR.md` frontmatter plus DECISIONS/AUDIT_OR_PROOF/RUNBOOK (created 2026-06-10 migration pass) |
+| GG-27 (missing Required Review Briefs) | No | no | — | This project is not review-required (`human_decision_required: no`) |
 
 None imported this cycle: no global gap is owned by the 2D↔3D transition + in-3D HUD surface.
 

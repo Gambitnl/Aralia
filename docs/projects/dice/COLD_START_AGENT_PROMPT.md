@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Dice
+slug: dice
+status: review-required
+last_updated: "2026-06-08"
+iteration: 3
+source_agent: Not recorded
+target_agent: next cold-start agent
+runtime_surface: unknown
+certainty: unknown
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/dice/NORTH_STAR.md
+tracker: docs/projects/dice/TRACKER.md
+gaps: docs/projects/dice/GAPS.md
+---
 # Dice Cold Start Agent Handoff
 
 Status: review-required
@@ -16,6 +35,12 @@ docs/projects/PROJECT_CARD_SCHEMA.md
 
 Project entry point:
 docs/projects/dice/NORTH_STAR.md
+
+## Iteration Agent Ledger
+
+| Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
+|---|---|---|---|---|---|
+| 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Dice

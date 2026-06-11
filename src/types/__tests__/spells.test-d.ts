@@ -20,7 +20,7 @@ describe('Spell System Type-Level Tests', () => {
 
     if (effect.type === 'HEALING') {
       expectType<HealingEffect>(effect);
-      expectError(() => (effect as any).damage); // Should not have damage property
+      expectError(effect.damage); // Should not have damage property
     }
 
     if (effect.type === 'STATUS_CONDITION') {
@@ -36,6 +36,7 @@ describe('Spell System Type-Level Tests', () => {
         level: 3,
         school: SpellSchool.Evocation,
         classes: ['Sorcerer', 'Wizard'],
+        subClasses: [],
         castingTime: { value: 1, unit: 'action' },
         range: { type: 'ranged', distance: 150 },
         components: { verbal: true, somatic: true, material: true },
@@ -52,7 +53,7 @@ describe('Spell System Type-Level Tests', () => {
     expectType<Spell>(validSpell);
     // TODO(lint-intent): Keep invalid shape check to remind us to tighten Spell typing.
     expectError(() => {
-      const invalidSpell: Spell = { id: 'missing_fields' } as any;
+      const invalidSpell: Spell = { id: 'missing_fields' };
       return invalidSpell;
     });
   });
@@ -60,11 +61,10 @@ describe('Spell System Type-Level Tests', () => {
   it('should ensure damage type is a valid DamageType', () => {
     const validDamage: DamageData = { dice: '1d6', type: 'Fire' };
     expectType<DamageData>(validDamage);
-    // TODO(lint-intent): Confirm the invalid damage type is rejected once DamageData is narrowed further.
-    expectError(() => {
-      const _invalidDamage: DamageData = { dice: '1d6', type: 'NotARealType' } as any;
-      return _invalidDamage;
-    });
+    // DamageData.type is still a broad string in the public spell contract.
+    // Keep the current declaration behavior explicit until damage-type
+    // canonicalization narrows this field.
+    expectType<string>(validDamage.type);
   });
 
   it('should keep area-movement triggers available to declaration consumers', () => {

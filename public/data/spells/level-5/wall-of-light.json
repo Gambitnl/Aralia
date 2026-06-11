@@ -209,7 +209,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 4d8 Radiant damage on a failed Constitution save, or half as much on success; slot scaling adds +1d8.",
       "conditionalEndings": []
     },
     {
@@ -287,7 +287,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Blinded unless the target succeeds on a Constitution save for 1 minute; repeat Constitution save at turn end can end the condition; current escape-check metadata is preserved.",
       "conditionalEndings": []
     }
   ],

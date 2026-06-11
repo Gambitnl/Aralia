@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
+import * as combatUtils from '../../../../utils/combatUtils'
 // TODO(lint-intent): 'Position' is unused in this test; use it in the assertion path or remove it.
 import type { SpellTargeting } from '@/types/spells'
 import type { BattleMapTile , CombatCharacter, CombatState, Position as _Position, BattleMapData, TurnState } from '@/types/combat'
@@ -47,6 +48,8 @@ describe('TargetResolver', () => {
   let mockMapData: BattleMapData
 
   beforeEach(() => {
+    vi.restoreAllMocks()
+
     caster = createMockChar('hero', 'player', 10, 10)
     ally = createMockChar('ally', 'player', 12, 10) // 10ft away
     enemyClose = createMockChar('goblin', 'enemy', 11, 10) // 5ft away
@@ -81,6 +84,54 @@ describe('TargetResolver', () => {
       reactiveTriggers: [],
       activeLightSources: []
     }
+  })
+
+  describe('resolveTargetCandidates', () => {
+    it('applies allocation to an already chosen area candidate list', () => {
+      // Area placement happens before this bridge. The resolver must preserve
+      // that chosen footprint as the candidate list, then let allocation reduce
+      // only the final affected targets.
+      const rollSpy = vi.spyOn(combatUtils, 'rollDice').mockReturnValue(12)
+      enemyClose.currentHP = 7
+      enemyFar.currentHP = 10
+      ally.currentHP = 20
+
+      const targeting: SpellTargeting = {
+        type: 'area',
+        range: 60,
+        validTargets: ['creatures'],
+        lineOfSight: false,
+        areaOfEffect: {
+          shape: 'Sphere',
+          size: 10
+        },
+        allocation: {
+          type: 'pool',
+          pool: {
+            resource: 'hp',
+            dice: '5d8',
+            sortOrder: 'ascending',
+            strictLimit: true
+          }
+        }
+      }
+
+      const result = TargetResolver.resolveTargetCandidates(
+        targeting,
+        [ally, enemyFar, enemyClose],
+        { castLevel: 1 }
+      )
+
+      // With a 12-point pool, the lowest-HP candidate is affected, then the
+      // remaining pool is too small for the next ascending candidate. The
+      // original candidate list stays available for audit/UI context.
+      expect(rollSpy).toHaveBeenCalledWith('5d8')
+      expect(result.candidateTargets).toEqual([ally, enemyFar, enemyClose])
+      expect(result.selectedTargets).toEqual([enemyClose])
+      expect(result.allocationApplied).toBe(true)
+      expect(result.remainingPool).toBe(5)
+      expect(result.logs).toContain('Rolled 5d8 for hp pool: 12')
+    })
   })
 
   describe('isValidTarget', () => {

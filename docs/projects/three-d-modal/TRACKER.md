@@ -1,7 +1,7 @@
-# ThreeD Modal Tracker
+# Three D Modal Living Tracker
 
-Status: active
-Last updated: 2026-06-05
+Status: merged-reference (merged into World 3D UI per D5, 2026-06-10; forward work routes through docs/projects/world-3d-ui)
+Last updated: 2026-06-10
 
 ## Status Vocabulary
 

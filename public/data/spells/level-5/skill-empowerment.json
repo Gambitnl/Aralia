@@ -134,7 +134,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "Your magic deepens a creature's understanding of its own talent. You touch one willing creature and give it expertise in one skill of your choice; until the spell ends, the creature doubles its proficiency bonus for ability checks it makes that use the chosen skill. You must choose a skill in which the target is proficient and that isn't already benefiting from an effect, such as Expertise, that doubles its proficiency bonus.",
+      "description": "Grants one willing creature expertise in a skill it is already proficient with, doubling its proficiency bonus for checks using that skill while concentration lasts.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -170,7 +170,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "skill-buff",
+        "expertise",
+        "willing-target"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -181,6 +186,10 @@
   "description": "Your magic deepens a creature's understanding of its own talent. You touch one willing creature and give it expertise in one skill of your choice; until the spell ends, the creature doubles its proficiency bonus for ability checks it makes that use the chosen skill. You must choose a skill in which the target is proficient and that isn't already benefiting from an effect, such as Expertise, that doubles its proficiency bonus.",
   "higherLevels": "",
   "tags": [
-    "legacy"
+    "legacy",
+    "transmutation",
+    "skill-buff",
+    "expertise",
+    "concentration"
   ]
 }

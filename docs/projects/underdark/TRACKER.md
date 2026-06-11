@@ -1,4 +1,4 @@
-# Underdark System Living Tracker
+# Underdark Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -29,3 +29,11 @@ Last updated: 2026-06-05
 | UD-2 | not_started | in_scope_now | Worker A | `docs/projects/underdark/GAPS.md` | Implementation scan in systems + reducer | Two underdark implementations diverge (`UnderdarkMechanics` vs `underdarkService.ts`) in base constants and edge rules. | `src/systems/underdark/UnderdarkMechanics.ts`, `src/services/underdarkService.ts` | Runtime behavior can fork by callsite, increasing bug risk and test drift. | Decide canonical implementation and align callers/tests around it. | Add a focused comparison test or remove one path. |
 | UD-3 | not_started | support_needed_now | Worker A | `docs/projects/underdark/GAPS.md` | Runtime scan | Territory mechanics engine is not yet called from world progression loop. | `src/systems/underdark/UnderdarkFactionSystem.ts`, `src/state/reducers/worldReducer.ts` | Faction-area and region effects remain non-functional despite schema support. | Route `applyTerritoryMechanics` through the time/zone update flow. | Validate a non-passive faction mechanic changes sanity or faerzress during travel. |
 | UD-4 | not_started | adjacent_follow_up | Worker A | `docs/projects/underdark/GAPS.md` | Integration scan | `useUnderdarkLighting` is UI-hook centered and returns a derived level not yet fully connected to reducer state updates. | `src/hooks/useUnderdarkLighting.ts`, `src/state/reducers/worldReducer.ts` | Light/sanity behavior can drift if inventory-derived light is not consistently used. | Decide whether hook output is authoritative or observational and document contract. | Verify one documented contract path in tracker and tests. |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

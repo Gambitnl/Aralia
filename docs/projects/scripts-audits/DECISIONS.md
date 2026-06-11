@@ -26,3 +26,23 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Audit policy — optional/manual, no CI gates this cycle (S4)
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+S4 asked how much of `scripts/audits` should be mandatory in CI versus optional/manual workflows; forward automation work was blocked on the answer.
+
+Decision made:
+**Audits stay optional/manual; no CI gates this cycle.** Revisit gating when the audit suite stabilizes. This unblocks CMA-G19 (large spell-script modularization routing) under the manual policy.
+
+Rationale and evidence:
+- Over-broad automation can block normal contributor flow; the audit suite is not yet stable enough to justify mandatory gates.
+- Evidence surfaces: `docs/guides/RACE_ENRICHMENT_WORKFLOW.md`, `docs/portraits/race_portrait_regen_handoff.md`, `docs/projects/scripts-audits/GAPS.md` S4.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D20).
+
+Follow-up:
+Forward automation work proceeds under the optional/manual policy. Re-open S4 only if a concrete gating proposal returns after the suite stabilizes; CMA-G19 acceptance/deferral can now be settled under the manual policy.

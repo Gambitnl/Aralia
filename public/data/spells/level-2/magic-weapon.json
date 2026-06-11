@@ -141,7 +141,7 @@
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
-        "customFormula": ""
+        "customFormula": "Weapon attack and damage bonus is +1 at a 2nd-level slot, +2 with a 3rd-5th-level slot, and +3 with a 6th-level or higher slot."
       },
       "grantedActions": [],
       "attackAugments": [],

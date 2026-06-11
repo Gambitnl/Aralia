@@ -29,3 +29,11 @@ Last updated: 2026-06-05
 | G1 | not_started | support_needed_now | Worker A | `docs/projects/history/GAPS.md` | T2 | No retention/pruning policy for permanent world history. | `src/utils/world/historyUtils.ts` lacks prune logic; `src/types/world.ts` rumors include expiration while world history does not. | Define explicit policy and add acceptance proof before any policy touchpoints (save/load, replay, memory cap). | Add `history size/lifecycle` decision row in `GAPS.md` with explicit follow-up. |
 | G2 | active | support_needed_now | Worker A | `docs/projects/history/GAPS.md` | T2 | Only skirmishes are persistently written to `worldHistory`; other history types are factory-only or missing entirely. | `WorldEventManager.ts` calls `createSkirmishEvent`; `HistoryService.ts` has other creators with no runtime producer call sites in this scan; `WorldHistoryEventType` also declares `HEROIC_DEED` and `MYSTERY_SOLVED`. | Missing event classes reduce chronology completeness and downstream replay quality. | Decide whether the missing types need emitters or should be marked out of scope, then close the matrix gap. | Update source map and close G2 once the producer-to-type decision is documented. |
 | G3 | active | support_needed_now | Worker A | `docs/projects/history/GAPS.md` | T3/T4 | No timeline/replay/UI contract for `worldHistory`; query methods are helper-only. | `historyUtils.ts` offers sort/filter utilities; no export consumers for timeline rendering/replay have been found in this slice. | Harder to reason about observability and player-facing chronology. | Define contract for whether this layer feeds player/diagnostic timeline outputs. | Add one concrete in-project read-path gap row with verification criteria. |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

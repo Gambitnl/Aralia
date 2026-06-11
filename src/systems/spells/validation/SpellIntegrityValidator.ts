@@ -179,6 +179,35 @@ export class SpellIntegrityValidator {
       }
     }
 
+    // =========================================================================
+    // Rule 5: Effect Description Completeness
+    // =========================================================================
+    // Each effect row needs its own concise description because downstream UI,
+    // glossary, audit, and debugging surfaces often render the effect object
+    // directly rather than the full spell prose. A schema-valid effect with an
+    // empty or generic description still leaves the runtime trace mechanically
+    // opaque, especially for damage, status, save, and targeting-heavy rows.
+    //
+    // G8/G9 cleared the current corpus, so this rule is intentionally a hard
+    // regression gate: future rows must describe the structured effect they add
+    // instead of using placeholders like "See description.".
+    const genericEffectDescriptions = new Set(['see description', 'see description.', 'varies', 'varies.', 'special', 'special.']);
+
+    const effects = Array.isArray(spell.effects) ? spell.effects : [];
+
+    effects.forEach((effect, index) => {
+      const effectDescription = (effect.description || '').trim();
+
+      if (!effectDescription) {
+        errors.push(`Effect Description Gap: effect ${index} has a blank description`);
+        return;
+      }
+
+      if (genericEffectDescriptions.has(effectDescription.toLowerCase())) {
+        errors.push(`Effect Description Placeholder: effect ${index} uses generic placeholder "${effectDescription}"`);
+      }
+    });
+
     return errors;
   }
 }

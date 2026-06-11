@@ -145,7 +145,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 7d8 + 30 Necrotic damage on a failed Constitution save, or half as much on success.",
       "conditionalEndings": []
     },
     {

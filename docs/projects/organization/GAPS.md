@@ -1,4 +1,4 @@
-# Organization Gaps
+# Organization Gap Registry
 
 Status: active
 Last updated: 2026-06-05

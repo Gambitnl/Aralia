@@ -6,10 +6,10 @@ category: Scripts / Audit Projects
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: review-required
-last_updated: 2026-06-08
+last_updated: 2026-06-10
 confidence: medium
-evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md
-gap_signal: 2 open gaps
+evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md; docs/projects/DECISION_BLITZ_2026-06-10.md (D22)
+gap_signal: "SRTA-001 decided 2026-06-10 (register both recurring labels in the strict vocabulary with migration notes; implementation lane open); SRTA-002 follow-up note pending; standalone-vs-routing review remains open"
 protocol: living project doc set
 next_step: Human review should decide whether this remains standalone or routes into Structured Spell Execution / scripts quality before worker assignment.
 agent_comments: ""
@@ -38,8 +38,8 @@ human_decision_required: "yes"
 ---
 # NORTH_STAR: Scripts: Spell Runtime Template Audit
 
-Status: review-required
-Last updated: 2026-06-08
+Status: review-required (standalone-vs-routing question only) — SRTA-001 decision recorded 2026-06-10; implementation lane open
+Last updated: 2026-06-10
 
 ## Dashboard Card Schema
 
@@ -49,9 +49,9 @@ Category: Scripts / Audit Projects
 Status: review-required
 Confidence: medium
 Evidence: docs/projects/scripts-spell-runtime-template-audit/NORTH_STAR.md
-Gap signal: 2 open gaps
+Gap signal: SRTA-001 decided 2026-06-10 (register both recurring labels with migration notes); SRTA-002 pending; standalone-vs-routing review remains open
 Protocol: living project doc set
-Next step: Human review should decide whether this remains standalone or routes into Structured Spell Execution / scripts quality before worker assignment.
+Next step: Human review should decide whether this remains standalone or routes into Structured Spell Execution / scripts quality before worker assignment. SRTA-001 decision recorded 2026-06-10 — implement the vocabulary registration with migration notes and rerun `npm run audit:spell-template`.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
@@ -148,7 +148,7 @@ Out of scope:
 
 | Gap ID | Classification | Owner | Evidence | Next proof/action |
 |---|---|---|---|---|
-| SRTA-001 | support_needed_now | Worker C | [docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md](docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md) | Decide whether `Recurring Mechanics` and `Recurring Mechanic Timing` belong in the strict vocabulary now or move to a migration follow-up, then rerun `npm run audit:spell-template` |
+| SRTA-001 | support_needed_now (decided 2026-06-10) | Worker C | [docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md](docs/tasks/spells/SPELL_RUNTIME_TEMPLATE_AUDIT_REPORT.md); `docs/projects/DECISION_BLITZ_2026-06-10.md` (D22) | Decided: register `Recurring Mechanics` and `Recurring Mechanic Timing` in the strict vocabulary with migration notes — implement in `scripts/spellRuntimeTemplateAudit/vocabulary.ts`, then rerun `npm run audit:spell-template` and prove the 28-warning family clears |
 | SRTA-002 | adjacent_follow_up | Worker C | `scripts/spellRuntimeTemplateAudit/vocabulary.ts` | Add a corresponding handoff note in the spell-system-overhaul lane for execution ownership after this project scope captures the decision |
 
 ## Global Gap Imports
@@ -178,6 +178,23 @@ Keep generated noise, full run logs, and temporary CI/Jules/runtime artifacts ou
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
 | Should recurring-mechanics labels be added to strict vocabulary or handled in a separate schema migration slice? | Affects template debt, validator behavior, and scope of spell-system-overhaul follow-through | Worker C | next active slice |
+
+### Decision (2026-06-10) — SRTA-001
+
+The question above is resolved: **register `Recurring Mechanics` and
+`Recurring Mechanic Timing` in the strict template vocabulary, with migration
+notes** (not a separate deferred migration slice).
+
+- Decider: Remy (project owner), batched decision session 2026-06-10.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D22); local
+  record: `docs/projects/scripts-spell-runtime-template-audit/DECISIONS.md` D2.
+- Status: decision recorded 2026-06-10; implementation lane open — add both
+  labels to `scripts/spellRuntimeTemplateAudit/vocabulary.ts` with migration
+  notes, rerun `npm run audit:spell-template`, and confirm the 28
+  `structured-unregistered-label` warnings clear. SRTA-002 (spell-system-overhaul
+  handoff note) follows once the registration lands.
+- Not covered by this decision: the project's standalone-vs-routing review
+  (merge-candidate lifecycle) remains open.
 
 ## Resume Path For A Cold Agent
 

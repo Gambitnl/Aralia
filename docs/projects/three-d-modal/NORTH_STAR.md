@@ -5,13 +5,13 @@ slug: three-d-modal
 category: active project
 main_category: "Interface & Experience"
 subcategory: "UI Shell & Components"
-status: human-review-required
-last_updated: 2026-06-08
+status: merged-reference
+last_updated: 2026-06-10
 confidence: unknown
 evidence: "docs/projects/three-d-modal/TRACKER.md; docs/projects/three-d-modal/GAPS.md"
-gap_signal: present
+gap_signal: present (open gaps now route through docs/projects/world-3d-ui)
 protocol: living-project
-next_step: Human review should confirm whether ThreeD Modal remains a separate UX entrypoint owner or merges with World 3D UI before worker assignment.
+next_step: "Merged into World 3D UI (D5, 2026-06-10): World 3D UI is the single owner of all 3D entrypoints (modal launch, phase transition, close/focus policy). Route forward work through docs/projects/world-3d-ui; this folder is merged-reference."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -29,16 +29,16 @@ completed_verification:
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: human-review-required
-deprecation_confidence: weak
-deprecation_reason: possible_overlap_with_world_3d_ui_entrypoint_work
-canonical_owner: "pending decision; possible relation to docs/projects/world-3d-ui"
-human_decision_required: "yes"
+lifecycle_status: merged-reference
+deprecation_confidence: confirmed
+deprecation_reason: merged_into_world_3d_ui_per_D5_2026-06-10
+canonical_owner: "docs/projects/world-3d-ui"
+human_decision_required: "no"
 ---
 # ThreeD Modal North Star
 
-Status: human-review-required
-Last updated: 2026-06-08
+Status: merged-reference (decision recorded 2026-06-10; merged into World 3D UI)
+Last updated: 2026-06-10
 
 ## Dashboard Card Schema
 
@@ -46,22 +46,40 @@ Last updated: 2026-06-08
 |---|---|
 | Project | Three D Modal |
 | Slug | three-d-modal |
-| Category | active project |
-| Status | human-review-required |
+| Category | merged-reference |
+| Status | merged-reference (merged into World 3D UI, D5 2026-06-10) |
 | Confidence | unknown |
 | Evidence | docs/projects/three-d-modal/TRACKER.md; docs/projects/three-d-modal/GAPS.md |
-| Gap signal | present |
+| Gap signal | present (open gaps now route through docs/projects/world-3d-ui) |
 | Protocol | living-project |
-| Next step | Human review should confirm whether ThreeD Modal remains a separate UX entrypoint owner or merges with World 3D UI before worker assignment. |
+| Next step | Merged into World 3D UI (D5, 2026-06-10): route forward 3D-entrypoint work through docs/projects/world-3d-ui; keep this folder as merged-reference. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh |
 | Last proof | 2026-06-05 docs refresh |
 | Workflow gaps reviewed | 2026-06-08 |
-| Lifecycle status | human-review-required |
-| Deprecation confidence | weak |
-| Deprecation reason | possible_overlap_with_world_3d_ui_entrypoint_work |
-| Canonical owner | pending decision; possible relation to docs/projects/world-3d-ui |
-| Human decision required | yes |
+| Lifecycle status | merged-reference |
+| Deprecation confidence | confirmed |
+| Deprecation reason | merged_into_world_3d_ui_per_D5_2026-06-10 |
+| Canonical owner | docs/projects/world-3d-ui |
+| Human decision required | no (merge decision recorded 2026-06-10) |
+
+## Decision (2026-06-10): Merged into World 3D UI
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D5 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`):
+
+- **ThreeD Modal merges into World 3D UI.** `docs/projects/world-3d-ui` becomes the
+  single owner of all 3D entrypoints: modal launch, phase transition, and close/focus
+  policy.
+- **These docs become merged-reference.** All content below is preserved as the
+  implementation record of the ThreeD modal surface (`src/components/ThreeDModal/*`,
+  its `GameModals`/`SubmapPane` entry paths, and state wiring), but forward work —
+  including the open gaps in `GAPS.md` (G1/G2/G4 entry/close/movement contracts,
+  CMA-G14 split routing) — is owned and scheduled through World 3D UI.
+- The "should this merge with World 3D UI" review question that held this project at
+  `human-review-required` is thereby closed.
+
+Status: decision recorded 2026-06-10; lifecycle is merged-reference.
 
 ## Why This Project Exists
 
@@ -210,6 +228,7 @@ Keep durable intent, decisions, and unresolved gaps here. Do not move test logs,
 3. Read `docs/projects/three-d-modal/GAPS.md`.
 4. Verify linked runtime files in `src/components/ThreeDModal`, `src/components/layout/GameModals.tsx`, `src/components/Submap/SubmapPane.tsx`, and `src/state`.
 5. Continue from the highest-priority open gap.
+6. Update 2026-06-10: this project is merged-reference (D5). Do not pick up forward work from here — route it through `docs/projects/world-3d-ui`, which now owns all 3D entrypoint contracts.
 
 
 ## Cold-Start Gap Routing

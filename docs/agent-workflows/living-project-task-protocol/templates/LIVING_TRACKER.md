@@ -31,5 +31,6 @@ Last updated: <YYYY-MM-DD>
 - Update it when implementation changes the current state.
 - Every active, waiting, or blocked row needs owner, last updated date, evidence
   or next proof, and next action.
-- Record new gaps here or link the owning subsystem tracker.
+- Record new gaps and source-backed expansion opportunities here or link the
+  owning subsystem tracker.
 - Keep raw process artifacts out unless a concise summary helps future work.

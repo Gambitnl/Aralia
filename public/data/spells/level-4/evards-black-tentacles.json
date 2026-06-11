@@ -149,7 +149,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 3d6 Bludgeoning damage on the row's Strength save resolution; the current row records no success-side damage reduction.",
       "conditionalEndings": []
     },
     {
@@ -223,7 +223,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Restrained unless the target succeeds on a Strength save for 1 minute; current escape-check metadata is preserved.",
       "conditionalEndings": []
     },
     {

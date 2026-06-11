@@ -178,8 +178,13 @@
         },
         "depositDistance": 0
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creates a 20-foot-radius obscuring fog area within 120 feet, with radius increasing by 20 feet for each slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "obscurement",
+        "terrain-control",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

@@ -146,8 +146,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": "1d6 at level 1, 2d6 at level 5, 3d6 at level 11, 4d6 at level 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "One target within 60 feet makes an Intelligence save against 1d6 Psychic damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "psychic-damage",
+        "intelligence-save",
+        "cantrip-scaling"
+      ]
     },
     {
       "type": "UTILITY",

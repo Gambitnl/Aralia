@@ -171,6 +171,31 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
   // it can be exported later.
   // ============================================================================
 
+  const buildLoadedPremadeMember = (
+    summary: PremadeCharacterSummary,
+    character: PlayerCharacter
+  ): TempPartyMember => {
+    // Give each loaded premade a fresh party ID so roster adds never collide
+    // with existing save data or with other loaded characters.
+    const newId = generateId();
+    const loadedCharacter = { ...character, id: newId };
+
+    // Keep the full character object and its source filename together. The full
+    // object preserves custom stats/gear/spells, while the filename lets the UI
+    // hide premades that have already been added during this edit session.
+    loadedPremadeCharactersRef.current.set(newId, loadedCharacter);
+    loadedPremadeFilenamesRef.current.set(newId, summary.filename);
+
+    // Return the lightweight row PartyManager edits while the full object stays
+    // available for the save path above.
+    return {
+      id: newId,
+      name: loadedCharacter.name,
+      level: loadedCharacter.level || 1,
+      classId: loadedCharacter.class?.id || 'fighter',
+    };
+  };
+
   const handleLoadPremade = async (summary: PremadeCharacterSummary) => {
     setIsLoadingPremade(true);
     setStatusMessage(null);
@@ -178,21 +203,9 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
     const character = await loadPremadeCharacter(summary.filename);
 
     if (character) {
-      // Give it a fresh ID so it doesn't collide with existing party members
-      const newId = generateId();
-      character.id = newId;
-
-      // Store the full character data for potential export
-      loadedPremadeCharactersRef.current.set(newId, character);
-      loadedPremadeFilenamesRef.current.set(newId, summary.filename);
-
-      // Add to the editable party list
-      setEditableParty(prev => [...prev, {
-        id: newId,
-        name: character.name,
-        level: character.level || 1,
-        classId: character.class?.id || 'fighter',
-      }]);
+      // Add to the editable party list using the same full-data preservation
+      // path that the bulk roster action uses.
+      setEditableParty(prev => [...prev, buildLoadedPremadeMember(summary, character)]);
 
       setStatusMessage(`✓ Loaded ${summary.name}`);
     } else {
@@ -203,6 +216,47 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
     // Keep the picker open after an add so a developer can assemble a full test
     // party from the premade roster without reopening the menu for each member.
     // The selected premade still disappears immediately via availablePremadeCharacters.
+  };
+
+  const handleLoadAllPremades = async () => {
+    // Snapshot the currently available roster before loading starts. This keeps
+    // the button's meaning stable even though each loaded character becomes
+    // unavailable after it is added.
+    const rosterToLoad = [...availablePremadeCharacters];
+
+    if (rosterToLoad.length === 0 || isLoadingPremade) {
+      return;
+    }
+
+    setIsLoadingPremade(true);
+    setStatusMessage(null);
+
+    // Load each premade through the same service used by individual roster
+    // cards. Successful loads are batched into one party update; failures are
+    // reported without blocking the successful characters.
+    const loadedMembers: TempPartyMember[] = [];
+    let failedCount = 0;
+
+    for (const summary of rosterToLoad) {
+      const character = await loadPremadeCharacter(summary.filename);
+      if (character) {
+        loadedMembers.push(buildLoadedPremadeMember(summary, character));
+      } else {
+        failedCount += 1;
+      }
+    }
+
+    if (loadedMembers.length > 0) {
+      setEditableParty(prev => [...prev, ...loadedMembers]);
+    }
+
+    if (failedCount > 0) {
+      setStatusMessage(`✗ Loaded ${loadedMembers.length} premade characters; ${failedCount} failed.`);
+    } else {
+      setStatusMessage(`✓ Loaded ${loadedMembers.length} premade characters`);
+    }
+
+    setIsLoadingPremade(false);
   };
 
   const activePremadeFilenames = new Set(
@@ -269,13 +323,25 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
             <h3 className="text-sm uppercase tracking-wider text-amber-400 font-bold">
               📦 Premade Characters
             </h3>
-            <button
-              onClick={() => setShowPremadePicker(!showPremadePicker)}
-              disabled={availablePremadeCharacters.length === 0 || isLoadingPremade}
-              className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-            >
-              {isLoadingPremade ? 'Loading...' : showPremadePicker ? 'Hide Roster' : `Browse (${availablePremadeCharacters.length})`}
-            </button>
+            <div className="flex items-center gap-2">
+              {showPremadePicker && availablePremadeCharacters.length > 0 && (
+                <button
+                  onClick={handleLoadAllPremades}
+                  disabled={isLoadingPremade}
+                  aria-label="Add All Premade Characters"
+                  className="px-3 py-1.5 bg-sky-700 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg shadow transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+                >
+                  + Add All
+                </button>
+              )}
+              <button
+                onClick={() => setShowPremadePicker(!showPremadePicker)}
+                disabled={availablePremadeCharacters.length === 0 || isLoadingPremade}
+                className="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg shadow transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+              >
+                {isLoadingPremade ? 'Loading...' : showPremadePicker ? 'Hide Roster' : `Browse (${availablePremadeCharacters.length})`}
+              </button>
+            </div>
           </div>
 
           {/* The premade character picker — shows cards for each available character */}

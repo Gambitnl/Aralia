@@ -62,6 +62,25 @@ const requiredSchemaFields = [
   'canonical_owner',
   'human_decision_required',
 ];
+const requiredPromptFrontmatterFields = [
+  'schema_version',
+  'handoff_type',
+  'project',
+  'slug',
+  'status',
+  'last_updated',
+  'iteration',
+  'source_agent',
+  'target_agent',
+  'runtime_surface',
+  'certainty',
+  'workflow',
+  'workflow_gaps',
+  'dashboard_schema',
+  'north_star',
+  'tracker',
+  'gaps',
+];
 const requiredPromptNeedles = [
   'docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md',
   'docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md',
@@ -72,6 +91,17 @@ const requiredPromptNeedles = [
   'Required End State For This Iteration',
   'agent_comments',
 ];
+const requiredTrackerSections = [
+  'Status Vocabulary',
+  'Active Task Queue',
+  'Gap Log',
+  'Update Rules',
+];
+const requiredGapSections = [
+  'Gap Log',
+  'Classification Reference',
+  'Update Rules',
+];
 
 // ============================================================================
 // Small Markdown/YAML Readers
@@ -81,6 +111,11 @@ const requiredPromptNeedles = [
 // ============================================================================
 
 const readText = (filePath) => (fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '');
+const stripBom = (content) => content.replace(/^\uFEFF/, '');
+const hasSection = (content, heading) => {
+  const escapedHeading = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp('^##\\s+' + escapedHeading + '\\s*$', 'm').test(stripBom(content));
+};
 
 const readFrontmatter = (content) => {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -126,23 +161,67 @@ const projectDirs = fs.existsSync(projectsRoot)
 
 const results = projectDirs.map((slug) => {
   const projectDir = path.join(projectsRoot, slug);
-  const northStar = readText(path.join(projectDir, 'NORTH_STAR.md'));
-  const prompt = readText(path.join(projectDir, 'COLD_START_AGENT_PROMPT.md'));
+  const northStar = stripBom(readText(path.join(projectDir, 'NORTH_STAR.md')));
+  const tracker = stripBom(readText(path.join(projectDir, 'TRACKER.md')));
+  const gaps = stripBom(readText(path.join(projectDir, 'GAPS.md')));
+  const prompt = stripBom(readText(path.join(projectDir, 'COLD_START_AGENT_PROMPT.md')));
   const frontmatter = readFrontmatter(northStar);
+  const promptFrontmatter = readFrontmatter(prompt);
   const missingDocs = requiredDocs.filter((doc) => !fs.existsSync(path.join(projectDir, doc)));
   const missingSchemaFields = requiredSchemaFields.filter((field) => !(field in frontmatter));
+  const missingPromptFrontmatter = requiredPromptFrontmatterFields.filter((field) => !(field in promptFrontmatter));
   const missingPromptNeedles = requiredPromptNeedles.filter((needle) => !prompt.includes(needle));
+  const missingTrackerContract = [
+    ...(!/^# .+/m.test(tracker) ? ['heading'] : []),
+    ...(!/^Status:\s*.+/im.test(tracker) ? ['Status'] : []),
+    ...(!/^Last updated:\s*\d{4}-\d{2}-\d{2}/im.test(tracker) ? ['Last updated'] : []),
+    ...requiredTrackerSections.filter((section) => !hasSection(tracker, section)),
+  ];
+  const missingGapContract = [
+    ...(!/^# .+/m.test(gaps) ? ['heading'] : []),
+    ...(!/^Status:\s*.+/im.test(gaps) ? ['Status'] : []),
+    ...(!/^Last updated:\s*\d{4}-\d{2}-\d{2}/im.test(gaps) ? ['Last updated'] : []),
+    ...requiredGapSections.filter((section) => !hasSection(gaps, section)),
+  ];
   const handoffMarkerCount = (prompt.match(/---BEGIN NEXT AGENT HANDOFF---/g) || []).length;
+  const handoffEndMarkerCount = (prompt.match(/---END NEXT AGENT HANDOFF---/g) || []).length;
+  if (handoffMarkerCount !== 1) {
+    missingPromptNeedles.push(`BEGIN marker count ${handoffMarkerCount}`);
+  }
+  if (handoffEndMarkerCount !== 1) {
+    missingPromptNeedles.push(`END marker count ${handoffEndMarkerCount}`);
+  }
+  if (!/^##\s+Iteration (Agent )?Ledger\s*$/m.test(prompt)) {
+    missingPromptNeedles.push('Iteration Ledger');
+  }
+  if (!/^Iteration:\s*\d+/im.test(prompt)) {
+    missingPromptNeedles.push('Iteration field');
+  }
+  if (promptFrontmatter.handoff_type !== 'agent_to_agent') {
+    missingPromptFrontmatter.push('handoff_type must be agent_to_agent');
+  }
+  if (!/^\d+$/.test(String(promptFrontmatter.iteration || '').trim())) {
+    missingPromptFrontmatter.push('iteration must be numeric');
+  }
+  if (promptFrontmatter.slug && promptFrontmatter.slug !== slug) {
+    missingPromptFrontmatter.push('slug must match project folder');
+  }
   const dirtyDates = ['last_updated', 'workflow_gaps_reviewed', 'last_proof'].filter((field) => isDirtyDate(frontmatter[field]));
+  const dirtyPromptDates = ['last_updated'].filter((field) => isDirtyDate(promptFrontmatter[field]));
 
   return {
     slug,
     schema_status: Object.keys(frontmatter).length === 0 ? 'missing' : missingSchemaFields.length ? 'partial' : 'valid',
     missing_schema_fields: missingSchemaFields,
     missing_required_docs: missingDocs,
+    missing_tracker_contract: missingTrackerContract,
+    missing_gap_contract: missingGapContract,
+    missing_prompt_frontmatter: missingPromptFrontmatter,
     missing_prompt_needles: missingPromptNeedles,
     dirty_date_fields: dirtyDates,
+    dirty_prompt_date_fields: dirtyPromptDates,
     handoff_marker_count: handoffMarkerCount,
+    handoff_end_marker_count: handoffEndMarkerCount,
   };
 });
 
@@ -153,8 +232,10 @@ const summary = {
   schema_partial: results.filter((result) => result.schema_status === 'partial').length,
   schema_valid: results.filter((result) => result.schema_status === 'valid').length,
   missing_required_docs: results.filter((result) => result.missing_required_docs.length).length,
-  prompt_outdated: results.filter((result) => result.missing_prompt_needles.length).length,
-  dirty_machine_dates: results.filter((result) => result.dirty_date_fields.length).length,
+  tracker_contract_outdated: results.filter((result) => result.missing_tracker_contract.length).length,
+  gap_contract_outdated: results.filter((result) => result.missing_gap_contract.length).length,
+  prompt_outdated: results.filter((result) => result.missing_prompt_needles.length || result.missing_prompt_frontmatter.length).length,
+  dirty_machine_dates: results.filter((result) => result.dirty_date_fields.length || result.dirty_prompt_date_fields.length).length,
   projects: results,
 };
 

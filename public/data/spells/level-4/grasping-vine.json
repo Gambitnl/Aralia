@@ -142,7 +142,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 4d8 Bludgeoning damage on the row's current hit-based resolution.",
       "conditionalEndings": []
     },
     {
@@ -212,7 +212,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Grappled on the row's current hit-based resolution for 1 minute; current escape-check metadata is preserved.",
       "conditionalEndings": []
     },
     {

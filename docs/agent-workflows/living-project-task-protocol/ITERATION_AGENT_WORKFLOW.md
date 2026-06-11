@@ -1,7 +1,7 @@
 # Iteration Agent Workflow
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10
 
 This is the shared workflow for every agent that performs an iteration pass on a
 living project. Project-specific context belongs in
@@ -42,13 +42,35 @@ whole workflow into every project handoff file.
 
 ## Choose The Work
 
-1. Execute the highest-value open task from `TRACKER.md` end-to-end.
-2. Implement the task unless the tracker explicitly says design-only.
-3. If you deviate from the active tracker task, justify the deviation in one
+1. Complete the scan phase before deciding that there is no work. Read the
+   handoff, workflow, North Star, tracker, gap files, global gaps, workflow
+   gaps, and required schema docs named in Start Of Iteration.
+2. If the handoff names a concrete active task, execute the highest-value open
+   task from `TRACKER.md` end-to-end.
+3. If the active task field is `None`, empty, stale, or only says to preserve
+   state, treat that as a decision gate, not a terminal stop. Pick the next
+   actionable item from this project's `GAPS.md`, `TRACKER.md`,
+   `docs/projects/GLOBAL_GAPS.md`, or `WORKFLOW_GAPS.md`; record it as the new
+   active task in `COLD_START_AGENT_PROMPT.md` before executing.
+4. If no actionable project, global, or workflow gap exists after the scan,
+   register the project as `idle` instead of repeating a scan-only iteration.
+   Refresh the tracker, North Star/frontmatter, project tracker row when
+   applicable, and cold-start handoff so the next dispatcher sees that the
+   project is alive but currently has no safe forward slice. Do not mark the
+   project `done`, `dormant`, or `paused` without explicit evidence or human
+   direction.
+5. Implement the selected task unless the tracker explicitly says design-only.
+6. If you deviate from the active tracker task, justify the deviation in one
    line and update the tracker so the next agent is not misled.
-4. Do not widen the active slice just because adjacent work is visible. Record
+7. Do not widen the active slice just because adjacent work is visible. Record
    adjacent findings as gaps or follow-ups.
-5. If the task becomes blocked by a required human/product/policy review, stop
+8. Keep an active expansion radar while executing the selected task. When a
+   source file, doc, test, proof result, or integration point reveals a
+   source-backed opportunity to widen the project later, create a follow-up in
+   the project tracker/gap file or route it to `docs/projects/GLOBAL_GAPS.md`.
+   Expansion radar does not authorize widening the current slice unless the
+   finding is classified `in_scope_now` or `support_needed_now`.
+9. If the task becomes blocked by a required human/product/policy review, stop
    forward implementation for that project and create or refresh a
    `Required Review Brief` in the project docs using the schema in
    `docs/projects/PROJECT_CARD_SCHEMA.md`. The brief is the dashboard decision
@@ -59,10 +81,30 @@ whole workflow into every project handoff file.
    isolated decision visualization page that shows "this is what I mean" before
    asking for the decision. Register that page in a `Decision Visualizations`
    table in `NORTH_STAR.md`, `TRACKER.md`, or `GAPS.md`.
-6. Once a project is marked `review-required`, `human-review-required`,
+10. Once a project is marked `review-required`, `human-review-required`,
    `policy-review-required`, or has `human_decision_required: yes`, do not
    assign it to another forward-iteration agent until the required decision is
    recorded.
+
+## Continuous Expansion Radar
+
+Every iteration agent must look for expansion opportunities while working, not
+only during closeout. Expansion opportunities are source-backed discoveries
+that could grow, preserve, or route future work, including:
+
+1. a missing capability or project slice exposed by the active task
+2. a reusable system, scaffold, adapter, test harness, or automation path
+3. an unfinished intent branch that should not be collapsed into cleanup
+4. a cross-project owner or global gap that should be routed
+5. an explicit boundary that protects the active slice from accidental
+   shrinkage or uncontrolled widening
+
+When an opportunity appears, classify it with the normal gap classifications.
+Act on `in_scope_now` and `support_needed_now` only when needed for the current
+slice. Record `adjacent_follow_up`, cross-project, and out-of-scope
+opportunities in the owning tracker, project `GAPS.md`, or
+`docs/projects/GLOBAL_GAPS.md`. If no source-backed expansion opportunity
+appears, say that in the final report; do not invent speculative work.
 
 ## Verification Standard
 
@@ -86,10 +128,18 @@ Every iteration must perform a bounded gap sweep. Check:
 5. `docs/projects/GLOBAL_GAPS.md`
 6. `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md` for
    process-level ambiguity that affects the iteration workflow itself
+7. inbound routed gaps from known routing projects, including
+   `code-modularization-audit`, architecture sweep docs, global gaps, roadmap
+   reviews, or any tracker/gap file that names this project as the destination
+   owner
+8. expansion opportunities observed while executing the task, including
+   missing capabilities, reusable systems, automation opportunities, adjacent
+   owner tasks, and scope boundaries worth preserving
 
 Record real gaps found. If fewer than two related or unrelated gaps are real,
 the final report must name the checked surfaces and state that no additional
-real gap was found. Do not invent filler gaps.
+real gap was found. Also state whether a source-backed expansion opportunity
+was found; if none was found, name the checked surfaces and do not invent one.
 
 Use the standard classifications:
 
@@ -102,6 +152,14 @@ Use the standard classifications:
 
 Each durable gap needs classification, source evidence, owning tracker or
 subsystem, owner or decision maker, next action, and next proof.
+
+If an inbound routed gap is already represented in this project's `GAPS.md`,
+acknowledge it in the sweep result and continue from the existing row. If a
+known routing project names this project as destination owner but no local row
+exists, add a stub row with the source gap ID, source tracker, classification,
+evidence, why it matters, next action, and next proof/check before closing the
+sweep. If the route is wrong, record a declined/rerouted note with rationale
+instead of silently ignoring it.
 
 ## Workflow Gap Detection
 
@@ -136,8 +194,17 @@ Before ending the iteration, update or explicitly report on:
    `docs/projects/PROJECT_CARD_SCHEMA.md`.
 2. `TRACKER.md`: task status, owner/actor, last updated date, blockers, next
    action, evidence or next proof.
-3. `GAPS.md`: opened, closed, imported, routed, or reclassified gaps.
+3. `GAPS.md`: opened, closed, imported, routed, or reclassified gaps. When this
+   iteration routes a gap to another owner project, update the destination
+   owner's `GAPS.md` with a minimal inbound stub row in the same pass. A routed
+   gap is not complete unless the owner stub exists or the closeout explains
+   why it could not be written.
 4. `COLD_START_AGENT_PROMPT.md`: next iteration handoff context.
+   If no actionable work remains, set the mission to an explicit idle handoff:
+   status `idle`, active task `None - no actionable gap found on YYYY-MM-DD`,
+   recent progress naming the scan surfaces, and next resume trigger such as
+   "resume only when a new project/global/workflow gap is registered or the
+   operator supplies a new task."
 5. `WORKFLOW_GAPS.md`: workflow-level ambiguity read, updated, or explicitly
    left unchanged because no workflow-level gap was found.
 6. Optional files when relevant:
@@ -202,15 +269,16 @@ End with a concise report covering:
    inferred
 4. verification performed or skipped
 5. bounded gap sweep surfaces checked
-6. gaps recorded
-7. workflow gaps read or updated
-8. dashboard schema fields updated
-9. required docs accounted for
-10. optional docs touched, skipped, or not present
-11. documentation compaction performed or not needed
-12. agent comments added or intentionally left empty
-13. assumptions made
-14. next safe resume action
+6. expansion opportunities found, routed, or explicitly not found
+7. gaps recorded
+8. workflow gaps read or updated
+9. dashboard schema fields updated
+10. required docs accounted for
+11. optional docs touched, skipped, or not present
+12. documentation compaction performed or not needed
+13. agent comments added or intentionally left empty
+14. assumptions made
+15. next safe resume action
 
 Before replacing the handoff, update the compact iteration agent ledger in
 `COLD_START_AGENT_PROMPT.md`. Add exactly one row for the completed iteration

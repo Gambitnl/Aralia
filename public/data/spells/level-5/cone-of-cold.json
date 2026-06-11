@@ -149,7 +149,7 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 8d8 Cold damage on a failed Constitution save, or half as much on success; slot scaling adds +1d8.",
       "conditionalEndings": []
     }
   ],

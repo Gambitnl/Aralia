@@ -139,8 +139,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a melee hit, the target takes an extra 2d8 Radiant damage, increasing by 1d8 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "radiant-damage",
+        "melee-hit",
+        "slot-scaling"
+      ]
     },
     {
       "type": "DAMAGE",
@@ -204,8 +209,12 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Adds the modeled extra 1d8 Radiant damage rider on qualifying melee smite hits.",
+      "conditionalEndings": [],
+      "tags": [
+        "radiant-rider",
+        "melee-hit"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

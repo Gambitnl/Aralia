@@ -151,7 +151,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Charmed unless the target succeeds on a Wisdom save for 60 minutes.",
       "conditionalEndings": [
         {
           "trigger": "certain_death_activity_requested",

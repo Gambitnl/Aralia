@@ -1,4 +1,4 @@
-# Crime UI Tracker
+# Crime UI Living Tracker
 
 Status: active
 Last updated: 2026-05-31
@@ -29,3 +29,11 @@ Last updated: 2026-05-31
 | G2 | active | support_needed_now | Worker B | `docs/projects/crime-ui/GAPS.md` | docs pass + code scan | Fence sale contract is UI->SELL_ITEM generic | `src/components/Crime/ThievesGuild/FenceInterface.tsx`, `src/state/actionTypes.ts`, `src/state/reducers/crimeReducer.ts` | Core criminal consequence model cannot be enforced from UI currently | Decide whether to keep generic action or add UI-specific crime transaction action | confirm behavior tests around heat/bounty side-effects |
 | G3 | active | in_scope_now | Worker B | `docs/projects/crime-ui/GAPS.md` | docs pass + code scan | Heist approach/intel shape is enforced via local cast in planning modal | `src/components/Crime/ThievesGuild/HeistPlanningModal.tsx`, `src/state/reducers/crimeReducer.ts`, `src/types/crime/index.ts` | Fragile type boundary can block stable UI-system editing | Align reducer/UI plan types and remove casts in UI component | update reducer and type test coverage |
 | G4 | active | support_needed_now | Worker B | `docs/projects/crime-ui/GAPS.md` | docs pass + scan | Safehouse service source-of-truth is split between system and component mock list | `src/systems/crime/ThievesGuildSystem.ts`, `src/components/Crime/ThievesGuild/ThievesGuildSafehouse.tsx` | Service names/rank/cost can drift and break discoverability | Choose one service authority for UI rendering | add unit or snapshot check for service list consistency |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

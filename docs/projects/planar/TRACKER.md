@@ -45,4 +45,3 @@ Last updated: 2026-06-05
 - The gap log is the operational queue for the next implementation slice.
 - `NORTH_STAR.md` carries the durable resume path and the dashboard card
   schema.
-

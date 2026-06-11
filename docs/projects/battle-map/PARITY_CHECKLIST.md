@@ -1,7 +1,7 @@
 # Battle Map Parity Checklist
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10
 
 This checklist is the durable proof gate for the 2D and 3D battle-map renderers.
 It records the shared state surfaces that must stay aligned before any future
@@ -16,6 +16,9 @@ renderer behavior expansion.
   highlights from the same shared state.
 - `useBattleMapGeneration.ts` remains hook-shaped in filename only; the naming
   contract is documented separately and is not part of this checklist gate.
+- Visual fallback substitutes are not parity. A placeholder, alternate renderer,
+  hidden error boundary, or degraded visual mode fails this gate if it replaces
+  the intended 2D or 3D renderer under test.
 
 ## Checklist
 

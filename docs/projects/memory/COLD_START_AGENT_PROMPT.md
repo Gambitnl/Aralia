@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Memory System
+slug: memory
+status: active
+last_updated: "2026-06-09"
+iteration: 6
+source_agent: Helmholtz / gpt-5.4-mini high
+target_agent: next cold-start agent
+runtime_surface: "MCP-subagent + local foreman verification"
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/memory/NORTH_STAR.md
+tracker: docs/projects/memory/TRACKER.md
+gaps: docs/projects/memory/GAPS.md
+---
 # Memory System Cold Start Agent Handoff
 
 Status: active

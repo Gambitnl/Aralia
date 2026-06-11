@@ -1,7 +1,7 @@
 # Project Dashboard Schema
 
 Status: active
-Last updated: 2026-06-04
+Last updated: 2026-06-10
 
 This file documents how top-level Project Tracker cards get their content and
 what agents must keep current when they finish a project iteration.
@@ -166,7 +166,7 @@ Field meanings:
 | Category | Dashboard grouping/filter label. |
 | Main category | Broad dashboard bucket from `PROJECT_CATEGORY_TAXONOMY.md`. |
 | Subcategory | More granular bucket inside the main category. |
-| Status | Current project state: `active`, `planned`, `blocked`, `partial`, `done`, or a clearly explained local status. |
+| Status | Current project state: `active`, `idle`, `planned`, `blocked`, `partial`, `done`, or a clearly explained local status. Use `idle` when the project is alive but the latest required scan found no actionable project, global, or workflow gap; do not dispatch another forward iteration until a new gap or operator task appears. |
 | Last updated | Date the project docs were last intentionally refreshed. Prefer the North Star `Last updated` date. |
 | Confidence | Low/medium/high confidence in the current handoff state. |
 | Evidence | Primary durable source path for the card. |

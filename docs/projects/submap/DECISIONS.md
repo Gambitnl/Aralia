@@ -1,7 +1,7 @@
 # Submap Decisions
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 ## Decision Log
 
@@ -72,3 +72,46 @@ Rationale:
   extracting still-relevant behavior and deciding what replaces the surface.
 - Sub-agents may work on extraction/inventory/proof slices, but must not delete
   systems or replace the UI components until proof and owner decisions exist.
+
+### D-005: UI-Independent Action Contract Module
+
+Date: 2026-06-10
+
+Decision: Centralize quick-travel and inspect payload assembly in
+`src/utils/spatial/submapActionContracts.ts` with focused Vitest proof.
+
+Rationale:
+
+- `SubmapPane` payload rules were embedded in click handlers, making future
+  navigation surfaces re-derive semantics from UI code.
+- Handler clamping and inspect storage-key format are now testable without
+  mounting React components.
+- SubmapPane wiring is deferred to G7 so this pass stays additive and safe.
+
+### D-006: Replacement Surface Named — Azgaar-Continuation Proc-Gen Submap System (G5)
+
+Date: 2026-06-10
+
+Decision: Decided by Remy (project owner) in the 2026-06-10 batched decision
+session. The replacement surface for local navigation is the **new
+Azgaar-continuation proc-gen submap system** from the June 2026 campaign:
+Azgaar-based generation extended below Azgaar's deepest zoom replaces the
+Submap, continuing into a 3D ground-level mode. The in-flight extraction
+contracts — G7/G8, `src/utils/spatial/submapActionContracts.ts`, and
+`docs/projects/submap/DEPENDENCY_CONTRACT.md` — are the inventory the new
+system must honor.
+
+Rationale:
+
+- The June 2026 campaign (2026-06-10 → 2026-06-22) builds a unified procedural
+  world pipeline with Azgaar as canonical; a proc-gen submap continuation of
+  that pipeline is the natural local-navigation owner. See the
+  "Context: the June 2026 campaign" section of
+  `docs/projects/DECISION_BLITZ_2026-06-10.md` (master record, D3).
+- Naming the replacement unblocks the final deprecation architecture question
+  (G5) without short-circuiting safety: extraction work continues, and
+  component deprecation still requires proof that the replacement honors the
+  inventoried contracts.
+- This resolves the review gate kept open by D-001 through D-004: the
+  "preserve before replacement" posture stands until the replacement proves
+  contract coverage.

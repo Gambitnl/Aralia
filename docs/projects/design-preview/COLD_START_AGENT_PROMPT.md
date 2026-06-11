@@ -1,7 +1,26 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Design Preview
+slug: design-preview
+status: active
+last_updated: "2026-06-10"
+iteration: 8
+source_agent: Gemini CLI
+target_agent: next cold-start agent
+runtime_surface: CLI agent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/design-preview/NORTH_STAR.md
+tracker: docs/projects/design-preview/TRACKER.md
+gaps: docs/projects/design-preview/GAPS.md
+---
 # Design Preview Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 This file is the project-specific context package and directive checklist for
 the next cold-start agent. It does not duplicate the full workflow rules. The
@@ -23,7 +42,7 @@ docs/projects/design-preview/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Design Preview
 Project folder: docs/projects/design-preview
-Iteration: 7
+Iteration: 8
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -39,10 +58,11 @@ Audit/proof: docs/projects/design-preview/AUDIT_OR_PROOF.md
 |---|---|---|---|---|---|
 | 5 | Gemini CLI | CLI agent | certain | 2026-06-08 | T2 closure, self-contained workflow update |
 | 6 | gpt-5.4-mini high | CLI agent | certain | 2026-06-09 | Source-backed lane steward map, split-readiness proof gates, and G1/G3/G4 closure |
+| 7 | Gemini CLI | CLI agent | certain | 2026-06-10 | Routine docs consistency verification and handoff update |
 
 ## Previous Agent Handoff
 
-Iteration 6 updated `NORTH_STAR.md` to include a source-backed lane steward and split-readiness map for the active Design Preview router. It closed G1, G3, and G4 in the project gap registry, corrected the large-step proof anchor to the actual `PreviewTables.test.tsx` file, and called out `PreviewMdLibrary.tsx` as a dormant helper rather than an active lane.
+Iteration 7 was a routine verification pass. It confirmed the project docs are consistent via `npm run projects:audit` and `git diff --check`. No new gaps were identified, and the project remains in a steady state. The lane steward map and split-readiness proof anchors in `NORTH_STAR.md` were preserved.
 
 ## Current Mission
 

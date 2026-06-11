@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Crafting System
+slug: crafting
+status: active
+last_updated: "2026-06-09"
+iteration: 6
+source_agent: Codex desktop foreman / gpt-5
+target_agent: next cold-start agent
+runtime_surface: desktop
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/crafting/NORTH_STAR.md
+tracker: docs/projects/crafting/TRACKER.md
+gaps: docs/projects/crafting/GAPS.md
+---
 # Crafting System Cold Start Agent Handoff
 
 Status: active

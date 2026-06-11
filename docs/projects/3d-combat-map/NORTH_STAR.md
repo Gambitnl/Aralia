@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/3d-combat-map
-gap_signal: "3 open gaps (G1/G2/G4/G6 closed; NC1 done. Open: G3 pop-out proof, G5 style policy, G7 NC2 blocked by World3D save fixture)"
+gap_signal: "5 open gaps (G1/G2/G4/G6/G8 closed; NC1 done. Open: G3 pop-out proof, G5 style policy, G7 NC2 fixture blocker, G9 character silhouette pop proof, G10 3D status/defeat readability proof)"
 protocol: living project doc set
-next_step: "Unblock NC2 (G7 — capture a 2D-exploration save fixture or add a dev hook to reach a battle-map encounter, then run nc2-combatview.mjs), or continue with the remaining G3/G5 follow-ups."
+next_step: "Unblock NC2 (G7), continue G3/G5 follow-ups, or take a bounded G9/G10 tactical readability proof slice. G7 fixture work accepted and queued 2026-06-10 (owner session, DECISION_BLITZ_2026-06-10.md 'Items converted to work'): build the reachable combat fixture (2D-exploration save + dev hook to a battle-map encounter) so G3/NC2 proofs can run."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -32,7 +32,7 @@ completed_verification:
   - docs_consistency
   - browser_visual_smoke
 last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-09
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -43,7 +43,7 @@ human_decision_required: "no"
 # 3D Combat Map North Star
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 ## Purpose
 
@@ -89,16 +89,16 @@ Project: 3D Combat Map
 Slug: 3d-combat-map
 Category: Feature/UI Projects
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 Confidence: medium
 Evidence: docs/projects/3d-combat-map
-Gap signal: 3 open gaps (G2/NC1/G4/G6 closed; G3 pop-out proof, G5 style policy, G7 blocker remain)
+Gap signal: 5 open gaps (G2/NC1/G4/G6/G8 closed; G3 pop-out proof, G5 style policy, G7 blocker, G9 character pop proof, G10 status/defeat readability proof remain)
 Protocol: living project doc set
-Next step: Run NC2 pop-out lifecycle proof, or continue with the remaining G3/G5 follow-ups.
+Next step: Run NC2 pop-out lifecycle proof, continue G3/G5 follow-ups, or take a bounded G9/G10 tactical readability proof slice.
 Required verification: docs_consistency, scoped_tests
 Completed verification: docs_consistency, scoped_tests, browser_visual_smoke
 Last proof: 2026-06-09
-Workflow gaps reviewed: 2026-06-09
+Workflow gaps reviewed: 2026-06-10
 Agent comments:
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
 Optional docs: tasks/, architecture notes, migration notes
@@ -126,6 +126,8 @@ The next implementation slice can treat the MVP boundary as stable when:
 - `CombatView` pop-out and return preserve the active render mode and lifecycle state.
 - The renderer stays inside the 60 fps target on GTX 1060+ class desktop hardware for the documented combat map size.
 - Any enabled post-processing path is explicit about its budget and stability tradeoffs.
+- Visual fallback substitutes do not satisfy MVP or proof criteria; renderer
+  failures must surface as failures, with diagnostics captured instead of hidden.
 
 Not required for MVP:
 

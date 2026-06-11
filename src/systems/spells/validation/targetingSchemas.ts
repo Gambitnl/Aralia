@@ -3,7 +3,7 @@
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
  *
- * Last Sync: 14/05/2026, 06:08:44
+ * Last Sync: 10/06/2026, 22:13:38
  * Dependents: systems/spells/validation/spellValidator.ts
  * Imports: None
  *
@@ -254,6 +254,27 @@ const AreaTargetSelection = z.object({
   notes: z.string().optional(),
 });
 
+const TargetAllocationScaling = z.object({}).passthrough();
+
+const TargetAllocation = z.object({
+  // Allocation is the final pass after normal target eligibility. It exists for
+  // spells whose affected set is not just "every valid candidate", such as a
+  // rolled pool that spends itself across eligible creatures.
+  type: z.enum(["all", "pool", "random", "choice"]),
+  pool: z.object({
+    // Pool allocation keeps the resource, dice, and ordering explicit so the
+    // runtime allocator can select targets without rereading spell prose.
+    resource: z.enum(["hp", "hit_dice"]),
+    dice: z.string(),
+    sortOrder: z.enum(["ascending", "descending"]),
+    strictLimit: z.boolean().optional(),
+    // Scaling formulas live in the broader spell contract. The targeting
+    // validator intentionally allows the object through here so future data can
+    // preserve the formula before the allocator's dice builder catches up.
+    scaling: TargetAllocationScaling.optional(),
+  }).optional(),
+});
+
 const TargetInstanceAllocation = z.object({
   // Magic Missile creates several assignable units that are not the same as
   // several independent spell casts. Keeping this in targeting preserves how the
@@ -323,6 +344,10 @@ export const Targeting = z.object({
   shape: z.enum(["sphere", "cone", "cube", "line", "cylinder"]).optional(),
   radius: z.number().optional(),
   areaTargetSelection: AreaTargetSelection.optional(),
+  // Allocation is separate from area selection: the area or UI picks the
+  // candidate list first, then allocation decides which valid candidates are
+  // actually affected.
+  allocation: TargetAllocation.optional(),
   instanceAllocation: TargetInstanceAllocation.optional(),
   targetCluster: TargetCluster.optional(),
   perTargetChoice: PerTargetChoice.optional(),

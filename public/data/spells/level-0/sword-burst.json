@@ -150,8 +150,13 @@
         "bonusPerLevel": "+1d6",
         "customFormula": "1d6 at level 1, 2d6 at level 5, 3d6 at level 11, 4d6 at level 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures in the 5-foot burst make a Dexterity save against 1d6 Force damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "force-damage",
+        "dexterity-save",
+        "area"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

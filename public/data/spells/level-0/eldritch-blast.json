@@ -161,8 +161,14 @@
         "bonusPerLevel": "+1 beam",
         "customFormula": "1 beam at level 1, 2 beams at level 5, 3 beams at level 11, 4 beams at level 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Each beam that hits deals 1d10 Force damage; the number of beams scales to 2 at level 5, 3 at level 11, and 4 at level 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "force-damage",
+        "beam",
+        "multi-target",
+        "cantrip-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

@@ -137,8 +137,8 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "You banish a creature that you can see within range into a labyrinthine demiplane. The target remains there for the duration or until it escapes the maze. The target can take a Study action to try to escape. When it does so, it makes a DC 20 Intelligence (Investigation) check. If it succeeds, it escapes, and the spell ends. When the spell ends, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space.",
-      "utilityType": "other",
+      "description": "Banishes one visible creature into a labyrinth demiplane until concentration ends or the target succeeds on a DC 20 Intelligence (Investigation) Study action to escape.",
+      "utilityType": "control",
       "grantedActions": [],
       "attackAugments": [],
       "controlOptions": [
@@ -182,7 +182,13 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "banishment",
+        "demiplane",
+        "intelligence-check",
+        "single-target-control"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -192,5 +198,10 @@
   },
   "description": "You banish a creature that you can see within range into a labyrinthine demiplane. The target remains there for the duration or until it escapes the maze. The target can take a Study action to try to escape. When it does so, it makes a DC 20 Intelligence (Investigation) check. If it succeeds, it escapes, and the spell ends. When the spell ends, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "conjuration",
+    "banishment",
+    "demiplane",
+    "concentration"
+  ]
 }

@@ -151,7 +151,7 @@
         "bonusPerLevel": "+1d12",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 3d12 Bludgeoning damage on a failed Dexterity save, or half as much on success; slot scaling adds +1d12.",
       "conditionalEndings": []
     },
     {

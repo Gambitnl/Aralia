@@ -1,8 +1,9 @@
 # Combat System Gap Registry
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (G30 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -36,7 +37,8 @@ Last updated: 2026-06-09
 | G27 | done | adjacent_follow_up | Worker A | `src/systems/combat/reactions/` | OpportunityAttackSystem reach inspection (2026-06-02) | `OpportunityAttackSystem` now checks distinct threatened reach thresholds per weapon/ability instead of collapsing everything into one maximum reach. | `src/systems/combat/reactions/OpportunityAttackSystem.ts`, `src/systems/combat/__tests__/OpportunityAttackSystem.test.ts` | A character wielding both a 5ft reach weapon and a 10ft reach weapon now provokes at the correct boundary for each threshold, instead of waiting for the maximum reach alone. | Completed and verified with focused 5ft and 10ft threshold tests. | Verified by `OpportunityAttackSystem.test.ts` cases covering both 5ft and 10ft reach boundaries. |
 | G28 | done | adjacent_follow_up | Codex | `src/hooks/combat/` | G22 implementation (2026-06-03) | `handleCharacterUpdateWrapped` reads `characters` (React prop) to find original state, but within a single synchronous batch (e.g., `initializeCombat`), the prop is stale. If two concentrating characters both drop to 0 HP in the same batch, the second cleanup pass uses the same stale `characters` array and may redundantly re-clean already-cleaned ally effects. | `src/hooks/combat/useTurnManager.ts:100,123` | Can produce redundant `onCharacterUpdate` calls for allies and double-log concentration loss messages in edge-case multi-drop scenarios. | Refactor `handleCharacterUpdateWrapped` to track already-cleaned effect IDs across calls within a batch (e.g., via a ref), or validate the ally's current effects before cleaning. | Verified with a focused same-batch regression in `useTurnManager.deathSaves.test.ts`; only one ally cleanup update fires when two concentrating characters drop together. |
 | G29 | done | adjacent_follow_up | Codex | `src/hooks/combat/`, `src/commands/effects/` | G22 implementation (2026-06-03) | Concentration-break on 0 HP existed in two separate code paths: `handleCharacterUpdateWrapped` (hook callback path for scheduled/tile damage) and `DamageCommand` (command path for attack/spell damage). These paths now have a parity test to guarantee equivalent cleanup. | `src/hooks/combat/useTurnManager.ts:103-147`, `src/commands/effects/DamageCommand.ts:318-335` | If one path is updated without the other, concentration cleanup behavior can diverge silently between attack damage and scheduled/environmental damage. | Keep a cross-path integration test that verifies ally cleanup, light cleanup, and concentration-loss messaging are equivalent between the two paths. | `ConcentrationBreakPathParity` in `src/commands/effects/__tests__/ConcentrationBreakPathParity.test.ts` compares outputs across both paths for the same setup. |
-| G30 | blocked | blocked_human_decision | human/product owner + combat/layout owners | `docs/projects/code-modularization-audit` CMA-G4 | Code modularization audit routing | `useAbilitySystem.ts` and `useCombatEngine.ts` are large orchestration surfaces and should not be split before command/combat ownership and App-shell boundaries are explicit. | `src/hooks/useAbilitySystem.ts`; `src/hooks/combat/engine/useCombatEngine.ts`; `src/App.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G4 | These hooks bridge spells, commands, combat state, and App routing; a split can change runtime semantics. | Keep this modularization route review-gated until owner-approved test boundaries and preservation notes exist. | Split plan names `useAbilitySystem` and `useCombatEngine` tests plus App/provider invariants before code movement. |
+| G30 | active | support_needed_now | Code Modularization Audit (plan) + combat owner (invariants/tests) | `docs/projects/code-modularization-audit` CMA-G4 | Code modularization audit routing | `useAbilitySystem.ts` and `useCombatEngine.ts` are large orchestration surfaces and should not be split before command/combat ownership and App-shell boundaries are explicit. Decision recorded 2026-06-10 (DECISION_BLITZ D6): Code Modularization Audit owns the split plan; Combat contributes required invariants and tests before code movement. | `src/hooks/useAbilitySystem.ts`; `src/hooks/combat/engine/useCombatEngine.ts`; `src/App.tsx`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G4; `docs/projects/DECISION_BLITZ_2026-06-10.md` D6 | These hooks bridge spells, commands, combat state, and App routing; a split can change runtime semantics. | Combat lane open: write the combat invariants and focused regression tests (rules, action sequencing, reactions, combat log) and hand them to the Code Modularization Audit split plan; no code movement in a Combat pass. | Split plan names `useAbilitySystem` and `useCombatEngine` tests plus App/provider invariants before code movement. |
+| CMA-G18 | not_started | adjacent_follow_up | combat owner | `docs/projects/code-modularization-audit/GAPS.md` CMA-G18 | Code modularization audit routing | `useActionExecutor.ts` (~753 lines), `CombatView.tsx` (~619 lines), `EncounterModal.tsx` (~586 lines), and `combat.ts` types (~704 lines) are co-located enough that behavior can drift if modularized without end-to-end combat proof. | `src/hooks/combat/useActionExecutor.ts`; `src/components/Combat/CombatView.tsx`; `src/components/Combat/EncounterModal.tsx`; `src/types/combat.ts`; `docs/projects/code-modularization-audit/GAPS.md` CMA-G18 | A split without turn-flow, log-state, and encounter-generation proof can silently break combat. Blocked on G30 (useAbilitySystem/useCombatEngine ownership decision) — G30 resolved 2026-06-10 (DECISION_BLITZ D6), so this route is no longer decision-blocked. | Accept or defer the inbound CMA-G18 route under the D6 model (Code Modularization Audit owns split plans; Combat contributes invariants/tests); if accepting, follow a bounded split plan with combat scenario replay or smoke proof. | Owner gap row exists and CMA-G18 status is updated to reflect acceptance or deferral. |
 
 ## Global Gap Routing Notes
 
@@ -46,3 +48,22 @@ Last updated: 2026-06-09
 
 - The architecture doc `docs/architecture/domains/combat.md` still carries some historical mechanical gap text. The death-save note is stale now that code/tests cover the slice; treat any remaining omissions there as candidates for fresh evidence, not as current state.
 - The `docs/architecture/COMBAT_MAP_ENGINE.md` and `docs/architecture/domains/battle-map.md` split show combat execution ownership vs rendering ownership; no immediate gap is claimed here beyond ownership boundaries.
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

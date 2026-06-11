@@ -148,8 +148,14 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures in the 10-foot emanation make a Strength save against 2d6 Necrotic damage, taking half damage on a success; damage increases by 1d6 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "necrotic-damage",
+        "strength-save",
+        "area",
+        "slot-scaling"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -226,8 +232,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures that fail the Strength save have reactions suppressed for 1 round.",
+      "conditionalEndings": [],
+      "tags": [
+        "reaction-suppression",
+        "strength-save",
+        "area-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

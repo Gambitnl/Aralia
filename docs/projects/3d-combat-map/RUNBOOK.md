@@ -1,7 +1,7 @@
 # 3D Combat Map Runbook
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10
 
 Use this file for repeatable project checks and safe handoff operations.
 
@@ -36,6 +36,22 @@ npm run projects:audit
 git diff --check
 ```
 
+## Browser Proof Constraints
+
+- Treat SwiftShader/browser-renderer details as part of any 3D visual proof. Record
+  whether the capture used hardware GL, SwiftShader, SwANGLE, or another explicit
+  software path when the harness exposes that information.
+- Do not depend on Chromium silently falling back to SwiftShader. If a CI or
+  headless check needs software rendering, pin the CI image or launch flags in the
+  harness and note them in `AUDIT_OR_PROOF.md`.
+- Prefer shader-local material/geometry changes over new full-screen postprocess
+  passes unless the proof includes a console sweep and the runtime profile is
+  documented.
+- Do not use visual fallback substitutes for proof. A placeholder scene, alternate
+  2D render, simplified renderer, hidden error boundary, or degraded visual mode
+  means the visual proof failed unless the task explicitly is to verify the
+  diagnostic error/loading message itself.
+
 ## Expected Outputs
 
 | Check | Location | Expected state |
@@ -55,4 +71,3 @@ git diff --check
 - Keep durable proof updates in `AUDIT_OR_PROOF.md`.
 - Keep temporary run logs and harness outputs outside this project folder unless
   explicitly copied into durable handoff notes.
-

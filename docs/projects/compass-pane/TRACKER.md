@@ -1,4 +1,4 @@
-# Compass Pane Tracker
+# Compass Pane Living Tracker
 
 Status: active
 Last updated: 2026-06-08
@@ -26,3 +26,9 @@ Last updated: 2026-06-08
 - Update this tracker before feature-scoped work starts.
 - Keep active, waiting, or blocked rows current with owner, evidence, next action, and proof point.
 - Keep unresolved durable gaps in `docs/projects/compass-pane/GAPS.md`.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |

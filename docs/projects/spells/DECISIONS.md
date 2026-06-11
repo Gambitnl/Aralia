@@ -26,3 +26,25 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: Close G2 with no current canonical allocation row
+
+Date: 2026-06-10
+
+Owner: working agent
+
+Decision point:
+G2 asked whether target allocation should stay open until Sleep, Color Spray, or another HP-pool spell row uses `targeting.allocation`.
+
+Decision made:
+Close G2 as done for the current corpus. The target allocation bridge remains implemented and tested, but no current canonical spell JSON row contains `targeting.allocation`, so there is no honest spell-data migration to perform in this slice.
+
+Rationale and evidence:
+- A corpus scan of `public/data/spells` found 0 spell rows with `targeting.allocation`.
+- `public/data/spells/level-1/sleep.json` currently models Sleep as caster-chosen area targets, not an HP-pool allocation row.
+- `public/data/spells/level-1/color-spray.json` currently models Color Spray as a Constitution-save Blinded cone, not an HP-pool allocation row.
+- Target allocation bridge tests passed on 2026-06-10: `TargetAllocator.test.ts`, `TargetResolver.test.ts`, and `targetingAllocation.test.ts`.
+- Spell corpus validation passed after the Color Spray description fill: 459 valid / 0 invalid.
+
+Reopen condition:
+Reopen G2 or create a successor gap only when a concrete canonical spell row needs pool allocation semantics again, or when product/rules direction explicitly requires converting a spell to `targeting.allocation`.

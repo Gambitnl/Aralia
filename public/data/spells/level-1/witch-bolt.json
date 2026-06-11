@@ -143,8 +143,13 @@
         "bonusPerLevel": "+1d12",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, one target takes 2d12 Lightning damage, increasing by 1d12 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "lightning-damage",
+        "ranged-hit",
+        "slot-scaling"
+      ]
     },
     {
       "type": "DAMAGE",

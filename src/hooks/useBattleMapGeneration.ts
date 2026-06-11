@@ -61,12 +61,38 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededR
         return array;
     };
 
+    // Tactical spawn score (battle-map G6 / GOAL #64): spawns should use the
+    // terrain — high ground and cover-adjacent tiles beat open ground. Scored
+    // candidates are stable-sorted best-first AFTER the seeded shuffle, so the
+    // shuffle remains the tiebreak among equal scores and same-seed runs stay
+    // deterministic. Wedged pockets (nearly enclosed tiles) are penalized so
+    // "near cover" never degrades into "stuck in a hole".
+    const tacticalScore = (tile: BattleMapTile): number => {
+        const { x, y } = tile.coordinates;
+        let coverNeighbors = 0;
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                if (dx === 0 && dy === 0) continue;
+                const n = mapData.tiles.get(`${x + dx}-${y + dy}`);
+                if (n && (n.blocksMovement || n.blocksLoS || n.providesCover)) coverNeighbors++;
+            }
+        }
+        const coverScore =
+            coverNeighbors === 0 ? 0 :          // open ground
+            coverNeighbors <= 2 ? 3 :           // flanking a rock/tree — ideal
+            coverNeighbors <= 4 ? 1 :           // cramped but covered
+            -2;                                 // wedged pocket — avoid
+        return tile.elevation * 2 + coverScore + (tile.providesCover ? 1 : 0);
+    };
+
     // Spread characters within their zone: claim a tile only if no already-claimed
     // tile is within MIN_SEP (Chebyshev). MIN_SEP=2 gives a visible formation
     // (≥2-tile gaps) instead of a clump; fallback fills if the zone is too tight.
     const MIN_SEP = 2;
     const spreadTiles = (tiles: BattleMapTile[], count: number): BattleMapTile[] => {
-        const shuffled = shuffle([...tiles]);
+        // Seeded shuffle first (tiebreak), then stable sort by tactical score so
+        // the spread pass claims the best terrain positions first.
+        const shuffled = shuffle([...tiles]).sort((a, b) => tacticalScore(b) - tacticalScore(a));
         const occupied = new Set<string>();
         const result: BattleMapTile[] = [];
         const fallback: BattleMapTile[] = [];

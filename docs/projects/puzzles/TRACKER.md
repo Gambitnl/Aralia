@@ -1,7 +1,7 @@
 # Puzzles System Living Tracker
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (PZ-007 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Status Vocabulary
 
@@ -21,7 +21,7 @@ Last updated: 2026-06-09
 | T1 | done | Replace puzzle scaffold docs with an evidence-based cold-start pack in `docs/projects/puzzles/` (this tracker included). | Worker A | 2026-06-05 | `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/TRACKER.md`, `docs/projects/puzzles/GAPS.md` | Keep the dashboard schema current and hand the next implementation slice to T2. | `NORTH_STAR.md` contains a current Dashboard Card Schema and `GAPS.md` stays aligned with the open project gaps. |
 | T2 | done | Implement the first production lockpicking dispatch path from a real world encounter. | Worker A | 2026-06-09 | `src/data/world/locations.ts`, `src/components/ActionPane/useActionGeneration.ts`, `src/hooks/actions/actionHandlers.ts`, `src/components/ActionPane/__tests__/ActionPane.test.tsx` | Route lock puzzle interactions from `Location.interactableFeatures` via `OPEN_LOCKPICKING_MODAL` and confirm with non-dev dispatch test. | `src/components/ActionPane/__tests__/ActionPane.test.tsx` asserts lock action + payload dispatch on a real cave location. |
 | T3 | done | Implement source-backed puzzle hint resolution in `puzzleSystem`. | Worker A | 2026-06-09 | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `docs/projects/puzzles/AUDIT_OR_PROOF.md` | Keep the live hint helper callable and route the first gameplay caller when ownership is clear. | `getPuzzleHint` now rolls an Intelligence check and returns the hint on pass; no runtime caller is wired yet. |
-| T4 | review-required | Resolve `getPuzzleHint` runtime caller ownership | human/product owner | 2026-06-09 | `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/GAPS.md` | Decide the gameplay owner for the first real caller, then route or wire the chosen surface. | Required Review Brief is recorded in `NORTH_STAR.md`; source-backed runtime caller proof comes after the decision. |
+| T4 | active | Resolve `getPuzzleHint` runtime caller ownership | Worker A (decision: Remy 2026-06-10) | 2026-06-10 | `docs/projects/puzzles/NORTH_STAR.md`, `docs/projects/puzzles/GAPS.md`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D13 | Decision recorded 2026-06-10: dedicated puzzle-facing runtime surface approved. Build the surface and wire the first gameplay `getPuzzleHint` caller with a focused test. | Source-backed runtime caller proof: a gameplay callsite exercising `getPuzzleHint` plus a focused runtime caller test. |
 
 ## Gap Log
 
@@ -33,4 +33,12 @@ Last updated: 2026-06-09
 | G4 | done | support_needed_now | Worker A | `docs/projects/puzzles/GAPS.md` | Puzzle-system scan | `puzzleSystem` now has live hint behavior (`getPuzzleHint` rolls an Intelligence check and returns the hint on pass). | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | The helper can now answer a hint check without inventing new API shape. | Keep the helper in the puzzle domain and route the first gameplay caller separately. | The new test plus `docs/projects/puzzles/GAPS.md` confirm the split between helper and caller gap. |
 | G5 | not_started | adjacent_follow_up | Worker A | `docs/projects/puzzles/GAPS.md` | Integration TODO sweep | BattleMap/Submap/Spell interaction for plates, secret doors, mechanisms, and arcane glyphs remains TODO-marked. | `src/systems/puzzles/mechanism.ts`, `secretDoorSystem.ts`, `pressurePlateSystem.ts`, `arcaneGlyphSystem.ts`, `docs/architecture/domains/puzzles-quests-rituals.md` | Without this integration, puzzle state changes are not reliably visualized in world space. | Schedule this as an explicit follow-up slice linked to map/encounter owners. | Keep this gap out of core runtime handoff until map integration path is accepted. |
 | G6 | not_started | adjacent_follow_up | Worker A | `docs/projects/puzzles/GAPS.md` | Content pipeline follow-up | No verified puzzle registry or authored puzzle catalog source was discovered in targeted scan. | `rg -n "puzzle" src/data`, `src/systems/puzzles` | Without content registry source, runtime systems lack discoverable production population surface. | Confirm whether a content registry exists in generation/encounter pipeline and document it here before full content work. | Add registry path and owner, or route unresolved gap to global if clearly cross-project. |
-| G7 | review-required | blocked_human_decision | human/product owner | `docs/projects/puzzles/GAPS.md` | Runtime caller scan | No gameplay caller yet invokes `getPuzzleHint`; the live helper exists but the project has not picked a runtime owner for `Puzzle` objects. | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | The domain API can now answer hint checks, but players still need a place in the runtime to ask for one. | Decide the gameplay owner for `getPuzzleHint`, then wire that surface or route the caller to another project. | A source-backed callsite or UI action that exercises `getPuzzleHint` in real play. |
+| G7 | not_started | in_scope_now | Worker A (decision: Remy 2026-06-10) | `docs/projects/puzzles/GAPS.md` | Runtime caller scan | No gameplay caller yet invokes `getPuzzleHint`; the live helper exists but the project has not picked a runtime owner for `Puzzle` objects. Decided 2026-06-10 (DECISION_BLITZ D13): dedicated puzzle-facing runtime surface approved; Puzzles owns the runtime `Puzzle` instance and hint UI contract. | `src/systems/puzzles/puzzleSystem.ts`, `src/systems/puzzles/__tests__/puzzleSystem.test.ts`, `docs/projects/DECISION_BLITZ_2026-06-10.md` D13 | The domain API can now answer hint checks, but players still need a place in the runtime to ask for one. | Build the approved puzzle-facing runtime surface and wire the first gameplay `getPuzzleHint` caller there. | A source-backed callsite or UI action that exercises `getPuzzleHint` in real play, plus a focused runtime caller test. |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

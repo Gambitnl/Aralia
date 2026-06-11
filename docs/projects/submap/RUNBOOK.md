@@ -1,7 +1,7 @@
 # Submap Runbook
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 ## Before Any Future Work
 
@@ -33,10 +33,17 @@ capture.
 
 ## Current Extraction Targets
 
+- Wire `SubmapPane` through `src/utils/spatial/submapActionContracts.ts` (G7).
+- Extract `generateLocalTerrainData` per `GENERATION_MODULARIZATION.md` (G8).
 - Action menu and compass local movement affordances.
-- `QUICK_TRAVEL` and `inspect_submap_tile` payload contracts.
 - `getSubmapTileInfo` / material and terrain lookup behavior.
-- `useSubmapProceduralData` CA/WFC/path/seeded-feature/biome-blend rules.
 - `submapVisuals`, `useSubmapGrid`, and painter-path reusable visual semantics.
 - Town/village generation overlap with seeded village features.
 - Dungeon puzzle/lock/mechanism expectations.
+
+## Verification Commands
+
+```text
+npx vitest run src/utils/spatial/__tests__/submapActionContracts.test.ts
+git diff --check
+```

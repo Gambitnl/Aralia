@@ -5,14 +5,14 @@ slug: combat
 category: Gameplay Systems
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
-status: review-required
-last_updated: 2026-06-09
+status: active
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/combat
-gap_signal: "G30 review-required; modularization ownership and test-boundary decision pending"
+gap_signal: "G30 decision recorded 2026-06-10; implementation lane open — Code Modularization Audit owns the split plan, Combat contributes invariants/tests"
 protocol: living project doc set
-next_step: Resolve the G30 modularization ownership decision in the Required Review Brief before assigning more Combat implementation work.
-agent_comments: "G20 is closed; Combat has no remaining assignable open gaps until the G30 ownership/test-boundary decision is answered."
+next_step: Contribute the Combat invariants and focused regression tests (combat rules, action sequencing, reaction behavior, combat log semantics) required by the Code Modularization Audit split plan before any code movement.
+agent_comments: "G30 Required Review Brief resolved 2026-06-10 (Option B): Code Modularization Audit owns the split plan; Combat's lane is invariants and preservation tests. See docs/projects/DECISION_BLITZ_2026-06-10.md D6."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -38,12 +38,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # Combat System North Star
 
-Status: review-required
-Last updated: 2026-06-09
+Status: active (G30 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Why This Project Exists
 Combat has a live implementation split across systems, hooks, and UI surfaces that were added in different slices. This project doc keeps ownership, execution paths, and unresolved behavior gaps visible for next agents so future work does not restart discovery or collapse unfinished intent.
@@ -61,12 +61,12 @@ Preserve a working cold-start map for the Combat domain that stays implementatio
 Project: Combat System
 Slug: combat
 Category: Gameplay Systems
-Status: review-required
+Status: active (G30 decision recorded 2026-06-10; implementation lane open)
 Confidence: medium
 Evidence: docs/projects/combat
-Gap signal: G30 review-required; modularization ownership and test-boundary decision pending after all current combat behavior gaps closed
+Gap signal: G30 decision recorded 2026-06-10; Code Modularization Audit owns the split plan, Combat contributes invariants and tests
 Protocol: living project doc set
-Next step: Resolve the G30 modularization ownership decision in the Required Review Brief before assigning more Combat implementation work.
+Next step: Contribute the Combat invariants and focused regression tests required by the Code Modularization Audit split plan before any code movement.
 Required verification: scoped_tests, docs_consistency
 Completed verification: scoped_tests, docs_consistency
 Last proof: 2026-06-09
@@ -188,6 +188,13 @@ Evidence: `docs/projects/combat/GAPS.md` G30; `docs/projects/code-modularization
 Decision owner: Human/product owner with Combat, Layout, and Code Modularization Audit owners.
 Proof after decision: A named split plan that lists files allowed to move, files not allowed to move, required tests, and behavior-preservation notes before code movement starts.
 
+### Decision (2026-06-10)
+
+Outcome: **Option B — Code Modularization Audit owns the split plan** for `useAbilitySystem.ts` / `useCombatEngine.ts` (and any App-shell/provider movement routes through its cross-project plan). Combat's responsibility is to contribute the required invariants and focused regression tests (combat rules, action sequencing, reaction behavior, combat log semantics) before any code movement. Owner rationale: modularization is not Combat's directive.
+Decider: Remy (project owner), batched decision session.
+Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D6).
+Effect: the G30 review gate is lifted; Combat's implementation lane is open for the invariants/tests contribution. Code movement itself still waits for the Code Modularization Audit split plan that names files allowed to move, files not allowed to move, and the preservation tests.
+
 ## Global Gap Imports
 
 | Global ID | Target ID | Import Date | Status | Notes |
@@ -198,10 +205,10 @@ Proof after decision: A named split plan that lists files allowed to move, files
 
 | Field | Value |
 |---|---|
-| Task | G20 is now closed with 2D token badges and a mirrored 3D actor badge row; all current Combat behavior gaps are complete. |
-| Acceptance criteria | Do not assign more Combat implementation work until the Required Review Brief is answered. |
-| Allowed boundaries | Review only; do not split `useAbilitySystem.ts`, `useCombatEngine.ts`, or `App.tsx` during a normal Combat pass. |
-| Stop condition | Resolve the G30 review gate with a named owner, allowed file boundary, and required preservation tests before implementation resumes. |
+| Task | G30 decision recorded 2026-06-10 (D6): Code Modularization Audit owns the split plan; Combat's next slice is contributing the required invariants and focused regression tests before code movement. |
+| Acceptance criteria | A named Combat invariants/tests contribution covering combat rules, action sequencing, reaction behavior, and combat log semantics, handed to the Code Modularization Audit split plan. |
+| Allowed boundaries | Tests and invariant documentation only; do not split `useAbilitySystem.ts`, `useCombatEngine.ts`, or `App.tsx` during a normal Combat pass — code movement belongs to the Code Modularization Audit plan. |
+| Stop condition | Stop after the invariants/tests contribution is recorded; do not move code until the Code Modularization Audit split plan names allowed files and preservation tests. |
 
 ## Resume Path for Cold Start
 
@@ -210,6 +217,7 @@ Proof after decision: A named split plan that lists files allowed to move, files
 3. Read `docs/projects/combat/GAPS.md`.
 4. Cross-check architecture boundaries in `docs/architecture/domains/combat.md` and `docs/architecture/COMBAT_MAP_ENGINE.md`.
 5. Stop unless the Required Review Brief has been answered. Combat has no assignable implementation gap while G30 is review-required.
+6. Update (2026-06-10): the Required Review Brief is answered (D6 in `docs/projects/DECISION_BLITZ_2026-06-10.md`). The assignable Combat lane is the invariants/tests contribution for the Code Modularization Audit split plan; code movement stays with that audit project.
 
 
 ## Cold-Start Gap Routing

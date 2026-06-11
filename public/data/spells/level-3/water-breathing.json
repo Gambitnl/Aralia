@@ -137,7 +137,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "This spell grants up to ten willing creatures of your choice within range the ability to breathe underwater until the spell ends. Affected creatures also retain their normal mode of respiration.",
+      "description": "Up to ten chosen creatures within range can breathe underwater for 24 hours while retaining their normal respiration.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -183,5 +183,10 @@
   },
   "description": "This spell grants up to ten willing creatures of your choice within range the ability to breathe underwater until the spell ends. Affected creatures also retain their normal mode of respiration.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "transmutation",
+    "utility",
+    "ritual",
+    "water"
+  ]
 }

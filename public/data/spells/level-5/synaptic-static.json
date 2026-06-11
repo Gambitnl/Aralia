@@ -158,7 +158,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 8d6 Psychic damage on a failed Intelligence save, or half as much on success.",
       "conditionalEndings": []
     },
     {
@@ -241,7 +241,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Muddled Thoughts unless the target succeeds on an Intelligence save for 1 minute; repeat Intelligence save at turn end can end the condition; current escape-check metadata is preserved.",
       "conditionalEndings": []
     }
   ],

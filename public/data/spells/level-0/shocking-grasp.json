@@ -142,8 +142,13 @@
         "bonusPerLevel": "+1d8",
         "customFormula": "1d8 at 1, 2d8 at 5, 3d8 at 11, 4d8 at 17"
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a melee spell hit, one target takes 1d8 Lightning damage, with cantrip-tier damage scaling at character levels 5, 11, and 17.",
+      "conditionalEndings": [],
+      "tags": [
+        "lightning-damage",
+        "melee-hit",
+        "cantrip-scaling"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -207,8 +212,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On the same hit, the target has opportunity attacks suppressed for 1 round.",
+      "conditionalEndings": [],
+      "tags": [
+        "reaction-control",
+        "opportunity-attack-suppression",
+        "hit-rider"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

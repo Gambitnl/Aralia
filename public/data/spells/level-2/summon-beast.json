@@ -137,7 +137,7 @@
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
-        "customFormula": ""
+        "customFormula": "Use the slot level as the spell's level in the Bestial Spirit stat block: AC is 11 + spell level, HP is 20 for Air or 30 for Land/Water plus 5 for each spell level above 2, Rend damage is 1d8 + 4 + spell level, and the spirit makes half the spell level rounded down Rend attacks."
       },
       "conditionalEndings": [
         {

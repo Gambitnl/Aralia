@@ -5,14 +5,14 @@ slug: worldsim-service
 category: active project
 main_category: "Game & Simulation"
 subcategory: "World, Travel & Maps"
-status: review-required
-last_updated: 2026-06-08
+status: active
+last_updated: 2026-06-10
 confidence: unknown
 evidence: "docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md"
-gap_signal: "WSS-005 review-required; WSS-006/WSS-007 remediated; WSS-008 remediated for bootstrap/save wiring"
+gap_signal: "WSS-005 decision recorded 2026-06-10 (Azgaar is canonical; feature hints flow into WorldData) — implementation lane open; WSS-006/WSS-007/WSS-008 remediated"
 protocol: living-project
-next_step: "Do not assign WSS-005 forward implementation until source-of-truth review clears; WSS-008 is now closed and future birth-entry points should reuse the same bridge."
-agent_comments: ""
+next_step: "Implement the WSS-005 decided contract: consume Azgaar feature hints into WorldData (Azgaar canonical), starting with the WSS-005a bridge spec + fixed-seed acceptance check."
+agent_comments: "WSS-005 Required Review Brief resolved 2026-06-10 in the June 2026 proc-gen campaign context. See docs/projects/DECISION_BLITZ_2026-06-10.md D1."
 required_docs:
   - NORTH_STAR.md
   - TRACKER.md
@@ -34,12 +34,12 @@ lifecycle_status: active
 deprecation_confidence: none
 deprecation_reason: ""
 canonical_owner: ""
-human_decision_required: "yes"
+human_decision_required: "no"
 ---
 # NORTH_STAR: WorldSim Service
 
-Status: review-required
-Last updated: 2026-06-08 (WSS-008 remediated — bootstrap/save history bridge)
+Status: active (WSS-005 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10 (WSS-005 decided — Azgaar is canonical; feature hints flow into WorldData)
 
 > One of three distinct surfaces in the **Azgaar-driven streamed 3D world** initiative
 > (not consolidated):
@@ -56,12 +56,12 @@ Last updated: 2026-06-08 (WSS-008 remediated — bootstrap/save history bridge)
 | Project | Worldsim Service |
 | Slug | worldsim-service |
 | Category | active project |
-| Status | review-required |
+| Status | active (WSS-005 decision recorded 2026-06-10; implementation lane open) |
 | Confidence | unknown |
 | Evidence | docs/projects/worldsim-service/TRACKER.md; docs/projects/worldsim-service/GAPS.md |
-| Gap signal | WSS-005 review-required; WSS-006/WSS-007 remediated; WSS-008 remediated for bootstrap/save wiring |
+| Gap signal | WSS-005 decided 2026-06-10 (Azgaar canonical; feature hints flow into WorldData); WSS-006/WSS-007/WSS-008 remediated |
 | Protocol | living-project |
-| Next step | Do not assign WSS-005 forward implementation until source-of-truth review clears; WSS-008 is now closed and future birth-entry points should reuse the same bridge. |
+| Next step | Implement the WSS-005 decided contract (Azgaar feature hints into WorldData), starting with the WSS-005a bridge spec + fixed-seed acceptance check; future birth-entry points reuse the WSS-008 bridge. |
 | Required verification | docs consistency |
 | Completed verification | docs refresh, focused worldSim + migration test runs |
 | Last proof | 2026-06-08 first-build history, bootstrap/save bridge, climate fallback, and WSS-007 smoothing tests |
@@ -84,6 +84,14 @@ Options:
 Evidence: `src/services/worldSim/__tests__/featureSourceTruth.test.ts`, `src/services/azgaarDerivedMapService.ts`, and `src/services/worldSim/index.ts`.
 
 After decision: update WSS-005 and add a bridge-spec proof before assigning source-of-truth implementation.
+
+### Decision (2026-06-10)
+
+Outcome: **Azgaar is canonical.** Azgaar feature hints (rivers/sites/roads and related atlas features) flow into `WorldData`; 3D and gameplay features follow the atlas. The proc-gen pipeline derives deterministically from Azgaar output — this is option (A) from the brief (consume Azgaar feature hints into `WorldData`).
+Decider: Remy (project owner), batched decision session.
+Context: this decision was made in the context of the June 2026 proc-gen campaign — a unified procedural world pipeline where Azgaar-based generation is extended below Azgaar's deepest zoom to replace the Submap, continuing into a 3D ground-level mode with owned town generation and an entity pipeline. The master record's Context section (`docs/projects/DECISION_BLITZ_2026-06-10.md`) explains the campaign.
+Record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D1).
+Effect: the WSS-005 review gate is lifted. Next slice: WSS-005a's bridge spec — a shared feature encoding that carries Azgaar feature hints into `WorldData`, plus a fixed-seed acceptance check proving atlas and 3D consume the same canonical features.
 
 ## Why This Project Exists
 
@@ -177,7 +185,7 @@ Out of scope (owned elsewhere):
 - Migration behavior for future `WorldData` versions (v3+) is not defined yet.
 - River/road and site features are generated but downstream render contracts are partially coupled to placeholder 3D mesh builders.
 - **WSS-004 (REMEDIATED 2026-06-02):** the `generateLegacyMap` fallback omits `azgaarWorld`/`worldData`, so migration previously backfilled flat constant heights → a featureless flat 3D world. **Fixed (policy A — derive from biomes):** `src/services/worldSim/heightFromBiomes.ts` maps each cell's biome `elevation` band → height + seeded jitter (deterministic per seed); `migrateMapDataToWorldDataV2` calls it instead of `fill(30)`. Provenance literal renamed `flat-backfill`→`biome-derived` (`world.ts`/`world.d.ts`/`DebugHUD.tsx`), still flagged amber as lower-fidelity. Empirical proof: real `generateMap` legacy-fallback now yields heights `distinct=38 min=25 max=88` (was constant 30). Remediated 2026-06-08 by adding deterministic smoothing to the biome-derived height pass. WSS-006 was remediated 2026-06-08 via biome-derived climate fields.
-- **WSS-005 (REVIEW-REQUIRED 2026-06-08):** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and diverge for a fixed seed in `featureSourceTruth.test.ts`; source of truth is undecided.
+- **WSS-005 (REVIEW-REQUIRED 2026-06-08):** 2D atlas rivers (Azgaar's `azgaarWorld.rivers`) and 3D rivers (`runWorldSim` `traceRivers`) come from different algorithms and diverge for a fixed seed in `featureSourceTruth.test.ts`; source of truth is undecided. **Update (2026-06-10): DECIDED — Azgaar is canonical; Azgaar feature hints flow into `WorldData` and 3D/gameplay features follow the atlas (DECISION_BLITZ D1, June 2026 proc-gen campaign). Implementation starts with the WSS-005a bridge spec.**
 - **WSS-008 (REMEDIATED 2026-06-08):** `WorldHistoryService.createFirstBuildHistory(...)` now emits a deterministic seeded first-build history contract and `useGameInitialization`/`START_GAME_SUCCESS`/`START_GAME_FOR_DUMMY` carry it into `GameState`. `saveLoadService.loadGame(...)` backfills an empty history shell for legacy saves that predate the bridge.
 
 ## Global Gap Imports

@@ -86,6 +86,13 @@ vi.mock('../../utils/savingThrowUtils', () => ({
     rollSavingThrow: vi.fn(() => ({ total: 18, success: true, modifiersApplied: [] }))
 }));
 
+beforeEach(() => {
+    // Hook tests share mocked command factories and utility modules. Clearing
+    // call history before each test keeps command-path assertions about "not
+    // called yet" focused on the current interaction instead of earlier casts.
+    vi.clearAllMocks();
+});
+
 // Mock Data Setup
 const shieldSpell: Spell = {
     id: 'shield',
@@ -446,6 +453,128 @@ describe('useAbilitySystem - command game-state context', () => {
         expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[4]).toEqual(
             expect.objectContaining({ mapData })
         );
+    });
+});
+
+// ============================================================================
+// Allocated Spell Command Targets
+// ============================================================================
+// The target resolver can now reduce an already selected area candidate list by
+// pool allocation. This hook-level guard proves the command factory receives
+// that reduced affected-target list, not the broader UI candidate list.
+// ============================================================================
+
+describe('useAbilitySystem - allocated spell command targets', () => {
+    it('passes only allocation-selected targets into spell command creation', async () => {
+        const { SpellCommandFactory } = await import('../../commands');
+
+        const caster = {
+            id: 'pool-caster',
+            name: 'Pool Caster',
+            team: 'player',
+            position: { x: 0, y: 0 },
+            actionEconomy: { action: { used: false }, bonusAction: { used: false }, reaction: { used: false }, movement: { used: 0, total: 30 } },
+            spellSlots: { 1: { used: 0, total: 1 } },
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const lowHpTarget = {
+            id: 'low-hp-target',
+            name: 'Low HP Target',
+            team: 'enemy',
+            position: { x: 1, y: 0 },
+            currentHP: 7,
+            maxHP: 7,
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const mediumHpTarget = {
+            id: 'medium-hp-target',
+            name: 'Medium HP Target',
+            team: 'enemy',
+            position: { x: 2, y: 0 },
+            currentHP: 10,
+            maxHP: 10,
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const highHpTarget = {
+            id: 'high-hp-target',
+            name: 'High HP Target',
+            team: 'enemy',
+            position: { x: 3, y: 0 },
+            currentHP: 30,
+            maxHP: 30,
+            statusEffects: []
+        } as unknown as CombatCharacter;
+        const allocationSpell = {
+            id: 'allocation-command-bridge',
+            name: 'Allocation Command Bridge',
+            level: 1,
+            school: 'Enchantment',
+            classes: ['Wizard'],
+            description: 'Uses a rolled pool to reduce selected candidates before command creation.',
+            castingTime: { value: 1, unit: 'action' },
+            range: { type: 'distance', distance: 60 },
+            components: { verbal: true, somatic: true, material: false },
+            duration: { type: 'instantaneous' },
+            targeting: {
+                type: 'area',
+                range: 60,
+                validTargets: ['creatures'],
+                lineOfSight: false,
+                areaOfEffect: {
+                    shape: 'Sphere',
+                    size: 10
+                },
+                allocation: {
+                    type: 'pool',
+                    pool: {
+                        resource: 'hp',
+                        dice: '5d8',
+                        sortOrder: 'ascending',
+                        strictLimit: true
+                    }
+                }
+            },
+            effects: [{
+                type: 'UTILITY',
+                utilityType: 'investigate',
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }]
+        } as unknown as Spell;
+        const allocationAbility = {
+            id: allocationSpell.id,
+            name: allocationSpell.name,
+            description: allocationSpell.description,
+            type: 'spell',
+            range: 60,
+            targeting: 'area',
+            cost: { type: 'action', spellSlotLevel: 1 },
+            effects: [],
+            spell: allocationSpell
+        } as unknown as Ability;
+
+        const { result } = renderHook(() => useAbilitySystem({
+            characters: [caster, lowHpTarget, mediumHpTarget, highHpTarget],
+            mapData: null,
+            onExecuteAction: vi.fn(() => true),
+            onCharacterUpdate: vi.fn(),
+            onLogEntry: vi.fn(),
+            onAbilityEffect: vi.fn()
+        }));
+
+        await act(async () => {
+            await (result.current.executeAbility as any)(
+                allocationAbility,
+                caster,
+                lowHpTarget.position,
+                [highHpTarget.id, mediumHpTarget.id, lowHpTarget.id]
+            );
+        });
+
+        // A 15-point pool selects the 7-HP target, then has only 8 points left
+        // and cannot affect the 10-HP target. Command creation must therefore
+        // receive only the final affected target, not all UI-selected candidates.
+        expect(vi.mocked(SpellCommandFactory.createCommands).mock.calls.at(-1)?.[2]).toEqual([lowHpTarget]);
     });
 });
 
@@ -897,7 +1026,7 @@ describe('useAbilitySystem - self-teleport destination selection', () => {
         expect(onExecuteAction).toHaveBeenCalledWith(expect.objectContaining({
             characterId: defender.id,
             targetPosition: destination,
-            targetIds: [defender.id]
+            targetCharacterIds: [defender.id]
         }));
         expect(movementEffect.destination).toEqual(destination);
     });
@@ -1088,7 +1217,7 @@ describe('useAbilitySystem - multi-target teleport assignment guard', () => {
         expect(selectedSecondDestination).toBe(true);
         expect(onExecuteAction).toHaveBeenCalledWith(expect.objectContaining({
             characterId: defender.id,
-            targetIds: [attacker.id, secondTarget.id]
+            targetCharacterIds: [attacker.id, secondTarget.id]
         }));
         expect(movementEffect.destinationsByTargetId).toEqual({
             [attacker.id]: { x: 4, y: 1 },

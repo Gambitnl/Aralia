@@ -131,8 +131,8 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take 1d4 + 1 turns in a row, during which you can use actions and move as normal. This spell ends if one of the actions you use during this period, or any effects that you create during it, affects a creature other than you or an object being worn or carried by someone other than you. In addition, the spell ends if you move to a place more than 1,000 feet from the location where you cast it.",
+      "utilityType": "control",
+      "description": "Gives the caster 1d4 + 1 consecutive turns while time is stopped for other creatures, ending early if the caster affects another creature or another creature's worn or carried object.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -191,7 +191,13 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "extra-turns",
+        "time-control",
+        "self-only",
+        "early-ending"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -201,5 +207,10 @@
   },
   "description": "You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take 1d4 + 1 turns in a row, during which you can use actions and move as normal. This spell ends if one of the actions you use during this period, or any effects that you create during it, affects a creature other than you or an object being worn or carried by someone other than you. In addition, the spell ends if you move to a place more than 1,000 feet from the location where you cast it.",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "transmutation",
+    "time-control",
+    "extra-turns",
+    "self-only"
+  ]
 }

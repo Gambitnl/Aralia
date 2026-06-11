@@ -30,3 +30,11 @@ Last updated: 2026-06-05
 | G3 | not_started | support_needed_now | Worker A | `docs/projects/crime/GAPS.md` | This pass | Orphan/isolated criminal market systems are not actively consumed. | dependency headers on `BlackMarketSystem.ts`, `FenceSystem.ts` | Missed maintainability and dead-path risk. | Clarify ownership and remove/imported debt path. | `rg`/dependency map update after decisions. |
 | G4 | not_started | support_needed_now | Worker A | `docs/projects/crime/GAPS.md` | This pass | Heat scale and severity math assumptions drift across reducer and core system comments. | `src/systems/crime/CrimeSystem.ts`, `src/state/reducers/crimeReducer.ts` | Produces inconsistent gameplay tuning and test interpretation risk. | Normalize numeric expectations and doc them in contract comments/tests. | Add edge-case unit tests for heat/severity conversions. |
 | G5 | not_started | support_needed_now | Worker A | `docs/projects/crime/GAPS.md` | This pass | Type/TODO debt remains intentionally unresolved in several crime files. | `src/systems/crime/CrimeSystem.ts`, `src/systems/crime/SmugglingSystem.ts`, `src/systems/crime/fencing/FenceSystem.ts`, `src/state/reducers/crimeReducer.ts` | Weakens refactor safety and can hide real behavior hooks. | Resolve each TODO as intentional debt vs wiring tasks. | Reduced lint-intent count and explicit comments on deferred items. |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

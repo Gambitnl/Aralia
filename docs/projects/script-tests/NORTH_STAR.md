@@ -5,13 +5,13 @@ slug: script-tests
 category: Test Infrastructure
 main_category: Review / Archive
 subcategory: Deprecation Review
-status: review-required
-last_updated: 2026-06-08
+status: merged-reference
+last_updated: 2026-06-10
 confidence: medium
-evidence: docs/projects/script-tests
-gap_signal: "4 open gaps; ST-GAP-001 is the safest next slice"
+evidence: docs/projects/script-tests; docs/projects/DECISION_BLITZ_2026-06-10.md (D21)
+gap_signal: "4 open gaps (ST-GAP-001..004) now owned by scripts-quality after the 2026-06-10 merge decision; ST-GAP-001 remains the safest next slice"
 protocol: living project doc set
-next_step: Human review should decide whether this remains a standalone test project or merges into Scripts Quality/Audits before worker assignment.
+next_step: "Merged into Scripts: Quality (decision recorded 2026-06-10, DECISION_BLITZ D21). script-tests is now a support surface of docs/projects/scripts-quality; continue ST-GAP work under that project's tracker."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -30,16 +30,16 @@ completed_verification:
 last_proof: 2026-06-05
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
-lifecycle_status: merge-candidate
-deprecation_confidence: weak
-deprecation_reason: possible_support_surface_for_scripts_quality_or_audits
-canonical_owner: docs/projects/scripts-quality or docs/projects/scripts-audits pending review
-human_decision_required: "yes"
+lifecycle_status: merged-reference
+deprecation_confidence: strong
+deprecation_reason: merged_into_scripts_quality_as_support_surface_2026-06-10
+canonical_owner: docs/projects/scripts-quality
+human_decision_required: "no"
 ---
 # NORTH_STAR: Script Tests
 
-Status: review-required
-Last updated: 2026-06-08
+Status: merged-reference — decision recorded 2026-06-10; merged into Scripts: Quality
+Last updated: 2026-06-10
 
 ## Purpose And Scope
 
@@ -53,21 +53,38 @@ Primary objective: preserve test continuity for script behavior that guards migr
 Project: Script Tests  
 Slug: script-tests  
 Category: Test Infrastructure  
-Status: review-required
+Status: merged-reference (decision recorded 2026-06-10)
 Confidence: medium
-Evidence: docs/projects/script-tests
-Gap signal: 4 open gaps; ST-GAP-001 is the safest next slice
+Evidence: docs/projects/script-tests; docs/projects/DECISION_BLITZ_2026-06-10.md (D21)
+Gap signal: 4 open gaps (ST-GAP-001..004) now owned by scripts-quality; ST-GAP-001 is the safest next slice
 Protocol: living project doc set
-Next step: Human review should decide whether this remains a standalone test project or merges into Scripts Quality/Audits before worker assignment.
+Next step: Merged into Scripts: Quality; continue ST-GAP work under docs/projects/scripts-quality.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency
 Last proof: 2026-06-05
 Workflow gaps reviewed: 2026-06-08
-Lifecycle status: merge-candidate
-Deprecation confidence: weak
-Deprecation reason: possible_support_surface_for_scripts_quality_or_audits
-Canonical owner: docs/projects/scripts-quality or docs/projects/scripts-audits pending review
-Human decision required: yes
+Lifecycle status: merged-reference
+Deprecation confidence: strong
+Deprecation reason: merged_into_scripts_quality_as_support_surface_2026-06-10
+Canonical owner: docs/projects/scripts-quality
+Human decision required: no
+
+## Decision (2026-06-10): Merge Into Scripts: Quality
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session.
+
+- The standalone-vs-merge review question is answered: **Script Tests merges
+  into Scripts: Quality.** `script-tests` becomes a support surface of
+  `docs/projects/scripts-quality`, and this project's tracker row becomes
+  merged-reference.
+- The open gap list (ST-GAP-001 through ST-GAP-004) transfers to scripts-quality
+  ownership; this folder stays as the reference record of the `scripts/__tests__`
+  continuity contract.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D21); local
+  record: `docs/projects/script-tests/DECISIONS.md` D2; receiving-side record:
+  `docs/projects/scripts-quality/DECISIONS.md` D2.
+- Status: decision recorded 2026-06-10; the implementation lane (ST-GAP test
+  slices) is open under scripts-quality.
 
 ## File Map (Narrow Scope)
 

@@ -3,6 +3,7 @@
 Status: active
 Last updated: 2026-06-05
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -13,3 +14,22 @@ Last updated: 2026-06-05
 | L-G4 | not_started | adjacent_follow_up | Worker A | `docs/projects/logic/TRACKER.md` | Cross-file scan | `status` checks read `statusEffects` only, while active status models also use `conditions`. | `src/systems/logic/ConditionEvaluator.ts`, `src/types/combat.ts`, `src/commands/effects/StatusConditionCommand.ts` | Predicate reads can be inconsistent across rendering and runtime condition sources. | Define precedence and merge policy between `statusEffects` and `conditions`. | Add one checklist entry confirming parity on add/remove flows. |
 | L-G5 | not_started | adjacent_follow_up | Worker A | `docs/projects/creatures/TRACKER.md` | Cross-domain review | Creature type validation is split across `CreatureTaxonomy` and spell targeting filter checks. | `src/systems/creatures/CreatureTaxonomy.ts`, `src/systems/spells/targeting/TargetValidationUtils.ts`, `src/types/spells.ts` | Uncoordinated migration paths can create mismatched include/exclude outcomes. | Coordinate with the creatures project before adding shared type predicates into Logic. | Keep an explicit decision record in the target project before any API migration. |
 | L-G6 | not_started | out_of_scope | Worker A | `docs/tasks/spell-system-overhaul/GAPS.md` | Initial pass | Broader spell-runtime cleanup (`on_move_in_area`, trigger duplication, AOE math direction) is already cataloged in spell-system overhaul tasks. | `src/systems/spells/effects/triggerHandler.ts`, `src/systems/spells/effects/AreaEffectTracker.ts` | These are larger spell-engine tasks that would widen this project slice. | Route to the existing spell-system overhaul task stream unless Logic integration needs it immediately. | No action here unless a direct Logic dependency is added in implementation. |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

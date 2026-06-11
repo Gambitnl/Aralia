@@ -141,7 +141,7 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 3d6 Necrotic damage on the row's current hit-based resolution; slot scaling adds +1d6.",
       "conditionalEndings": []
     },
     {

@@ -1,4 +1,4 @@
-# TRACKER: Ollama Service
+# Ollama Service Living Tracker
 
 Status: active
 Last updated: 2026-06-05
@@ -28,3 +28,11 @@ Last updated: 2026-06-05
   without a shared adapter.
 - The runtime contract for `/api/ollama` is external to this project scope and
   still needs owner confirmation.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

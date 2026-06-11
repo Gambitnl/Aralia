@@ -1,8 +1,17 @@
-# Town Tracker
+# Town Living Tracker
 
 Status: active
 Last updated: 2026-06-05
 
+## Status Vocabulary
+
+- `not_started`
+- `active`
+- `waiting`
+- `blocked`
+- `done`
+- `superseded`
+- `out_of_scope`
 ## Active Task Queue
 
 | ID | Status | Task | Owner | Last updated | Evidence | Next action | Next check/proof |
@@ -24,3 +33,9 @@ Last updated: 2026-06-05
 - Verify whether `TownCanvas` or `VillageScene` should remain the runtime primary and document that decision.
 - Verify whether `settlementInfo` should be used by active renderer logic.
 - Verify city-state/culture fields that are currently generated but not persisted in town state.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |

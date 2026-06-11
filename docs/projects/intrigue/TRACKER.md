@@ -29,3 +29,11 @@ Last updated: 2026-06-05
 | G-003 | active | architecture | Intrigue `GAPS.md` | dual secret generators and dual noble house generators | Divergent output contracts can drift and create inconsistent lore. | Decide canonical generator and update imports. |
 | G-004 | active | workflow | Intrigue `GAPS.md` | `src/systems/intrigue/LeverageSystem.ts` only used in tests | Blackmail/security reward paths remain non-production. | Wire at least one in-game actor path to LeverageSystem. |
 | G-005 | waiting | quality | Intrigue `GAPS.md` | TODO markers in intrigue and world files | Several placeholder parameters/types indicate unfinished intent. | Keep documentation updated when intent is resolved. |
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

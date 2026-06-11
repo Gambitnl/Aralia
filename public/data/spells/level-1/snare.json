@@ -175,13 +175,18 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "A Small, Medium, or Large creature entering the 5-foot snare area must succeed on a Dexterity save or be Restrained for up to 8 hours.",
       "conditionalEndings": [
         {
           "trigger": "no_creature_restrained_by_spell_after_trigger",
           "scope": "spell",
           "description": "After the trap is triggered, the spell ends when no creature is restrained by it."
         }
+      ],
+      "tags": [
+        "restrained",
+        "dexterity-save",
+        "trap"
       ]
     },
     {

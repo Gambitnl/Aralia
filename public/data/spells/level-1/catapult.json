@@ -151,8 +151,14 @@
         "bonusPerLevel": "+1d8",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "A hurled object travels through a 90-foot line and deals 3d8 Bludgeoning damage to the first target that fails a Dexterity save; damage increases by 1d8 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "bludgeoning-damage",
+        "dexterity-save",
+        "line",
+        "slot-scaling"
+      ]
     },
     {
       "type": "UTILITY",

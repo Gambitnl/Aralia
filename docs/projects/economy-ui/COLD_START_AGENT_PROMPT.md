@@ -1,7 +1,26 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Economy UI
+slug: economy-ui
+status: active
+last_updated: "2026-06-10"
+iteration: 6
+source_agent: Claude Opus 4.6 (Thinking) / Antigravity CLI
+target_agent: next cold-start agent
+runtime_surface: application agent (Antigravity CLI in VS Code)
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/economy-ui/NORTH_STAR.md
+tracker: docs/projects/economy-ui/TRACKER.md
+gaps: docs/projects/economy-ui/GAPS.md
+---
 # Economy UI Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -22,11 +41,12 @@ docs/projects/economy-ui/NORTH_STAR.md
 | Iteration | Agent/Model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 5 | Kuhn / gpt-5.4-mini high | MCP-subagent docs-only contract pass | certain | 2026-06-09 | Closed G3 by documenting reducer visibility ownership without migrating source flags. |
+| 6 | Claude Opus 4.6 (Thinking) / Antigravity CLI | application agent (Antigravity CLI in VS Code) | certain | 2026-06-10 | Normalized duplicate tables in TRACKER/GAPS, ran full source audit, registered G4-G7 from bounded gap sweep. |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Economy UI
 Project folder: docs/projects/economy-ui
-Iteration: 5
+Iteration: 6
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -36,67 +56,68 @@ Gaps: docs/projects/economy-ui/GAPS.md
 
 ## Previous Agent Context
 
-Iteration 4 closed the visibility ownership gap as a docs-only contract. The
-economy UI packet now records the stable reducer split and keeps the modal host
-wiring intact.
+Iteration 6 normalized the duplicate table structures in TRACKER.md and GAPS.md
+that were left by a prior schema-normalization template append. A full source
+audit confirmed all economy UI files match the documented file map and that the
+reducer ownership split is correctly implemented. The bounded gap sweep
+discovered three new real gaps (G4, G6, G7) beyond the structural debt (G5,
+now resolved).
 
 ## Current Mission
 
 Active task:
-None. Preserve the documented ownership contract and only reopen if a future
-reducer migration is explicitly approved.
+G6 (in_scope_now): Add `isTradeRouteDashboardVisible` to the Escape key
+handler chain in `GameModals.tsx` and verify with a focused test.
+
+Secondary candidates:
+- G7 (adjacent_follow_up): Add `TOGGLE_INVESTMENT_BOARD` to `actionTypes.d.ts`.
+- G4 (adjacent_follow_up): Define player-facing entry points for economy modals
+  (only when a product pass requests this).
 
 Acceptance criteria:
 Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. Keep the reducer split documented and stable, preserve the
-working modal mounts and action dispatch paths already in place, and do not
-move visibility flags between reducers in this pass.
+NORTH_STAR.md. G6 requires pressing Escape while TradeRouteDashboard is open
+to dispatch `TOGGLE_TRADE_ROUTE_DASHBOARD` and close the modal. G7 requires
+`actionTypes.d.ts` to include `TOGGLE_INVESTMENT_BOARD`.
 
 Key files to touch:
+- src/components/layout/GameModals.tsx (G6 escape chain fix)
+- src/state/actionTypes.d.ts (G7 type declaration)
+- src/components/layout/__tests__/GameModals.test.tsx (G6 proof)
 - docs/projects/economy-ui/NORTH_STAR.md
 - docs/projects/economy-ui/TRACKER.md
 - docs/projects/economy-ui/GAPS.md
 - docs/projects/economy-ui/COLD_START_AGENT_PROMPT.md
-- docs/projects/economy-ui/DECISIONS.md
 - docs/projects/economy-ui/AUDIT_OR_PROOF.md
-- docs/projects/economy-ui/RUNBOOK.md
-- Any source/docs named by the active tracker task
 
 Scoped verification:
-Use the living-project audit and `git diff --check` on touched docs. If a future
-migration is requested, add a separate review gate before any source edits.
+Run focused tests for GameModals Escape handler. Verify `tsc --noEmit` passes
+after actionTypes.d.ts update. Use `git diff --check` on touched docs.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+Stay inside this project's scope boundaries. Do not modify reducer ownership.
+Route sibling-project blockers instead of editing their docs.
 
 Recent progress:
-T2 gap-complete pass mounted `LedgerBook` and `CourierPouch` in `GameModals`,
-added fallback Escape closure for both, and routed open actions through
-`App.tsx`/`DevMenu.tsx` as `toggle_economy_ledger` and `toggle_courier_pouch`.
-T3 resolved the `InvestmentBoard` action-entry gap by mounting the board in
-`GameModals`, wiring caravan/loan callbacks to `INVEST_IN_CARAVAN` and
-`TAKE_LOAN`, and giving Dev Menu a direct close-and-open path for the board.
-Focused regression coverage now proves the modal host path and the Dev Menu
-entry path both dispatch the expected actions.
-T4 resolved the visibility ownership question as a docs-only contract, so the
-packet now records the intentional split between `uiReducer` and
-`economyReducer`.
-`NORTH_STAR.md`, `TRACKER.md`, `GAPS.md`, `DECISIONS.md`, `AUDIT_OR_PROOF.md`,
-and `RUNBOOK.md` are the current source of truth for this project.
-Scope-safe remaining work is now any future non-dev entry strategy for
-`InvestmentBoard` or an explicitly approved reducer migration.
+T5 merged the two duplicate Active Task Queue tables, two Gap Log tables, two
+Classification Reference sections, and two Status Vocabulary sections into
+single canonical tables. Source audit confirmed all economy UI source files
+exist and match the documented file map with no dead flags or orphaned actions.
+G4 (missing player-facing entry points), G5 (duplicate tables, now resolved),
+G6 (Escape key chain gap), and G7 (actionTypes.d.ts drift) were registered
+from the bounded gap sweep.
 
 Workflow-gap review:
 - Reviewed `docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md`.
-- No new project-specific blocker surfaced for this pass.
-- `G3` is resolved as a documentation-only ownership contract.
+- No active workflow gaps. WFG-001 remains resolved.
+- No new project-specific workflow blocker surfaced for this pass.
 
 Dashboard schema updates:
-- `docs/projects/economy-ui/NORTH_STAR.md` now carries valid schema frontmatter.
-- `gap_signal` now reports `0 open gaps`.
+- `docs/projects/economy-ui/NORTH_STAR.md` carries valid schema frontmatter.
+- `gap_signal` now reports `3 open gaps (G4 player-facing entry, G6 escape chain, G7 type drift)`.
 - `required_docs` includes `DECISIONS.md`, `AUDIT_OR_PROOF.md`, and `RUNBOOK.md`.
 - `agent_comments` is intentionally empty.
+- `last_updated`, `last_proof`, `workflow_gaps_reviewed` set to 2026-06-10.
 
 ## Required End State For This Iteration
 

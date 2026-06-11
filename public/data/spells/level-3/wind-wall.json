@@ -170,7 +170,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Deals 4d8 Bludgeoning damage on a failed Strength save, or half as much on success.",
       "conditionalEndings": []
     },
     {

@@ -1,3 +1,22 @@
+---
+schema_version: 1
+handoff_type: agent_to_agent
+project: Puzzles System
+slug: puzzles
+status: review-required
+last_updated: "2026-06-09"
+iteration: 6
+source_agent: Schrodinger / gpt-5.4-mini high
+target_agent: next cold-start agent
+runtime_surface: MCP-subagent
+certainty: certain
+workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
+workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
+dashboard_schema: docs/projects/PROJECT_CARD_SCHEMA.md
+north_star: docs/projects/puzzles/NORTH_STAR.md
+tracker: docs/projects/puzzles/TRACKER.md
+gaps: docs/projects/puzzles/GAPS.md
+---
 # Puzzles System Cold Start Agent Handoff
 
 Status: review-required

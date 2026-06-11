@@ -138,7 +138,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "You touch a creature and magically remove one of the following effects from it: 1 Exhaustion level; The Charmed or Petrified condition; A curse, including the target's Attunement to a cursed magic item; Any reduction to one of the target's ability scores; Any reduction to the target's Hit Point maximum.",
+      "description": "Removes one major affliction from a touched creature: one Exhaustion level, Charmed, Petrified, a curse or cursed-item attunement, ability-score reduction, or hit-point-maximum reduction.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -174,7 +174,13 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "restoration",
+        "condition-removal",
+        "curse-removal",
+        "exhaustion-removal"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -184,5 +190,10 @@
   },
   "description": "You touch a creature and magically remove one of the following effects from it:\n1 Exhaustion level\nThe Charmed or Petrified condition\nA curse, including the target's Attunement to a cursed magic item\nAny reduction to one of the target's ability scores\nAny reduction to the target's Hit Point maximum",
   "higherLevels": "",
-  "tags": []
+  "tags": [
+    "abjuration",
+    "restoration",
+    "condition-removal",
+    "curse-removal"
+  ]
 }

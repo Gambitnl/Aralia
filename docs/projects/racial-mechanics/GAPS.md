@@ -1,10 +1,11 @@
-# Racial Mechanics / Race Hierarchy Gaps
+# Racial Mechanics / Race Hierarchy Gap Registry
 
 Status: active
 Last updated: 2026-06-05
 
 Iteration note: this docs-only pass opened no new project-local gaps; the only new ambiguity was workflow-level and is recorded in shared `WORKFLOW_GAPS.md`.
 
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
 ## Gap Log
 
 | Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
@@ -42,3 +43,11 @@ Iteration note: this docs-only pass opened no new project-local gaps; the only n
 | `out_of_scope` | Real but not part of the current project objective. |
 | `blocked_human_decision` | Requires user/operator policy choice. |
 | `blocked_external_state` | Requires another team, system, or external dependency. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

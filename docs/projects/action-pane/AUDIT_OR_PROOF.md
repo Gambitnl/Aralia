@@ -1,7 +1,7 @@
 # Action Pane Audit Or Proof
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-10
 
 This file stores concise proof summaries for the Action Pane living project.
 
@@ -14,6 +14,8 @@ This file stores concise proof summaries for the Action Pane living project.
 | 2026-06-09 | ActionPane prop-contract cleanup | Passed after removing the stale dev-dummy prop from the pane path | `src/components/ActionPane/index.tsx`, `src/components/ActionPane/SystemMenu.tsx`, `src/components/layout/GameLayout.tsx`, `src/App.tsx`, `src/components/ActionPane/__tests__/ActionPane.test.tsx` |
 | 2026-06-09 | ActionPane move-target contract cleanup | Passed after removing click-time move.targetId coercion and proving generator-backed string ids | `src/components/ActionPane/ActionButton.tsx`, `src/components/ActionPane/useActionGeneration.ts`, `src/components/ActionPane/__tests__/ActionPane.test.tsx`, `docs/projects/action-pane/NORTH_STAR.md`, `docs/projects/action-pane/TRACKER.md`, `docs/projects/action-pane/GAPS.md` |
 | 2026-06-09 | Living-project docs audit for Action Pane | Passed with `schema_status: valid` and no missing required docs | `node scripts/audit-living-project-docs.cjs` |
+| 2026-06-10 | G4 Town action ownership decision | Passed | Verified APPROACH_TOWN and OBSERVE_TOWN do not block Action Pane work. Focused tests ran and passed. |
+| 2026-06-10 | Living-project docs audit for Action Pane | Passed with `schema_status: valid` | `node scripts/audit-living-project-docs.cjs` |
 
 ## What The Proof Covers
 
@@ -24,6 +26,4 @@ This file stores concise proof summaries for the Action Pane living project.
 
 ## What Remains Open
 
-- `isDevDummyActive` is resolved by D-02 and G2 is now closed.
-- `move.targetId` normalization is now source-backed in the generator layer and G3 is resolved.
-- Town action ownership remains an adjacent follow-up in G4.
+- None. All current gaps and project tasks are resolved.

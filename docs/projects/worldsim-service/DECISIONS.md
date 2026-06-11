@@ -26,3 +26,24 @@ Rationale and evidence:
 
 Follow-up:
 Record future durable project decisions here instead of hiding them in chat handoffs.
+
+### D2: WSS-005 feature source of truth — Azgaar is canonical
+
+Date: 2026-06-10
+
+Owner: Remy (project owner), batched decision session
+
+Decision point:
+The WSS-005 Required Review Brief asked which feature source is canonical for 2D atlas features and 3D `WorldData` features, given that `azgaarWorld.rivers` and `runWorldSim` `traceRivers` diverge for a fixed seed (`featureSourceTruth.test.ts`).
+
+Decision made:
+**Azgaar is canonical.** Azgaar feature hints flow into `WorldData`; 3D and gameplay features follow the atlas. The proc-gen pipeline derives deterministically from Azgaar output. (Option A from the brief: consume Azgaar feature hints into `WorldData`.)
+
+Rationale and evidence:
+- This decision was made in the context of the June 2026 proc-gen campaign (2026-06-10 → 2026-06-22): a unified procedural world pipeline with Azgaar-based generation extended below Azgaar's deepest zoom to replace the Submap, continuing into a 3D ground-level mode, owned town generation, 3D enterable towns, and an entity generation pipeline. The master record's Context section explains the campaign.
+- Making Azgaar the single canonical source keeps the entire pipeline (atlas → submap replacement → 3D → towns/entities) derived from one deterministic origin.
+- Master record: `docs/projects/DECISION_BLITZ_2026-06-10.md` (D1).
+- Brief and gap: `docs/projects/worldsim-service/NORTH_STAR.md` Required Review Brief; `docs/projects/worldsim-service/GAPS.md` WSS-005/WSS-005a.
+
+Follow-up:
+Implement the WSS-005a bridge spec (shared feature encoding carrying Azgaar feature hints into `WorldData`, with a legacy-save migration path), then add a fixed-seed acceptance check proving atlas and 3D consume the same canonical features. T7 in `TRACKER.md` reopens as the implementation lane.

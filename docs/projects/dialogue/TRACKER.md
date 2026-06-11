@@ -1,7 +1,7 @@
-# Dialogue Tracker
+# Dialogue Living Tracker
 
 Status: active  
-Last updated: 2026-06-05
+Last updated: 2026-06-10
 
 ## Status Vocabulary
 - `not_started`
@@ -16,7 +16,7 @@ Last updated: 2026-06-05
 |---|---|---|---|---|---|---|
 | D1 | done | Replace scaffold docs with concrete Dialogue implementation snapshot in NORTH_STAR.md | aralia-dialogue | `src/components/Dialogue/DialogueInterface.tsx`, `src/hooks/useDialogueSystem.ts`, `src/services/dialogueService.ts` | Keep files in `docs/projects/dialogue/` only | `docs/projects/dialogue/NORTH_STAR.md` reflects topic flow and integration |
 | D2 | active | Track unresolved dialogue gaps and keep this project-level gap list aligned | aralia-dialogue | `docs/projects/dialogue/GAPS.md`, `docs/projects/dialogue/NORTH_STAR.md` | Keep the gap log aligned with the current resume path and only add evidence-backed Dialogue gaps | Keep gap status and next proof in GAPS.md |
-| D3 | active | Validate current session persistence and memory update path | aralia-dialogue | `src/state/reducers/npcReducer.ts`, `src/state/reducers/dialogueReducer.ts` | Confirm `START/UPDATE/END_DIALOGUE_SESSION` and `DISCUSS_TOPIC` behavior are documented | Re-check reducer/action mapping from action handler to modal closure |
+| D3 | done | Validate current session persistence and memory update path | qoder-iteration2 | `src/state/reducers/npcReducer.ts`, `src/state/reducers/dialogueReducer.ts`, `src/state/appState.ts`, `src/hooks/useDialogueSystem.ts` | Session lifecycle verified; ephemeral session + persisted NPC memory confirmed | `docs/projects/dialogue/NORTH_STAR.md` session persistence section |
 
 ## Change Log
 
@@ -26,8 +26,15 @@ Last updated: 2026-06-05
 | 2026-05-31 | `docs/projects/dialogue/GAPS.md` | Added implementation-backed gap log and status labels | Preserve unresolved items for cold handoff | Review blocked/human-decision items before next scope expansion |
 | 2026-05-31 | `docs/projects/dialogue/TRACKER.md` | Added active tasks for continuity and checks | Make next steps explicit for cold starts | Retire completed tasks in place |
 | 2026-06-05 | `docs/projects/dialogue/NORTH_STAR.md`, `docs/projects/dialogue/TRACKER.md`, `docs/projects/dialogue/GAPS.md`, `docs/projects/dialogue/COLD_START_AGENT_PROMPT.md` | Refreshed the cold-start resume state and expanded the project gap inventory with Dialogue-specific follow-ups | Keep the handoff compact, current, and evidence-backed | Resume from D2 and keep D3 visible |
+| 2026-06-10 | `docs/projects/dialogue/NORTH_STAR.md`, `docs/projects/dialogue/TRACKER.md`, `docs/projects/dialogue/GAPS.md`, `docs/projects/dialogue/COLD_START_AGENT_PROMPT.md`, `docs/projects/dialogue/AUDIT_OR_PROOF.md` | D3 verified: session lifecycle, reducer mapping, save/load ephemeral behavior documented in North Star; gap signal corrected to 6 open gaps | Iteration 2 cold-start pass; D3 closed with evidence | Resume from D2 with focus on DIAL-002 unlock propagation decision |
 
 ## Update Rules
 - Update active tasks when behavior or tests change.
 - Keep this tracker aligned with any new durable project risk or follow-up in GAPS.md.
 - Use only project-local docs for core decisions; avoid expanding scope to unrelated systems in this tracker.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | not_started | adjacent_follow_up | future agent | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization | Replace this seeded gap row with project-specific findings if any remain after the next bounded gap sweep | docs/agent-workflows/living-project-task-protocol/templates/GAPS.md | The workflow requires durable gaps to have a consistent table shape and evidence path | Perform a bounded gap sweep and either update this row or close it as no longer applicable | Updated GAPS.md and TRACKER.md agree on the project gap state |

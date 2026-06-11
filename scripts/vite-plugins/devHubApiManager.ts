@@ -491,9 +491,12 @@ export const devHubApiManager = () => ({
 
     const iterationFromAgentPrompt = (agentPromptContent: string) => {
       // The cold-start prompt is the handoff packet agents read before an
-      // iteration pass. Reading the counter from that file keeps the dashboard
-      // tied to the durable project workflow instead of a separate UI-only
-      // number that could drift.
+      // iteration pass. Prefer the YAML handoff header because it is the stable
+      // machine-readable index, then fall back to the Markdown handoff block so
+      // older or partially edited packets remain visible.
+      const promptSchema = markdownFrontmatterFields(agentPromptContent);
+      const frontmatterIteration = Number(projectCardSchemaField(promptSchema, 'iteration'));
+      if (Number.isFinite(frontmatterIteration) && frontmatterIteration > 0) return frontmatterIteration;
       const match = agentPromptContent.match(/^Iteration:\s*(\d+)/im);
       return match ? Number(match[1]) : 0;
     };

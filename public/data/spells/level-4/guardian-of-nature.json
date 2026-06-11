@@ -132,7 +132,7 @@
         "saveOutcomeOverrides": []
       },
       "utilityType": "other",
-      "description": "See description.",
+      "description": "Transforms the caster into a primal guardian form for the duration, granting a nature-themed combat and movement buff chosen from the spell's available forms.",
       "scaling": {
         "type": "slot_level",
         "bonusPerLevel": "",
@@ -168,7 +168,12 @@
         "canBeCoveredOrHidden": "not_applicable",
         "canBeSmotheredOrQuenched": "not_applicable"
       },
-      "conditionalEndings": []
+      "conditionalEndings": [],
+      "tags": [
+        "self-buff",
+        "primal-form",
+        "mode-choice"
+      ]
     }
   ],
   "arbitrationType": "mechanical",
@@ -180,6 +185,8 @@
   "higherLevels": "",
   "tags": [
     "buff",
-    "shapechanging"
+    "shapechanging",
+    "self-buff",
+    "concentration"
   ]
 }

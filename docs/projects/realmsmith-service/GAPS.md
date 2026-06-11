@@ -1,4 +1,4 @@
-# GAPS: RealmSmith Service
+# RealmSmith Service Gap Registry
 
 Status: active
 Last updated: 2026-06-05
@@ -23,3 +23,11 @@ Use this file for durable unresolved findings that are specific to RealmSmith.
 | `out_of_scope` | Not part of this project task. |
 | `blocked_human_decision` | Requires owner choice or business rule. |
 | `blocked_external_state` | Blocked by vendor/environment/person outside repo. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

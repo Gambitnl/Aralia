@@ -151,7 +151,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Incapacitated unless the target succeeds on a Charisma save for 1 minute.",
       "conditionalEndings": []
     },
     {
@@ -219,7 +219,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Banished unless the target succeeds on a Charisma save for 1 minute.",
       "conditionalEndings": []
     }
   ],

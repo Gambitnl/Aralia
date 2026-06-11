@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Content & Rules"
 subcategory: "Rules, Spells & Source Data"
 status: partial
-last_updated: 2026-06-08
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/party-ui
-gap_signal: "5 open gaps (G3 resolved 2026-06-08; G5 blocked on human decision; G9/G10 registered 2026-06-08; G7 depends on G5)"
+gap_signal: "5 open gaps (G3 resolved 2026-06-08; G5 decided 2026-06-10 (D15) — implementation lane open; G9/G10 registered 2026-06-08; G7 unblocks once the G5 acceptance rule is written)"
 protocol: living project doc set
-next_step: "G5 (roster acceptance rule) blocked on human decision; G7 (companion data in overlay) next safe lane once G5 is decided; G9 (PartyMemberCard tests) and G4 (warning placement rule) are independent tasks."
+next_step: "G5 decided 2026-06-10 (D15): roster MAY include non-companion NPCs under an explicit acceptance rule — write the acceptance rule (membership model, sheet context, save/load semantics) as step one of the implementation slice, which then unblocks G7; G9 (PartyMemberCard tests) and G4 (warning placement rule) remain independent tasks."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -42,8 +42,8 @@ human_decision_required: "no"
 ---
 # Party UI North Star
 
-Status: active
-Last updated: 2026-06-08
+Status: active (G5 decision recorded 2026-06-10; implementation lane open)
+Last updated: 2026-06-10
 
 ## Dashboard Card Schema
 
@@ -53,9 +53,9 @@ Category: Feature/UI Projects
 Status: partial
 Confidence: medium
 Evidence: docs/projects/party-ui
-Gap signal: 5 open gaps (G3 resolved 2026-06-08; G5 blocked on human decision; G9/G10 registered 2026-06-08; G7 depends on G5)
+Gap signal: 5 open gaps (G3 resolved 2026-06-08; G5 decided 2026-06-10 (D15) — implementation lane open; G9/G10 registered 2026-06-08; G7 unblocks once the G5 acceptance rule is written)
 Protocol: living project doc set
-Next step: G5 (roster acceptance rule) blocked on human decision; G7 (companion data in overlay) next safe lane once G5 is decided; G9 (PartyMemberCard tests) and G4 (warning placement rule) are independent tasks.
+Next step: G5 decided 2026-06-10 (D15): write the explicit roster acceptance rule for non-companion NPCs (membership model, sheet context, save/load semantics) as step one of the implementation slice; that unblocks G7 (companion data in overlay); G9 (PartyMemberCard tests) and G4 (warning placement rule) remain independent tasks.
 Required verification: docs_consistency, scoped_tests
 Completed verification: docs_consistency, focused short-rest persistence tests, companion-context regression tests (2026-06-08), T5 mismatch-warning evaluation (2026-06-08), G3 README audit (2026-06-08)
 Last proof: 2026-06-08
@@ -169,19 +169,33 @@ Companions and party members occupy **separate identity spaces** with no enforce
 
 - ~~Define companion-party membership rules~~ — **Resolved 2026-06-08**: canonical rule documented above. Separate identity spaces, best-effort id bridge, no recruitment logic.
 - Clarify which missing-choice warnings should be surfaced in the overlay path versus compact cards if richer card variants are introduced later.
-- Decide whether party roster membership can include non-companion NPC party entities and, if so, what acceptance rule governs them (now blocked on human decision — see GAPS.md G5).
+- Decide whether party roster membership can include non-companion NPC party entities and, if so, what acceptance rule governs them (now blocked on human decision — see GAPS.md G5). **Decided 2026-06-10** — see "G5 decision" below.
 - ~~Keep the Party UI README artifacts aligned with current behavior~~ — **Resolved 2026-06-08**: `PartyOverlay.README.md` and `PartyPane.README.md` rewritten to match current implementation (iteration 5).
 - Wire companion relationship data into the PartyOverlay so the roster can show approval/relationship context (see GAPS.md G7).
 - ~~Add a companion-id coherence check when party is rebuilt via `SET_FULL_PARTY`~~ — **Resolved 2026-06-08**: regression coverage proves the id bridge for both rebuild paths.
 - Add `PartyMemberCard` test coverage (see GAPS.md G9).
 - Evaluate short rest modal parity with long rest choice flow (see GAPS.md G10).
 
+## G5 decision (2026-06-10)
+
+Resolved by Remy (project owner) in the 2026-06-10 batched decision session (D15 in
+`docs/projects/DECISION_BLITZ_2026-06-10.md`):
+
+- **Party roster MAY include non-companion NPCs**, but only under an **explicit acceptance
+  rule**.
+- The acceptance rule must be defined as the **first step of the implementation slice**,
+  covering at minimum: the membership model, character-sheet context behavior for
+  non-companion entries, and save/load semantics.
+- Writing that rule unblocks **G7** (wiring companion relationship data into `PartyOverlay`).
+
+Status: decision recorded 2026-06-10; implementation lane open.
+
 ## Next checks for the next agent
 
 - All T-tasks (T1–T5) are done.
 - G3 is resolved: READMEs aligned with current implementation (iteration 5).
-- G5 (roster acceptance rule for non-companion NPCs) remains blocked on human decision; do not touch it.
-- G7 (wire companion relationship data into PartyOverlay) is the next safe lane once G5 is decided.
+- G5 (roster acceptance rule for non-companion NPCs) remains blocked on human decision; do not touch it. **Update 2026-06-10: decided (D15) — write the acceptance rule as step one of the implementation slice.**
+- G7 (wire companion relationship data into PartyOverlay) is the next safe lane once G5 is decided. **G5 is decided 2026-06-10; G7 opens once the acceptance rule is written.**
 - G9 (add `PartyMemberCard` tests) is an independent test-coverage task.
 - G10 (short rest modal parity with long rest) is an independent UX/rules follow-up.
 - G4 (missing-choice warning placement rule) is an independent adjacent follow-up.
@@ -194,6 +208,7 @@ Companions and party members occupy **separate identity spaces** with no enforce
 4. Cross-check `docs/projects/PROJECT_TRACKER.md` and `docs/projects/GLOBAL_GAPS.md` for classification before scope expansion.
 5. All T-tasks (T1–T5) are done. G3 resolved. Next safe lanes: G9 (tests), G4 (warning rule), G7 (companion data, blocked by G5).
 6. G5 remains blocked on human decision. G8 and G3 are resolved.
+7. Update 2026-06-10: G5 is decided (D15, `docs/projects/DECISION_BLITZ_2026-06-10.md`) — write the explicit acceptance rule as step one of the implementation slice; that unblocks G7.
 
 
 ## Cold-Start Gap Routing

@@ -1,12 +1,20 @@
-# World 3D UI Gaps
+# World 3D UI Gap Registry
 
 Status: active
-Last updated: 2026-06-08 (W3DUI-27 nameplates done; W3DUI-28 test repair verified; all active Plan 4 HUD gaps closed)
+Last updated: 2026-06-10 (iteration 4 monitor pass: scoped World3D suite green 25/25; seeded Gap Log row G1 closed after bounded sweep — no open project gaps)
 
 North Star: `docs/projects/world-3d-ui/NORTH_STAR.md`
 
 Scope: unresolved findings for the **2D↔3D transition + in-3D HUD** layer. Rendering-engine
 gaps belong in `docs/projects/world3d/GAPS.md`; generation gaps in `docs/projects/worldsim-service/GAPS.md`.
+
+Merge note (2026-06-10, D5 in `docs/projects/DECISION_BLITZ_2026-06-10.md`): this surface
+now also owns all 3D entrypoint contracts (modal launch, phase transition, close/focus
+policy) from the merged `three-d-modal` project. Its open items — global-vs-submap
+entry/close/focus policy, the shared `onMove` movement contract, submap 3D launch/close
+test coverage, and the CMA-G14 `Scene3D.tsx`/`PropsLayer.tsx` split route — remain listed
+in `docs/projects/three-d-modal/GAPS.md` (merged-reference) and should be triaged into
+W3DUI rows when work on them is scheduled.
 
 | Gap ID | Status | Classification | Owner | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
 |---|---|---|---|---|---|---|---|---|---|
@@ -37,3 +45,30 @@ gaps belong in `docs/projects/world3d/GAPS.md`; generation gaps in `docs/project
 | W3DUI-26 | done | user_experience | claude | 2026-06-02 deferred-UX slice; closed 2026-06-02 | No in-3D minimap: player loses bird's-eye orientation while in the streamed world | `World3DMinimap.tsx` paints a top-down view from `WorldData.biomeIds` + live `AtlasPlayerMarker`, mounted bottom-left of `InWorldHUD` | Plan 4 listed nameplates + minimap as deferred MVP UX; minimap is the self-contained half | — | `World3DMinimap.test.tsx` (3 cases); HUD passes `worldData`; vitest 29/29 green |
 | W3DUI-27 | done | user_experience | gpt-5.3-codex-spark | 2026-06-08 deferred-UX slice | No in-3D nameplates/labels visible over sites while traversing | `WorldData.sites` carries `kind`/`position`/`population` but lacked a live HUD projection | Plan 4's deferred HUD UX was incomplete; players could not identify in-world points of interest | Added `World3DNameplates` and wired it into `World3DScene` + `World3DWrapper`; distance + LOD + visibility cap gates applied | Unit tests cover LOD, distance, and max-visible gating; full `src/components/World3D/__tests__` suite green |
 | W3DUI-28 | done | test_integrity | claude | 2026-06-02 minimap slice; closed 2026-06-02 | `World3DWrapper.loader.test.tsx` working-tree edit narrowed the `createWorkerChunkLoader` mock to one arg while the assertion still expected three (`world, any(Number), any(Function)`) → suite red | Self-inconsistent uncommitted edit; the real call passes 3 args | A broken test in the verification surface masks real regressions | — | Mock forwards `(world, resolution, workerFactory)`; loader test 2/2 green; tsc clean |
+
+Use this file for durable unresolved findings that are too important or too large to live only in the tracker and that genuinely belong to this project. Put cross-project, orphaned, or out-of-current-scope gaps in the global gap tracker instead.
+
+## Gap Log
+
+| Gap ID | Status | Classification | Owner | Owning tracker/subsystem | Found during | Gap | Evidence/source | Why it matters | Next action | Next proof/check |
+|---|---|---|---|---|---|---|---|---|---|---|
+| G1 | done | adjacent_follow_up | claude-fable-5 (Claude Code) | docs/projects/PROJECT_CARD_SCHEMA.md | schema normalization; closed 2026-06-10 | Seeded placeholder row from schema normalization; the 2026-06-10 bounded gap sweep found no remaining project-specific finding to replace it with | 2026-06-10 sweep: W3DUI-1..28 all done; full `src/components/World3D/__tests__` suite 11 files/25 tests green; GLOBAL_GAPS GG-16..GG-27 triaged with none owned by this surface | The workflow requires durable gaps to have a consistent table shape and evidence path | — | GAPS.md and TRACKER.md agree: no open project gaps |
+
+## Classification Reference
+
+| Classification | Use when |
+|---|---|
+| `in_scope_now` | The task cannot honestly complete without it. |
+| `support_needed_now` | It is not the product task, but the task cannot move without it. |
+| `adjacent_follow_up` | Useful and related, but not required for this slice. |
+| `out_of_scope` | It should not be part of this project/task. |
+| `blocked_human_decision` | A real owner/operator choice is needed. |
+| `blocked_external_state` | Waiting on PR, CI, vendor, service, environment, or another person. |
+
+## Update Rules
+
+- Keep each gap tied to evidence and a next proof/check.
+- Link back to a global gap ID when this project imports one.
+- If the current project should not own a gap, add or update the global gap tracker instead of keeping the gap here.
+- Do not mark a gap done unless completion evidence is linked or summarized.
+- Add dated testimony or status notes to an existing gap instead of opening duplicates.

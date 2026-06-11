@@ -145,6 +145,15 @@ const App: React.FC = () => {
   }, []);
 
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
+
+  // ── Storage initialization (GAP-001) ──────────────────────────────────
+  // Initializes IndexedDB, recovers emergency saves, and migrates legacy
+  // localStorage payloads to IDB. Runs once on mount, before any save/load
+  // UI checks can read stale data. Safe to call multiple times (idempotent).
+  useEffect(() => {
+    SaveLoadService.initializeStorage();
+  }, []);
+
   const autoSaveEnabled = gameState.autoSaveEnabled ?? true;
   const [isAutoSavePrefHydrated, setIsAutoSavePrefHydrated] = useState(false);
   const [itemsById, setItemsById] = useState<Record<string, Item> | null>(null);

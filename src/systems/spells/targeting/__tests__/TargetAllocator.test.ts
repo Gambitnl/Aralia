@@ -5,10 +5,28 @@ import { TargetAllocation } from '../../../../types/spells';
 import { createMockCombatCharacter } from '../../../../utils/factories';
 import * as combatUtils from '../../../../utils/combatUtils';
 
+/**
+ * This file protects the pool-target allocation rules used by spell targeting.
+ *
+ * Pool allocation is how the spell system can take an eligible creature list
+ * and then spend a rolled resource across that list instead of affecting every
+ * candidate. These tests keep the allocator honest for base HP pools, partial
+ * application, empty candidate lists, and exact dice replacement from scaling
+ * tiers.
+ */
+
 describe('TargetAllocator', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
+
+  // ============================================================================
+  // Pool Allocation
+  // ============================================================================
+  // These tests cover the final target-selection pass after normal targeting has
+  // already produced candidate creatures. The allocator sorts, rolls the pool,
+  // and decides which candidates are actually affected.
+  // ============================================================================
 
   describe('processPoolAllocation', () => {
     it('should select targets in ascending order until pool is exhausted', () => {
@@ -78,6 +96,38 @@ describe('TargetAllocator', () => {
        });
        expect(result.selectedTargets).toHaveLength(0);
        expect(result.remainingPool).toBe(25);
+    });
+
+    it('uses exact scaling tier dice when the cast level reaches a pool threshold', () => {
+      // The allocator should not guess at linear scaling, but explicit tier maps
+      // already provide the complete dice string to roll for a given cast level.
+      const rollSpy = vi.spyOn(combatUtils, 'rollDice').mockReturnValue(16);
+      const c1 = createMockCombatCharacter({ id: 'c1', name: 'Scaled Target', currentHP: 12 });
+
+      const allocation: TargetAllocation = {
+        type: 'pool',
+        pool: {
+          resource: 'hp',
+          dice: '5d8',
+          sortOrder: 'ascending',
+          scaling: {
+            type: 'slot_level',
+            scalingTiers: {
+              '3': '7d8',
+              '5': '9d8'
+            }
+          }
+        }
+      };
+
+      const result = TargetAllocator.allocateTargets([c1], allocation, { castLevel: 5 });
+
+      // The selected tier must be the highest threshold at or below the current
+      // cast level, so a 5th-level cast rolls 9d8 instead of the base 5d8.
+      expect(rollSpy).toHaveBeenCalledWith('9d8');
+      expect(result.initialPool).toBe(16);
+      expect(result.selectedTargets).toContain(c1);
+      expect(result.logs).toContain('Applied allocation scaling tier 5: 9d8');
     });
   });
 });

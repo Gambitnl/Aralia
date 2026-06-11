@@ -1,7 +1,7 @@
-# TRACKER: Scripts: Quality
+# Scripts: Quality Living Tracker
 
 Status: active
-Last updated: 2026-06-08
+Last updated: 2026-06-10 (script-tests merge recorded)
 
 ## Status Vocabulary
 
@@ -22,6 +22,7 @@ Last updated: 2026-06-08
 | T3 | done | Capture quality-monitoring gaps and define next checks | Worker C | 2026-06-08 | [docs/projects/scripts-quality/GAPS.md](F:/Repos/Aralia/docs/projects/scripts-quality/GAPS.md), [docs/DEVELOPMENT_GUIDE.md](F:/Repos/Aralia/docs/DEVELOPMENT_GUIDE.md), [docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md), [scripts/quality/debt-summary.cjs](F:/Repos/Aralia/scripts/quality/debt-summary.cjs) | Keep unresolved monitoring gaps visible and bounded | `npm run quality:debt` once, compare output shape to this map, and document scope rationale |
 | T4 | done | Add repeatable quality-debt checkpoint convention | Codex | 2026-06-08 | [docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md), [docs/projects/scripts-quality/GAPS.md](F:/Repos/Aralia/docs/projects/scripts-quality/GAPS.md) | Convention recorded: capture one compact `npm run quality:debt` summary only when quality scope, lint scope, or push policy changes | `npm run quality:debt` passed as a non-blocking debt snapshot: TS 73 diagnostics; ESLint 15 errors / 1706 warnings; areas `src`, `scripts`, `tests` |
 | T5 | active | Maintain routed quality checkpoint and keep scripts-git follow-up explicit | Codex | 2026-06-08 | [docs/projects/scripts-quality/NORTH_STAR.md](F:/Repos/Aralia/docs/projects/scripts-quality/NORTH_STAR.md), [docs/projects/scripts-quality/GAPS.md](F:/Repos/Aralia/docs/projects/scripts-quality/GAPS.md), [docs/projects/scripts-quality/COLD_START_AGENT_PROMPT.md](F:/Repos/Aralia/docs/projects/scripts-quality/COLD_START_AGENT_PROMPT.md) | Keep the routed follow-up out of this project and refresh the checkpoint note only when quality scope, lint scope, or push policy changes | `npm run quality:debt` summary plus docs consistency on the next quality-scope change |
+| T6 | not_started | Own the merged script-tests support surface (`scripts/__tests__` continuity + inherited ST-GAP-001..004) | scripts-quality maintainer | 2026-06-10 | `docs/projects/DECISION_BLITZ_2026-06-10.md` (D21); `docs/projects/script-tests/` (merged-reference support surface); `docs/projects/scripts-quality/GAPS.md` G4 | Close ST-GAP-001 first (deterministic `spellFieldInventory` fixture test), then continue per the inherited gap list; mirror status into the support-surface registry | `npx vitest run scripts/__tests__/spellFieldInventory.test.ts` plus the focused tests for each inherited gap |
 
 ## Gap Log
 
@@ -48,3 +49,11 @@ Last updated: 2026-06-08
 - Confirm strict path (`ARALIA_PRE_PUSH_STRICT=1 git push`) still matches the documented pre-push flow and local policy.
 - If lint scope changes, update the scope rationale and `G2` status in this project.
 - Keep the routed cadence/policy follow-up outside this project unless ownership changes.
+
+## Update Rules
+
+- Update this tracker before starting a new slice.
+- Update it when implementation changes the current state.
+- Every active, waiting, or blocked row needs owner, last updated date, evidence or next proof, and next action.
+- Record new gaps here or link the owning subsystem tracker.
+- Keep raw process artifacts out unless a concise summary helps future work.

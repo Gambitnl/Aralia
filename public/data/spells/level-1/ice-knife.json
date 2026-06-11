@@ -149,8 +149,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "On a ranged spell hit, the primary target takes 1d10 Piercing damage from the thrown ice shard.",
+      "conditionalEndings": [],
+      "tags": [
+        "piercing-damage",
+        "ranged-hit",
+        "primary-hit"
+      ]
     },
     {
       "type": "DAMAGE",
@@ -213,8 +218,14 @@
         "bonusPerLevel": "+1d6",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures in the 5-foot burst make a Dexterity save against 2d6 Cold damage, increasing by 1d6 per slot level above 1st.",
+      "conditionalEndings": [],
+      "tags": [
+        "cold-damage",
+        "dexterity-save",
+        "area",
+        "slot-scaling"
+      ]
     }
   ],
   "arbitrationType": "mechanical",

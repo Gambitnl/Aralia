@@ -162,7 +162,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Charmed unless the target succeeds on a Wisdom save for 1 minute; break triggers: target takes damage, adjacent creature action shakes awake.",
       "conditionalEndings": []
     },
     {
@@ -234,7 +234,7 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
+      "description": "Applies Incapacitated unless the target succeeds on a Wisdom save for 1 minute; break triggers: target takes damage, adjacent creature action shakes awake.",
       "conditionalEndings": []
     }
   ],

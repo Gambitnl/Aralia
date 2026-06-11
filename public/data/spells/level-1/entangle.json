@@ -176,8 +176,13 @@
         },
         "depositDistance": 0
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creates a 20-foot-square terrain control area of grasping plants while concentration lasts.",
+      "conditionalEndings": [],
+      "tags": [
+        "terrain-control",
+        "plants",
+        "area"
+      ]
     },
     {
       "type": "STATUS_CONDITION",
@@ -256,8 +261,13 @@
         "bonusPerLevel": "",
         "customFormula": ""
       },
-      "description": "",
-      "conditionalEndings": []
+      "description": "Creatures affected by the entangling area must succeed on a Strength save or be Restrained for up to 1 minute.",
+      "conditionalEndings": [],
+      "tags": [
+        "restrained",
+        "strength-save",
+        "area-rider"
+      ]
     },
     {
       "type": "STATUS_CONDITION",

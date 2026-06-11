@@ -84,7 +84,7 @@
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "DEFENSIVE",
       "trigger": {
         "type": "immediate",
         "frequency": "every_time",
@@ -133,42 +133,11 @@
         "saveModifiers": [],
         "saveOutcomeOverrides": []
       },
-      "utilityType": "other",
-      "description": "Choose up to five creatures within range that can hear you. For the duration, each affected creature gains 5 Temporary Hit Points and has Advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has Advantage on the next attack roll it makes. Once an affected creature loses the Temporary Hit Points granted by this spell, the spell ends for that creature.",
+      "description": "Each affected creature gains 5 Temporary Hit Points for the duration.",
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
-        "customFormula": ""
-      },
-      "grantedActions": [],
-      "attackAugments": [],
-      "controlOptions": [],
-      "taunt": {
-        "disadvantageAgainstOthers": false,
-        "leashRangeFeet": 0,
-        "breakConditions": []
-      },
-      "savePenalty": {
-        "dice": "",
-        "flat": 0,
-        "applies": "next_save",
-        "duration": {
-          "type": "rounds",
-          "value": 0
-        }
-      },
-      "light": {
-        "brightRadius": 0,
-        "dimRadius": 0,
-        "attachedTo": "caster",
-        "color": "",
-        "colorChoice": "not_applicable",
-        "opaqueCoverBlocks": "not_applicable",
-        "emitsHeat": "not_applicable",
-        "ignitesObjects": "not_applicable",
-        "consumesFuel": "not_applicable",
-        "canBeCoveredOrHidden": "not_applicable",
-        "canBeSmotheredOrQuenched": "not_applicable"
+        "bonusPerLevel": "+5 Temporary Hit Points per slot level above 3rd",
+        "customFormula": "A 4th-level or higher spell slot increases the Temporary Hit Points by 5 for each spell slot level above 3rd."
       },
       "conditionalEndings": [
         {
@@ -176,7 +145,159 @@
           "scope": "effect",
           "description": "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
         }
+      ],
+      "defenseType": "temporary_hp",
+      "value": 5,
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      }
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "description": "Each affected creature has Advantage on Wisdom saving throws while the spell remains active for that creature.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "temporary_hit_points_depleted",
+          "scope": "effect",
+          "description": "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
+        }
+      ],
+      "defenseType": "advantage_on_saves",
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "savingThrow": [
+        "Wisdom"
       ]
+    },
+    {
+      "type": "ATTACK_ROLL_MODIFIER",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false,
+          "willing": "not_applicable",
+          "objectEligibility": {
+            "wornOrCarried": "not_applicable",
+            "magicalStatus": "not_applicable",
+            "fixedToSurface": "not_applicable",
+            "maxSize": "not_applicable",
+            "maxWeightPounds": "not_applicable",
+            "maxWeightScaling": "not_applicable"
+          },
+          "communicationPrerequisites": {
+            "canHearCaster": "not_applicable",
+            "canUnderstandCaster": "not_applicable",
+            "canSeeCaster": "not_applicable"
+          },
+          "abilityThreshold": {
+            "ability": "not_applicable",
+            "operator": "not_applicable",
+            "value": "not_applicable"
+          },
+          "selfRelation": "not_applicable"
+        },
+        "requiresStatus": [],
+        "saveModifiers": [],
+        "saveOutcomeOverrides": []
+      },
+      "description": "After an affected creature is hit by an attack, it has Advantage on the next attack roll it makes.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "conditionalEndings": [
+        {
+          "trigger": "temporary_hit_points_depleted",
+          "scope": "effect",
+          "description": "The spell ends for an affected creature when that creature loses the Temporary Hit Points granted by this spell."
+        }
+      ],
+      "attackRollModifier": {
+        "modifier": "advantage",
+        "direction": "outgoing",
+        "attackKind": "any",
+        "consumption": "next_attack",
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        }
+      }
     }
   ],
   "arbitrationType": "mechanical",
@@ -185,6 +306,10 @@
     "playerInputRequired": false
   },
   "description": "You address allies, staff, or innocent bystanders to exhort and inspire them to greatness, whether they have anything to get excited about or not. Choose up to five creatures within range that can hear you. For the duration, each affected creature gains 5 temporary hit points and has advantage on Wisdom saving throws. If an affected creature is hit by an attack, it has advantage on the next attack roll it makes. Once an affected creature loses the temporary hit points granted by this spell, the spell ends for that creature.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the temporary hit points increase by 5 for each slot level above 3rd. I once heard a motivational speech by Jim and it was the worst ninety seconds of my life. What does Omin see in him, anyway?",
-  "tags": []
+  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the Temporary Hit Points increase by 5 for each slot level above 3rd.",
+  "tags": [
+    "buff",
+    "enchantment",
+    "temporary_hp"
+  ]
 }

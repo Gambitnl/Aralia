@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Interface & Experience"
 subcategory: Player UI Surfaces
 status: active
-last_updated: 2026-06-09
+last_updated: 2026-06-10
 confidence: medium
 evidence: docs/projects/action-pane
-gap_signal: 1 adjacent follow-up
+gap_signal: 0 open gaps
 protocol: living project doc set
-next_step: "Keep the move contract source-backed; revisit only if town ownership needs a separate slice."
+next_step: "No open gaps; keep action contracts stable."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -31,8 +31,8 @@ required_verification:
 completed_verification:
   - docs_consistency
   - scoped_tests
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-09
+last_proof: 2026-06-10
+workflow_gaps_reviewed: 2026-06-10
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -74,25 +74,25 @@ Category: Feature/UI Projects
 Status: active
 Confidence: medium
 Evidence: docs/projects/action-pane
-Gap signal: 1 adjacent follow-up
+Gap signal: 0 open gaps
 Protocol: living project doc set
-Next step: Keep the move contract source-backed; revisit only if town ownership needs a separate slice.
+Next step: No open gaps; keep action contracts stable.
 Required verification: scoped_tests, docs_consistency
 Completed verification: docs_consistency, scoped_tests
-Last proof: 2026-06-09
-Workflow gaps reviewed: 2026-06-09
+Last proof: 2026-06-10
+Workflow gaps reviewed: 2026-06-10
 
 ## Active Task
 
 | Field | Value |
 |---|---|
-| Task | Reduce reliance on runtime move.targetId coercion |
-| Acceptance criteria | This living-doc set contains source-backed move-target cleanup evidence, a concrete next proof, and no stale prop-contract ambiguity on the ActionPane path |
+| Task | Decide whether town action ownership needs its own Action Pane slice |
+| Acceptance criteria | Decide from source evidence whether APPROACH_TOWN and OBSERVE_TOWN ownership blocks Action Pane work, and record the decision |
 | Allowed boundaries | docs/projects/action-pane/ and the narrow ActionPane action-contract surface |
 | Stop condition | Do not widen into unrelated gameplay systems |
 | Verification | Verify this folder plus the focused ActionPane contract test and supporting docs checks are filled with current, cross-referenced implementation evidence |
 | Owner | Action Pane doc owner |
-| Next action | Keep the move contract source-backed; revisit only if town ownership needs a separate slice |
+| Next action | No open gaps; keep action contracts stable. |
 
 ## Scope Boundaries
 
@@ -139,6 +139,7 @@ Out of scope:
 |---|---|---|---|---|
 | Move ActionPane prop contracts to stable, non-legacy form | resolved | Action Pane owner | src/components/ActionPane/index.tsx, src/components/ActionPane/SystemMenu.tsx, src/components/layout/GameLayout.tsx, src/App.tsx, src/components/ActionPane/__tests__/ActionPane.test.tsx | Keep the prop removed from the ActionPane path unless a new dev-entry requirement is recorded |
 | Normalize action payload expectations across generators and handlers | resolved | Action Pane owner | src/components/ActionPane/useActionGeneration.ts, src/types/actions.ts, src/components/ActionPane/__tests__/ActionPane.test.tsx | Keep the producer contract string-only and the button path passive |
+| Keep cross-project decision for town action ownership (ActionPane vs village scene) | resolved | Action Pane owner | src/components/ActionPane/useActionGeneration.ts, src/hooks/actions/handleMovement.ts | Keep the current town action ownership under the exploration/movement action handlers as they are triggered in PLAYING phase. |
 
 ## Global Gap Imports
 
@@ -184,16 +185,17 @@ Avoid adding ad hoc runtime logs, screenshots, or process notes that do not affe
 |---|---|---|
 | Does isDevDummyActive still belong on ActionPane props? | No. The prop was removed from the ActionPane path and the developer-entry flow stays owned by the menu surfaces. | src/components/ActionPane/index.tsx, src/components/ActionPane/SystemMenu.tsx, src/components/layout/GameLayout.tsx, src/App.tsx |
 | Does ActionButton still need to rewrite move target ids at click time? | No. Move actions now arrive with string ids from `useActionGeneration`, and the button path passes them through unchanged. | src/components/ActionPane/useActionGeneration.ts, src/components/ActionPane/ActionButton.tsx, src/components/ActionPane/__tests__/ActionPane.test.tsx |
+| Should APPROACH_TOWN and OBSERVE_TOWN live in this pane or be moved to village scene controls? | Keep the current town action ownership under the exploration/movement action handlers since they are triggered in PLAYING phase when approaching or observing a town from the world map (outside the town canvas). | src/components/ActionPane/useActionGeneration.ts, src/hooks/actions/handleMovement.ts |
 
 ## Open Questions
 
 | Question | Why it matters | Owner | Needed by |
 |---|---|---|---|
-| Should APPROACH_TOWN and OBSERVE_TOWN live in this pane or be moved to village scene controls? | Prevents duplicated behavior and conflicting affordances across views | Action Pane owner | Next phase planning |
+| none | none | none | none |
 
 ## Resume Path For A Cold Agent
 
 1. Read this file.
 2. Read [docs/projects/action-pane/TRACKER.md](docs/projects/action-pane/TRACKER.md) and [docs/projects/action-pane/GAPS.md](docs/projects/action-pane/GAPS.md).
 3. Confirm no imported gaps are needed in [docs/projects/GLOBAL_GAPS.md](docs/projects/GLOBAL_GAPS.md) and recheck [docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md](docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md).
-4. Continue with G4 only if town ownership needs its own slice.
+4. Resume work when a new gap is logged or recorded.
