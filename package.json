@@ -136,7 +136,7 @@
     "typescript-eslint": "^8.50.1",
     "vite": "^7.3.3",
     "vitepress": "^1.6.4",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.0"
   },
   "overrides": {
     "protobufjs": "^7.5.8",
