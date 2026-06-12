@@ -1,0 +1,263 @@
+{
+  "id": "premade_vlaakith_szarn",
+  "name": "Vlaakith Szarn",
+  "age": 33,
+  "background": "criminal",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "githyanki",
+    "name": "Githyanki",
+    "baseRace": "gith",
+    "description": "Once members of a people who escaped servitude to mind flayers, githyanki split from their cousins, githzerai, and fled to the Astral Plane. In that timeless, silvery realm, githyanki honed their psionic powers and built a great city called Tu’narath. They have since spread throughout the multiverse, starting in outposts outside the Astral Plane, called creches, where time passes and their children can reach adulthood.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium",
+      "Speed: 30 feet",
+      "Astral Knowledge: Whenever you finish a long rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice, selected from the Player’s Handbook. These proficiencies last until the end of your next long rest.",
+      "Githyanki Psionics: You know the mage hand cantrip, and the hand is invisible when you cast the cantrip with this trait. Starting at 3rd level, you can cast the jump spell with this trait. Starting at 5th level, you can also cast the misty step spell with it. Once you cast jump or misty step with this trait, you can’t cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
+      "Psychic Resilience: You have resistance to psychic damage."
+    ],
+    "visual": {
+      "id": "githyanki",
+      "color": "#8B0000",
+      "maleIllustrationPath": "assets/images/races/githyanki_male.png",
+      "femaleIllustrationPath": "assets/images/races/githyanki_female.png"
+    },
+    "racialSpellChoice": {
+      "traitName": "Githyanki Psionics",
+      "traitDescription": "Choose your spellcasting ability for Githyanki Psionics (Mage Hand, Jump, Misty Step)."
+    },
+    "knownSpells": [
+      {
+        "minLevel": 1,
+        "spellId": "mage-hand"
+      },
+      {
+        "minLevel": 3,
+        "spellId": "jump"
+      },
+      {
+        "minLevel": 5,
+        "spellId": "misty-step"
+      }
+    ]
+  },
+  "class": {
+    "id": "fighter",
+    "name": "Fighter",
+    "description": "Masters of combat, skilled with a variety of weapons and armor.",
+    "hitDie": 10,
+    "primaryAbility": [
+      "Strength",
+      "Dexterity"
+    ],
+    "savingThrowProficiencies": [
+      "Strength",
+      "Constitution"
+    ],
+    "skillProficienciesAvailable": [
+      "acrobatics",
+      "animal_handling",
+      "athletics",
+      "history",
+      "insight",
+      "intimidation",
+      "perception",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "All armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "features": [
+      {
+        "id": "second_wind",
+        "name": "Second Wind",
+        "description": "Regain hit points as a bonus action.",
+        "levelAvailable": 1
+      }
+    ],
+    "weaponMasterySlots": 3,
+    "fightingStyles": [
+      {
+        "id": "archery",
+        "name": "Archery",
+        "description": "+2 bonus to attack rolls with ranged weapons.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "defense",
+        "name": "Defense",
+        "description": "+1 bonus to AC while wearing armor.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "dueling",
+        "name": "Dueling",
+        "description": "+2 damage with a melee weapon in one hand and no other weapon.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "great_weapon_fighting",
+        "name": "Great Weapon Fighting",
+        "description": "Reroll 1s and 2s on damage dice with two-handed melee weapons.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "two_weapon_fighting",
+        "name": "Two-Weapon Fighting",
+        "description": "When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.",
+        "levelAvailable": 1
+      }
+    ],
+    "statRecommendationFocus": [
+      "Strength",
+      "Dexterity",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Prioritize Strength (for heavy weapons/armor) OR Dexterity (for finesse/ranged weapons). Constitution is vital for hit points. Choose based on your intended combat style and selected Fighting Style.",
+    "recommendedPointBuyPriorities": [
+      "Strength",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Charisma",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "fighter": 1
+  },
+  "abilityScores": {
+    "Strength": 15,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 15,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma"
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 12,
+  "maxHp": 12,
+  "hitPointDice": [
+    {
+      "die": 10,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "longbow",
+    "shortbow",
+    "hand_crossbow"
+  ],
+  "feats": [
+    "alert"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "limitedUses": {
+    "second_wind": {
+      "name": "Second Wind",
+      "current": 1,
+      "max": 1,
+      "resetOn": "short_rest"
+    }
+  },
+  "selectedFightingStyle": {
+    "id": "archery",
+    "name": "Archery",
+    "description": "+2 bonus to attack rolls with ranged weapons.",
+    "levelAvailable": 1
+  },
+  "racialSelections": {
+    "githyanki": {
+      "spellAbility": "Intelligence"
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Githyanki Fighter. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "initiativeBonus": 2,
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [
+      "one"
+    ],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": [],
+  "spellbook": {
+    "cantrips": [],
+    "knownSpells": [
+      "mage-hand"
+    ],
+    "preparedSpells": [
+      "mage-hand"
+    ],
+    "racialSpellGrants": [
+      {
+        "sourceRaceId": "githyanki",
+        "sourceRaceName": "Githyanki",
+        "minLevel": 1,
+        "spellId": "mage-hand",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      }
+    ]
+  }
+}

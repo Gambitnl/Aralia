@@ -1,0 +1,185 @@
+{
+  "id": "premade_korag_frostpeak",
+  "name": "Korag Frostpeak",
+  "age": 38,
+  "background": "farmer",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "frost_giant_goliath",
+    "name": "Frost Giant Goliath",
+    "baseRace": "goliath",
+    "description": "As a goliath with Frost Giant ancestry, you possess the common traits of your people, enhanced by the freezing power of the mountains that numbs your foes. This cold heritage allows you to sap the heat and momentum from your enemies with every strike. The icy resilience of frost giants courses through you, making your blows as chilling as a winter gale.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 7-8 feet tall)",
+      "Speed: 35 feet",
+      "Powerful Build: You have advantage on saving throws you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
+      "Large Form: Starting at 5th level, you can change your size to Large as a Bonus Action. This transformation lasts for 10 minutes or until you end it as a bonus action. While Large, you have advantage on Strength checks, and your speed increases by 10 feet. Once you use this trait, you can't use it again until you finish a Long Rest.",
+      "Frost's Chill: When you hit a target with an attack roll, you can deal an extra 1d6 cold damage and reduce the target's speed by 10 feet until the start of your next turn. You can use this trait a number of times equal to your Proficiency Bonus, regaining all uses on a Long Rest."
+    ],
+    "visual": {
+      "id": "frost_giant_goliath",
+      "color": "#87CEEB",
+      "maleIllustrationPath": "assets/images/races/Goliath_Frost Giant_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Goliath_Frost Giant_Female.png"
+    }
+  },
+  "class": {
+    "id": "barbarian",
+    "name": "Barbarian",
+    "description": "A fierce warrior who can enter a battle rage.",
+    "hitDie": 12,
+    "primaryAbility": [
+      "Strength"
+    ],
+    "savingThrowProficiencies": [
+      "Strength",
+      "Constitution"
+    ],
+    "skillProficienciesAvailable": [
+      "animal_handling",
+      "athletics",
+      "intimidation",
+      "nature",
+      "perception",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "features": [
+      {
+        "id": "rage",
+        "name": "Rage",
+        "description": "Enter a rage as a bonus action.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "unarmored_defense_barbarian",
+        "name": "Unarmored Defense",
+        "description": "While not wearing armor, your AC equals 10 + your Dexterity modifier + your Constitution modifier.",
+        "levelAvailable": 1
+      }
+    ],
+    "weaponMasterySlots": 2,
+    "statRecommendationFocus": [
+      "Strength",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Strength fuels your rage and attacks. Constitution makes you tougher and boosts your AC without armor.",
+    "recommendedPointBuyPriorities": [
+      "Strength",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Intelligence",
+      "Charisma"
+    ]
+  },
+  "classLevels": {
+    "barbarian": 1
+  },
+  "abilityScores": {
+    "Strength": 15,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 8
+  },
+  "finalAbilityScores": {
+    "Strength": 15,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 8
+  },
+  "skills": [
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "Strength"
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "ability": "Charisma"
+    },
+    {
+      "id": "animal_handling",
+      "name": "Animal Handling",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "nature",
+      "name": "Nature",
+      "ability": "Intelligence"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 16,
+  "maxHp": 16,
+  "hitPointDice": [
+    {
+      "die": 12,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 13,
+  "speed": 35,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "greataxe",
+    "maul"
+  ],
+  "feats": [
+    "tough"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "limitedUses": {
+    "racial_feature_frost_giant_goliath__frost_s_chill__resource": {
+      "name": "Frost Giant Goliath: Frost's Chill (Frost's Chill usage)",
+      "current": 2,
+      "max": "proficiency_bonus",
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Frost Giant Goliath Barbarian. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [
+      "saving throws you make to end the Grappled condition"
+    ],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": [],
+    "powerfulBuild": true
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

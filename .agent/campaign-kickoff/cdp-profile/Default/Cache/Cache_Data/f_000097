@@ -1,0 +1,265 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/CharacterCreator/SpellSourceSelector.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import { motion } from "/Aralia/node_modules/.vite/deps/framer-motion.js?v=c72b52c2";
+import { GlossaryIcon } from "/Aralia/src/components/Glossary/IconRegistry.tsx";
+const SOURCE_INFO = {
+  bard: {
+    name: "Bard",
+    ability: "Charisma",
+    flavour: "Words woven with glamour — magic through melody and story."
+  },
+  cleric: {
+    name: "Cleric",
+    ability: "Wisdom",
+    flavour: "Divine favour channelled through unshakeable faith."
+  },
+  druid: {
+    name: "Druid",
+    ability: "Wisdom",
+    flavour: "Primal forces shaped by the will of untamed nature."
+  },
+  sorcerer: {
+    name: "Sorcerer",
+    ability: "Charisma",
+    flavour: "Raw arcane power burning in the blood — no study required."
+  },
+  warlock: {
+    name: "Warlock",
+    ability: "Charisma",
+    flavour: "Eldritch gifts granted by a pact with a being of immense power."
+  },
+  wizard: {
+    name: "Wizard",
+    ability: "Intelligence",
+    flavour: "Scholarly mastery of arcane formulae, honed through rigorous study."
+  }
+};
+const SOURCE_ICON = {
+  bard: "music",
+  cleric: "fa_hands_praying",
+  druid: "leaf",
+  sorcerer: "magic_staff",
+  warlock: "fa_skull",
+  wizard: "fa_hat_wizard"
+};
+const SOURCE_ACCENT = {
+  bard: "text-fuchsia-400",
+  cleric: "text-yellow-300",
+  druid: "text-emerald-400",
+  sorcerer: "text-red-400",
+  warlock: "text-violet-400",
+  wizard: "text-sky-400"
+};
+const SOURCE_SIGIL_BG = {
+  bard: "bg-fuchsia-900/40 border-fuchsia-700/50",
+  cleric: "bg-yellow-900/40 border-yellow-700/50",
+  druid: "bg-emerald-900/40 border-emerald-700/50",
+  sorcerer: "bg-red-900/40 border-red-700/50",
+  warlock: "bg-violet-900/40 border-violet-700/50",
+  wizard: "bg-sky-900/40 border-sky-700/50"
+};
+const SpellSourceSelector = ({
+  availableSources,
+  selectedSource,
+  onSourceSelect
+}) => {
+  return /* @__PURE__ */ jsxDEV("div", { className: "space-y-4", children: [
+    /* @__PURE__ */ jsxDEV("div", { children: [
+      /* @__PURE__ */ jsxDEV("h4", { className: "text-sky-300 font-cinzel text-base font-semibold tracking-wide", children: "Choose Spell Source" }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+        lineNumber: 110,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "mt-1 h-px bg-gradient-to-r from-transparent via-sky-500/40 to-transparent" }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+        lineNumber: 113,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "text-xs text-gray-400 mt-2", children: "Select which class list you draw your spells from." }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+        lineNumber: 114,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+      lineNumber: 109,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3", children: availableSources.map((sourceId) => {
+      const info = SOURCE_INFO[sourceId];
+      const accentText = SOURCE_ACCENT[sourceId];
+      const sigilBg = SOURCE_SIGIL_BG[sourceId];
+      const isSelected = selectedSource === sourceId;
+      return /* @__PURE__ */ jsxDEV(
+        motion.button,
+        {
+          onClick: () => onSourceSelect(sourceId),
+          whileHover: { scale: 1.02 },
+          whileTap: { scale: 0.97 },
+          className: `
+                p-3 rounded-lg border text-left transition-all duration-200 w-full
+                ${isSelected ? "bg-amber-900/25 border-amber-500/80 shadow-[0_0_14px_rgba(245,158,11,0.2)]" : "bg-gray-900/60 border-gray-700/60 hover:border-gray-500/80 hover:bg-gray-800/60"}
+              `,
+          children: [
+            /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-3", children: [
+              /* @__PURE__ */ jsxDEV(
+                "div",
+                {
+                  className: `
+                    w-9 h-9 rounded-md flex items-center justify-center
+                    border flex-shrink-0
+                    ${sigilBg} ${accentText}
+                  `,
+                  children: /* @__PURE__ */ jsxDEV(GlossaryIcon, { name: SOURCE_ICON[sourceId], className: "w-5 h-5" }, void 0, false, {
+                    fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                    lineNumber: 150,
+                    columnNumber: 19
+                  }, this)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                  lineNumber: 143,
+                  columnNumber: 17
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV("div", { className: "flex-1 min-w-0", children: [
+                /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ jsxDEV(
+                    "span",
+                    {
+                      className: `font-cinzel font-semibold text-sm ${isSelected ? "text-amber-300" : "text-gray-200"}`,
+                      children: info.name
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                      lineNumber: 155,
+                      columnNumber: 21
+                    },
+                    this
+                  ),
+                  isSelected && /* @__PURE__ */ jsxDEV(
+                    motion.svg,
+                    {
+                      initial: { scale: 0 },
+                      animate: { scale: 1 },
+                      className: "w-4 h-4 text-amber-400 flex-shrink-0",
+                      fill: "currentColor",
+                      viewBox: "0 0 20 20",
+                      children: /* @__PURE__ */ jsxDEV(
+                        "path",
+                        {
+                          fillRule: "evenodd",
+                          d: "M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z",
+                          clipRule: "evenodd"
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                          lineNumber: 170,
+                          columnNumber: 25
+                        },
+                        this
+                      )
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                      lineNumber: 163,
+                      columnNumber: 21
+                    },
+                    this
+                  )
+                ] }, void 0, true, {
+                  fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                  lineNumber: 154,
+                  columnNumber: 19
+                }, this),
+                /* @__PURE__ */ jsxDEV("p", { className: "text-xs text-gray-500 mt-0.5", children: [
+                  "Ability: ",
+                  /* @__PURE__ */ jsxDEV("span", { className: `${accentText} opacity-80`, children: info.ability }, void 0, false, {
+                    fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                    lineNumber: 179,
+                    columnNumber: 30
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                  lineNumber: 178,
+                  columnNumber: 19
+                }, this)
+              ] }, void 0, true, {
+                fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+                lineNumber: 153,
+                columnNumber: 17
+              }, this)
+            ] }, void 0, true, {
+              fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+              lineNumber: 141,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV("p", { className: `text-xs leading-relaxed mt-2 transition-colors ${isSelected ? "text-gray-300" : "text-gray-500"}`, children: info.flavour }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+              lineNumber: 189,
+              columnNumber: 15
+            }, this)
+          ]
+        },
+        sourceId,
+        true,
+        {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+          lineNumber: 127,
+          columnNumber: 13
+        },
+        this
+      );
+    }) }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+      lineNumber: 119,
+      columnNumber: 7
+    }, this),
+    !selectedSource && /* @__PURE__ */ jsxDEV("p", { className: "text-xs text-amber-400/70 italic mt-1", children: "Select a class to see available spells." }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+      lineNumber: 200,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx",
+    lineNumber: 107,
+    columnNumber: 5
+  }, this);
+};
+_c = SpellSourceSelector;
+export default SpellSourceSelector;
+var _c;
+$RefreshReg$(_c, "SpellSourceSelector");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/CharacterCreator/SpellSourceSelector.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUEsWUFPQSx1QkFBQyxPQUFFLFdBQVcsa0RBQ1ptQixhQUFhLGtCQUFrQixlQUFlLElBRTdDSCxlQUFLZixXQUhSO0FBQUE7QUFBQTtBQUFBO0FBQUEsbUJBSUE7QUFBQTtBQUFBO0FBQUEsUUFqRUtjO0FBQUFBLFFBRFA7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxNQW1FQTtBQUFBLElBRUosQ0FBQyxLQTdFSDtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBOEVBO0FBQUEsSUFFQyxDQUFDSCxrQkFDQSx1QkFBQyxPQUFFLFdBQVUseUNBQXdDLHVEQUFyRDtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBRUE7QUFBQSxPQS9GSjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBaUdBO0FBRUo7QUFBRVMsS0F6R0lYO0FBMkdOLGVBQWVBO0FBQW9CLElBQUFXO0FBQUFDLGFBQUFELElBQUEiLCJuYW1lcyI6WyJtb3Rpb24iLCJHbG9zc2FyeUljb24iLCJTT1VSQ0VfSU5GTyIsImJhcmQiLCJuYW1lIiwiYWJpbGl0eSIsImZsYXZvdXIiLCJjbGVyaWMiLCJkcnVpZCIsInNvcmNlcmVyIiwid2FybG9jayIsIndpemFyZCIsIlNPVVJDRV9JQ09OIiwiU09VUkNFX0FDQ0VOVCIsIlNPVVJDRV9TSUdJTF9CRyIsIlNwZWxsU291cmNlU2VsZWN0b3IiLCJhdmFpbGFibGVTb3VyY2VzIiwic2VsZWN0ZWRTb3VyY2UiLCJvblNvdXJjZVNlbGVjdCIsIm1hcCIsInNvdXJjZUlkIiwiaW5mbyIsImFjY2VudFRleHQiLCJzaWdpbEJnIiwiaXNTZWxlY3RlZCIsInNjYWxlIiwiX2MiLCIkUmVmcmVzaFJlZyQiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiU3BlbGxTb3VyY2VTZWxlY3Rvci50c3giXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXHJcbiAqIEFSQ0hJVEVDVFVSQUwgQ09OVEVYVDpcclxuICogVGhpcyBjb21wb25lbnQgaGFuZGxlcyB0aGUgJ1NwZWxsIFNvdXJjZScgc2VsZWN0aW9uIGZvciBjb21wbGV4IGZlYXRzIFxyXG4gKiBsaWtlICdNYWdpYyBJbml0aWF0ZScuIEl0IG1hcHMgYWJzdHJhY3Qgc3BlbGxjYXN0aW5nIHJlcXVpcmVtZW50cyB0byBcclxuICogY29uY3JldGUgQ2xhc3MgaWRlbnRpdGllcyAoQmFyZCwgQ2xlcmljLCBldGMuKS5cclxuICpcclxuICogUmVjZW50IHVwZGF0ZXMgZm9jdXMgb24gJ1RoZW1hdGljIElkZW50aXR5JyBhbmQgJ1ByZW1pdW0gVUkgRmVlZGJhY2snLlxyXG4gKiAtIEludGVncmF0ZWQgYFNPVVJDRV9JTkZPYCB3aXRoIGhhbmQtY3JhZnRlZCBmbGF2b3VyIHRleHQuIFRoaXMgYWRkcyBcclxuICogICBuYXJyYXRpdmUgZGVwdGggdG8gbWVjaGFuaWNhbCBjaG9pY2VzLCBoZWxwaW5nIHRoZSBwbGF5ZXIgZmVlbCBcclxuICogICB0aGUgaW1wYWN0IG9mIGNob29zaW5nIGEgJ1dpemFyZCcgc291cmNlIHZzIGEgJ1dhcmxvY2snIHNvdXJjZS5cclxuICogLSBSZWZpbmVkIHN0eWxpbmcgdG8gdXNlIGBTT1VSQ0VfQUNDRU5UYCBhbmQgYFNPVVJDRV9TSUdJTF9CR2AgcGVyLWNsYXNzLiBcclxuICogICBFYWNoIHNvdXJjZSBub3cgaGFzIGl0cyBvd24gY29sb3Igc2lnbmF0dXJlIChlLmcuLCBFbWVyYWxkIGZvciBEcnVpZCwgXHJcbiAqICAgU2t5IGZvciBXaXphcmQpIHdoaWNoIHBlcm1lYXRlcyB0aGUgYnV0dG9uIGJvcmRlciBhbmQgaWNvbiBiYWRnZS5cclxuICogLSBBZGRlZCBgbW90aW9uLmJ1dHRvbmAgd3JhcHBlciBmb3IgdGFjdGlsZSBmZWVkYmFjaywgdXNpbmcgdGhlIFxyXG4gKiAgIGVzdGFibGlzaGVkICdBbWJlciBHbG93JyBmb3Igc2VsZWN0aW9uIHBlcnNpc3RlbmNlLlxyXG4gKiBcclxuICogQGZpbGUgc3JjL2NvbXBvbmVudHMvQ2hhcmFjdGVyQ3JlYXRvci9TcGVsbFNvdXJjZVNlbGVjdG9yLnRzeFxyXG4gKi9cclxuaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JztcclxuaW1wb3J0IHsgbW90aW9uIH0gZnJvbSAnZnJhbWVyLW1vdGlvbic7XHJcbmltcG9ydCB7IE1hZ2ljSW5pdGlhdGVTb3VyY2UgfSBmcm9tICcuLi8uLi90eXBlcyc7XHJcbmltcG9ydCB7IEdsb3NzYXJ5SWNvbiwgR2xvc3NhcnlJY29uTmFtZSB9IGZyb20gJy4uL0dsb3NzYXJ5L0ljb25SZWdpc3RyeSc7XHJcblxyXG4vKipcclxuICogRGlzcGxheSBtZXRhZGF0YSBmb3IgZWFjaCBzdXBwb3J0ZWQgc3BlbGxjYXN0aW5nIGNsYXNzLlxyXG4gKi9cclxuY29uc3QgU09VUkNFX0lORk86IFJlY29yZDxcclxuICBNYWdpY0luaXRpYXRlU291cmNlLFxyXG4gIHsgbmFtZTogc3RyaW5nOyBhYmlsaXR5OiBzdHJpbmc7IGZsYXZvdXI6IHN0cmluZyB9XHJcbj4gPSB7XHJcbiAgYmFyZDoge1xyXG4gICAgbmFtZTogJ0JhcmQnLFxyXG4gICAgYWJpbGl0eTogJ0NoYXJpc21hJyxcclxuICAgIGZsYXZvdXI6ICdXb3JkcyB3b3ZlbiB3aXRoIGdsYW1vdXIg4oCUIG1hZ2ljIHRocm91Z2ggbWVsb2R5IGFuZCBzdG9yeS4nLFxyXG4gIH0sXHJcbiAgY2xlcmljOiB7XHJcbiAgICBuYW1lOiAnQ2xlcmljJyxcclxuICAgIGFiaWxpdHk6ICdXaXNkb20nLFxyXG4gICAgZmxhdm91cjogJ0RpdmluZSBmYXZvdXIgY2hhbm5lbGxlZCB0aHJvdWdoIHVuc2hha2VhYmxlIGZhaXRoLicsXHJcbiAgfSxcclxuICBkcnVpZDoge1xyXG4gICAgbmFtZTogJ0RydWlkJyxcclxuICAgIGFiaWxpdHk6ICdXaXNkb20nLFxyXG4gICAgZmxhdm91cjogJ1ByaW1hbCBmb3JjZXMgc2hhcGVkIGJ5IHRoZSB3aWxsIG9mIHVudGFtZWQgbmF0dXJlLicsXHJcbiAgfSxcclxuICBzb3JjZXJlcjoge1xyXG4gICAgbmFtZTogJ1NvcmNlcmVyJyxcclxuICAgIGFiaWxpdHk6ICdDaGFyaXNtYScsXHJcbiAgICBmbGF2b3VyOiAnUmF3IGFyY2FuZSBwb3dlciBidXJuaW5nIGluIHRoZSBibG9vZCDigJQgbm8gc3R1ZHkgcmVxdWlyZWQuJyxcclxuICB9LFxyXG4gIHdhcmxvY2s6IHtcclxuICAgIG5hbWU6ICdXYXJsb2NrJyxcclxuICAgIGFiaWxpdHk6ICdDaGFyaXNtYScsXHJcbiAgICBmbGF2b3VyOiAnRWxkcml0Y2ggZ2lmdHMgZ3JhbnRlZCBieSBhIHBhY3Qgd2l0aCBhIGJlaW5nIG9mIGltbWVuc2UgcG93ZXIuJyxcclxuICB9LFxyXG4gIHdpemFyZDoge1xyXG4gICAgbmFtZTogJ1dpemFyZCcsXHJcbiAgICBhYmlsaXR5OiAnSW50ZWxsaWdlbmNlJyxcclxuICAgIGZsYXZvdXI6ICdTY2hvbGFybHkgbWFzdGVyeSBvZiBhcmNhbmUgZm9ybXVsYWUsIGhvbmVkIHRocm91Z2ggcmlnb3JvdXMgc3R1ZHkuJyxcclxuICB9LFxyXG59O1xyXG5cclxuLyoqIENhbm9uaWNhbCBpY29uIHBlciBjbGFzcyDigJQgc291cmNlZCBmcm9tIENMQVNTX0lDT05TIGluIHRoZSBkZXNpZ24gcHJldmlldy4gKi9cclxuY29uc3QgU09VUkNFX0lDT046IFJlY29yZDxNYWdpY0luaXRpYXRlU291cmNlLCBHbG9zc2FyeUljb25OYW1lPiA9IHtcclxuICBiYXJkOiAgICAgJ211c2ljJyxcclxuICBjbGVyaWM6ICAgJ2ZhX2hhbmRzX3ByYXlpbmcnLFxyXG4gIGRydWlkOiAgICAnbGVhZicsXHJcbiAgc29yY2VyZXI6ICdtYWdpY19zdGFmZicsXHJcbiAgd2FybG9jazogICdmYV9za3VsbCcsXHJcbiAgd2l6YXJkOiAgICdmYV9oYXRfd2l6YXJkJyxcclxufTtcclxuXHJcbi8qKiBBY2NlbnQgY29sb3VycyBwZXIgY2xhc3MgdG8gZGlzdGluZ3Vpc2ggdGhlbSB2aXN1YWxseS4gKi9cclxuY29uc3QgU09VUkNFX0FDQ0VOVDogUmVjb3JkPE1hZ2ljSW5pdGlhdGVTb3VyY2UsIHN0cmluZz4gPSB7XHJcbiAgYmFyZDogICAgICd0ZXh0LWZ1Y2hzaWEtNDAwJyxcclxuICBjbGVyaWM6ICAgJ3RleHQteWVsbG93LTMwMCcsXHJcbiAgZHJ1aWQ6ICAgICd0ZXh0LWVtZXJhbGQtNDAwJyxcclxuICBzb3JjZXJlcjogJ3RleHQtcmVkLTQwMCcsXHJcbiAgd2FybG9jazogICd0ZXh0LXZpb2xldC00MDAnLFxyXG4gIHdpemFyZDogICAndGV4dC1za3ktNDAwJyxcclxufTtcclxuXHJcbmNvbnN0IFNPVVJDRV9TSUdJTF9CRzogUmVjb3JkPE1hZ2ljSW5pdGlhdGVTb3VyY2UsIHN0cmluZz4gPSB7XHJcbiAgYmFyZDogICAgICdiZy1mdWNoc2lhLTkwMC80MCBib3JkZXItZnVjaHNpYS03MDAvNTAnLFxyXG4gIGNsZXJpYzogICAnYmcteWVsbG93LTkwMC80MCBib3JkZXIteWVsbG93LTcwMC81MCcsXHJcbiAgZHJ1aWQ6ICAgICdiZy1lbWVyYWxkLTkwMC80MCBib3JkZXItZW1lcmFsZC03MDAvNTAnLFxyXG4gIHNvcmNlcmVyOiAnYmctcmVkLTkwMC80MCBib3JkZXItcmVkLTcwMC81MCcsXHJcbiAgd2FybG9jazogICdiZy12aW9sZXQtOTAwLzQwIGJvcmRlci12aW9sZXQtNzAwLzUwJyxcclxuICB3aXphcmQ6ICAgJ2JnLXNreS05MDAvNDAgYm9yZGVyLXNreS03MDAvNTAnLFxyXG59O1xyXG5cclxuaW50ZXJmYWNlIFNwZWxsU291cmNlU2VsZWN0b3JQcm9wcyB7XHJcbiAgLyoqIEF2YWlsYWJsZSBzcGVsbCBzb3VyY2VzIHRvIGNob29zZSBmcm9tICovXHJcbiAgYXZhaWxhYmxlU291cmNlczogTWFnaWNJbml0aWF0ZVNvdXJjZVtdO1xyXG4gIC8qKiBDdXJyZW50bHkgc2VsZWN0ZWQgc291cmNlICovXHJcbiAgc2VsZWN0ZWRTb3VyY2U6IE1hZ2ljSW5pdGlhdGVTb3VyY2UgfCB1bmRlZmluZWQ7XHJcbiAgLyoqIENhbGxiYWNrIHdoZW4gYSBzb3VyY2UgaXMgc2VsZWN0ZWQgKi9cclxuICBvblNvdXJjZVNlbGVjdDogKHNvdXJjZTogTWFnaWNJbml0aWF0ZVNvdXJjZSkgPT4gdm9pZDtcclxufVxyXG5cclxuY29uc3QgU3BlbGxTb3VyY2VTZWxlY3RvcjogUmVhY3QuRkM8U3BlbGxTb3VyY2VTZWxlY3RvclByb3BzPiA9ICh7XHJcbiAgYXZhaWxhYmxlU291cmNlcyxcclxuICBzZWxlY3RlZFNvdXJjZSxcclxuICBvblNvdXJjZVNlbGVjdCxcclxufSkgPT4ge1xyXG4gIHJldHVybiAoXHJcbiAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxyXG4gICAgICB7LyogU2VjdGlvbiBoZWFkZXIg4oCUIHNreS0zMDAgbWF0Y2hlcyBDcmVhdGlvblN0ZXBMYXlvdXQgdGl0bGUgY29sb3VyICovfVxyXG4gICAgICA8ZGl2PlxyXG4gICAgICAgIDxoNCBjbGFzc05hbWU9XCJ0ZXh0LXNreS0zMDAgZm9udC1jaW56ZWwgdGV4dC1iYXNlIGZvbnQtc2VtaWJvbGQgdHJhY2tpbmctd2lkZVwiPlxyXG4gICAgICAgICAgQ2hvb3NlIFNwZWxsIFNvdXJjZVxyXG4gICAgICAgIDwvaDQ+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC0xIGgtcHggYmctZ3JhZGllbnQtdG8tciBmcm9tLXRyYW5zcGFyZW50IHZpYS1za3ktNTAwLzQwIHRvLXRyYW5zcGFyZW50XCIgLz5cclxuICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXhzIHRleHQtZ3JheS00MDAgbXQtMlwiPlxyXG4gICAgICAgICAgU2VsZWN0IHdoaWNoIGNsYXNzIGxpc3QgeW91IGRyYXcgeW91ciBzcGVsbHMgZnJvbS5cclxuICAgICAgICA8L3A+XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJncmlkIGdyaWQtY29scy0xIHNtOmdyaWQtY29scy0yIGdhcC0zXCI+XHJcbiAgICAgICAge2F2YWlsYWJsZVNvdXJjZXMubWFwKChzb3VyY2VJZCkgPT4ge1xyXG4gICAgICAgICAgY29uc3QgaW5mbyA9IFNPVVJDRV9JTkZPW3NvdXJjZUlkXTtcclxuICAgICAgICAgIGNvbnN0IGFjY2VudFRleHQgPSBTT1VSQ0VfQUNDRU5UW3NvdXJjZUlkXTtcclxuICAgICAgICAgIGNvbnN0IHNpZ2lsQmcgPSBTT1VSQ0VfU0lHSUxfQkdbc291cmNlSWRdO1xyXG4gICAgICAgICAgY29uc3QgaXNTZWxlY3RlZCA9IHNlbGVjdGVkU291cmNlID09PSBzb3VyY2VJZDtcclxuXHJcbiAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICA8bW90aW9uLmJ1dHRvblxyXG4gICAgICAgICAgICAgIGtleT17c291cmNlSWR9XHJcbiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gb25Tb3VyY2VTZWxlY3Qoc291cmNlSWQpfVxyXG4gICAgICAgICAgICAgIHdoaWxlSG92ZXI9e3sgc2NhbGU6IDEuMDIgfX1cclxuICAgICAgICAgICAgICB3aGlsZVRhcD17eyBzY2FsZTogMC45NyB9fVxyXG4gICAgICAgICAgICAgIGNsYXNzTmFtZT17YFxyXG4gICAgICAgICAgICAgICAgcC0zIHJvdW5kZWQtbGcgYm9yZGVyIHRleHQtbGVmdCB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgdy1mdWxsXHJcbiAgICAgICAgICAgICAgICAke1xyXG4gICAgICAgICAgICAgICAgICBpc1NlbGVjdGVkXHJcbiAgICAgICAgICAgICAgICAgICAgPyAnYmctYW1iZXItOTAwLzI1IGJvcmRlci1hbWJlci01MDAvODAgc2hhZG93LVswXzBfMTRweF9yZ2JhKDI0NSwxNTgsMTEsMC4yKV0nXHJcbiAgICAgICAgICAgICAgICAgICAgOiAnYmctZ3JheS05MDAvNjAgYm9yZGVyLWdyYXktNzAwLzYwIGhvdmVyOmJvcmRlci1ncmF5LTUwMC84MCBob3ZlcjpiZy1ncmF5LTgwMC82MCdcclxuICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICBgfVxyXG4gICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtM1wiPlxyXG4gICAgICAgICAgICAgICAgey8qIENsYXNzIGljb24gYmFkZ2UgKi99XHJcbiAgICAgICAgICAgICAgICA8ZGl2XHJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YFxyXG4gICAgICAgICAgICAgICAgICAgIHctOSBoLTkgcm91bmRlZC1tZCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclxyXG4gICAgICAgICAgICAgICAgICAgIGJvcmRlciBmbGV4LXNocmluay0wXHJcbiAgICAgICAgICAgICAgICAgICAgJHtzaWdpbEJnfSAke2FjY2VudFRleHR9XHJcbiAgICAgICAgICAgICAgICAgIGB9XHJcbiAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgIDxHbG9zc2FyeUljb24gbmFtZT17U09VUkNFX0lDT05bc291cmNlSWRdfSBjbGFzc05hbWU9XCJ3LTUgaC01XCIgLz5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleC0xIG1pbi13LTBcIj5cclxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgIDxzcGFuXHJcbiAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2Bmb250LWNpbnplbCBmb250LXNlbWlib2xkIHRleHQtc20gJHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgaXNTZWxlY3RlZCA/ICd0ZXh0LWFtYmVyLTMwMCcgOiAndGV4dC1ncmF5LTIwMCdcclxuICAgICAgICAgICAgICAgICAgICAgIH1gfVxyXG4gICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgIHtpbmZvLm5hbWV9XHJcbiAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICAgIHtpc1NlbGVjdGVkICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgIDxtb3Rpb24uc3ZnXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGluaXRpYWw9e3sgc2NhbGU6IDAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgYW5pbWF0ZT17eyBzY2FsZTogMSB9fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ3LTQgaC00IHRleHQtYW1iZXItNDAwIGZsZXgtc2hyaW5rLTBcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICBmaWxsPVwiY3VycmVudENvbG9yXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgdmlld0JveD1cIjAgMCAyMCAyMFwiXHJcbiAgICAgICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxwYXRoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgZmlsbFJ1bGU9XCJldmVub2RkXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICBkPVwiTTEwIDE4YTggOCAwIDEwMC0xNiA4IDggMCAwMDAgMTZ6bTMuNzA3LTkuMjkzYTEgMSAwIDAwLTEuNDE0LTEuNDE0TDkgMTAuNTg2IDcuNzA3IDkuMjkzYTEgMSAwIDAwLTEuNDE0IDEuNDE0bDIgMmExIDEgMCAwMDEuNDE0IDBsNC00elwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgY2xpcFJ1bGU9XCJldmVub2RkXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgICAgIDwvbW90aW9uLnN2Zz5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC14cyB0ZXh0LWdyYXktNTAwIG10LTAuNVwiPlxyXG4gICAgICAgICAgICAgICAgICAgIEFiaWxpdHk6IDxzcGFuIGNsYXNzTmFtZT17YCR7YWNjZW50VGV4dH0gb3BhY2l0eS04MGB9PntpbmZvLmFiaWxpdHl9PC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgey8qIEZsYXZvdXIgdGV4dCDigJQgb25seSBzaG93biB3aGVuIHNlbGVjdGVkIG9yIG9uIGhvdmVyIHZpYSBUYWlsd2luZCBncm91cCAqL31cclxuICAgICAgICAgICAgICB7LyogV0hBVCBDSEFOR0VEOiBEeW5hbWljIGZsYXZvdXIgdGV4dCB2aXNpYmlsaXR5LiAqL31cclxuICAgICAgICAgICAgICB7LyogV0hZIElUIENIQU5HRUQ6IFRvIHByb3ZpZGUgbmFycmF0aXZlIGNvbnRleHQgZm9yIHRoZSBcclxuICAgICAgICAgICAgICAgICAgY2hvaWNlLiBJZiB0aGUgc291cmNlIGlzIHNlbGVjdGVkLCB3ZSBoaWdobGlnaHQgdGhlIFxyXG4gICAgICAgICAgICAgICAgICB0ZXh0IHRvIGVtcGhhc2l6ZSB0aGUgbmFycmF0aXZlIGlkZW50aXR5LiAqL31cclxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9e2B0ZXh0LXhzIGxlYWRpbmctcmVsYXhlZCBtdC0yIHRyYW5zaXRpb24tY29sb3JzICR7XHJcbiAgICAgICAgICAgICAgICBpc1NlbGVjdGVkID8gJ3RleHQtZ3JheS0zMDAnIDogJ3RleHQtZ3JheS01MDAnXHJcbiAgICAgICAgICAgICAgfWB9PlxyXG4gICAgICAgICAgICAgICAge2luZm8uZmxhdm91cn1cclxuICAgICAgICAgICAgICA8L3A+XHJcbiAgICAgICAgICAgIDwvbW90aW9uLmJ1dHRvbj5cclxuICAgICAgICAgICk7XHJcbiAgICAgICAgfSl9XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgeyFzZWxlY3RlZFNvdXJjZSAmJiAoXHJcbiAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC14cyB0ZXh0LWFtYmVyLTQwMC83MCBpdGFsaWMgbXQtMVwiPlxyXG4gICAgICAgICAgU2VsZWN0IGEgY2xhc3MgdG8gc2VlIGF2YWlsYWJsZSBzcGVsbHMuXHJcbiAgICAgICAgPC9wPlxyXG4gICAgICApfVxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufTtcclxuXHJcbmV4cG9ydCBkZWZhdWx0IFNwZWxsU291cmNlU2VsZWN0b3I7XHJcbiJdLCJmaWxlIjoiRjovUmVwb3MvQXJhbGlhL3NyYy9jb21wb25lbnRzL0NoYXJhY3RlckNyZWF0b3IvU3BlbGxTb3VyY2VTZWxlY3Rvci50c3gifQ==

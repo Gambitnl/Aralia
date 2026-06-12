@@ -1,0 +1,279 @@
+{
+  "id": "premade_thorgrim_anvilmar",
+  "name": "Thorgrim Anvilmar",
+  "age": 92,
+  "background": "soldier",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "mountain_dwarf",
+    "name": "Mountain Dwarf",
+    "baseRace": "dwarf",
+    "description": "Mountain dwarves are strong and hardy, accustomed to a difficult life in rugged terrain. They're probably on the tall side for a dwarf and tend toward lighter coloration. Mountain dwarves are known for their skill at warfare and their superior craftsmanship in armor and weapons. Their kingdoms, carved from the hearts of mountains, are renowned throughout the world. Mountain dwarves pride themselves on their martial traditions, with many clans maintaining elite military orders that have protected their holds for countless generations.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 4-5 feet tall)",
+      "Speed: 30 feet. Your speed is not reduced by wearing heavy armor.",
+      "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+      "Dwarven Resilience: You have Advantage on saving throws against poison, and you have Resistance to poison damage.",
+      "Dwarven Combat Training: You have proficiency with the battleaxe, handaxe, light hammer, and warhammer.",
+      "Tool Proficiency: You gain proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies, or mason's tools.",
+      "Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.",
+      "Dwarven Armor Training: You have proficiency with light and medium armor."
+    ],
+    "imageUrl": "assets/images/races/mountain_dwarf.png",
+    "visual": {
+      "id": "mountain_dwarf",
+      "color": "#808080",
+      "maleIllustrationPath": "assets/images/races/Dwarf_Mountain_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Dwarf_Mountain_Female.png"
+    },
+    "modernizationStatus": "modified_legacy"
+  },
+  "class": {
+    "id": "paladin",
+    "name": "Paladin",
+    "description": "A holy warrior bound to a sacred oath.",
+    "hitDie": 10,
+    "primaryAbility": [
+      "Strength",
+      "Charisma"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "athletics",
+      "insight",
+      "intimidation",
+      "medicine",
+      "persuasion",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "All armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "weaponMasterySlots": 2,
+    "features": [
+      {
+        "id": "divine_sense",
+        "name": "Divine Sense",
+        "description": "You can sense strong good or evil.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Charisma",
+      "knownCantrips": 0,
+      "knownSpellsL1": 2,
+      "spellList": [
+        "bless",
+        "command",
+        "cure-wounds",
+        "detect-evil-and-good",
+        "detect-magic",
+        "divine-favor",
+        "heroism",
+        "protection-from-evil-and-good",
+        "shield-of-faith",
+        "speak-with-animals",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Strength",
+      "Charisma",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Strength is vital for your attacks and armor. Charisma powers your spells and class features. Constitution provides essential hit points.",
+    "recommendedPointBuyPriorities": [
+      "Strength",
+      "Charisma",
+      "Constitution",
+      "Wisdom",
+      "Dexterity",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "paladin": 1
+  },
+  "abilityScores": {
+    "Strength": 14,
+    "Dexterity": 8,
+    "Constitution": 11,
+    "Intelligence": 6,
+    "Wisdom": 10,
+    "Charisma": 12
+  },
+  "finalAbilityScores": {
+    "Strength": 14,
+    "Dexterity": 8,
+    "Constitution": 11,
+    "Intelligence": 6,
+    "Wisdom": 10,
+    "Charisma": 12
+  },
+  "skills": [
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "Strength"
+    },
+    {
+      "id": "religion",
+      "name": "Religion",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "ability": "Charisma"
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "ability": "Intelligence"
+    }
+  ],
+  "toolProficiencies": [
+    "smiths_tools"
+  ],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 10,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 9,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "longsword",
+    "warhammer"
+  ],
+  "feats": [
+    "savage_attacker"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [],
+    "knownSpells": [
+      "bless",
+      "cure-wounds"
+    ],
+    "preparedSpells": [
+      "bless",
+      "cure-wounds"
+    ],
+    "racialSpellGrants": []
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "charisma",
+  "limitedUses": {
+    "lay_on_hands": {
+      "name": "Lay on Hands",
+      "current": 5,
+      "max": 5,
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {
+    "mountain_dwarf": {
+      "toolIds": [
+        "smiths_tools"
+      ]
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Mountain Dwarf Paladin. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [
+      "saving throws against poison, and you have Resistance to poison damage"
+    ],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [
+      "History"
+    ],
+    "weaponProficiencies": [
+      "battleaxe",
+      "handaxe",
+      "light hammer",
+      "warhammer"
+    ],
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor"
+    ]
+  },
+  "weaponProficiencies": [
+    "battleaxe",
+    "handaxe",
+    "light hammer",
+    "warhammer"
+  ],
+  "armorProficiencies": [
+    "Light armor",
+    "Medium armor"
+  ]
+}

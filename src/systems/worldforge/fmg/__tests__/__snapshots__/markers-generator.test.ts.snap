@@ -1,0 +1,46 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Markers.generate (FMG port, stage 34) > matches FROZEN golden values for world-42 > markers-golden 1`] = `
+{
+  "first": {
+    "cell": 3597,
+    "icon": "🌋",
+    "type": "volcanoes",
+  },
+  "markerCount": 69,
+  "markerNoteCount": 69,
+  "typeCounts": {
+    "battlefields": 4,
+    "bridges": 2,
+    "brigands": 3,
+    "canoes": 1,
+    "caves": 1,
+    "circuses": 2,
+    "dungeons": 5,
+    "encounters": 7,
+    "fairs": 1,
+    "hill-monsters": 1,
+    "hot-springs": 1,
+    "inns": 8,
+    "jousts": 1,
+    "lake-monsters": 1,
+    "libraries": 1,
+    "lighthouses": 2,
+    "migration": 1,
+    "mines": 5,
+    "mirage": 1,
+    "necropolises": 1,
+    "pirates": 3,
+    "ruins": 4,
+    "sacred-forests": 2,
+    "sacred-mountains": 1,
+    "sacred-palm-groves": 1,
+    "sacred-pineries": 1,
+    "sea-monsters": 1,
+    "statues": 3,
+    "volcanoes": 1,
+    "water-sources": 1,
+    "waterfalls": 2,
+  },
+}
+`;

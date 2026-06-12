@@ -1,0 +1,186 @@
+{
+  "id": "premade_posy_underbough",
+  "name": "Posy Underbough",
+  "age": 28,
+  "background": "criminal",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "lightfoot_halfling",
+    "name": "Lightfoot Halfling",
+    "baseRace": "halfling",
+    "description": "As a lightfoot halfling, you can easily hide from notice, even using other people as cover. You're inclined to be affable and get along well with others. Lightfoots are more prone to wanderlust than other halflings, and often dwell alongside other races or take up a nomadic life. In the Forgotten Realms, lightfoot halflings have spread the farthest and thus are the most common variety. They are the most social of halflings, often traveling with companions of other races or settling in mixed communities.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Small (about 3 feet tall)",
+      "Speed: 30 feet",
+      "Lucky: When you roll a 1 on the d20 for an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll.",
+      "Brave: You have Advantage on saving throws against being frightened.",
+      "Halfling Nimbleness: You can move through the space of any creature that is of a size larger than yours.",
+      "Naturally Stealthy: You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you."
+    ],
+    "imageUrl": "assets/images/races/lightfoot_halfling.png",
+    "visual": {
+      "id": "lightfoot_halfling",
+      "color": "#DEB887",
+      "maleIllustrationPath": "assets/images/races/Halfling_Lightfoot_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Halfling_Lightfoot_Female.png"
+    },
+    "modernizationStatus": "modified_legacy"
+  },
+  "class": {
+    "id": "rogue",
+    "name": "Rogue",
+    "description": "A scoundrel who uses stealth and trickery to overcome obstacles and enemies.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Dexterity"
+    ],
+    "savingThrowProficiencies": [
+      "Dexterity",
+      "Intelligence"
+    ],
+    "skillProficienciesAvailable": [
+      "acrobatics",
+      "athletics",
+      "deception",
+      "insight",
+      "intimidation",
+      "investigation",
+      "perception",
+      "performance",
+      "persuasion",
+      "sleight_of_hand",
+      "stealth",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 4,
+    "armorProficiencies": [
+      "Light armor"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Hand crossbows",
+      "Longswords",
+      "Rapiers",
+      "Shortswords"
+    ],
+    "weaponMasterySlots": 2,
+    "features": [
+      {
+        "id": "sneak_attack",
+        "name": "Sneak Attack",
+        "description": "Once per turn, you can deal extra damage to one creature you hit with an attack if you have advantage.",
+        "levelAvailable": 1
+      }
+    ],
+    "statRecommendationFocus": [
+      "Dexterity",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Dexterity is your most important ability, affecting your attacks, AC, and many skills. Constitution helps you survive when your stealth fails.",
+    "recommendedPointBuyPriorities": [
+      "Dexterity",
+      "Constitution",
+      "Wisdom",
+      "Charisma",
+      "Intelligence",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "rogue": 1
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 15,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 13,
+    "Charisma": 12
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 15,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 13,
+    "Charisma": 12
+  },
+  "skills": [
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "sleight_of_hand",
+      "name": "Sleight of Hand",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 12,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "shortsword",
+    "dagger"
+  ],
+  "feats": [
+    "alert"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Female",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Lightfoot Halfling Rogue. Female adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "initiativeBonus": 2,
+  "modifiers": {
+    "advantage": [
+      "saving throws against being frightened"
+    ],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

@@ -1,0 +1,249 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/Town/PassTimeModal.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/Aralia/node_modules/.vite/deps/react.js?v=c72b52c2"; const useState = __vite__cjsImport1_react["useState"]; const useMemo = __vite__cjsImport1_react["useMemo"]; const useEffect = __vite__cjsImport1_react["useEffect"];
+import { motion } from "/Aralia/node_modules/.vite/deps/framer-motion.js?v=c72b52c2";
+import { formatGameTime, getGameDay, addGameTime, getTimeModifiers } from "/Aralia/src/utils/core/index.ts";
+import { getCalendarDescription } from "/Aralia/src/systems/time/CalendarSystem.ts";
+import { useFocusTrap } from "/Aralia/src/hooks/useFocusTrap.ts";
+const overlayMotion = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 }
+};
+const modalMotion = {
+  initial: { y: -30, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: -30, opacity: 0 }
+};
+const PassTimeModal = ({ isOpen, onClose, onConfirm, currentTime }) => {
+  _s();
+  const [time, setTime] = useState({
+    minutes: 0,
+    hours: 0,
+    days: 0,
+    weeks: 0,
+    months: 0,
+    years: 0
+  });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setTime((prev) => ({
+      ...prev,
+      [name]: Math.max(0, parseInt(value, 10) || 0)
+    }));
+  };
+  const newTimePreview = useMemo(() => {
+    return addGameTime(currentTime, time);
+  }, [currentTime, time]);
+  const totalSecondsToAdvance = useMemo(() => {
+    return (newTimePreview.getTime() - currentTime.getTime()) / 1e3;
+  }, [newTimePreview, currentTime]);
+  const formatGameTimeForModal = (date) => {
+    const dayNumber = getGameDay(date);
+    const timeString = formatGameTime(date, { hour: "2-digit", minute: "2-digit", hour12: true });
+    return `Day ${dayNumber}, ${timeString}`;
+  };
+  const handleConfirm = () => {
+    onConfirm(totalSecondsToAdvance);
+    onClose();
+  };
+  const modalRef = useFocusTrap(isOpen, onClose);
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && totalSecondsToAdvance > 0) {
+      e.preventDefault();
+      handleConfirm();
+    }
+  };
+  const timeModifiers = useMemo(() => getTimeModifiers(newTimePreview), [newTimePreview]);
+  const calendarDescription = useMemo(() => getCalendarDescription(newTimePreview), [newTimePreview]);
+  useEffect(() => {
+    if (!isOpen) {
+      setTime({ minutes: 0, hours: 0, days: 0, weeks: 0, months: 0, years: 0 });
+    }
+  }, [isOpen]);
+  if (!isOpen) return null;
+  return /* @__PURE__ */ jsxDEV(
+    motion.div,
+    {
+      ...overlayMotion,
+      className: "fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[var(--z-index-modal-background)] p-4",
+      onClick: onClose,
+      "aria-modal": "true",
+      role: "dialog",
+      "aria-labelledby": "pass-time-title",
+      children: /* @__PURE__ */ jsxDEV(
+        motion.div,
+        {
+          ref: modalRef,
+          ...modalMotion,
+          className: "bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md focus:outline-none",
+          tabIndex: -1,
+          onClick: (e) => e.stopPropagation(),
+          onKeyDown: handleKeyDown,
+          children: [
+            /* @__PURE__ */ jsxDEV("h2", { id: "pass-time-title", className: "text-2xl font-bold text-amber-400 font-cinzel text-center mb-4", children: "Pass Time" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+              lineNumber: 114,
+              columnNumber: 9
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "text-center mb-4 p-2 bg-gray-900/50 rounded flex flex-col gap-2", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "flex justify-between text-sm text-gray-400", children: [
+                /* @__PURE__ */ jsxDEV("span", { children: "Current:" }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 117,
+                  columnNumber: 17
+                }, this),
+                /* @__PURE__ */ jsxDEV("span", { className: "text-sky-300 font-semibold", children: formatGameTimeForModal(currentTime) }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 118,
+                  columnNumber: 17
+                }, this)
+              ] }, void 0, true, {
+                fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                lineNumber: 116,
+                columnNumber: 13
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "flex justify-between text-sm text-gray-400", children: [
+                /* @__PURE__ */ jsxDEV("span", { children: "Result:" }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 121,
+                  columnNumber: 17
+                }, this),
+                /* @__PURE__ */ jsxDEV("span", { className: `font-semibold ${totalSecondsToAdvance > 0 ? "text-green-300" : "text-gray-500"}`, children: formatGameTimeForModal(newTimePreview) }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 122,
+                  columnNumber: 17
+                }, this)
+              ] }, void 0, true, {
+                fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                lineNumber: 120,
+                columnNumber: 14
+              }, this),
+              totalSecondsToAdvance > 0 && /* @__PURE__ */ jsxDEV("div", { className: "mt-2 text-xs italic text-gray-300 border-t border-gray-700 pt-2", children: [
+                /* @__PURE__ */ jsxDEV("p", { children: calendarDescription }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 129,
+                  columnNumber: 21
+                }, this),
+                /* @__PURE__ */ jsxDEV("p", { className: "mt-1 text-amber-200/80", children: timeModifiers.description }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 130,
+                  columnNumber: 21
+                }, this)
+              ] }, void 0, true, {
+                fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                lineNumber: 128,
+                columnNumber: 11
+              }, this)
+            ] }, void 0, true, {
+              fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+              lineNumber: 115,
+              columnNumber: 9
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "grid grid-cols-2 gap-4", children: Object.keys(time).map(
+              (unit) => /* @__PURE__ */ jsxDEV("div", { children: [
+                /* @__PURE__ */ jsxDEV("label", { htmlFor: `time-${unit}`, className: "block text-sm font-medium text-gray-300 capitalize", children: unit }, void 0, false, {
+                  fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                  lineNumber: 138,
+                  columnNumber: 21
+                }, this),
+                /* @__PURE__ */ jsxDEV(
+                  "input",
+                  {
+                    type: "number",
+                    id: `time-${unit}`,
+                    name: unit,
+                    value: time[unit],
+                    onChange: handleInputChange,
+                    min: "0",
+                    className: "mt-1 w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 outline-none"
+                  },
+                  void 0,
+                  false,
+                  {
+                    fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                    lineNumber: 139,
+                    columnNumber: 21
+                  },
+                  this
+                )
+              ] }, unit, true, {
+                fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                lineNumber: 137,
+                columnNumber: 11
+              }, this)
+            ) }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+              lineNumber: 135,
+              columnNumber: 9
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "flex gap-4 mt-6", children: [
+              /* @__PURE__ */ jsxDEV("button", { onClick: onClose, className: "w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow", children: "Cancel" }, void 0, false, {
+                fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                lineNumber: 153,
+                columnNumber: 13
+              }, this),
+              /* @__PURE__ */ jsxDEV("button", { onClick: handleConfirm, disabled: totalSecondsToAdvance <= 0, className: "w-1/2 bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow disabled:bg-gray-500", children: "Confirm" }, void 0, false, {
+                fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+                lineNumber: 154,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+              lineNumber: 152,
+              columnNumber: 9
+            }, this)
+          ]
+        },
+        void 0,
+        true,
+        {
+          fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+          lineNumber: 106,
+          columnNumber: 7
+        },
+        this
+      )
+    },
+    void 0,
+    false,
+    {
+      fileName: "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx",
+      lineNumber: 98,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_s(PassTimeModal, "yIhaw9vqilXHMOkvlF2CeplV+Yg=", false, function() {
+  return [useFocusTrap];
+});
+_c = PassTimeModal;
+export default PassTimeModal;
+var _c;
+$RefreshReg$(_c, "PassTimeModal");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/Town/PassTimeModal.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUE7QUFBQTtBQUFBLHFCQUF5TTtBQUFBLGlCQUY3TTtBQUFBO0FBQUE7QUFBQTtBQUFBLG1CQUdBO0FBQUE7QUFBQTtBQUFBLFFBakRGO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxNQWtEQTtBQUFBO0FBQUEsSUExREY7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLEVBMkRBO0FBRUo7QUFBRW5CLEdBeEhJTCxlQUEyQztBQUFBLFVBcUM5QlIsWUFBWTtBQUFBO0FBQUFzRCxLQXJDekI5QztBQTBITixlQUFlQTtBQUFjLElBQUE4QztBQUFBQyxhQUFBRCxJQUFBIiwibmFtZXMiOlsidXNlU3RhdGUiLCJ1c2VNZW1vIiwidXNlRWZmZWN0IiwibW90aW9uIiwiZm9ybWF0R2FtZVRpbWUiLCJnZXRHYW1lRGF5IiwiYWRkR2FtZVRpbWUiLCJnZXRUaW1lTW9kaWZpZXJzIiwiZ2V0Q2FsZW5kYXJEZXNjcmlwdGlvbiIsInVzZUZvY3VzVHJhcCIsIm92ZXJsYXlNb3Rpb24iLCJpbml0aWFsIiwib3BhY2l0eSIsImFuaW1hdGUiLCJleGl0IiwibW9kYWxNb3Rpb24iLCJ5IiwiUGFzc1RpbWVNb2RhbCIsImlzT3BlbiIsIm9uQ2xvc2UiLCJvbkNvbmZpcm0iLCJjdXJyZW50VGltZSIsIl9zIiwidGltZSIsInNldFRpbWUiLCJtaW51dGVzIiwiaG91cnMiLCJkYXlzIiwid2Vla3MiLCJtb250aHMiLCJ5ZWFycyIsImhhbmRsZUlucHV0Q2hhbmdlIiwiZSIsIm5hbWUiLCJ2YWx1ZSIsInRhcmdldCIsInByZXYiLCJNYXRoIiwibWF4IiwicGFyc2VJbnQiLCJuZXdUaW1lUHJldmlldyIsInRvdGFsU2Vjb25kc1RvQWR2YW5jZSIsImdldFRpbWUiLCJmb3JtYXRHYW1lVGltZUZvck1vZGFsIiwiZGF0ZSIsImRheU51bWJlciIsInRpbWVTdHJpbmciLCJob3VyIiwibWludXRlIiwiaG91cjEyIiwiaGFuZGxlQ29uZmlybSIsIm1vZGFsUmVmIiwiaGFuZGxlS2V5RG93biIsImtleSIsInByZXZlbnREZWZhdWx0IiwidGltZU1vZGlmaWVycyIsImNhbGVuZGFyRGVzY3JpcHRpb24iLCJzdG9wUHJvcGFnYXRpb24iLCJkZXNjcmlwdGlvbiIsIk9iamVjdCIsImtleXMiLCJtYXAiLCJ1bml0IiwiX2MiLCIkUmVmcmVzaFJlZyQiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiUGFzc1RpbWVNb2RhbC50c3giXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXHJcbiAqIEBmaWxlIFBhc3NUaW1lTW9kYWwudHN4XHJcbiAqIEEgbW9kYWwgY29tcG9uZW50IGZvciBncmFudWxhcmx5IHBhc3NpbmcgdGltZSBpbiB0aGUgZ2FtZS5cclxuICovXHJcbmltcG9ydCBSZWFjdCwgeyB1c2VTdGF0ZSwgdXNlTWVtbywgdXNlRWZmZWN0IH0gZnJvbSAncmVhY3QnO1xyXG5pbXBvcnQgeyBtb3Rpb24sIE1vdGlvblByb3BzIH0gZnJvbSAnZnJhbWVyLW1vdGlvbic7XHJcbmltcG9ydCB7IGZvcm1hdEdhbWVUaW1lLCBnZXRHYW1lRGF5LCBhZGRHYW1lVGltZSwgZ2V0VGltZU1vZGlmaWVycyB9IGZyb20gJ0AvdXRpbHMvY29yZSc7XHJcbmltcG9ydCB7IGdldENhbGVuZGFyRGVzY3JpcHRpb24gfSBmcm9tICdAL3N5c3RlbXMvdGltZS9DYWxlbmRhclN5c3RlbSc7XHJcbmltcG9ydCB7IHVzZUZvY3VzVHJhcCB9IGZyb20gJ0AvaG9va3MvdXNlRm9jdXNUcmFwJztcclxuXHJcbmludGVyZmFjZSBUaW1lSW5wdXRTdGF0ZSB7XHJcbiAgbWludXRlczogbnVtYmVyO1xyXG4gIGhvdXJzOiBudW1iZXI7XHJcbiAgZGF5czogbnVtYmVyO1xyXG4gIHdlZWtzOiBudW1iZXI7XHJcbiAgbW9udGhzOiBudW1iZXI7XHJcbiAgeWVhcnM6IG51bWJlcjtcclxufVxyXG5cclxuaW50ZXJmYWNlIFBhc3NUaW1lTW9kYWxQcm9wcyB7XHJcbiAgaXNPcGVuOiBib29sZWFuO1xyXG4gIG9uQ2xvc2U6ICgpID0+IHZvaWQ7XHJcbiAgb25Db25maXJtOiAodG90YWxTZWNvbmRzOiBudW1iZXIpID0+IHZvaWQ7XHJcbiAgY3VycmVudFRpbWU6IERhdGU7XHJcbn1cclxuXHJcbmNvbnN0IG92ZXJsYXlNb3Rpb246IE1vdGlvblByb3BzID0ge1xyXG4gIGluaXRpYWw6IHsgb3BhY2l0eTogMCB9LFxyXG4gIGFuaW1hdGU6IHsgb3BhY2l0eTogMSB9LFxyXG4gIGV4aXQ6IHsgb3BhY2l0eTogMCB9LFxyXG59O1xyXG5cclxuY29uc3QgbW9kYWxNb3Rpb246IE1vdGlvblByb3BzID0ge1xyXG4gIGluaXRpYWw6IHsgeTogLTMwLCBvcGFjaXR5OiAwIH0sXHJcbiAgYW5pbWF0ZTogeyB5OiAwLCBvcGFjaXR5OiAxIH0sXHJcbiAgZXhpdDogeyB5OiAtMzAsIG9wYWNpdHk6IDAgfSxcclxufTtcclxuXHJcbmNvbnN0IFBhc3NUaW1lTW9kYWw6IFJlYWN0LkZDPFBhc3NUaW1lTW9kYWxQcm9wcz4gPSAoeyBpc09wZW4sIG9uQ2xvc2UsIG9uQ29uZmlybSwgY3VycmVudFRpbWUgfSkgPT4ge1xyXG4gIGNvbnN0IFt0aW1lLCBzZXRUaW1lXSA9IHVzZVN0YXRlPFRpbWVJbnB1dFN0YXRlPih7XHJcbiAgICBtaW51dGVzOiAwLFxyXG4gICAgaG91cnM6IDAsXHJcbiAgICBkYXlzOiAwLFxyXG4gICAgd2Vla3M6IDAsXHJcbiAgICBtb250aHM6IDAsXHJcbiAgICB5ZWFyczogMCxcclxuICB9KTtcclxuXHJcbiAgY29uc3QgaGFuZGxlSW5wdXRDaGFuZ2UgPSAoZTogUmVhY3QuQ2hhbmdlRXZlbnQ8SFRNTElucHV0RWxlbWVudD4pID0+IHtcclxuICAgIGNvbnN0IHsgbmFtZSwgdmFsdWUgfSA9IGUudGFyZ2V0O1xyXG4gICAgc2V0VGltZShwcmV2ID0+ICh7XHJcbiAgICAgIC4uLnByZXYsXHJcbiAgICAgIFtuYW1lXTogTWF0aC5tYXgoMCwgcGFyc2VJbnQodmFsdWUsIDEwKSB8fCAwKSxcclxuICAgIH0pKTtcclxuICB9O1xyXG5cclxuICBjb25zdCBuZXdUaW1lUHJldmlldyA9IHVzZU1lbW8oKCkgPT4ge1xyXG4gICAgcmV0dXJuIGFkZEdhbWVUaW1lKGN1cnJlbnRUaW1lLCB0aW1lKTtcclxuICB9LCBbY3VycmVudFRpbWUsIHRpbWVdKTtcclxuXHJcbiAgY29uc3QgdG90YWxTZWNvbmRzVG9BZHZhbmNlID0gdXNlTWVtbygoKSA9PiB7XHJcbiAgICByZXR1cm4gKG5ld1RpbWVQcmV2aWV3LmdldFRpbWUoKSAtIGN1cnJlbnRUaW1lLmdldFRpbWUoKSkgLyAxMDAwO1xyXG4gIH0sIFtuZXdUaW1lUHJldmlldywgY3VycmVudFRpbWVdKTtcclxuICBcclxuICBjb25zdCBmb3JtYXRHYW1lVGltZUZvck1vZGFsID0gKGRhdGU6IERhdGUpOiBzdHJpbmcgPT4ge1xyXG4gICAgY29uc3QgZGF5TnVtYmVyID0gZ2V0R2FtZURheShkYXRlKTtcclxuICAgIGNvbnN0IHRpbWVTdHJpbmcgPSBmb3JtYXRHYW1lVGltZShkYXRlLCB7IGhvdXI6ICcyLWRpZ2l0JywgbWludXRlOiAnMi1kaWdpdCcsIGhvdXIxMjogdHJ1ZSB9KTtcclxuICAgIHJldHVybiBgRGF5ICR7ZGF5TnVtYmVyfSwgJHt0aW1lU3RyaW5nfWA7XHJcbiAgfTtcclxuXHJcbiAgY29uc3QgaGFuZGxlQ29uZmlybSA9ICgpID0+IHtcclxuICAgIG9uQ29uZmlybSh0b3RhbFNlY29uZHNUb0FkdmFuY2UpO1xyXG4gICAgb25DbG9zZSgpO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IG1vZGFsUmVmID0gdXNlRm9jdXNUcmFwPEhUTUxEaXZFbGVtZW50Pihpc09wZW4sIG9uQ2xvc2UpO1xyXG5cclxuICBjb25zdCBoYW5kbGVLZXlEb3duID0gKGU6IFJlYWN0LktleWJvYXJkRXZlbnQpID0+IHtcclxuICAgIGlmIChlLmtleSA9PT0gJ0VudGVyJyAmJiB0b3RhbFNlY29uZHNUb0FkdmFuY2UgPiAwKSB7XHJcbiAgICAgIGUucHJldmVudERlZmF1bHQoKTtcclxuICAgICAgaGFuZGxlQ29uZmlybSgpO1xyXG4gICAgfVxyXG4gIH07XHJcbiAgXHJcbiAgY29uc3QgdGltZU1vZGlmaWVycyA9IHVzZU1lbW8oKCkgPT4gZ2V0VGltZU1vZGlmaWVycyhuZXdUaW1lUHJldmlldyksIFtuZXdUaW1lUHJldmlld10pO1xyXG4gIGNvbnN0IGNhbGVuZGFyRGVzY3JpcHRpb24gPSB1c2VNZW1vKCgpID0+IGdldENhbGVuZGFyRGVzY3JpcHRpb24obmV3VGltZVByZXZpZXcpLCBbbmV3VGltZVByZXZpZXddKTtcclxuXHJcbiAgdXNlRWZmZWN0KCgpID0+IHtcclxuICAgIGlmICghaXNPcGVuKSB7XHJcbiAgICAgICAgLy8gZXNsaW50LWRpc2FibGUtbmV4dC1saW5lIHJlYWN0LWhvb2tzL3NldC1zdGF0ZS1pbi1lZmZlY3RcclxuICAgICAgICBzZXRUaW1lKHsgbWludXRlczogMCwgaG91cnM6IDAsIGRheXM6IDAsIHdlZWtzOiAwLCBtb250aHM6IDAsIHllYXJzOiAwIH0pO1xyXG4gICAgfVxyXG4gIH0sIFtpc09wZW5dKTtcclxuXHJcbiAgaWYgKCFpc09wZW4pIHJldHVybiBudWxsO1xyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPG1vdGlvbi5kaXZcclxuICAgICAgey4uLm92ZXJsYXlNb3Rpb259XHJcbiAgICAgIGNsYXNzTmFtZT1cImZpeGVkIGluc2V0LTAgYmctYmxhY2sgYmctb3BhY2l0eS03NSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB6LVt2YXIoLS16LWluZGV4LW1vZGFsLWJhY2tncm91bmQpXSBwLTRcIlxyXG4gICAgICBvbkNsaWNrPXtvbkNsb3NlfVxyXG4gICAgICBhcmlhLW1vZGFsPVwidHJ1ZVwiXHJcbiAgICAgIHJvbGU9XCJkaWFsb2dcIlxyXG4gICAgICBhcmlhLWxhYmVsbGVkYnk9XCJwYXNzLXRpbWUtdGl0bGVcIlxyXG4gICAgPlxyXG4gICAgICA8bW90aW9uLmRpdlxyXG4gICAgICAgIHJlZj17bW9kYWxSZWZ9XHJcbiAgICAgICAgey4uLm1vZGFsTW90aW9ufVxyXG4gICAgICAgIGNsYXNzTmFtZT1cImJnLWdyYXktODAwIHAtNiByb3VuZGVkLXhsIHNoYWRvdy0yeGwgYm9yZGVyIGJvcmRlci1ncmF5LTcwMCB3LWZ1bGwgbWF4LXctbWQgZm9jdXM6b3V0bGluZS1ub25lXCJcclxuICAgICAgICB0YWJJbmRleD17LTF9XHJcbiAgICAgICAgb25DbGljaz17KGUpID0+IGUuc3RvcFByb3BhZ2F0aW9uKCl9XHJcbiAgICAgICAgb25LZXlEb3duPXtoYW5kbGVLZXlEb3dufVxyXG4gICAgICA+XHJcbiAgICAgICAgPGgyIGlkPVwicGFzcy10aW1lLXRpdGxlXCIgY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkIHRleHQtYW1iZXItNDAwIGZvbnQtY2luemVsIHRleHQtY2VudGVyIG1iLTRcIj5QYXNzIFRpbWU8L2gyPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1jZW50ZXIgbWItNCBwLTIgYmctZ3JheS05MDAvNTAgcm91bmRlZCBmbGV4IGZsZXgtY29sIGdhcC0yXCI+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBqdXN0aWZ5LWJldHdlZW4gdGV4dC1zbSB0ZXh0LWdyYXktNDAwXCI+XHJcbiAgICAgICAgICAgICAgICA8c3Bhbj5DdXJyZW50Ojwvc3Bhbj5cclxuICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc2t5LTMwMCBmb250LXNlbWlib2xkXCI+e2Zvcm1hdEdhbWVUaW1lRm9yTW9kYWwoY3VycmVudFRpbWUpfTwvc3Bhbj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXgganVzdGlmeS1iZXR3ZWVuIHRleHQtc20gdGV4dC1ncmF5LTQwMFwiPlxyXG4gICAgICAgICAgICAgICAgPHNwYW4+UmVzdWx0Ojwvc3Bhbj5cclxuICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT17YGZvbnQtc2VtaWJvbGQgJHt0b3RhbFNlY29uZHNUb0FkdmFuY2UgPiAwID8gJ3RleHQtZ3JlZW4tMzAwJyA6ICd0ZXh0LWdyYXktNTAwJ31gfT5cclxuICAgICAgICAgICAgICAgICAgICB7Zm9ybWF0R2FtZVRpbWVGb3JNb2RhbChuZXdUaW1lUHJldmlldyl9XHJcbiAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAge3RvdGFsU2Vjb25kc1RvQWR2YW5jZSA+IDAgJiYgKFxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC0yIHRleHQteHMgaXRhbGljIHRleHQtZ3JheS0zMDAgYm9yZGVyLXQgYm9yZGVyLWdyYXktNzAwIHB0LTJcIj5cclxuICAgICAgICAgICAgICAgICAgICA8cD57Y2FsZW5kYXJEZXNjcmlwdGlvbn08L3A+XHJcbiAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwibXQtMSB0ZXh0LWFtYmVyLTIwMC84MFwiPnt0aW1lTW9kaWZpZXJzLmRlc2NyaXB0aW9ufTwvcD5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICApfVxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICAgIFxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMiBnYXAtNFwiPlxyXG4gICAgICAgICAgICB7KE9iamVjdC5rZXlzKHRpbWUpIGFzIEFycmF5PGtleW9mIFRpbWVJbnB1dFN0YXRlPikubWFwKHVuaXQgPT4gKFxyXG4gICAgICAgICAgICAgICAgPGRpdiBrZXk9e3VuaXR9PlxyXG4gICAgICAgICAgICAgICAgICAgIDxsYWJlbCBodG1sRm9yPXtgdGltZS0ke3VuaXR9YH0gY2xhc3NOYW1lPVwiYmxvY2sgdGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LWdyYXktMzAwIGNhcGl0YWxpemVcIj57dW5pdH08L2xhYmVsPlxyXG4gICAgICAgICAgICAgICAgICAgIDxpbnB1dFxyXG4gICAgICAgICAgICAgICAgICAgICAgICB0eXBlPVwibnVtYmVyXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgaWQ9e2B0aW1lLSR7dW5pdH1gfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBuYW1lPXt1bml0fVxyXG4gICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT17dGltZVt1bml0XX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2hhbmRsZUlucHV0Q2hhbmdlfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICBtaW49XCIwXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMSB3LWZ1bGwgcHgtMyBweS0yIGJnLWdyYXktOTAwIGJvcmRlciBib3JkZXItZ3JheS02MDAgcm91bmRlZC1tZCB0ZXh0LWdyYXktMjAwIGZvY3VzOnJpbmctMSBmb2N1czpyaW5nLXNreS01MDAgZm9jdXM6Ym9yZGVyLXNreS01MDAgb3V0bGluZS1ub25lXCJcclxuICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICkpfVxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZ2FwLTQgbXQtNlwiPlxyXG4gICAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQ2xvc2V9IGNsYXNzTmFtZT1cInctMS8yIGJnLWdyYXktNjAwIGhvdmVyOmJnLWdyYXktNTAwIHRleHQtd2hpdGUgZm9udC1zZW1pYm9sZCBweS0yIHB4LTQgcm91bmRlZC1sZyBzaGFkb3dcIj5DYW5jZWw8L2J1dHRvbj5cclxuICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtoYW5kbGVDb25maXJtfSBkaXNhYmxlZD17dG90YWxTZWNvbmRzVG9BZHZhbmNlIDw9IDB9IGNsYXNzTmFtZT1cInctMS8yIGJnLWdyZWVuLTYwMCBob3ZlcjpiZy1ncmVlbi01MDAgdGV4dC13aGl0ZSBmb250LXNlbWlib2xkIHB5LTIgcHgtNCByb3VuZGVkLWxnIHNoYWRvdyBkaXNhYmxlZDpiZy1ncmF5LTUwMFwiPkNvbmZpcm08L2J1dHRvbj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9tb3Rpb24uZGl2PlxyXG4gICAgPC9tb3Rpb24uZGl2PlxyXG4gICk7XHJcbn07XHJcblxyXG5leHBvcnQgZGVmYXVsdCBQYXNzVGltZU1vZGFsO1xyXG4iXSwiZmlsZSI6IkY6L1JlcG9zL0FyYWxpYS9zcmMvY29tcG9uZW50cy9Ub3duL1Bhc3NUaW1lTW9kYWwudHN4In0=

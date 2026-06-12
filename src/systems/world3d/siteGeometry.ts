@@ -1,4 +1,4 @@
-// @dependencies-start
+﻿// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
@@ -60,7 +60,7 @@ function estimateRadius(site: ChunkData['sites'][number]): number {
 export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
   return data.sites.map((s) => {
     const local = gridPointToLocal(s.position.x, s.position.y, data.cx, data.cy);
-    return {
+    const site: ChunkSite = {
       id: s.id,
       kind: s.kind,
       localX: local.x,
@@ -69,6 +69,40 @@ export function buildSiteMeshes(data: ChunkData): ChunkSite[] {
       population: s.population,
       radius: clampRadius(estimateRadius(s)),
       walled: s.walled,
+      colorHex: s.colorHex,
+      unlabeled: s.unlabeled,
+      markerOnly: s.markerOnly,
     };
+
+    // Oriented-box footprint (Worldforge ground mode, 2026-06-11): a
+    // 4-corner quad becomes a rotated building box sized by its actual
+    // edges - replacing the uniform kind-radius cube. Corners share the
+    // grid->local conversion, so the box lands exactly on the plot.
+    if (s.footprint && s.footprint.length === 4) {
+      const c = s.footprint.map((p) => gridPointToLocal(p.x, p.y, data.cx, data.cy));
+      const cx = (c[0].x + c[1].x + c[2].x + c[3].x) / 4;
+      const cz = (c[0].z + c[1].z + c[2].z + c[3].z) / 4;
+      const e1x = c[1].x - c[0].x;
+      const e1z = c[1].z - c[0].z;
+      const e2x = c[3].x - c[0].x;
+      const e2z = c[3].z - c[0].z;
+      site.localX = cx;
+      site.localZ = cz;
+      site.boxWidth = Math.max(1, Math.hypot(e1x, e1z));
+      site.boxDepth = Math.max(1, Math.hypot(e2x, e2z));
+      site.boxHeight = Math.max(2, s.heightM ?? 4);
+      // three.js rotates counter-clockwise around +Y; atan2 of the frontage
+      // edge gives the box yaw so its width axis follows the street.
+      site.rotationY = -Math.atan2(e1z, e1x);
+      // Street side: corners 0-1 (the frontage edge) sit toward the street,
+      // e2 points away from it. The cross product's sign tells which local-Z
+      // face e2 maps to after the yaw — the door goes on the opposite face.
+      const cross = e1x * e2z - e1z * e2x;
+      site.doorZSign = cross >= 0 ? -1 : 1;
+    }
+
+    return site;
   });
 }
+
+

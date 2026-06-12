@@ -4,11 +4,11 @@ handoff_type: agent_to_agent
 project: 3D Combat Map
 slug: 3d-combat-map
 status: active
-last_updated: "2026-06-09"
-iteration: 7
-source_agent: Bernoulli / gpt-5.4-mini high
+last_updated: "2026-06-11"
+iteration: 8
+source_agent: Codex / GPT-5
 target_agent: next cold-start agent
-runtime_surface: "MCP-subagent + headless runtime proof"
+runtime_surface: "Codex desktop app + local PowerShell + headless Playwright proof"
 certainty: certain
 workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 workflow_gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
@@ -20,7 +20,7 @@ gaps: docs/projects/3d-combat-map/GAPS.md
 # 3D Combat Map Cold Start Agent Handoff
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-11
 
 This file is the project-specific context package and directive checklist for the next cold-start agent. It does not duplicate the full workflow rules. The agent must follow the shared workflow file and use this file for current project context, resume state, and closeout obligations.
 
@@ -39,7 +39,7 @@ docs/projects/3d-combat-map/NORTH_STAR.md
 ---BEGIN NEXT AGENT HANDOFF---
 Project: 3D Combat Map
 Project folder: docs/projects/3d-combat-map
-Iteration: 7
+Iteration: 8
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -47,10 +47,11 @@ North Star: docs/projects/3d-combat-map/NORTH_STAR.md
 Tracker: docs/projects/3d-combat-map/TRACKER.md
 Gaps: docs/projects/3d-combat-map/GAPS.md
 Audit/proof: docs/projects/3d-combat-map/AUDIT_OR_PROOF.md
+Optional split handoff: docs/projects/3d-combat-map/HANDOFF.md
 
 Agent identity / runtime:
 Next agent must identify its model and runtime surface before selecting work.
-This handoff was refreshed after Bernoulli closed G6 with a focused terrain-shader pass and verified the 3D Combat Map row in the living-project audit.
+This handoff was refreshed after Codex / GPT-5 closed NC2, G3, and G7 with a headless CombatView pop-out lifecycle proof through `?dev_combat=1`.
 
 ## Iteration Agent Ledger
 
@@ -58,41 +59,45 @@ This handoff was refreshed after Bernoulli closed G6 with a focused terrain-shad
 |---|---|---|---|---|---|
 | 6 | McClintock / gpt-5.4-mini high | MCP-subagent + browser | certain | 2026-06-09 | Live browser slope-click proof closed G4 and kept NC2/G7 open. |
 | 7 | Bernoulli / gpt-5.4-mini high | MCP-subagent + headless runtime proof | certain | 2026-06-09 | Terrain shader warning closed in `TerrainMesh.tsx`; targeted console sweep found no `f_getTerrainColor` / `X4000` messages; living-project audit returned `schema_status: valid` for 3D Combat Map. |
+| 8 | Codex / GPT-5 | Codex desktop app + local PowerShell + headless Playwright proof | certain | 2026-06-11 | `?dev_combat=1` reached CombatView; NC2 passed with inline/pop-out 3D canvases, `renderMode=3d` after return, persisted turn order and inspected token `Satum`, toggle health, and zero captured console errors. |
 
 ## Current Mission
 
 Active task:
-Unblock NC2 (G7) so the CombatView-hosted proof can run, or record a refined blocker if the reach path still cannot be made available. Do not expand into World3D or combat-rule changes.
+Run the G11 targeting-decal saved-PNG proof from `HANDOFF.md` and `.agent/3d-visual-quality/TRACKER.md` rows 257-258. Do not reopen NC2/G3/G7 unless the CombatView pop-out path regresses.
 
 Acceptance criteria:
-- Reach a real combat encounter in `CombatView`.
-- Toggle 3D, confirm `BattleMap3D` mounts, then pop out -> interact -> return and confirm `renderMode` stays `3d`, turn order and selected token persist, and the 2D/3D toggle still works.
-- If combat cannot be reached, document the blocker in `docs/projects/3d-combat-map/GAPS.md` and `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` instead of widening scope.
-- Keep the G6 shader warning closed; do not reopen it unless the terrain shader logic changes again.
+- Use the combat-only path: `?dev_combat=1` plus Continue Journey, then switch CombatView to 3D.
+- Select Satum or another player character with a ranged/AoE targeting ability such as Acid Splash.
+- Capture durable before/after 3D screenshots that show whether `TargetingDecals.tsx` paints valid target or teleport tile sets into the 3D canvas.
+- Record console health for the capture window, especially repeated WebGL/postprocessing errors.
+- Update `GAPS.md`, `TRACKER.md`, `AUDIT_OR_PROOF.md`, and this handoff with artifact paths and pass/fail status.
+- Stay inside battle-map targeting proof. Do not absorb Worldforge, World3D, ThreeDModal, or combat-rule changes.
 
-Key files to touch:
+Key files likely to touch:
 - docs/projects/3d-combat-map/AUDIT_OR_PROOF.md
 - docs/projects/3d-combat-map/TRACKER.md
 - docs/projects/3d-combat-map/GAPS.md
 - docs/projects/3d-combat-map/NORTH_STAR.md
 - docs/projects/3d-combat-map/COLD_START_AGENT_PROMPT.md
-- src/components/Combat/CombatView.tsx
-- .agent/3d-visual-quality/captures/nc2-combatview.mjs
+- .agent/3d-visual-quality/TRACKER.md
+- .agent/3d-visual-quality/captures/shoot.mjs or a narrow proof harness
+- src/components/BattleMap/TargetingDecals.tsx only if the proof exposes a real defect
 
 Scoped verification:
-Use the reusable headless capture harness on port 5174, then run `npm run projects:audit` and `git diff --check`. If the shared in-app browser profile is busy again, use the existing headless capture path and record that alternate harness route.
+Use the reusable headless capture route on port 5174. For doc-only proof updates, run `npm run projects:audit` and `git diff --check`. If code changes, use focused tests for the touched battle-map surface and follow `AGENTS.md` dependency-sync rules for exported signature changes.
 
 Blocking dependencies / do-not-touch:
-Stay inside combat-only scope. Do not absorb World3D or ThreeDModal behavior. Do not change combat rules.
+Stay inside combat-only scope. Do not absorb Worldforge, World3D, ThreeDModal behavior, or combat-rule changes. Keep the G6 shader warning and NC2 proof closed unless the terrain shader or CombatView pop-out logic changes again.
 
 Recent progress:
-T1-T5 done. G2, G4, and G6 are closed. G3, G5, and G7 remain open.
+T1-T5 done. G2, G3, G4, G6, G7, and G8 are closed. NC1 and NC2 are complete. G5, G9, G10, G11, and G12 remain open. G11 and G12 were imported during the bounded gap sweep from `.agent/3d-visual-quality` because the 2026-06-11 split handoff already names them as current 3D battle-map follow-ups.
 
 Workflow gap review:
-WFG-001 is resolved; the canonical workflow and schema paths are already in use, so no +1 was added.
+`WORKFLOW_GAPS.md` was read on 2026-06-11. No active workflow gaps were present, and no +1 or new workflow gap was added.
 
 Dashboard schema update:
-The 3D Combat Map row is schema_status: valid with missing_schema_fields: [] and missing_required_docs: [].
+`NORTH_STAR.md` frontmatter was updated on 2026-06-11: confidence high, gap signal 5 open gaps, last proof 2026-06-11, workflow gaps reviewed 2026-06-11, completed verification includes `nc2_popout_lifecycle`, and `agent_comments` remains empty.
 
 Required End State For This Iteration:
 Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.

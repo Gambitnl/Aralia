@@ -1,0 +1,284 @@
+import { ItemRarity } from "/Aralia/src/types/index.ts?t=1781174924793";
+export const GATHERABLE_ITEMS = {
+  // ============ COMMON FLORA ============
+  cats_tongue: {
+    id: "cats_tongue",
+    name: "Cat's Tongue",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A mid-sized plant with purple/white flower bundles. Used in healing and restorative potions.",
+    value: 5,
+    weight: 0.1,
+    properties: ["curative", "binding"],
+    rarity: ItemRarity.Common
+  },
+  dreamlilly: {
+    id: "dreamlilly",
+    name: "Dreamlilly",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A white, silvery flower with an intoxicating smell. Creates psychoactive liquids.",
+    value: 5,
+    weight: 0.1,
+    properties: ["toxic", "inert"],
+    rarity: ItemRarity.Common
+  },
+  gillyweed: {
+    id: "gillyweed",
+    name: "Gillyweed",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Emerald green kelp covered in tiny air bubbles. Essential for waterbreathing potions.",
+    value: 5,
+    weight: 0.1,
+    properties: ["binding", "inert"],
+    rarity: ItemRarity.Common
+  },
+  morning_dew: {
+    id: "morning_dew",
+    name: "Morning Dew",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Dried leaves from a special bush. Used in teas and restorative medicine.",
+    value: 5,
+    weight: 0.1,
+    properties: ["curative", "concentrated"],
+    rarity: ItemRarity.Common
+  },
+  red_amanita: {
+    id: "red_amanita",
+    name: "Red Amanita Mushroom",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A red-capped mushroom. Poisonous raw but essential for healing potions when processed.",
+    value: 5,
+    weight: 0.1,
+    properties: ["curative", "toxic"],
+    rarity: ItemRarity.Common
+  },
+  rowan_berry: {
+    id: "rowan_berry",
+    name: "Rowan Berry",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Small red berries from the rowan tree, revered by druids for purifying properties.",
+    value: 5,
+    weight: 0.1,
+    properties: ["curative", "binding"],
+    rarity: ItemRarity.Common
+  },
+  // ============ UNCOMMON FLORA ============
+  frost_lichen: {
+    id: "frost_lichen",
+    name: "Frost Lichen",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Blindingly white lichen that grows on arctic rocks.",
+    value: 10,
+    weight: 0.1,
+    properties: ["inert", "binding"],
+    rarity: ItemRarity.Uncommon
+  },
+  lightning_moss: {
+    id: "lightning_moss",
+    name: "Lightning Moss",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Light blue moss that grows where lightning has struck. Gives off static when touched.",
+    value: 10,
+    weight: 0.1,
+    properties: ["reactive", "concentrated"],
+    rarity: ItemRarity.Uncommon
+  },
+  mandrake_root: {
+    id: "mandrake_root",
+    name: "Mandrake Root",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A twisted pale root resembling a humanoid infant. Poisonous when ingested.",
+    value: 10,
+    weight: 0.2,
+    properties: ["toxic", "binding"],
+    rarity: ItemRarity.Uncommon
+  },
+  mindflayer_stinkhorn: {
+    id: "mindflayer_stinkhorn",
+    name: "Mindflayer Stinkhorn",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A purple fungus with tentacle-like stalks that smells of rotting flesh.",
+    value: 10,
+    weight: 0.1,
+    properties: ["toxic", "concentrated"],
+    rarity: ItemRarity.Uncommon
+  },
+  nightshade: {
+    id: "nightshade",
+    name: "Nightshade",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "An inky black flower with purple stalk. Highly toxic.",
+    value: 10,
+    weight: 0.1,
+    properties: ["toxic", "reactive"],
+    rarity: ItemRarity.Uncommon
+  },
+  sourgrass: {
+    id: "sourgrass",
+    name: "Sourgrass",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Green long-bladed grass with a pungent smell. Can induce nausea.",
+    value: 10,
+    weight: 0.1,
+    properties: ["curative", "inert"],
+    rarity: ItemRarity.Uncommon
+  },
+  // ============ RARE FLORA ============
+  ashblossom: {
+    id: "ashblossom",
+    name: "Ashblossom",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A tiny bright red flower with yellow center, found in hot environments. Deals fire damage when ingested.",
+    value: 50,
+    weight: 0.1,
+    properties: ["reactive", "toxic"],
+    rarity: ItemRarity.Rare
+  },
+  fairy_stool: {
+    id: "fairy_stool",
+    name: "Fairy Stool",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Small pink mushroom found in fairy rings. Causes blindness and vivid hallucinations.",
+    value: 50,
+    weight: 0.1,
+    properties: ["reactive", "concentrated"],
+    rarity: ItemRarity.Rare
+  },
+  hagfinger: {
+    id: "hagfinger",
+    name: "Hagfinger",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "Pale, sickly green tubers resembling long fingers. Strong aroma when dried and ground.",
+    value: 50,
+    weight: 0.2,
+    properties: ["binding", "inert"],
+    rarity: ItemRarity.Rare
+  },
+  pixies_parasol: {
+    id: "pixies_parasol",
+    name: "Pixie's Parasol",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "A tiny bioluminescent mushroom with bright blue cap. Key ingredient in invisibility magic.",
+    value: 50,
+    weight: 0.1,
+    properties: ["reactive", "concentrated"],
+    rarity: ItemRarity.Rare
+  },
+  wolfsbane: {
+    id: "wolfsbane",
+    name: "Wolfsbane",
+    type: "reagent",
+    category: "Herbalism Ingredient",
+    description: "White-grey flower that blooms only on full moons. Repels canines and lycanthropes.",
+    value: 50,
+    weight: 0.1,
+    properties: ["toxic", "reactive"],
+    rarity: ItemRarity.Rare
+  },
+  // ============ CREATURE PARTS ============
+  serpents_venom: {
+    id: "serpents_venom",
+    name: "Serpent's Venom",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Poison harvested from a giant poisonous snake. DC 11 Con save or 3d6 poison damage.",
+    value: 5,
+    weight: 0.1,
+    properties: ["toxic"],
+    rarity: ItemRarity.Common
+  },
+  crawler_mucus: {
+    id: "crawler_mucus",
+    name: "Crawler Mucus",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Paralyzing mucus from a carrion crawler. DC 13 Con save or Poisoned + Paralyzed.",
+    value: 10,
+    weight: 0.1,
+    properties: ["toxic", "binding"],
+    rarity: ItemRarity.Uncommon
+  },
+  ankheg_ichor: {
+    id: "ankheg_ichor",
+    name: "Ankheg Ichor",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Acidic ichor from an ankheg. Used in corrosive and sharpening oils.",
+    value: 10,
+    weight: 0.1,
+    properties: ["reactive", "concentrated"],
+    rarity: ItemRarity.Uncommon
+  },
+  ectoplasm: {
+    id: "ectoplasm",
+    name: "Ectoplasm",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Ethereal residue from a ghost. Used in gaseous and etherealness potions.",
+    value: 10,
+    weight: 0.1,
+    properties: ["inert", "binding"],
+    rarity: ItemRarity.Uncommon
+  },
+  drider_venom: {
+    id: "drider_venom",
+    name: "Drider Venom",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Potent venom from a drider. Essential for crafting Drow Poison.",
+    value: 50,
+    weight: 0.1,
+    properties: ["toxic", "concentrated"],
+    rarity: ItemRarity.Rare
+  },
+  dragons_blood: {
+    id: "dragons_blood",
+    name: "Dragon's Blood",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Blood from a true dragon. Extremely valuable for dragon-bane weapons.",
+    value: 50,
+    weight: 0.2,
+    properties: ["reactive", "concentrated"],
+    rarity: ItemRarity.Rare
+  },
+  wyvern_poison: {
+    id: "wyvern_poison",
+    name: "Wyvern Poison",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Deadly venom from a wyvern. DC 15 Con save or 7d6 poison damage.",
+    value: 50,
+    weight: 0.1,
+    properties: ["toxic", "reactive"],
+    rarity: ItemRarity.Rare
+  },
+  purple_worm_poison: {
+    id: "purple_worm_poison",
+    name: "Purple Worm Poison",
+    type: "reagent",
+    category: "Creature Part",
+    description: "Extremely deadly venom from a purple worm. DC 19 Con save or 12d6 poison damage.",
+    value: 150,
+    weight: 0.1,
+    properties: ["toxic", "concentrated"],
+    rarity: ItemRarity.VeryRare
+  }
+};
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImdhdGhlcmFibGVJdGVtcy50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcclxuICogQGZpbGUgc3JjL2RhdGEvZ2F0aGVyYWJsZUl0ZW1zLnRzXHJcbiAqIEl0ZW0gZGVmaW5pdGlvbnMgZm9yIGFsbCBnYXRoZXJhYmxlIGluZ3JlZGllbnRzIHVzZWQgaW4gQWxjaGVteS9IZXJiYWxpc20vUG9pc29uZXIgc3lzdGVtcy5cclxuICogVGhlc2UgaXRlbXMgY2FuIGJlIGFkZGVkIHRvIGludmVudG9yeSB2aWEgQUREX0lURU0gYWN0aW9uLlxyXG4gKi9cclxuaW1wb3J0IHsgSXRlbSwgSXRlbVJhcml0eSB9IGZyb20gJy4uL3R5cGVzL2luZGV4LmpzJztcclxuXHJcbmV4cG9ydCBjb25zdCBHQVRIRVJBQkxFX0lURU1TOiBSZWNvcmQ8c3RyaW5nLCBJdGVtPiA9IHtcclxuICAgIC8vID09PT09PT09PT09PSBDT01NT04gRkxPUkEgPT09PT09PT09PT09XHJcbiAgICBjYXRzX3Rvbmd1ZToge1xyXG4gICAgICAgIGlkOiAnY2F0c190b25ndWUnLFxyXG4gICAgICAgIG5hbWU6IFwiQ2F0J3MgVG9uZ3VlXCIsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnSGVyYmFsaXNtIEluZ3JlZGllbnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQSBtaWQtc2l6ZWQgcGxhbnQgd2l0aCBwdXJwbGUvd2hpdGUgZmxvd2VyIGJ1bmRsZXMuIFVzZWQgaW4gaGVhbGluZyBhbmQgcmVzdG9yYXRpdmUgcG90aW9ucy4nLFxyXG4gICAgICAgIHZhbHVlOiA1LFxyXG4gICAgICAgIHdlaWdodDogMC4xLFxyXG4gICAgICAgIHByb3BlcnRpZXM6IFsnY3VyYXRpdmUnLCAnYmluZGluZyddLFxyXG4gICAgICAgIHJhcml0eTogSXRlbVJhcml0eS5Db21tb25cclxuICAgIH0sXHJcbiAgICBkcmVhbWxpbGx5OiB7XHJcbiAgICAgICAgaWQ6ICdkcmVhbWxpbGx5JyxcclxuICAgICAgICBuYW1lOiAnRHJlYW1saWxseScsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnSGVyYmFsaXNtIEluZ3JlZGllbnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQSB3aGl0ZSwgc2lsdmVyeSBmbG93ZXIgd2l0aCBhbiBpbnRveGljYXRpbmcgc21lbGwuIENyZWF0ZXMgcHN5Y2hvYWN0aXZlIGxpcXVpZHMuJyxcclxuICAgICAgICB2YWx1ZTogNSxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ2luZXJ0J10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LkNvbW1vblxyXG4gICAgfSxcclxuICAgIGdpbGx5d2VlZDoge1xyXG4gICAgICAgIGlkOiAnZ2lsbHl3ZWVkJyxcclxuICAgICAgICBuYW1lOiAnR2lsbHl3ZWVkJyxcclxuICAgICAgICB0eXBlOiAncmVhZ2VudCcsXHJcbiAgICAgICAgY2F0ZWdvcnk6ICdIZXJiYWxpc20gSW5ncmVkaWVudCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdFbWVyYWxkIGdyZWVuIGtlbHAgY292ZXJlZCBpbiB0aW55IGFpciBidWJibGVzLiBFc3NlbnRpYWwgZm9yIHdhdGVyYnJlYXRoaW5nIHBvdGlvbnMuJyxcclxuICAgICAgICB2YWx1ZTogNSxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2JpbmRpbmcnLCAnaW5lcnQnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuQ29tbW9uXHJcbiAgICB9LFxyXG4gICAgbW9ybmluZ19kZXc6IHtcclxuICAgICAgICBpZDogJ21vcm5pbmdfZGV3JyxcclxuICAgICAgICBuYW1lOiAnTW9ybmluZyBEZXcnLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0RyaWVkIGxlYXZlcyBmcm9tIGEgc3BlY2lhbCBidXNoLiBVc2VkIGluIHRlYXMgYW5kIHJlc3RvcmF0aXZlIG1lZGljaW5lLicsXHJcbiAgICAgICAgdmFsdWU6IDUsXHJcbiAgICAgICAgd2VpZ2h0OiAwLjEsXHJcbiAgICAgICAgcHJvcGVydGllczogWydjdXJhdGl2ZScsICdjb25jZW50cmF0ZWQnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuQ29tbW9uXHJcbiAgICB9LFxyXG4gICAgcmVkX2FtYW5pdGE6IHtcclxuICAgICAgICBpZDogJ3JlZF9hbWFuaXRhJyxcclxuICAgICAgICBuYW1lOiAnUmVkIEFtYW5pdGEgTXVzaHJvb20nLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0EgcmVkLWNhcHBlZCBtdXNocm9vbS4gUG9pc29ub3VzIHJhdyBidXQgZXNzZW50aWFsIGZvciBoZWFsaW5nIHBvdGlvbnMgd2hlbiBwcm9jZXNzZWQuJyxcclxuICAgICAgICB2YWx1ZTogNSxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2N1cmF0aXZlJywgJ3RveGljJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LkNvbW1vblxyXG4gICAgfSxcclxuICAgIHJvd2FuX2JlcnJ5OiB7XHJcbiAgICAgICAgaWQ6ICdyb3dhbl9iZXJyeScsXHJcbiAgICAgICAgbmFtZTogJ1Jvd2FuIEJlcnJ5JyxcclxuICAgICAgICB0eXBlOiAncmVhZ2VudCcsXHJcbiAgICAgICAgY2F0ZWdvcnk6ICdIZXJiYWxpc20gSW5ncmVkaWVudCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdTbWFsbCByZWQgYmVycmllcyBmcm9tIHRoZSByb3dhbiB0cmVlLCByZXZlcmVkIGJ5IGRydWlkcyBmb3IgcHVyaWZ5aW5nIHByb3BlcnRpZXMuJyxcclxuICAgICAgICB2YWx1ZTogNSxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2N1cmF0aXZlJywgJ2JpbmRpbmcnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuQ29tbW9uXHJcbiAgICB9LFxyXG5cclxuICAgIC8vID09PT09PT09PT09PSBVTkNPTU1PTiBGTE9SQSA9PT09PT09PT09PT1cclxuICAgIGZyb3N0X2xpY2hlbjoge1xyXG4gICAgICAgIGlkOiAnZnJvc3RfbGljaGVuJyxcclxuICAgICAgICBuYW1lOiAnRnJvc3QgTGljaGVuJyxcclxuICAgICAgICB0eXBlOiAncmVhZ2VudCcsXHJcbiAgICAgICAgY2F0ZWdvcnk6ICdIZXJiYWxpc20gSW5ncmVkaWVudCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdCbGluZGluZ2x5IHdoaXRlIGxpY2hlbiB0aGF0IGdyb3dzIG9uIGFyY3RpYyByb2Nrcy4nLFxyXG4gICAgICAgIHZhbHVlOiAxMCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2luZXJ0JywgJ2JpbmRpbmcnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuVW5jb21tb25cclxuICAgIH0sXHJcbiAgICBsaWdodG5pbmdfbW9zczoge1xyXG4gICAgICAgIGlkOiAnbGlnaHRuaW5nX21vc3MnLFxyXG4gICAgICAgIG5hbWU6ICdMaWdodG5pbmcgTW9zcycsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnSGVyYmFsaXNtIEluZ3JlZGllbnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnTGlnaHQgYmx1ZSBtb3NzIHRoYXQgZ3Jvd3Mgd2hlcmUgbGlnaHRuaW5nIGhhcyBzdHJ1Y2suIEdpdmVzIG9mZiBzdGF0aWMgd2hlbiB0b3VjaGVkLicsXHJcbiAgICAgICAgdmFsdWU6IDEwLFxyXG4gICAgICAgIHdlaWdodDogMC4xLFxyXG4gICAgICAgIHByb3BlcnRpZXM6IFsncmVhY3RpdmUnLCAnY29uY2VudHJhdGVkJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlVuY29tbW9uXHJcbiAgICB9LFxyXG4gICAgbWFuZHJha2Vfcm9vdDoge1xyXG4gICAgICAgIGlkOiAnbWFuZHJha2Vfcm9vdCcsXHJcbiAgICAgICAgbmFtZTogJ01hbmRyYWtlIFJvb3QnLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0EgdHdpc3RlZCBwYWxlIHJvb3QgcmVzZW1ibGluZyBhIGh1bWFub2lkIGluZmFudC4gUG9pc29ub3VzIHdoZW4gaW5nZXN0ZWQuJyxcclxuICAgICAgICB2YWx1ZTogMTAsXHJcbiAgICAgICAgd2VpZ2h0OiAwLjIsXHJcbiAgICAgICAgcHJvcGVydGllczogWyd0b3hpYycsICdiaW5kaW5nJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlVuY29tbW9uXHJcbiAgICB9LFxyXG4gICAgbWluZGZsYXllcl9zdGlua2hvcm46IHtcclxuICAgICAgICBpZDogJ21pbmRmbGF5ZXJfc3Rpbmtob3JuJyxcclxuICAgICAgICBuYW1lOiAnTWluZGZsYXllciBTdGlua2hvcm4nLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0EgcHVycGxlIGZ1bmd1cyB3aXRoIHRlbnRhY2xlLWxpa2Ugc3RhbGtzIHRoYXQgc21lbGxzIG9mIHJvdHRpbmcgZmxlc2guJyxcclxuICAgICAgICB2YWx1ZTogMTAsXHJcbiAgICAgICAgd2VpZ2h0OiAwLjEsXHJcbiAgICAgICAgcHJvcGVydGllczogWyd0b3hpYycsICdjb25jZW50cmF0ZWQnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuVW5jb21tb25cclxuICAgIH0sXHJcbiAgICBuaWdodHNoYWRlOiB7XHJcbiAgICAgICAgaWQ6ICduaWdodHNoYWRlJyxcclxuICAgICAgICBuYW1lOiAnTmlnaHRzaGFkZScsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnSGVyYmFsaXNtIEluZ3JlZGllbnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQW4gaW5reSBibGFjayBmbG93ZXIgd2l0aCBwdXJwbGUgc3RhbGsuIEhpZ2hseSB0b3hpYy4nLFxyXG4gICAgICAgIHZhbHVlOiAxMCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ3JlYWN0aXZlJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlVuY29tbW9uXHJcbiAgICB9LFxyXG4gICAgc291cmdyYXNzOiB7XHJcbiAgICAgICAgaWQ6ICdzb3VyZ3Jhc3MnLFxyXG4gICAgICAgIG5hbWU6ICdTb3VyZ3Jhc3MnLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0dyZWVuIGxvbmctYmxhZGVkIGdyYXNzIHdpdGggYSBwdW5nZW50IHNtZWxsLiBDYW4gaW5kdWNlIG5hdXNlYS4nLFxyXG4gICAgICAgIHZhbHVlOiAxMCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2N1cmF0aXZlJywgJ2luZXJ0J10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlVuY29tbW9uXHJcbiAgICB9LFxyXG5cclxuICAgIC8vID09PT09PT09PT09PSBSQVJFIEZMT1JBID09PT09PT09PT09PVxyXG4gICAgYXNoYmxvc3NvbToge1xyXG4gICAgICAgIGlkOiAnYXNoYmxvc3NvbScsXHJcbiAgICAgICAgbmFtZTogJ0FzaGJsb3Nzb20nLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0EgdGlueSBicmlnaHQgcmVkIGZsb3dlciB3aXRoIHllbGxvdyBjZW50ZXIsIGZvdW5kIGluIGhvdCBlbnZpcm9ubWVudHMuIERlYWxzIGZpcmUgZGFtYWdlIHdoZW4gaW5nZXN0ZWQuJyxcclxuICAgICAgICB2YWx1ZTogNTAsXHJcbiAgICAgICAgd2VpZ2h0OiAwLjEsXHJcbiAgICAgICAgcHJvcGVydGllczogWydyZWFjdGl2ZScsICd0b3hpYyddLFxyXG4gICAgICAgIHJhcml0eTogSXRlbVJhcml0eS5SYXJlXHJcbiAgICB9LFxyXG4gICAgZmFpcnlfc3Rvb2w6IHtcclxuICAgICAgICBpZDogJ2ZhaXJ5X3N0b29sJyxcclxuICAgICAgICBuYW1lOiAnRmFpcnkgU3Rvb2wnLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ1NtYWxsIHBpbmsgbXVzaHJvb20gZm91bmQgaW4gZmFpcnkgcmluZ3MuIENhdXNlcyBibGluZG5lc3MgYW5kIHZpdmlkIGhhbGx1Y2luYXRpb25zLicsXHJcbiAgICAgICAgdmFsdWU6IDUwLFxyXG4gICAgICAgIHdlaWdodDogMC4xLFxyXG4gICAgICAgIHByb3BlcnRpZXM6IFsncmVhY3RpdmUnLCAnY29uY2VudHJhdGVkJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlJhcmVcclxuICAgIH0sXHJcbiAgICBoYWdmaW5nZXI6IHtcclxuICAgICAgICBpZDogJ2hhZ2ZpbmdlcicsXHJcbiAgICAgICAgbmFtZTogJ0hhZ2ZpbmdlcicsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnSGVyYmFsaXNtIEluZ3JlZGllbnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnUGFsZSwgc2lja2x5IGdyZWVuIHR1YmVycyByZXNlbWJsaW5nIGxvbmcgZmluZ2Vycy4gU3Ryb25nIGFyb21hIHdoZW4gZHJpZWQgYW5kIGdyb3VuZC4nLFxyXG4gICAgICAgIHZhbHVlOiA1MCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMixcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2JpbmRpbmcnLCAnaW5lcnQnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuUmFyZVxyXG4gICAgfSxcclxuICAgIHBpeGllc19wYXJhc29sOiB7XHJcbiAgICAgICAgaWQ6ICdwaXhpZXNfcGFyYXNvbCcsXHJcbiAgICAgICAgbmFtZTogXCJQaXhpZSdzIFBhcmFzb2xcIixcclxuICAgICAgICB0eXBlOiAncmVhZ2VudCcsXHJcbiAgICAgICAgY2F0ZWdvcnk6ICdIZXJiYWxpc20gSW5ncmVkaWVudCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdBIHRpbnkgYmlvbHVtaW5lc2NlbnQgbXVzaHJvb20gd2l0aCBicmlnaHQgYmx1ZSBjYXAuIEtleSBpbmdyZWRpZW50IGluIGludmlzaWJpbGl0eSBtYWdpYy4nLFxyXG4gICAgICAgIHZhbHVlOiA1MCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3JlYWN0aXZlJywgJ2NvbmNlbnRyYXRlZCddLFxyXG4gICAgICAgIHJhcml0eTogSXRlbVJhcml0eS5SYXJlXHJcbiAgICB9LFxyXG4gICAgd29sZnNiYW5lOiB7XHJcbiAgICAgICAgaWQ6ICd3b2xmc2JhbmUnLFxyXG4gICAgICAgIG5hbWU6ICdXb2xmc2JhbmUnLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0hlcmJhbGlzbSBJbmdyZWRpZW50JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ1doaXRlLWdyZXkgZmxvd2VyIHRoYXQgYmxvb21zIG9ubHkgb24gZnVsbCBtb29ucy4gUmVwZWxzIGNhbmluZXMgYW5kIGx5Y2FudGhyb3Blcy4nLFxyXG4gICAgICAgIHZhbHVlOiA1MCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ3JlYWN0aXZlJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlJhcmVcclxuICAgIH0sXHJcblxyXG4gICAgLy8gPT09PT09PT09PT09IENSRUFUVVJFIFBBUlRTID09PT09PT09PT09PVxyXG4gICAgc2VycGVudHNfdmVub206IHtcclxuICAgICAgICBpZDogJ3NlcnBlbnRzX3Zlbm9tJyxcclxuICAgICAgICBuYW1lOiBcIlNlcnBlbnQncyBWZW5vbVwiLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0NyZWF0dXJlIFBhcnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnUG9pc29uIGhhcnZlc3RlZCBmcm9tIGEgZ2lhbnQgcG9pc29ub3VzIHNuYWtlLiBEQyAxMSBDb24gc2F2ZSBvciAzZDYgcG9pc29uIGRhbWFnZS4nLFxyXG4gICAgICAgIHZhbHVlOiA1LFxyXG4gICAgICAgIHdlaWdodDogMC4xLFxyXG4gICAgICAgIHByb3BlcnRpZXM6IFsndG94aWMnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuQ29tbW9uXHJcbiAgICB9LFxyXG4gICAgY3Jhd2xlcl9tdWN1czoge1xyXG4gICAgICAgIGlkOiAnY3Jhd2xlcl9tdWN1cycsXHJcbiAgICAgICAgbmFtZTogJ0NyYXdsZXIgTXVjdXMnLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0NyZWF0dXJlIFBhcnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnUGFyYWx5emluZyBtdWN1cyBmcm9tIGEgY2FycmlvbiBjcmF3bGVyLiBEQyAxMyBDb24gc2F2ZSBvciBQb2lzb25lZCArIFBhcmFseXplZC4nLFxyXG4gICAgICAgIHZhbHVlOiAxMCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ2JpbmRpbmcnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuVW5jb21tb25cclxuICAgIH0sXHJcbiAgICBhbmtoZWdfaWNob3I6IHtcclxuICAgICAgICBpZDogJ2Fua2hlZ19pY2hvcicsXHJcbiAgICAgICAgbmFtZTogJ0Fua2hlZyBJY2hvcicsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnQ3JlYXR1cmUgUGFydCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdBY2lkaWMgaWNob3IgZnJvbSBhbiBhbmtoZWcuIFVzZWQgaW4gY29ycm9zaXZlIGFuZCBzaGFycGVuaW5nIG9pbHMuJyxcclxuICAgICAgICB2YWx1ZTogMTAsXHJcbiAgICAgICAgd2VpZ2h0OiAwLjEsXHJcbiAgICAgICAgcHJvcGVydGllczogWydyZWFjdGl2ZScsICdjb25jZW50cmF0ZWQnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuVW5jb21tb25cclxuICAgIH0sXHJcbiAgICBlY3RvcGxhc206IHtcclxuICAgICAgICBpZDogJ2VjdG9wbGFzbScsXHJcbiAgICAgICAgbmFtZTogJ0VjdG9wbGFzbScsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnQ3JlYXR1cmUgUGFydCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdFdGhlcmVhbCByZXNpZHVlIGZyb20gYSBnaG9zdC4gVXNlZCBpbiBnYXNlb3VzIGFuZCBldGhlcmVhbG5lc3MgcG90aW9ucy4nLFxyXG4gICAgICAgIHZhbHVlOiAxMCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ2luZXJ0JywgJ2JpbmRpbmcnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuVW5jb21tb25cclxuICAgIH0sXHJcbiAgICBkcmlkZXJfdmVub206IHtcclxuICAgICAgICBpZDogJ2RyaWRlcl92ZW5vbScsXHJcbiAgICAgICAgbmFtZTogJ0RyaWRlciBWZW5vbScsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnQ3JlYXR1cmUgUGFydCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdQb3RlbnQgdmVub20gZnJvbSBhIGRyaWRlci4gRXNzZW50aWFsIGZvciBjcmFmdGluZyBEcm93IFBvaXNvbi4nLFxyXG4gICAgICAgIHZhbHVlOiA1MCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ2NvbmNlbnRyYXRlZCddLFxyXG4gICAgICAgIHJhcml0eTogSXRlbVJhcml0eS5SYXJlXHJcbiAgICB9LFxyXG4gICAgZHJhZ29uc19ibG9vZDoge1xyXG4gICAgICAgIGlkOiAnZHJhZ29uc19ibG9vZCcsXHJcbiAgICAgICAgbmFtZTogXCJEcmFnb24ncyBCbG9vZFwiLFxyXG4gICAgICAgIHR5cGU6ICdyZWFnZW50JyxcclxuICAgICAgICBjYXRlZ29yeTogJ0NyZWF0dXJlIFBhcnQnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQmxvb2QgZnJvbSBhIHRydWUgZHJhZ29uLiBFeHRyZW1lbHkgdmFsdWFibGUgZm9yIGRyYWdvbi1iYW5lIHdlYXBvbnMuJyxcclxuICAgICAgICB2YWx1ZTogNTAsXHJcbiAgICAgICAgd2VpZ2h0OiAwLjIsXHJcbiAgICAgICAgcHJvcGVydGllczogWydyZWFjdGl2ZScsICdjb25jZW50cmF0ZWQnXSxcclxuICAgICAgICByYXJpdHk6IEl0ZW1SYXJpdHkuUmFyZVxyXG4gICAgfSxcclxuICAgIHd5dmVybl9wb2lzb246IHtcclxuICAgICAgICBpZDogJ3d5dmVybl9wb2lzb24nLFxyXG4gICAgICAgIG5hbWU6ICdXeXZlcm4gUG9pc29uJyxcclxuICAgICAgICB0eXBlOiAncmVhZ2VudCcsXHJcbiAgICAgICAgY2F0ZWdvcnk6ICdDcmVhdHVyZSBQYXJ0JyxcclxuICAgICAgICBkZXNjcmlwdGlvbjogJ0RlYWRseSB2ZW5vbSBmcm9tIGEgd3l2ZXJuLiBEQyAxNSBDb24gc2F2ZSBvciA3ZDYgcG9pc29uIGRhbWFnZS4nLFxyXG4gICAgICAgIHZhbHVlOiA1MCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ3JlYWN0aXZlJ10sXHJcbiAgICAgICAgcmFyaXR5OiBJdGVtUmFyaXR5LlJhcmVcclxuICAgIH0sXHJcbiAgICBwdXJwbGVfd29ybV9wb2lzb246IHtcclxuICAgICAgICBpZDogJ3B1cnBsZV93b3JtX3BvaXNvbicsXHJcbiAgICAgICAgbmFtZTogJ1B1cnBsZSBXb3JtIFBvaXNvbicsXHJcbiAgICAgICAgdHlwZTogJ3JlYWdlbnQnLFxyXG4gICAgICAgIGNhdGVnb3J5OiAnQ3JlYXR1cmUgUGFydCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdFeHRyZW1lbHkgZGVhZGx5IHZlbm9tIGZyb20gYSBwdXJwbGUgd29ybS4gREMgMTkgQ29uIHNhdmUgb3IgMTJkNiBwb2lzb24gZGFtYWdlLicsXHJcbiAgICAgICAgdmFsdWU6IDE1MCxcclxuICAgICAgICB3ZWlnaHQ6IDAuMSxcclxuICAgICAgICBwcm9wZXJ0aWVzOiBbJ3RveGljJywgJ2NvbmNlbnRyYXRlZCddLFxyXG4gICAgICAgIHJhcml0eTogSXRlbVJhcml0eS5WZXJ5UmFyZVxyXG4gICAgfVxyXG59O1xyXG5cclxuIl0sIm1hcHBpbmdzIjoiQUFLQSxTQUFlLGtCQUFrQjtBQUUxQixhQUFNLG1CQUF5QztBQUFBO0FBQUEsRUFFbEQsYUFBYTtBQUFBLElBQ1QsSUFBSTtBQUFB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

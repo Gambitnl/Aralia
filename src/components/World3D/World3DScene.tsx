@@ -1,4 +1,4 @@
-// @dependencies-start
+﻿// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * LOCAL HELPER: This file has a small, manageable dependency footprint.
@@ -62,6 +62,12 @@ interface World3DSceneProps {
   onChunkUpdate?: (loadedCount: number) => void;
   /** Live player position for distance-gated label overlays. */
   playerWorldPos?: PlayerWorldPosition | null;
+  /**
+   * Camera framing: 'continent' (default) is the high oblique km-scale
+   * view; 'ground' frames a walking-scale scene (Worldforge ground mode) â€”
+   * low, close, overlooking the spawn like a diorama.
+   */
+  viewProfile?: 'continent' | 'ground';
 }
 
 const SHADOWS = WORLD3D_CONFIG.STREAMED_WORLD_SHADOWS;
@@ -124,20 +130,74 @@ const RoadPiece: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chun
   if (!roads) return null;
   return (
     <mesh geometry={geometry} position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      <meshStandardMaterial color="#9a8458" />
+      <meshStandardMaterial color="#6f5a3e" /> {/* darker earth: road ribbons must contrast with grass at walking scale */}
     </mesh>
   );
 };
 
+// Roof rise scales with the building's narrow span (classic pitched-roof
+// proportion) but stays within walkable-scale bounds.
+const roofHeight = (w: number, d: number): number =>
+  Math.max(1.2, Math.min(3, Math.min(w, d) * 0.5));
+
 const SitePieces: React.FC<{ chunk: LoadedChunk; origin: SceneOrigin }> = ({ chunk, origin }) => {
   return (
     <group position={chunkScenePos(chunk.cx, chunk.cy, origin)}>
-      {chunk.bundle.sites.map((s) => (
-        <mesh key={`${chunk.cx}|${chunk.cy}|${s.id}`} position={[s.localX, s.surfaceY + s.radius * 0.5, s.localZ]} castShadow={SHADOWS}>
-          <boxGeometry args={[s.radius, s.radius, s.radius]} />
-          <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : '#888888'} />
-        </mesh>
-      ))}
+      {chunk.bundle.sites.map((s) =>
+        s.markerOnly ? null : s.boxWidth && s.boxDepth && s.boxHeight ? (
+          // Footprint-true building (Worldforge town plans): rotated box
+          // sized by the plot's actual edges, walls warm plaster-and-timber
+          <group
+            key={`${chunk.cx}|${chunk.cy}|${s.id}`}
+            position={[s.localX, s.surfaceY, s.localZ]}
+            rotation={[0, s.rotationY ?? 0, 0]}
+          >
+            <mesh position={[0, s.boxHeight * 0.5, 0]} castShadow={SHADOWS}>
+              <boxGeometry args={[s.boxWidth, s.boxHeight, s.boxDepth]} />
+              <meshStandardMaterial color={s.colorHex ?? '#b09a72'} />
+            </mesh>
+            {/* Hip roof: a 4-segment cone is a pyramid whose base square is
+                45°-rotated, so the extra π/4 yaw realigns its edges with the
+                walls; 1.08 base scale gives a small eave overhang. */}
+            <mesh
+              position={[0, s.boxHeight + roofHeight(s.boxWidth, s.boxDepth) * 0.5, 0]}
+              rotation={[0, Math.PI / 4, 0]}
+              scale={[s.boxWidth * 1.08, roofHeight(s.boxWidth, s.boxDepth), s.boxDepth * 1.08]}
+              castShadow={SHADOWS}
+            >
+              <coneGeometry args={[Math.SQRT1_2, 1, 4]} />
+              <meshStandardMaterial color="#7a4a32" flatShading />
+            </mesh>
+            {/* Door on the street-facing wall (doorZSign), half-proud of the
+                plaster so it reads at walking distance. */}
+            <mesh
+              position={[0, Math.min(2.2, s.boxHeight * 0.8) / 2, (s.doorZSign ?? -1) * s.boxDepth * 0.5]}
+            >
+              <boxGeometry args={[1.3, Math.min(2.2, s.boxHeight * 0.8), 0.4]} />
+              <meshStandardMaterial color="#4a3220" />
+            </mesh>
+            {/* Shuttered windows flanking the door, mirrored on the rear
+                wall — skipped on plots too narrow to carry them. */}
+            {s.boxWidth >= 5 &&
+              ([-1, 1] as const).flatMap((sideX) =>
+                ([-1, 1] as const).map((sideZ) => (
+                  <mesh
+                    key={`w${sideX}${sideZ}`}
+                    position={[sideX * s.boxWidth! * 0.27, 1.6, sideZ * s.boxDepth! * 0.5]}
+                  >
+                    <boxGeometry args={[0.9, 1.0, 0.3]} />
+                    <meshStandardMaterial color="#2f3a4d" />
+                  </mesh>
+                )),
+              )}
+          </group>
+        ) : (
+          <mesh key={`${chunk.cx}|${chunk.cy}|${s.id}`} position={[s.localX, s.surfaceY + s.radius * 0.5, s.localZ]} castShadow={SHADOWS}>
+            <boxGeometry args={[s.radius, s.radius, s.radius]} />
+            <meshStandardMaterial color={s.kind === 'town' ? '#caa46a' : s.kind === 'dungeon' ? '#555555' : '#888888'} />
+          </mesh>
+        ),
+      )}
     </group>
   );
 };
@@ -185,17 +245,21 @@ const World3DScene: React.FC<World3DSceneProps> = ({
   playerWorldPos = null,
   onPositionChange: onPositionChangeOverride,
   onChunkUpdate,
+  viewProfile = 'continent',
 }) => {
   const { loaded, update } = useChunkStreaming(loader);
 
   // Lift the camera + its look-at target to the spawn ground elevation. With vertical
   // exaggeration the terrain can rise hundreds of meters, so a fixed low camera ends up
   // below/behind the hills, framing only sky. The horizontal offset is wide (oblique cross-view,
-  // ~55° from vertical) so the now-exaggerated hill silhouettes read against the sky rather than
+  // ~55Â° from vertical) so the now-exaggerated hill silhouettes read against the sky rather than
   // being viewed near-top-down (which flattens relief). Sized to the ~1km streamed window.
   const camPosition = useMemo<[number, number, number]>(
-    () => [380, startSurfaceY + 260, 380],
-    [startSurfaceY],
+    () =>
+      viewProfile === 'ground'
+        ? [60, startSurfaceY + 35, 60] // walking-scale diorama framing
+        : [380, startSurfaceY + 260, 380],
+    [startSurfaceY, viewProfile],
   );
 
   // Notify parent when chunk count changes.
@@ -233,7 +297,7 @@ const World3DScene: React.FC<World3DSceneProps> = ({
             (e) => {
               e.preventDefault(); // allows the browser to fire webglcontextrestored
               // eslint-disable-next-line no-console
-              console.warn('[world3d] WebGL context lost — will attempt restore');
+              console.warn('[world3d] WebGL context lost â€” will attempt restore');
             },
             false,
           );
@@ -249,8 +313,18 @@ const World3DScene: React.FC<World3DSceneProps> = ({
       >
         <hemisphereLight args={[0x88bbff, 0x556644, 0.9]} />
         <directionalLight position={[120, 200, 80]} intensity={1.6} />
-        <fog attach="fog" args={[0x9fb8d0, 900, 4500]} />
-        <FreeRoamCameraController initialTarget={[0, startSurfaceY, 0]} sceneOrigin={sceneOrigin} onPositionChange={onPositionChange} />
+        {/* Ground profile pulls the fog in to meet the artifact-edge haze;
+            continent keeps the km-scale falloff. */}
+        <fog attach="fog" args={viewProfile === 'ground' ? [0x9fb8d0, 350, 1600] : [0x9fb8d0, 900, 4500]} />
+        <FreeRoamCameraController
+          initialTarget={[0, startSurfaceY, 0]}
+          sceneOrigin={sceneOrigin}
+          onPositionChange={onPositionChange}
+          // Walking scale: allow dollying to 2 m (eye level beside a door)
+          // instead of the continent's 20 m floor.
+          minDistance={viewProfile === 'ground' ? 2 : 20}
+          maxDistance={viewProfile === 'ground' ? 800 : 2000}
+        />
         <World3DNameplates
           loaded={loaded}
           sceneOrigin={sceneOrigin}
@@ -265,3 +339,4 @@ const World3DScene: React.FC<World3DSceneProps> = ({
 };
 
 export default World3DScene;
+

@@ -1,0 +1,37 @@
+{
+  "label": "rt1",
+  "ranAt": "2026-06-11T21:44:48.453Z",
+  "switchedModeAfterClick": "atlas",
+  "autosaveObserved": false,
+  "resumedWorldViewMode": "atlas",
+  "roundTripPreservedSurface": true,
+  "finalState": {
+    "phase": "PLAYING",
+    "worldViewMode": "atlas",
+    "currentLocationId": "clearing",
+    "subMapCoordinates": {
+      "x": 15,
+      "y": 10
+    },
+    "playerWorldPos": {
+      "x": 2072.760415935526,
+      "y": 3.665174559561171,
+      "z": -881.9446186283999
+    },
+    "partySize": 1,
+    "partyNames": [
+      "Satum"
+    ],
+    "gold": 10,
+    "inventoryCount": 0,
+    "gameTime": "0351-01-01T10:54:45.000Z",
+    "isMapVisible": false,
+    "isSubmapVisible": false,
+    "isThreeDVisible": false,
+    "saveTimestamp": 1781214279389,
+    "error": null,
+    "isLoading": false
+  },
+  "consoleErrorCount": 0,
+  "consoleErrors": []
+}

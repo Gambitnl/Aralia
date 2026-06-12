@@ -133,12 +133,33 @@ export interface RegionTownSite {
   gates: Array<[Feet, Feet]>;
 }
 
+/** A point of interest inherited from the atlas marker layer, in feet. */
+export interface RegionMarker {
+  type: string;
+  icon: string;
+  x: Feet;
+  y: Feet;
+}
+
+/** A world event/danger zone the region window lies inside (or overlaps). */
+export interface RegionZone {
+  type: string;
+  name: string;
+}
+
 export interface RegionArtifact extends WorldforgeArtifact {
   layer: 'region';
   heightfield: RegionHeightfield;
   rivers: RegionRiverBank[];
   roads: RegionRoad[];
   townSites: RegionTownSite[];
+  /**
+   * Markers/zones flow down from the atlas world when generateRegion gets
+   * the `world` option (detail-density pass, 2026-06-11). Optional and
+   * additive: schemaVersion unchanged; absent on atlas-only regions.
+   */
+  markers?: RegionMarker[];
+  zones?: RegionZone[];
 }
 
 // ---------------------------------------------------------------------------

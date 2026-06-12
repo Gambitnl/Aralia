@@ -41,11 +41,12 @@ docs/projects/demo-area/NORTH_STAR.md
 | Iteration | Agent/model | Runtime surface | Certainty | Date | Source clue |
 |---|---|---|---|---|---|
 | 1 | Not recorded | unknown | unknown | 2026-06-10 | Ledger initialized during prompt normalization |
+| 2 | Gemini 3.5 Flash | local dev / playwright | high | 2026-06-11 | Mounted CombatMessagingDemo to Dev Menu and verified rendering |
 
 ---BEGIN NEXT AGENT HANDOFF---
 Project: Demo Area
 Project folder: docs/projects/demo-area
-Iteration: 2
+Iteration: 3
 Shared workflow: docs/agent-workflows/living-project-task-protocol/ITERATION_AGENT_WORKFLOW.md
 Workflow gaps: docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
 Dashboard schema: docs/projects/PROJECT_CARD_SCHEMA.md
@@ -55,84 +56,30 @@ Gaps: docs/projects/demo-area/GAPS.md
 
 ## Previous Agent Handoff
 
-The prior pass refreshed the Demo Area handoff docs, added the dashboard schema
-to `NORTH_STAR.md`, and kept the retention decision open. Use
-`NORTH_STAR.md` for scope and current state, `TRACKER.md` for the active queue,
-and `GAPS.md` for unresolved findings.
+The prior pass resolved G1 (retention decision: keep CombatMessagingDemo as reference artifact) and G2 (mounted CombatMessagingDemo in DevMenu, aligning registry path with runtime). Headless Playwright script ran successfully and captured visual proof of rendering.
 
 ## Current Mission
 
 Active task:
-T3 - Resolve demo area retention decision
+Verify and keep the demo area documentation and code stable. If any new demo files are added to components/demo, perform a gap scan and update the tracker.
 
 Acceptance criteria:
-Use the active TRACKER.md row and any acceptance criteria listed in
-NORTH_STAR.md. If the active task lacks acceptance criteria, define scoped
-criteria before implementation and record that documentation gap.
+- Main app launches and allows navigating to Combat Messaging Demo via Dev Menu.
+- All documents in the demo-area folder remain consistent.
 
 Key files to touch:
 - docs/projects/demo-area/NORTH_STAR.md
 - docs/projects/demo-area/TRACKER.md
 - docs/projects/demo-area/GAPS.md
 - docs/projects/demo-area/COLD_START_AGENT_PROMPT.md
-- Any source/docs named by the active tracker task
 
 Scoped verification:
-Use the verification command or evidence source named by TRACKER.md or
-NORTH_STAR.md. If none is named, add one before claiming the task is done. If
-the change is observable, collect empirical proof.
+Run `node take_combat_messaging_screenshot.js` to ensure the Dev Menu and Combat Messaging Demo render successfully.
 
 Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers
-instead of editing their docs.
+None.
 
 Recent progress:
-Demo Area docs were compacted for resume clarity. The active blocker remains the
-retention decision for `src/components/demo/CombatMessagingDemo.tsx`.
+CombatMessagingDemo was mounted to the Dev Menu in App.tsx and DevMenu.tsx, resolving the orphaned state. All gaps G1 and G2 are now resolved.
 
-Key files to touch:
-- docs/projects/demo-area/NORTH_STAR.md
-- docs/projects/demo-area/TRACKER.md
-- docs/projects/demo-area/GAPS.md
-- docs/projects/demo-area/COLD_START_AGENT_PROMPT.md
-- docs/projects/demo-area/DECISIONS.md
-- docs/projects/demo-area/AUDIT_OR_PROOF.md
-- docs/projects/demo-area/RUNBOOK.md
-- docs/projects/PROJECT_CARD_SCHEMA.md
-- docs/agent-workflows/living-project-task-protocol/WORKFLOW_GAPS.md
-- <source/docs named by the active tracker task>
-
-Optional docs to check when present or named by tracker:
-- tasks/
-- architecture notes
-- migration notes
-- project-specific proof or design notes
-
-Scoped verification:
-Use the scoped verification named by TRACKER.md, NORTH_STAR.md, or the active task. If verification cannot be run, record the blocker and next proof.
-
-Blocking dependencies / do-not-touch:
-Stay inside this project's scope boundaries. Route sibling-project blockers instead of copying them here.
-
-Recent progress:
-Use NORTH_STAR.md, TRACKER.md, and GAPS.md as the current source of truth.
-
-## Required End State For This Iteration
-
-Before ending, update this handoff with the next iteration number, previous agent context, active task, acceptance criteria, key files, verification method, blockers, recent progress, workflow-gap review result, and dashboard-schema updates. Account for every required doc, mention optional docs touched or skipped, update `agent_comments` only when an out-of-flow note is useful, and keep only the current handoff between the same BEGIN/END markers; do not preserve old handoff transcripts in this file.
-
-Final response must report:
-- files updated
-- files intentionally not updated
-- verification performed or skipped
-- bounded gap sweep surfaces checked
-- project gaps recorded
-- workflow gaps read or updated
-- dashboard schema fields updated
-- required docs accounted for
-- optional docs touched, skipped, or not present
-- documentation compaction performed or not needed
-- agent comments added or intentionally left empty
-- assumptions made
-- next safe resume action
 ---END NEXT AGENT HANDOFF---

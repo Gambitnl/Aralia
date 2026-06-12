@@ -436,59 +436,10 @@ const DamageNumber: React.FC<{
 /**
  * AoE targeting preview — ground-projected shape
  */
-const AoEPreview: React.FC<{
-  tiles: Set<string>;
-  type: 'circle' | 'cone' | 'line' | 'square';
-}> = ({ tiles, type }) => {
-  const meshRef = useRef<THREE.Group>(null);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    // Pulsing edge effect
-    const pulse = 0.8 + Math.sin(state.clock.elapsedTime * 4) * 0.2;
-    meshRef.current.children.forEach(child => {
-      if ((child as THREE.Mesh).material) {
-        ((child as THREE.Mesh).material as THREE.MeshStandardMaterial).opacity = pulse * 0.35;
-      }
-    });
-  });
-
-  const tilePositions = useMemo(() => {
-    const positions: { x: number; z: number }[] = [];
-    tiles.forEach(tileId => {
-      const [tx, tz] = tileId.split('-').map(Number);
-      positions.push({ x: tx, z: tz });
-    });
-    return positions;
-  }, [tiles]);
-
-  return (
-    <group ref={meshRef}>
-      {tilePositions.map((pos, i) => (
-        <mesh
-          key={i}
-          position={[
-            pos.x * TILE_SIZE + TILE_SIZE / 2,
-            0.06,
-            pos.z * TILE_SIZE + TILE_SIZE / 2,
-          ]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[TILE_SIZE * 0.95, TILE_SIZE * 0.95]} />
-          <meshStandardMaterial
-            color={0xff4444}
-            emissive={0xff2222}
-            emissiveIntensity={0.5}
-            transparent
-            opacity={0.35}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-};
+// The hovered-AoE template preview moved to TargetingDecals (task 81): its
+// flat per-tile planes at y=0.06 were the buried-on-hills / floating-over-
+// banks class of bug (tasks 78-80), and terrain-conforming decals already
+// live there with the rest of the targeting vocabulary.
 
 /**
  * Resolved spell movement cue for 3D combat.
@@ -765,8 +716,6 @@ interface VFXSystemProps {
   spellMovementVisuals?: SpellMovementVisual[];
   /** Familiar-origin touch delivery cues shared with the 2D combat-map overlay. */
   spellDeliveryVisuals?: SpellDeliveryVisual[];
-  /** AoE preview tiles from targeting system */
-  aoePreviewTiles?: Set<string>;
   /** Teleport destination candidates from the targeting system. */
   teleportDestinationPreviewTiles?: Set<string>;
   /** Current creature whose teleport destination is being assigned. */
@@ -791,7 +740,6 @@ const VFXSystem: React.FC<VFXSystemProps> = ({
   damageNumbers = [],
   spellMovementVisuals = [],
   spellDeliveryVisuals = [],
-  aoePreviewTiles,
   teleportDestinationPreviewTiles,
   teleportDestinationPreviewTarget,
   teleportDestinationPreviewAbilityName,
@@ -1003,11 +951,6 @@ const VFXSystem: React.FC<VFXSystemProps> = ({
           />
         </mesh>
       ))}
-
-      {/* AoE targeting preview */}
-      {targetingMode && aoePreviewTiles && aoePreviewTiles.size > 0 && (
-        <AoEPreview tiles={aoePreviewTiles} type="circle" />
-      )}
 
       {/* Teleport destination preview */}
       {targetingMode && teleportDestinationPreviewTiles && teleportDestinationPreviewTiles.size > 0 && (

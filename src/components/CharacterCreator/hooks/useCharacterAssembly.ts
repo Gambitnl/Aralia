@@ -520,13 +520,13 @@ function assembleFinalTools(state: CharacterCreationState): string[] {
 }
 
 
-// --- Hook ---
-interface UseCharacterAssemblyProps {
-  onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
-}
-
-export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssemblyProps) {
-  const generatePreviewCharacter = useCallback((currentState: CharacterCreationState, currentName: string): PlayerCharacter | null => {
+/**
+ * Pure character assembly — builds a PlayerCharacter from a completed creator
+ * state. Exported so non-React callers (e.g. the premade-character generator
+ * script) can assemble characters through the exact same pipeline the
+ * creator's review step uses.
+ */
+export function assemblePlayerCharacter(currentState: CharacterCreationState, currentName: string): PlayerCharacter | null {
     const { selectedRace, selectedClass, finalAbilityScores, baseAbilityScores, racialSelections } = currentState;
     if (!validateAllSelectionsMade(currentState) || !selectedRace || !selectedClass || !finalAbilityScores || !baseAbilityScores) {
       console.error("Missing critical data for review step. Cannot generate preview.", currentState);
@@ -627,7 +627,16 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     assembledCharacter = applyRacialSpellGrantsByLevel(assembledCharacter, assembledCharacter.level || 1);
 
     return assembledCharacter;
+}
 
+// --- Hook ---
+interface UseCharacterAssemblyProps {
+  onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
+}
+
+export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssemblyProps) {
+  const generatePreviewCharacter = useCallback((currentState: CharacterCreationState, currentName: string): PlayerCharacter | null => {
+    return assemblePlayerCharacter(currentState, currentName);
   }, []);
 
   const assembleAndSubmitCharacter = useCallback((currentState: CharacterCreationState, name: string): void => {

@@ -41,6 +41,12 @@ interface FeatSpellPickerProps {
   selectedSpellSource?: string;
   /** Whether the picker is disabled */
   disabled?: boolean;
+  /**
+   * Spell ids the character already knows from other sources (class picks,
+   * racial grants). These are filtered out so a feat slot can't be wasted on
+   * a duplicate the assembler would silently dedupe (GAPS.md G12).
+   */
+  knownSpellIds?: string[];
 }
 
 const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
@@ -49,17 +55,23 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
   onSelectionChange,
   selectedSpellSource,
   disabled = false,
+  knownSpellIds = [],
 }) => {
   const allSpells = useContext(SpellContext);
   const [expandedSpellId, setExpandedSpellId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [schoolFilter, setSchoolFilter] = useState<SpellSchool | 'all'>('all');
 
-  // Filter available spells based on requirement
+  // Filter available spells based on requirement, excluding spells the
+  // character already knows (a duplicate pick would be silently deduped at
+  // assembly, wasting the feat slot). Keep ids that are part of the current
+  // selection so editing an in-progress choice still shows it.
   const availableSpells = useMemo(() => {
     if (!allSpells) return [];
-    return filterSpellsForRequirement(allSpells, requirement, selectedSpellSource);
-  }, [allSpells, requirement, selectedSpellSource]);
+    const known = new Set(knownSpellIds.filter(id => !selectedSpellIds.includes(id)));
+    return filterSpellsForRequirement(allSpells, requirement, selectedSpellSource)
+      .filter(spell => !known.has(spell.id));
+  }, [allSpells, requirement, selectedSpellSource, knownSpellIds, selectedSpellIds]);
 
   // Apply search and school filters
   const filteredSpells = useMemo(() => {

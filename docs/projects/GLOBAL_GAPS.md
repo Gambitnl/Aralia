@@ -94,3 +94,4 @@ Why global:
 
 Spell-side dependency:
 - TargetResolver.isValidObjectTarget can validate supplied candidates once such a registry exists.
+| GG-DEVHUB-TRACKER-COLS | open | 2026-06-11 | devHubApiManager.ts tracker-fallback parser reads status/confidence/evidence from cells[2]/[3]/[4], but the "Projectized Planning Areas" table header is Project|Status|Confidence|Evidence|... (status at cells[1]) — every fallback card shows its metadata shifted one column left (e.g. confidence displays the Evidence text). Affects display only; per-project schema fields override when present. Fix the index map or the table header, in one place, for all projects. |

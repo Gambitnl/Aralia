@@ -1,7 +1,7 @@
 # 3D Combat Map Audit / Proof
 
 Status: active
-Last updated: 2026-06-09
+Last updated: 2026-06-11
 
 This file holds durable proof summaries and the standing acceptance checks for the
 3D combat map. It is not a raw log archive - keep entries concise and link to the
@@ -61,6 +61,7 @@ pass/fail bars live here so the proof survives the chat session.
 | 2026-06-08 | NC2 integration | **BLOCKED (not run)** | Offline autosave fixture loads the World3D exploration surface (Controls→Open Map/Exit to Menu, 3D, Atlas, CHAT History) with no ActionPane System Menu, so the headless Dev Menu → Generate Encounter → Simulate Battle → `CombatView` path is unreachable. Ready harness once a 2D-exploration fixture exists: `.agent/3d-visual-quality/captures/nc2-combatview.mjs`. See F-2026-06-08-03; G3 stays open. |
 | 2026-06-09 | G4 browser slope-click proof | pass | Battle Map Demo 3D view. After advancing to a valid move state, a 3D terrain click moved the active token to tile `38-4` in 2D, and the landed tile's neighbors showed a slope profile (`38-3` elevation 1, `39-4` elevation 1, `37-4` elevation 0, `38-5` elevation 0). |
 | 2026-06-09 | G6 terrain shader warning | pass | `src/components/BattleMap/terrain/TerrainMesh.tsx` plus a targeted console sweep of the Battle Map Demo 3D path. `getTerrainColor` now seeds a default terrain color before branch overrides, and the runtime capture found no `f_getTerrainColor` / `X4000` / `potentially uninitialized` messages. |
+| 2026-06-11 | NC2 CombatView pop-out lifecycle | pass | Updated `.agent/3d-visual-quality/captures/nc2-combatview.mjs` drove `?dev_combat=1` + Continue Journey on port 5174. CombatView reached; inline 3D canvas mounted without ErrorBoundary fallback; pop-out title showed `Battle Map (3D)` and mounted a 3D canvas; return preserved `renderMode=3d`, turn order, inspected token `Satum`, and 2D/3D toggle health; captured zero console errors and zero forbidden `GL_INVALID_OPERATION` / `glBlitFramebuffer` / `SSAO` / `NormalPass` hits. Screenshot: `.agent/3d-visual-quality/captures/nc2-combatview-3d.png`. |
 
 ## Findings
 
@@ -157,3 +158,27 @@ pass/fail bars live here so the proof survives the chat session.
   (c) script the World3D→combat trigger if/when that path is documented. Then run
   `nc2-combatview.mjs` and record intended canvas vs ErrorBoundary diagnostic state + pop-out
   renderMode persistence.
+
+### F-2026-06-11-06 - NC2 closes CombatView pop-out lifecycle and fixture blocker
+
+- Source: `.agent/3d-visual-quality/captures/nc2-combatview.mjs` against
+  `http://localhost:5174/Aralia/?dev_combat=1`.
+- Setup: reused the existing port 5174 app, loaded the saved party with Continue
+  Journey, and let the dev-combat hook start the deterministic goblin/orc
+  battle-map encounter.
+- Result: pass. The harness reached `phase=combat`, saw `Combat Encounter`,
+  toggled inline 3D, and mounted a large 3D canvas without the Battle Map
+  ErrorBoundary fallback. The pop-out title showed `Battle Map (3D)` and mounted
+  a 3D canvas. After closing the battle-map pop-out, `renderMode` remained `3d`,
+  the 2D/3D toggle still flipped both directions, the initiative-strip turn order
+  persisted, and the inspected token proxy remained `Satum`.
+- Console health: during the captured 3D window, total captured console/page
+  errors were 0; forbidden WebGL/postprocessing hits were 0 for
+  `GL_INVALID_OPERATION`, `glBlitFramebuffer`, `SSAO`, and `NormalPass`.
+- Evidence artifact: `.agent/3d-visual-quality/captures/nc2-combatview-3d.png`.
+- Impact: G7 is closed because the CombatView proof path no longer depends on
+  the absent World3D System Menu. G3 is closed for the current MVP proof because
+  the inline/pop-out/return lifecycle preserved render mode and visible combat
+  state.
+- Next proof: continue G5 shared-style policy follow-up, or take a bounded G9/G10
+  tactical readability proof slice.

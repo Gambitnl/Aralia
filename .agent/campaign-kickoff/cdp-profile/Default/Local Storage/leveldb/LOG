@@ -1,0 +1,59 @@
+2026/06/11-09:26:21.020 35a4 Creating DB F:\Repos\Aralia\.agent\campaign-kickoff\cdp-profile\Default\Local Storage\leveldb since it was missing.
+2026/06/11-09:26:21.087 35a4 Reusing MANIFEST F:\Repos\Aralia\.agent\campaign-kickoff\cdp-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/06/11-09:39:07.425 9948 Level-0 table #5: started
+2026/06/11-09:39:07.437 9948 Level-0 table #5: 26199 bytes OK
+2026/06/11-09:39:07.446 9948 Delete type=0 #3
+2026/06/11-09:52:17.206 9948 Level-0 table #7: started
+2026/06/11-09:52:17.222 9948 Level-0 table #7: 37144 bytes OK
+2026/06/11-09:52:17.232 9948 Delete type=0 #4
+2026/06/11-09:53:29.992 9948 Level-0 table #9: started
+2026/06/11-09:53:30.004 9948 Level-0 table #9: 27327 bytes OK
+2026/06/11-09:53:30.014 9948 Delete type=0 #6
+2026/06/11-09:55:29.999 9948 Level-0 table #11: started
+2026/06/11-09:55:30.006 9948 Level-0 table #11: 27503 bytes OK
+2026/06/11-09:55:30.016 9948 Delete type=0 #8
+2026/06/11-10:13:27.769 9948 Level-0 table #13: started
+2026/06/11-10:13:27.779 9948 Level-0 table #13: 31907 bytes OK
+2026/06/11-10:13:27.785 9948 Delete type=0 #10
+2026/06/11-10:13:57.262 9948 Level-0 table #15: started
+2026/06/11-10:13:57.274 9948 Level-0 table #15: 18150 bytes OK
+2026/06/11-10:13:57.280 9948 Delete type=0 #12
+2026/06/11-10:13:57.281 9948 Compacting 4@0 + 1@1 files
+2026/06/11-10:13:57.290 9948 Generated table #16@0: 4 keys, 9410 bytes
+2026/06/11-10:13:57.290 9948 Compacted 4@0 + 1@1 files => 9410 bytes
+2026/06/11-10:13:57.294 9948 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/06/11-10:13:57.295 9948 Delete type=2 #7
+2026/06/11-10:13:57.296 9948 Delete type=2 #9
+2026/06/11-10:13:57.296 9948 Delete type=2 #11
+2026/06/11-10:13:57.296 9948 Delete type=2 #13
+2026/06/11-10:13:57.296 9948 Delete type=2 #15
+2026/06/11-10:15:24.467 9948 Level-0 table #18: started
+2026/06/11-10:15:24.475 9948 Level-0 table #18: 18386 bytes OK
+2026/06/11-10:15:24.482 9948 Delete type=0 #14
+2026/06/11-10:20:49.686 9948 Level-0 table #20: started
+2026/06/11-10:20:49.699 9948 Level-0 table #20: 35405 bytes OK
+2026/06/11-10:20:49.704 9948 Delete type=0 #17
+2026/06/11-10:22:47.008 9948 Level-0 table #22: started
+2026/06/11-10:22:47.018 9948 Level-0 table #22: 27997 bytes OK
+2026/06/11-10:22:47.023 9948 Delete type=0 #19
+2026/06/11-10:32:22.965 9948 Level-0 table #24: started
+2026/06/11-10:32:22.972 9948 Level-0 table #24: 29428 bytes OK
+2026/06/11-10:32:22.978 9948 Delete type=0 #21
+2026/06/11-10:32:22.979 9948 Compacting 4@0 + 1@1 files
+2026/06/11-10:32:22.988 9948 Generated table #25@0: 4 keys, 9866 bytes
+2026/06/11-10:32:22.988 9948 Compacted 4@0 + 1@1 files => 9866 bytes
+2026/06/11-10:32:22.992 9948 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/06/11-10:32:22.993 9948 Delete type=2 #16
+2026/06/11-10:32:22.993 9948 Delete type=2 #18
+2026/06/11-10:32:22.993 9948 Delete type=2 #20
+2026/06/11-10:32:22.993 9948 Delete type=2 #22
+2026/06/11-10:32:22.993 9948 Delete type=2 #24
+2026/06/11-10:33:24.686 9948 Level-0 table #27: started
+2026/06/11-10:33:24.694 9948 Level-0 table #27: 19057 bytes OK
+2026/06/11-10:33:24.698 9948 Delete type=0 #23
+2026/06/11-10:34:58.654 9948 Level-0 table #29: started
+2026/06/11-10:34:58.662 9948 Level-0 table #29: 19328 bytes OK
+2026/06/11-10:34:58.666 9948 Delete type=0 #26
+2026/06/11-10:50:30.355 9948 Level-0 table #31: started
+2026/06/11-10:50:30.363 9948 Level-0 table #31: 29232 bytes OK
+2026/06/11-10:50:30.369 9948 Delete type=0 #28

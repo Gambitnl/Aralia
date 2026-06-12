@@ -1,0 +1,182 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/ui/ResizeHandles.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import { Z_INDEX } from "/Aralia/src/styles/zIndex.ts";
+export const ResizeHandles = ({ onResizeStart }) => {
+  return /* @__PURE__ */ jsxDEV(Fragment, { children: [
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize top-left",
+        className: `absolute -top-1 -left-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[${Z_INDEX.RESIZE_HANDLES_CORNERS}] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto`,
+        onMouseDown: (e) => onResizeStart(e, "top-left"),
+        title: "Resize"
+      },
+      "handle-top-left",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 17,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize top-right",
+        className: `absolute -top-1 -right-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[${Z_INDEX.RESIZE_HANDLES_CORNERS}] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto`,
+        onMouseDown: (e) => onResizeStart(e, "top-right"),
+        title: "Resize"
+      },
+      "handle-top-right",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 25,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize bottom-left",
+        className: "absolute -bottom-1 -left-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[${Z_INDEX.RESIZE_HANDLES_CORNERS}] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto",
+        onMouseDown: (e) => onResizeStart(e, "bottom-left"),
+        title: "Resize"
+      },
+      "handle-bottom-left",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 33,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize bottom-right",
+        className: "absolute -bottom-1 -right-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[${Z_INDEX.RESIZE_HANDLES_CORNERS}] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto",
+        onMouseDown: (e) => onResizeStart(e, "bottom-right"),
+        title: "Resize"
+      },
+      "handle-bottom-right",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 41,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize top edge",
+        className: "absolute -top-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[${Z_INDEX.RESIZE_HANDLES_HORIZONTAL}] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto",
+        onMouseDown: (e) => onResizeStart(e, "top"),
+        title: "Resize"
+      },
+      "handle-top",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 51,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize bottom edge",
+        className: "absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[${Z_INDEX.RESIZE_HANDLES_HORIZONTAL}] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto",
+        onMouseDown: (e) => onResizeStart(e, "bottom"),
+        title: "Resize"
+      },
+      "handle-bottom",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 59,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize left edge",
+        className: "absolute -left-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[${Z_INDEX.RESIZE_HANDLES_HORIZONTAL}] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto",
+        onMouseDown: (e) => onResizeStart(e, "left"),
+        title: "Resize"
+      },
+      "handle-left",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 67,
+        columnNumber: 13
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        "aria-label": "Resize right edge",
+        className: "absolute -right-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[${Z_INDEX.RESIZE_HANDLES_HORIZONTAL}] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto",
+        onMouseDown: (e) => onResizeStart(e, "right"),
+        title: "Resize"
+      },
+      "handle-right",
+      false,
+      {
+        fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+        lineNumber: 75,
+        columnNumber: 13
+      },
+      this
+    )
+  ] }, void 0, true, {
+    fileName: "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx",
+    lineNumber: 15,
+    columnNumber: 5
+  }, this);
+};
+_c = ResizeHandles;
+var _c;
+$RefreshReg$(_c, "ResizeHandles");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/ui/ResizeHandles.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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LElBQUEiLCJuYW1lcyI6WyJaX0lOREVYIiwiUmVzaXplSGFuZGxlcyIsIm9uUmVzaXplU3RhcnQiLCJSRVNJWkVfSEFORExFU19DT1JORVJTIiwiZSIsIl9jIiwiJFJlZnJlc2hSZWckIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIlJlc2l6ZUhhbmRsZXMudHN4Il0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxyXG4gKiBAZmlsZSBSZXNpemVIYW5kbGVzLnRzeFxyXG4gKiBHZW5lcmljIHJlc2l6ZSBoYW5kbGUgYnV0dG9ucyBmb3IgYW55IHJlc2l6YWJsZSB3aW5kb3cuXHJcbiAqIEBjb21wb25lbnQtb3duZXIgVUkgVGVhbSAvIENvcmUgVUlcbiAqL1xyXG5pbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnO1xyXG5pbXBvcnQgeyBaX0lOREVYIH0gZnJvbSAnLi4vLi4vc3R5bGVzL3pJbmRleCc7XHJcblxyXG5pbnRlcmZhY2UgUmVzaXplSGFuZGxlc1Byb3BzIHtcclxuICAgIG9uUmVzaXplU3RhcnQ6IChlOiBSZWFjdC5Nb3VzZUV2ZW50LCBoYW5kbGU6IHN0cmluZykgPT4gdm9pZDtcclxufVxyXG5cclxuZXhwb3J0IGNvbnN0IFJlc2l6ZUhhbmRsZXM6IFJlYWN0LkZDPFJlc2l6ZUhhbmRsZXNQcm9wcz4gPSAoeyBvblJlc2l6ZVN0YXJ0IH0pID0+IHtcclxuICAgIHJldHVybiAoXHJcbiAgICAgICAgPD5cclxuICAgICAgICAgICAgey8qIENvcm5lciBoYW5kbGVzICovfVxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICBrZXk9XCJoYW5kbGUtdG9wLWxlZnRcIlxyXG4gICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgICBhcmlhLWxhYmVsPVwiUmVzaXplIHRvcC1sZWZ0XCJcclxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGFic29sdXRlIC10b3AtMSAtbGVmdC0xIHctMi41IGgtMi41IGN1cnNvci1ud3NlLXJlc2l6ZSByb3VuZGVkLWZ1bGwgei1bJHtaX0lOREVYLlJFU0laRV9IQU5ETEVTX0NPUk5FUlN9XSBiZy1hbWJlci00MDAvMzAgaG92ZXI6YmctYW1iZXItNDAwIGhvdmVyOnNoYWRvdy1bMF8wXzZweF9yZ2JhKDI1MSwxOTEsMzYsMC42KV0gdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMjAwIHNlbGVjdC1ub25lIHBvaW50ZXItZXZlbnRzLWF1dG9gfVxyXG4gICAgICAgICAgICAgICAgb25Nb3VzZURvd249eyhlKSA9PiBvblJlc2l6ZVN0YXJ0KGUsICd0b3AtbGVmdCcpfVxyXG4gICAgICAgICAgICAgICAgdGl0bGU9XCJSZXNpemVcIlxyXG4gICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICBrZXk9XCJoYW5kbGUtdG9wLXJpZ2h0XCJcclxuICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgICAgYXJpYS1sYWJlbD1cIlJlc2l6ZSB0b3AtcmlnaHRcIlxyXG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgYWJzb2x1dGUgLXRvcC0xIC1yaWdodC0xIHctMi41IGgtMi41IGN1cnNvci1uZXN3LXJlc2l6ZSByb3VuZGVkLWZ1bGwgei1bJHtaX0lOREVYLlJFU0laRV9IQU5ETEVTX0NPUk5FUlN9XSBiZy1hbWJlci00MDAvMzAgaG92ZXI6YmctYW1iZXItNDAwIGhvdmVyOnNoYWRvdy1bMF8wXzZweF9yZ2JhKDI1MSwxOTEsMzYsMC42KV0gdHJhbnNpdGlvbi1hbGwgZHVyYXRpb24tMjAwIHNlbGVjdC1ub25lIHBvaW50ZXItZXZlbnRzLWF1dG9gfVxyXG4gICAgICAgICAgICAgICAgb25Nb3VzZURvd249eyhlKSA9PiBvblJlc2l6ZVN0YXJ0KGUsICd0b3AtcmlnaHQnKX1cclxuICAgICAgICAgICAgICAgIHRpdGxlPVwiUmVzaXplXCJcclxuICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAga2V5PVwiaGFuZGxlLWJvdHRvbS1sZWZ0XCJcclxuICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgICAgYXJpYS1sYWJlbD1cIlJlc2l6ZSBib3R0b20tbGVmdFwiXHJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJhYnNvbHV0ZSAtYm90dG9tLTEgLWxlZnQtMSB3LTIuNSBoLTIuNSBjdXJzb3ItbmVzdy1yZXNpemUgcm91bmRlZC1mdWxsIHotWyR7Wl9JTkRFWC5SRVNJWkVfSEFORExFU19DT1JORVJTfV0gYmctYW1iZXItNDAwLzMwIGhvdmVyOmJnLWFtYmVyLTQwMCBob3ZlcjpzaGFkb3ctWzBfMF82cHhfcmdiYSgyNTEsMTkxLDM2LDAuNildIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCBzZWxlY3Qtbm9uZSBwb2ludGVyLWV2ZW50cy1hdXRvXCJcclxuICAgICAgICAgICAgICAgIG9uTW91c2VEb3duPXsoZSkgPT4gb25SZXNpemVTdGFydChlLCAnYm90dG9tLWxlZnQnKX1cclxuICAgICAgICAgICAgICAgIHRpdGxlPVwiUmVzaXplXCJcclxuICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAga2V5PVwiaGFuZGxlLWJvdHRvbS1yaWdodFwiXHJcbiAgICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcclxuICAgICAgICAgICAgICAgIGFyaWEtbGFiZWw9XCJSZXNpemUgYm90dG9tLXJpZ2h0XCJcclxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cImFic29sdXRlIC1ib3R0b20tMSAtcmlnaHQtMSB3LTIuNSBoLTIuNSBjdXJzb3ItbndzZS1yZXNpemUgcm91bmRlZC1mdWxsIHotWyR7Wl9JTkRFWC5SRVNJWkVfSEFORExFU19DT1JORVJTfV0gYmctYW1iZXItNDAwLzMwIGhvdmVyOmJnLWFtYmVyLTQwMCBob3ZlcjpzaGFkb3ctWzBfMF82cHhfcmdiYSgyNTEsMTkxLDM2LDAuNildIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCBzZWxlY3Qtbm9uZSBwb2ludGVyLWV2ZW50cy1hdXRvXCJcclxuICAgICAgICAgICAgICAgIG9uTW91c2VEb3duPXsoZSkgPT4gb25SZXNpemVTdGFydChlLCAnYm90dG9tLXJpZ2h0Jyl9XHJcbiAgICAgICAgICAgICAgICB0aXRsZT1cIlJlc2l6ZVwiXHJcbiAgICAgICAgICAgIC8+XHJcblxyXG4gICAgICAgICAgICB7LyogRWRnZSBoYW5kbGVzICovfVxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICBrZXk9XCJoYW5kbGUtdG9wXCJcclxuICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgICAgYXJpYS1sYWJlbD1cIlJlc2l6ZSB0b3AgZWRnZVwiXHJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJhYnNvbHV0ZSAtdG9wLTAuNSBsZWZ0LTEvMiB0cmFuc2Zvcm0gLXRyYW5zbGF0ZS14LTEvMiB3LTEyIGgtMSBjdXJzb3ItbnMtcmVzaXplIHotWyR7Wl9JTkRFWC5SRVNJWkVfSEFORExFU19IT1JJWk9OVEFMfV0gcm91bmRlZC1mdWxsIGJnLWFtYmVyLTQwMC8yMCBob3ZlcjpiZy1hbWJlci00MDAvODAgaG92ZXI6c2hhZG93LVswXzBfNHB4X3JnYmEoMjUxLDE5MSwzNiwwLjUpXSB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgc2VsZWN0LW5vbmUgcG9pbnRlci1ldmVudHMtYXV0b1wiXHJcbiAgICAgICAgICAgICAgICBvbk1vdXNlRG93bj17KGUpID0+IG9uUmVzaXplU3RhcnQoZSwgJ3RvcCcpfVxyXG4gICAgICAgICAgICAgICAgdGl0bGU9XCJSZXNpemVcIlxyXG4gICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICBrZXk9XCJoYW5kbGUtYm90dG9tXCJcclxuICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgICAgYXJpYS1sYWJlbD1cIlJlc2l6ZSBib3R0b20gZWRnZVwiXHJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJhYnNvbHV0ZSAtYm90dG9tLTAuNSBsZWZ0LTEvMiB0cmFuc2Zvcm0gLXRyYW5zbGF0ZS14LTEvMiB3LTEyIGgtMSBjdXJzb3ItbnMtcmVzaXplIHotWyR7Wl9JTkRFWC5SRVNJWkVfSEFORExFU19IT1JJWk9OVEFMfV0gcm91bmRlZC1mdWxsIGJnLWFtYmVyLTQwMC8yMCBob3ZlcjpiZy1hbWJlci00MDAvODAgaG92ZXI6c2hhZG93LVswXzBfNHB4X3JnYmEoMjUxLDE5MSwzNiwwLjUpXSB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi0yMDAgc2VsZWN0LW5vbmUgcG9pbnRlci1ldmVudHMtYXV0b1wiXHJcbiAgICAgICAgICAgICAgICBvbk1vdXNlRG93bj17KGUpID0+IG9uUmVzaXplU3RhcnQoZSwgJ2JvdHRvbScpfVxyXG4gICAgICAgICAgICAgICAgdGl0bGU9XCJSZXNpemVcIlxyXG4gICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICBrZXk9XCJoYW5kbGUtbGVmdFwiXHJcbiAgICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcclxuICAgICAgICAgICAgICAgIGFyaWEtbGFiZWw9XCJSZXNpemUgbGVmdCBlZGdlXCJcclxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cImFic29sdXRlIC1sZWZ0LTAuNSB0b3AtMS8yIHRyYW5zZm9ybSAtdHJhbnNsYXRlLXktMS8yIHctMSBoLTEyIGN1cnNvci1ldy1yZXNpemUgei1bJHtaX0lOREVYLlJFU0laRV9IQU5ETEVTX0hPUklaT05UQUx9XSByb3VuZGVkLWZ1bGwgYmctYW1iZXItNDAwLzIwIGhvdmVyOmJnLWFtYmVyLTQwMC84MCBob3ZlcjpzaGFkb3ctWzBfMF80cHhfcmdiYSgyNTEsMTkxLDM2LDAuNSldIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCBzZWxlY3Qtbm9uZSBwb2ludGVyLWV2ZW50cy1hdXRvXCJcclxuICAgICAgICAgICAgICAgIG9uTW91c2VEb3duPXsoZSkgPT4gb25SZXNpemVTdGFydChlLCAnbGVmdCcpfVxyXG4gICAgICAgICAgICAgICAgdGl0bGU9XCJSZXNpemVcIlxyXG4gICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAgICBrZXk9XCJoYW5kbGUtcmlnaHRcIlxyXG4gICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgICBhcmlhLWxhYmVsPVwiUmVzaXplIHJpZ2h0IGVkZ2VcIlxyXG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiYWJzb2x1dGUgLXJpZ2h0LTAuNSB0b3AtMS8yIHRyYW5zZm9ybSAtdHJhbnNsYXRlLXktMS8yIHctMSBoLTEyIGN1cnNvci1ldy1yZXNpemUgei1bJHtaX0lOREVYLlJFU0laRV9IQU5ETEVTX0hPUklaT05UQUx9XSByb3VuZGVkLWZ1bGwgYmctYW1iZXItNDAwLzIwIGhvdmVyOmJnLWFtYmVyLTQwMC84MCBob3ZlcjpzaGFkb3ctWzBfMF80cHhfcmdiYSgyNTEsMTkxLDM2LDAuNSldIHRyYW5zaXRpb24tYWxsIGR1cmF0aW9uLTIwMCBzZWxlY3Qtbm9uZSBwb2ludGVyLWV2ZW50cy1hdXRvXCJcclxuICAgICAgICAgICAgICAgIG9uTW91c2VEb3duPXsoZSkgPT4gb25SZXNpemVTdGFydChlLCAncmlnaHQnKX1cclxuICAgICAgICAgICAgICAgIHRpdGxlPVwiUmVzaXplXCJcclxuICAgICAgICAgICAgLz5cclxuICAgICAgICA8Lz5cclxuICAgICk7XHJcbn07XHJcbiJdLCJmaWxlIjoiRjovUmVwb3MvQXJhbGlhL3NyYy9jb21wb25lbnRzL3VpL1Jlc2l6ZUhhbmRsZXMudHN4In0=

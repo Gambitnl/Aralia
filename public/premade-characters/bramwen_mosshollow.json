@@ -1,0 +1,320 @@
+{
+  "id": "premade_bramwen_mosshollow",
+  "name": "Bramwen Mosshollow",
+  "age": 52,
+  "background": "hermit",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "firbolg",
+    "name": "Firbolg",
+    "baseRace": "feyfolk",
+    "description": "Distant cousins of giants, the first firbolgs wandered the primeval forests of the multiverse, and the magic of those forests entwined itself with the firbolgs’ souls. Centuries later, that magic still thrums inside a firbolg, even one who has never lived under the boughs of a great forest. A firbolg’s magic is an obscuring sort, which allowed their ancestors to pass through a forest without disturbing it. So deep is the connection between a firbolg and the wild places of the world that they can communicate with flora and fauna.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium",
+      "Speed: 30 feet",
+      "Firbolg Magic: You can cast the detect magic and disguise self spells with this trait. When you use this version of disguise self, you can seem up to 3 feet shorter or taller. Once you cast either of these spells with this trait, you can’t cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race).",
+      "Hidden Step: As a bonus action, you can magically turn invisible until the start of your next turn or until you attack, make a damage roll, or force someone to make a saving throw. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.",
+      "Powerful Build: You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
+      "Speech of Beast and Leaf: You have the ability to communicate in a limited manner with Beasts, Plants, and vegetation. They can understand the meaning of your words, though you have no special ability to understand them in return. You have advantage on all Charisma checks you make to influence them."
+    ],
+    "visual": {
+      "id": "firbolg",
+      "color": "#6B8E23",
+      "maleIllustrationPath": "assets/images/races/Firbolg_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Firbolg_Female.png"
+    },
+    "racialSpellChoice": {
+      "traitName": "Firbolg Magic",
+      "traitDescription": "Choose your spellcasting ability for Firbolg Magic (Detect Magic, Disguise Self)."
+    },
+    "knownSpells": [
+      {
+        "minLevel": 1,
+        "spellId": "detect-magic"
+      },
+      {
+        "minLevel": 1,
+        "spellId": "disguise-self"
+      }
+    ]
+  },
+  "class": {
+    "id": "cleric",
+    "name": "Cleric",
+    "description": "Warriors of the gods, wielding divine magic.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Wisdom"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "history",
+      "insight",
+      "medicine",
+      "persuasion",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "features": [],
+    "divineOrders": [
+      {
+        "id": "Protector",
+        "name": "Protector",
+        "description": "Trained for battle, you gain proficiency with Martial weapons and Heavy armor."
+      },
+      {
+        "id": "Thaumaturge",
+        "name": "Thaumaturge",
+        "description": "You know one extra cantrip and gain a bonus to Arcana or Religion checks."
+      }
+    ],
+    "spellcasting": {
+      "ability": "Wisdom",
+      "knownCantrips": 3,
+      "knownSpellsL1": 4,
+      "spellList": [
+        "guidance",
+        "light",
+        "mending",
+        "resistance",
+        "sacred-flame",
+        "spare-the-dying",
+        "thaumaturgy",
+        "toll-the-dead",
+        "word-of-radiance",
+        "bane",
+        "bless",
+        "command",
+        "create-or-destroy-water",
+        "cure-wounds",
+        "detect-evil-and-good",
+        "detect-magic",
+        "detect-poison-and-disease",
+        "guiding-bolt",
+        "healing-word",
+        "inflict-wounds",
+        "protection-from-evil-and-good",
+        "purify-food-and-drink",
+        "sanctuary",
+        "shield-of-faith",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Wisdom",
+      "Constitution",
+      "Strength"
+    ],
+    "statRecommendationDetails": "Wisdom is crucial for your spellcasting. Constitution increases your survivability. Strength can be useful if you plan to engage in melee, especially with heavier armor from certain domains.",
+    "recommendedPointBuyPriorities": [
+      "Wisdom",
+      "Constitution",
+      "Strength",
+      "Dexterity",
+      "Charisma",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "cleric": 1
+  },
+  "abilityScores": {
+    "Strength": 13,
+    "Dexterity": 12,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 15,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 13,
+    "Dexterity": 12,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 15,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "persuasion",
+      "name": "Persuasion",
+      "ability": "Charisma"
+    },
+    {
+      "id": "medicine",
+      "name": "Medicine",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "religion",
+      "name": "Religion",
+      "ability": "Intelligence"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "healer"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "guidance",
+      "sacred-flame",
+      "thaumaturgy",
+      "word-of-radiance"
+    ],
+    "knownSpells": [
+      "bless",
+      "healing-word",
+      "guiding-bolt",
+      "sanctuary",
+      "detect-magic",
+      "disguise-self"
+    ],
+    "preparedSpells": [
+      "bless",
+      "healing-word",
+      "guiding-bolt",
+      "sanctuary",
+      "detect-magic",
+      "disguise-self"
+    ],
+    "racialSpellGrants": [
+      {
+        "sourceRaceId": "firbolg",
+        "sourceRaceName": "Firbolg",
+        "minLevel": 1,
+        "spellId": "detect-magic",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      },
+      {
+        "sourceRaceId": "firbolg",
+        "sourceRaceName": "Firbolg",
+        "minLevel": 1,
+        "spellId": "disguise-self",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      }
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "wisdom",
+  "limitedUses": {
+    "racial_feature_firbolg__firbolg_magic__resource": {
+      "name": "Firbolg: Firbolg Magic (Firbolg Magic usage)",
+      "current": 3,
+      "max": 3,
+      "resetOn": "long_rest"
+    },
+    "racial_feature_firbolg__hidden_step__resource": {
+      "name": "Firbolg: Hidden Step (Hidden Step usage)",
+      "current": 2,
+      "max": "proficiency_bonus",
+      "resetOn": "long_rest"
+    }
+  },
+  "selectedDivineOrder": "Thaumaturge",
+  "racialSelections": {
+    "firbolg": {
+      "spellAbility": "Wisdom"
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Firbolg Cleric. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [
+      "all Charisma checks you make to influence them"
+    ],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": [],
+    "powerfulBuild": true
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

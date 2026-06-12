@@ -66,6 +66,14 @@ interface FeatSelectionProps {
   dispatch?: React.Dispatch<AppAction>;
   knownSkillIds?: string[];
   allowSkip?: boolean;
+  /**
+   * Which feat slot this screen is filling (e.g. "Origin Feat — Soldier",
+   * "Racial Feat — Human"). The origin and racial feat steps render this same
+   * component back-to-back, so an explicit title is required to tell them apart.
+   */
+  title?: string;
+  /** Spell ids the character already knows; excluded from feat spell pickers. */
+  knownSpellIds?: string[];
 }
 
 /**
@@ -123,6 +131,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   dispatch,
   knownSkillIds = [],
   allowSkip = true,
+  title = 'Select a Feat',
+  knownSpellIds = [],
 }) => {
   const [viewedFeatId, setViewedFeatId] = useState<string | null>(
     selectedFeatId || availableFeats.find(f => f.isEligible)?.id || availableFeats[0]?.id || null
@@ -266,7 +276,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
   return (
     <CreationStepLayout
-      title="Select a Feat"
+      title={title}
       onBack={onBack}
       onNext={onConfirm}
       canProceed={canProceed}
@@ -607,6 +617,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                                   selectedSpellIds={selections}
                                   onSelectionChange={(ids) => onSetFeatChoice(selectedFeatId!, choiceKey, ids)}
                                   selectedSpellSource={selectedSpellSource}
+                                  knownSpellIds={knownSpellIds}
                                 />
                               );
                             })}

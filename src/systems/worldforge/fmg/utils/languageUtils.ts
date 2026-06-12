@@ -206,3 +206,10 @@ export const abbreviate = (name: string, restricted: string[] = []) => {
   }
   return code;
 };
+
+/**
+ * Ordinal suffix: 1 -> "1st", 2 -> "2nd", 11 -> "11th". Verbatim port of
+ * upstream src/utils/languageUtils.ts nth (added for Military regiment names).
+ */
+export const nth = (n: number) =>
+  n + (["st", "nd", "rd"][((((n + 90) % 100) - 10) % 10) - 1] || "th");

@@ -298,6 +298,43 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
     setSelectedSpellAbility(null);
   };
 
+  // Single source of truth for "why can't I confirm yet" — used for the
+  // disabled state, the hover tooltip, AND a visible header hint so the
+  // explanation isn't tooltip-only (GAPS.md G11).
+  const confirmBlockedReason: string | null = !selectedRace
+    ? null
+    : selectedRaceSpellAbilityChoice && !selectedSpellAbility
+      ? 'Please select a spellcasting ability first'
+      : selectedRace.id === 'elf' && !selectedKeenSensesSkillId
+        ? 'Please select a Keen Senses skill first'
+        : selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId
+          ? 'Please select a Natural Affinity skill first'
+          : selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2
+            ? 'Please select two Changeling Instincts skills first'
+            : selectedRace.id === 'changeling' && !selectedChangelingSize
+              ? 'Please select your size first'
+              : selectedRace.id === 'kender' && racialSkillChoices.length !== 1
+                ? 'Please select a skill first'
+                : selectedRace.id === 'kenku' && racialSkillChoices.length !== 2
+                  ? 'Please select two skills first'
+                  : selectedRace.id === 'warforged' && racialSkillChoices.length !== 1
+                    ? 'Please select a skill first'
+                    : selectedRace.id === 'warforged' && racialToolChoices.length !== 1
+                      ? 'Please select a tool first'
+                      : selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2
+                        ? 'Please select two skills first'
+                        : selectedRace.id === 'autognome' && racialToolChoices.length !== 2
+                          ? 'Please select two tools first'
+                          : selectedRace.id === 'forgeborn_human' && racialToolChoices.length !== 1
+                            ? 'Please select a tool first'
+                            : selectedRace.id === 'lizardfolk' && racialSkillChoices.length !== 2
+                              ? 'Please select two skills first'
+                              : selectedRace.id.includes('dwarf') && selectedRace.id !== 'dwarf' && racialToolChoices.length !== 1
+                                ? 'Please select a tool first'
+                                : (selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && racialCantripChoices.length !== 1
+                                  ? 'Please select a cantrip first'
+                                  : null;
+
   const customConfirmButton = selectedRace ? (
     <Button
       variant="primary"
@@ -325,66 +362,21 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect, onBa
         if (racialCantripChoices.length > 0) choices.genericCantripChoices = racialCantripChoices;
         onRaceSelect(selectedRace.id, choices);
       }}
-      disabled={
-        !!(
-          (selectedRaceSpellAbilityChoice && !selectedSpellAbility) ||
-          (selectedRace.id === 'elf' && !selectedKeenSensesSkillId) ||
-          (selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId) ||
-          (selectedRace.id === 'changeling' && (selectedChangelingInstinctSkillIds.size !== 2 || !selectedChangelingSize)) ||
-          (selectedRace.id === 'kender' && racialSkillChoices.length !== 1) ||
-          (selectedRace.id === 'kenku' && racialSkillChoices.length !== 2) ||
-          (selectedRace.id === 'warforged' && (racialSkillChoices.length !== 1 || racialToolChoices.length !== 1)) ||
-          (selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2) ||
-          (selectedRace.id === 'autognome' && racialToolChoices.length !== 2) ||
-          (selectedRace.id === 'forgeborn_human' && racialToolChoices.length !== 1) ||
-          (selectedRace.id === 'lizardfolk' && racialSkillChoices.length !== 2) ||
-          (selectedRace.id.includes('dwarf') && selectedRace.id !== 'dwarf' && racialToolChoices.length !== 1) ||
-          ((selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && racialCantripChoices.length !== 1)
-        )
-      }
-      title={
-        selectedRaceSpellAbilityChoice && !selectedSpellAbility
-          ? 'Please select a spellcasting ability first'
-          : selectedRace.id === 'elf' && !selectedKeenSensesSkillId
-            ? 'Please select a Keen Senses skill first'
-            : selectedRace.id === 'centaur' && !selectedCentaurNaturalAffinitySkillId
-              ? 'Please select a Natural Affinity skill first'
-              : selectedRace.id === 'changeling' && selectedChangelingInstinctSkillIds.size !== 2
-                ? 'Please select two Changeling Instincts skills first'
-                : selectedRace.id === 'changeling' && !selectedChangelingSize
-                  ? 'Please select your size first'
-                  : selectedRace.id === 'kender' && racialSkillChoices.length !== 1
-                    ? 'Please select a skill first'
-                    : selectedRace.id === 'kenku' && racialSkillChoices.length !== 2
-                      ? 'Please select two skills first'
-                      : selectedRace.id === 'warforged' && racialSkillChoices.length !== 1
-                        ? 'Please select a skill first'
-                        : selectedRace.id === 'warforged' && racialToolChoices.length !== 1
-                          ? 'Please select a tool first'
-                          : selectedRace.id.startsWith('half_elf') && racialSkillChoices.length !== 2
-                            ? 'Please select two skills first'
-                            : selectedRace.id === 'autognome' && racialToolChoices.length !== 2
-                              ? 'Please select two tools first'
-                              : selectedRace.id === 'forgeborn_human' && racialToolChoices.length !== 1
-                                ? 'Please select a tool first'
-                                : selectedRace.id.includes('dwarf') && racialToolChoices.length !== 1
-                                  ? 'Please select a tool first'
-                                  : (selectedRace.id === 'astral_elf' || selectedRace.id === 'high_elf' || selectedRace.id === 'half_elf_high') && racialCantripChoices.length !== 1
-                                    ? 'Please select a cantrip first'
-                                    : `Confirm ${selectedRace.name}`
-      }
+      disabled={!!confirmBlockedReason}
+      title={confirmBlockedReason ?? `Confirm ${selectedRace.name}`}
     >
       Confirm {selectedRace.name}
     </Button>
   ) : null;
 
   return (
-    <CreationStepLayout 
-      title="Choose Your Race" 
-      customNextButton={customConfirmButton} 
+    <CreationStepLayout
+      title="Choose Your Race"
+      customNextButton={customConfirmButton}
       bodyScrollable={false}
       onBack={onBack}
       backLabel="Main Menu"
+      blockedReason={confirmBlockedReason}
     >
       <div className="h-full min-h-0">
         <SplitPaneLayout

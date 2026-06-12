@@ -194,6 +194,9 @@ const DevMenu: React.FC<DevMenuProps> = ({
       title: 'Combat & Encounters',
       buttons: [
         { label: 'Battle Map Demo', action: 'battle_map_demo', style: 'bg-teal-600 hover:bg-teal-500' },
+        // Combat Messaging Demo renders a mock combat log sequence showing unified messaging
+        // and notifications. It allows checking priority filter behavior and color schemes.
+        { label: 'Combat Messaging Demo', action: 'combat_messaging_demo', style: 'bg-purple-600 hover:bg-purple-500' },
         { label: 'Edit Encounter Party', action: 'toggle_party_editor', style: 'bg-indigo-600 hover:bg-indigo-500' },
         { label: 'Generate Encounter', action: 'generate_encounter', style: 'bg-rose-600 hover:bg-rose-500' },
       ],

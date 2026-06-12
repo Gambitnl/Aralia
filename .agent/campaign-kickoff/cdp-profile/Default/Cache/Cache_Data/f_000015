@@ -1,0 +1,190 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/ui/NotificationSystem.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+import __vite__cjsImport1_react from "/Aralia/node_modules/.vite/deps/react.js?v=c72b52c2"; const useEffect = __vite__cjsImport1_react["useEffect"]; const useCallback = __vite__cjsImport1_react["useCallback"];
+import { AnimatePresence, motion, useReducedMotion } from "/Aralia/node_modules/.vite/deps/framer-motion.js?v=c72b52c2";
+import { UI_ID } from "/Aralia/src/styles/uiIds.ts";
+const NotificationToast = ({ notification, onDismiss }) => {
+  _s();
+  useEffect(() => {
+    const duration = notification.duration || 5e3;
+    const timer = setTimeout(() => {
+      onDismiss(notification.id);
+    }, duration);
+    return () => clearTimeout(timer);
+  }, [notification, onDismiss]);
+  const bgColor = {
+    success: "bg-green-600",
+    error: "bg-red-600",
+    info: "bg-blue-600",
+    warning: "bg-yellow-600"
+  }[notification.type];
+  const shouldReduceMotion = useReducedMotion();
+  const animations = shouldReduceMotion ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.1 }
+  } : {
+    initial: { opacity: 0, y: 20, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
+    transition: { duration: 0.2 }
+  };
+  return /* @__PURE__ */ jsxDEV(
+    motion.div,
+    {
+      layout: !shouldReduceMotion,
+      ...animations,
+      className: `
+        pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 ${bgColor} text-white
+      `,
+      role: "alert",
+      children: /* @__PURE__ */ jsxDEV("div", { className: "p-4", children: /* @__PURE__ */ jsxDEV("div", { className: "flex items-start", children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "flex-1", children: /* @__PURE__ */ jsxDEV("p", { className: "text-sm font-medium", children: notification.message }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+          lineNumber: 61,
+          columnNumber: 14
+        }, this) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+          lineNumber: 60,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "ml-4 flex flex-shrink-0", children: /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            type: "button",
+            className: "inline-flex rounded-md bg-transparent text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2",
+            onClick: () => onDismiss(notification.id),
+            children: [
+              /* @__PURE__ */ jsxDEV("span", { className: "sr-only", children: "Close" }, void 0, false, {
+                fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+                lineNumber: 69,
+                columnNumber: 15
+              }, this),
+              /* @__PURE__ */ jsxDEV("svg", { className: "h-5 w-5", viewBox: "0 0 20 20", fill: "currentColor", "aria-hidden": "true", children: /* @__PURE__ */ jsxDEV("path", { d: "M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" }, void 0, false, {
+                fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+                lineNumber: 71,
+                columnNumber: 17
+              }, this) }, void 0, false, {
+                fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+                lineNumber: 70,
+                columnNumber: 15
+              }, this)
+            ]
+          },
+          void 0,
+          true,
+          {
+            fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+            lineNumber: 64,
+            columnNumber: 13
+          },
+          this
+        ) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+          lineNumber: 63,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+        lineNumber: 59,
+        columnNumber: 9
+      }, this) }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+        lineNumber: 58,
+        columnNumber: 7
+      }, this)
+    },
+    void 0,
+    false,
+    {
+      fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+      lineNumber: 50,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_s(NotificationToast, "w3lYFSPgisAAPhV/YcJyidMAHCk=", false, function() {
+  return [useReducedMotion];
+});
+_c = NotificationToast;
+export const NotificationSystem = ({ notifications, dispatch }) => {
+  _s2();
+  const handleDismiss = useCallback((id) => {
+    dispatch({ type: "REMOVE_NOTIFICATION", payload: { id } });
+  }, [dispatch]);
+  const visibleNotifications = notifications.slice(-5);
+  return /* @__PURE__ */ jsxDEV(
+    "div",
+    {
+      id: UI_ID.NOTIFICATION_SYSTEM,
+      "data-testid": UI_ID.NOTIFICATION_SYSTEM,
+      "aria-live": "assertive",
+      className: "pointer-events-none fixed inset-0 flex flex-col items-end px-4 py-6 sm:items-start sm:p-6 z-[var(--z-index-modal-background)] gap-2",
+      children: /* @__PURE__ */ jsxDEV("div", { className: "flex w-full flex-col items-center space-y-4 sm:items-end", children: /* @__PURE__ */ jsxDEV(AnimatePresence, { mode: "popLayout", initial: false, children: visibleNotifications.map(
+        (notification) => /* @__PURE__ */ jsxDEV(
+          NotificationToast,
+          {
+            notification,
+            onDismiss: handleDismiss
+          },
+          notification.id,
+          false,
+          {
+            fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+            lineNumber: 100,
+            columnNumber: 11
+          },
+          this
+        )
+      ) }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+        lineNumber: 98,
+        columnNumber: 9
+      }, this) }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+        lineNumber: 97,
+        columnNumber: 7
+      }, this)
+    },
+    void 0,
+    false,
+    {
+      fileName: "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx",
+      lineNumber: 91,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_s2(NotificationSystem, "Sz9aL9wk6DMYS4gGSfL5ockBcM4=");
+_c2 = NotificationSystem;
+var _c, _c2;
+$RefreshReg$(_c, "NotificationToast");
+$RefreshReg$(_c2, "NotificationSystem");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/ui/NotificationSystem.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUEyQixLQWxCdkN6QjtBQWdFQyxhQUFNMEIscUJBQXdEQSxDQUFDLEVBQUVDLGVBQWVDLFNBQVMsTUFBTTtBQUFBQyxNQUFBO0FBQ3BHLFFBQU1DLGdCQUFnQm5DLFlBQVksQ0FBQ1ksT0FBZTtBQUNoRHFCLGFBQVMsRUFBRWQsTUFBTSx1QkFBdUJpQixTQUFTLEVBQUV4QixHQUFHLEVBQUUsQ0FBQztBQUFBLEVBQzNELEdBQUcsQ0FBQ3FCLFFBQVEsQ0FBQztBQUliLFFBQU1JLHVCQUF1QkwsY0FBY00sTUFBTSxFQUFFO0FBRW5ELFNBQ0U7QUFBQSxJQUFDO0FBQUE7QUFBQSxNQUNDLElBQUlsQyxNQUFNbUM7QUFBQUEsTUFDVixlQUFhbkMsTUFBTW1DO0FBQUFBLE1BQ25CLGFBQVU7QUFBQSxNQUNWLFdBQVU7QUFBQSxNQUVWLGlDQUFDLFNBQUksV0FBVSw0REFDYixpQ0FBQyxtQkFBZ0IsTUFBSyxhQUFZLFNBQVMsT0FDeENGLCtCQUFxQkc7QUFBQUEsUUFBSSxDQUFDbEMsaUJBQ3pCO0FBQUEsVUFBQztBQUFBO0FBQUEsWUFFQztBQUFBLFlBQ0EsV0FBVzZCO0FBQUFBO0FBQUFBLFVBRk43QixhQUFhTTtBQUFBQSxVQURwQjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLFFBRzJCO0FBQUEsTUFFNUIsS0FQSDtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBUUEsS0FURjtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBVUE7QUFBQTtBQUFBLElBaEJGO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxFQWlCQTtBQUVKO0FBQUVzQixJQTdCV0gsb0JBQXFEO0FBQUFVLE1BQXJEVjtBQUFxRCxJQUFBRCxJQUFBVztBQUFBQyxhQUFBWixJQUFBO0FBQUFZLGFBQUFELEtBQUEiLCJuYW1lcyI6WyJ1c2VFZmZlY3QiLCJ1c2VDYWxsYmFjayIsIkFuaW1hdGVQcmVzZW5jZSIsIm1vdGlvbiIsInVzZVJlZHVjZWRNb3Rpb24iLCJVSV9JRCIsIk5vdGlmaWNhdGlvblRvYXN0Iiwibm90aWZpY2F0aW9uIiwib25EaXNtaXNzIiwiX3MiLCJkdXJhdGlvbiIsInRpbWVyIiwic2V0VGltZW91dCIsImlkIiwiY2xlYXJUaW1lb3V0IiwiYmdDb2xvciIsInN1Y2Nlc3MiLCJlcnJvciIsImluZm8iLCJ3YXJuaW5nIiwidHlwZSIsInNob3VsZFJlZHVjZU1vdGlvbiIsImFuaW1hdGlvbnMiLCJpbml0aWFsIiwib3BhY2l0eSIsImFuaW1hdGUiLCJleGl0IiwidHJhbnNpdGlvbiIsInkiLCJzY2FsZSIsIm1lc3NhZ2UiLCJfYyIsIk5vdGlmaWNhdGlvblN5c3RlbSIsIm5vdGlmaWNhdGlvbnMiLCJkaXNwYXRjaCIsIl9zMiIsImhhbmRsZURpc21pc3MiLCJwYXlsb2FkIiwidmlzaWJsZU5vdGlmaWNhdGlvbnMiLCJzbGljZSIsIk5PVElGSUNBVElPTl9TWVNURU0iLCJtYXAiLCJfYzIiLCIkUmVmcmVzaFJlZyQiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiTm90aWZpY2F0aW9uU3lzdGVtLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcclxuICogTGlnaHR3ZWlnaHQgdG9hc3Qgc3lzdGVtIHRoYXQgcmVwbGFjZXMgYnJvd3NlciBhbGVydHMgYW5kIHByb3ZpZGVzXHJcbiAqIG5vbi1ibG9ja2luZyBmZWVkYmFjayB0byB0aGUgcGxheWVyLlxyXG4gKiBAY29tcG9uZW50LW93bmVyIFVJIFRlYW0gLyBDb3JlIFVJXG4gKi9cclxuaW1wb3J0IFJlYWN0LCB7IHVzZUVmZmVjdCwgdXNlQ2FsbGJhY2sgfSBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCB7IEFuaW1hdGVQcmVzZW5jZSwgbW90aW9uLCB1c2VSZWR1Y2VkTW90aW9uIH0gZnJvbSAnZnJhbWVyLW1vdGlvbic7XHJcbmltcG9ydCB7IE5vdGlmaWNhdGlvbiB9IGZyb20gJy4uLy4uL3R5cGVzJztcclxuaW1wb3J0IHR5cGUgeyBBcHBBY3Rpb24gfSBmcm9tICcuLi8uLi9zdGF0ZS9hY3Rpb25UeXBlcyc7XHJcbmltcG9ydCB7IFVJX0lEIH0gZnJvbSAnLi4vLi4vc3R5bGVzL3VpSWRzJztcclxuXHJcbmludGVyZmFjZSBOb3RpZmljYXRpb25TeXN0ZW1Qcm9wcyB7XHJcbiAgbm90aWZpY2F0aW9uczogTm90aWZpY2F0aW9uW107XHJcbiAgZGlzcGF0Y2g6IFJlYWN0LkRpc3BhdGNoPEFwcEFjdGlvbj47XHJcbn1cclxuXHJcbmNvbnN0IE5vdGlmaWNhdGlvblRvYXN0OiBSZWFjdC5GQzx7IG5vdGlmaWNhdGlvbjogTm90aWZpY2F0aW9uOyBvbkRpc21pc3M6IChpZDogc3RyaW5nKSA9PiB2b2lkIH0+ID0gKHsgbm90aWZpY2F0aW9uLCBvbkRpc21pc3MgfSkgPT4ge1xyXG4gIHVzZUVmZmVjdCgoKSA9PiB7XHJcbiAgICBjb25zdCBkdXJhdGlvbiA9IG5vdGlmaWNhdGlvbi5kdXJhdGlvbiB8fCA1MDAwO1xyXG4gICAgY29uc3QgdGltZXIgPSBzZXRUaW1lb3V0KCgpID0+IHtcclxuICAgICAgb25EaXNtaXNzKG5vdGlmaWNhdGlvbi5pZCk7XHJcbiAgICB9LCBkdXJhdGlvbik7XHJcblxyXG4gICAgcmV0dXJuICgpID0+IGNsZWFyVGltZW91dCh0aW1lcik7XHJcbiAgfSwgW25vdGlmaWNhdGlvbiwgb25EaXNtaXNzXSk7XHJcblxyXG4gIGNvbnN0IGJnQ29sb3IgPSB7XHJcbiAgICBzdWNjZXNzOiAnYmctZ3JlZW4tNjAwJyxcclxuICAgIGVycm9yOiAnYmctcmVkLTYwMCcsXHJcbiAgICBpbmZvOiAnYmctYmx1ZS02MDAnLFxyXG4gICAgd2FybmluZzogJ2JnLXllbGxvdy02MDAnLFxyXG4gIH1bbm90aWZpY2F0aW9uLnR5cGVdO1xyXG5cclxuICAvLyBSZXNwZWN0IHJlZHVjZWQgbW90aW9uIHByZWZlcmVuY2VcclxuICBjb25zdCBzaG91bGRSZWR1Y2VNb3Rpb24gPSB1c2VSZWR1Y2VkTW90aW9uKCk7XHJcblxyXG4gIGNvbnN0IGFuaW1hdGlvbnMgPSBzaG91bGRSZWR1Y2VNb3Rpb24gPyB7XHJcbiAgICBpbml0aWFsOiB7IG9wYWNpdHk6IDAgfSxcclxuICAgIGFuaW1hdGU6IHsgb3BhY2l0eTogMSB9LFxyXG4gICAgZXhpdDogeyBvcGFjaXR5OiAwIH0sXHJcbiAgICB0cmFuc2l0aW9uOiB7IGR1cmF0aW9uOiAwLjEgfVxyXG4gIH0gOiB7XHJcbiAgICBpbml0aWFsOiB7IG9wYWNpdHk6IDAsIHk6IDIwLCBzY2FsZTogMC45NSB9LFxyXG4gICAgYW5pbWF0ZTogeyBvcGFjaXR5OiAxLCB5OiAwLCBzY2FsZTogMSB9LFxyXG4gICAgZXhpdDogeyBvcGFjaXR5OiAwLCBzY2FsZTogMC45LCB0cmFuc2l0aW9uOiB7IGR1cmF0aW9uOiAwLjIgfSB9LFxyXG4gICAgdHJhbnNpdGlvbjogeyBkdXJhdGlvbjogMC4yIH1cclxuICB9O1xyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPG1vdGlvbi5kaXZcclxuICAgICAgbGF5b3V0PXshc2hvdWxkUmVkdWNlTW90aW9ufVxyXG4gICAgICB7Li4uYW5pbWF0aW9uc31cclxuICAgICAgY2xhc3NOYW1lPXtgXHJcbiAgICAgICAgcG9pbnRlci1ldmVudHMtYXV0byB3LWZ1bGwgbWF4LXctc20gb3ZlcmZsb3ctaGlkZGVuIHJvdW5kZWQtbGcgc2hhZG93LWxnIHJpbmctMSByaW5nLWJsYWNrIHJpbmctb3BhY2l0eS01ICR7YmdDb2xvcn0gdGV4dC13aGl0ZVxyXG4gICAgICBgfVxyXG4gICAgICByb2xlPVwiYWxlcnRcIlxyXG4gICAgPlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInAtNFwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1zdGFydFwiPlxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4LTFcIj5cclxuICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gZm9udC1tZWRpdW1cIj57bm90aWZpY2F0aW9uLm1lc3NhZ2V9PC9wPlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1sLTQgZmxleCBmbGV4LXNocmluay0wXCI+XHJcbiAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcclxuICAgICAgICAgICAgICBjbGFzc05hbWU9XCJpbmxpbmUtZmxleCByb3VuZGVkLW1kIGJnLXRyYW5zcGFyZW50IHRleHQtd2hpdGUgaG92ZXI6dGV4dC1ncmF5LTIwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctd2hpdGUgZm9jdXM6cmluZy1vZmZzZXQtMlwiXHJcbiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gb25EaXNtaXNzKG5vdGlmaWNhdGlvbi5pZCl9XHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJzci1vbmx5XCI+Q2xvc2U8L3NwYW4+XHJcbiAgICAgICAgICAgICAgPHN2ZyBjbGFzc05hbWU9XCJoLTUgdy01XCIgdmlld0JveD1cIjAgMCAyMCAyMFwiIGZpbGw9XCJjdXJyZW50Q29sb3JcIiBhcmlhLWhpZGRlbj1cInRydWVcIj5cclxuICAgICAgICAgICAgICAgIDxwYXRoIGQ9XCJNNi4yOCA1LjIyYS43NS43NSAwIDAwLTEuMDYgMS4wNkw4Ljk0IDEwbC0zLjcyIDMuNzJhLjc1Ljc1IDAgMTAxLjA2IDEuMDZMMTAgMTEuMDZsMy43MiAzLjcyYS43NS43NSAwIDEwMS4wNi0xLjA2TDExLjA2IDEwbDMuNzItMy43MmEuNzUuNzUgMCAwMC0xLjA2LTEuMDZMMTAgOC45NCA2LjI4IDUuMjJ6XCIgLz5cclxuICAgICAgICAgICAgICA8L3N2Zz5cclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L21vdGlvbi5kaXY+XHJcbiAgKTtcclxufTtcclxuXHJcbmV4cG9ydCBjb25zdCBOb3RpZmljYXRpb25TeXN0ZW06IFJlYWN0LkZDPE5vdGlmaWNhdGlvblN5c3RlbVByb3BzPiA9ICh7IG5vdGlmaWNhdGlvbnMsIGRpc3BhdGNoIH0pID0+IHtcclxuICBjb25zdCBoYW5kbGVEaXNtaXNzID0gdXNlQ2FsbGJhY2soKGlkOiBzdHJpbmcpID0+IHtcclxuICAgIGRpc3BhdGNoKHsgdHlwZTogJ1JFTU9WRV9OT1RJRklDQVRJT04nLCBwYXlsb2FkOiB7IGlkIH0gfSk7XHJcbiAgfSwgW2Rpc3BhdGNoXSk7XHJcblxyXG4gIC8vIE1vdW50ZWQgYXQgdGhlIEFwcCByb290IHNvIGV2ZXJ5IHBhbmUgY2FuIGRpc3BhdGNoIG5vdGlmaWNhdGlvbnMgaW5zdGVhZCBvZiB1c2luZyBibG9ja2luZyBhbGVydHMuXHJcbiAgLy8gQ2FwIGF0IDUgbm90aWZpY2F0aW9ucyB0byBwcmV2ZW50IGxheW91dCB0aHJhc2hcclxuICBjb25zdCB2aXNpYmxlTm90aWZpY2F0aW9ucyA9IG5vdGlmaWNhdGlvbnMuc2xpY2UoLTUpO1xyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPGRpdlxyXG4gICAgICBpZD17VUlfSUQuTk9USUZJQ0FUSU9OX1NZU1RFTX1cclxuICAgICAgZGF0YS10ZXN0aWQ9e1VJX0lELk5PVElGSUNBVElPTl9TWVNURU19XHJcbiAgICAgIGFyaWEtbGl2ZT1cImFzc2VydGl2ZVwiXHJcbiAgICAgIGNsYXNzTmFtZT1cInBvaW50ZXItZXZlbnRzLW5vbmUgZml4ZWQgaW5zZXQtMCBmbGV4IGZsZXgtY29sIGl0ZW1zLWVuZCBweC00IHB5LTYgc206aXRlbXMtc3RhcnQgc206cC02IHotW3ZhcigtLXotaW5kZXgtbW9kYWwtYmFja2dyb3VuZCldIGdhcC0yXCJcclxuICAgID5cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IHctZnVsbCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgc3BhY2UteS00IHNtOml0ZW1zLWVuZFwiPlxyXG4gICAgICAgIDxBbmltYXRlUHJlc2VuY2UgbW9kZT1cInBvcExheW91dFwiIGluaXRpYWw9e2ZhbHNlfT5cclxuICAgICAgICAgIHt2aXNpYmxlTm90aWZpY2F0aW9ucy5tYXAoKG5vdGlmaWNhdGlvbikgPT4gKFxyXG4gICAgICAgICAgICA8Tm90aWZpY2F0aW9uVG9hc3RcclxuICAgICAgICAgICAgICBrZXk9e25vdGlmaWNhdGlvbi5pZH1cclxuICAgICAgICAgICAgICBub3RpZmljYXRpb249e25vdGlmaWNhdGlvbn1cclxuICAgICAgICAgICAgICBvbkRpc21pc3M9e2hhbmRsZURpc21pc3N9XHJcbiAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICApKX1cclxuICAgICAgICA8L0FuaW1hdGVQcmVzZW5jZT5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59O1xyXG4iXSwiZmlsZSI6IkY6L1JlcG9zL0FyYWxpYS9zcmMvY29tcG9uZW50cy91aS9Ob3RpZmljYXRpb25TeXN0ZW0udHN4In0=

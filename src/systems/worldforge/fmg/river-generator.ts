@@ -9,17 +9,22 @@
  * getOffset, getSourceWidth, getApproximateLength, getWidth.
  * addMeandering is geometry (river length/width inputs), not drawing — kept.
  *
- * Left behind (render/UI/later-slice): `lineGen`/`getRiverPath`
- * (d3 curveBasis/curveCatmullRom SVG path building), `specify`/`getName`/
- * `getType`/`riverTypes`/`smallLength`/`getBasin` (upstream runs
- * Rivers.specify in a later stage and it needs the Names generator),
- * `remove` (editor UI), `getNextId` (editor helper).
+ * Left behind (render/UI): `lineGen`/`getRiverPath`
+ * (d3 curveBasis/curveCatmullRom SVG path building), `remove` (editor UI),
+ * `getNextId` (editor helper).
+ *
+ * Slice 3 adds `specify`/`getName`/`getType`/`riverTypes`/`smallLength`/
+ * `getBasin` (upstream runs Rivers.specify after Provinces in generate();
+ * it needs the Names generator). PER-RUN NOTE: upstream caches `smallLength`
+ * on the session-global window.Rivers, so a regenerated map in the same
+ * browser session reuses the previous map's threshold; this port resets the
+ * cache at the top of specify() (= upstream's first-map-of-session
+ * behavior), keeping generateFmgWorld(seed) a pure function.
  *
  * RNG: `Math.random = Alea(seed)` at the top of generate(), exactly like
- * upstream. The generate() path itself draws NOTHING from Math.random (the
- * only upstream draws in this module are `rw` inside getType, which belongs
- * to the unported specify stage), so the reseed only matters for stages that
- * follow.
+ * upstream. The generate() path itself draws NOTHING from Math.random; the
+ * `rw` draws in getType belong to the specify stage, which upstream runs on
+ * the post-Provinces stream (Provinces reseeds Alea(seed)).
  *
  * Adaptations (cosmetic only): `grid`, `pack`, `seed`, `graphWidth`,
  * `graphHeight` and the DOM inputs (`pointsInput.dataset.cells` →
@@ -30,7 +35,7 @@
  */
 import Alea from "alea";
 import { mean, min, sum } from "./d3Shim";
-import { rn } from "./utils";
+import { each, rn, rw } from "./utils";
 import type { Grid } from "./utils/graphUtils";
 import type { Point } from "./voronoi";
 import type { Pack, PackedGraphFeature } from "./features";
@@ -583,6 +588,63 @@ class RiverModule {
   // Danube 800m, Daugava 600m, Neva 500m, Nile 450m, Don 400m, Wisla 300m, Pripyat 150m, Bug 140m, Muchavets 40m
   getWidth(offset: number) {
     return rn((offset / 1.5) ** 1.8, 2); // mouth width in km
+  }
+
+  /* ---- slice-3 naming stage (upstream Rivers.specify, runs after
+     Provinces.generate in main.js generate()) ---- */
+
+  riverTypes = {
+    main: {
+      big: { River: 1 },
+      small: { Creek: 9, River: 3, Brook: 3, Stream: 1 },
+    },
+    fork: {
+      big: { Fork: 1 },
+      small: { Branch: 1 },
+    },
+  };
+
+  smallLength: number | null = null;
+
+  specify(pack: Pack, names: import("./names-generator").NamesGenerator) {
+    this.smallLength = null; // per-run reset, see file header
+    const rivers = pack.rivers!;
+    if (!rivers.length) return;
+
+    for (const river of rivers) {
+      river.basin = this.getBasin(river.i, pack);
+      river.name = this.getName(river.mouth, pack, names);
+      river.type = this.getType(river, pack);
+    }
+  }
+
+  getName(
+    cell: number,
+    pack: Pack,
+    names: import("./names-generator").NamesGenerator,
+  ) {
+    return names.getCulture(pack.cells.culture![cell]);
+  }
+
+  getType({ i, length, parent }: River, pack: Pack) {
+    if (this.smallLength === null) {
+      const threshold = Math.ceil(pack.rivers!.length * 0.15);
+      this.smallLength = pack
+        .rivers!.map((r) => r.length || 0)
+        .sort((a: number, b: number) => a - b)[threshold];
+    }
+
+    const isSmall: boolean = length < (this.smallLength as number);
+    const isFork = each(3)(i) && parent && parent !== i;
+    return rw(
+      this.riverTypes[isFork ? "fork" : "main"][isSmall ? "small" : "big"],
+    );
+  }
+
+  getBasin(riverId: number, pack: Pack): number {
+    const parent = pack.rivers!.find((river) => river.i === riverId)?.parent;
+    if (!parent || riverId === parent) return riverId;
+    return this.getBasin(parent, pack);
   }
 }
 

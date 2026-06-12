@@ -200,14 +200,21 @@ const getResetStateForNewRace = (): Partial<CharacterCreationState> => {
   return { ...resettableFields, racialSelections: {} };
 };
 
+/**
+ * True for base humans AND human variants (e.g. Beastborn Human). Human-only
+ * steps (Skillful, Racial Feat) must use this rather than `id === 'human'` so
+ * variants are routed through the same steps the sidebar already lists for
+ * them (see GAPS.md G13).
+ */
+export const isHumanLineage = (state: CharacterCreationState): boolean => {
+  return state.selectedRace?.id === 'human' || state.selectedRace?.baseRace === 'human';
+};
+
 const canOfferRacialFeatAtLevelOne = (state: CharacterCreationState): boolean => {
   if (!state.selectedRace || !state.selectedClass || !state.finalAbilityScores) {
     return false;
   }
-  if (state.selectedRace.id === 'human') {
-    return true;
-  }
-  return false;
+  return isHumanLineage(state);
 };
 
 const canOfferBackgroundFeat = (state: CharacterCreationState): boolean => {
@@ -297,7 +304,7 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
   [CreationStep.HumanSkillChoice]: { previousStep: () => CreationStep.AbilityScores },
   [CreationStep.Skills]: {
-    previousStep: (state) => (state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.AbilityScores)
+    previousStep: (state) => (isHumanLineage(state) ? CreationStep.HumanSkillChoice : CreationStep.AbilityScores)
   },
   [CreationStep.ClassFeatures]: { previousStep: () => CreationStep.Skills },
   [CreationStep.WeaponMastery]: { previousStep: (state) => (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills) },
@@ -462,13 +469,16 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
     case 'SET_ABILITY_SCORES': {
       const baseScores = action.payload.baseScores;
       const finalScores = state.selectedRace ? calculateFixedRacialBonuses(baseScores, state.selectedRace) : baseScores;
-      const nextStep = state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills;
+      const nextStep = isHumanLineage(state) ? CreationStep.HumanSkillChoice : CreationStep.Skills;
       return { ...state, baseAbilityScores: baseScores, finalAbilityScores: finalScores, step: nextStep };
     }
     case 'SELECT_HUMAN_SKILL': {
+      // Store under the actual race id so human variants (baseRace === 'human')
+      // get the pick through the generic racial-skill assembly path.
+      const raceKey = state.selectedRace?.id ?? 'human';
       const nextSelections = {
         ...state.racialSelections,
-        human: { ...(state.racialSelections['human'] ?? {}), skillIds: [action.payload] },
+        [raceKey]: { ...(state.racialSelections[raceKey] ?? {}), skillIds: [action.payload] },
       };
       return { ...state, racialSelections: nextSelections, step: CreationStep.Skills };
     }

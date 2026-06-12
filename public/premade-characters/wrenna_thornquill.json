@@ -1,0 +1,362 @@
+{
+  "id": "premade_wrenna_thornquill",
+  "name": "Wrenna Thornquill",
+  "age": 26,
+  "background": "guide",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "beastborn_human",
+    "name": "Beastborn Human",
+    "baseRace": "human",
+    "description": "Bearing a sigil that seems to shift like animal tracks, humans with the Mark of Handling possess an innate connection to beasts and wild creatures. This hereditary gift grants them the ability to calm savage animals, communicate with beasts, and forge bonds that others cannot match. Their mark glows softly when they touch an animal, conveying peace and understanding. These beast-touched individuals become legendary animal trainers, wilderness guides, and beastmasters, their unique bond with the natural world making them invaluable companions.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium",
+      "Speed: 30 feet",
+      "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest.",
+      "Skillful: You gain proficiency in one skill of your choice.",
+      "Versatile: You gain an Origin feat of your choice.",
+      "Wild Intuition: When you make a Wisdom (Animal Handling) or Intelligence (Nature) check, you can roll a d4 and add the number rolled to the ability check.",
+      "Primal Connection: You can cast the Animal Friendship and Speak with Animals spells with this trait, requiring no material component. Once you cast either spell with this trait, you can't cast that spell with it again until you finish a Short Rest or Long Rest. Wisdom is your spellcasting ability for these spells.",
+      "The Bigger They Are: Starting at 3rd level, you can target a beast or monstrosity when you cast Animal Friendship or Speak with Animals, provided the creature's Intelligence score is 3 or lower.",
+      "Spells of the Mark: If you have the Spellcasting or Pact Magic class feature, the spells on the Mark of Handling Spells table are added to the spell list of your spellcasting class."
+    ],
+    "visual": {
+      "id": "mark_of_handling_human",
+      "color": "#8B4513",
+      "maleIllustrationPath": "assets/images/races/Human_Beastborn_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Human_Beastborn_Female.png"
+    },
+    "knownSpells": [
+      {
+        "minLevel": 1,
+        "spellId": "animal-friendship"
+      },
+      {
+        "minLevel": 1,
+        "spellId": "speak-with-animals"
+      }
+    ]
+  },
+  "class": {
+    "id": "wizard",
+    "name": "Wizard",
+    "description": "Scholarly magic-users capable of manipulating the fabric of reality.",
+    "hitDie": 6,
+    "primaryAbility": [
+      "Intelligence"
+    ],
+    "savingThrowProficiencies": [
+      "Intelligence",
+      "Wisdom"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "history",
+      "insight",
+      "investigation",
+      "medicine",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [],
+    "weaponProficiencies": [
+      "Daggers",
+      "Darts",
+      "Slings",
+      "Quarterstaffs",
+      "Light crossbows"
+    ],
+    "features": [
+      {
+        "id": "arcane_recovery",
+        "name": "Arcane Recovery",
+        "description": "Recover some spell slots during a short rest.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Intelligence",
+      "knownCantrips": 3,
+      "knownSpellsL1": 6,
+      "spellList": [
+        "acid-splash",
+        "chill-touch",
+        "dancing-lights",
+        "elementalism",
+        "fire-bolt",
+        "friends",
+        "frostbite",
+        "light",
+        "mage-hand",
+        "mending",
+        "message",
+        "minor-illusion",
+        "poison-spray",
+        "prestidigitation",
+        "ray-of-frost",
+        "shape-water",
+        "shocking-grasp",
+        "sword-burst",
+        "thunderclap",
+        "true-strike",
+        "toll-the-dead",
+        "alarm",
+        "burning-hands",
+        "charm-person",
+        "color-spray",
+        "comprehend-languages",
+        "detect-magic",
+        "disguise-self",
+        "expeditious-retreat",
+        "false-life",
+        "feather-fall",
+        "find-familiar",
+        "fog-cloud",
+        "grease",
+        "identify",
+        "illusory-script",
+        "jump",
+        "longstrider",
+        "mage-armor",
+        "magic-missile",
+        "protection-from-evil-and-good",
+        "shield",
+        "silent-image",
+        "sleep",
+        "thunderwave",
+        "unseen-servant",
+        "levitate",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Intelligence",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Intelligence is paramount for your spellcasting effectiveness. Constitution helps with concentration and hit points. Dexterity can improve your Armor Class, as wizards typically wear no armor.",
+    "recommendedPointBuyPriorities": [
+      "Intelligence",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Charisma",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "wizard": 1
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 15,
+    "Wisdom": 13,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 15,
+    "Wisdom": 13,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "history",
+      "name": "History",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "investigation",
+      "name": "Investigation",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "survival",
+      "name": "Survival",
+      "ability": "Wisdom"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 8,
+  "maxHp": 8,
+  "hitPointDice": [
+    {
+      "die": 6,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "magic_initiate",
+    "alert"
+  ],
+  "featChoices": {
+    "magic_initiate": {
+      "selectedAbilityScore": "Wisdom",
+      "selectedSpellSource": "druid",
+      "selectedCantrips": [
+        "druidcraft",
+        "guidance"
+      ],
+      "selectedLeveledSpells": [
+        "goodberry"
+      ]
+    }
+  },
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "fire-bolt",
+      "mage-hand",
+      "light",
+      "druidcraft",
+      "guidance"
+    ],
+    "knownSpells": [
+      "magic-missile",
+      "shield",
+      "mage-armor",
+      "sleep",
+      "detect-magic",
+      "thunderwave",
+      "goodberry",
+      "animal-friendship",
+      "speak-with-animals"
+    ],
+    "preparedSpells": [
+      "magic-missile",
+      "shield",
+      "mage-armor",
+      "animal-friendship",
+      "speak-with-animals"
+    ],
+    "racialSpellGrants": [
+      {
+        "sourceRaceId": "beastborn_human",
+        "sourceRaceName": "Beastborn Human",
+        "minLevel": 1,
+        "spellId": "animal-friendship",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      },
+      {
+        "sourceRaceId": "beastborn_human",
+        "sourceRaceName": "Beastborn Human",
+        "minLevel": 1,
+        "spellId": "speak-with-animals",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      }
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "intelligence",
+  "limitedUses": {
+    "feat_magic_initiate_goodberry": {
+      "name": "Magic Initiate: Cast goodberry",
+      "current": 1,
+      "max": 1,
+      "resetOn": "long_rest"
+    },
+    "racial_feature_beastborn_human__primal_connection__resource": {
+      "name": "Beastborn Human: Primal Connection (Primal Connection usage)",
+      "current": 1,
+      "max": 1,
+      "resetOn": "short_rest"
+    }
+  },
+  "racialSelections": {
+    "beastborn_human": {
+      "skillIds": [
+        "insight"
+      ]
+    }
+  },
+  "visuals": {
+    "gender": "Female",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Beastborn Human Wizard. Female adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "initiativeBonus": 2,
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [
+      "d4 to the ability check"
+    ],
+    "reactions": [],
+    "skillProficiencies": [
+      "one"
+    ],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

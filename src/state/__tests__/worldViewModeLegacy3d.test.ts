@@ -54,6 +54,32 @@ describe('worldViewMode vs legacy ThreeDModal (W3DUI-22)', () => {
     expect(next.isThreeDVisible).toBe(false);
   });
 
+  it('LOAD_GAME_SUCCESS clamps off-map playerWorldPos into the world grid (resume-journey task 2)', () => {
+    const state = makeState();
+    // Mirrors the audited autosave: z negative (off the north edge), x in-bounds.
+    const action = {
+      type: 'LOAD_GAME_SUCCESS',
+      payload: {
+        worldViewMode: '3d',
+        playerWorldPos: { x: 2072.76, y: 0, z: -881.94 },
+        party: state.party,
+      },
+    } as AppAction;
+    const next = appReducer(state, action);
+    expect(next.playerWorldPos).toEqual({ x: 2072.76, y: 0, z: 0 });
+  });
+
+  it('LOAD_GAME_SUCCESS leaves in-bounds playerWorldPos untouched', () => {
+    const state = makeState();
+    const pos = { x: 1024, y: 12, z: 2048 };
+    const action = {
+      type: 'LOAD_GAME_SUCCESS',
+      payload: { worldViewMode: '3d', playerWorldPos: pos, party: state.party },
+    } as AppAction;
+    const next = appReducer(state, action);
+    expect(next.playerWorldPos).toEqual(pos);
+  });
+
   it('LOAD_GAME_SUCCESS backfills shortRestTracker when omitted from saved payload', () => {
     const state = makeState();
     const loadedSaveDate = new Date(Date.UTC(351, 0, 3, 12, 0, 0));

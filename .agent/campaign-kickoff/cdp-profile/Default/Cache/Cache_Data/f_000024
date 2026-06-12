@@ -1,0 +1,188 @@
+const RANK_INITIATE = {
+  id: "initiate",
+  name: "Initiate",
+  level: 1,
+  description: "A newly inducted member of the faction.",
+  perks: ["access_guild_hall"]
+};
+const RANK_MEMBER = {
+  id: "member",
+  name: "Member",
+  level: 2,
+  description: "A trusted member of the faction.",
+  perks: ["access_guild_store", "take_contracts"]
+};
+const RANK_VETERAN = {
+  id: "veteran",
+  name: "Veteran",
+  level: 3,
+  description: "A seasoned member who commands respect.",
+  perks: ["command_subordinates", "access_vault"]
+};
+export const FACTIONS = {
+  "iron_ledger": {
+    id: "iron_ledger",
+    name: "The Iron Ledger",
+    description: "A powerful guild of merchants, bankers, and coin-minters who control trade routes and loan money to kingdoms. They value profit above all else.",
+    type: "GUILD",
+    motto: "Gold never rusts.",
+    colors: { primary: "#FFD700", secondary: "#4B5563" },
+    // Gold and Slate
+    ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+    allies: ["house_vane"],
+    enemies: ["unseen_hand"],
+    rivals: [],
+    values: ["wealth", "honesty_in_contracts", "stability"],
+    hates: ["theft", "chaos", "bad_debts"],
+    power: 80,
+    assets: [],
+    relationships: {},
+    treasury: 5e4,
+    taxRate: 8,
+    controlledRegionIds: ["region_capital"],
+    controlledRouteIds: ["golden_road"],
+    economicPolicy: "mercantile",
+    tradeGoodPriorities: ["luxury", "gem", "gold", "magic_reagents"]
+  },
+  "unseen_hand": {
+    id: "unseen_hand",
+    name: "The Unseen Hand",
+    description: "A criminal syndicate that operates in the shadows of every major city. They deal in secrets, stolen goods, and assassinations.",
+    type: "CRIMINAL_SYNDICATE",
+    motto: "Silence is golden.",
+    colors: { primary: "#1F2937", secondary: "#9CA3AF" },
+    // Dark Gray and Light Gray
+    ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+    allies: [],
+    enemies: ["iron_ledger", "house_vane"],
+    rivals: [],
+    values: ["secrecy", "loyalty", "cunning"],
+    hates: ["snitches", "law_enforcement", "exposure"],
+    services: ["fence", "forgery", "safehouse"],
+    power: 60,
+    assets: [],
+    relationships: {},
+    treasury: 15e3,
+    taxRate: 15,
+    controlledRegionIds: [],
+    controlledRouteIds: [],
+    economicPolicy: "exploitative",
+    tradeGoodPriorities: ["narcotics", "stolen_goods", "dark_magic", "weapon"]
+  },
+  "house_vane": {
+    id: "house_vane",
+    name: "House Vane",
+    description: "An ancient noble house known for their military prowess and strict adherence to tradition. They view themselves as the guardians of the realm.",
+    type: "NOBLE_HOUSE",
+    motto: "Steel and Honor.",
+    colors: { primary: "#DC2626", secondary: "#FCD34D" },
+    // Red and Gold
+    ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+    allies: ["iron_ledger"],
+    enemies: ["unseen_hand"],
+    rivals: [],
+    values: ["honor", "strength", "tradition"],
+    hates: ["cowardice", "treachery", "disrespect"],
+    power: 75,
+    assets: [],
+    relationships: {},
+    treasury: 35e3,
+    taxRate: 12,
+    controlledRegionIds: ["region_capital"],
+    controlledRouteIds: [],
+    economicPolicy: "protectionist",
+    tradeGoodPriorities: ["weapon", "armor", "iron", "food"]
+  },
+  // --- UNDERDARK FACTIONS ---
+  "house_xorlarrin": {
+    id: "house_xorlarrin",
+    name: "House Xorlarrin",
+    description: "A powerful Drow noble house of wizardry and secrets, residing in the depths of Menzoberranzan. They seek to unlock the secrets of Faerzress.",
+    type: "NOBLE_HOUSE",
+    motto: "Magic is the only truth.",
+    colors: { primary: "#6D28D9", secondary: "#000000" },
+    // Violet and Black
+    ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+    allies: [],
+    enemies: ["ironhead_clan"],
+    rivals: ["house_vane"],
+    // Surface rivals
+    values: ["arcane_power", "ambition", "secrecy"],
+    hates: ["weakness", "light_dwellers", "surface_elves"],
+    power: 85,
+    assets: [],
+    relationships: {},
+    treasury: 25e3,
+    taxRate: 20,
+    controlledRegionIds: [],
+    controlledRouteIds: [],
+    economicPolicy: "exploitative",
+    tradeGoodPriorities: ["magic_reagents", "gem", "dark_magic"]
+  },
+  "deepkings_guard": {
+    id: "deepkings_guard",
+    name: "Deepking's Guard",
+    description: "The elite Duergar military force protecting Gracklstugh, the City of Blades. They are disciplined, ruthless, and heavily armored.",
+    type: "MILITARY",
+    motto: "Iron stands eternal.",
+    colors: { primary: "#4B5563", secondary: "#9CA3AF" },
+    // Grey and Silver
+    ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+    allies: [],
+    enemies: ["house_xorlarrin", "ironhead_clan"],
+    rivals: [],
+    values: ["discipline", "labor", "conquest"],
+    hates: ["chaos", "laziness", "drow"],
+    power: 70,
+    assets: [],
+    relationships: {},
+    treasury: 2e4,
+    taxRate: 10,
+    controlledRegionIds: [],
+    controlledRouteIds: [],
+    economicPolicy: "protectionist",
+    tradeGoodPriorities: ["iron", "weapon", "armor", "stone"]
+  },
+  "ironhead_clan": {
+    id: "ironhead_clan",
+    name: "Ironhead Clan",
+    description: "A clan of Svirfneblin (Deep Gnomes) known for their peerless mining and gem-cutting skills. They are secretive and distrustful of outsiders.",
+    type: "GUILD",
+    // Functionally a guild/clan hybrid
+    motto: "Stone keeps its secrets.",
+    colors: { primary: "#78350F", secondary: "#D97706" },
+    // Brown and Amber
+    ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+    allies: [],
+    enemies: ["deepkings_guard", "house_xorlarrin"],
+    rivals: ["iron_ledger"],
+    // Rivals in gem trade
+    values: ["community", "stealth", "craftsmanship"],
+    hates: ["slavers", "open_spaces", "wastefulness"],
+    power: 50,
+    assets: [],
+    relationships: {},
+    treasury: 12e3,
+    taxRate: 5,
+    controlledRegionIds: [],
+    controlledRouteIds: [],
+    economicPolicy: "protectionist",
+    tradeGoodPriorities: ["gem", "stone", "iron", "magic_reagents"]
+  }
+};
+export const INITIAL_FACTION_STANDINGS = Object.keys(FACTIONS).reduce((acc, factionId) => {
+  acc[factionId] = {
+    factionId,
+    publicStanding: 0,
+    secretStanding: 0,
+    rankId: "outsider",
+    // Default to outsider
+    favorsOwed: 0,
+    renown: 0,
+    history: []
+    // TODO(preserve-lint): backfill with meaningful reputation events when faction gameplay is wired up.
+  };
+  return acc;
+}, {});
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImZhY3Rpb25zLnRzIl0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxyXG4gKiBDb3B5cmlnaHQgKGMpIDIwMjQgQXJhbGlhIFJQR1xyXG4gKiBMaWNlbnNlZCB1bmRlciB0aGUgTUlUIExpY2Vuc2VcclxuICpcclxuICogQGZpbGUgc3JjL2RhdGEvZmFjdGlvbnMudHNcclxuICogSW5pdGlhbCBkYXRhIGZvciBmYWN0aW9ucyBpbiB0aGUgd29ybGQuXHJcbiAqL1xyXG5pbXBvcnQgeyBGYWN0aW9uLCBGYWN0aW9uUmFuaywgUGxheWVyRmFjdGlvblN0YW5kaW5nIH0gZnJvbSAnLi4vdHlwZXMvZmFjdGlvbnMnO1xyXG5cclxuY29uc3QgUkFOS19JTklUSUFURTogRmFjdGlvblJhbmsgPSB7XHJcbiAgICBpZDogJ2luaXRpYXRlJyxcclxuICAgIG5hbWU6ICdJbml0aWF0ZScsXHJcbiAgICBsZXZlbDogMSxcclxuICAgIGRlc2NyaXB0aW9uOiAnQSBuZXdseSBpbmR1Y3RlZCBtZW1iZXIgb2YgdGhlIGZhY3Rpb24uJyxcclxuICAgIHBlcmtzOiBbJ2FjY2Vzc19ndWlsZF9oYWxsJ11cclxufTtcclxuXHJcbmNvbnN0IFJBTktfTUVNQkVSOiBGYWN0aW9uUmFuayA9IHtcclxuICAgIGlkOiAnbWVtYmVyJyxcclxuICAgIG5hbWU6ICdNZW1iZXInLFxyXG4gICAgbGV2ZWw6IDIsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0EgdHJ1c3RlZCBtZW1iZXIgb2YgdGhlIGZhY3Rpb24uJyxcclxuICAgIHBlcmtzOiBbJ2FjY2Vzc19ndWlsZF9zdG9yZScsICd0YWtlX2NvbnRyYWN0cyddXHJcbn07XHJcblxyXG5jb25zdCBSQU5LX1ZFVEVSQU46IEZhY3Rpb25SYW5rID0ge1xyXG4gICAgaWQ6ICd2ZXRlcmFuJyxcclxuICAgIG5hbWU6ICdWZXRlcmFuJyxcclxuICAgIGxldmVsOiAzLFxyXG4gICAgZGVzY3JpcHRpb246ICdBIHNlYXNvbmVkIG1lbWJlciB3aG8gY29tbWFuZHMgcmVzcGVjdC4nLFxyXG4gICAgcGVya3M6IFsnY29tbWFuZF9zdWJvcmRpbmF0ZXMnLCAnYWNjZXNzX3ZhdWx0J11cclxufTtcclxuXHJcbi8vIFJBTFBIOiBTdGF0aWMgRGF0YWJhc2Ugb2YgRmFjdGlvbnMuXHJcbi8vIEVhY2ggZmFjdGlvbiBoYXMgc3BlY2lmaWMgXCJWYWx1ZXNcIiBhbmQgXCJIYXRlc1wiIHdoaWNoIHRoZSBBSSB1c2VzIHRvIGRyaXZlIGRpYWxvZ3VlIGFuZCByZWFjdGlvbnMuXHJcbi8vIFwiUG93ZXJcIiAoMC0xMDApIGRldGVybWluZXMgdGhlaXIgZ2xvYmFsIGluZmx1ZW5jZSBhbmQgdGhlIGltcGFjdCBvZiB0aGVpciBldmVudHMuXHJcbmV4cG9ydCBjb25zdCBGQUNUSU9OUzogUmVjb3JkPHN0cmluZywgRmFjdGlvbj4gPSB7XHJcbiAgICAnaXJvbl9sZWRnZXInOiB7XHJcbiAgICAgICAgaWQ6ICdpcm9uX2xlZGdlcicsXHJcbiAgICAgICAgbmFtZTogJ1RoZSBJcm9uIExlZGdlcicsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdBIHBvd2VyZnVsIGd1aWxkIG9mIG1lcmNoYW50cywgYmFua2VycywgYW5kIGNvaW4tbWludGVycyB3aG8gY29udHJvbCB0cmFkZSByb3V0ZXMgYW5kIGxvYW4gbW9uZXkgdG8ga2luZ2RvbXMuIFRoZXkgdmFsdWUgcHJvZml0IGFib3ZlIGFsbCBlbHNlLicsXHJcbiAgICAgICAgdHlwZTogJ0dVSUxEJyxcclxuICAgICAgICBtb3R0bzogJ0dvbGQgbmV2ZXIgcnVzdHMuJyxcclxuICAgICAgICBjb2xvcnM6IHsgcHJpbWFyeTogJyNGRkQ3MDAnLCBzZWNvbmRhcnk6ICcjNEI1NTYzJyB9LCAvLyBHb2xkIGFuZCBTbGF0ZVxyXG4gICAgICAgIHJhbmtzOiBbUkFOS19JTklUSUFURSwgUkFOS19NRU1CRVIsIFJBTktfVkVURVJBTl0sXHJcbiAgICAgICAgYWxsaWVzOiBbJ2hvdXNlX3ZhbmUnXSxcclxuICAgICAgICBlbmVtaWVzOiBbJ3Vuc2Vlbl9oYW5kJ10sXHJcbiAgICAgICAgcml2YWxzOiBbXSxcclxuICAgICAgICB2YWx1ZXM6IFsnd2VhbHRoJywgJ2hvbmVzdHlfaW5fY29udHJhY3RzJywgJ3N0YWJpbGl0eSddLFxyXG4gICAgICAgIGhhdGVzOiBbJ3RoZWZ0JywgJ2NoYW9zJywgJ2JhZF9kZWJ0cyddLFxyXG4gICAgICAgIHBvd2VyOiA4MCxcclxuICAgICAgICBhc3NldHM6IFtdLFxyXG4gICAgICAgIHJlbGF0aW9uc2hpcHM6IHt9LFxyXG4gICAgICAgIHRyZWFzdXJ5OiA1MDAwMCxcclxuICAgICAgICB0YXhSYXRlOiA4LFxyXG4gICAgICAgIGNvbnRyb2xsZWRSZWdpb25JZHM6IFsncmVnaW9uX2NhcGl0YWwnXSxcclxuICAgICAgICBjb250cm9sbGVkUm91dGVJZHM6IFsnZ29sZGVuX3JvYWQnXSxcclxuICAgICAgICBlY29ub21pY1BvbGljeTogJ21lcmNhbnRpbGUnLFxyXG4gICAgICAgIHRyYWRlR29vZFByaW9yaXRpZXM6IFsnbHV4dXJ5JywgJ2dlbScsICdnb2xkJywgJ21hZ2ljX3JlYWdlbnRzJ11cclxuICAgIH0sXHJcbiAgICAndW5zZWVuX2hhbmQnOiB7XHJcbiAgICAgICAgaWQ6ICd1bnNlZW5faGFuZCcsXHJcbiAgICAgICAgbmFtZTogJ1RoZSBVbnNlZW4gSGFuZCcsXHJcbiAgICAgICAgZGVzY3JpcHRpb246ICdBIGNyaW1pbmFsIHN5bmRpY2F0ZSB0aGF0IG9wZXJhdGVzIGluIHRoZSBzaGFkb3dzIG9mIGV2ZXJ5IG1ham9yIGNpdHkuIFRoZXkgZGVhbCBpbiBzZWNyZXRzLCBzdG9sZW4gZ29vZHMsIGFuZCBhc3Nhc3NpbmF0aW9ucy4nLFxyXG4gICAgICAgIHR5cGU6ICdDUklNSU5BTF9TWU5ESUNBVEUnLFxyXG4gICAgICAgIG1vdHRvOiAnU2lsZW5jZSBpcyBnb2xkZW4uJyxcclxuICAgICAgICBjb2xvcnM6IHsgcHJpbWFyeTogJyMxRjI5MzcnLCBzZWNvbmRhcnk6ICcjOUNBM0FGJyB9LCAvLyBEYXJrIEdyYXkgYW5kIExpZ2h0IEdyYXlcclxuICAgICAgICByYW5rczogW1JBTktfSU5JVElBVEUsIFJBTktfTUVNQkVSLCBSQU5LX1ZFVEVSQU5dLFxyXG4gICAgICAgIGFsbGllczogW10sXHJcbiAgICAgICAgZW5lbWllczogWydpcm9uX2xlZGdlcicsICdob3VzZV92YW5lJ10sXHJcbiAgICAgICAgcml2YWxzOiBbXSxcclxuICAgICAgICB2YWx1ZXM6IFsnc2VjcmVjeScsICdsb3lhbHR5JywgJ2N1bm5pbmcnXSxcclxuICAgICAgICBoYXRlczogWydzbml0Y2hlcycsICdsYXdfZW5mb3JjZW1lbnQnLCAnZXhwb3N1cmUnXSxcclxuICAgICAgICBzZXJ2aWNlczogWydmZW5jZScsICdmb3JnZXJ5JywgJ3NhZmVob3VzZSddLFxyXG4gICAgICAgIHBvd2VyOiA2MCxcclxuICAgICAgICBhc3NldHM6IFtdLFxyXG4gICAgICAgIHJlbGF0aW9uc2hpcHM6IHt9LFxyXG4gICAgICAgIHRyZWFzdXJ5OiAxNTAwMCxcclxuICAgICAgICB0YXhSYXRlOiAxNSxcclxuICAgICAgICBjb250cm9sbGVkUmVnaW9uSWRzOiBbXSxcclxuICAgICAgICBjb250cm9sbGVkUm91dGVJZHM6IFtdLFxyXG4gICAgICAgIGVjb25vbWljUG9saWN5OiAnZXhwbG9pdGF0aXZlJyxcclxuICAgICAgICB0cmFkZUdvb2RQcmlvcml0aWVzOiBbJ25hcmNvdGljcycsICdzdG9sZW5fZ29vZHMnLCAnZGFya19tYWdpYycsICd3ZWFwb24nXVxyXG4gICAgfSxcclxuICAgICdob3VzZV92YW5lJzoge1xyXG4gICAgICAgIGlkOiAnaG91c2VfdmFuZScsXHJcbiAgICAgICAgbmFtZTogJ0hvdXNlIFZhbmUnLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQW4gYW5jaWVudCBub2JsZSBob3VzZSBrbm93biBmb3IgdGhlaXIgbWlsaXRhcnkgcHJvd2VzcyBhbmQgc3RyaWN0IGFkaGVyZW5jZSB0byB0cmFkaXRpb24uIFRoZXkgdmlldyB0aGVtc2VsdmVzIGFzIHRoZSBndWFyZGlhbnMgb2YgdGhlIHJlYWxtLicsXHJcbiAgICAgICAgdHlwZTogJ05PQkxFX0hPVVNFJyxcclxuICAgICAgICBtb3R0bzogJ1N0ZWVsIGFuZCBIb25vci4nLFxyXG4gICAgICAgIGNvbG9yczogeyBwcmltYXJ5OiAnI0RDMjYyNicsIHNlY29uZGFyeTogJyNGQ0QzNEQnIH0sIC8vIFJlZCBhbmQgR29sZFxyXG4gICAgICAgIHJhbmtzOiBbUkFOS19JTklUSUFURSwgUkFOS19NRU1CRVIsIFJBTktfVkVURVJBTl0sXHJcbiAgICAgICAgYWxsaWVzOiBbJ2lyb25fbGVkZ2VyJ10sXHJcbiAgICAgICAgZW5lbWllczogWyd1bnNlZW5faGFuZCddLFxyXG4gICAgICAgIHJpdmFsczogW10sXHJcbiAgICAgICAgdmFsdWVzOiBbJ2hvbm9yJywgJ3N0cmVuZ3RoJywgJ3RyYWRpdGlvbiddLFxyXG4gICAgICAgIGhhdGVzOiBbJ2Nvd2FyZGljZScsICd0cmVhY2hlcnknLCAnZGlzcmVzcGVjdCddLFxyXG4gICAgICAgIHBvd2VyOiA3NSxcclxuICAgICAgICBhc3NldHM6IFtdLFxyXG4gICAgICAgIHJlbGF0aW9uc2hpcHM6IHt9LFxyXG4gICAgICAgIHRyZWFzdXJ5OiAzNTAwMCxcclxuICAgICAgICB0YXhSYXRlOiAxMixcclxuICAgICAgICBjb250cm9sbGVkUmVnaW9uSWRzOiBbJ3JlZ2lvbl9jYXBpdGFsJ10sXHJcbiAgICAgICAgY29udHJvbGxlZFJvdXRlSWRzOiBbXSxcclxuICAgICAgICBlY29ub21pY1BvbGljeTogJ3Byb3RlY3Rpb25pc3QnLFxyXG4gICAgICAgIHRyYWRlR29vZFByaW9yaXRpZXM6IFsnd2VhcG9uJywgJ2FybW9yJywgJ2lyb24nLCAnZm9vZCddXHJcbiAgICB9LFxyXG4gICAgLy8gLS0tIFVOREVSREFSSyBGQUNUSU9OUyAtLS1cclxuICAgICdob3VzZV94b3JsYXJyaW4nOiB7XHJcbiAgICAgICAgaWQ6ICdob3VzZV94b3JsYXJyaW4nLFxyXG4gICAgICAgIG5hbWU6ICdIb3VzZSBYb3JsYXJyaW4nLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQSBwb3dlcmZ1bCBEcm93IG5vYmxlIGhvdXNlIG9mIHdpemFyZHJ5IGFuZCBzZWNyZXRzLCByZXNpZGluZyBpbiB0aGUgZGVwdGhzIG9mIE1lbnpvYmVycmFuemFuLiBUaGV5IHNlZWsgdG8gdW5sb2NrIHRoZSBzZWNyZXRzIG9mIEZhZXJ6cmVzcy4nLFxyXG4gICAgICAgIHR5cGU6ICdOT0JMRV9IT1VTRScsXHJcbiAgICAgICAgbW90dG86ICdNYWdpYyBpcyB0aGUgb25seSB0cnV0aC4nLFxyXG4gICAgICAgIGNvbG9yczogeyBwcmltYXJ5OiAnIzZEMjhEOScsIHNlY29uZGFyeTogJyMwMDAwMDAnIH0sIC8vIFZpb2xldCBhbmQgQmxhY2tcclxuICAgICAgICByYW5rczogW1JBTktfSU5JVElBVEUsIFJBTktfTUVNQkVSLCBSQU5LX1ZFVEVSQU5dLFxyXG4gICAgICAgIGFsbGllczogW10sXHJcbiAgICAgICAgZW5lbWllczogWydpcm9uaGVhZF9jbGFuJ10sXHJcbiAgICAgICAgcml2YWxzOiBbJ2hvdXNlX3ZhbmUnXSwgLy8gU3VyZmFjZSByaXZhbHNcclxuICAgICAgICB2YWx1ZXM6IFsnYXJjYW5lX3Bvd2VyJywgJ2FtYml0aW9uJywgJ3NlY3JlY3knXSxcclxuICAgICAgICBoYXRlczogWyd3ZWFrbmVzcycsICdsaWdodF9kd2VsbGVycycsICdzdXJmYWNlX2VsdmVzJ10sXHJcbiAgICAgICAgcG93ZXI6IDg1LFxyXG4gICAgICAgIGFzc2V0czogW10sXHJcbiAgICAgICAgcmVsYXRpb25zaGlwczoge30sXHJcbiAgICAgICAgdHJlYXN1cnk6IDI1MDAwLFxyXG4gICAgICAgIHRheFJhdGU6IDIwLFxyXG4gICAgICAgIGNvbnRyb2xsZWRSZWdpb25JZHM6IFtdLFxyXG4gICAgICAgIGNvbnRyb2xsZWRSb3V0ZUlkczogW10sXHJcbiAgICAgICAgZWNvbm9taWNQb2xpY3k6ICdleHBsb2l0YXRpdmUnLFxyXG4gICAgICAgIHRyYWRlR29vZFByaW9yaXRpZXM6IFsnbWFnaWNfcmVhZ2VudHMnLCAnZ2VtJywgJ2RhcmtfbWFnaWMnXVxyXG4gICAgfSxcclxuICAgICdkZWVwa2luZ3NfZ3VhcmQnOiB7XHJcbiAgICAgICAgaWQ6ICdkZWVwa2luZ3NfZ3VhcmQnLFxyXG4gICAgICAgIG5hbWU6IFwiRGVlcGtpbmcncyBHdWFyZFwiLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnVGhlIGVsaXRlIER1ZXJnYXIgbWlsaXRhcnkgZm9yY2UgcHJvdGVjdGluZyBHcmFja2xzdHVnaCwgdGhlIENpdHkgb2YgQmxhZGVzLiBUaGV5IGFyZSBkaXNjaXBsaW5lZCwgcnV0aGxlc3MsIGFuZCBoZWF2aWx5IGFybW9yZWQuJyxcclxuICAgICAgICB0eXBlOiAnTUlMSVRBUlknLFxyXG4gICAgICAgIG1vdHRvOiAnSXJvbiBzdGFuZHMgZXRlcm5hbC4nLFxyXG4gICAgICAgIGNvbG9yczogeyBwcmltYXJ5OiAnIzRCNTU2MycsIHNlY29uZGFyeTogJyM5Q0EzQUYnIH0sIC8vIEdyZXkgYW5kIFNpbHZlclxyXG4gICAgICAgIHJhbmtzOiBbUkFOS19JTklUSUFURSwgUkFOS19NRU1CRVIsIFJBTktfVkVURVJBTl0sXHJcbiAgICAgICAgYWxsaWVzOiBbXSxcclxuICAgICAgICBlbmVtaWVzOiBbJ2hvdXNlX3hvcmxhcnJpbicsICdpcm9uaGVhZF9jbGFuJ10sXHJcbiAgICAgICAgcml2YWxzOiBbXSxcclxuICAgICAgICB2YWx1ZXM6IFsnZGlzY2lwbGluZScsICdsYWJvcicsICdjb25xdWVzdCddLFxyXG4gICAgICAgIGhhdGVzOiBbJ2NoYW9zJywgJ2xhemluZXNzJywgJ2Ryb3cnXSxcclxuICAgICAgICBwb3dlcjogNzAsXHJcbiAgICAgICAgYXNzZXRzOiBbXSxcclxuICAgICAgICByZWxhdGlvbnNoaXBzOiB7fSxcclxuICAgICAgICB0cmVhc3VyeTogMjAwMDAsXHJcbiAgICAgICAgdGF4UmF0ZTogMTAsXHJcbiAgICAgICAgY29udHJvbGxlZFJlZ2lvbklkczogW10sXHJcbiAgICAgICAgY29udHJvbGxlZFJvdXRlSWRzOiBbXSxcclxuICAgICAgICBlY29ub21pY1BvbGljeTogJ3Byb3RlY3Rpb25pc3QnLFxyXG4gICAgICAgIHRyYWRlR29vZFByaW9yaXRpZXM6IFsnaXJvbicsICd3ZWFwb24nLCAnYXJtb3InLCAnc3RvbmUnXVxyXG4gICAgfSxcclxuICAgICdpcm9uaGVhZF9jbGFuJzoge1xyXG4gICAgICAgIGlkOiAnaXJvbmhlYWRfY2xhbicsXHJcbiAgICAgICAgbmFtZTogJ0lyb25oZWFkIENsYW4nLFxyXG4gICAgICAgIGRlc2NyaXB0aW9uOiAnQSBjbGFuIG9mIFN2aXJmbmVibGluIChEZWVwIEdub21lcykga25vd24gZm9yIHRoZWlyIHBlZXJsZXNzIG1pbmluZyBhbmQgZ2VtLWN1dHRpbmcgc2tpbGxzLiBUaGV5IGFyZSBzZWNyZXRpdmUgYW5kIGRpc3RydXN0ZnVsIG9mIG91dHNpZGVycy4nLFxyXG4gICAgICAgIHR5cGU6ICdHVUlMRCcsIC8vIEZ1bmN0aW9uYWxseSBhIGd1aWxkL2NsYW4gaHlicmlkXHJcbiAgICAgICAgbW90dG86ICdTdG9uZSBrZWVwcyBpdHMgc2VjcmV0cy4nLFxyXG4gICAgICAgIGNvbG9yczogeyBwcmltYXJ5OiAnIzc4MzUwRicsIHNlY29uZGFyeTogJyNEOTc3MDYnIH0sIC8vIEJyb3duIGFuZCBBbWJlclxyXG4gICAgICAgIHJhbmtzOiBbUkFOS19JTklUSUFURSwgUkFOS19NRU1CRVIsIFJBTktfVkVURVJBTl0sXHJcbiAgICAgICAgYWxsaWVzOiBbXSxcclxuICAgICAgICBlbmVtaWVzOiBbJ2RlZXBraW5nc19ndWFyZCcsICdob3VzZV94b3JsYXJyaW4nXSxcclxuICAgICAgICByaXZhbHM6IFsnaXJvbl9sZWRnZXInXSwgLy8gUml2YWxzIGluIGdlbSB0cmFkZVxyXG4gICAgICAgIHZhbHVlczogWydjb21tdW5pdHknLCAnc3RlYWx0aCcsICdjcmFmdHNtYW5zaGlwJ10sXHJcbiAgICAgICAgaGF0ZXM6IFsnc2xhdmVycycsICdvcGVuX3NwYWNlcycsICd3YXN0ZWZ1bG5lc3MnXSxcclxuICAgICAgICBwb3dlcjogNTAsXHJcbiAgICAgICAgYXNzZXRzOiBbXSxcclxuICAgICAgICByZWxhdGlvbnNoaXBzOiB7fSxcclxuICAgICAgICB0cmVhc3VyeTogMTIwMDAsXHJcbiAgICAgICAgdGF4UmF0ZTogNSxcclxuICAgICAgICBjb250cm9sbGVkUmVnaW9uSWRzOiBbXSxcclxuICAgICAgICBjb250cm9sbGVkUm91dGVJZHM6IFtdLFxyXG4gICAgICAgIGVjb25vbWljUG9saWN5OiAncHJvdGVjdGlvbmlzdCcsXHJcbiAgICAgICAgdHJhZGVHb29kUHJpb3JpdGllczogWydnZW0nLCAnc3RvbmUnLCAnaXJvbicsICdtYWdpY19yZWFnZW50cyddXHJcbiAgICB9XHJcbn07XHJcblxyXG4vLyBSQUxQSDogU3RhdGUgSW5pdGlhbGl6YXRpb24uXHJcbi8vIEF1dG9tYXRpY2FsbHkgc2VlZHMgdGhlIHBsYXllcidzIHJlcHV0YXRpb24gYXQgMCBmb3IgZXZlcnkgZGVmaW5lZCBmYWN0aW9uLlxyXG5leHBvcnQgY29uc3QgSU5JVElBTF9GQUNUSU9OX1NUQU5ESU5HUzogUmVjb3JkPHN0cmluZywgUGxheWVyRmFjdGlvblN0YW5kaW5nPiA9IE9iamVjdC5rZXlzKEZBQ1RJT05TKS5yZWR1Y2UoKGFjYywgZmFjdGlvbklkKSA9PiB7XHJcbiAgICBhY2NbZmFjdGlvbklkXSA9IHtcclxuICAgICAgICBmYWN0aW9uSWQsXHJcbiAgICAgICAgcHVibGljU3RhbmRpbmc6IDAsXHJcbiAgICAgICAgc2VjcmV0U3RhbmRpbmc6IDAsXHJcbiAgICAgICAgcmFua0lkOiAnb3V0c2lkZXInLCAvLyBEZWZhdWx0IHRvIG91dHNpZGVyXHJcbiAgICAgICAgZmF2b3JzT3dlZDogMCxcclxuICAgICAgICByZW5vd246IDAsXHJcbiAgICAgICAgaGlzdG9yeTogW10gLy8gVE9ETyhwcmVzZXJ2ZS1saW50KTogYmFja2ZpbGwgd2l0aCBtZWFuaW5nZnVsIHJlcHV0YXRpb24gZXZlbnRzIHdoZW4gZmFjdGlvbiBnYW1lcGxheSBpcyB3aXJlZCB1cC5cclxuICAgIH07XHJcbiAgICByZXR1cm4gYWNjO1xyXG59LCB7fSBhcyBSZWNvcmQ8c3RyaW5nLCBQbGF5ZXJGYWN0aW9uU3RhbmRpbmc+KTtcclxuIl0sIm1hcHBpbmdzIjoiQUFTQSxNQUFNLGdCQUE2QjtBQUFBLEVBQy9CLElBQUk7QUFBQSxFQUNKLE1BQU07QUFBQSxFQUNOLE9BQU87QUFBQSxFQUNQLGFBQWE7QUFBQSxFQUNiLE9BQU8sQ0FBQyxtQkFBbUI7QUFDL0I7QUFFQSxNQUFNLGNBQTJCO0FBQUEsRUFDN0IsSUFBSTtBQUFBLEVBQ0osTUFBTTtBQUFBLEVBQ04sT0FBTztBQUFBLEVBQ1AsYUFBYTtBQUFBLEVBQ2IsT0FBTyxDQUFDLHNCQUFzQixnQkFBZ0I7QUFDbEQ7QUFFQSxNQUFNLGVBQTRCO0FBQUEsRUFDOUIsSUFBSTtBQUFBLEVBQ0osTUFBTTtBQUFBLEVBQ04sT0FBTztBQUFBLEVBQ1AsYUFBYTtBQUFBLEVBQ2IsT0FBTyxDQUFDLHdCQUF3QixjQUFjO0FBQ2xEO0FBS08sYUFBTSxXQUFvQztBQUFBLEVBQzdDLGVBQWU7QUFBQSxJQUNYLElBQUk7QUFBQSxJQUNKLE1BQU07QUFBQSxJQUNOLGFBQWE7QUFBQSxJQUNiLE1BQU07QUFBQSxJQUNOLE9BQU87QUFBQSxJQUNQLFFBQVEsRUFBRSxTQUFTLFdBQVcsV0FBVyxVQUFVO0FBQUE7QUFBQSxJQUNuRCxPQUFPLENBQUMsZUFBZSxhQUFhLFlBQVk7QUFBQSxJQUNoRCxRQUFRLENBQUMsWUFBWTtBQUFBLElBQ3JCLFNBQVMsQ0FBQyxhQUFhO0FBQUEsSUFDdkIsUUFBUSxDQUFDO0FBQUEsSUFDVCxRQUFRLENBQUMsVUFBVSx3QkFBd0IsV0FBVztBQUFBLElBQ3RELE9BQU8sQ0FBQyxTQUFTLFNBQVMsV0FBVztBQUFBLElBQ3JDLE9BQU87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

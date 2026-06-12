@@ -3,7 +3,11 @@
  * Bidirectional coordinate transforms between world meters, SVG atlas units,
  * and WorldData grid cells. Shared between world-3d-ui and map components.
  *
- * World dimensions: 60 cols × 40 rows × 128m/chunk = 7680m × 5120m
+ * All world-meter values here live in the streamed-3D coordinate frame defined by
+ * WORLD3D_CONFIG (METERS_PER_CELL per grid cell, heightToMeters for elevation), so
+ * positions produced/consumed here line up with the rendered terrain.
+ *
+ * World dimensions: 60 cols × 40 rows × 1024m/cell = 61440m × 40960m
  * Atlas SVG dimensions: configurable, default ~2000×1333 SVG units
  *
  * Coordinate conventions:
@@ -13,16 +17,22 @@
  */
 
 import type { WorldData } from '../services/worldSim/types';
+import { WORLD3D_CONFIG, heightToMeters } from '../systems/world3d/config';
 
 // World grid constants (from mapConfig)
 const WORLD_COLS = 60;
 const WORLD_ROWS = 40;
-/** Meters per world-map grid cell — exported for entry-position helpers. */
-export const CHUNK_SIZE = 128;
+/**
+ * Meters per world-map grid cell, in the streamed-3D frame. Must match the chunk
+ * geometry's mapping (WORLD3D_CONFIG.METERS_PER_CELL) or positions land at the
+ * wrong scale — the old standalone 128 (one chunk, not one cell) spawned 3D entry
+ * at 1/8 scale and pinned the atlas player marker to the map edge.
+ */
+export const METERS_PER_CELL = WORLD3D_CONFIG.METERS_PER_CELL;
 
 // Derived world dimensions in meters
-export const WORLD_WIDTH_M = WORLD_COLS * CHUNK_SIZE;   // 7680m
-export const WORLD_HEIGHT_M = WORLD_ROWS * CHUNK_SIZE;  // 5120m
+export const WORLD_WIDTH_M = WORLD_COLS * METERS_PER_CELL;   // 61440m
+export const WORLD_HEIGHT_M = WORLD_ROWS * METERS_PER_CELL;  // 40960m
 
 // Default SVG viewport dimensions (overridden by MapPane props)
 export const DEFAULT_SVG_WIDTH = 2000;
@@ -76,8 +86,8 @@ export function worldToGridCell(
   wx: number,
   wz: number,
 ): { col: number; row: number } {
-  const col = Math.floor(wx / CHUNK_SIZE);
-  const row = Math.floor(wz / CHUNK_SIZE);
+  const col = Math.floor(wx / METERS_PER_CELL);
+  const row = Math.floor(wz / METERS_PER_CELL);
   return {
     col: Math.max(0, Math.min(WORLD_COLS - 1, col)),
     row: Math.max(0, Math.min(WORLD_ROWS - 1, row)),
@@ -88,27 +98,27 @@ export function worldToGridCell(
  * Get terrain height at a world position using bilinear interpolation
  * from the WorldData heights array.
  *
- * The heights array is a flat grid of normalized values (0-1 range),
- * indexed as `heights[row * cols + col]`.
+ * The heights array is a flat grid of WorldData heights (0..100 range),
+ * indexed as `heights[row * cols + col]`. The interpolated height is mapped
+ * to meters via `heightToMeters` — the same single source of truth the chunk
+ * geometry uses — so the returned Y sits on the rendered terrain surface.
  *
  * @param wx - world X in meters
  * @param wz - world Z in meters
  * @param worldData - the WorldData object containing heights
- * @param heightScale - maximum terrain height in meters (default: 200)
- * @returns Terrain height (Y) in meters
+ * @returns Terrain height (Y) in meters, with vertical exaggeration applied
  */
 export function getTerrainHeight(
   wx: number,
   wz: number,
   worldData: WorldData,
-  heightScale: number = 200,
 ): number {
   const { cols, rows } = worldData.gridSize;
   const heights = worldData.heights;
 
   // Convert world meters to fractional grid coordinates
-  const fracCol = wx / CHUNK_SIZE;
-  const fracRow = wz / CHUNK_SIZE;
+  const fracCol = wx / METERS_PER_CELL;
+  const fracRow = wz / METERS_PER_CELL;
 
   // Clamp to grid bounds
   const c0 = Math.max(0, Math.min(cols - 2, Math.floor(fracCol)));
@@ -131,15 +141,16 @@ export function getTerrainHeight(
   const hBottom = h01 * (1 - u) + h11 * u;
   const h = hTop * (1 - v) + hBottom * v;
 
-  // Scale from normalized [0,1] to meters
-  return h * heightScale;
+  // Map WorldData height (0..100) to exaggerated world meters — same mapping
+  // as the rendered terrain heightfield.
+  return heightToMeters(h);
 }
 
 /**
  * World-map grid dimensions in meters for a given col/row count.
  */
 export function gridWorldDimensions(cols: number, rows: number): { widthM: number; heightM: number } {
-  return { widthM: cols * CHUNK_SIZE, heightM: rows * CHUNK_SIZE };
+  return { widthM: cols * METERS_PER_CELL, heightM: rows * METERS_PER_CELL };
 }
 
 /**

@@ -79,6 +79,42 @@ it('scales town radius up with population but stays plausible', () => {
   expect(highPlacement.radius).toBeLessThanOrEqual(30);
 });
 
+it('puts the door on the street-facing wall for both street sides', () => {
+  // Town-plan corner convention: corners 0-1 are the frontage edge (toward
+  // the street). A plot on the opposite side of the street winds the other
+  // way, so the door face must flip with it.
+  const plotFor = (streetSide: 'below' | 'above') => {
+    const data = chunkWithTown();
+    const hF = 0.01; // half frontage (grid units)
+    const hD = 0.008; // half depth
+    const cx = 0.05, cy = 0.05;
+    const yFront = streetSide === 'below' ? cy - hD : cy + hD;
+    const yBack = streetSide === 'below' ? cy + hD : cy - hD;
+    data.sites = [
+      {
+        ...data.sites[0],
+        id: `p-${streetSide}`,
+        kind: 'ruin',
+        footprint: [
+          { x: cx - hF, y: yFront },
+          { x: cx + hF, y: yFront },
+          { x: cx + hF, y: yBack },
+          { x: cx - hF, y: yBack },
+        ],
+        heightM: 6,
+      },
+    ];
+    return buildSiteMeshes(data)[0];
+  };
+
+  const below = plotFor('below');
+  const above = plotFor('above');
+  expect(below.doorZSign).toBe(-1);
+  expect(above.doorZSign).toBe(1);
+  // Same frontage axis → same yaw; only the door face flips.
+  expect(below.rotationY).toBeCloseTo(above.rotationY ?? NaN);
+});
+
 it('uses kind-based base radius for non-town sites without population', () => {
   const data = chunkWithTown();
   data.sites = [

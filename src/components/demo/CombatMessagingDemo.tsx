@@ -36,7 +36,7 @@ const mockCharacters: Record<string, any> = {
   }
 };
 
-export const CombatMessagingDemo: React.FC = () => {
+export const CombatMessagingDemo: React.FC<{ onExit?: () => void }> = ({ onExit }) => {
   const {
     messages,
     config,
@@ -134,7 +134,18 @@ export const CombatMessagingDemo: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-amber-400 mb-6">Combat Messaging System Demo</h1>
+        {/* Header containing the demo title and a back button to exit the demo phase. */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-amber-400">Combat Messaging System Demo</h1>
+          {onExit && (
+            <button
+              onClick={onExit}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md transition-colors"
+            >
+              Exit Demo
+            </button>
+          )}
+        </div>
         
         {/* Configuration Panel */}
         <div className="bg-gray-800 rounded-lg p-4 mb-6">

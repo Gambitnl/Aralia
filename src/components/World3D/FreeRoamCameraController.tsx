@@ -24,6 +24,10 @@ interface FreeRoamCameraControllerProps {
   sceneOrigin: SceneOrigin;
   /** Called (throttled) with the controls' current target in ABSOLUTE WORLD coords. */
   onPositionChange: (worldX: number, worldZ: number) => void;
+  /** Dolly floor in meters — walking-scale scenes want ~2, map scale ~20. */
+  minDistance?: number;
+  /** Dolly ceiling in meters. */
+  maxDistance?: number;
 }
 
 const REPORT_INTERVAL = 0.1; // seconds (~10 Hz)
@@ -32,6 +36,8 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
   initialTarget,
   sceneOrigin,
   onPositionChange,
+  minDistance = 20,
+  maxDistance = 2000,
 }) => {
   const controlsRef = useRef<any>(null);
   const sinceReport = useRef(0);
@@ -59,8 +65,8 @@ const FreeRoamCameraController: React.FC<FreeRoamCameraControllerProps> = ({
     <MapControls
       ref={controlsRef}
       target={[initialTarget[0], initialTarget[1], initialTarget[2]]}
-      minDistance={20}
-      maxDistance={2000}
+      minDistance={minDistance}
+      maxDistance={maxDistance}
       minPolarAngle={Math.PI * 0.1}
       maxPolarAngle={Math.PI * 0.48}
       enableDamping

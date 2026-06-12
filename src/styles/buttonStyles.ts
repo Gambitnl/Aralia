@@ -6,7 +6,7 @@
 // TODO(QOL): Audit remaining ad-hoc buttons and migrate them to BTN_* helpers or the shared <Button> to keep padding/hover/focus consistent (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
 
 // Base structural classes (no size or color)
-export const BTN_BASE = "font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed";
+export const BTN_BASE = "font-semibold rounded-lg shadow-md transition-all duration-150 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-opacity-75 disabled:opacity-40 disabled:saturate-50 disabled:shadow-none disabled:cursor-not-allowed";
 
 // Sizes
 export const BTN_SIZE_SM = "py-1 px-3 text-sm";

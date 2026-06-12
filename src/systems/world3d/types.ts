@@ -1,4 +1,4 @@
-// @dependencies-start
+﻿// @dependencies-start
 /**
  * ARCHITECTURAL ADVISORY:
  * CRITICAL CORE SYSTEM: Changes here ripple across the entire city.
@@ -67,6 +67,26 @@ export interface ChunkData {
     walled: boolean;
     population?: number;
     surfaceY: number;
+    /**
+     * Optional explicit building height in METERS (e.g. town-plan plots:
+     * storeys Ã— 3 m). Without it the renderer keeps the kind-radius cube
+     * (legacy). Added 2026-06-11 for Worldforge ground mode.
+     */
+    heightM?: number;
+    /** Optional explicit render color (e.g. role tints from town plans). */
+    colorHex?: string;
+    /**
+     * Suppress the HUD nameplate for this site. Town-plan building plots
+     * arrive as dozens of 'ruin' sites per settlement — labeling each one
+     * buries the scene in chips, so only the town marker keeps its label.
+     */
+    unlabeled?: boolean;
+    /**
+     * Render no mesh for this site — nameplate only. At walking scale the
+     * settlement's plot buildings ARE the town; the population-scaled
+     * marker cube would dwarf them.
+     */
+    markerOnly?: boolean;
   }[];
 }
 
@@ -107,6 +127,27 @@ export interface ChunkSite {
   population?: number;
   radius: number;
   walled: boolean;
+  /**
+   * Oriented-box footprint (2026-06-11, Worldforge ground mode): present
+   * when the site arrived with a 4-corner footprint â€” the renderer then
+   * draws a rotated boxWidth Ã— boxHeight Ã— boxDepth building instead of
+   * the kind-radius cube. All meters; rotationY in radians.
+   */
+  colorHex?: string;
+  /** Suppress the HUD nameplate (see ChunkData.sites.unlabeled). */
+  unlabeled?: boolean;
+  /** Render no mesh — nameplate only (see ChunkData.sites.markerOnly). */
+  markerOnly?: boolean;
+  boxWidth?: number;
+  boxDepth?: number;
+  boxHeight?: number;
+  rotationY?: number;
+  /**
+   * Which local-Z face of the oriented box fronts the street (+1 or −1).
+   * Town-plan footprints wind oppositely on the two sides of a street, so
+   * the renderer can't assume a fixed face for the door.
+   */
+  doorZSign?: number;
 }
 
 /** Instanced vegetation transforms for a chunk. */
@@ -143,3 +184,4 @@ export interface LoadedChunk {
   bundle: ChunkMeshBundle;
   lod: LodTier;
 }
+

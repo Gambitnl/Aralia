@@ -12,7 +12,9 @@
  *
  * Consumers: Cultures.generate (culture centers), Burgs.generate (burg
  * spacing), Religions.generate (religion cores), reGraph's `pack.cells.q`
- * (built in generateWorld.ts) for findClosestCell.
+ * (built in generateWorld.ts) for findClosestCell, Military.generate
+ * (regiment merge tree — needs `.remove` and custom accessors, added for
+ * that port; both are verbatim d3-quadtree 3.x).
  */
 
 type XAccessor<T> = (d: T) => number;
@@ -120,14 +122,14 @@ export class Quadtree<T> {
   }
 
   // d3-quadtree add.js — verbatim port
-  add(d: T): this {
+  add(d: T): Quadtree<T> {
     const x = +this._x.call(null, d);
     const y = +this._y.call(null, d);
     return addPoint(this.cover(x, y), x, y, d);
   }
 
   // d3-quadtree add.js addAll — verbatim port
-  addAll(data: T[]): this {
+  addAll(data: T[]): Quadtree<T> {
     let d: T;
     let x: number;
     let y: number;
@@ -162,6 +164,93 @@ export class Quadtree<T> {
     }
 
     return this;
+  }
+
+  // d3-quadtree remove.js — verbatim port (Military regiment merging walks
+  // the tree destructively: every processed platoon is removed before its
+  // neighborhood is searched).
+  remove(d: T): this {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    let x: number;
+    let y: number;
+    if (isNaN((x = +this._x.call(null, d))) || isNaN((y = +this._y.call(null, d)))) return this; // ignore invalid points
+
+    let parent: InternalNode<T> | undefined;
+    let node: QuadNode<T> | undefined = this._root;
+    let retainer: InternalNode<T> | undefined;
+    let previous: LeafNode<T> | undefined;
+    let next: LeafNode<T> | undefined;
+    let x0 = this._x0;
+    let y0 = this._y0;
+    let x1 = this._x1;
+    let y1 = this._y1;
+    let xm: number;
+    let ym: number;
+    let right: number | boolean;
+    let bottom: number | boolean;
+    let i = 0;
+    let j = 0;
+
+    // If the tree is empty, initialize the root as a leaf.
+    if (!node) return this;
+
+    // Find the leaf node for the point.
+    // While descending, also retain the deepest parent with a non-removed sibling.
+    if ((node as InternalNode<T>).length)
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        if ((right = x >= (xm = (x0 + x1) / 2))) x0 = xm;
+        else x1 = xm;
+        if ((bottom = y >= (ym = (y0 + y1) / 2))) y0 = ym;
+        else y1 = ym;
+        parent = node as InternalNode<T>;
+        i = ((+bottom) << 1) | +right;
+        node = parent[i];
+        if (!node) return this;
+        if (!(node as InternalNode<T>).length) break;
+        if (parent[(i + 1) & 3] || parent[(i + 2) & 3] || parent[(i + 3) & 3]) {
+          retainer = parent;
+          j = i;
+        }
+      }
+
+    // Find the point to remove.
+    while ((node as LeafNode<T>).data !== d) {
+      previous = node as LeafNode<T>;
+      node = (node as LeafNode<T>).next;
+      if (!node) return this;
+    }
+    if ((next = (node as LeafNode<T>).next)) delete (node as LeafNode<T>).next;
+
+    // If there are multiple coincident points, remove just the point.
+    if (previous) {
+      if (next) previous.next = next;
+      else delete previous.next;
+      return this;
+    }
+
+    // If this is the root point, remove it.
+    if (!parent) {
+      this._root = next;
+      return this;
+    }
+
+    // Remove this leaf.
+    if (next) parent[i] = next;
+    else delete parent[i];
+
+    // If the parent now contains exactly one leaf, collapse superfluous parents.
+    if (
+      (node = parent[0] || parent[1] || parent[2] || parent[3]) &&
+      node === (parent[3] || parent[2] || parent[1] || parent[0]) &&
+      !(node as InternalNode<T>).length
+    ) {
+      if (retainer) retainer[j] = node;
+      else this._root = node;
+    }
+
+    return this;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   }
 
   // d3-quadtree find.js — verbatim port
@@ -258,8 +347,6 @@ function addPoint<T>(tree: Quadtree<T>, x: number, y: number, d: T): Quadtree<T>
   let y1 = t._y1;
   let xm: number;
   let ym: number;
-  let xp: number;
-  let yp: number;
   let right: number | boolean;
   let bottom: number | boolean;
   let i = 0;
@@ -287,8 +374,8 @@ function addPoint<T>(tree: Quadtree<T>, x: number, y: number, d: T): Quadtree<T>
   }
 
   // Is the new point is exactly coincident with the existing point?
-  xp = +t._x.call(null, (node as LeafNode<T>).data);
-  yp = +t._y.call(null, (node as LeafNode<T>).data);
+  const xp = +t._x.call(null, (node as LeafNode<T>).data);
+  const yp = +t._y.call(null, (node as LeafNode<T>).data);
   if (x === xp && y === yp) {
     leaf.next = node as LeafNode<T>;
     if (parent) parent[i] = leaf;
@@ -315,11 +402,16 @@ function addPoint<T>(tree: Quadtree<T>, x: number, y: number, d: T): Quadtree<T>
 }
 
 /**
- * d3.quadtree(nodes?) — default accessors d[0]/d[1], like upstream usage
- * (FMG only ever calls it with point arrays or no arguments).
+ * d3.quadtree(nodes?, x?, y?) — default accessors d[0]/d[1]; custom x/y
+ * accessors supported since the Military port (upstream calls
+ * `d3.quadtree(nodes, d => d.x, d => d.y)` for platoon merging).
  */
-export function quadtree<T = number[]>(nodes?: T[]): Quadtree<T> {
-  const tree = new Quadtree<T>();
+export function quadtree<T = number[]>(
+  nodes?: T[],
+  x?: XAccessor<T>,
+  y?: XAccessor<T>,
+): Quadtree<T> {
+  const tree = new Quadtree<T>(x, y);
   if (nodes != null) tree.addAll(nodes);
   return tree;
 }

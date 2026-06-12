@@ -146,6 +146,36 @@ async function shoot(name) {
   const w = await waitCanvasSized();
   if (process.env.OVERVIEW) { console.log('overview:', JSON.stringify(await applyOverview())); await sleep(1500); }
   await sleep(2500); // let scene settle / render frames
+  // TARGETING="1" (first usable ability) or an ability-name substring (e.g.
+  // "acid") → enter ability-targeting mode via the dev hook so TargetingDecals
+  // can be captured (gap #29 / GOAL #14-#15). Runs BEFORE the pose: advancing
+  // turns re-snaps the camera, so the pose must be applied last.
+  // TARGETING="prep" advances turns to the same caster WITHOUT starting
+  // targeting — the matched "before" state for a targeting A/B.
+  if (process.env.TARGETING) {
+    const r = await page.evaluate(async (name) => {
+      const t = window.__bm3dTargeting;
+      if (!t) return 'no-hook';
+      if (name === 'prep') return await t.start(undefined, true);
+      return await t.start(name === '1' ? undefined : name);
+    }, process.env.TARGETING);
+    console.log('targeting:', JSON.stringify(r));
+    await sleep(1500);
+    // AOEAT="x,y" → deterministic stand-in for hovering tile (x,y) so the
+    // AoE template paints (GOAL #15). Pair with TARGETING="__aoe" (synthetic
+    // area ability) or a real area ability name.
+    if (process.env.AOEAT) {
+      const a = process.env.AOEAT.split(',').map(Number);
+      const pr = await page.evaluate(([x, y]) => {
+        const t = window.__bm3dTargeting;
+        return t && t.previewAoEAt ? t.previewAoEAt(x, y) : 'no-aoe-hook';
+      }, a);
+      console.log('aoeAt:', JSON.stringify(pr));
+      await sleep(1200);
+    }
+    console.log('targetSets:', JSON.stringify(await page.evaluate(() => window.__bm3dTargetSets ?? 'no-probe')));
+    console.log('decalDebug:', JSON.stringify(await page.evaluate(() => window.__bm3dDecalDebug ?? 'no-decal-layer')));
+  }
   // Deterministic camera pose via the dev hook (window.__bm3dCam). Format:
   // POSE="distance,polarDeg,azimuthDeg" e.g. POSE="33,75,40" for a low
   // horizon-facing tactical shot. Needs the CameraController dev hook.
@@ -156,6 +186,40 @@ async function shoot(name) {
       return c && c.pose ? c.pose(a[0], a[1], a[2]) : 'no-hook';
     }, args);
     console.log('pose:', JSON.stringify(r));
+    await sleep(1500);
+  }
+  // SLOPESCOUT=1 → list bare grass tiles adjacent to ≥2-step elevation
+  // changes (candidate framing spots for slope-grounding audits).
+  if (process.env.SLOPESCOUT) {
+    const r = await page.evaluate(() => {
+      const md = window.__bm3dMapData;
+      if (!md) return 'no-probe';
+      const get = (x, y) => md.tiles.get(`${x}-${y}`);
+      const out = [];
+      for (const [, t] of md.tiles) {
+        if ((t.terrain === 'grass' || t.terrain === 'difficult') && !t.decoration) {
+          let maxd = 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const n = get(t.coordinates.x + dx, t.coordinates.y + dy);
+            if (n) maxd = Math.max(maxd, Math.abs((n.elevation ?? 0) - (t.elevation ?? 0)));
+          }
+          if (maxd >= 2) out.push(`${t.coordinates.x},${t.coordinates.y} e${t.elevation} d${maxd}`);
+        }
+      }
+      return out.slice(0, 30);
+    });
+    console.log('slopeScout:', JSON.stringify(r));
+  }
+  // POSEAT="tx,tz,distance,polarDeg,azimuthDeg" → frame an arbitrary world
+  // point (e.g. a specific tile, to verify tile-anchored effects like the
+  // targeting decals).
+  if (process.env.POSEAT) {
+    const a = process.env.POSEAT.split(',').map(Number);
+    const r = await page.evaluate((args) => {
+      const c = window.__bm3dCam;
+      return c && c.poseAt ? c.poseAt(args[0], args[1], args[2], args[3], args[4]) : 'no-hook';
+    }, a);
+    console.log('poseAt:', JSON.stringify(r));
     await sleep(1500);
   }
   // POSETEAM="team,distance,polarDeg,azimuthDeg" → frame a team's centroid

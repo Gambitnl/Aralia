@@ -17,6 +17,12 @@ export interface CreationStepLayoutProps {
   headerActions?: React.ReactNode;
   /** Allow disabling the outer scroll container so inner panes can scroll independently. */
   bodyScrollable?: boolean;
+  /**
+   * Why the Next/Confirm button is currently blocked. Rendered as a visible
+   * hint under the header so users aren't left guessing at a disabled button
+   * whose explanation only exists in a hover tooltip (GAPS.md G11).
+   */
+  blockedReason?: string | null;
 }
 
 /**
@@ -36,6 +42,7 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
   customNextButton,
   headerActions,
   bodyScrollable = true,
+  blockedReason = null,
 }) => {
   return (
     <div className={`flex flex-col h-full w-full ${className}`}>
@@ -82,6 +89,15 @@ export const CreationStepLayout: React.FC<CreationStepLayoutProps> = ({
             ) : null}
           </div>
         </div>
+
+        {blockedReason && (
+          <p
+            className="text-right text-xs text-amber-300/90 mt-1.5 pr-1"
+            role="status"
+          >
+            {blockedReason}
+          </p>
+        )}
       </div>
 
       {/* Scrollable Body - maximized space without footer */}

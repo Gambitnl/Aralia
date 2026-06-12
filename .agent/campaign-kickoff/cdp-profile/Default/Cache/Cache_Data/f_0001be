@@ -1,0 +1,220 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/CharacterCreator/CreationSidebar.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import {
+  SIDEBAR_STEPS,
+  STEP_GROUPS,
+  isStepCompleted
+} from "/Aralia/src/components/CharacterCreator/config/sidebarSteps.ts?t=1781176525914";
+const StepIndicator = ({ isComplete, isCurrent, isClickable }) => {
+  if (isComplete) {
+    return /* @__PURE__ */ jsxDEV("div", { className: "w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0", children: /* @__PURE__ */ jsxDEV("svg", { className: "w-3 h-3 text-white", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: /* @__PURE__ */ jsxDEV("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 3, d: "M5 13l4 4L19 7" }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+      lineNumber: 51,
+      columnNumber: 11
+    }, this) }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+      lineNumber: 50,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+      lineNumber: 49,
+      columnNumber: 7
+    }, this);
+  }
+  if (isCurrent) {
+    return /* @__PURE__ */ jsxDEV("div", { className: "w-5 h-5 rounded-full bg-sky-500 ring-2 ring-sky-300 ring-offset-1 ring-offset-gray-800 flex-shrink-0" }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+      lineNumber: 59,
+      columnNumber: 7
+    }, this);
+  }
+  return /* @__PURE__ */ jsxDEV("div", { className: `w-5 h-5 rounded-full border-2 flex-shrink-0 ${isClickable ? "border-gray-500" : "border-gray-600"}` }, void 0, false, {
+    fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+    lineNumber: 64,
+    columnNumber: 5
+  }, this);
+};
+_c = StepIndicator;
+const SidebarStepRow = ({ config, currentStep, state, onNavigate, index }) => {
+  const isComplete = isStepCompleted(config.step, state);
+  const isCurrent = currentStep === config.step;
+  const isNested = config.parentStep !== void 0;
+  const canNavigate = !isCurrent;
+  const summary = config.getSelectionSummary(state);
+  const handleClick = () => {
+    if (canNavigate) {
+      onNavigate(config.step);
+    }
+  };
+  return /* @__PURE__ */ jsxDEV(
+    "button",
+    {
+      onClick: handleClick,
+      disabled: !canNavigate,
+      className: `
+        w-full flex items-center gap-3 py-2 px-3 rounded-md text-left transition-colors
+        ${isNested ? "ml-4" : ""}
+        ${isCurrent ? "bg-gray-700/50" : ""}
+        ${canNavigate ? "hover:bg-gray-700/70 cursor-pointer" : "cursor-default"}
+      `,
+      "aria-current": isCurrent ? "step" : void 0,
+      "aria-label": `${index}. ${config.label}${summary ? `: ${summary}` : ""}${isComplete ? " (completed)" : isCurrent ? " (current)" : ""}`,
+      children: [
+        /* @__PURE__ */ jsxDEV(
+          StepIndicator,
+          {
+            isComplete,
+            isCurrent,
+            isClickable: canNavigate
+          },
+          void 0,
+          false,
+          {
+            fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+            lineNumber: 108,
+            columnNumber: 7
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ jsxDEV("div", { className: `text-sm font-medium truncate ${isCurrent ? "text-sky-300" : isComplete ? "text-gray-200" : "text-gray-400"}`, children: [
+            index,
+            ". ",
+            config.label
+          ] }, void 0, true, {
+            fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+            lineNumber: 114,
+            columnNumber: 9
+          }, this),
+          summary && /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-gray-400 truncate ml-1 opacity-80", children: summary }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+            lineNumber: 120,
+            columnNumber: 9
+          }, this)
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+          lineNumber: 113,
+          columnNumber: 7
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+      lineNumber: 96,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_c2 = SidebarStepRow;
+const _GroupHeader = ({ group }) => {
+  const { label } = STEP_GROUPS[group];
+  return /* @__PURE__ */ jsxDEV("div", { className: "px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider", children: label }, void 0, false, {
+    fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+    lineNumber: 136,
+    columnNumber: 5
+  }, this);
+};
+const CreationSidebar = ({
+  currentStep,
+  state,
+  onNavigateToStep
+}) => {
+  const visibleSteps = SIDEBAR_STEPS.filter((step) => step.isVisible(state));
+  return /* @__PURE__ */ jsxDEV(
+    "aside",
+    {
+      className: "w-64 bg-gray-850 border-r border-gray-700 flex flex-col h-full",
+      "aria-label": "Character creation progress",
+      children: [
+        /* @__PURE__ */ jsxDEV("div", { className: "p-4 border-b border-gray-700", children: /* @__PURE__ */ jsxDEV("h2", { className: "text-lg font-semibold text-amber-400", children: "Progress" }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+          lineNumber: 160,
+          columnNumber: 9
+        }, this) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+          lineNumber: 159,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("nav", { className: "flex-1 overflow-y-auto p-2 space-y-1", children: visibleSteps.map(
+          (stepConfig, index) => /* @__PURE__ */ jsxDEV(
+            SidebarStepRow,
+            {
+              config: stepConfig,
+              currentStep,
+              state,
+              onNavigate: onNavigateToStep,
+              index: index + 1
+            },
+            stepConfig.step,
+            false,
+            {
+              fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+              lineNumber: 166,
+              columnNumber: 9
+            },
+            this
+          )
+        ) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+          lineNumber: 164,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { className: "p-4 border-t border-gray-700", children: /* @__PURE__ */ jsxDEV("div", { className: "text-xs text-gray-500", children: [
+          visibleSteps.filter((s) => isStepCompleted(s.step, state)).length,
+          " / ",
+          visibleSteps.length,
+          " steps complete"
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+          lineNumber: 179,
+          columnNumber: 9
+        }, this) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+          lineNumber: 178,
+          columnNumber: 7
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx",
+      lineNumber: 154,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_c3 = CreationSidebar;
+export default CreationSidebar;
+var _c, _c2, _c3;
+$RefreshReg$(_c, "StepIndicator");
+$RefreshReg$(_c2, "SidebarStepRow");
+$RefreshReg$(_c3, "CreationSidebar");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/CharacterCreator/CreationSidebar.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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O0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsRUE2QkE7QUFFSjtBQUFFQyxNQXhDSVQ7QUEwQ04sZUFBZUE7QUFBZ0IsSUFBQW5CLElBQUFnQixLQUFBWTtBQUFBQyxhQUFBN0IsSUFBQTtBQUFBNkIsYUFBQWIsS0FBQTtBQUFBYSxhQUFBRCxLQUFBIiwibmFtZXMiOlsiU0lERUJBUl9TVEVQUyIsIlNURVBfR1JPVVBTIiwiaXNTdGVwQ29tcGxldGVkIiwiU3RlcEluZGljYXRvciIsImlzQ29tcGxldGUiLCJpc0N1cnJlbnQiLCJpc0NsaWNrYWJsZSIsIl9jIiwiU2lkZWJhclN0ZXBSb3ciLCJjb25maWciLCJjdXJyZW50U3RlcCIsInN0YXRlIiwib25OYXZpZ2F0ZSIsImluZGV4Iiwic3RlcCIsImlzTmVzdGVkIiwicGFyZW50U3RlcCIsInVuZGVmaW5lZCIsImNhbk5hdmlnYXRlIiwic3VtbWFyeSIsImdldFNlbGVjdGlvblN1bW1hcnkiLCJoYW5kbGVDbGljayIsImxhYmVsIiwiX2MyIiwiX0dyb3VwSGVhZGVyIiwiZ3JvdXAiLCJDcmVhdGlvblNpZGViYXIiLCJvbk5hdmlnYXRlVG9TdGVwIiwidmlzaWJsZVN0ZXBzIiwiZmlsdGVyIiwiaXNWaXNpYmxlIiwibWFwIiwic3RlcENvbmZpZyIsInMiLCJsZW5ndGgiLCJfYzMiLCIkUmVmcmVzaFJlZyQiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiQ3JlYXRpb25TaWRlYmFyLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBAZGVwZW5kZW5jaWVzLXN0YXJ0XHJcbi8qKlxyXG4gKiBBUkNISVRFQ1RVUkFMIEFEVklTT1JZOlxyXG4gKiBMT0NBTCBIRUxQRVI6IFRoaXMgZmlsZSBoYXMgYSBzbWFsbCwgbWFuYWdlYWJsZSBkZXBlbmRlbmN5IGZvb3RwcmludC5cclxuICpcclxuICogTGFzdCBTeW5jOiAyNy8wMi8yMDI2LCAwOToyNjo1NVxyXG4gKiBEZXBlbmRlbnRzOiBDaGFyYWN0ZXJDcmVhdG9yLnRzeFxyXG4gKiBJbXBvcnRzOiAyIGZpbGVzXHJcbiAqXHJcbiAqIE1VTFRJLUFHRU5UIFNBRkVUWTpcclxuICogSWYgeW91IG1vZGlmeSBleHBvcnRzL2ltcG9ydHMsIHJlLXJ1biB0aGUgc3luYyB0b29sIHRvIHVwZGF0ZSB0aGlzIGhlYWRlcjpcclxuICogPiBucHggdHN4IG1pc2MvZGV2X2h1Yi9jb2RlYmFzZS12aXN1YWxpemVyL3NlcnZlci9pbmRleC50cyAtLXN5bmMgW3RoaXMtZmlsZS1wYXRoXVxyXG4gKiBTZWUgbWlzYy9kZXZfaHViL2NvZGViYXNlLXZpc3VhbGl6ZXIvVklTVUFMSVpFUl9SRUFETUUubWQgZm9yIG1vcmUgaW5mby5cclxuICovXHJcbi8vIEBkZXBlbmRlbmNpZXMtZW5kXHJcblxyXG4vKipcclxuICogQGZpbGUgQ3JlYXRpb25TaWRlYmFyLnRzeFxyXG4gKiBQZXJzaXN0ZW50IGxlZnQgc2lkZWJhciBmb3IgY2hhcmFjdGVyIGNyZWF0aW9uLCBzaG93aW5nIHN0ZXAgcHJvZ3Jlc3MsXHJcbiAqIGN1cnJlbnQgc2VsZWN0aW9ucywgYW5kIGFsbG93aW5nIG5hdmlnYXRpb24gYmV0d2VlbiBzdGVwcy5cclxuICogSW5zcGlyZWQgYnkgQmFsZHVyJ3MgR2F0ZSAzJ3MgY2hhcmFjdGVyIGNyZWF0aW9uIFVJLlxyXG4gKi9cclxuaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JztcclxuaW1wb3J0IHsgQ3JlYXRpb25TdGVwLCBDaGFyYWN0ZXJDcmVhdGlvblN0YXRlIH0gZnJvbSAnLi9zdGF0ZS9jaGFyYWN0ZXJDcmVhdG9yU3RhdGUnO1xyXG5pbXBvcnQge1xyXG4gIFNJREVCQVJfU1RFUFMsXHJcbiAgU1RFUF9HUk9VUFMsXHJcbiAgU3RlcEdyb3VwLFxyXG4gIGlzU3RlcENvbXBsZXRlZCxcclxuICBTaWRlYmFyU3RlcENvbmZpZyxcclxufSBmcm9tICcuL2NvbmZpZy9zaWRlYmFyU3RlcHMnO1xyXG5cclxuaW50ZXJmYWNlIENyZWF0aW9uU2lkZWJhclByb3BzIHtcclxuICBjdXJyZW50U3RlcDogQ3JlYXRpb25TdGVwO1xyXG4gIHN0YXRlOiBDaGFyYWN0ZXJDcmVhdGlvblN0YXRlO1xyXG4gIG9uTmF2aWdhdGVUb1N0ZXA6IChzdGVwOiBDcmVhdGlvblN0ZXApID0+IHZvaWQ7XHJcbn1cclxuXHJcbi8qKlxyXG4gKiBTdGVwIGluZGljYXRvciBpY29uIGJhc2VkIG9uIGNvbXBsZXRpb24gc3RhdHVzXHJcbiAqL1xyXG5jb25zdCBTdGVwSW5kaWNhdG9yOiBSZWFjdC5GQzx7XHJcbiAgaXNDb21wbGV0ZTogYm9vbGVhbjtcclxuICBpc0N1cnJlbnQ6IGJvb2xlYW47XHJcbiAgaXNDbGlja2FibGU6IGJvb2xlYW47XHJcbn0+ID0gKHsgaXNDb21wbGV0ZSwgaXNDdXJyZW50LCBpc0NsaWNrYWJsZSB9KSA9PiB7XHJcbiAgaWYgKGlzQ29tcGxldGUpIHtcclxuICAgIHJldHVybiAoXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy01IGgtNSByb3VuZGVkLWZ1bGwgYmctZ3JlZW4tNjAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGZsZXgtc2hyaW5rLTBcIj5cclxuICAgICAgICA8c3ZnIGNsYXNzTmFtZT1cInctMyBoLTMgdGV4dC13aGl0ZVwiIGZpbGw9XCJub25lXCIgdmlld0JveD1cIjAgMCAyNCAyNFwiIHN0cm9rZT1cImN1cnJlbnRDb2xvclwiPlxyXG4gICAgICAgICAgPHBhdGggc3Ryb2tlTGluZWNhcD1cInJvdW5kXCIgc3Ryb2tlTGluZWpvaW49XCJyb3VuZFwiIHN0cm9rZVdpZHRoPXszfSBkPVwiTTUgMTNsNCA0TDE5IDdcIiAvPlxyXG4gICAgICAgIDwvc3ZnPlxyXG4gICAgICA8L2Rpdj5cclxuICAgICk7XHJcbiAgfVxyXG5cclxuICBpZiAoaXNDdXJyZW50KSB7XHJcbiAgICByZXR1cm4gKFxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInctNSBoLTUgcm91bmRlZC1mdWxsIGJnLXNreS01MDAgcmluZy0yIHJpbmctc2t5LTMwMCByaW5nLW9mZnNldC0xIHJpbmctb2Zmc2V0LWdyYXktODAwIGZsZXgtc2hyaW5rLTBcIiAvPlxyXG4gICAgKTtcclxuICB9XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8ZGl2IGNsYXNzTmFtZT17YHctNSBoLTUgcm91bmRlZC1mdWxsIGJvcmRlci0yIGZsZXgtc2hyaW5rLTAgJHtcclxuICAgICAgaXNDbGlja2FibGUgPyAnYm9yZGVyLWdyYXktNTAwJyA6ICdib3JkZXItZ3JheS02MDAnXHJcbiAgICB9YH0gLz5cclxuICApO1xyXG59O1xyXG5cclxuLyoqXHJcbiAqIEluZGl2aWR1YWwgc3RlcCByb3cgaW4gdGhlIHNpZGViYXJcclxuICovXHJcbmNvbnN0IFNpZGViYXJTdGVwUm93OiBSZWFjdC5GQzx7XHJcbiAgY29uZmlnOiBTaWRlYmFyU3RlcENvbmZpZztcclxuICBjdXJyZW50U3RlcDogQ3JlYXRpb25TdGVwO1xyXG4gIHN0YXRlOiBDaGFyYWN0ZXJDcmVhdGlvblN0YXRlO1xyXG4gIG9uTmF2aWdhdGU6IChzdGVwOiBDcmVhdGlvblN0ZXApID0+IHZvaWQ7XHJcbiAgaW5kZXg6IG51bWJlcjtcclxufT4gPSAoeyBjb25maWcsIGN1cnJlbnRTdGVwLCBzdGF0ZSwgb25OYXZpZ2F0ZSwgaW5kZXggfSkgPT4ge1xyXG4gIGNvbnN0IGlzQ29tcGxldGUgPSBpc1N0ZXBDb21wbGV0ZWQoY29uZmlnLnN0ZXAsIHN0YXRlKTtcclxuICBjb25zdCBpc0N1cnJlbnQgPSBjdXJyZW50U3RlcCA9PT0gY29uZmlnLnN0ZXA7XHJcbiAgY29uc3QgaXNOZXN0ZWQgPSBjb25maWcucGFyZW50U3RlcCAhPT0gdW5kZWZpbmVkO1xyXG5cclxuICAvLyBTdGVwcyBhcmUgYWx3YXlzIG5hdmlnYWJsZSAoZXhjZXB0IHRoZSBjdXJyZW50IHN0ZXApLCByZWdhcmRsZXNzIG9mIGNvbXBsZXRpb24uXHJcbiAgY29uc3QgY2FuTmF2aWdhdGUgPSAhaXNDdXJyZW50O1xyXG5cclxuICBjb25zdCBzdW1tYXJ5ID0gY29uZmlnLmdldFNlbGVjdGlvblN1bW1hcnkoc3RhdGUpO1xyXG5cclxuICBjb25zdCBoYW5kbGVDbGljayA9ICgpID0+IHtcclxuICAgIGlmIChjYW5OYXZpZ2F0ZSkge1xyXG4gICAgICBvbk5hdmlnYXRlKGNvbmZpZy5zdGVwKTtcclxuICAgIH1cclxuICB9O1xyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPGJ1dHRvblxyXG4gICAgICBvbkNsaWNrPXtoYW5kbGVDbGlja31cclxuICAgICAgZGlzYWJsZWQ9eyFjYW5OYXZpZ2F0ZX1cclxuICAgICAgY2xhc3NOYW1lPXtgXHJcbiAgICAgICAgdy1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHB5LTIgcHgtMyByb3VuZGVkLW1kIHRleHQtbGVmdCB0cmFuc2l0aW9uLWNvbG9yc1xyXG4gICAgICAgICR7aXNOZXN0ZWQgPyAnbWwtNCcgOiAnJ31cclxuICAgICAgICAke2lzQ3VycmVudCA/ICdiZy1ncmF5LTcwMC81MCcgOiAnJ31cclxuICAgICAgICAke2Nhbk5hdmlnYXRlID8gJ2hvdmVyOmJnLWdyYXktNzAwLzcwIGN1cnNvci1wb2ludGVyJyA6ICdjdXJzb3ItZGVmYXVsdCd9XHJcbiAgICAgIGB9XHJcbiAgICAgIGFyaWEtY3VycmVudD17aXNDdXJyZW50ID8gJ3N0ZXAnIDogdW5kZWZpbmVkfVxyXG4gICAgICBhcmlhLWxhYmVsPXtgJHtpbmRleH0uICR7Y29uZmlnLmxhYmVsfSR7c3VtbWFyeSA/IGA6ICR7c3VtbWFyeX1gIDogJyd9JHtpc0NvbXBsZXRlID8gJyAoY29tcGxldGVkKScgOiBpc0N1cnJlbnQgPyAnIChjdXJyZW50KScgOiAnJ31gfVxyXG4gICAgPlxyXG4gICAgICA8U3RlcEluZGljYXRvclxyXG4gICAgICAgIGlzQ29tcGxldGU9e2lzQ29tcGxldGV9XHJcbiAgICAgICAgaXNDdXJyZW50PXtpc0N1cnJlbnR9XHJcbiAgICAgICAgaXNDbGlja2FibGU9e2Nhbk5hdmlnYXRlfVxyXG4gICAgICAvPlxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXgtMSBtaW4tdy0wXCI+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9e2B0ZXh0LXNtIGZvbnQtbWVkaXVtIHRydW5jYXRlICR7XHJcbiAgICAgICAgICBpc0N1cnJlbnQgPyAndGV4dC1za3ktMzAwJyA6IGlzQ29tcGxldGUgPyAndGV4dC1ncmF5LTIwMCcgOiAndGV4dC1ncmF5LTQwMCdcclxuICAgICAgICB9YH0+XHJcbiAgICAgICAgICB7aW5kZXh9LiB7Y29uZmlnLmxhYmVsfVxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICAgIHtzdW1tYXJ5ICYmIChcclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC14cyB0ZXh0LWdyYXktNDAwIHRydW5jYXRlIG1sLTEgb3BhY2l0eS04MFwiPlxyXG4gICAgICAgICAgICB7c3VtbWFyeX1cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICl9XHJcbiAgICAgIDwvZGl2PlxyXG4gICAgPC9idXR0b24+XHJcbiAgKTtcclxufTtcclxuXHJcbi8qKlxyXG4gKiBHcm91cCBoZWFkZXIgaW4gdGhlIHNpZGViYXJcclxuICovXHJcbmNvbnN0IF9Hcm91cEhlYWRlcjogUmVhY3QuRkM8eyBncm91cDogU3RlcEdyb3VwIH0+ID0gKHsgZ3JvdXAgfSkgPT4ge1xyXG4gIGNvbnN0IHsgbGFiZWwgfSA9IFNURVBfR1JPVVBTW2dyb3VwXTtcclxuXHJcbiAgcmV0dXJuIChcclxuICAgIDxkaXYgY2xhc3NOYW1lPVwicHgtMyBweS0yIHRleHQteHMgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktNTAwIHVwcGVyY2FzZSB0cmFja2luZy13aWRlclwiPlxyXG4gICAgICB7bGFiZWx9XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59O1xyXG5cclxuLyoqXHJcbiAqIE1haW4gc2lkZWJhciBjb21wb25lbnRcclxuICovXHJcbmNvbnN0IENyZWF0aW9uU2lkZWJhcjogUmVhY3QuRkM8Q3JlYXRpb25TaWRlYmFyUHJvcHM+ID0gKHtcclxuICBjdXJyZW50U3RlcCxcclxuICBzdGF0ZSxcclxuICBvbk5hdmlnYXRlVG9TdGVwLFxyXG59KSA9PiB7XHJcbiAgLy8gR2V0IHZpc2libGUgc3RlcHNcclxuICBjb25zdCB2aXNpYmxlU3RlcHMgPSBTSURFQkFSX1NURVBTLmZpbHRlcihzdGVwID0+IHN0ZXAuaXNWaXNpYmxlKHN0YXRlKSk7XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8YXNpZGVcclxuICAgICAgY2xhc3NOYW1lPVwidy02NCBiZy1ncmF5LTg1MCBib3JkZXItciBib3JkZXItZ3JheS03MDAgZmxleCBmbGV4LWNvbCBoLWZ1bGxcIlxyXG4gICAgICBhcmlhLWxhYmVsPVwiQ2hhcmFjdGVyIGNyZWF0aW9uIHByb2dyZXNzXCJcclxuICAgID5cclxuICAgICAgey8qIEhlYWRlciAqL31cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTQgYm9yZGVyLWIgYm9yZGVyLWdyYXktNzAwXCI+XHJcbiAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQtbGcgZm9udC1zZW1pYm9sZCB0ZXh0LWFtYmVyLTQwMFwiPlByb2dyZXNzPC9oMj5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7LyogU3RlcCBsaXN0ICovfVxyXG4gICAgICA8bmF2IGNsYXNzTmFtZT1cImZsZXgtMSBvdmVyZmxvdy15LWF1dG8gcC0yIHNwYWNlLXktMVwiPlxyXG4gICAgICAgIHt2aXNpYmxlU3RlcHMubWFwKChzdGVwQ29uZmlnLCBpbmRleCkgPT4gKFxyXG4gICAgICAgICAgPFNpZGViYXJTdGVwUm93XHJcbiAgICAgICAgICAgIGtleT17c3RlcENvbmZpZy5zdGVwfVxyXG4gICAgICAgICAgICBjb25maWc9e3N0ZXBDb25maWd9XHJcbiAgICAgICAgICAgIGN1cnJlbnRTdGVwPXtjdXJyZW50U3RlcH1cclxuICAgICAgICAgICAgc3RhdGU9e3N0YXRlfVxyXG4gICAgICAgICAgICBvbk5hdmlnYXRlPXtvbk5hdmlnYXRlVG9TdGVwfVxyXG4gICAgICAgICAgICBpbmRleD17aW5kZXggKyAxfVxyXG4gICAgICAgICAgLz5cclxuICAgICAgICApKX1cclxuICAgICAgPC9uYXY+XHJcblxyXG4gICAgICB7LyogRm9vdGVyIHdpdGggY29tcGxldGlvbiBzdGF0dXMgKi99XHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwicC00IGJvcmRlci10IGJvcmRlci1ncmF5LTcwMFwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC14cyB0ZXh0LWdyYXktNTAwXCI+XHJcbiAgICAgICAgICB7dmlzaWJsZVN0ZXBzLmZpbHRlcihzID0+IGlzU3RlcENvbXBsZXRlZChzLnN0ZXAsIHN0YXRlKSkubGVuZ3RofSAvIHt2aXNpYmxlU3RlcHMubGVuZ3RofSBzdGVwcyBjb21wbGV0ZVxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuICAgIDwvYXNpZGU+XHJcbiAgKTtcclxufTtcclxuXHJcbmV4cG9ydCBkZWZhdWx0IENyZWF0aW9uU2lkZWJhcjtcclxuIl0sImZpbGUiOiJGOi9SZXBvcy9BcmFsaWEvc3JjL2NvbXBvbmVudHMvQ2hhcmFjdGVyQ3JlYXRvci9DcmVhdGlvblNpZGViYXIudHN4In0=

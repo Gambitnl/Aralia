@@ -1,0 +1,299 @@
+{
+  "id": "premade_cindra_ashveil",
+  "name": "Cindra Ashveil",
+  "age": 27,
+  "background": "faction-agent",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "fire_genasi",
+    "name": "Fire Genasi",
+    "baseRace": "genasi",
+    "description": "Descended from efreet, the genies of the Elemental Plane of Fire, fire genasi channel the flamboyant and often destructive nature of flame. Their skin often glows with embers or crackles with internal heat, and their hair can plume like threads of fire when they are angered or excited.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium",
+      "Speed: 30 feet",
+      "Fire Resistance: You have Resistance to Fire damage.",
+      "Reach to the Blaze: You know the Produce Flame cantrip. Starting at 3rd level, you can cast Burning Hands once per long rest. Starting at 5th level, you can cast Flame Blade once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level."
+    ],
+    "visual": {
+      "id": "fire_genasi",
+      "color": "#FF4500",
+      "maleIllustrationPath": "assets/images/races/Genasi_Fire_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Genasi_Fire_Female.png"
+    },
+    "racialSpellChoice": {
+      "traitName": "Reach to the Blaze",
+      "traitDescription": "Choose your spellcasting ability for these spells: Intelligence, Wisdom, or Charisma."
+    },
+    "knownSpells": [
+      {
+        "minLevel": 1,
+        "spellId": "produce-flame"
+      },
+      {
+        "minLevel": 3,
+        "spellId": "burning-hands"
+      },
+      {
+        "minLevel": 5,
+        "spellId": "flame-blade"
+      }
+    ]
+  },
+  "class": {
+    "id": "artificer",
+    "name": "Artificer",
+    "description": "Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Intelligence"
+    ],
+    "savingThrowProficiencies": [
+      "Constitution",
+      "Intelligence"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "history",
+      "investigation",
+      "medicine",
+      "nature",
+      "perception",
+      "sleight_of_hand"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "features": [
+      {
+        "id": "magical_tinkering",
+        "name": "Magical Tinkering",
+        "description": "You learn how to invest a spark of magic into mundane objects.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "artificer_tool_proficiencies",
+        "name": "Tool Proficiencies",
+        "description": "You gain proficiency with thieves' tools, tinker's tools, and one type of artisan's tools of your choice.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Intelligence",
+      "knownCantrips": 2,
+      "knownSpellsL1": 0,
+      "spellList": [
+        "acid-splash",
+        "dancing-lights",
+        "fire-bolt",
+        "frostbite",
+        "guidance",
+        "light",
+        "mage-hand",
+        "magic-stone",
+        "mending",
+        "message",
+        "poison-spray",
+        "prestidigitation",
+        "ray-of-frost",
+        "resistance",
+        "shocking-grasp",
+        "spare-the-dying",
+        "sword-burst",
+        "thorn-whip",
+        "thunderclap",
+        "alarm",
+        "cure-wounds",
+        "detect-magic",
+        "disguise-self",
+        "expeditious-retreat",
+        "faerie-fire",
+        "false-life",
+        "feather-fall",
+        "grease",
+        "identify",
+        "jump",
+        "longstrider",
+        "sanctuary",
+        "snare",
+        "tashas-caustic-brew",
+        "catapult",
+        "absorb-elements",
+        "purify-food-and-drink",
+        "levitate"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Intelligence",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Intelligence is your spellcasting and infusion ability. Constitution is important for concentration and hit points. Dexterity can improve your Armor Class.",
+    "recommendedPointBuyPriorities": [
+      "Intelligence",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Strength",
+      "Charisma"
+    ]
+  },
+  "classLevels": {
+    "artificer": 1
+  },
+  "abilityScores": {
+    "Strength": 10,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 15,
+    "Wisdom": 12,
+    "Charisma": 8
+  },
+  "finalAbilityScores": {
+    "Strength": 10,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 15,
+    "Wisdom": 12,
+    "Charisma": 8
+  },
+  "skills": [
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "investigation",
+      "name": "Investigation",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "alert"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "mending",
+      "fire-bolt"
+    ],
+    "knownSpells": [
+      "cure-wounds",
+      "identify",
+      "produce-flame"
+    ],
+    "preparedSpells": [
+      "cure-wounds",
+      "identify",
+      "produce-flame"
+    ],
+    "racialSpellGrants": [
+      {
+        "sourceRaceId": "fire_genasi",
+        "sourceRaceName": "Fire Genasi",
+        "minLevel": 1,
+        "spellId": "produce-flame",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      }
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "intelligence",
+  "racialSelections": {
+    "fire_genasi": {
+      "spellAbility": "Intelligence"
+    }
+  },
+  "visuals": {
+    "gender": "Female",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Fire Genasi Artificer. Female adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "initiativeBonus": 2,
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

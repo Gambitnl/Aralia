@@ -1,0 +1,281 @@
+{
+  "id": "premade_nyx_manyfaces",
+  "name": "Nyx Manyfaces",
+  "age": 29,
+  "background": "urchin",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "changeling",
+    "name": "Changeling",
+    "baseRace": "shapeshifters",
+    "description": "With ever-changing appearances, changelings reside in many societies undetected. Each changeling can supernaturally adopt any face they like. For some changelings, a new face is only a disguise. For other changelings, a new face may reveal an aspect of their soul.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Fey",
+      "Size: Medium or Small. You choose the size when you select this race.",
+      "Speed: 30 feet",
+      "Changeling Instincts: Thanks to your connection to the fey realm, you gain proficiency with two of the following skills of your choice: Deception, Insight, Intimidation, Performance, or Persuasion.",
+      "Shapechanger: As an action, you can change your appearance and your voice. You determine the specifics of the changes, including your coloration, hair length, and sex. You can also adjust your height and weight and can change your size between Medium and Small. You can make yourself appear as a member of another race, though none of your game statistics change. You can’t duplicate the appearance of an individual you’ve never seen, and you must adopt a form that has the same basic arrangement of limbs that you have. Your clothing and equipment aren’t changed by this trait."
+    ],
+    "imageUrl": "https://i.ibb.co/N28tRQfH/Changeling.png",
+    "visual": {
+      "id": "changeling",
+      "color": "#E8E8E8",
+      "maleIllustrationPath": "assets/images/races/Changeling_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Changeling_Female.png"
+    }
+  },
+  "class": {
+    "id": "ranger",
+    "name": "Ranger",
+    "description": "A warrior of the wilderness who uses martial prowess and nature magic to combat threats on the edges of civilization.",
+    "hitDie": 10,
+    "primaryAbility": [
+      "Dexterity",
+      "Wisdom"
+    ],
+    "savingThrowProficiencies": [
+      "Strength",
+      "Dexterity"
+    ],
+    "skillProficienciesAvailable": [
+      "animal_handling",
+      "athletics",
+      "insight",
+      "investigation",
+      "nature",
+      "perception",
+      "stealth",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 3,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "weaponMasterySlots": 2,
+    "features": [
+      {
+        "id": "favored_enemy_feature",
+        "name": "Favored Enemy",
+        "description": "You have significant experience studying, tracking, hunting, and even talking to a certain type of enemy.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "deft_explorer_feature",
+        "name": "Deft Explorer",
+        "description": "You are an unsurpassed explorer and survivor.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Wisdom",
+      "knownCantrips": 0,
+      "knownSpellsL1": 2,
+      "spellList": [
+        "alarm",
+        "animal-friendship",
+        "cure-wounds",
+        "detect-magic",
+        "detect-poison-and-disease",
+        "ensnaring-strike",
+        "entangle",
+        "fog-cloud",
+        "goodberry",
+        "hail-of-thorns",
+        "hunters-mark",
+        "jump",
+        "longstrider",
+        "speak-with-animals",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Dexterity",
+      "Wisdom",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Dexterity is key for ranged attacks and AC. Wisdom powers your spells. Constitution is important for health and concentration.",
+    "recommendedPointBuyPriorities": [
+      "Dexterity",
+      "Constitution",
+      "Wisdom",
+      "Strength",
+      "Intelligence",
+      "Charisma"
+    ]
+  },
+  "classLevels": {
+    "ranger": 1
+  },
+  "abilityScores": {
+    "Strength": 12,
+    "Dexterity": 15,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 13,
+    "Charisma": 8
+  },
+  "finalAbilityScores": {
+    "Strength": 12,
+    "Dexterity": 15,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 13,
+    "Charisma": 8
+  },
+  "skills": [
+    {
+      "id": "survival",
+      "name": "Survival",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "Strength"
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma"
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "sleight_of_hand",
+      "name": "Sleight of Hand",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 12,
+  "maxHp": 12,
+  "hitPointDice": [
+    {
+      "die": 10,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 12,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "longbow",
+    "shortsword"
+  ],
+  "feats": [
+    "lucky"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [],
+    "knownSpells": [
+      "hunters-mark",
+      "cure-wounds"
+    ],
+    "preparedSpells": [
+      "hunters-mark",
+      "cure-wounds"
+    ],
+    "racialSpellGrants": []
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "wisdom",
+  "limitedUses": {
+    "luck_points": {
+      "name": "Luck Points",
+      "current": 2,
+      "max": "proficiency_bonus",
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {
+    "changeling": {
+      "skillIds": [
+        "deception",
+        "insight"
+      ]
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Changeling Ranger. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

@@ -1,0 +1,99 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateTownPlan > matches FROZEN golden values for a city (large envelope, 5 gates) > city-golden 1`] = `
+{
+  "firstThreePlots": [
+    {
+      "footprint": [
+        [
+          103991,
+          202020,
+        ],
+        [
+          103931,
+          202019,
+        ],
+        [
+          103930,
+          202098,
+        ],
+        [
+          103990,
+          202099,
+        ],
+      ],
+      "role": "house",
+    },
+    {
+      "footprint": [
+        [
+          103524,
+          201961,
+        ],
+        [
+          103464,
+          201953,
+        ],
+        [
+          103475,
+          201877,
+        ],
+        [
+          103534,
+          201885,
+        ],
+      ],
+      "role": "house",
+    },
+    {
+      "footprint": [
+        [
+          103445,
+          201950,
+        ],
+        [
+          103386,
+          201944,
+        ],
+        [
+          103393,
+          201878,
+        ],
+        [
+          103452,
+          201885,
+        ],
+      ],
+      "role": "house",
+    },
+  ],
+  "plotCount": 241,
+  "streetCount": 23,
+}
+`;
+
+exports[`generateTownPlan > matches FROZEN golden values for a hamlet (small envelope, 2 gates) > hamlet-golden 1`] = `
+{
+  "firstPlotFootprint": [
+    [
+      100790,
+      200418,
+    ],
+    [
+      100732,
+      200405,
+    ],
+    [
+      100720,
+      200459,
+    ],
+    [
+      100779,
+      200471,
+    ],
+  ],
+  "firstPlotRole": "house",
+  "plotCount": 10,
+  "streetCount": 5,
+}
+`;

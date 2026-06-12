@@ -31,7 +31,10 @@ export function useFresnelRim(
 ): void {
   useEffect(() => {
     const root = groupRef.current;
-    if (!root) return;
+    // jsdom/test environments mock R3F primitives as DOM nodes — no traverse.
+    // (Caught by CharacterActor.defense.test.tsx; the guard is also correct
+    // for any future non-three rendering of the actor.)
+    if (!root || typeof root.traverse !== 'function') return;
 
     root.traverse((obj) => {
       if (!(obj instanceof THREE.Mesh)) return;

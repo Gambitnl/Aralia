@@ -1,0 +1,305 @@
+{
+  "id": "premade_corvan_duskwhisper",
+  "name": "Corvan Duskwhisper",
+  "age": 41,
+  "background": "noble",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "half_elf",
+    "name": "Half-Elf",
+    "description": "Walking in two worlds but truly belonging to neither, half-elves combine what some say are the best qualities of their elf and human parents: human curiosity, inventiveness, and ambition tempered by the refined senses, love of nature, and artistic tastes of the elves. Some half-elves live among humans, set apart by their emotional and physical differences, while others dwell in elven settlements, restless and unfulfilled by elven timelessness. Most find places among other half-elves or in diverse communities where their heritage is less of an issue.",
+    "abilityBonuses": [
+      {
+        "ability": "Charisma",
+        "bonus": 2
+      },
+      {
+        "ability": "Any",
+        "bonus": 1,
+        "choiceCount": 2
+      }
+    ],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 5-6 feet tall)",
+      "Speed: 30 feet",
+      "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+      "Fey Ancestry: You have advantage on saving throws against being charmed, and magic can't put you to sleep.",
+      "Skill Versatility: You gain proficiency in two skills of your choice."
+    ],
+    "imageUrl": "assets/images/races/half_elf.png",
+    "visual": {
+      "id": "half_elf",
+      "color": "#DDA0DD",
+      "maleIllustrationPath": "assets/images/races/Half_elf_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Half_elf_Female.png"
+    }
+  },
+  "class": {
+    "id": "warlock",
+    "name": "Warlock",
+    "description": "A wielder of magic derived from a bargain with an extraplanar entity.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Charisma"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "deception",
+      "history",
+      "intimidation",
+      "investigation",
+      "nature",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "warlockPatrons": [],
+    "features": [
+      {
+        "id": "pact_magic",
+        "name": "Pact Magic",
+        "description": "Your arcane research and the magic bestowed on you by your patron have given you facility with spells.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Charisma",
+      "knownCantrips": 2,
+      "knownSpellsL1": 2,
+      "spellList": [
+        "blade-ward",
+        "chill-touch",
+        "eldritch-blast",
+        "friends",
+        "frostbite",
+        "mage-hand",
+        "magic-stone",
+        "mind-sliver",
+        "minor-illusion",
+        "poison-spray",
+        "prestidigitation",
+        "sword-burst",
+        "thunderclap",
+        "toll-the-dead",
+        "true-strike",
+        "armor-of-agathys",
+        "arms-of-hadar",
+        "bane",
+        "charm-person",
+        "comprehend-languages",
+        "detect-magic",
+        "expeditious-retreat",
+        "hellish-rebuke",
+        "hex",
+        "illusory-script",
+        "protection-from-evil-and-good",
+        "speak-with-animals",
+        "tashas-hideous-laughter",
+        "unseen-servant",
+        "witch-bolt",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Charisma",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Charisma fuels your powerful pact magic. Constitution is vital for maintaining concentration on your spells. Dexterity provides a bonus to AC.",
+    "recommendedPointBuyPriorities": [
+      "Charisma",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Intelligence",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "warlock": 1
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 15
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 17
+  },
+  "skills": [
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma"
+    },
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "persuasion",
+      "name": "Persuasion",
+      "ability": "Charisma"
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "ability": "Charisma"
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "skilled"
+  ],
+  "featChoices": {
+    "skilled": {
+      "selectedSkills": [
+        "insight",
+        "perception",
+        "stealth"
+      ]
+    }
+  },
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "eldritch-blast",
+      "mage-hand"
+    ],
+    "knownSpells": [
+      "charm-person",
+      "hex"
+    ],
+    "preparedSpells": [
+      "charm-person",
+      "hex"
+    ],
+    "racialSpellGrants": []
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 1,
+      "max": 1
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "charisma",
+  "racialSelections": {
+    "half_elf": {
+      "skillIds": [
+        "persuasion",
+        "intimidation"
+      ]
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Half-Elf Warlock. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [
+      "saving throws against being charmed, and magic can't put you to sleep"
+    ],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [
+      "two"
+    ],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

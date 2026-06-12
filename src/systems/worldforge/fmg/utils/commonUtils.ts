@@ -1,9 +1,9 @@
-/**
- * @file utils/commonUtils.ts — ported from Azgaar's Fantasy-Map-Generator
+﻿/**
+ * @file utils/commonUtils.ts â€” ported from Azgaar's Fantasy-Map-Generator
  * (MIT). Upstream: .tmp/azgaar-src/src/utils/commonUtils.ts. See
  * ../ATTRIBUTION.md.
  *
- * Only clipPoly is ported — every other commonUtils helper (debounce, DOM
+ * Only clipPoly is ported â€” every other commonUtils helper (debounce, DOM
  * links, base64, coordinates formatting, prompt UI, ...) is browser/UI code
  * unused by the generation modules. Upstream clipPoly reads `graphWidth`/
  * `graphHeight` globals via a window wrapper; here they are explicit
@@ -11,6 +11,7 @@
  */
 import type { Point } from "../voronoi";
 import { polygonclip } from "./lineclip";
+import { rand } from "./probabilityUtils";
 
 /**
  * Clip polygon points to graph boundaries
@@ -34,3 +35,20 @@ export const clipPoly = (
 
   return polygonclip(points, [0, 0, graphWidth, graphHeight], secure);
 };
+
+/**
+ * Generate a random date string between two years â€” verbatim port of
+ * upstream src/utils/commonUtils.ts generateDate (added for Markers
+ * battlefields). Draw order: rand(from,to), rand(12), rand(31). The Date
+ * constructor here is deterministic (no Date.now), preserving the seed
+ * contract.
+ */
+export const generateDate = (from: number = 100, to: number = 1000): string => {
+  return new Date(rand(from, to), rand(12), rand(31)).toLocaleDateString("en", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+

@@ -1,0 +1,181 @@
+{
+  "id": "premade_ghazka_tidebreaker",
+  "name": "Ghazka Tidebreaker",
+  "age": 22,
+  "background": "sailor",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "orc",
+    "name": "Orc",
+    "baseRace": "greenskins",
+    "description": "Orcs trace their creation to Gruumsh, a powerful god who roamed the wide open spaces of the Material Plane. Gruumsh equipped his children with gifts to help them wander great plains, vast caverns, and churning seas and to face the monsters that lurk there. Even when they turn their devotion to other gods, orcs retain Gruumsh's gifts: endurance, determination, and the ability to see in darkness. Orcs are, on average, tall and broad, with gray skin, sharply pointed ears, and prominent lower canines resembling small tusks.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 6-7 feet tall)",
+      "Speed: 30 feet",
+      "Adrenaline Rush: You can take the [[dash|Dash]] action as a [[bonus_action|Bonus Action]]. When you do so, you gain a number of [[temporary_hit_points|Temporary Hit Points]] equal to your [[proficiency_bonus|Proficiency Bonus]]. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a [[long_rest|Long Rest]].",
+      "Darkvision: You have [[darkvision|Darkvision]] with a range of 120 feet.",
+      "Powerful Build: You have [[advantage]] on saving throws you make to end the [[grappled_condition|Grappled]] condition. You also count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.",
+      "Relentless Endurance: When you are reduced to 0 [[hit_points|Hit Points]] but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]]."
+    ],
+    "visual": {
+      "id": "orc",
+      "color": "#556B2F",
+      "maleIllustrationPath": "assets/images/races/Orc_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Orc_Female.png"
+    },
+    "modernizationStatus": "official_2024"
+  },
+  "class": {
+    "id": "monk",
+    "name": "Monk",
+    "description": "A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Dexterity",
+      "Wisdom"
+    ],
+    "savingThrowProficiencies": [
+      "Strength",
+      "Dexterity"
+    ],
+    "skillProficienciesAvailable": [
+      "acrobatics",
+      "athletics",
+      "history",
+      "insight",
+      "religion",
+      "stealth"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Shortswords"
+    ],
+    "features": [
+      {
+        "id": "unarmored_defense",
+        "name": "Unarmored Defense",
+        "description": "Your AC equals 10 + your Dexterity modifier + your Wisdom modifier.",
+        "levelAvailable": 1
+      }
+    ],
+    "weaponMasterySlots": 2,
+    "statRecommendationFocus": [
+      "Dexterity",
+      "Wisdom",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Dexterity is crucial for your attacks and AC. Wisdom boosts your AC and powers your special abilities. Constitution is important for hit points.",
+    "recommendedPointBuyPriorities": [
+      "Dexterity",
+      "Wisdom",
+      "Constitution",
+      "Strength",
+      "Charisma",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "monk": 1
+  },
+  "abilityScores": {
+    "Strength": 13,
+    "Dexterity": 15,
+    "Constitution": 13,
+    "Intelligence": 8,
+    "Wisdom": 14,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 13,
+    "Dexterity": 15,
+    "Constitution": 13,
+    "Intelligence": 8,
+    "Wisdom": 14,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "Strength"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 9,
+  "maxHp": 9,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 14,
+  "speed": 30,
+  "darkvisionRange": 120,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "quarterstaff",
+    "dagger"
+  ],
+  "feats": [
+    "tavern_brawler"
+  ],
+  "featChoices": {
+    "tavern_brawler": {
+      "selectedAbilityScore": "Strength"
+    }
+  },
+  "equippedItems": {},
+  "statusEffects": [],
+  "limitedUses": {
+    "racial_feature_orc__adrenaline_rush__resource": {
+      "name": "Orc: Adrenaline Rush (Adrenaline Rush usage)",
+      "current": 2,
+      "max": "proficiency_bonus",
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Orc Monk. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": [],
+    "powerfulBuild": true
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

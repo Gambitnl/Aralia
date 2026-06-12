@@ -44,7 +44,7 @@
 // ============================================================================
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
-import React, { useReducer, useCallback, useEffect, lazy, Suspense, useState } from 'react';
+import React, { useReducer, useCallback, useEffect, useRef, lazy, Suspense, useState } from 'react';
 import { resolveWorldDataFor3D } from './utils/mapDataToWorldData';
 // Framer Motion - provides animation components like AnimatePresence for smooth UI transitions
 import { AnimatePresence } from 'framer-motion';
@@ -89,6 +89,7 @@ import { Z_INDEX, applyZIndexCssVariables } from './styles/zIndex';
 
 import { NotificationSystem } from './components/ui/NotificationSystem';
 import { GameProvider } from './state/GameContext';
+import { WORLD3D_CONFIG } from './systems/world3d/config';
 import { CompanionReaction } from './components/ui/CompanionReaction';
 import GameModals from './components/layout/GameModals';
 import MainMenu from './components/layout/MainMenu';
@@ -113,8 +114,13 @@ const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/ui/NotFound'));
 const World3DDemo = lazy(() => import('./components/World3D/World3DDemo'));
+// Worldforge atlas cartographer demo (?phase=worldforge) — lazy: pulls the
+// whole ported-FMG generation stack, which the main bundle must not pay for.
+const WorldforgeAtlasDemo = lazy(() => import('./components/Worldforge/AtlasDemo'));
 const TransitionController = lazy(() => import('./components/World3D/TransitionController'));
 const World3DWrapper = lazy(() => import('./components/World3D/World3DWrapper'));
+// Combat Messaging Demo handles mock logging events to visualize unified messages in dev mode.
+const CombatMessagingDemo = lazy(() => import('./components/demo/CombatMessagingDemo').then(module => ({ default: module.CombatMessagingDemo })));
 // --- Decoupled Developer Tools Registry ---
 // Some developer tools have been decoupled from the main application bundle to 
 // optimize production builds and prevent build-time dependencies on local-only files.
@@ -392,6 +398,33 @@ const App: React.FC = () => {
     };
   }, [cleanupAudioContext]);
 
+  // Dev-only read-only state probe for the resume-journey audit rig: lets the
+  // headless harness compare the live state against the saved payload without
+  // reaching into React internals. Summary fields only — never mutate.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !canUseDevTools()) return;
+    (window as unknown as { __araliaState?: unknown }).__araliaState = {
+      phase: GamePhase[gameState.phase],
+      worldViewMode: gameState.worldViewMode ?? null,
+      currentLocationId: gameState.currentLocationId,
+      subMapCoordinates: gameState.subMapCoordinates,
+      playerWorldPos: gameState.playerWorldPos ?? null,
+      partySize: gameState.party.length,
+      partyNames: gameState.party.map(p => p.name),
+      gold: gameState.gold,
+      inventoryCount: gameState.inventory.length,
+      gameTime: gameState.gameTime instanceof Date
+        ? gameState.gameTime.toISOString()
+        : String(gameState.gameTime),
+      isMapVisible: gameState.isMapVisible,
+      isSubmapVisible: gameState.isSubmapVisible,
+      isThreeDVisible: gameState.isThreeDVisible ?? false,
+      saveTimestamp: gameState.saveTimestamp ?? null,
+      error: gameState.error ?? null,
+      isLoading: gameState.isLoading,
+    };
+  }, [gameState]);
+
   // Dev dummy auto-start: only fire when there's no URL phase override.
   // This prevents the legacy auto-start from hijacking deep links like ?phase=world3d
   // during the initial mount race between useHistorySync and this effect.
@@ -415,6 +448,32 @@ const App: React.FC = () => {
     gameState.messages.length,
     handleLegacyDummyAutoStart,
   ]);
+
+  // Dev combat fixture (?dev_combat=1): once the save is loaded into PLAYING,
+  // start a deterministic battle-map encounter directly (bestiary monsters,
+  // no AI generation). Exists for headless combat proofs — 3d-combat-map G7:
+  // the autosave lands on the exploration surface, leaving CombatView
+  // unreachable without UI driving. Decision Blitz "items converted to work".
+  const devCombatFiredRef = useRef(false);
+  useEffect(() => {
+    if (!canUseDevTools() || devCombatFiredRef.current) return;
+    if (gameState.phase !== GamePhase.PLAYING) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('dev_combat') !== '1') return;
+    devCombatFiredRef.current = true;
+    processAction({
+      type: 'START_BATTLE_MAP_ENCOUNTER',
+      label: 'Dev Combat Fixture',
+      payload: {
+        startBattleMapEncounterData: {
+          monsters: [
+            { name: 'Goblin', quantity: 3, cr: '1/4', description: 'Dev fixture goblin' },
+            { name: 'Orc', quantity: 2, cr: '1/2', description: 'Dev fixture orc' },
+          ],
+        },
+      },
+    });
+  }, [gameState.phase, processAction]);
 
   useEffect(() => {
     // This effect handles the timed transition from the welcome screen to the main game.
@@ -747,13 +806,13 @@ const App: React.FC = () => {
   ]);
 
   const handleDevMenuAction = useCallback(async (actionType: string) => {
-    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party', 'quick_start_dev', 'test_village'];
+    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'combat_messaging_demo', 'generate_encounter', 'restart_dynamic_party', 'quick_start_dev', 'test_village'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
-    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'toggle_economy_ledger' | 'toggle_courier_pouch') {
+    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'toggle_economy_ledger' | 'toggle_courier_pouch' | 'combat_messaging_demo') {
       case 'restart_dynamic_party':
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
         try {
@@ -816,6 +875,9 @@ const App: React.FC = () => {
       // 'design_preview' removed - access via /Aralia/misc/design.html
       case 'battle_map_demo':
         handleBattleMapDemo();
+        break;
+      case 'combat_messaging_demo':
+        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.COMBAT_MESSAGING_DEMO });
         break;
       case 'toggle_party_editor':
         dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' });
@@ -1020,6 +1082,21 @@ const App: React.FC = () => {
         <World3DDemo />
       </ErrorBoundary>
     );
+  } else if (gameState.phase === GamePhase.WORLDFORGE_DEMO) {
+    // Worldforge atlas cartographer (?phase=worldforge): the native
+    // ported-FMG map surface (docs/projects/worldforge, orchestration Lane A).
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Worldforge cartographer.">
+        <WorldforgeAtlasDemo />
+      </ErrorBoundary>
+    );
+  } else if (gameState.phase === GamePhase.COMBAT_MESSAGING_DEMO) {
+    // Render the unified Combat Messaging System Demo
+    mainContent = (
+      <ErrorBoundary fallbackMessage="An error occurred in the Combat Messaging Demo.">
+        <CombatMessagingDemo onExit={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })} />
+      </ErrorBoundary>
+    );
   } else if (gameState.phase === GamePhase.COMBAT) {
     // Render the full Combat View
     const allowedBiomes: Array<'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp'> = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
@@ -1114,10 +1191,13 @@ const App: React.FC = () => {
     );
 
     // Entry position: use saved 3D position, or default to current location center.
+    // Grid → world meters uses METERS_PER_CELL (the chunk geometry's mapping);
+    // the old ×128 (CHUNK_WORLD_SIZE) constant put the camera at ~1/8 scale,
+    // spawning everyone in the map's top-left corner regardless of location.
     const entryPosition = gameState.playerWorldPos ?? {
-      x: (currentLocationData.mapCoordinates?.x ?? 30) * 128,
+      x: (currentLocationData.mapCoordinates?.x ?? 30) * WORLD3D_CONFIG.METERS_PER_CELL,
       y: 0,
-      z: (currentLocationData.mapCoordinates?.y ?? 20) * 128,
+      z: (currentLocationData.mapCoordinates?.y ?? 20) * WORLD3D_CONFIG.METERS_PER_CELL,
     };
 
     mainContent = (

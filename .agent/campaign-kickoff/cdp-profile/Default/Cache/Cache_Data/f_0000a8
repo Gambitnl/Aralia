@@ -1,0 +1,413 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/Glossary/GlossaryEntryTemplate.tsx");import.meta.env = {"BASE_URL": "/Aralia/", "DEV": true, "MODE": "development", "PROD": false, "SSR": false};import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/Aralia/node_modules/.vite/deps/react.js?v=c72b52c2"; const useState = __vite__cjsImport1_react["useState"];
+import { GlossaryTraitTable } from "/Aralia/src/components/Glossary/GlossaryTraitTable.tsx";
+import { GlossarySpellsOfTheMarkTable } from "/Aralia/src/components/Glossary/GlossarySpellsOfTheMarkTable.tsx";
+import { GlossaryContentRenderer } from "/Aralia/src/components/Glossary/GlossaryContentRenderer.tsx";
+import { ArtificerInfusionsTable } from "/Aralia/src/components/Glossary/ArtificerInfusionsTable.tsx";
+import { GlossaryItemStatBlock } from "/Aralia/src/components/Glossary/GlossaryItemStatBlock.tsx";
+import ImageModal from "/Aralia/src/components/ImageModal.tsx";
+const resolveImageUrl = (url) => {
+  if (!url) return void 0;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const baseUrl = import.meta.env.BASE_URL || "/";
+  return `${baseUrl}${url.startsWith("/") ? url.slice(1) : url}`;
+};
+export const GlossaryEntryTemplate = ({
+  entry,
+  markdownContent,
+  onNavigate
+}) => {
+  _s();
+  const [expandedImage, setExpandedImage] = useState(null);
+  if (!entry) return null;
+  const hasExtraInfo = entry.tags && entry.tags.length > 0 || entry.aliases && entry.aliases.length > 0 || entry.seeAlso && entry.seeAlso.length > 0 || entry.source;
+  const hasDualImages = entry.maleImageUrl || entry.femaleImageUrl;
+  const hasLegacyImage = entry.imageUrl && !hasDualImages;
+  return /* @__PURE__ */ jsxDEV(Fragment, { children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "glossary-card", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "spell-card-header flex items-center justify-between gap-4", children: [
+        /* @__PURE__ */ jsxDEV("h1", { className: "spell-card-title", children: entry.title }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 71,
+          columnNumber: 21
+        }, this),
+        entry.modernizationStatus && /* @__PURE__ */ jsxDEV("span", { className: `text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border font-bold flex-shrink-0 ${entry.modernizationStatus === "official_2024" ? "bg-emerald-900/40 border-emerald-500/50 text-emerald-400" : "bg-sky-900/40 border-sky-500/50 text-sky-400"}`, children: entry.modernizationStatus === "official_2024" ? "Official 2024" : "2024 Modernized" }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 73,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+        lineNumber: 70,
+        columnNumber: 17
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "spell-card-divider" }, void 0, false, {
+        fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+        lineNumber: 83,
+        columnNumber: 17
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "space-y-6", children: [
+        hasDualImages ? (
+          /* Male/Female dual image layout */
+          /* @__PURE__ */ jsxDEV("div", { className: "flex gap-3 justify-center mb-6", children: [
+            /* @__PURE__ */ jsxDEV("div", { className: "w-28 sm:w-32", children: entry.maleImageUrl ? /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                type: "button",
+                className: "relative group cursor-zoom-in w-full",
+                onClick: () => setExpandedImage({ src: resolveImageUrl(entry.maleImageUrl), alt: `${entry.title} male` }),
+                "aria-label": `Expand ${entry.title} male image`,
+                children: [
+                  /* @__PURE__ */ jsxDEV(
+                    "img",
+                    {
+                      src: resolveImageUrl(entry.maleImageUrl),
+                      alt: `${entry.title} male`,
+                      className: "w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                      lineNumber: 100,
+                      columnNumber: 41
+                    },
+                    this
+                  ),
+                  /* @__PURE__ */ jsxDEV("span", { className: "absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-2 py-0.5 rounded text-gray-300", children: "Male" }, void 0, false, {
+                    fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                    lineNumber: 105,
+                    columnNumber: 41
+                  }, this)
+                ]
+              },
+              void 0,
+              true,
+              {
+                fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                lineNumber: 94,
+                columnNumber: 15
+              },
+              this
+            ) : /* @__PURE__ */ jsxDEV("div", { className: "w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 border border-gray-600 text-sm", children: "Male" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 108,
+              columnNumber: 15
+            }, this) }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 92,
+              columnNumber: 29
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "w-28 sm:w-32", children: entry.femaleImageUrl ? /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                type: "button",
+                className: "relative group cursor-zoom-in w-full",
+                onClick: () => setExpandedImage({ src: resolveImageUrl(entry.femaleImageUrl), alt: `${entry.title} female` }),
+                "aria-label": `Expand ${entry.title} female image`,
+                children: [
+                  /* @__PURE__ */ jsxDEV(
+                    "img",
+                    {
+                      src: resolveImageUrl(entry.femaleImageUrl),
+                      alt: `${entry.title} female`,
+                      className: "w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                      lineNumber: 122,
+                      columnNumber: 41
+                    },
+                    this
+                  ),
+                  /* @__PURE__ */ jsxDEV("span", { className: "absolute bottom-2 left-1/2 -translate-x-1/2 text-xs bg-black/70 px-2 py-0.5 rounded text-gray-300", children: "Female" }, void 0, false, {
+                    fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                    lineNumber: 127,
+                    columnNumber: 41
+                  }, this)
+                ]
+              },
+              void 0,
+              true,
+              {
+                fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                lineNumber: 116,
+                columnNumber: 15
+              },
+              this
+            ) : /* @__PURE__ */ jsxDEV("div", { className: "w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center text-gray-500 border border-gray-600 text-sm", children: "Female" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 130,
+              columnNumber: 15
+            }, this) }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 114,
+              columnNumber: 29
+            }, this)
+          ] }, void 0, true, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 90,
+            columnNumber: 11
+          }, this)
+        ) : hasLegacyImage ? (
+          /* Legacy single image layout */
+          /* @__PURE__ */ jsxDEV("div", { className: "w-full h-48 sm:h-64 rounded-lg overflow-hidden border border-gray-600 shadow-inner mb-6 relative group", children: [
+            /* @__PURE__ */ jsxDEV(
+              "img",
+              {
+                src: resolveImageUrl(entry.imageUrl),
+                alt: entry.title,
+                className: "w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+              },
+              void 0,
+              false,
+              {
+                fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                lineNumber: 139,
+                columnNumber: 29
+              },
+              this
+            ),
+            /* @__PURE__ */ jsxDEV("div", { className: "absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent pointer-events-none" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 144,
+              columnNumber: 29
+            }, this)
+          ] }, void 0, true, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 138,
+            columnNumber: 11
+          }, this)
+        ) : null,
+        entry.itemMetadata && /* @__PURE__ */ jsxDEV(GlossaryItemStatBlock, { metadata: entry.itemMetadata }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 150,
+          columnNumber: 11
+        }, this),
+        (entry.entryLore || !entry.characteristics && markdownContent) && /* @__PURE__ */ jsxDEV("div", { className: "prose prose-sm prose-invert max-w-none text-gray-300 leading-relaxed prose-headings:text-amber-300 prose-h2:text-xl prose-h3:text-lg prose-h4:text-base prose-strong:text-sky-300 prose-a:text-sky-400 hover:prose-a:text-sky-300 prose-blockquote:border-l-sky-500", children: entry.id === "artificer_infusions" && markdownContent ? /* @__PURE__ */ jsxDEV(
+          ArtificerInfusionsTable,
+          {
+            markdownContent,
+            onNavigate
+          },
+          void 0,
+          false,
+          {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 158,
+            columnNumber: 13
+          },
+          this
+        ) : /* @__PURE__ */ jsxDEV(
+          GlossaryContentRenderer,
+          {
+            markdownContent: entry.entryLore || markdownContent || "",
+            onNavigate
+          },
+          entry.id,
+          false,
+          {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 163,
+            columnNumber: 13
+          },
+          this
+        ) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 155,
+          columnNumber: 11
+        }, this),
+        entry.traits && /* @__PURE__ */ jsxDEV("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxDEV("h3", { className: "text-lg font-bold text-amber-300 flex items-center gap-2", children: "Racial Traits" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 175,
+            columnNumber: 29
+          }, this),
+          /* @__PURE__ */ jsxDEV(
+            GlossaryTraitTable,
+            {
+              traits: entry.traits,
+              characteristics: entry.characteristics,
+              onNavigate
+            },
+            void 0,
+            false,
+            {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 178,
+              columnNumber: 29
+            },
+            this
+          ),
+          entry.spellsOfTheMark && /* @__PURE__ */ jsxDEV(
+            GlossarySpellsOfTheMarkTable,
+            {
+              spells: entry.spellsOfTheMark,
+              onNavigate
+            },
+            void 0,
+            false,
+            {
+              fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+              lineNumber: 184,
+              columnNumber: 13
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 174,
+          columnNumber: 11
+        }, this),
+        entry.entryLore && markdownContent && /* @__PURE__ */ jsxDEV("div", { className: "prose prose-sm prose-invert max-w-none text-gray-300 leading-relaxed border-t border-gray-700/30 pt-4 mt-6", children: /* @__PURE__ */ jsxDEV(GlossaryContentRenderer, { markdownContent, onNavigate }, entry.id, false, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 195,
+          columnNumber: 29
+        }, this) }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 194,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+        lineNumber: 86,
+        columnNumber: 17
+      }, this),
+      hasExtraInfo && /* @__PURE__ */ jsxDEV("div", { className: "mt-8 pt-4 border-t border-gray-600/50 text-xs space-y-2", children: [
+        entry.source && /* @__PURE__ */ jsxDEV("p", { children: [
+          /* @__PURE__ */ jsxDEV("strong", { className: "text-sky-300/80", children: "Source:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 204,
+            columnNumber: 14
+          }, this),
+          " ",
+          /* @__PURE__ */ jsxDEV("span", { className: "text-gray-500", children: entry.source }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 204,
+            columnNumber: 67
+          }, this)
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 204,
+          columnNumber: 11
+        }, this),
+        entry.tags && entry.tags.length > 0 && /* @__PURE__ */ jsxDEV("p", { children: [
+          /* @__PURE__ */ jsxDEV("strong", { className: "text-sky-300", children: "Tags:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 207,
+            columnNumber: 14
+          }, this),
+          " ",
+          /* @__PURE__ */ jsxDEV("span", { className: "text-gray-400", children: entry.tags.join(", ") }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 207,
+            columnNumber: 62
+          }, this)
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 207,
+          columnNumber: 11
+        }, this),
+        entry.aliases && entry.aliases.length > 0 && /* @__PURE__ */ jsxDEV("p", { children: [
+          /* @__PURE__ */ jsxDEV("strong", { className: "text-sky-300", children: "Aliases:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 210,
+            columnNumber: 14
+          }, this),
+          " ",
+          /* @__PURE__ */ jsxDEV("span", { className: "text-gray-400", children: entry.aliases.join(", ") }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 210,
+            columnNumber: 65
+          }, this)
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 210,
+          columnNumber: 11
+        }, this),
+        entry.seeAlso && entry.seeAlso.length > 0 && /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2 flex-wrap pt-1", children: [
+          /* @__PURE__ */ jsxDEV("strong", { className: "text-sky-300 flex-shrink-0", children: "See Also:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 214,
+            columnNumber: 33
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "flex flex-wrap gap-1.5", children: entry.seeAlso.map(
+            (termId) => /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                onClick: () => onNavigate?.(termId),
+                className: "text-sky-400 hover:text-sky-200 hover:bg-sky-800/50 bg-sky-900/50 px-2 py-0.5 rounded-md text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-sky-400",
+                children: termId.replace(/_/g, " ")
+              },
+              termId,
+              false,
+              {
+                fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+                lineNumber: 217,
+                columnNumber: 15
+              },
+              this
+            )
+          ) }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+            lineNumber: 215,
+            columnNumber: 33
+          }, this)
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+          lineNumber: 213,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+        lineNumber: 202,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+      lineNumber: 68,
+      columnNumber: 13
+    }, this),
+    expandedImage && /* @__PURE__ */ jsxDEV(ImageModal, { src: expandedImage.src, alt: expandedImage.alt, onClose: () => setExpandedImage(null) }, void 0, false, {
+      fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+      lineNumber: 231,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx",
+    lineNumber: 67,
+    columnNumber: 5
+  }, this);
+};
+_s(GlossaryEntryTemplate, "+U8yK6q4A/WC0g7bofNq42VL6OQ=");
+_c = GlossaryEntryTemplate;
+var _c;
+$RefreshReg$(_c, "GlossaryEntryTemplate");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/Glossary/GlossaryEntryTemplate.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUE7QUFBQSxTQXNLQTtBQUVSO0FBQUVGLEdBdE1XSix1QkFBMkQ7QUFBQWdDLEtBQTNEaEM7QUFBMkQsSUFBQWdDO0FBQUFDLGFBQUFELElBQUEiLCJuYW1lcyI6WyJ1c2VTdGF0ZSIsIkdsb3NzYXJ5VHJhaXRUYWJsZSIsIkdsb3NzYXJ5U3BlbGxzT2ZUaGVNYXJrVGFibGUiLCJHbG9zc2FyeUNvbnRlbnRSZW5kZXJlciIsIkFydGlmaWNlckluZnVzaW9uc1RhYmxlIiwiR2xvc3NhcnlJdGVtU3RhdEJsb2NrIiwiSW1hZ2VNb2RhbCIsInJlc29sdmVJbWFnZVVybCIsInVybCIsInVuZGVmaW5lZCIsInN0YXJ0c1dpdGgiLCJiYXNlVXJsIiwiaW1wb3J0IiwiZW52IiwiQkFTRV9VUkwiLCJzbGljZSIsIkdsb3NzYXJ5RW50cnlUZW1wbGF0ZSIsImVudHJ5IiwibWFya2Rvd25Db250ZW50Iiwib25OYXZpZ2F0ZSIsIl9zIiwiZXhwYW5kZWRJbWFnZSIsInNldEV4cGFuZGVkSW1hZ2UiLCJoYXNFeHRyYUluZm8iLCJ0YWdzIiwibGVuZ3RoIiwiYWxpYXNlcyIsInNlZUFsc28iLCJzb3VyY2UiLCJoYXNEdWFsSW1hZ2VzIiwibWFsZUltYWdlVXJsIiwiZmVtYWxlSW1hZ2VVcmwiLCJoYXNMZWdhY3lJbWFnZSIsImltYWdlVXJsIiwidGl0bGUiLCJtb2Rlcm5pemF0aW9uU3RhdHVzIiwic3JjIiwiYWx0IiwiaXRlbU1ldGFkYXRhIiwiZW50cnlMb3JlIiwiY2hhcmFjdGVyaXN0aWNzIiwiaWQiLCJ0cmFpdHMiLCJzcGVsbHNPZlRoZU1hcmsiLCJqb2luIiwibWFwIiwidGVybUlkIiwicmVwbGFjZSIsIl9jIiwiJFJlZnJlc2hSZWckIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIkdsb3NzYXJ5RW50cnlUZW1wbGF0ZS50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0LCB7IHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xyXG5pbXBvcnQgeyBHbG9zc2FyeVRyYWl0VGFibGUgfSBmcm9tICcuL0dsb3NzYXJ5VHJhaXRUYWJsZSc7XHJcbmltcG9ydCB7IEdsb3NzYXJ5U3BlbGxzT2ZUaGVNYXJrVGFibGUgfSBmcm9tICcuL0dsb3NzYXJ5U3BlbGxzT2ZUaGVNYXJrVGFibGUnO1xyXG5pbXBvcnQgeyBHbG9zc2FyeUNvbnRlbnRSZW5kZXJlciB9IGZyb20gJy4vR2xvc3NhcnlDb250ZW50UmVuZGVyZXInO1xyXG5pbXBvcnQgeyBBcnRpZmljZXJJbmZ1c2lvbnNUYWJsZSB9IGZyb20gJy4vQXJ0aWZpY2VySW5mdXNpb25zVGFibGUnO1xyXG5pbXBvcnQgeyBHbG9zc2FyeUl0ZW1TdGF0QmxvY2sgfSBmcm9tICcuL0dsb3NzYXJ5SXRlbVN0YXRCbG9jayc7XHJcbmltcG9ydCBJbWFnZU1vZGFsIGZyb20gJy4uL0ltYWdlTW9kYWwnO1xyXG5pbXBvcnQgeyBHbG9zc2FyeUVudHJ5IH0gZnJvbSAnLi4vLi4vdHlwZXMnO1xyXG5cclxuLyoqXHJcbiAqIEhlbHBlciB0byByZXNvbHZlIGltYWdlIFVSTHMgZm9yIFZpdGUgZGVwbG95bWVudHMuXHJcbiAqIFByZXBlbmRzIHRoZSBCQVNFX1VSTCBlbnZpcm9ubWVudCB2YXJpYWJsZSBmb3IgbG9jYWwgYXNzZXQgcGF0aHMuXHJcbiAqIFRoaXMgZW5zdXJlcyBpbWFnZXMgd29yayBjb3JyZWN0bHkgd2hlbiB0aGUgYXBwIGlzIGRlcGxveWVkIHRvIGEgc3ViZGlyZWN0b3J5LlxyXG4gKiBcclxuICogQHBhcmFtIHVybCAtIFRoZSBpbWFnZSBVUkwgKGNhbiBiZSByZWxhdGl2ZSBvciBhYnNvbHV0ZSlcclxuICogQHJldHVybnMgVGhlIHJlc29sdmVkIFVSTCB3aXRoIHByb3BlciBiYXNlIHBhdGgsIG9yIHVuZGVmaW5lZCBpZiBubyBVUkwgcHJvdmlkZWRcclxuICovXHJcbmNvbnN0IHJlc29sdmVJbWFnZVVybCA9ICh1cmw6IHN0cmluZyB8IHVuZGVmaW5lZCk6IHN0cmluZyB8IHVuZGVmaW5lZCA9PiB7XHJcbiAgICBpZiAoIXVybCkgcmV0dXJuIHVuZGVmaW5lZDtcclxuICAgIC8vIElmIGFscmVhZHkgYWJzb2x1dGUgVVJMIChleHRlcm5hbCksIHVzZSBhcy1pc1xyXG4gICAgaWYgKHVybC5zdGFydHNXaXRoKCdodHRwOi8vJykgfHwgdXJsLnN0YXJ0c1dpdGgoJ2h0dHBzOi8vJykpIHJldHVybiB1cmw7XHJcbiAgICAvLyBGb3IgbG9jYWwgYXNzZXQgcGF0aHMsIHByZXBlbmQgdGhlIFZpdGUgYmFzZSBVUkwgdG8gaGFuZGxlIHN1YmRpcmVjdG9yeSBkZXBsb3ltZW50c1xyXG4gICAgY29uc3QgYmFzZVVybCA9IGltcG9ydC5tZXRhLmVudi5CQVNFX1VSTCB8fCAnLyc7XHJcbiAgICByZXR1cm4gYCR7YmFzZVVybH0ke3VybC5zdGFydHNXaXRoKCcvJykgPyB1cmwuc2xpY2UoMSkgOiB1cmx9YDtcclxufTtcclxuXHJcbmludGVyZmFjZSBHbG9zc2FyeUVudHJ5VGVtcGxhdGVQcm9wcyB7XHJcbiAgICBlbnRyeTogR2xvc3NhcnlFbnRyeSB8IG51bGw7XHJcbiAgICBtYXJrZG93bkNvbnRlbnQ6IHN0cmluZyB8IG51bGw7XHJcbiAgICBvbk5hdmlnYXRlPzogKHRlcm1JZDogc3RyaW5nKSA9PiB2b2lkO1xyXG59XHJcblxyXG4vKipcclxuICogQSBzdGFuZGFyZGl6ZWQgdGVtcGxhdGUgZm9yIGRpc3BsYXlpbmcgbm9uLXNwZWxsIGdsb3NzYXJ5IGVudHJpZXMuXHJcbiAqIFN1cHBvcnRzIGJvdGggbGVnYWN5IG1hcmtkb3duQ29udGVudCBhbmQgbmV3IHN0cnVjdHVyZWQgZGF0YSBmaWVsZHMuXHJcbiAqL1xyXG5leHBvcnQgY29uc3QgR2xvc3NhcnlFbnRyeVRlbXBsYXRlOiBSZWFjdC5GQzxHbG9zc2FyeUVudHJ5VGVtcGxhdGVQcm9wcz4gPSAoe1xyXG4gICAgZW50cnksXHJcbiAgICBtYXJrZG93bkNvbnRlbnQsXHJcbiAgICBvbk5hdmlnYXRlXHJcbn0pID0+IHtcclxuICAgIC8qKlxyXG4gICAgICogU3RhdGUgZm9yIHRoZSBleHBhbmRlZCBpbWFnZSBtb2RhbCAobGlnaHRib3gpLlxyXG4gICAgICogV2hlbiBzZXQsIHRoZSBJbWFnZU1vZGFsIGRpc3BsYXlzIGEgZnVsbC1zaXplIHZlcnNpb24gb2YgdGhlIGNsaWNrZWQgaW1hZ2UuXHJcbiAgICAgKiBOdWxsIG1lYW5zIG5vIGltYWdlIGlzIGV4cGFuZGVkLlxyXG4gICAgICovXHJcbiAgICBjb25zdCBbZXhwYW5kZWRJbWFnZSwgc2V0RXhwYW5kZWRJbWFnZV0gPSB1c2VTdGF0ZTx7IHNyYzogc3RyaW5nOyBhbHQ6IHN0cmluZyB9IHwgbnVsbD4obnVsbCk7XHJcblxyXG4gICAgaWYgKCFlbnRyeSkgcmV0dXJuIG51bGw7XHJcblxyXG4gICAgY29uc3QgaGFzRXh0cmFJbmZvID0gKGVudHJ5LnRhZ3MgJiYgZW50cnkudGFncy5sZW5ndGggPiAwKSB8fFxyXG4gICAgICAgIChlbnRyeS5hbGlhc2VzICYmIGVudHJ5LmFsaWFzZXMubGVuZ3RoID4gMCkgfHxcclxuICAgICAgICAoZW50cnkuc2VlQWxzbyAmJiBlbnRyeS5zZWVBbHNvLmxlbmd0aCA+IDApIHx8XHJcbiAgICAgICAgZW50cnkuc291cmNlO1xyXG5cclxuICAgIC8qKlxyXG4gICAgICogRHVhbCBJbWFnZSBHYWxsZXJ5IExvZ2ljOlxyXG4gICAgICogLSBoYXNEdWFsSW1hZ2VzOiBUcnVlIGlmIGVpdGhlciBtYWxlSW1hZ2VVcmwgb3IgZmVtYWxlSW1hZ2VVcmwgaXMgcHJlc2VudFxyXG4gICAgICogICAobmV3IGZvcm1hdCBmb3IgcmFjZSBlbnRyaWVzIHdpdGggbWFsZS9mZW1hbGUgcG9ydHJhaXRzKVxyXG4gICAgICogLSBoYXNMZWdhY3lJbWFnZTogVHJ1ZSBpZiBvbmx5IHRoZSBvbGQgc2luZ2xlIGltYWdlVXJsIGZvcm1hdCBpcyB1c2VkXHJcbiAgICAgKiAgIChmYWxsYmFjayBmb3IgZW50cmllcyBub3QgeWV0IG1pZ3JhdGVkIHRvIGR1YWwgaW1hZ2VzKVxyXG4gICAgICovXHJcbiAgICBjb25zdCBoYXNEdWFsSW1hZ2VzID0gZW50cnkubWFsZUltYWdlVXJsIHx8IGVudHJ5LmZlbWFsZUltYWdlVXJsO1xyXG4gICAgY29uc3QgaGFzTGVnYWN5SW1hZ2UgPSBlbnRyeS5pbWFnZVVybCAmJiAhaGFzRHVhbEltYWdlcztcclxuXHJcbiAgICByZXR1cm4gKFxyXG4gICAgICAgIDw+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ2xvc3NhcnktY2FyZFwiPlxyXG4gICAgICAgICAgICAgICAgey8qIEhlYWRlciBTZWN0aW9uIG1hdGNoaW5nIFNwZWxsQ2FyZFRlbXBsYXRlICovfVxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGVsbC1jYXJkLWhlYWRlciBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTRcIj5cclxuICAgICAgICAgICAgICAgICAgICA8aDEgY2xhc3NOYW1lPVwic3BlbGwtY2FyZC10aXRsZVwiPntlbnRyeS50aXRsZX08L2gxPlxyXG4gICAgICAgICAgICAgICAgICAgIHtlbnRyeS5tb2Rlcm5pemF0aW9uU3RhdHVzICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPXtgdGV4dC1bMTBweF0gdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVyIHB4LTIgcHktMC41IHJvdW5kZWQtZnVsbCBib3JkZXIgZm9udC1ib2xkIGZsZXgtc2hyaW5rLTAgJHtcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVudHJ5Lm1vZGVybml6YXRpb25TdGF0dXMgPT09ICdvZmZpY2lhbF8yMDI0J1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID8gJ2JnLWVtZXJhbGQtOTAwLzQwIGJvcmRlci1lbWVyYWxkLTUwMC81MCB0ZXh0LWVtZXJhbGQtNDAwJ1xyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDogJ2JnLXNreS05MDAvNDAgYm9yZGVyLXNreS01MDAvNTAgdGV4dC1za3ktNDAwJ1xyXG4gICAgICAgICAgICAgICAgICAgICAgICB9YH0+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkubW9kZXJuaXphdGlvblN0YXR1cyA9PT0gJ29mZmljaWFsXzIwMjQnID8gJ09mZmljaWFsIDIwMjQnIDogJzIwMjQgTW9kZXJuaXplZCd9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGVsbC1jYXJkLWRpdmlkZXJcIj48L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgICB7LyogTWFpbiBDb250ZW50IEFyZWEgKi99XHJcbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInNwYWNlLXktNlwiPlxyXG4gICAgICAgICAgICAgICAgICAgIHsvKiBJbWFnZSBTZWN0aW9uIC0gRHVhbCBvciBMZWdhY3kgKi99XHJcbiAgICAgICAgICAgICAgICAgICAge2hhc0R1YWxJbWFnZXMgPyAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIC8qIE1hbGUvRmVtYWxlIGR1YWwgaW1hZ2UgbGF5b3V0ICovXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBnYXAtMyBqdXN0aWZ5LWNlbnRlciBtYi02XCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7LyogTWFsZSBJbWFnZSAqL31cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy0yOCBzbTp3LTMyXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2VudHJ5Lm1hbGVJbWFnZVVybCA/IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJyZWxhdGl2ZSBncm91cCBjdXJzb3Item9vbS1pbiB3LWZ1bGxcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0RXhwYW5kZWRJbWFnZSh7IHNyYzogcmVzb2x2ZUltYWdlVXJsKGVudHJ5Lm1hbGVJbWFnZVVybCkhLCBhbHQ6IGAke2VudHJ5LnRpdGxlfSBtYWxlYCB9KX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFyaWEtbGFiZWw9e2BFeHBhbmQgJHtlbnRyeS50aXRsZX0gbWFsZSBpbWFnZWB9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxpbWdcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcmM9e3Jlc29sdmVJbWFnZVVybChlbnRyeS5tYWxlSW1hZ2VVcmwpfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFsdD17YCR7ZW50cnkudGl0bGV9IG1hbGVgfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbCBoLWF1dG8gcm91bmRlZC1sZyBzaGFkb3ctbGcgYm9yZGVyIGJvcmRlci1ncmF5LTYwMCBncm91cC1ob3Zlcjpib3JkZXItc2t5LTUwMCB0cmFuc2l0aW9uLWNvbG9yc1wiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiYWJzb2x1dGUgYm90dG9tLTIgbGVmdC0xLzIgLXRyYW5zbGF0ZS14LTEvMiB0ZXh0LXhzIGJnLWJsYWNrLzcwIHB4LTIgcHktMC41IHJvdW5kZWQgdGV4dC1ncmF5LTMwMFwiPk1hbGU8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy1mdWxsIGFzcGVjdC1bMy80XSBiZy1ncmF5LTcwMCByb3VuZGVkLWxnIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHRleHQtZ3JheS01MDAgYm9yZGVyIGJvcmRlci1ncmF5LTYwMCB0ZXh0LXNtXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBNYWxlXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsvKiBGZW1hbGUgSW1hZ2UgKi99XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctMjggc206dy0zMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtlbnRyeS5mZW1hbGVJbWFnZVVybCA/IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHlwZT1cImJ1dHRvblwiXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJyZWxhdGl2ZSBncm91cCBjdXJzb3Item9vbS1pbiB3LWZ1bGxcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0RXhwYW5kZWRJbWFnZSh7IHNyYzogcmVzb2x2ZUltYWdlVXJsKGVudHJ5LmZlbWFsZUltYWdlVXJsKSEsIGFsdDogYCR7ZW50cnkudGl0bGV9IGZlbWFsZWAgfSl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhcmlhLWxhYmVsPXtgRXhwYW5kICR7ZW50cnkudGl0bGV9IGZlbWFsZSBpbWFnZWB9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxpbWdcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcmM9e3Jlc29sdmVJbWFnZVVybChlbnRyeS5mZW1hbGVJbWFnZVVybCl9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYWx0PXtgJHtlbnRyeS50aXRsZX0gZmVtYWxlYH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ3LWZ1bGwgaC1hdXRvIHJvdW5kZWQtbGcgc2hhZG93LWxnIGJvcmRlciBib3JkZXItZ3JheS02MDAgZ3JvdXAtaG92ZXI6Ym9yZGVyLXNreS01MDAgdHJhbnNpdGlvbi1jb2xvcnNcIlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImFic29sdXRlIGJvdHRvbS0yIGxlZnQtMS8yIC10cmFuc2xhdGUteC0xLzIgdGV4dC14cyBiZy1ibGFjay83MCBweC0yIHB5LTAuNSByb3VuZGVkIHRleHQtZ3JheS0zMDBcIj5GZW1hbGU8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICkgOiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy1mdWxsIGFzcGVjdC1bMy80XSBiZy1ncmF5LTcwMCByb3VuZGVkLWxnIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHRleHQtZ3JheS01MDAgYm9yZGVyIGJvcmRlci1ncmF5LTYwMCB0ZXh0LXNtXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBGZW1hbGVcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICApIDogaGFzTGVnYWN5SW1hZ2UgPyAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIC8qIExlZ2FjeSBzaW5nbGUgaW1hZ2UgbGF5b3V0ICovXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy1mdWxsIGgtNDggc206aC02NCByb3VuZGVkLWxnIG92ZXJmbG93LWhpZGRlbiBib3JkZXIgYm9yZGVyLWdyYXktNjAwIHNoYWRvdy1pbm5lciBtYi02IHJlbGF0aXZlIGdyb3VwXCI+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8aW1nXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3JjPXtyZXNvbHZlSW1hZ2VVcmwoZW50cnkuaW1hZ2VVcmwpfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFsdD17ZW50cnkudGl0bGV9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy1mdWxsIGgtZnVsbCBvYmplY3QtY292ZXIgb2JqZWN0LWNlbnRlciBncm91cC1ob3ZlcjpzY2FsZS0xMDUgdHJhbnNpdGlvbi10cmFuc2Zvcm0gZHVyYXRpb24tNzAwXCJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImFic29sdXRlIGluc2V0LTAgYmctZ3JhZGllbnQtdG8tdCBmcm9tLWdyYXktOTAwLzQwIHRvLXRyYW5zcGFyZW50IHBvaW50ZXItZXZlbnRzLW5vbmVcIj48L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgKSA6IG51bGx9XHJcblxyXG4gICAgICAgICAgICAgICAgICAgIHsvKiBOZXcgU3RydWN0dXJlZCBJdGVtIE1ldGFkYXRhIFZpc3VhbHMgKi99XHJcbiAgICAgICAgICAgICAgICAgICAge2VudHJ5Lml0ZW1NZXRhZGF0YSAmJiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxHbG9zc2FyeUl0ZW1TdGF0QmxvY2sgbWV0YWRhdGE9e2VudHJ5Lml0ZW1NZXRhZGF0YX0gLz5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG5cclxuICAgICAgICAgICAgICAgICAgICB7LyogTG9yZSAvIEludHJvZHVjdG9yeSBUZXh0IChOZXcgb3IgTGVnYWN5KSAqL31cclxuICAgICAgICAgICAgICAgICAgICB7KGVudHJ5LmVudHJ5TG9yZSB8fCAoIWVudHJ5LmNoYXJhY3RlcmlzdGljcyAmJiBtYXJrZG93bkNvbnRlbnQpKSAmJiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicHJvc2UgcHJvc2Utc20gcHJvc2UtaW52ZXJ0IG1heC13LW5vbmUgdGV4dC1ncmF5LTMwMCBsZWFkaW5nLXJlbGF4ZWQgcHJvc2UtaGVhZGluZ3M6dGV4dC1hbWJlci0zMDAgcHJvc2UtaDI6dGV4dC14bCBwcm9zZS1oMzp0ZXh0LWxnIHByb3NlLWg0OnRleHQtYmFzZSBwcm9zZS1zdHJvbmc6dGV4dC1za3ktMzAwIHByb3NlLWE6dGV4dC1za3ktNDAwIGhvdmVyOnByb3NlLWE6dGV4dC1za3ktMzAwIHByb3NlLWJsb2NrcXVvdGU6Ym9yZGVyLWwtc2t5LTUwMFwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgey8qIFNwZWNpYWwgcmVuZGVyaW5nIGZvciBBcnRpZmljZXIgSW5mdXNpb25zICovfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAge2VudHJ5LmlkID09PSAnYXJ0aWZpY2VyX2luZnVzaW9ucycgJiYgbWFya2Rvd25Db250ZW50ID8gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxBcnRpZmljZXJJbmZ1c2lvbnNUYWJsZVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtYXJrZG93bkNvbnRlbnQ9e21hcmtkb3duQ29udGVudH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25OYXZpZ2F0ZT17b25OYXZpZ2F0ZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgKSA6IChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8R2xvc3NhcnlDb250ZW50UmVuZGVyZXJcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAga2V5PXtlbnRyeS5pZH1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWFya2Rvd25Db250ZW50PXtlbnRyeS5lbnRyeUxvcmUgfHwgbWFya2Rvd25Db250ZW50IHx8ICcnfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbk5hdmlnYXRlPXtvbk5hdmlnYXRlfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICApfVxyXG5cclxuICAgICAgICAgICAgICAgICAgICB7LyogVW5pZmllZCBUcmFpdHMgVGFibGUgKGNvbWJpbmVzIGNoYXJhY3RlcmlzdGljcyBhbmQgdHJhaXRzKSAqL31cclxuICAgICAgICAgICAgICAgICAgICB7ZW50cnkudHJhaXRzICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGFjZS15LTRcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9XCJ0ZXh0LWxnIGZvbnQtYm9sZCB0ZXh0LWFtYmVyLTMwMCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJhY2lhbCBUcmFpdHNcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvaDM+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8R2xvc3NhcnlUcmFpdFRhYmxlXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHJhaXRzPXtlbnRyeS50cmFpdHN9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2hhcmFjdGVyaXN0aWNzPXtlbnRyeS5jaGFyYWN0ZXJpc3RpY3N9XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25OYXZpZ2F0ZT17b25OYXZpZ2F0ZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkuc3BlbGxzT2ZUaGVNYXJrICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8R2xvc3NhcnlTcGVsbHNPZlRoZU1hcmtUYWJsZVxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcGVsbHM9e2VudHJ5LnNwZWxsc09mVGhlTWFya31cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25OYXZpZ2F0ZT17b25OYXZpZ2F0ZX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgKX1cclxuXHJcbiAgICAgICAgICAgICAgICAgICAgey8qIEFkZGl0aW9uYWwgTWFya2Rvd24gQ29udGVudCAoQm90dG9tIEZhbGxiYWNrKSAtIE9ubHkgc2hvdyBpZiBlbnRyeUxvcmUgd2FzIHVzZWQgYWJvdmUgKi99XHJcbiAgICAgICAgICAgICAgICAgICAge2VudHJ5LmVudHJ5TG9yZSAmJiBtYXJrZG93bkNvbnRlbnQgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInByb3NlIHByb3NlLXNtIHByb3NlLWludmVydCBtYXgtdy1ub25lIHRleHQtZ3JheS0zMDAgbGVhZGluZy1yZWxheGVkIGJvcmRlci10IGJvcmRlci1ncmF5LTcwMC8zMCBwdC00IG10LTZcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxHbG9zc2FyeUNvbnRlbnRSZW5kZXJlciBrZXk9e2VudHJ5LmlkfSBtYXJrZG93bkNvbnRlbnQ9e21hcmtkb3duQ29udGVudH0gb25OYXZpZ2F0ZT17b25OYXZpZ2F0ZX0gLz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICAgIHsvKiBGb290ZXIgTWV0YWRhdGEgU2VjdGlvbiAqL31cclxuICAgICAgICAgICAgICAgIHtoYXNFeHRyYUluZm8gJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibXQtOCBwdC00IGJvcmRlci10IGJvcmRlci1ncmF5LTYwMC81MCB0ZXh0LXhzIHNwYWNlLXktMlwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkuc291cmNlICYmIChcclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwPjxzdHJvbmcgY2xhc3NOYW1lPVwidGV4dC1za3ktMzAwLzgwXCI+U291cmNlOjwvc3Ryb25nPiA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNTAwXCI+e2VudHJ5LnNvdXJjZX08L3NwYW4+PC9wPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkudGFncyAmJiBlbnRyeS50YWdzLmxlbmd0aCA+IDAgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPHA+PHN0cm9uZyBjbGFzc05hbWU9XCJ0ZXh0LXNreS0zMDBcIj5UYWdzOjwvc3Ryb25nPiA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNDAwXCI+e2VudHJ5LnRhZ3Muam9pbignLCAnKX08L3NwYW4+PC9wPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkuYWxpYXNlcyAmJiBlbnRyeS5hbGlhc2VzLmxlbmd0aCA+IDAgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPHA+PHN0cm9uZyBjbGFzc05hbWU9XCJ0ZXh0LXNreS0zMDBcIj5BbGlhc2VzOjwvc3Ryb25nPiA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNDAwXCI+e2VudHJ5LmFsaWFzZXMuam9pbignLCAnKX08L3NwYW4+PC9wPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgICAgICB7ZW50cnkuc2VlQWxzbyAmJiBlbnRyeS5zZWVBbHNvLmxlbmd0aCA+IDAgJiYgKFxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiBmbGV4LXdyYXAgcHQtMVwiPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzdHJvbmcgY2xhc3NOYW1lPVwidGV4dC1za3ktMzAwIGZsZXgtc2hyaW5rLTBcIj5TZWUgQWxzbzo8L3N0cm9uZz5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC13cmFwIGdhcC0xLjVcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2VudHJ5LnNlZUFsc28ubWFwKHRlcm1JZCA9PiAoXHJcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uIGtleT17dGVybUlkfSBvbkNsaWNrPXsoKSA9PiBvbk5hdmlnYXRlPy4odGVybUlkKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ0ZXh0LXNreS00MDAgaG92ZXI6dGV4dC1za3ktMjAwIGhvdmVyOmJnLXNreS04MDAvNTAgYmctc2t5LTkwMC81MCBweC0yIHB5LTAuNSByb3VuZGVkLW1kIHRleHQteHMgdHJhbnNpdGlvbi1jb2xvcnMgZm9jdXM6b3V0bGluZS1ub25lIGZvY3VzOnJpbmctMSBmb2N1czpyaW5nLXNreS00MDBcIj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7dGVybUlkLnJlcGxhY2UoL18vZywgJyAnKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApKX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgKX1cclxuICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICB7LyogSW1hZ2UgTW9kYWwgKi99XHJcbiAgICAgICAgICAgIHtleHBhbmRlZEltYWdlICYmIChcclxuICAgICAgICAgICAgICAgIDxJbWFnZU1vZGFsIHNyYz17ZXhwYW5kZWRJbWFnZS5zcmN9IGFsdD17ZXhwYW5kZWRJbWFnZS5hbHR9IG9uQ2xvc2U9eygpID0+IHNldEV4cGFuZGVkSW1hZ2UobnVsbCl9IC8+XHJcbiAgICAgICAgICAgICl9XHJcbiAgICAgICAgPC8+XHJcbiAgICApO1xyXG59O1xyXG4iXSwiZmlsZSI6IkY6L1JlcG9zL0FyYWxpYS9zcmMvY29tcG9uZW50cy9HbG9zc2FyeS9HbG9zc2FyeUVudHJ5VGVtcGxhdGUudHN4In0=

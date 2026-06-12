@@ -4,8 +4,8 @@
  *
  * Ported (generation logic): getHeight, detectCloseLakes; slice 2 added
  * defineClimateData and cleanupLakeData (river-integration steps used by
- * Rivers.generate).
- * Left behind: defineNames/getName (needs the Names/cultures generators).
+ * Rivers.generate); slice 3 added defineNames/getName (upstream runs
+ * Lakes.defineNames after Rivers.specify in main.js generate()).
  * The grid-level lake helpers addLakesInDeepDepressions and
  * openNearSeaLakes live in upstream public/main.js, not this module; they
  * are ported in ./generateBase.ts.
@@ -150,6 +150,29 @@ export class LakesModule {
 
       feature.closed = isDeep;
     });
+  }
+
+  /* ---- slice-3 naming stage (upstream Lakes.defineNames, runs after
+     Rivers.specify in main.js generate()) ---- */
+
+  defineNames(
+    pack: Pack,
+    names: import("./names-generator").NamesGenerator,
+  ) {
+    pack.features.forEach((feature: PackedGraphFeature) => {
+      if (!feature || feature.type !== "lake") return;
+      feature.name = this.getName(feature, pack, names);
+    });
+  }
+
+  getName(
+    feature: PackedGraphFeature,
+    pack: Pack,
+    names: import("./names-generator").NamesGenerator,
+  ): string {
+    const landCell = feature.shoreline[0];
+    const culture = pack.cells.culture![landCell];
+    return names.getCulture(culture);
   }
 }
 

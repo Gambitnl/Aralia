@@ -52,6 +52,9 @@ import {
 import { useSubmapGlossaryItems } from './useSubmapGlossaryItems';
 import { useTileHintGenerator } from './useTileHintGenerator';
 import { useSubmapGrid } from './useSubmapGrid';
+import { getWorldforgeLocalForLocation } from '../../systems/worldforge/bridge/legacySubmapBridge';
+import { rasterizeLocalTerrain } from '../Worldforge/localDraw';
+import type { LocalArtifact } from '../../systems/worldforge/artifacts';
 import { usePathfindingGrid, useQuickTravelData } from './useQuickTravel';
 import { useInspectableTiles } from './useInspectableTiles';
 import { getDayNightOverlayClass } from './useDayNightOverlay';
@@ -115,6 +118,73 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
     const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
     const [isInspecting, setIsInspecting] = useState(false);
     const [inspectionMessage, setInspectionMessage] = useState<string | null>(null);
+
+    // --- WORLDFORGE TERRAIN UNDERLAY (slice 2 of the submap replacement) ---
+    // The legacy CA/WFC tile colors are replaced by real L2 LocalArtifact
+    // terrain painted on a canvas BEHIND the interactive tile grid. Gameplay
+    // semantics (walkability, features, paths) stay legacy in this slice —
+    // declared interim mismatch, see legacySubmapBridge.ts. Kill switch:
+    // ?wf_submap=0 restores the legacy visuals wholesale.
+    const wfTerrainEnabled = useMemo(
+        () => new URLSearchParams(window.location.search).get('wf_submap') !== '0',
+        [],
+    );
+    const [wfLocal, setWfLocal] = useState<LocalArtifact | null>(null);
+    const wfCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+    useEffect(() => {
+        if (!wfTerrainEnabled) return;
+        let cancelled = false;
+        setWfLocal(null);
+        // Defer off the commit so the pane paints its frame before the
+        // (cached-after-first-call) generation runs.
+        const t = setTimeout(() => {
+            try {
+                const rows = mapData?.tiles?.length ?? 16;
+                const cols = mapData?.tiles?.[0]?.length ?? 25;
+                const result = getWorldforgeLocalForLocation(
+                    worldSeed,
+                    parentWorldMapCoords.x,
+                    parentWorldMapCoords.y,
+                    cols,
+                    rows,
+                );
+                if (!cancelled) setWfLocal(result.local);
+            } catch (err) {
+                console.error('Worldforge submap bridge failed; legacy visuals remain:', err);
+            }
+        }, 30);
+        return () => {
+            cancelled = true;
+            clearTimeout(t);
+        };
+    }, [wfTerrainEnabled, worldSeed, parentWorldMapCoords.x, parentWorldMapCoords.y, mapData]);
+
+    // Paint the terrain raster stretched to the grid (each gameplay tile maps
+    // to a consistent window of 5-ft cells, so tiles and terrain stay aligned)
+    useEffect(() => {
+        const canvas = wfCanvasRef.current;
+        if (!canvas || !wfLocal) return;
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        if (w === 0 || h === 0) return;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const stage = document.createElement('canvas');
+        stage.width = wfLocal.terrain.widthCells;
+        stage.height = wfLocal.terrain.heightCells;
+        const stageCtx = stage.getContext('2d');
+        if (!stageCtx) return;
+        stageCtx.putImageData(rasterizeLocalTerrain(wfLocal), 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(stage, 0, 0, stage.width, stage.height, 0, 0, w, h);
+    }, [wfLocal]);
+
+    const wfUnderlayActive = wfTerrainEnabled && wfLocal !== null;
 
     // --- NEW STATE FOR QUICK TRAVEL ---
     const [isQuickTravelMode, setIsQuickTravelMode] = useState(false);
@@ -514,13 +584,26 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
 
                         <div
                             ref={gridContainerRef}
-                            style={gridContainerStyle}
+                            style={wfUnderlayActive
+                                ? { ...gridContainerStyle, position: 'relative', zIndex: 0 }
+                                : gridContainerStyle}
                             role="grid"
                             aria-labelledby="submap-grid-description"
                         >
                             <p id="submap-grid-description" className="sr-only">
                                 Submap grid showing local terrain features. Your current position is marked with a person icon.
                             </p>
+                            {/* Worldforge L2 terrain underlay — zIndex -1 inside the
+                                grid's own stacking context paints it under the
+                                interactive tiles but above the pane background */}
+                            {wfUnderlayActive && (
+                                <canvas
+                                    ref={wfCanvasRef}
+                                    className="absolute inset-0 w-full h-full pointer-events-none rounded-sm"
+                                    style={{ zIndex: -1 }}
+                                    aria-hidden="true"
+                                />
+                            )}
                             {/* Use memoized grid data to avoid re-computing derived values on every render */}
                             {memoizedSubmapGrid.map(({ 
                                 r, c, visuals, tileKey, isPlayerPos, 
@@ -529,12 +612,19 @@ const SubmapPane: React.FC<SubmapPaneProps> = React.memo(({
                             }) => {
                                 const isDestination = isQuickTravelMode && isHovered;
 
+                                // Worldforge mode: the canvas owns terrain color —
+                                // tiles go transparent but keep icons, features and
+                                // all interaction semantics (legacy, this slice)
+                                const tileVisuals = wfUnderlayActive
+                                    ? { ...visuals, style: { ...visuals.style, backgroundColor: 'transparent' } }
+                                    : visuals;
+
                                 return (
                                     <SubmapTile
                                         key={tileKey}
                                         r={r}
                                         c={c}
-                                        visuals={visuals}
+                                        visuals={tileVisuals}
                                         tooltipContent={submapGridWithTooltips.find(t => t.r === r && t.c === c)?.tooltipContent || ''}
                                         isPlayerPos={isPlayerPos}
                                         isHighlightedForInspection={isHighlightedForInspection}

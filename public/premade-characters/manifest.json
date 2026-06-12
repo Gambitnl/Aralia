@@ -1,126 +1,286 @@
 {
-    "characters": [
-        {
-            "filename": "thalren_deeproot.json",
-            "name": "Thalren Deeproot",
-            "race": "Earth Genasi",
-            "className": "Monk",
-            "level": 1,
-            "description": "A reclusive Earth Genasi hermit who channels the patience of stone through martial discipline."
-        },
-        {
-            "filename": "kael_ironvow.json",
-            "name": "Kael Ironvow",
-            "race": "Half-Orc",
-            "className": "Fighter",
-            "level": 1,
-            "description": "A disciplined Half-Orc soldier who fights with precision over brute force, wielding a longsword and shield."
-        },
-        {
-            "filename": "lyris_songweaver.json",
-            "name": "Lyris Songweaver",
-            "race": "Lightfoot Halfling",
-            "className": "Bard",
-            "level": 1,
-            "description": "A cheerful Halfling entertainer whose songs bolster allies and beguile foes."
-        },
-        {
-            "filename": "brynna_ashward.json",
-            "name": "Brynna Ashward",
-            "race": "Human",
-            "className": "Barbarian",
-            "level": 1,
-            "description": "A direct human outlander whose rage makes her the front line for encounter testing."
-        },
-        {
-            "filename": "sera_dawnmantle.json",
-            "name": "Sera Dawnmantle",
-            "race": "Human",
-            "className": "Cleric",
-            "level": 1,
-            "description": "A steady human field-priest built to test healing, blessings, and shielded support play."
-        },
-        {
-            "filename": "merrit_greenbough.json",
-            "name": "Merrit Greenbough",
-            "race": "Human",
-            "className": "Druid",
-            "level": 1,
-            "description": "A watchful human hermit who tests nature magic, control spells, and wilderness utility."
-        },
-        {
-            "filename": "oren_pathmark.json",
-            "name": "Oren Pathmark",
-            "race": "Human",
-            "className": "Ranger",
-            "level": 1,
-            "description": "A quiet human guide built around ranged pressure, tracking skills, and light healing."
-        },
-        {
-            "filename": "nyx_velorin.json",
-            "name": "Nyx Velorin",
-            "race": "Human",
-            "className": "Rogue",
-            "level": 1,
-            "description": "A nimble human infiltrator for testing stealth, scouting, and precision attacks."
-        },
-        {
-            "filename": "tavian_oathsteel.json",
-            "name": "Tavian Oathsteel",
-            "race": "Human",
-            "className": "Paladin",
-            "level": 1,
-            "description": "A sworn human defender who tests high armor, weapon pressure, and early divine magic."
-        },
-        {
-            "filename": "ivel_sparkvein.json",
-            "name": "Ivel Sparkvein",
-            "race": "Human",
-            "className": "Sorcerer",
-            "level": 1,
-            "description": "A volatile human innate caster for testing cantrips, Shield, and simple arcane damage."
-        },
-        {
-            "filename": "cassian_blackreed.json",
-            "name": "Cassian Blackreed",
-            "race": "Human",
-            "className": "Warlock",
-            "level": 1,
-            "description": "A pact-bound human caster for testing Eldritch Blast, Hex, and short-rest spell slots."
-        },
-        {
-            "filename": "maelis_quill.json",
-            "name": "Maelis Quill",
-            "race": "Human",
-            "className": "Wizard",
-            "level": 1,
-            "description": "A prepared human scholar for testing broad first-level arcane spell coverage."
-        },
-        {
-            "filename": "pip_coppercoil.json",
-            "name": "Pip Coppercoil",
-            "race": "Human",
-            "className": "Artificer",
-            "level": 1,
-            "description": "A practical human inventor for testing tool-flavored magic and support casting."
-        },
-        {
-            "filename": "dev_maelis_quill_lvl5.json",
-            "name": "[DEV] Maelis Quill (Lvl 5)",
-            "race": "Human",
-            "className": "Wizard",
-            "level": 5,
-            "description": "A level 5 dev fixture for testing level 2 and 3 wizard spells like Misty Step and Fireball.",
-            "isTestFixture": true
-        },
-        {
-            "filename": "dev_sera_dawnmantle_lvl5.json",
-            "name": "[DEV] Sera Dawnmantle (Lvl 5)",
-            "race": "Human",
-            "className": "Cleric",
-            "level": 5,
-            "description": "A level 5 dev fixture for testing level 2 and 3 cleric spells like Hold Person and Spirit Guardians.",
-            "isTestFixture": true
-        }
-    ]
+  "characters": [
+    {
+      "filename": "thalren_deeproot.json",
+      "name": "Thalren Deeproot",
+      "race": "Earth Genasi",
+      "className": "Monk",
+      "level": 1,
+      "description": "A reclusive Earth Genasi hermit who channels the patience of stone through martial discipline."
+    },
+    {
+      "filename": "kael_ironvow.json",
+      "name": "Kael Ironvow",
+      "race": "Half-Orc",
+      "className": "Fighter",
+      "level": 1,
+      "description": "A disciplined Half-Orc soldier who fights with precision over brute force, wielding a longsword and shield."
+    },
+    {
+      "filename": "lyris_songweaver.json",
+      "name": "Lyris Songweaver",
+      "race": "Lightfoot Halfling",
+      "className": "Bard",
+      "level": 1,
+      "description": "A cheerful Halfling entertainer whose songs bolster allies and beguile foes."
+    },
+    {
+      "filename": "brynna_ashward.json",
+      "name": "Brynna Ashward",
+      "race": "Human",
+      "className": "Barbarian",
+      "level": 1,
+      "description": "A direct human outlander whose rage makes her the front line for encounter testing."
+    },
+    {
+      "filename": "sera_dawnmantle.json",
+      "name": "Sera Dawnmantle",
+      "race": "Human",
+      "className": "Cleric",
+      "level": 1,
+      "description": "A steady human field-priest built to test healing, blessings, and shielded support play."
+    },
+    {
+      "filename": "merrit_greenbough.json",
+      "name": "Merrit Greenbough",
+      "race": "Human",
+      "className": "Druid",
+      "level": 1,
+      "description": "A watchful human hermit who tests nature magic, control spells, and wilderness utility."
+    },
+    {
+      "filename": "oren_pathmark.json",
+      "name": "Oren Pathmark",
+      "race": "Human",
+      "className": "Ranger",
+      "level": 1,
+      "description": "A quiet human guide built around ranged pressure, tracking skills, and light healing."
+    },
+    {
+      "filename": "nyx_velorin.json",
+      "name": "Nyx Velorin",
+      "race": "Human",
+      "className": "Rogue",
+      "level": 1,
+      "description": "A nimble human infiltrator for testing stealth, scouting, and precision attacks."
+    },
+    {
+      "filename": "tavian_oathsteel.json",
+      "name": "Tavian Oathsteel",
+      "race": "Human",
+      "className": "Paladin",
+      "level": 1,
+      "description": "A sworn human defender who tests high armor, weapon pressure, and early divine magic."
+    },
+    {
+      "filename": "ivel_sparkvein.json",
+      "name": "Ivel Sparkvein",
+      "race": "Human",
+      "className": "Sorcerer",
+      "level": 1,
+      "description": "A volatile human innate caster for testing cantrips, Shield, and simple arcane damage."
+    },
+    {
+      "filename": "cassian_blackreed.json",
+      "name": "Cassian Blackreed",
+      "race": "Human",
+      "className": "Warlock",
+      "level": 1,
+      "description": "A pact-bound human caster for testing Eldritch Blast, Hex, and short-rest spell slots."
+    },
+    {
+      "filename": "maelis_quill.json",
+      "name": "Maelis Quill",
+      "race": "Human",
+      "className": "Wizard",
+      "level": 1,
+      "description": "A prepared human scholar for testing broad first-level arcane spell coverage."
+    },
+    {
+      "filename": "pip_coppercoil.json",
+      "name": "Pip Coppercoil",
+      "race": "Human",
+      "className": "Artificer",
+      "level": 1,
+      "description": "A practical human inventor for testing tool-flavored magic and support casting."
+    },
+    {
+      "filename": "dev_maelis_quill_lvl5.json",
+      "name": "[DEV] Maelis Quill (Lvl 5)",
+      "race": "Human",
+      "className": "Wizard",
+      "level": 5,
+      "description": "A level 5 dev fixture for testing level 2 and 3 wizard spells like Misty Step and Fireball.",
+      "isTestFixture": true
+    },
+    {
+      "filename": "dev_sera_dawnmantle_lvl5.json",
+      "name": "[DEV] Sera Dawnmantle (Lvl 5)",
+      "race": "Human",
+      "className": "Cleric",
+      "level": 5,
+      "description": "A level 5 dev fixture for testing level 2 and 3 cleric spells like Hold Person and Spirit Guardians.",
+      "isTestFixture": true
+    },
+    {
+      "filename": "borin_vance.json",
+      "name": "Borin Vance",
+      "race": "Human",
+      "className": "Fighter",
+      "level": 1,
+      "description": "A scarred human soldier who swings the heaviest blade on the field."
+    },
+    {
+      "filename": "lyrielle_vantas.json",
+      "name": "Lyrielle Vantas",
+      "race": "High Elf",
+      "className": "Wizard",
+      "level": 1,
+      "description": "A sage-trained high elf wizard with a spellbook full of answers."
+    },
+    {
+      "filename": "zerakha_bronzeplate.json",
+      "name": "Zerakha Bronzeplate",
+      "race": "Bronze Dragonborn",
+      "className": "Cleric",
+      "level": 1,
+      "description": "A bronze dragonborn acolyte armored in faith and heavy plate."
+    },
+    {
+      "filename": "vexa_emberhorn.json",
+      "name": "Vexa Emberhorn",
+      "race": "Infernal Tiefling",
+      "className": "Sorcerer",
+      "level": 1,
+      "description": "An infernal tiefling stage performer whose magic burns as bright as her act."
+    },
+    {
+      "filename": "fizwick_cogglesworth.json",
+      "name": "Fizwick Cogglesworth",
+      "race": "Rock Gnome",
+      "className": "Bard",
+      "level": 1,
+      "description": "An aging rock gnome noble who traded court life for the stage."
+    },
+    {
+      "filename": "thorgrim_anvilmar.json",
+      "name": "Thorgrim Anvilmar",
+      "race": "Mountain Dwarf",
+      "className": "Paladin",
+      "level": 1,
+      "description": "A veteran mountain dwarf soldier sworn to the forge gods."
+    },
+    {
+      "filename": "posy_underbough.json",
+      "name": "Posy Underbough",
+      "race": "Lightfoot Halfling",
+      "className": "Rogue",
+      "level": 1,
+      "description": "A lightfoot halfling with quick fingers and a quicker exit."
+    },
+    {
+      "filename": "seraphel_dawnwhisper.json",
+      "name": "Seraphel Dawnwhisper",
+      "race": "Protector Aasimar",
+      "className": "Warlock",
+      "level": 1,
+      "description": "A hermit aasimar who bargained with something beyond the dawn."
+    },
+    {
+      "filename": "mirri_swiftclaw.json",
+      "name": "Mirri Swiftclaw",
+      "race": "Tabaxi",
+      "className": "Druid",
+      "level": 1,
+      "description": "A tabaxi wilderness guide who speaks for the wild places."
+    },
+    {
+      "filename": "nyx_manyfaces.json",
+      "name": "Nyx Manyfaces",
+      "race": "Changeling",
+      "className": "Ranger",
+      "level": 1,
+      "description": "A changeling street survivor who hunts wearing a hundred faces."
+    },
+    {
+      "filename": "korag_frostpeak.json",
+      "name": "Korag Frostpeak",
+      "race": "Frost Giant Goliath",
+      "className": "Barbarian",
+      "level": 1,
+      "description": "A frost giant goliath farmer whose temper froze long ago."
+    },
+    {
+      "filename": "ghazka_tidebreaker.json",
+      "name": "Ghazka Tidebreaker",
+      "race": "Orc",
+      "className": "Monk",
+      "level": 1,
+      "description": "An orc sailor whose fists hit harder than a boarding axe."
+    },
+    {
+      "filename": "cindra_ashveil.json",
+      "name": "Cindra Ashveil",
+      "race": "Fire Genasi",
+      "className": "Artificer",
+      "level": 1,
+      "description": "A fire genasi tinkerer running schemes for a shadowy faction."
+    },
+    {
+      "filename": "vlaakith_szarn.json",
+      "name": "Vlaakith Szarn",
+      "race": "Githyanki",
+      "className": "Fighter",
+      "level": 1,
+      "description": "A githyanki raider who never misses twice."
+    },
+    {
+      "filename": "sylvaris_frostbloom.json",
+      "name": "Sylvaris Frostbloom",
+      "race": "Winter Eladrin",
+      "className": "Rogue",
+      "level": 1,
+      "description": "An elderly winter eladrin scholar who steals secrets, not coin."
+    },
+    {
+      "filename": "unit_seven_tin.json",
+      "name": "Unit Seven-Tin",
+      "race": "Warforged",
+      "className": "Fighter",
+      "level": 1,
+      "description": "A young warforged who farms in peace and fights like a fortress."
+    },
+    {
+      "filename": "bramwen_mosshollow.json",
+      "name": "Bramwen Mosshollow",
+      "race": "Firbolg",
+      "className": "Cleric",
+      "level": 1,
+      "description": "A firbolg hermit channeling quiet thunder for the old faith."
+    },
+    {
+      "filename": "corvan_duskwhisper.json",
+      "name": "Corvan Duskwhisper",
+      "race": "Half-Elf",
+      "className": "Warlock",
+      "level": 1,
+      "description": "A half-elf noble whose patron collects favors, not gold."
+    },
+    {
+      "filename": "maelis_deepcurrent.json",
+      "name": "Maelis Deepcurrent",
+      "race": "Triton",
+      "className": "Barbarian",
+      "level": 1,
+      "description": "A triton sailor with a storm in his blood and a grudge to settle."
+    },
+    {
+      "filename": "wrenna_thornquill.json",
+      "name": "Wrenna Thornquill",
+      "race": "Beastborn Human",
+      "className": "Wizard",
+      "level": 1,
+      "description": "A beastborn human guide whose spellbook smells of pine and rain."
+    }
+  ]
 }

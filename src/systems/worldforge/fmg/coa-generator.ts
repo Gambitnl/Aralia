@@ -36,7 +36,7 @@ const ERROR = false;
  * @param pack the pack whose cultures/states getShield reads.
  */
 export function createCoaGenerator(emblemShape: string, pack: Pack) {
-  const tinctures = {
+  const tinctures: Record<string, any> = {
     field: {metals: 3, colours: 4, stains: 0, patterns: 1}, // NOT REPRODUCED: upstream `stains: +P(0.03)` (load-time draw, see header)
     division: {metals: 5, colours: 8, stains: 0, patterns: 1}, // NOT REPRODUCED: upstream `stains: +P(0.03)` (load-time draw, see header)
     charge: {metals: 2, colours: 3, stains: 0, patterns: 0}, // NOT REPRODUCED: upstream `stains: +P(0.05)` (load-time draw, see header)
@@ -78,7 +78,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     }
   };
 
-  const chargeData = {
+  const chargeData: Record<string, any> = {
     agnusDei: {
       colors: 2,
       sinister: true
@@ -943,7 +943,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     }
   };
 
-  const charges = {
+  const charges: Record<string, any> = {
     types: {
       conventional: 33, // 40 charges
       crosses: 13, // 30 charges
@@ -1420,7 +1420,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
   };
 
   // charges specific to culture or burg type (FMG-only config, not coming from Armoria)
-  const typeMapping = {
+  const typeMapping: Record<string, any> = {
     Naval: {
       anchor: 3,
       drakkar: 1,
@@ -1459,14 +1459,13 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     },
     Lake: {
       hook: 3,
-      cancer: 2,
+      cancer: 1, // UPSTREAM QUIRK PRESERVED: duplicate key (cancer: 2 then cancer: 1); JS keeps first-position/last-value
       escallop: 1,
       pike: 2,
       heron: 1,
       boat: 1,
       boat2: 2,
       salmon: 1,
-      cancer: 1,
       sickle: 1,
       windmill: 1,
       swanErased: 1,
@@ -1500,11 +1499,10 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
       lanceHead: 1,
       saw: 1,
       deerHeadCaboshed: 1,
-      wolfStatant: 1,
-      oak: 1,
+      wolfStatant: 1, // UPSTREAM QUIRK PRESERVED: duplicate key (wolfStatant: 1 then wolfStatant: 1); JS keeps first-position/last-value
+      oak: 1, // UPSTREAM QUIRK PRESERVED: duplicate key (oak: 1 then oak: 1); JS keeps first-position/last-value
       pineCone: 1,
       pineTree: 1,
-      oak: 1,
       owl: 1,
       falcon: 1,
       peacock: 1,
@@ -1513,7 +1511,6 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
       rabbitSejant: 1,
       wolfRampant: 1,
       wolfPassant: 1,
-      wolfStatant: 1,
       greyhoundCourant: 1,
       greyhoundRampant: 1,
       greyhoundSejant: 1,
@@ -1533,7 +1530,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
       castle2: 1,
       portcullis: 1,
       mallet: 1,
-      cannon: 1,
+      cannon: 1, // UPSTREAM QUIRK PRESERVED: duplicate key (cannon: 1 then cannon: 1); JS keeps first-position/last-value
       anvil: 1,
       buckle: 1,
       horseshoe: 1,
@@ -1546,7 +1543,6 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
       pincers: 1,
       bridge: 2,
       archer: 1,
-      cannon: 1,
       shield: 1,
       arbalest: 1,
       arbalest2: 1,
@@ -1566,7 +1562,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     },
     Capital: {
       crown: 2,
-      crown2: 2,
+      crown2: 2, // UPSTREAM QUIRK PRESERVED: duplicate key (crown2: 2 then crown2: 2); JS keeps first-position/last-value
       laurelWreath: 1,
       orb: 1,
       lute: 1,
@@ -1575,7 +1571,6 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
       castle: 1,
       castle2: 1,
       palace: 1,
-      crown2: 2,
       column: 1,
       lionRampant: 1,
       stagLodgedRegardant: 1,
@@ -1605,7 +1600,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     }
   };
 
-  const positions = {
+  const positions: Record<string, any> = {
     conventional: {
       e: 20,
       abcdefgzi: 3,
@@ -1639,7 +1634,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     inescutcheon: {e: 4, jln: 1}
   };
 
-  const lines = {
+  const lines: Record<string, any> = {
     straight: 50,
     wavy: 8,
     engrailed: 4,
@@ -1675,7 +1670,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     firTrees: 1
   };
 
-  const divisions = {
+  const divisions: Record<string, any> = {
     variants: {
       perPale: 5,
       perFess: 5,
@@ -1720,7 +1715,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     perPile: lines
   };
 
-  const ordinaries = {
+  const ordinaries: Record<string, any> = {
     lined: {
       pale: 7,
       fess: 5,
@@ -1877,7 +1872,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     }
   };
 
-  const shields = {
+  const shields: Record<string, any> = {
     types: {basic: 10, regional: 2, historical: 1, specific: 1, banner: 1, simple: 2, fantasy: 1, middleEarth: 0},
     basic: {heater: 12, spanish: 6, french: 1},
     regional: {horsehead: 1, horsehead2: 1, polish: 1, hessen: 1, swiss: 1},
@@ -2052,7 +2047,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
         } else if (allowCounter && p.length > 1) coa.charges[0].divided = "counter"; // counterchanged, 40%
       }
 
-      coa.charges.forEach(c => defineChargeAttributes(ordinary, division, c));
+      coa.charges.forEach((c: any) => defineChargeAttributes(ordinary, division, c));
     }
 
     // dominions have canton with parent coa
@@ -2204,7 +2199,7 @@ export function createCoaGenerator(emblemShape: string, pack: Pack) {
     }
 
     function replaceTincture(t: any, n?: any) {
-      const type = getType(t);
+      const type = getType(t) as string;
       while (!n || n === t) {
         n = rw(tinctures[type]);
       }

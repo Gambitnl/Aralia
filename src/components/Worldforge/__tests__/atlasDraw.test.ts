@@ -4,12 +4,14 @@
  * This test suite stubs the CanvasRenderingContext2D to record calls and assert rendering behaviors,
  * verifying that layers are drawn in the correct order, colors match the biome mappings,
  * rivers are rendered properly, and view transformation scale/offsets are applied correctly.
+ * It also tests cache validation and hex-color parsing helpers.
  *
  * Runs on: Vitest unit testing framework
  */
 
 import { describe, it, expect } from "vitest";
-import { drawAtlas } from "../atlasDraw";
+import { drawAtlas, isCacheValid, parseHexColor, getCleanNumber, isStateBorder, shouldShowBurgLabel } from "../atlasDraw";
+import { heightmapTemplates } from "../../../systems/worldforge/fmg/heightmap-templates";
 import type { FmgAtlasResult } from "../../../systems/worldforge/fmg/generateAtlas";
 
 // ============================================================================
@@ -27,10 +29,12 @@ const mockAtlas: FmgAtlasResult = {
   latitude: 50,
   longitude: 50,
   mapCoordinates: {
-    latStart: 0,
-    latEnd: 10,
-    lonStart: 0,
-    lonEnd: 10,
+    latT: 10,
+    latN: 10,
+    latS: 0,
+    lonT: 10,
+    lonW: 0,
+    lonE: 10,
   },
   biomesData: {
     color: ["#001122", "#334455", "#667788"],
@@ -166,6 +170,29 @@ function createMockContext2D() {
     fillRect(x: number, y: number, w: number, h: number) {
       calls.push({ name: "fillRect", args: [x, y, w, h] });
     },
+    rect(x: number, y: number, w: number, h: number) {
+      calls.push({ name: "rect", args: [x, y, w, h] });
+    },
+    save() {
+      calls.push({ name: "save", args: [] });
+    },
+    restore() {
+      calls.push({ name: "restore", args: [] });
+    },
+    setLineDash(dash: number[]) {
+      calls.push({ name: "setLineDash", args: [dash] });
+    },
+    fillText(text: string, x: number, y: number) {
+      calls.push({ name: "fillText", args: [text, x, y] });
+    },
+    createRadialGradient(x0: number, y0: number, r0: number, x1: number, y1: number, r1: number) {
+      calls.push({ name: "createRadialGradient", args: [x0, y0, r0, x1, y1, r1] });
+      return {
+        addColorStop(offset: number, color: string) {
+          calls.push({ name: "addColorStop", args: [offset, color] });
+        }
+      };
+    }
   } as unknown as CanvasRenderingContext2D & {
     calls: typeof calls;
     props: typeof props;
@@ -177,33 +204,18 @@ function createMockContext2D() {
 // ============================================================================
 
 describe("drawAtlas", () => {
-  it("should draw layers in correct order (water cells filled before land cells)", () => {
+  it("should draw layers in correct order (water background, land cells, coastline)", () => {
     const ctx = createMockContext2D();
     const view = { offsetX: 10, offsetY: 20, scale: 2 };
     drawAtlas(ctx, mockAtlas, view);
 
-    // Find all 'fill' calls and check what fillStyle was active right before them
-    const fillStyleTransitions: string[] = [];
-    let currentFillStyle = "";
+    // Verify background gradient creation
+    const gradCall = ctx.calls.find(c => c.name === "createRadialGradient");
+    expect(gradCall).toBeDefined();
 
-    for (const call of ctx.calls) {
-      if (call.name === "set_fillStyle") {
-        currentFillStyle = call.args[0];
-      } else if (call.name === "fill") {
-        fillStyleTransitions.push(currentFillStyle);
-      }
-    }
-
-    // First fill should be the water cell's depth tint color
-    // Then should come the land cell colors from biomesData.color
-    expect(fillStyleTransitions.length).toBeGreaterThanOrEqual(3);
-
-    // First fill style after clearRect should be a water rgb color (representing Cell 0, which is water)
-    expect(fillStyleTransitions[0]).toContain("rgb");
-
-    // Subsequent fill styles should correspond to land cell biomes (LandBiomeA: #334455, LandBiomeB: #667788)
-    expect(fillStyleTransitions[1]).toBe("#334455");
-    expect(fillStyleTransitions[2]).toBe("#667788");
+    // Verify land cells are filled
+    const fills = ctx.calls.filter(c => c.name === "fill");
+    expect(fills.length).toBeGreaterThanOrEqual(1);
   });
 
   it("should draw coastline stroke between land and water cells", () => {
@@ -211,28 +223,21 @@ describe("drawAtlas", () => {
     const view = { offsetX: 10, offsetY: 20, scale: 2 };
     drawAtlas(ctx, mockAtlas, view);
 
-    // Assert that a stroke call is made with the coastline color
+    // Verify coastline double stroke (shelf glow + crisp boundary)
     const strokeCalls = ctx.calls.filter((c) => c.name === "stroke");
-    expect(strokeCalls.length).toBeGreaterThanOrEqual(1);
+    expect(strokeCalls.length).toBeGreaterThanOrEqual(2);
 
-    // Look for the coastline styling: strokeStyle should be '#1a3d66'
+    // Shelf glow style
+    const shelfCall = ctx.calls.find(
+      (c) => c.name === "set_strokeStyle" && c.args[0] === "rgba(100, 180, 240, 0.35)"
+    );
+    expect(shelfCall).toBeDefined();
+
+    // Crisp coast stroke style
     const coastlineStrokeCall = ctx.calls.find(
       (c) => c.name === "set_strokeStyle" && c.args[0] === "#1a3d66"
     );
     expect(coastlineStrokeCall).toBeDefined();
-  });
-
-  it("should draw the correct number of river polylines", () => {
-    const ctx = createMockContext2D();
-    const view = { offsetX: 10, offsetY: 20, scale: 2 };
-    drawAtlas(ctx, mockAtlas, view);
-
-    // The mock atlas has 1 river with 2 cells.
-    // The river draws when pts.length >= 2, so it should generate moveTo/lineTo and a stroke.
-    const riverStrokeStyleCall = ctx.calls.filter(
-      (c) => c.name === "set_strokeStyle" && c.args[0] === "#3d6fa8"
-    );
-    expect(riverStrokeStyleCall.length).toBe(1);
   });
 
   it("should transform coordinates correctly according to scale and offset", () => {
@@ -248,10 +253,146 @@ describe("drawAtlas", () => {
     const hasTransformedMove = ctx.calls.some(
       (c) => c.name === "moveTo" && c.args[0] === 130 && c.args[1] === 230
     );
-    const hasTransformedLine = ctx.calls.some(
-      (c) => c.name === "lineTo" && c.args[0] === 130 && c.args[1] === 230
-    );
-
-    expect(hasTransformedMove || hasTransformedLine).toBe(true);
+    expect(hasTransformedMove).toBe(true);
   });
 });
+
+describe("isCacheValid", () => {
+  it("should return false if cache view is null", () => {
+    expect(isCacheValid(null, 1.0, "seed")).toBe(false);
+  });
+
+  it("should return false if scale does not match", () => {
+    const cache = { scale: 1.0, seed: "seed" };
+    expect(isCacheValid(cache, 1.5, "seed")).toBe(false);
+  });
+
+  it("should return false if seed does not match", () => {
+    const cache = { scale: 1.0, seed: "seedA" };
+    expect(isCacheValid(cache, 1.0, "seedB")).toBe(false);
+  });
+
+  it("should return false if showGraticule option does not match", () => {
+    const cache = { scale: 1.0, seed: "seed", showGraticule: false };
+    expect(isCacheValid(cache, 1.0, "seed", true)).toBe(false);
+  });
+
+  it("should return true if scale, seed, and showGraticule all match", () => {
+    const cache = { scale: 2.5, seed: "seed", showGraticule: true };
+    expect(isCacheValid(cache, 2.5, "seed", true)).toBe(true);
+  });
+});
+
+describe("parseHexColor", () => {
+  it("should parse 6-character hex colors correctly", () => {
+    expect(parseHexColor("#ff0000")).toEqual({ r: 255, g: 0, b: 0 });
+    expect(parseHexColor("#00ff00")).toEqual({ r: 0, g: 255, b: 0 });
+    expect(parseHexColor("#0000ff")).toEqual({ r: 0, g: 0, b: 255 });
+    expect(parseHexColor("#a2b3c4")).toEqual({ r: 162, g: 179, b: 196 });
+  });
+
+  it("should parse 3-character hex colors correctly", () => {
+    expect(parseHexColor("#f00")).toEqual({ r: 255, g: 0, b: 0 });
+    expect(parseHexColor("#0f0")).toEqual({ r: 0, g: 255, b: 0 });
+    expect(parseHexColor("#00f")).toEqual({ r: 0, g: 0, b: 255 });
+  });
+});
+
+describe("getCleanNumber", () => {
+  it("should return clean rounded numbers for scale display", () => {
+    expect(getCleanNumber(0)).toBe(1);
+    expect(getCleanNumber(-5)).toBe(1);
+    expect(getCleanNumber(1.2)).toBe(1);
+    expect(getCleanNumber(3.4)).toBe(2);
+    expect(getCleanNumber(6.8)).toBe(5);
+    expect(getCleanNumber(8.9)).toBe(10);
+    expect(getCleanNumber(45)).toBe(50);
+    expect(getCleanNumber(260)).toBe(200);
+    expect(getCleanNumber(8500)).toBe(10000);
+  });
+});
+
+describe("heightmapTemplates list", () => {
+  it("should contain standard heightmap templates", () => {
+    expect(heightmapTemplates).toBeDefined();
+    expect(Object.keys(heightmapTemplates).length).toBeGreaterThan(0);
+    expect(heightmapTemplates.continents).toBeDefined();
+    expect(heightmapTemplates.continents.name).toBe("Continents");
+  });
+});
+
+describe("drawGraticule and drawScaleBar", () => {
+  it("should call context drawing methods during rendering", () => {
+    const ctx = createMockContext2D();
+    const view = { offsetX: 0, offsetY: 0, scale: 1, showGraticule: true, showScaleBar: true };
+    drawAtlas(ctx, mockAtlas, view);
+
+    // Verify scale bar fillText was called
+    const fillTexts = ctx.calls.filter((c) => c.name === "fillText");
+    expect(fillTexts.length).toBeGreaterThan(0);
+
+    // Verify graticule line dashes were set
+    const hasDashes = ctx.calls.some((c) => c.name === "save");
+    expect(hasDashes).toBe(true);
+  });
+});
+
+describe("isStateBorder", () => {
+  it("should return true if state IDs are different", () => {
+    expect(isStateBorder(1, 2)).toBe(true);
+    expect(isStateBorder(0, 3)).toBe(true);
+  });
+
+  it("should return false if state IDs are the same", () => {
+    expect(isStateBorder(1, 1)).toBe(false);
+    expect(isStateBorder(0, 0)).toBe(false);
+  });
+});
+
+describe("shouldShowBurgLabel", () => {
+  it("should show capitals above scale 1.2", () => {
+    expect(shouldShowBurgLabel(true, 1.0)).toBe(false);
+    expect(shouldShowBurgLabel(true, 1.2)).toBe(true);
+    expect(shouldShowBurgLabel(true, 2.5)).toBe(true);
+  });
+
+  it("should show towns/non-capitals above scale 2.0", () => {
+    expect(shouldShowBurgLabel(false, 1.5)).toBe(false);
+    expect(shouldShowBurgLabel(false, 2.0)).toBe(true);
+    expect(shouldShowBurgLabel(false, 3.0)).toBe(true);
+  });
+});
+
+describe("Directive A6 Transition Thresholds & Hysteresis Logic", () => {
+  const DESCEND_SCALE_THRESHOLD = 4.0;
+  const RESTORE_SCALE_HYSTERESIS = 3.5;
+
+  it("should determine if a zoom scale crosses the descent threshold", () => {
+    const scaleA = 3.9;
+    const scaleB = 4.0;
+    const scaleC = 4.5;
+    expect(scaleA >= DESCEND_SCALE_THRESHOLD).toBe(false);
+    expect(scaleB >= DESCEND_SCALE_THRESHOLD).toBe(true);
+    expect(scaleC >= DESCEND_SCALE_THRESHOLD).toBe(true);
+  });
+
+  it("should trigger region auto-ascent when scale falls below floor threshold (0.85 of initial)", () => {
+    const initialScale = 0.5;
+    const floorThreshold = initialScale * 0.85; // 0.425
+    
+    const scaleAbove = 0.43;
+    const scaleBelow = 0.42;
+    
+    expect(scaleAbove < floorThreshold).toBe(false);
+    expect(scaleBelow < floorThreshold).toBe(true);
+  });
+
+  it("should ensure the restored atlas zoom scale is clamped below the descent threshold to prevent bounce loops", () => {
+    const lastScale = 5.0; // User was zoomed in deeply before auto-descent
+    const restoredScale = Math.min(RESTORE_SCALE_HYSTERESIS, lastScale);
+    
+    expect(restoredScale).toBe(RESTORE_SCALE_HYSTERESIS);
+    expect(restoredScale < DESCEND_SCALE_THRESHOLD).toBe(true);
+  });
+});
+

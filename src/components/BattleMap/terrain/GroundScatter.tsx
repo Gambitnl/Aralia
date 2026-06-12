@@ -21,14 +21,14 @@
  */
 import React, { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { BattleMapData } from '../../../types/combat';
+import { BattleMapData, BattleMapTile } from '../../../types/combat';
+import { makeTerrainHeightSampler } from './TerrainMesh';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const TILE_SIZE = 1.0;
-const ELEVATION_SCALE = 0.3;
 const SCATTER_PER_TILE = 6;
 
 // ---------------------------------------------------------------------------
@@ -238,6 +238,23 @@ const GroundScatter: React.FC<GroundScatterProps> = ({ mapData }) => {
     return tiles;
   }, [mapData]);
 
+  // The same surface formula the terrain mesh renders (bicubic blend + micro
+  // noise + water carve) — items sit ON the rendered ground by construction.
+  // Flat `tile.elevation * ELEVATION_SCALE` floated/sank items near elevation
+  // steps (up to ~0.45u beside a 3-step neighbor — many pebble-heights).
+  // GOAL #24 / the gap #27 class; mirrors the task-71 actor-grounding fix.
+  const groundSampler = useMemo(() => {
+    const { width, height } = mapData.dimensions;
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
+    return makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+  }, [mapData]);
+
   // Build instance data per scatter type
   const scatterInstances = useMemo(() => {
     const rand = seededRandom((mapData.seed ?? 42) + 33333);
@@ -270,11 +287,9 @@ const GroundScatter: React.FC<GroundScatterProps> = ({ mapData }) => {
         const rotY = rand() * Math.PI * 2;
         const scale = 0.6 + rand() * 0.8;
 
-        dummy.position.set(
-          tile.x * TILE_SIZE + offsetX,
-          tile.elevation * ELEVATION_SCALE,
-          tile.y * TILE_SIZE + offsetZ,
-        );
+        const wx = tile.x * TILE_SIZE + offsetX;
+        const wz = tile.y * TILE_SIZE + offsetZ;
+        dummy.position.set(wx, groundSampler(wx, wz), wz);
         dummy.rotation.set(0, rotY, 0);
         dummy.scale.setScalar(scale);
         dummy.updateMatrix();
@@ -291,7 +306,7 @@ const GroundScatter: React.FC<GroundScatterProps> = ({ mapData }) => {
       matrices: matricesPerType[i].slice(0, countsPerType[i] * 16),
       count: countsPerType[i],
     }));
-  }, [openTiles, mapData.seed, scatterTypes]);
+  }, [openTiles, mapData.seed, scatterTypes, groundSampler]);
 
   return (
     <group>

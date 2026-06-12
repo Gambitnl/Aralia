@@ -108,6 +108,9 @@ function makeNameplates(
 
     const chunkOrigin = chunkOriginWorld(chunk.cx, chunk.cy);
     for (const site of chunk.bundle.sites) {
+      // Sites can opt out of labeling (e.g. town-plan building plots, which
+      // would otherwise flood the HUD with one chip per house).
+      if (site.unlabeled) continue;
       const worldPos = {
         x: chunkOrigin.x + site.localX,
         z: chunkOrigin.y + site.localZ,
@@ -166,23 +169,31 @@ const World3DNameplates: React.FC<World3DNameplatesProps> = ({
           position={site.position}
           transform
           distanceFactor={20}
-          style={{
-            position: 'absolute',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-            color: 'white',
-            fontSize: '12px',
-            fontFamily: 'Outfit, sans-serif',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            background: 'rgba(9, 19, 28, 0.78)',
-            border: '1px solid rgba(148, 163, 184, 0.45)',
-          }}
-          data-kind={site.kind}
-          data-testid={`world-3d-site-label-${site.key}`}
         >
-          {site.text}
+          {/* data-* attributes live on the INNER element: putting them on
+              <Html> routes them through R3F's applyProps, which parses
+              "data-testid" as a dashed pier path (data.testid) on the three
+              object and throws — crashing the whole scene the first time a
+              nameplate enters range (found via Worldforge ground mode). */}
+          <div
+            data-kind={site.kind}
+            data-testid={`world-3d-site-label-${site.key}`}
+            style={{
+              position: 'absolute',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              whiteSpace: 'nowrap',
+              color: 'white',
+              fontSize: '12px',
+              fontFamily: 'Outfit, sans-serif',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              background: 'rgba(9, 19, 28, 0.78)',
+              border: '1px solid rgba(148, 163, 184, 0.45)',
+            }}
+          >
+            {site.text}
+          </div>
         </Html>
       ))}
     </>

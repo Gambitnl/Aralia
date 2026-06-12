@@ -1,0 +1,234 @@
+{
+  "id": "premade_sylvaris_frostbloom",
+  "name": "Sylvaris Frostbloom",
+  "age": 88,
+  "background": "sage",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "winter_eladrin",
+    "name": "Winter Eladrin",
+    "baseRace": "eladrin",
+    "description": "When an eladrin is in the winter season, they reflect sorrow and melancholy, withdrawing into contemplation and introspection. Winter eladrin are somber and reserved, their emotions frozen like the frost. Their appearance reflects the season's cold beauty—hair as white as snow, skin pale as ice, and eyes that hold the depths of ancient grief. A winter eladrin's presence can be chilling, not in temperature but in the weight of unspoken sadness they carry. Their Fey Step channels this cold sorrow, striking fear into the hearts of those who witness their disappearance.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium",
+      "Speed: 30 feet",
+      "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+      "Fey Ancestry: You have advantage on saving throws you make to avoid or end the charmed condition on yourself.",
+      "Keen Senses: You have proficiency in the Perception skill.",
+      "Trance: You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.",
+      "Fey Step (Winter): As a Bonus Action, you can magically teleport up to 30 feet to an unoccupied space you can see. You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest. When you use your Fey Step, one creature of your choice that you can see within 5 feet of you before you teleport must succeed on a Wisdom saving throw (DC 8 + your Proficiency Bonus + your Intelligence, Wisdom, or Charisma modifier) or be frightened of you until the end of your next turn.",
+      "Season Association: Winter represents contemplation and dolor, introspection and grief. You can change your season during a long rest, which changes your Fey Step effect."
+    ],
+    "visual": {
+      "id": "winter_eladrin",
+      "color": "#B0E0E6",
+      "maleIllustrationPath": "assets/images/races/Eladrin_Winter_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Eladrin_Winter_Female.png"
+    }
+  },
+  "class": {
+    "id": "rogue",
+    "name": "Rogue",
+    "description": "A scoundrel who uses stealth and trickery to overcome obstacles and enemies.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Dexterity"
+    ],
+    "savingThrowProficiencies": [
+      "Dexterity",
+      "Intelligence"
+    ],
+    "skillProficienciesAvailable": [
+      "acrobatics",
+      "athletics",
+      "deception",
+      "insight",
+      "intimidation",
+      "investigation",
+      "perception",
+      "performance",
+      "persuasion",
+      "sleight_of_hand",
+      "stealth",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 4,
+    "armorProficiencies": [
+      "Light armor"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Hand crossbows",
+      "Longswords",
+      "Rapiers",
+      "Shortswords"
+    ],
+    "weaponMasterySlots": 2,
+    "features": [
+      {
+        "id": "sneak_attack",
+        "name": "Sneak Attack",
+        "description": "Once per turn, you can deal extra damage to one creature you hit with an attack if you have advantage.",
+        "levelAvailable": 1
+      }
+    ],
+    "statRecommendationFocus": [
+      "Dexterity",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Dexterity is your most important ability, affecting your attacks, AC, and many skills. Constitution helps you survive when your stealth fails.",
+    "recommendedPointBuyPriorities": [
+      "Dexterity",
+      "Constitution",
+      "Wisdom",
+      "Charisma",
+      "Intelligence",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "rogue": 1
+  },
+  "abilityScores": {
+    "Strength": 6,
+    "Dexterity": 13,
+    "Constitution": 12,
+    "Intelligence": 9,
+    "Wisdom": 11,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 6,
+    "Dexterity": 13,
+    "Constitution": 12,
+    "Intelligence": 9,
+    "Wisdom": 11,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "investigation",
+      "name": "Investigation",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 9,
+  "maxHp": 9,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "rapier",
+    "dagger"
+  ],
+  "feats": [
+    "magic_initiate"
+  ],
+  "featChoices": {
+    "magic_initiate": {
+      "selectedAbilityScore": "Intelligence",
+      "selectedSpellSource": "wizard",
+      "selectedCantrips": [
+        "mage-hand",
+        "message"
+      ],
+      "selectedLeveledSpells": [
+        "feather-fall"
+      ]
+    }
+  },
+  "equippedItems": {},
+  "statusEffects": [],
+  "limitedUses": {
+    "feat_magic_initiate_feather-fall": {
+      "name": "Magic Initiate: Cast feather fall",
+      "current": 1,
+      "max": 1,
+      "resetOn": "long_rest"
+    },
+    "racial_feature_winter_eladrin__fey_step_winter__resource": {
+      "name": "Winter Eladrin: Fey Step (Winter) (Fey Step (Winter) usage)",
+      "current": 2,
+      "max": "proficiency_bonus",
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Winter Eladrin Rogue. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "spellbook": {
+    "cantrips": [
+      "mage-hand",
+      "message"
+    ],
+    "knownSpells": [
+      "feather-fall"
+    ],
+    "preparedSpells": [],
+    "racialSpellGrants": []
+  },
+  "modifiers": {
+    "advantage": [
+      "saving throws you make to avoid or end the charmed condition on yourself"
+    ],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [
+      "Perception"
+    ],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

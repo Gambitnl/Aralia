@@ -1,0 +1,219 @@
+import { createHotContext as __vite__createHotContext } from "/Aralia/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/World3D/DebugHUD.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/Aralia/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=c72b52c2"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+const WORLD_SOURCE_META = {
+  "azgaar-derived": { label: "Azgaar-derived", color: "#5bd66f", isFallback: false },
+  "legacy-fallback": { label: "LEGACY FALLBACK", color: "#ff6b6b", isFallback: true },
+  "biome-derived": { label: "BIOME-DERIVED", color: "#f0ad4e", isFallback: true }
+};
+const DebugHUD = ({ chunkCount, fps, playerPos, streamerStats, worldGen }) => {
+  const posStr = playerPos ? `X: ${playerPos.x.toFixed(1)}  Y: ${playerPos.y.toFixed(1)}  Z: ${playerPos.z.toFixed(1)}` : "X: —  Y: —  Z: —";
+  return /* @__PURE__ */ jsxDEV(
+    "div",
+    {
+      style: {
+        padding: "8px 10px",
+        fontSize: "11px",
+        fontFamily: "monospace",
+        color: "var(--text-primary, #e8e8e8)",
+        backgroundColor: "var(--bg-surface, rgba(20, 30, 40, 0.9))",
+        border: "1px solid var(--border-color, #3a4a5a)",
+        borderRadius: "4px",
+        lineHeight: 1.6,
+        minWidth: "220px"
+      },
+      children: [
+        /* @__PURE__ */ jsxDEV("div", { style: { marginBottom: "4px", fontWeight: 600, fontSize: "12px", fontFamily: "Outfit, sans-serif" }, children: "Debug HUD" }, void 0, false, {
+          fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+          lineNumber: 62,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { children: [
+          /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "FPS:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+            lineNumber: 66,
+            columnNumber: 9
+          }, this),
+          " ",
+          fps
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+          lineNumber: 65,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { children: [
+          /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "Chunks:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+            lineNumber: 69,
+            columnNumber: 9
+          }, this),
+          " ",
+          chunkCount
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+          lineNumber: 68,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { children: [
+          /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "Pos:" }, void 0, false, {
+            fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+            lineNumber: 72,
+            columnNumber: 9
+          }, this),
+          " ",
+          posStr
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+          lineNumber: 71,
+          columnNumber: 7
+        }, this),
+        worldGen && (() => {
+          const meta = WORLD_SOURCE_META[worldGen.source];
+          return /* @__PURE__ */ jsxDEV(
+            "div",
+            {
+              "data-testid": "debug-world-gen",
+              style: {
+                marginTop: "4px",
+                borderTop: "1px solid var(--border-color, #3a4a5a)",
+                paddingTop: "4px"
+              },
+              children: [
+                /* @__PURE__ */ jsxDEV("div", { children: [
+                  /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "World:" }, void 0, false, {
+                    fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+                    lineNumber: 88,
+                    columnNumber: 15
+                  }, this),
+                  " ",
+                  /* @__PURE__ */ jsxDEV("span", { style: { color: meta.color, fontWeight: 600 }, children: meta.label }, void 0, false, {
+                    fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+                    lineNumber: 89,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+                  lineNumber: 87,
+                  columnNumber: 13
+                }, this),
+                meta.isFallback && /* @__PURE__ */ jsxDEV(
+                  "div",
+                  {
+                    "data-testid": "debug-world-gen-reason",
+                    style: {
+                      marginTop: "2px",
+                      color: meta.color,
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                      maxWidth: "260px"
+                    },
+                    children: [
+                      "⚠ ",
+                      worldGen.reason ?? "Fallback generator active (reason not recorded)."
+                    ]
+                  },
+                  void 0,
+                  true,
+                  {
+                    fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+                    lineNumber: 92,
+                    columnNumber: 13
+                  },
+                  this
+                )
+              ]
+            },
+            void 0,
+            true,
+            {
+              fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+              lineNumber: 79,
+              columnNumber: 11
+            },
+            this
+          );
+        })(),
+        streamerStats && /* @__PURE__ */ jsxDEV(Fragment, { children: [
+          /* @__PURE__ */ jsxDEV("div", { style: { marginTop: "4px", borderTop: "1px solid var(--border-color, #3a4a5a)", paddingTop: "4px" }, children: [
+            /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "Loaded:" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+              lineNumber: 112,
+              columnNumber: 13
+            }, this),
+            " ",
+            streamerStats.chunksLoaded
+          ] }, void 0, true, {
+            fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+            lineNumber: 111,
+            columnNumber: 11
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { children: [
+            /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "Unloaded:" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+              lineNumber: 115,
+              columnNumber: 13
+            }, this),
+            " ",
+            streamerStats.chunksUnloaded
+          ] }, void 0, true, {
+            fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+            lineNumber: 114,
+            columnNumber: 11
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { children: [
+            /* @__PURE__ */ jsxDEV("span", { style: { color: "var(--text-secondary, #8a9aaa)" }, children: "Pending:" }, void 0, false, {
+              fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+              lineNumber: 118,
+              columnNumber: 13
+            }, this),
+            " ",
+            streamerStats.pendingRequests
+          ] }, void 0, true, {
+            fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+            lineNumber: 117,
+            columnNumber: 11
+          }, this)
+        ] }, void 0, true, {
+          fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+          lineNumber: 110,
+          columnNumber: 7
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx",
+      lineNumber: 49,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_c = DebugHUD;
+export default DebugHUD;
+var _c;
+$RefreshReg$(_c, "DebugHUD");
+import * as RefreshRuntime from "/Aralia/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "F:/Repos/Aralia/src/components/World3D/DebugHUD.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QSxFQXlFQTtBQUVKO0FBQUVDLEtBakZJakM7QUFtRk4sZUFBZUE7QUFBUyxJQUFBaUM7QUFBQUMsYUFBQUQsSUFBQSIsIm5hbWVzIjpbIldPUkxEX1NPVVJDRV9NRVRBIiwibGFiZWwiLCJjb2xvciIsImlzRmFsbGJhY2siLCJEZWJ1Z0hVRCIsImNodW5rQ291bnQiLCJmcHMiLCJwbGF5ZXJQb3MiLCJzdHJlYW1lclN0YXRzIiwid29ybGRHZW4iLCJwb3NTdHIiLCJ4IiwidG9GaXhlZCIsInkiLCJ6IiwicGFkZGluZyIsImZvbnRTaXplIiwiZm9udEZhbWlseSIsImJhY2tncm91bmRDb2xvciIsImJvcmRlciIsImJvcmRlclJhZGl1cyIsImxpbmVIZWlnaHQiLCJtaW5XaWR0aCIsIm1hcmdpbkJvdHRvbSIsImZvbnRXZWlnaHQiLCJtZXRhIiwic291cmNlIiwibWFyZ2luVG9wIiwiYm9yZGVyVG9wIiwicGFkZGluZ1RvcCIsIndoaXRlU3BhY2UiLCJ3b3JkQnJlYWsiLCJtYXhXaWR0aCIsInJlYXNvbiIsImNodW5rc0xvYWRlZCIsImNodW5rc1VubG9hZGVkIiwicGVuZGluZ1JlcXVlc3RzIiwiX2MiLCIkUmVmcmVzaFJlZyQiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiRGVidWdIVUQudHN4Il0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxyXG4gKiBAZmlsZSBzcmMvY29tcG9uZW50cy9Xb3JsZDNEL0RlYnVnSFVELnRzeFxyXG4gKiBEZXYtb25seSBvdmVybGF5IHNob3dpbmcgZGlhZ25vc3RpYyBpbmZvcm1hdGlvbjpcclxuICogLSBQbGF5ZXIgd29ybGQgY29vcmRpbmF0ZXMgKFgsIFksIFopXHJcbiAqIC0gQ2h1bmsgY291bnQgbG9hZGVkXHJcbiAqIC0gRlBTIGNvdW50ZXJcclxuICogLSBTdHJlYW1lciBzdGF0cyAoY2h1bmtzIGxvYWRlZC91bmxvYWRlZCwgcGVuZGluZyByZXF1ZXN0cylcclxuICpcclxuICogT25seSB2aXNpYmxlIHdoZW4gZ2FtZVN0YXRlLmlzRGV2TW9kZUVuYWJsZWQgaXMgdHJ1ZS5cclxuICogRmxhdCBkZXNpZ24sIENTUyB2YXJpYWJsZSBjb2xvcnMsIG1vbm9zcGFjZSBmb250IGZvciBkYXRhLlxyXG4gKi9cclxuXHJcbmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCB0eXBlIHsgV29ybGRHZW5EaWFnbm9zdGljcyB9IGZyb20gJy4uLy4uL3R5cGVzL3dvcmxkJztcclxuXHJcbmludGVyZmFjZSBEZWJ1Z0hVRFByb3BzIHtcclxuICAvKiogTnVtYmVyIG9mIGNodW5rcyBjdXJyZW50bHkgbG9hZGVkLiAqL1xyXG4gIGNodW5rQ291bnQ6IG51bWJlcjtcclxuICAvKiogQ3VycmVudCBGUFMgdmFsdWUuICovXHJcbiAgZnBzOiBudW1iZXI7XHJcbiAgLyoqIFBsYXllciB3b3JsZCBwb3NpdGlvbiAob3IgbnVsbCkuICovXHJcbiAgcGxheWVyUG9zOiB7IHg6IG51bWJlcjsgeTogbnVtYmVyOyB6OiBudW1iZXIgfSB8IG51bGw7XHJcbiAgLyoqIFN0cmVhbWVyIHN0YXRpc3RpY3MuICovXHJcbiAgc3RyZWFtZXJTdGF0cz86IHtcclxuICAgIGNodW5rc0xvYWRlZDogbnVtYmVyO1xyXG4gICAgY2h1bmtzVW5sb2FkZWQ6IG51bWJlcjtcclxuICAgIHBlbmRpbmdSZXF1ZXN0czogbnVtYmVyO1xyXG4gIH07XHJcbiAgLyoqIEhvdyB0aGUgY3VycmVudCB3b3JsZCB3YXMgZ2VuZXJhdGVkIChwcmltYXJ5IHZzIGZhbGxiYWNrKS4gKi9cclxuICB3b3JsZEdlbj86IFdvcmxkR2VuRGlhZ25vc3RpY3MgfCBudWxsO1xyXG59XHJcblxyXG4vKiogTWFwcyBhIGdlbmVyYXRpb24gc291cmNlIHRvIGEgbGFiZWwgKyBjb2xvciAoYW1iZXIvcmVkIGZvciBkZWdyYWRlZCBwYXRocykuICovXHJcbmNvbnN0IFdPUkxEX1NPVVJDRV9NRVRBOiBSZWNvcmQ8XHJcbiAgV29ybGRHZW5EaWFnbm9zdGljc1snc291cmNlJ10sXHJcbiAgeyBsYWJlbDogc3RyaW5nOyBjb2xvcjogc3RyaW5nOyBpc0ZhbGxiYWNrOiBib29sZWFuIH1cclxuPiA9IHtcclxuICAnYXpnYWFyLWRlcml2ZWQnOiB7IGxhYmVsOiAnQXpnYWFyLWRlcml2ZWQnLCBjb2xvcjogJyM1YmQ2NmYnLCBpc0ZhbGxiYWNrOiBmYWxzZSB9LFxyXG4gICdsZWdhY3ktZmFsbGJhY2snOiB7IGxhYmVsOiAnTEVHQUNZIEZBTExCQUNLJywgY29sb3I6ICcjZmY2YjZiJywgaXNGYWxsYmFjazogdHJ1ZSB9LFxyXG4gICdiaW9tZS1kZXJpdmVkJzogeyBsYWJlbDogJ0JJT01FLURFUklWRUQnLCBjb2xvcjogJyNmMGFkNGUnLCBpc0ZhbGxiYWNrOiB0cnVlIH0sXHJcbn07XHJcblxyXG5jb25zdCBEZWJ1Z0hVRDogUmVhY3QuRkM8RGVidWdIVURQcm9wcz4gPSAoeyBjaHVua0NvdW50LCBmcHMsIHBsYXllclBvcywgc3RyZWFtZXJTdGF0cywgd29ybGRHZW4gfSkgPT4ge1xyXG4gIGNvbnN0IHBvc1N0ciA9IHBsYXllclBvc1xyXG4gICAgPyBgWDogJHtwbGF5ZXJQb3MueC50b0ZpeGVkKDEpfSAgWTogJHtwbGF5ZXJQb3MueS50b0ZpeGVkKDEpfSAgWjogJHtwbGF5ZXJQb3Muei50b0ZpeGVkKDEpfWBcclxuICAgIDogJ1g6IOKAlCAgWTog4oCUICBaOiDigJQnO1xyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPGRpdlxyXG4gICAgICBzdHlsZT17e1xyXG4gICAgICAgIHBhZGRpbmc6ICc4cHggMTBweCcsXHJcbiAgICAgICAgZm9udFNpemU6ICcxMXB4JyxcclxuICAgICAgICBmb250RmFtaWx5OiAnbW9ub3NwYWNlJyxcclxuICAgICAgICBjb2xvcjogJ3ZhcigtLXRleHQtcHJpbWFyeSwgI2U4ZThlOCknLFxyXG4gICAgICAgIGJhY2tncm91bmRDb2xvcjogJ3ZhcigtLWJnLXN1cmZhY2UsIHJnYmEoMjAsIDMwLCA0MCwgMC45KSknLFxyXG4gICAgICAgIGJvcmRlcjogJzFweCBzb2xpZCB2YXIoLS1ib3JkZXItY29sb3IsICMzYTRhNWEpJyxcclxuICAgICAgICBib3JkZXJSYWRpdXM6ICc0cHgnLFxyXG4gICAgICAgIGxpbmVIZWlnaHQ6IDEuNixcclxuICAgICAgICBtaW5XaWR0aDogJzIyMHB4JyxcclxuICAgICAgfX1cclxuICAgID5cclxuICAgICAgPGRpdiBzdHlsZT17eyBtYXJnaW5Cb3R0b206ICc0cHgnLCBmb250V2VpZ2h0OiA2MDAsIGZvbnRTaXplOiAnMTJweCcsIGZvbnRGYW1pbHk6ICdPdXRmaXQsIHNhbnMtc2VyaWYnIH19PlxyXG4gICAgICAgIERlYnVnIEhVRFxyXG4gICAgICA8L2Rpdj5cclxuICAgICAgPGRpdj5cclxuICAgICAgICA8c3BhbiBzdHlsZT17eyBjb2xvcjogJ3ZhcigtLXRleHQtc2Vjb25kYXJ5LCAjOGE5YWFhKScgfX0+RlBTOjwvc3Bhbj4ge2Zwc31cclxuICAgICAgPC9kaXY+XHJcbiAgICAgIDxkaXY+XHJcbiAgICAgICAgPHNwYW4gc3R5bGU9e3sgY29sb3I6ICd2YXIoLS10ZXh0LXNlY29uZGFyeSwgIzhhOWFhYSknIH19PkNodW5rczo8L3NwYW4+IHtjaHVua0NvdW50fVxyXG4gICAgICA8L2Rpdj5cclxuICAgICAgPGRpdj5cclxuICAgICAgICA8c3BhbiBzdHlsZT17eyBjb2xvcjogJ3ZhcigtLXRleHQtc2Vjb25kYXJ5LCAjOGE5YWFhKScgfX0+UG9zOjwvc3Bhbj4ge3Bvc1N0cn1cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7LyogV29ybGQgZ2VuZXJhdGlvbiBwcm92ZW5hbmNlIOKAlCBzdXJmYWNlcyBzaWxlbnQgZmFsbGJhY2svZmxhdCB3b3JsZHMgKFdTUy0wMDQpLiAqL31cclxuICAgICAge3dvcmxkR2VuICYmICgoKSA9PiB7XHJcbiAgICAgICAgY29uc3QgbWV0YSA9IFdPUkxEX1NPVVJDRV9NRVRBW3dvcmxkR2VuLnNvdXJjZV07XHJcbiAgICAgICAgcmV0dXJuIChcclxuICAgICAgICAgIDxkaXZcclxuICAgICAgICAgICAgZGF0YS10ZXN0aWQ9XCJkZWJ1Zy13b3JsZC1nZW5cIlxyXG4gICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgIG1hcmdpblRvcDogJzRweCcsXHJcbiAgICAgICAgICAgICAgYm9yZGVyVG9wOiAnMXB4IHNvbGlkIHZhcigtLWJvcmRlci1jb2xvciwgIzNhNGE1YSknLFxyXG4gICAgICAgICAgICAgIHBhZGRpbmdUb3A6ICc0cHgnLFxyXG4gICAgICAgICAgICB9fVxyXG4gICAgICAgICAgPlxyXG4gICAgICAgICAgICA8ZGl2PlxyXG4gICAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7IGNvbG9yOiAndmFyKC0tdGV4dC1zZWNvbmRhcnksICM4YTlhYWEpJyB9fT5Xb3JsZDo8L3NwYW4+eycgJ31cclxuICAgICAgICAgICAgICA8c3BhbiBzdHlsZT17eyBjb2xvcjogbWV0YS5jb2xvciwgZm9udFdlaWdodDogNjAwIH19PnttZXRhLmxhYmVsfTwvc3Bhbj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIHttZXRhLmlzRmFsbGJhY2sgJiYgKFxyXG4gICAgICAgICAgICAgIDxkaXZcclxuICAgICAgICAgICAgICAgIGRhdGEtdGVzdGlkPVwiZGVidWctd29ybGQtZ2VuLXJlYXNvblwiXHJcbiAgICAgICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgICBtYXJnaW5Ub3A6ICcycHgnLFxyXG4gICAgICAgICAgICAgICAgICBjb2xvcjogbWV0YS5jb2xvcixcclxuICAgICAgICAgICAgICAgICAgd2hpdGVTcGFjZTogJ25vcm1hbCcsXHJcbiAgICAgICAgICAgICAgICAgIHdvcmRCcmVhazogJ2JyZWFrLXdvcmQnLFxyXG4gICAgICAgICAgICAgICAgICBtYXhXaWR0aDogJzI2MHB4JyxcclxuICAgICAgICAgICAgICAgIH19XHJcbiAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAg4pqgIHt3b3JsZEdlbi5yZWFzb24gPz8gJ0ZhbGxiYWNrIGdlbmVyYXRvciBhY3RpdmUgKHJlYXNvbiBub3QgcmVjb3JkZWQpLid9XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICl9XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICApO1xyXG4gICAgICB9KSgpfVxyXG5cclxuICAgICAge3N0cmVhbWVyU3RhdHMgJiYgKFxyXG4gICAgICAgIDw+XHJcbiAgICAgICAgICA8ZGl2IHN0eWxlPXt7IG1hcmdpblRvcDogJzRweCcsIGJvcmRlclRvcDogJzFweCBzb2xpZCB2YXIoLS1ib3JkZXItY29sb3IsICMzYTRhNWEpJywgcGFkZGluZ1RvcDogJzRweCcgfX0+XHJcbiAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7IGNvbG9yOiAndmFyKC0tdGV4dC1zZWNvbmRhcnksICM4YTlhYWEpJyB9fT5Mb2FkZWQ6PC9zcGFuPiB7c3RyZWFtZXJTdGF0cy5jaHVua3NMb2FkZWR9XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7IGNvbG9yOiAndmFyKC0tdGV4dC1zZWNvbmRhcnksICM4YTlhYWEpJyB9fT5VbmxvYWRlZDo8L3NwYW4+IHtzdHJlYW1lclN0YXRzLmNodW5rc1VubG9hZGVkfVxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICA8ZGl2PlxyXG4gICAgICAgICAgICA8c3BhbiBzdHlsZT17eyBjb2xvcjogJ3ZhcigtLXRleHQtc2Vjb25kYXJ5LCAjOGE5YWFhKScgfX0+UGVuZGluZzo8L3NwYW4+IHtzdHJlYW1lclN0YXRzLnBlbmRpbmdSZXF1ZXN0c31cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvPlxyXG4gICAgICApfVxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufTtcclxuXHJcbmV4cG9ydCBkZWZhdWx0IERlYnVnSFVEO1xyXG4iXSwiZmlsZSI6IkY6L1JlcG9zL0FyYWxpYS9zcmMvY29tcG9uZW50cy9Xb3JsZDNEL0RlYnVnSFVELnRzeCJ9

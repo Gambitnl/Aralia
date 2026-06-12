@@ -1,0 +1,172 @@
+export var ConditionType = /* @__PURE__ */ ((ConditionType2) => {
+  ConditionType2["Blinded"] = "Blinded";
+  ConditionType2["Charmed"] = "Charmed";
+  ConditionType2["Deafened"] = "Deafened";
+  ConditionType2["Exhaustion"] = "Exhaustion";
+  ConditionType2["Frightened"] = "Frightened";
+  ConditionType2["Grappled"] = "Grappled";
+  ConditionType2["Incapacitated"] = "Incapacitated";
+  ConditionType2["Invisible"] = "Invisible";
+  ConditionType2["Paralyzed"] = "Paralyzed";
+  ConditionType2["Petrified"] = "Petrified";
+  ConditionType2["Poisoned"] = "Poisoned";
+  ConditionType2["Prone"] = "Prone";
+  ConditionType2["Restrained"] = "Restrained";
+  ConditionType2["Stunned"] = "Stunned";
+  ConditionType2["Unconscious"] = "Unconscious";
+  ConditionType2["Ignited"] = "Ignited";
+  return ConditionType2;
+})(ConditionType || {});
+export const ConditionDefinitions = {
+  ["Blinded" /* Blinded */]: {
+    description: "You can't see and automatically fail ability checks that require sight.",
+    mechanics: [
+      "Auto-fail sight-based ability checks",
+      "Attack rolls against you have Advantage",
+      "Your attack rolls have Disadvantage"
+    ]
+  },
+  ["Charmed" /* Charmed */]: {
+    description: "You are charmed by another creature.",
+    mechanics: [
+      "Can't attack the charmer",
+      "Can't target the charmer with harmful abilities",
+      "Charmer has Advantage on social checks against you"
+    ]
+  },
+  ["Deafened" /* Deafened */]: {
+    description: "You can't hear and automatically fail ability checks that require hearing.",
+    mechanics: [
+      "Auto-fail hearing-based ability checks"
+    ]
+  },
+  ["Exhaustion" /* Exhaustion */]: {
+    description: "You are physically or mentally drained.",
+    mechanics: [
+      "Disadvantage on ability checks (Level 1)",
+      "Speed halved (Level 2)",
+      "Disadvantage on attacks/saves (Level 3)",
+      "Hit point maximum halved (Level 4)",
+      "Speed reduced to 0 (Level 5)",
+      "Death (Level 6)"
+    ]
+  },
+  ["Frightened" /* Frightened */]: {
+    description: "You are terrified of the source of your fear.",
+    mechanics: [
+      "Disadvantage on ability checks and attack rolls while source is visible",
+      "Can't willingly move closer to the source"
+    ]
+  },
+  ["Grappled" /* Grappled */]: {
+    description: "You are held by another creature or effect.",
+    mechanics: [
+      "Speed becomes 0",
+      "Can't benefit from bonuses to speed",
+      "Ends if grappler is incapacitated or moved out of reach"
+    ]
+  },
+  ["Incapacitated" /* Incapacitated */]: {
+    description: "You can't take actions or reactions.",
+    mechanics: [
+      "Can't take Actions",
+      "Can't take Bonus Actions",
+      "Can't take Reactions"
+    ],
+    isIncapacitating: true
+  },
+  ["Invisible" /* Invisible */]: {
+    description: "You are impossible to see without magical aid.",
+    mechanics: [
+      "Heavily Obscured for the purpose of hiding",
+      "Attack rolls against you have Disadvantage",
+      "Your attack rolls have Advantage"
+    ]
+  },
+  ["Paralyzed" /* Paralyzed */]: {
+    description: "You are frozen in place, unable to move or act.",
+    mechanics: [
+      "Incapacitated (no actions/reactions)",
+      "Can't move or speak",
+      "Auto-fail Strength and Dexterity saves",
+      "Attack rolls against you have Advantage",
+      "Any hit from within 5 feet is a Critical Hit"
+    ],
+    isIncapacitating: true
+  },
+  ["Petrified" /* Petrified */]: {
+    description: "You are transformed into a solid inanimate substance (usually stone).",
+    mechanics: [
+      "Incapacitated (no actions/reactions)",
+      "Can't move or speak",
+      "Unaware of surroundings",
+      "Attack rolls against you have Advantage",
+      "Auto-fail Strength and Dexterity saves",
+      "Resistance to all damage",
+      "Immune to poison and disease",
+      "Weight increases by factor of 10"
+    ],
+    isIncapacitating: true
+  },
+  ["Poisoned" /* Poisoned */]: {
+    description: "You are suffering from a toxin or venom.",
+    mechanics: [
+      "Disadvantage on attack rolls",
+      "Disadvantage on ability checks"
+    ]
+  },
+  ["Prone" /* Prone */]: {
+    description: "You are lying on the ground.",
+    mechanics: [
+      "Your only movement options are to crawl or spend half your Speed to right yourself.",
+      "If your Speed is 0, you can't right yourself.",
+      "You have Disadvantage on attack rolls.",
+      "An attack roll against you has Advantage if the attacker is within 5 feet.",
+      "Otherwise, that attack roll has Disadvantage."
+    ]
+  },
+  ["Restrained" /* Restrained */]: {
+    description: "You are physically bound or entangled.",
+    mechanics: [
+      "Speed becomes 0",
+      "Can't benefit from bonuses to speed",
+      "Attack rolls against you have Advantage",
+      "Your attack rolls have Disadvantage",
+      "Disadvantage on Dexterity saves"
+    ]
+  },
+  ["Stunned" /* Stunned */]: {
+    description: "You are dazed and unable to act.",
+    mechanics: [
+      "Incapacitated (no actions/reactions)",
+      "Can't move",
+      "Speak only falteringly",
+      "Auto-fail Strength and Dexterity saves",
+      "Attack rolls against you have Advantage"
+    ],
+    isIncapacitating: true
+  },
+  ["Unconscious" /* Unconscious */]: {
+    description: "You are knocked out.",
+    mechanics: [
+      "Incapacitated (no actions/reactions)",
+      "Can't move or speak",
+      "Unaware of surroundings",
+      "Drop what you're holding",
+      "Fall Prone",
+      "Auto-fail Strength and Dexterity saves",
+      "Attack rolls against you have Advantage",
+      "Any hit from within 5 feet is a Critical Hit"
+    ],
+    isIncapacitating: true
+  },
+  ["Ignited" /* Ignited */]: {
+    description: "You are on fire.",
+    mechanics: [
+      "Take fire damage at the start of each turn",
+      "Can usually be extinguished as an Action"
+    ]
+  }
+};
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImNvbmRpdGlvbnMudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXHJcbiAqIEBmaWxlIHNyYy90eXBlcy9jb25kaXRpb25zLnRzXHJcbiAqIERlZmluZXMgdGhlIHN0YW5kYXJkIGNvbmRpdGlvbnMgdGhhdCBjYW4gYWZmZWN0IGNyZWF0dXJlcyBpbiB0aGUgZ2FtZS5cciAqL1xyXG5cclxuLyoqXHJcbiAqIFN0YW5kYXJkIEQmRCA1ZSBjb25kaXRpb25zIHRoYXQgYWx0ZXIgYSBjcmVhdHVyZSdzIGNhcGFiaWxpdGllcy5cclxuICovXHJcbmV4cG9ydCBlbnVtIENvbmRpdGlvblR5cGUge1xyXG4gIEJsaW5kZWQgPSAnQmxpbmRlZCcsXHJcbiAgQ2hhcm1lZCA9ICdDaGFybWVkJyxcclxuICBEZWFmZW5lZCA9ICdEZWFmZW5lZCcsXHJcbiAgRXhoYXVzdGlvbiA9ICdFeGhhdXN0aW9uJyxcclxuICBGcmlnaHRlbmVkID0gJ0ZyaWdodGVuZWQnLFxyXG4gIEdyYXBwbGVkID0gJ0dyYXBwbGVkJyxcclxuICBJbmNhcGFjaXRhdGVkID0gJ0luY2FwYWNpdGF0ZWQnLFxyXG4gIEludmlzaWJsZSA9ICdJbnZpc2libGUnLFxyXG4gIFBhcmFseXplZCA9ICdQYXJhbHl6ZWQnLFxyXG4gIFBldHJpZmllZCA9ICdQZXRyaWZpZWQnLFxyXG4gIFBvaXNvbmVkID0gJ1BvaXNvbmVkJyxcclxuICBQcm9uZSA9ICdQcm9uZScsXHJcbiAgUmVzdHJhaW5lZCA9ICdSZXN0cmFpbmVkJyxcclxuICBTdHVubmVkID0gJ1N0dW5uZWQnLFxyXG4gIFVuY29uc2Npb3VzID0gJ1VuY29uc2Npb3VzJyxcclxuICAvKipcclxuICAgKiBOb24tc3RhbmRhcmQgY29uZGl0aW9uOiBUYXJnZXQgaXMgb24gZmlyZS5cclxuICAgKiBNZWNoYW5pY2FsbHkgdHJlYXRlZCBhcyBhIGNvbmRpdGlvbiBmb3IgdHJhY2tpbmcgZHVyYXRpb24gYW5kIHJlbW92YWwuXHJcbiAgICovXHJcbiAgSWduaXRlZCA9ICdJZ25pdGVkJyxcclxufVxyXG5cclxuLyoqXHJcbiAqIE1ldGFkYXRhIGFuZCBtZWNoYW5pY2FsIHN1bW1hcnkgZm9yIGEgY29uZGl0aW9uLlxyXG4gKi9cclxuZXhwb3J0IGludGVyZmFjZSBDb25kaXRpb25UcmFpdHMge1xyXG4gIC8qKiBCcmllZiBkZXNjcmlwdGlvbiBvZiB3aGF0IHRoZSBjb25kaXRpb24gcmVwcmVzZW50cy4gKi9cclxuICBkZXNjcmlwdGlvbjogc3RyaW5nO1xyXG4gIC8qKiBTdW1tYXJ5IG9mIG1lY2hhbmljYWwgZWZmZWN0cyAoZS5nLiwgXCJEaXNhZHZhbnRhZ2Ugb24gYXR0YWNrc1wiKS4gKi9cclxuICBtZWNoYW5pY3M6IHN0cmluZ1tdO1xyXG4gIC8qKiBXaGV0aGVyIHRoaXMgY29uZGl0aW9uIGF1dG9tYXRpY2FsbHkgZW5kcyBpZiB0aGUgY3JlYXR1cmUgdGFrZXMgZGFtYWdlIChlLmcuLCBzb21lIGNoYXJtIGVmZmVjdHMpLiAqL1xyXG4gIGVuZHNPbkRhbWFnZT86IGJvb2xlYW47XHJcbiAgLyoqIFdoZXRoZXIgdGhpcyBjb25kaXRpb24gaW5jYXBhY2l0YXRlcyB0aGUgY3JlYXR1cmUgKHByZXZlbnRzIGFjdGlvbnMvcmVhY3Rpb25zKS4gKi9cclxuICBpc0luY2FwYWNpdGF0aW5nPzogYm9vbGVhbjtcclxufVxyXG5cclxuLyoqXHJcbiAqIERlZmluaXRpb25zIGZvciBhbGwgc3RhbmRhcmQgY29uZGl0aW9ucy5cciAqL1xyXG5leHBvcnQgY29uc3QgQ29uZGl0aW9uRGVmaW5pdGlvbnM6IFJlY29yZDxDb25kaXRpb25UeXBlLCBDb25kaXRpb25UcmFpdHM+ID0ge1xyXG4gIFtDb25kaXRpb25UeXBlLkJsaW5kZWRdOiB7XHJcbiAgICBkZXNjcmlwdGlvbjogXCJZb3UgY2FuJ3Qgc2VlIGFuZCBhdXRvbWF0aWNhbGx5IGZhaWwgYWJpbGl0eSBjaGVja3MgdGhhdCByZXF1aXJlIHNpZ2h0LlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiQXV0by1mYWlsIHNpZ2h0LWJhc2VkIGFiaWxpdHkgY2hlY2tzXCIsXHJcbiAgICAgIFwiQXR0YWNrIHJvbGxzIGFnYWluc3QgeW91IGhhdmUgQWR2YW50YWdlXCIsXHJcbiAgICAgIFwiWW91ciBhdHRhY2sgcm9sbHMgaGF2ZSBEaXNhZHZhbnRhZ2VcIixcclxuICAgIF0sXHJcbiAgfSxcclxuICBbQ29uZGl0aW9uVHlwZS5DaGFybWVkXToge1xyXG4gICAgZGVzY3JpcHRpb246IFwiWW91IGFyZSBjaGFybWVkIGJ5IGFub3RoZXIgY3JlYXR1cmUuXCIsXHJcbiAgICBtZWNoYW5pY3M6IFtcclxuICAgICAgXCJDYW4ndCBhdHRhY2sgdGhlIGNoYXJtZXJcIixcclxuICAgICAgXCJDYW4ndCB0YXJnZXQgdGhlIGNoYXJtZXIgd2l0aCBoYXJtZnVsIGFiaWxpdGllc1wiLFxyXG4gICAgICBcIkNoYXJtZXIgaGFzIEFkdmFudGFnZSBvbiBzb2NpYWwgY2hlY2tzIGFnYWluc3QgeW91XCIsXHJcbiAgICBdLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuRGVhZmVuZWRdOiB7XHJcbiAgICBkZXNjcmlwdGlvbjogXCJZb3UgY2FuJ3QgaGVhciBhbmQgYXV0b21hdGljYWxseSBmYWlsIGFiaWxpdHkgY2hlY2tzIHRoYXQgcmVxdWlyZSBoZWFyaW5nLlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiQXV0by1mYWlsIGhlYXJpbmctYmFzZWQgYWJpbGl0eSBjaGVja3NcIixcclxuICAgIF0sXHJcbiAgfSxcclxuICBbQ29uZGl0aW9uVHlwZS5FeGhhdXN0aW9uXToge1xyXG4gICAgZGVzY3JpcHRpb246IFwiWW91IGFyZSBwaHlzaWNhbGx5IG9yIG1lbnRhbGx5IGRyYWluZWQuXCIsXHJcbiAgICBtZWNoYW5pY3M6IFtcclxuICAgICAgXCJEaXNhZHZhbnRhZ2Ugb24gYWJpbGl0eSBjaGVja3MgKExldmVsIDEpXCIsXHJcbiAgICAgIFwiU3BlZWQgaGFsdmVkIChMZXZlbCAyKVwiLFxyXG4gICAgICBcIkRpc2FkdmFudGFnZSBvbiBhdHRhY2tzL3NhdmVzIChMZXZlbCAzKVwiLFxyXG4gICAgICBcIkhpdCBwb2ludCBtYXhpbXVtIGhhbHZlZCAoTGV2ZWwgNClcIixcclxuICAgICAgXCJTcGVlZCByZWR1Y2VkIHRvIDAgKExldmVsIDUpXCIsXHJcbiAgICAgIFwiRGVhdGggKExldmVsIDYpXCIsXHJcbiAgICBdLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuRnJpZ2h0ZW5lZF06IHtcclxuICAgIGRlc2NyaXB0aW9uOiBcIllvdSBhcmUgdGVycmlmaWVkIG9mIHRoZSBzb3VyY2Ugb2YgeW91ciBmZWFyLlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiRGlzYWR2YW50YWdlIG9uIGFiaWxpdHkgY2hlY2tzIGFuZCBhdHRhY2sgcm9sbHMgd2hpbGUgc291cmNlIGlzIHZpc2libGVcIixcclxuICAgICAgXCJDYW4ndCB3aWxsaW5nbHkgbW92ZSBjbG9zZXIgdG8gdGhlIHNvdXJjZVwiLFxyXG4gICAgXSxcclxuICB9LFxyXG4gIFtDb25kaXRpb25UeXBlLkdyYXBwbGVkXToge1xyXG4gICAgZGVzY3JpcHRpb246IFwiWW91IGFyZSBoZWxkIGJ5IGFub3RoZXIgY3JlYXR1cmUgb3IgZWZmZWN0LlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiU3BlZWQgYmVjb21lcyAwXCIsXHJcbiAgICAgIFwiQ2FuJ3QgYmVuZWZpdCBmcm9tIGJvbnVzZXMgdG8gc3BlZWRcIixcclxuICAgICAgXCJFbmRzIGlmIGdyYXBwbGVyIGlzIGluY2FwYWNpdGF0ZWQgb3IgbW92ZWQgb3V0IG9mIHJlYWNoXCIsXHJcbiAgICBdLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuSW5jYXBhY2l0YXRlZF06IHtcclxuICAgIGRlc2NyaXB0aW9uOiBcIllvdSBjYW4ndCB0YWtlIGFjdGlvbnMgb3IgcmVhY3Rpb25zLlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiQ2FuJ3QgdGFrZSBBY3Rpb25zXCIsXHJcbiAgICAgIFwiQ2FuJ3QgdGFrZSBCb251cyBBY3Rpb25zXCIsXHJcbiAgICAgIFwiQ2FuJ3QgdGFrZSBSZWFjdGlvbnNcIixcclxuICAgIF0sXHJcbiAgICBpc0luY2FwYWNpdGF0aW5nOiB0cnVlLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuSW52aXNpYmxlXToge1xyXG4gICAgZGVzY3JpcHRpb246IFwiWW91IGFyZSBpbXBvc3NpYmxlIHRvIHNlZSB3aXRob3V0IG1hZ2ljYWwgYWlkLlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiSGVhdmlseSBPYnNjdXJlZCBmb3IgdGhlIHB1cnBvc2Ugb2YgaGlkaW5nXCIsXHJcbiAgICAgIFwiQXR0YWNrIHJvbGxzIGFnYWluc3QgeW91IGhhdmUgRGlzYWR2YW50YWdlXCIsXHJcbiAgICAgIFwiWW91ciBhdHRhY2sgcm9sbHMgaGF2ZSBBZHZhbnRhZ2VcIixcclxuICAgIF0sXHJcbiAgfSxcclxuICBbQ29uZGl0aW9uVHlwZS5QYXJhbHl6ZWRdOiB7XHJcbiAgICBkZXNjcmlwdGlvbjogXCJZb3UgYXJlIGZyb3plbiBpbiBwbGFjZSwgdW5hYmxlIHRvIG1vdmUgb3IgYWN0LlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiSW5jYXBhY2l0YXRlZCAobm8gYWN0aW9ucy9yZWFjdGlvbnMpXCIsXHJcbiAgICAgIFwiQ2FuJ3QgbW92ZSBvciBzcGVha1wiLFxyXG4gICAgICBcIkF1dG8tZmFpbCBTdHJlbmd0aCBhbmQgRGV4dGVyaXR5IHNhdmVzXCIsXHJcbiAgICAgIFwiQXR0YWNrIHJvbGxzIGFnYWluc3QgeW91IGhhdmUgQWR2YW50YWdlXCIsXHJcbiAgICAgIFwiQW55IGhpdCBmcm9tIHdpdGhpbiA1IGZlZXQgaXMgYSBDcml0aWNhbCBIaXRcIixcclxuICAgIF0sXHJcbiAgICBpc0luY2FwYWNpdGF0aW5nOiB0cnVlLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuUGV0cmlmaWVkXToge1xyXG4gICAgZGVzY3JpcHRpb246IFwiWW91IGFyZSB0cmFuc2Zvcm1lZCBpbnRvIGEgc29saWQgaW5hbmltYXRlIHN1YnN0YW5jZSAodXN1YWxseSBzdG9uZSkuXCIsXHJcbiAgICBtZWNoYW5pY3M6IFtcclxuICAgICAgXCJJbmNhcGFjaXRhdGVkIChubyBhY3Rpb25zL3JlYWN0aW9ucylcIixcclxuICAgICAgXCJDYW4ndCBtb3ZlIG9yIHNwZWFrXCIsXHJcbiAgICAgIFwiVW5hd2FyZSBvZiBzdXJyb3VuZGluZ3NcIixcclxuICAgICAgXCJBdHRhY2sgcm9sbHMgYWdhaW5zdCB5b3UgaGF2ZSBBZHZhbnRhZ2VcIixcclxuICAgICAgXCJBdXRvLWZhaWwgU3RyZW5ndGggYW5kIERleHRlcml0eSBzYXZlc1wiLFxyXG4gICAgICBcIlJlc2lzdGFuY2UgdG8gYWxsIGRhbWFnZVwiLFxyXG4gICAgICBcIkltbXVuZSB0byBwb2lzb24gYW5kIGRpc2Vhc2VcIixcclxuICAgICAgXCJXZWlnaHQgaW5jcmVhc2VzIGJ5IGZhY3RvciBvZiAxMFwiLFxyXG4gICAgXSxcclxuICAgIGlzSW5jYXBhY2l0YXRpbmc6IHRydWUsXHJcbiAgfSxcclxuICBbQ29uZGl0aW9uVHlwZS5Qb2lzb25lZF06IHtcclxuICAgIGRlc2NyaXB0aW9uOiBcIllvdSBhcmUgc3VmZmVyaW5nIGZyb20gYSB0b3hpbiBvciB2ZW5vbS5cIixcclxuICAgIG1lY2hhbmljczogW1xyXG4gICAgICBcIkRpc2FkdmFudGFnZSBvbiBhdHRhY2sgcm9sbHNcIixcclxuICAgICAgXCJEaXNhZHZhbnRhZ2Ugb24gYWJpbGl0eSBjaGVja3NcIixcclxuICAgIF0sXHJcbiAgfSxcclxuICBbQ29uZGl0aW9uVHlwZS5Qcm9uZV06IHtcclxuICAgIGRlc2NyaXB0aW9uOiBcIllvdSBhcmUgbHlpbmcgb24gdGhlIGdyb3VuZC5cIixcclxuICAgIG1lY2hhbmljczogW1xyXG4gICAgICBcIllvdXIgb25seSBtb3ZlbWVudCBvcHRpb25zIGFyZSB0byBjcmF3bCBvciBzcGVuZCBoYWxmIHlvdXIgU3BlZWQgdG8gcmlnaHQgeW91cnNlbGYuXCIsXHJcbiAgICAgIFwiSWYgeW91ciBTcGVlZCBpcyAwLCB5b3UgY2FuJ3QgcmlnaHQgeW91cnNlbGYuXCIsXHJcbiAgICAgIFwiWW91IGhhdmUgRGlzYWR2YW50YWdlIG9uIGF0dGFjayByb2xscy5cIixcclxuICAgICAgXCJBbiBhdHRhY2sgcm9sbCBhZ2FpbnN0IHlvdSBoYXMgQWR2YW50YWdlIGlmIHRoZSBhdHRhY2tlciBpcyB3aXRoaW4gNSBmZWV0LlwiLFxyXG4gICAgICBcIk90aGVyd2lzZSwgdGhhdCBhdHRhY2sgcm9sbCBoYXMgRGlzYWR2YW50YWdlLlwiLFxyXG4gICAgXSxcclxuICB9LFxyXG4gIFtDb25kaXRpb25UeXBlLlJlc3RyYWluZWRdOiB7XHJcbiAgICBkZXNjcmlwdGlvbjogXCJZb3UgYXJlIHBoeXNpY2FsbHkgYm91bmQgb3IgZW50YW5nbGVkLlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiU3BlZWQgYmVjb21lcyAwXCIsXHJcbiAgICAgIFwiQ2FuJ3QgYmVuZWZpdCBmcm9tIGJvbnVzZXMgdG8gc3BlZWRcIixcclxuICAgICAgXCJBdHRhY2sgcm9sbHMgYWdhaW5zdCB5b3UgaGF2ZSBBZHZhbnRhZ2VcIixcclxuICAgICAgXCJZb3VyIGF0dGFjayByb2xscyBoYXZlIERpc2FkdmFudGFnZVwiLFxyXG4gICAgICBcIkRpc2FkdmFudGFnZSBvbiBEZXh0ZXJpdHkgc2F2ZXNcIixcclxuICAgIF0sXHJcbiAgfSxcclxuICBbQ29uZGl0aW9uVHlwZS5TdHVubmVkXToge1xyXG4gICAgZGVzY3JpcHRpb246IFwiWW91IGFyZSBkYXplZCBhbmQgdW5hYmxlIHRvIGFjdC5cIixcclxuICAgIG1lY2hhbmljczogW1xyXG4gICAgICBcIkluY2FwYWNpdGF0ZWQgKG5vIGFjdGlvbnMvcmVhY3Rpb25zKVwiLFxyXG4gICAgICBcIkNhbid0IG1vdmVcIixcclxuICAgICAgXCJTcGVhayBvbmx5IGZhbHRlcmluZ2x5XCIsXHJcbiAgICAgIFwiQXV0by1mYWlsIFN0cmVuZ3RoIGFuZCBEZXh0ZXJpdHkgc2F2ZXNcIixcclxuICAgICAgXCJBdHRhY2sgcm9sbHMgYWdhaW5zdCB5b3UgaGF2ZSBBZHZhbnRhZ2VcIixcclxuICAgIF0sXHJcbiAgICBpc0luY2FwYWNpdGF0aW5nOiB0cnVlLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuVW5jb25zY2lvdXNdOiB7XHJcbiAgICBkZXNjcmlwdGlvbjogXCJZb3UgYXJlIGtub2NrZWQgb3V0LlwiLFxyXG4gICAgbWVjaGFuaWNzOiBbXHJcbiAgICAgIFwiSW5jYXBhY2l0YXRlZCAobm8gYWN0aW9ucy9yZWFjdGlvbnMpXCIsXHJcbiAgICAgIFwiQ2FuJ3QgbW92ZSBvciBzcGVha1wiLFxyXG4gICAgICBcIlVuYXdhcmUgb2Ygc3Vycm91bmRpbmdzXCIsXHJcbiAgICAgIFwiRHJvcCB3aGF0IHlvdSdyZSBob2xkaW5nXCIsXHJcbiAgICAgIFwiRmFsbCBQcm9uZVwiLFxyXG4gICAgICBcIkF1dG8tZmFpbCBTdHJlbmd0aCBhbmQgRGV4dGVyaXR5IHNhdmVzXCIsXHJcbiAgICAgIFwiQXR0YWNrIHJvbGxzIGFnYWluc3QgeW91IGhhdmUgQWR2YW50YWdlXCIsXHJcbiAgICAgIFwiQW55IGhpdCBmcm9tIHdpdGhpbiA1IGZlZXQgaXMgYSBDcml0aWNhbCBIaXRcIixcclxuICAgIF0sXHJcbiAgICBpc0luY2FwYWNpdGF0aW5nOiB0cnVlLFxyXG4gIH0sXHJcbiAgW0NvbmRpdGlvblR5cGUuSWduaXRlZF06IHtcclxuICAgIGRlc2NyaXB0aW9uOiBcIllvdSBhcmUgb24gZmlyZS5cIixcclxuICAgIG1lY2hhbmljczogW1xyXG4gICAgICBcIlRha2UgZmlyZSBkYW1hZ2UgYXQgdGhlIHN0YXJ0IG9mIGVhY2ggdHVyblwiLFxyXG4gICAgICBcIkNhbiB1c3VhbGx5IGJlIGV4dGluZ3Vpc2hlZCBhcyBhbiBBY3Rpb25cIixcclxu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

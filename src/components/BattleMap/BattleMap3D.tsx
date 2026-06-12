@@ -33,7 +33,8 @@
  *
  * @see docs/superpowers/specs/2026-05-21-3d-combat-map-design.md
  */
-import React, { useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { canUseDevTools } from '../../utils/permissions';
 import { Canvas } from '@react-three/fiber';
 // MapControls now handled by CameraController
 import { ContactShadows } from '@react-three/drei';
@@ -48,6 +49,7 @@ import type { useTurnManager } from '../../hooks/combat/useTurnManager';
 import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { TerrainMesh, GridOverlay, GrassLayer, WaterSystem, DecorationProps, GroundScatter, EzTreeLayer, DistantTerrain, GroundMist, makeTerrainHeightSampler } from './terrain';
 import { CharacterActor } from './characters';
+import TargetingDecals from './TargetingDecals';
 import { CameraController } from './camera';
 import { VFXSystem, LivingWorld } from './vfx';
 import { selectVisibilityObserver } from './visibilityObserverPolicy';
@@ -369,8 +371,20 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
     });
   }, [abilitySystem.pendingTeleportAssignment, characters]);
 
+  // Live AoE preview when hovering tiles while targeting — same flow the 2D
+  // map drives from BattleMapTile onMouseEnter. Without this, previewAoE was
+  // never called in 3D, so the AoE template never appeared while aiming an
+  // area ability (GOAL #15).
+  const handleTileHover = useCallback((tile: BattleMapTile) => {
+    if (!abilitySystem?.previewAoE || !abilitySystem.targetingMode || !mapData) return;
+    const caster = characters.find(c => c.id === turnState.currentCharacterId);
+    if (caster) {
+      abilitySystem.previewAoE(tile.coordinates, caster);
+    }
+  }, [abilitySystem, characters, mapData, turnState.currentCharacterId]);
+
   // Target selection — same as 2D BattleMap
-  const { validTargetSet, teleportDestinationSet } = useTargetSelection({
+  const { aoeSet, validTargetSet, teleportDestinationSet } = useTargetSelection({
     selectedAbility: abilitySystem.selectedAbility,
     targetingMode: abilitySystem.targetingMode,
     isValidTarget: abilitySystem.isValidTarget,
@@ -380,6 +394,20 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
     mapData,
     characters,
   });
+
+  // Dev-only: expose targeting-set sizes so the headless capture rig can
+  // distinguish "decals broken" from "set legitimately empty" (gap #29 proof).
+  useEffect(() => {
+    if (typeof window === 'undefined' || !canUseDevTools()) return;
+    (window as unknown as { __bm3dTargetSets?: unknown }).__bm3dTargetSets = {
+      mode: abilitySystem.targetingMode,
+      valid: validTargetSet.size,
+      validKeys: [...validTargetSet].slice(0, 20),
+      teleport: teleportDestinationSet.size,
+      aoe: aoeSet.size,
+      aoeKeys: [...aoeSet].slice(0, 20),
+    };
+  }, [abilitySystem.targetingMode, validTargetSet, teleportDestinationSet, aoeSet]);
 
   // Camera target — center of the map, or active character
   const cameraTarget = useMemo(() => {
@@ -520,12 +548,26 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           activePath={activePath}
           actionMode={actionMode}
           onTileClick={handleTileClick}
+          // Gated on targetingMode: an attached onPointerMove makes R3F
+          // raycast the whole heightfield per mouse move — only pay that
+          // while the player is actually aiming.
+          onTileHover={abilitySystem.targetingMode ? handleTileHover : undefined}
         />
         <GridOverlay
           mapData={mapData}
           validMoves={validMoves}
           activePath={activePath}
           actionMode={actionMode}
+        />
+        {/* Ability-targeting tile decals (gap #29): the 3D scene previously
+            gave ZERO visual response to targeting mode — the sets existed
+            but only fed character isTargetable flags. 2D color parity. */}
+        <TargetingDecals
+          validTargetSet={validTargetSet}
+          teleportDestinationSet={teleportDestinationSet}
+          aoeSet={aoeSet}
+          targetingMode={abilitySystem.targetingMode}
+          groundSampler={groundSampler}
         />
         <GrassLayer mapData={mapData} />
         <WaterSystem mapData={mapData} />
@@ -589,11 +631,6 @@ const BattleMap3D: React.FC<BattleMap3DProps> = ({ mapData, characters, combatSt
           damageNumbers={combatState.turnManager.damageNumbers || []}
           spellMovementVisuals={combatState.turnManager.spellMovementVisuals || []}
           spellDeliveryVisuals={combatState.turnManager.spellDeliveryVisuals || []}
-          aoePreviewTiles={abilitySystem.aoePreview?.affectedTiles
-            ? new Set(abilitySystem.aoePreview.affectedTiles.map(
-                (p: { x: number; y: number }) => `${p.x}-${p.y}`
-              ))
-            : undefined}
           teleportDestinationPreviewTiles={teleportDestinationSet}
           teleportDestinationPreviewTarget={abilitySystem.teleportDestinationPreview
             ? characters.find(character => character.id === abilitySystem.teleportDestinationPreview?.targetId)

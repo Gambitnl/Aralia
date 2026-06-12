@@ -24,6 +24,8 @@ import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 const getPhaseSlug = (phase: GamePhase): string => {
   // Map 3D sandbox demo to the clean 'world3d' URL slug rather than 'world3d_demo'
   if (phase === GamePhase.WORLD3D_DEMO) return 'world3d';
+  // Worldforge cartographer demo → clean 'worldforge' slug
+  if (phase === GamePhase.WORLDFORGE_DEMO) return 'worldforge';
   return GamePhase[phase]?.toLowerCase() || '';
 };
 const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
@@ -31,6 +33,8 @@ const getPhaseFromSlug = (slug: string | null): GamePhase | null => {
   const normalizedSlug = slug.toLowerCase();
   // Map clean 'world3d' URL slug to the GamePhase.WORLD3D_DEMO enum value
   if (normalizedSlug === 'world3d') return GamePhase.WORLD3D_DEMO;
+  // Map clean 'worldforge' URL slug to the Worldforge cartographer demo
+  if (normalizedSlug === 'worldforge') return GamePhase.WORLDFORGE_DEMO;
   if (normalizedSlug === 'design_preview') {
     console.warn("[Decoupling] 'design_preview' is now a standalone tool. Access it at /Aralia/misc/design.html");
     return null;

@@ -1,0 +1,12 @@
+{
+  "name": "resume-journey-flow",
+  "nudge": "[GOAL REMINDER] Active goal: fix the resume-journey flow. Read .agent/GOAL-resume-journey.md for the standard and .agent/resume-journey/TRACKER.md for the live task frontier — trust the dated statuses there. If the audit task is still open, run it first: symptoms before fixes. Done means: TRACKER.md current, GAPS.md logs out-of-scope finds, every fix has reproducible before/after evidence (capture or console transcript), and a full save → reload → Continue Journey round trip restores the session cleanly.",
+  "progressPaths": [
+    ".agent/GOAL-resume-journey.md",
+    ".agent/resume-journey/TRACKER.md",
+    ".agent/resume-journey/GAPS.md"
+  ],
+  "capturesDir": ".agent/resume-journey/evidence",
+  "goalDoc": ".agent/GOAL-resume-journey.md",
+  "trackerDoc": ".agent/resume-journey/TRACKER.md"
+}

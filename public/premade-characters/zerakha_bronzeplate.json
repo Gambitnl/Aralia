@@ -1,0 +1,290 @@
+{
+  "id": "premade_zerakha_bronzeplate",
+  "name": "Zerakha Bronzeplate",
+  "age": 25,
+  "background": "acolyte",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "bronze_dragonborn",
+    "name": "Bronze Dragonborn",
+    "baseRace": "draconic_kin",
+    "description": "Descended from bronze dragons, these dragonborn carry the legacy of coastal guardians. Their scales shimmer with metallic bronze hues, reminiscent of polished armor, and they command the power of lightning. Bronze dragonborn are often noble and dutiful, embodying the protective nature of their draconic ancestors.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium",
+      "Speed: 30 feet",
+      "Draconic Ancestry: Bronze Dragon - Lightning damage",
+      "Breath Weapon: When you take the [[attack|Attack]] action, you can replace one of your attacks with an exhalation of [[lightning_damage|Lightning damage]] in a 15-foot cone or a 30-foot line (your choice). The [[saving_throw|Saving Throw]] DC is 8 + your Constitution modifier + your [[proficiency_bonus|Proficiency Bonus]]. On a failed save, a creature takes 1d10 damage, or half as much on a successful one. The damage increases by 1d10 at levels 5, 11, and 17. You can use this a number of times equal to your Proficiency Bonus per [[long_rest|Long Rest]].",
+      "Damage Resistance: You have [[resistance|Resistance]] to [[lightning_damage|Lightning damage]].",
+      "Vision: You have [[darkvision|Darkvision]] with a range of 60 feet.",
+      "Draconic Flight (Level 5): Starting at Level 5, you can use a [[bonus_action|Bonus Action]] to sprout spectral wings for 10 minutes or until you're [[incapacitated_condition|Incapacitated]]. For the duration, you have a [[fly_speed|Flying Speed]] equal to your walking speed. Once you use this trait, you can't do so again until you finish a [[long_rest|Long Rest]].",
+      "Draconic Language: You can speak, read, and write Draconic."
+    ],
+    "visual": {
+      "id": "bronze_dragonborn",
+      "color": "#CD7F32",
+      "maleIllustrationPath": "assets/images/races/Dragonborn_Bronze_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Dragonborn_Bronze_Female.png"
+    }
+  },
+  "class": {
+    "id": "cleric",
+    "name": "Cleric",
+    "description": "Warriors of the gods, wielding divine magic.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Wisdom"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "history",
+      "insight",
+      "medicine",
+      "persuasion",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields",
+      "Heavy armor"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "features": [],
+    "divineOrders": [
+      {
+        "id": "Protector",
+        "name": "Protector",
+        "description": "Trained for battle, you gain proficiency with Martial weapons and Heavy armor."
+      },
+      {
+        "id": "Thaumaturge",
+        "name": "Thaumaturge",
+        "description": "You know one extra cantrip and gain a bonus to Arcana or Religion checks."
+      }
+    ],
+    "spellcasting": {
+      "ability": "Wisdom",
+      "knownCantrips": 3,
+      "knownSpellsL1": 4,
+      "spellList": [
+        "guidance",
+        "light",
+        "mending",
+        "resistance",
+        "sacred-flame",
+        "spare-the-dying",
+        "thaumaturgy",
+        "toll-the-dead",
+        "word-of-radiance",
+        "bane",
+        "bless",
+        "command",
+        "create-or-destroy-water",
+        "cure-wounds",
+        "detect-evil-and-good",
+        "detect-magic",
+        "detect-poison-and-disease",
+        "guiding-bolt",
+        "healing-word",
+        "inflict-wounds",
+        "protection-from-evil-and-good",
+        "purify-food-and-drink",
+        "sanctuary",
+        "shield-of-faith",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Wisdom",
+      "Constitution",
+      "Strength"
+    ],
+    "statRecommendationDetails": "Wisdom is crucial for your spellcasting. Constitution increases your survivability. Strength can be useful if you plan to engage in melee, especially with heavier armor from certain domains.",
+    "recommendedPointBuyPriorities": [
+      "Wisdom",
+      "Constitution",
+      "Strength",
+      "Dexterity",
+      "Charisma",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "cleric": 1
+  },
+  "abilityScores": {
+    "Strength": 13,
+    "Dexterity": 12,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 16,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 13,
+    "Dexterity": 12,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 16,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "medicine",
+      "name": "Medicine",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "persuasion",
+      "name": "Persuasion",
+      "ability": "Charisma"
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "religion",
+      "name": "Religion",
+      "ability": "Intelligence"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 60,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "magic_initiate"
+  ],
+  "featChoices": {
+    "magic_initiate": {
+      "selectedAbilityScore": "Wisdom",
+      "selectedSpellSource": "cleric",
+      "selectedCantrips": [
+        "sacred-flame",
+        "light"
+      ],
+      "selectedLeveledSpells": [
+        "guiding-bolt"
+      ]
+    }
+  },
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "guidance",
+      "sacred-flame",
+      "thaumaturgy",
+      "light"
+    ],
+    "knownSpells": [
+      "bless",
+      "cure-wounds",
+      "healing-word",
+      "shield-of-faith",
+      "guiding-bolt"
+    ],
+    "preparedSpells": [
+      "bless",
+      "cure-wounds",
+      "healing-word",
+      "shield-of-faith"
+    ],
+    "racialSpellGrants": []
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "wisdom",
+  "limitedUses": {
+    "feat_magic_initiate_guiding-bolt": {
+      "name": "Magic Initiate: Cast guiding bolt",
+      "current": 1,
+      "max": 1,
+      "resetOn": "long_rest"
+    }
+  },
+  "selectedDivineOrder": "Protector",
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 4,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Bronze Dragonborn Cleric. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": [],
+    "languages": [
+      "Draconic"
+    ]
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

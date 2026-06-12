@@ -708,6 +708,12 @@ interface TerrainMeshProps {
   activePath: { id: string }[];
   actionMode: 'move' | 'ability' | null;
   onTileClick: (tile: BattleMapTile) => void;
+  /**
+   * Tile-hover callback (AoE template preview while targeting). Pass it ONLY
+   * while it's needed: an onPointerMove handler makes R3F raycast this whole
+   * heightfield on every mouse move, so the host gates it on targetingMode.
+   */
+  onTileHover?: (tile: BattleMapTile) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -720,6 +726,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
   activePath,
   actionMode,
   onTileClick,
+  onTileHover,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const { width, height } = mapData.dimensions;
@@ -853,6 +860,28 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
     };
   }, [height, mapData, onTileClick, width]);
 
+  // Hover → tile under the pointer, deduped so the callback fires once per
+  // tile crossing instead of on every pointermove event. Same coordinate
+  // resolution as clicks (shares gap #4's steep-slope caveat, no worse).
+  const lastHoverTileId = useRef<string | null>(null);
+  const handlePointerMove = useMemo(() => {
+    if (!onTileHover) return undefined;
+    return (e: ThreeEvent<PointerEvent>) => {
+      const point = e.intersections[0]?.point;
+      if (!point) return;
+      const tileCoords = resolveTerrainTileCoordinates(
+        { x: point.x / TILE_SIZE, z: point.z / TILE_SIZE },
+        { width, height },
+      );
+      if (!tileCoords) return;
+      const tileId = `${tileCoords.x}-${tileCoords.y}`;
+      if (lastHoverTileId.current === tileId) return;
+      lastHoverTileId.current = tileId;
+      const tile = mapData.tiles.get(tileId);
+      if (tile) onTileHover(tile);
+    };
+  }, [height, mapData, onTileHover, width]);
+
   return (
     <>
       <mesh
@@ -866,6 +895,7 @@ const TerrainMesh: React.FC<TerrainMeshProps> = ({
             handleClick(e.intersections[0]);
           }
         }}
+        onPointerMove={handlePointerMove}
       />
       {/* Skirt — seals the underside visible when orbiting around map edges */}
       <mesh geometry={skirtGeometry} material={skirtMaterial} receiveShadow />

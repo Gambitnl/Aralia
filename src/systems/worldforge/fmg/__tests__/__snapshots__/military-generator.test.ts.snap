@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Military.generate (FMG port, stage 33) > matches FROZEN golden values for world-42 > military-golden 1`] = `
+{
+  "firstRegiment": {
+    "a": 11650,
+    "icon": "👑",
+    "n": 0,
+    "name": "1st (Gecia) Regiment",
+  },
+  "noteCount": 72,
+  "statesWithRegiments": 18,
+  "totalRegiments": 72,
+  "totalTroops": 272585,
+}
+`;

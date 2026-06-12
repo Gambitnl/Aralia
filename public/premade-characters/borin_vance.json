@@ -1,0 +1,221 @@
+{
+  "id": "premade_borin_vance",
+  "name": "Borin Vance",
+  "age": 32,
+  "background": "soldier",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "human",
+    "name": "Human",
+    "description": "Found throughout the multiverse, humans are as varied as they are numerous, and they endeavor to achieve as much as they can in the years they are given. Their ambition and resourcefulness are commended, respected, and feared on many worlds.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium (about 4–7 feet tall) or Small (about 2–4 feet tall), chosen when you select this species (defaults to Medium for now).",
+      "Speed: 30 feet",
+      "Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest.",
+      "Skillful: You gain proficiency in one skill of your choice (chosen during character creation).",
+      "Versatile: You gain an Origin feat of your choice."
+    ],
+    "visual": {
+      "id": "human",
+      "color": "#D2B48C",
+      "maleIllustrationPath": "assets/images/races/Human_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Human_Female.png"
+    }
+  },
+  "class": {
+    "id": "fighter",
+    "name": "Fighter",
+    "description": "Masters of combat, skilled with a variety of weapons and armor.",
+    "hitDie": 10,
+    "primaryAbility": [
+      "Strength",
+      "Dexterity"
+    ],
+    "savingThrowProficiencies": [
+      "Strength",
+      "Constitution"
+    ],
+    "skillProficienciesAvailable": [
+      "acrobatics",
+      "animal_handling",
+      "athletics",
+      "history",
+      "insight",
+      "intimidation",
+      "perception",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "All armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons",
+      "Martial weapons"
+    ],
+    "features": [
+      {
+        "id": "second_wind",
+        "name": "Second Wind",
+        "description": "Regain hit points as a bonus action.",
+        "levelAvailable": 1
+      }
+    ],
+    "weaponMasterySlots": 3,
+    "fightingStyles": [
+      {
+        "id": "archery",
+        "name": "Archery",
+        "description": "+2 bonus to attack rolls with ranged weapons.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "defense",
+        "name": "Defense",
+        "description": "+1 bonus to AC while wearing armor.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "dueling",
+        "name": "Dueling",
+        "description": "+2 damage with a melee weapon in one hand and no other weapon.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "great_weapon_fighting",
+        "name": "Great Weapon Fighting",
+        "description": "Reroll 1s and 2s on damage dice with two-handed melee weapons.",
+        "levelAvailable": 1
+      },
+      {
+        "id": "two_weapon_fighting",
+        "name": "Two-Weapon Fighting",
+        "description": "When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.",
+        "levelAvailable": 1
+      }
+    ],
+    "statRecommendationFocus": [
+      "Strength",
+      "Dexterity",
+      "Constitution"
+    ],
+    "statRecommendationDetails": "Prioritize Strength (for heavy weapons/armor) OR Dexterity (for finesse/ranged weapons). Constitution is vital for hit points. Choose based on your intended combat style and selected Fighting Style.",
+    "recommendedPointBuyPriorities": [
+      "Strength",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Charisma",
+      "Intelligence"
+    ]
+  },
+  "classLevels": {
+    "fighter": 1
+  },
+  "abilityScores": {
+    "Strength": 16,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "finalAbilityScores": {
+    "Strength": 16,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 8,
+    "Wisdom": 12,
+    "Charisma": 10
+  },
+  "skills": [
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "Strength"
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "ability": "Charisma"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 14,
+  "maxHp": 14,
+  "hitPointDice": [
+    {
+      "die": 10,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [
+    "greataxe",
+    "greatsword",
+    "halberd"
+  ],
+  "feats": [
+    "savage_attacker",
+    "tough"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "limitedUses": {
+    "second_wind": {
+      "name": "Second Wind",
+      "current": 1,
+      "max": 1,
+      "resetOn": "short_rest"
+    }
+  },
+  "selectedFightingStyle": {
+    "id": "great_weapon_fighting",
+    "name": "Great Weapon Fighting",
+    "description": "Reroll 1s and 2s on damage dice with two-handed melee weapons.",
+    "levelAvailable": 1
+  },
+  "racialSelections": {
+    "human": {
+      "skillIds": [
+        "perception"
+      ]
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 3,
+    "hairStyle": "Hair2",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Human Fighter. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [
+      "one"
+    ],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateLocal — golden snapshot (freeze at acceptance) > pins terrain hash and feature counts > local-golden 1`] = `
+{
+  "featureCount": 2970,
+  "materialHash": 3460480360,
+  "seedPath": "wf:42/cell:110/local:265200-77700",
+  "treeCount": 1620,
+}
+`;

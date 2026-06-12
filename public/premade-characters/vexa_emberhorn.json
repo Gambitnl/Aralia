@@ -1,0 +1,309 @@
+{
+  "id": "premade_vexa_emberhorn",
+  "name": "Vexa Emberhorn",
+  "age": 24,
+  "background": "entertainer",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "infernal_tiefling",
+    "name": "Infernal Tiefling",
+    "baseRace": "tiefling",
+    "description": "The structured hierarchy of the Nine Hells is the source of the Infernal Legacy. Tieflings of this bloodline often possess classic diabolic features—cloven hooves, tails, or pointed horns. They are gifted with magic that burns and binds, reflecting the lawful and punishing nature of their diabolic ancestors.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium or Small",
+      "Speed: 30 feet",
+      "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+      "Otherworldly Presence: You know the Thaumaturgy cantrip.",
+      "Infernal Resistance: You have resistance to fire damage.",
+      "Infernal Magic: You know the Fire Bolt cantrip. Starting at 3rd level, you can cast Hellish Rebuke once per long rest. Starting at 5th level, you can cast Darkness once per long rest. You can cast these spells without components, and can also cast them using any spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells (choose when you select this race)."
+    ],
+    "visual": {
+      "id": "infernal_tiefling",
+      "color": "#DC143C",
+      "maleIllustrationPath": "assets/images/races/Tiefling_Infernal_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Tiefling_Infernal_Female.png"
+    },
+    "knownSpells": [
+      {
+        "minLevel": 1,
+        "spellId": "thaumaturgy"
+      },
+      {
+        "minLevel": 1,
+        "spellId": "fire-bolt"
+      },
+      {
+        "minLevel": 3,
+        "spellId": "hellish-rebuke"
+      },
+      {
+        "minLevel": 5,
+        "spellId": "darkness"
+      }
+    ],
+    "racialSpellChoice": {
+      "traitName": "Infernal Magic",
+      "traitDescription": "Choose Intelligence, Wisdom, or Charisma as your spellcasting ability for Infernal Magic spells."
+    }
+  },
+  "class": {
+    "id": "sorcerer",
+    "name": "Sorcerer",
+    "description": "An innate spellcaster who draws on inherent magic from a gifted bloodline or other extraordinary event.",
+    "hitDie": 6,
+    "primaryAbility": [
+      "Charisma"
+    ],
+    "savingThrowProficiencies": [
+      "Constitution",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "deception",
+      "insight",
+      "intimidation",
+      "persuasion",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [],
+    "weaponProficiencies": [
+      "Daggers",
+      "Darts",
+      "Slings",
+      "Quarterstaffs",
+      "Light crossbows"
+    ],
+    "features": [
+      {
+        "id": "innate_sorcery",
+        "name": "Innate Sorcery",
+        "description": "Unleash your innate magic for 1 minute, gaining bonuses to spell save DC and attack rolls.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Charisma",
+      "knownCantrips": 4,
+      "knownSpellsL1": 2,
+      "spellList": [
+        "acid-splash",
+        "elementalism",
+        "fire-bolt",
+        "friends",
+        "frostbite",
+        "light",
+        "mage-hand",
+        "mending",
+        "message",
+        "poison-spray",
+        "prestidigitation",
+        "ray-of-frost",
+        "shape-water",
+        "shocking-grasp",
+        "sword-burst",
+        "thunderclap",
+        "burning-hands",
+        "charm-person",
+        "color-spray",
+        "detect-magic",
+        "disguise-self",
+        "expeditious-retreat",
+        "false-life",
+        "feather-fall",
+        "fog-cloud",
+        "jump",
+        "mage-armor",
+        "magic-missile",
+        "shield",
+        "sleep",
+        "thunderwave",
+        "levitate"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Charisma",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Charisma is the key to your spellcasting. Constitution helps maintain concentration and provides hit points. Dexterity improves your Armor Class since you wear no armor.",
+    "recommendedPointBuyPriorities": [
+      "Charisma",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Intelligence",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "sorcerer": 1
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 16
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 16
+  },
+  "skills": [
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma"
+    },
+    {
+      "id": "persuasion",
+      "name": "Persuasion",
+      "ability": "Charisma"
+    },
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "performance",
+      "name": "Performance",
+      "ability": "Charisma"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 8,
+  "maxHp": 8,
+  "hitPointDice": [
+    {
+      "die": 6,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "musician"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "fire-bolt",
+      "ray-of-frost",
+      "light",
+      "mage-hand"
+    ],
+    "knownSpells": [
+      "shield",
+      "magic-missile",
+      "thaumaturgy",
+      "fire-bolt"
+    ],
+    "preparedSpells": [
+      "shield",
+      "magic-missile",
+      "thaumaturgy",
+      "fire-bolt"
+    ],
+    "racialSpellGrants": [
+      {
+        "sourceRaceId": "infernal_tiefling",
+        "sourceRaceName": "Infernal Tiefling",
+        "minLevel": 1,
+        "spellId": "thaumaturgy",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      },
+      {
+        "sourceRaceId": "infernal_tiefling",
+        "sourceRaceName": "Infernal Tiefling",
+        "minLevel": 1,
+        "spellId": "fire-bolt",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      }
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "charisma",
+  "racialSelections": {
+    "infernal_tiefling": {
+      "spellAbility": "Charisma"
+    }
+  },
+  "visuals": {
+    "gender": "Female",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Infernal Tiefling Sorcerer. Female adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

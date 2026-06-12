@@ -67,7 +67,8 @@ export class IceModule {
     graphHeight: number;
   }) {
     this.clear(pack);
-    const { cells, features } = grid;
+    const { cells } = grid;
+    const features = grid.features!;
     const { temp, h } = cells;
     Math.random = Alea(seed);
 

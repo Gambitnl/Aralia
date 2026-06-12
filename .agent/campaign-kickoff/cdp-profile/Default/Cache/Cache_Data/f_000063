@@ -1,0 +1,600 @@
+import { SpellSchool } from "/Aralia/src/types/spells.ts";
+export const FEATS_DATA = [
+  {
+    id: "ability_score_improvement",
+    name: "Ability Score Improvement",
+    description: "Pour focused training into a core attribute. Increase one ability score by 2, or two ability scores by 1, to a maximum of 20.",
+    benefits: {
+      abilityScoreIncrease: {}
+    }
+  },
+  {
+    id: "actor",
+    name: "Actor",
+    description: "A master of disguise and vocal mimicry — you slip into another persona so completely that even those who know you hesitate. Gain Charisma +1, and Advantage on Deception and Performance checks made while impersonating someone.",
+    prerequisites: { abilityScores: { Charisma: 13 } },
+    benefits: {
+      abilityScoreIncrease: { Charisma: 1 },
+      skillProficiencies: ["deception", "performance"]
+    }
+  },
+  {
+    id: "alert",
+    name: "Alert",
+    description: "Hair-trigger instincts keep you one heartbeat ahead of every ambush. Add your Proficiency Bonus to Initiative rolls, and swap your Initiative result with a willing ally after rolling.",
+    benefits: {
+      initiativeBonusProficiency: true
+    }
+  },
+  {
+    id: "athlete",
+    name: "Athlete",
+    description: "Your body is a finely tuned instrument. Gain Strength or Dexterity +1; your Climb Speed equals your walk speed, standing from Prone costs only 5 feet of movement, and any running jump requires just 5 feet of run-up.",
+    benefits: {
+      abilityScoreIncrease: { Strength: 1, Dexterity: 1 }
+    }
+  },
+  {
+    id: "charger",
+    name: "Charger",
+    description: "You turn a full sprint into a devastating opening strike. Gain Strength or Dexterity +1; taking the Dash action grants +10 Speed that turn, and after moving 10 feet straight toward a target you deal 1d8 bonus damage on the next hit or shove them 10 feet.",
+    prerequisites: { minLevel: 4 },
+    benefits: {
+      abilityScoreIncrease: { Strength: 1 }
+    }
+  },
+  {
+    id: "chef",
+    name: "Chef",
+    description: "From the campfire to the castle kitchen, your cooking sustains body and spirit. Gain Constitution or Wisdom +1, proficiency with Cook's Utensils, and the ability to prepare nourishing meals that grant temporary hit points after a short rest.",
+    prerequisites: { minLevel: 4 },
+    benefits: {
+      abilityScoreIncrease: { Constitution: 1, Wisdom: 1 },
+      hpMaxIncreasePerLevel: 1
+    }
+  },
+  {
+    id: "dungeon_delver",
+    name: "Dungeon Delver",
+    description: "Years beneath the earth have sharpened your senses and steadied your nerves. You gain Advantage on Perception and Investigation checks to spot hidden doors and traps, and Resistance to damage dealt by traps.",
+    prerequisites: { minLevel: 4 },
+    benefits: {
+      resistance: ["traps"],
+      skillProficiencies: ["investigation", "perception"]
+    }
+  },
+  {
+    id: "durable",
+    name: "Durable",
+    description: "Hardship has forged you into something that simply refuses to die. Gain Constitution +1; you have Advantage on Death Saving Throws, and can expend a Hit Die as a Bonus Action to recover hit points during a Short Rest.",
+    benefits: {
+      abilityScoreIncrease: { Constitution: 1 }
+    }
+  },
+  {
+    id: "healer",
+    name: "Healer",
+    description: "Battlefield medicine is an art, and you have mastered it under the worst possible conditions. When you use a Healer's Kit to stabilise or tend a creature, they may immediately roll one of their Hit Dice — and may reroll any die showing a 1."
+    // 2024 PHB: Healer is an ORIGIN feat — no ASI, no skill proficiency. Healer's Kit mechanics
+    // TODO(FEATURES): Implement Healer's Kit stabilise-and-roll-hit-die mechanic (see docs/FEATURES_TODO.md).
+  },
+  {
+    id: "lucky",
+    name: "Lucky",
+    description: "Fortune bends to your will at the moments that matter most. Gain Luck Points equal to your Proficiency Bonus after each Long Rest; spend one to gain Advantage on any d20 test, or force a re-roll when you are attacked.",
+    benefits: {
+      luckyPoints: true
+    }
+  },
+  {
+    id: "observant",
+    name: "Observant",
+    description: "Nothing escapes your notice — a glance across a crowded tavern tells you everything. Gain Intelligence or Wisdom +1; your passive Perception and passive Investigation each increase by 5, and you can read lips.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom"],
+      skillProficiencies: ["investigation", "insight"]
+    }
+  },
+  // Updated 2025-12-11: Changed from hardcoded Constitution to selectable ability score
+  // Player chooses one of six abilities; gains +1 to that ability AND proficiency in that saving throw
+  // TODO(FEATURES): Implement UI for ability selection and logic to apply matching save proficiency (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  {
+    id: "resilient",
+    name: "Resilient",
+    description: "Where you once faltered, you now hold firm. Choose one ability score to increase by 1 and gain proficiency in saving throws using that ability — fortifying your greatest vulnerability.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"],
+      savingThrowLinkedToAbility: true
+    }
+  },
+  // Updated 2025-12-11: Changed from hardcoded skills to selectable
+  // TODO(FEATURES): Implement UI for selecting 3 skills from the full skill list (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  {
+    id: "skilled",
+    name: "Skilled",
+    description: "You have thrown yourself into learning with relentless focus. Gain proficiency in any three skills of your choice — a rare versatility most adventurers envy.",
+    benefits: {
+      skillProficiencies: [],
+      selectableSkillCount: 3
+    }
+  },
+  {
+    id: "tough",
+    name: "Tough",
+    description: "You have survived things that would kill lesser warriors, and each scar only makes you harder to put down. Your Hit Point maximum increases by twice your current level, and by 2 for every level you gain afterward.",
+    benefits: {
+      hpMaxIncreasePerLevel: 2
+    }
+  },
+  {
+    id: "crafter",
+    name: "Crafter",
+    description: "Seasons spent at the forge, loom, or workbench have made you entirely self-sufficient. Gain Intelligence +1, proficiency with three Artisan's Tools, craft items in half the time, and purchase nonmagical equipment at a 20% discount.",
+    benefits: {
+      abilityScoreIncrease: { Intelligence: 1 }
+    }
+  },
+  {
+    id: "magic_initiate",
+    name: "Magic Initiate",
+    description: "A brush with the arcane has opened a door you can never fully close. Choose a class list and learn two cantrips and one 1st-level spell from it — the leveled spell can be cast once per Long Rest without expending a slot.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      spellBenefits: {
+        selectableSpellSource: ["cleric", "druid", "wizard"],
+        spellChoices: [
+          { count: 2, level: 0, description: "Choose 2 cantrips from your selected class" },
+          { count: 1, level: 1, description: "Choose 1 first-level spell from your selected class" }
+        ]
+      }
+    }
+  },
+  {
+    id: "musician",
+    name: "Musician",
+    description: "Music is your language for inspiring courage. Gain Charisma +1 and proficiency with three Musical Instruments; after a Long Rest, a performance of your choosing grants Bardic Inspiration to nearby allies.",
+    benefits: {
+      abilityScoreIncrease: { Charisma: 1 }
+    }
+  },
+  {
+    id: "savage_attacker",
+    name: "Savage Attacker",
+    description: "You commit to every swing with reckless ferocity, refusing to accept a weak result. Once per turn when you hit with a weapon, roll the damage dice twice and use either result.",
+    benefits: {
+      abilityScoreIncrease: { Strength: 1 }
+    }
+  },
+  // Updated 2025-12-11: Changed from giving both STR+1 and CON+1 to selecting one
+  // TODO(FEATURES): Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  {
+    id: "tavern_brawler",
+    name: "Tavern Brawler",
+    description: "A broken bottle, a bar stool, a headbutt — anything becomes a weapon in your hands. Gain Strength or Constitution +1, proficiency with Improvised Weapons, improved Unarmed Strikes (1d4 + Strength), and after landing a hit you can shove the target 5 feet.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Constitution"]
+    }
+  },
+  {
+    id: "crossbow_expert",
+    name: "Crossbow Expert",
+    description: "You load, aim, and fire in a single fluid motion. Gain Dexterity +1; ignore the Loading property of crossbows, fire without Disadvantage while adjacent to enemies, and make a Bonus Action hand-crossbow attack after attacking with a one-handed weapon.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  {
+    id: "defensive_duelist",
+    name: "Defensive Duelist",
+    description: "The blade is your shield. Gain Dexterity +1; when an enemy strikes at you while you hold a finesse weapon you're proficient with, spend your Reaction to add your Proficiency Bonus to your AC against that hit.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  {
+    id: "dual_wielder",
+    name: "Dual Wielder",
+    description: "Two blades move as one under your hands. Gain Dexterity +1; gain +1 AC while dual-wielding, draw or stow two weapons simultaneously, and wield any one-handed melee weapons — not just Light ones — in each hand.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  // Updated 2025-12-11: Added selectableDamageTypes for the elemental choice
+  // TODO(FEATURES): Implement UI for damage type selection and combat logic for ignoring resistance / treating 1s as 2s (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  {
+    id: "elemental_adept",
+    name: "Elemental Adept",
+    description: "You have bent a primal force entirely to your will. Gain a spellcasting ability +1; choose Acid, Cold, Fire, Lightning, or Thunder — your spells ignore Resistance to that type, and damage dice showing 1 count as 2.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      selectableDamageTypes: ["Acid", "Cold", "Fire", "Lightning", "Thunder"]
+    }
+  },
+  {
+    id: "fey_touched",
+    name: "Fey-Touched",
+    description: "Something from the border of worlds has left its mark on you — a flicker of glamour in the blood. Gain a mental ability +1; learn Misty Step and one 1st-level Divination or Enchantment spell, each usable once per Long Rest without a slot.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: "misty-step", castingMethod: "once_per_long_rest" }
+        ],
+        spellChoices: [
+          { count: 1, level: 1, schools: [SpellSchool.Divination, SpellSchool.Enchantment], description: "Choose 1 Divination or Enchantment spell" }
+        ]
+      }
+    }
+  },
+  {
+    id: "grappler",
+    name: "Grappler",
+    description: "Your grip is a cage your enemies cannot escape. Gain Strength or Dexterity +1; your Unarmed Strikes can simultaneously initiate a Grapple on a hit, and you have Advantage on attacks against any creature you are currently grappling.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "great_weapon_master",
+    name: "Great Weapon Master",
+    description: "Every critical strike and every fallen foe feeds your momentum. Gain Strength +1; deal bonus damage equal to your Proficiency Bonus on every hit with a Heavy weapon, and when you roll a critical hit or reduce a creature to 0 HP, make one extra melee attack as a Bonus Action.",
+    benefits: {
+      abilityScoreIncrease: { Strength: 1 },
+      heavyWeaponProficiencyBonus: true
+    }
+  },
+  {
+    id: "heavily_armored",
+    name: "Heavily Armored",
+    description: "You have trained to bear the full weight of war — plate, mail, and all. Gain proficiency with Heavy Armor and increase Strength or Constitution by 1.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Constitution"]
+    }
+  },
+  {
+    id: "heavy_armor_master",
+    name: "Heavy Armor Master",
+    description: "Iron plates become a second skin, turning aside blows that would fell a lesser warrior. Gain Strength +1; while wearing Heavy Armor, reduce nonmagical Bludgeoning, Piercing, and Slashing damage you take by an amount equal to your Proficiency Bonus.",
+    prerequisites: { minLevel: 4 },
+    benefits: {
+      abilityScoreIncrease: { Strength: 1 },
+      damageReductionProficiency: true
+    }
+  },
+  {
+    id: "inspiring_leader",
+    name: "Inspiring Leader",
+    description: "Your words kindle something fierce in the hearts of those who follow you. Gain Charisma +1; spend 10 minutes to grant up to 6 creatures temporary hit points equal to your Charisma modifier + your Proficiency Bonus.",
+    benefits: {
+      abilityScoreIncrease: { Charisma: 1 }
+    }
+  },
+  {
+    id: "keen_mind",
+    name: "Keen Mind",
+    description: "Your mind is a trap that never forgets. Gain Intelligence +1; you always know which way is north and how many hours remain until dawn or dusk, and can perfectly recall anything you have seen or heard within the past month.",
+    benefits: {
+      abilityScoreIncrease: { Intelligence: 1 }
+    }
+  },
+  {
+    id: "lightly_armored",
+    name: "Lightly Armored",
+    description: "Even the lightest armor demands practice to wear well, and you have done the work. Gain Dexterity +1 and proficiency with Light Armor.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  {
+    id: "mage_slayer",
+    name: "Mage Slayer",
+    description: "You have learned to read the telltale cadence of a spell being cast — and to close the gap before the incantation completes. Gain Strength or Dexterity +1; when you damage a concentrating creature it has Disadvantage on its save, and once per Short Rest you can auto-succeed on one Intelligence, Wisdom, or Charisma saving throw.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "martial_weapon_training",
+    name: "Martial Weapon Training",
+    description: "Weeks at the training yard have broadened your weapon repertoire far beyond what most combatants ever master. Gain Strength +1 and Dexterity +1, and proficiency with all Martial Weapons.",
+    benefits: {
+      abilityScoreIncrease: { Strength: 1, Dexterity: 1 }
+    }
+  },
+  {
+    id: "medium_armor_master",
+    name: "Medium Armor Master",
+    description: "You wear medium armor like a second skin, squeezing every point of protection out of every strap and buckle. Gain Dexterity +1; add up to 3 (instead of 2) of your Dexterity modifier to AC while in medium armor, and suffer no Stealth Disadvantage from it.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  {
+    id: "moderately_armored",
+    name: "Moderately Armored",
+    description: "The transition from light to medium armor is a milestone of martial training — you have crossed it. Gain Strength or Dexterity +1 and proficiency with Medium Armor and Shields.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "mounted_combatant",
+    name: "Mounted Combatant",
+    description: "From horseback you are a force of nature — elevated, fast, and terrifying. Gain Strength or Dexterity +1; Advantage on melee attacks against unmounted smaller creatures, redirect attacks targeting your mount to yourself, and your mount gains Evasion on Dexterity saving throws.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "piercer",
+    name: "Piercer",
+    description: "You drive the point home with uncanny precision, finding the gap between scales and armour alike. Gain Strength or Dexterity +1; once per turn reroll one piercing damage die and use the higher result, and on a critical hit roll one additional damage die.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "poisoner",
+    name: "Poisoner",
+    description: "You handle deadly substances with a practitioner's calm. Gain Dexterity +1 and Intelligence +1; your crafted poisons bypass Poison Resistance, and coating a blade or piece of ammunition takes only a Bonus Action.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1, Intelligence: 1 }
+    }
+  },
+  {
+    id: "polearm_master",
+    name: "Polearm Master",
+    description: "Every inch of your weapon is a threat. Gain Strength or Dexterity +1; make a Bonus Action butt-end strike after attacking with a Glaive, Halberd, Quarterstaff, or Spear, and trigger opportunity attacks the moment an enemy enters your reach.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "ritual_caster",
+    name: "Ritual Caster",
+    description: "Forbidden formulae fill your journals — power without the price of a slot. Gain Intelligence or Wisdom +1; learn ritual spells from a chosen class list, scribe new ritual spells you discover, and cast them as extended rituals.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom"]
+    }
+  },
+  {
+    id: "sentinel",
+    name: "Sentinel",
+    description: "You are the wall nothing passes through. Gain Strength or Dexterity +1; opportunity attacks you make reduce the target's Speed to 0, enemies cannot Disengage past you, and foes who attack your allies draw an immediate opportunity attack from you.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "shadow_touched",
+    name: "Shadow-Touched",
+    description: "The dark between worlds has seeped into your blood, and shadows answer your call. Gain a mental ability +1; learn Invisibility and one 1st-level Illusion or Necromancy spell, each castable once per Long Rest without a slot.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: "invisibility", castingMethod: "once_per_long_rest" }
+        ],
+        spellChoices: [
+          { count: 1, level: 1, schools: [SpellSchool.Illusion, SpellSchool.Necromancy], description: "Choose 1 Illusion or Necromancy spell" }
+        ]
+      }
+    }
+  },
+  {
+    id: "sharpshooter",
+    name: "Sharpshooter",
+    description: "Distance and cover mean nothing to a trained eye. Gain Dexterity +1; your ranged attacks ignore half and three-quarters cover.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  {
+    id: "shield_master",
+    name: "Shield Master",
+    description: "Your shield is as much a weapon as the blade in your other hand. Gain Strength or Dexterity +1; add your shield's bonus to Dex saves that target only you, use your Reaction to take no damage on a successful Dex save versus a half-damage effect, and shove a foe as a Bonus Action after attacking.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "skill_expert",
+    name: "Skill Expert",
+    description: "A lifetime of obsessive practice has sharpened one talent to a razored edge. Gain +1 to any ability score, proficiency in one skill of your choice, and Expertise — double proficiency — in one skill you are already proficient with.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"],
+      skillProficiencies: ["any"]
+    }
+  },
+  {
+    id: "skulker",
+    name: "Skulker",
+    description: "You are a shadow given purpose — patient, invisible, lethal. Gain Dexterity +1 and Blindsight 10 feet; lightly obscured terrain does not reveal you when hidden, and missing with a ranged attack does not give away your position.",
+    prerequisites: { abilityScores: { Dexterity: 13 } },
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 }
+    }
+  },
+  // Updated 2025-12-11: Changed from giving both STR+1 and DEX+1 to selecting one
+  // Combat mechanics implemented 2026-01-05: Speed reduction (once per turn) and crit disadvantage via ActiveEffect
+  // TODO(FEATURES): Implement UI for ability selection (STR or DEX) during feat selection.
+  {
+    id: "slasher",
+    name: "Slasher",
+    description: "A clean slash leaves them stumbling, bleeding, and afraid. Gain Strength or Dexterity +1; once per turn reduce a struck creature's Speed by 10 feet, and on a critical hit they have Disadvantage on attacks until your next turn.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  {
+    id: "speedy",
+    name: "Speedy",
+    description: "Your legs carry you faster than most people think possible, and nothing on the ground slows you when you're running. Gain Dexterity +1, +10 feet Speed, and nonmagical difficult terrain doesn't slow you when you take the Dash action.",
+    benefits: {
+      abilityScoreIncrease: { Dexterity: 1 },
+      speedIncrease: 10
+    }
+  },
+  {
+    id: "spell_sniper",
+    name: "Spell Sniper",
+    description: "You thread spells through arrow-slits and around pillars that lesser casters never attempt. Gain a spellcasting ability +1; double the range of spell attacks, ignore half and three-quarters cover, learn one attack cantrip, and your spell attacks score a critical hit on a 19 or 20.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      spellBenefits: {
+        spellChoices: [
+          { count: 1, level: 0, requiresAttack: true, description: "Choose 1 cantrip that requires an attack roll" }
+        ]
+      }
+    }
+  },
+  {
+    id: "telekinetic",
+    name: "Telekinetic",
+    description: "Your will extends outward, nudging the world with invisible fingers no one can trace. Gain a mental ability +1; cast Mage Hand at will (60 ft range, invisible), and as a Bonus Action push or pull a creature 5 feet on a failed Strength save.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: "mage-hand", castingMethod: "at_will", specialNotes: "Range 60 ft, invisible hand" }
+        ]
+      }
+    }
+  },
+  {
+    id: "telepathic",
+    name: "Telepathic",
+    description: "Your thoughts bleed outward, touching minds without a spoken word. Gain a mental ability +1; cast Detect Thoughts once per Long Rest without a slot, and communicate telepathically with any creature you can see within 60 feet.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: "detect-thoughts", castingMethod: "once_per_long_rest" }
+        ]
+      }
+    }
+  },
+  {
+    id: "war_caster",
+    name: "War Caster",
+    description: "Battle is your crucible — the incantation holds even when the blade falls. Gain Intelligence, Wisdom, or Charisma +1; Advantage on Concentration saving throws, perform somatic components with weapons or a shield in hand, and cast a spell instead of making an opportunity attack.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Intelligence", "Wisdom", "Charisma"]
+    }
+  },
+  {
+    id: "weapon_master",
+    name: "Weapon Master",
+    description: "You have drilled obsessively with weapons most soldiers never touch, expanding your martial repertoire far beyond your training. Gain Strength or Dexterity +1 and proficiency with four weapons of your choice.",
+    benefits: {
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ["Strength", "Dexterity"]
+    }
+  },
+  // === FIGHTING STYLE FEATS ===
+  {
+    id: "archery_style",
+    name: "Archery Fighting Style",
+    description: "Countless hours at the range have perfected your draw, sight picture, and release. You gain a +2 bonus to attack rolls made with ranged weapons.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "defense_style",
+    name: "Defense Fighting Style",
+    description: "You know how to angle each piece of armor to deflect the blow and redirect the force. While wearing armor, you gain a +1 bonus to AC.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "dueling_style",
+    name: "Dueling Fighting Style",
+    description: "A single blade, perfectly controlled, is all you need. When you wield a one-handed melee weapon and no other weapons, gain +2 to damage rolls with that weapon.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "great_weapon_fighting_style",
+    name: "Great Weapon Fighting Style",
+    description: "You let the weight and momentum flow through you, never accepting a weak swing. When you attack with a two-handed or versatile melee weapon, reroll any damage dice showing 1 — once per die.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "two_weapon_fighting_style",
+    name: "Two-Weapon Fighting Style",
+    description: "You have trained your off hand to be every bit as lethal as your primary — no wasted motion, no wasted hit. Add your ability modifier to the damage of your off-hand attack.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "protection_style",
+    name: "Protection Fighting Style",
+    description: "Your shield is a promise to those who stand beside you. While wielding a shield, use your Reaction to impose Disadvantage on an attack roll against a nearby ally you can see.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "interception_style",
+    name: "Interception Fighting Style",
+    description: "You throw yourself between friend and blade without hesitation. While wielding a weapon or shield, use your Reaction to reduce a nearby ally's incoming damage by 1d10 + your Proficiency Bonus.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "unarmed_fighting_style",
+    name: "Unarmed Fighting Style",
+    description: "Your body is a weapon, refined through brutal conditioning until fists hit harder than some swords. Unarmed strikes deal 1d8 damage (1d6 if holding anything); grappled foes take 1d4 bludgeoning at the start of your turn.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "blind_fighting_style",
+    name: "Blind Fighting Style",
+    description: "You have trained in total darkness until darkness itself surrenders its secrets to you. Gain Blindsight 10 feet — perceiving everything within range regardless of light or invisibility.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  },
+  {
+    id: "thrown_weapon_fighting_style",
+    name: "Thrown Weapon Fighting Style",
+    description: "Every hurled blade or axe is an extension of your arm — drawn and thrown in one seamless motion. Draw thrown weapons as part of the throw, and deal +2 damage on ranged attacks with thrown weapons.",
+    prerequisites: {
+      requiresFightingStyle: true
+    }
+  }
+];
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbImZlYXRzRGF0YS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBGZWF0IH0gZnJvbSAnLi4vLi4vdHlwZXMnO1xyXG5pbXBvcnQgeyBTcGVsbFNjaG9vbCB9IGZyb20gJy4uLy4uL3R5cGVzL3NwZWxscyc7XHJcblxyXG4vKipcclxuICogQVJDSElURUNUVVJBTCBDT05URVhUOlxyXG4gKiBUaGlzIGZpbGUgc2VydmVzIGFzIHRoZSAnRmVhdHMgUmVwb3NpdG9yeScgZm9yIEFyYWxpYS4gSXQgaXMgYSBzdGF0aWMgXHJcbiAqIGRhdGEgc3RydWN0dXJlIHVzZWQgYnkgdGhlIENoYXJhY3RlciBDcmVhdG9yIGFuZCBMZXZlbC1VcCBzeXN0ZW1zIHRvIFxyXG4gKiBwb3B1bGF0ZSBzZWxlY3Rpb24gbWVudXMuXHJcbiAqXHJcbiAqIFJlY2VudCB1cGRhdGVzIGZvY3VzIG9uICdTZWxlY3RhYmxlIEJlbmVmaXRzJy4gTWFueSBmZWF0cyAobGlrZSBSZXNpbGllbnQgXHJcbiAqIG9yIFNraWxsZWQpIG5vdyBzdXBwb3J0IG11bHRpcGxlIGFiaWxpdHkgc2NvcmUgb3Igc2tpbGwgb3B0aW9ucyByYXRoZXIgXHJcbiAqIHRoYW4gaGFyZGNvZGVkIHZhbHVlcy4gVGhpcyBzaGlmdCByZXF1aXJlcyB0aGUgY29uc3VtZXIgKFVJKSB0byBoYW5kbGUgXHJcbiAqIG5lc3RlZCBzZWxlY3Rpb24gbG9naWMgd2hpY2ggaXMgZmxhZ2dlZCB2aWEgJ3NlbGVjdGFibGVBYmlsaXR5U2NvcmVzJyBcclxuICogb3IgJ3NlbGVjdGFibGVTa2lsbENvdW50JyBwcm9wZXJ0aWVzLlxyXG4gKiBcclxuICogQGZpbGUgc3JjL2RhdGEvZmVhdHMvZmVhdHNEYXRhLnRzXHJcbiAqL1xyXG5leHBvcnQgY29uc3QgRkVBVFNfREFUQTogRmVhdFtdID0gW1xyXG4gIHtcclxuICAgIGlkOiAnYWJpbGl0eV9zY29yZV9pbXByb3ZlbWVudCcsXHJcbiAgICBuYW1lOiAnQWJpbGl0eSBTY29yZSBJbXByb3ZlbWVudCcsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1BvdXIgZm9jdXNlZCB0cmFpbmluZyBpbnRvIGEgY29yZSBhdHRyaWJ1dGUuIEluY3JlYXNlIG9uZSBhYmlsaXR5IHNjb3JlIGJ5IDIsIG9yIHR3byBhYmlsaXR5IHNjb3JlcyBieSAxLCB0byBhIG1heGltdW0gb2YgMjAuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2FjdG9yJyxcclxuICAgIG5hbWU6ICdBY3RvcicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0EgbWFzdGVyIG9mIGRpc2d1aXNlIGFuZCB2b2NhbCBtaW1pY3J5IOKAlCB5b3Ugc2xpcCBpbnRvIGFub3RoZXIgcGVyc29uYSBzbyBjb21wbGV0ZWx5IHRoYXQgZXZlbiB0aG9zZSB3aG8ga25vdyB5b3UgaGVzaXRhdGUuIEdhaW4gQ2hhcmlzbWEgKzEsIGFuZCBBZHZhbnRhZ2Ugb24gRGVjZXB0aW9uIGFuZCBQZXJmb3JtYW5jZSBjaGVja3MgbWFkZSB3aGlsZSBpbXBlcnNvbmF0aW5nIHNvbWVvbmUuJyxcclxuICAgIHByZXJlcXVpc2l0ZXM6IHsgYWJpbGl0eVNjb3JlczogeyBDaGFyaXNtYTogMTMgfSB9LFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHsgQ2hhcmlzbWE6IDEgfSxcclxuICAgICAgc2tpbGxQcm9maWNpZW5jaWVzOiBbJ2RlY2VwdGlvbicsICdwZXJmb3JtYW5jZSddLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnYWxlcnQnLFxyXG4gICAgbmFtZTogJ0FsZXJ0JyxcclxuICAgIGRlc2NyaXB0aW9uOiAnSGFpci10cmlnZ2VyIGluc3RpbmN0cyBrZWVwIHlvdSBvbmUgaGVhcnRiZWF0IGFoZWFkIG9mIGV2ZXJ5IGFtYnVzaC4gQWRkIHlvdXIgUHJvZmljaWVuY3kgQm9udXMgdG8gSW5pdGlhdGl2ZSByb2xscywgYW5kIHN3YXAgeW91ciBJbml0aWF0aXZlIHJlc3VsdCB3aXRoIGEgd2lsbGluZyBhbGx5IGFmdGVyIHJvbGxpbmcuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGluaXRpYXRpdmVCb251c1Byb2ZpY2llbmN5OiB0cnVlLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnYXRobGV0ZScsXHJcbiAgICBuYW1lOiAnQXRobGV0ZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdXIgYm9keSBpcyBhIGZpbmVseSB0dW5lZCBpbnN0cnVtZW50LiBHYWluIFN0cmVuZ3RoIG9yIERleHRlcml0eSArMTsgeW91ciBDbGltYiBTcGVlZCBlcXVhbHMgeW91ciB3YWxrIHNwZWVkLCBzdGFuZGluZyBmcm9tIFByb25lIGNvc3RzIG9ubHkgNSBmZWV0IG9mIG1vdmVtZW50LCBhbmQgYW55IHJ1bm5pbmcganVtcCByZXF1aXJlcyBqdXN0IDUgZmVldCBvZiBydW4tdXAuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IFN0cmVuZ3RoOiAxLCBEZXh0ZXJpdHk6IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2NoYXJnZXInLFxyXG4gICAgbmFtZTogJ0NoYXJnZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgdHVybiBhIGZ1bGwgc3ByaW50IGludG8gYSBkZXZhc3RhdGluZyBvcGVuaW5nIHN0cmlrZS4gR2FpbiBTdHJlbmd0aCBvciBEZXh0ZXJpdHkgKzE7IHRha2luZyB0aGUgRGFzaCBhY3Rpb24gZ3JhbnRzICsxMCBTcGVlZCB0aGF0IHR1cm4sIGFuZCBhZnRlciBtb3ZpbmcgMTAgZmVldCBzdHJhaWdodCB0b3dhcmQgYSB0YXJnZXQgeW91IGRlYWwgMWQ4IGJvbnVzIGRhbWFnZSBvbiB0aGUgbmV4dCBoaXQgb3Igc2hvdmUgdGhlbSAxMCBmZWV0LicsXHJcbiAgICBwcmVyZXF1aXNpdGVzOiB7IG1pbkxldmVsOiA0IH0sXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBTdHJlbmd0aDogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnY2hlZicsXHJcbiAgICBuYW1lOiAnQ2hlZicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0Zyb20gdGhlIGNhbXBmaXJlIHRvIHRoZSBjYXN0bGUga2l0Y2hlbiwgeW91ciBjb29raW5nIHN1c3RhaW5zIGJvZHkgYW5kIHNwaXJpdC4gR2FpbiBDb25zdGl0dXRpb24gb3IgV2lzZG9tICsxLCBwcm9maWNpZW5jeSB3aXRoIENvb2tcXCdzIFV0ZW5zaWxzLCBhbmQgdGhlIGFiaWxpdHkgdG8gcHJlcGFyZSBub3VyaXNoaW5nIG1lYWxzIHRoYXQgZ3JhbnQgdGVtcG9yYXJ5IGhpdCBwb2ludHMgYWZ0ZXIgYSBzaG9ydCByZXN0LicsXHJcbiAgICBwcmVyZXF1aXNpdGVzOiB7IG1pbkxldmVsOiA0IH0sXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBDb25zdGl0dXRpb246IDEsIFdpc2RvbTogMSB9LFxyXG4gICAgICBocE1heEluY3JlYXNlUGVyTGV2ZWw6IDEsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdkdW5nZW9uX2RlbHZlcicsXHJcbiAgICBuYW1lOiAnRHVuZ2VvbiBEZWx2ZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZZWFycyBiZW5lYXRoIHRoZSBlYXJ0aCBoYXZlIHNoYXJwZW5lZCB5b3VyIHNlbnNlcyBhbmQgc3RlYWRpZWQgeW91ciBuZXJ2ZXMuIFlvdSBnYWluIEFkdmFudGFnZSBvbiBQZXJjZXB0aW9uIGFuZCBJbnZlc3RpZ2F0aW9uIGNoZWNrcyB0byBzcG90IGhpZGRlbiBkb29ycyBhbmQgdHJhcHMsIGFuZCBSZXNpc3RhbmNlIHRvIGRhbWFnZSBkZWFsdCBieSB0cmFwcy4nLFxyXG4gICAgcHJlcmVxdWlzaXRlczogeyBtaW5MZXZlbDogNCB9LFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgcmVzaXN0YW5jZTogWyd0cmFwcyddLFxyXG4gICAgICBza2lsbFByb2ZpY2llbmNpZXM6IFsnaW52ZXN0aWdhdGlvbicsICdwZXJjZXB0aW9uJ10sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdkdXJhYmxlJyxcclxuICAgIG5hbWU6ICdEdXJhYmxlJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnSGFyZHNoaXAgaGFzIGZvcmdlZCB5b3UgaW50byBzb21ldGhpbmcgdGhhdCBzaW1wbHkgcmVmdXNlcyB0byBkaWUuIEdhaW4gQ29uc3RpdHV0aW9uICsxOyB5b3UgaGF2ZSBBZHZhbnRhZ2Ugb24gRGVhdGggU2F2aW5nIFRocm93cywgYW5kIGNhbiBleHBlbmQgYSBIaXQgRGllIGFzIGEgQm9udXMgQWN0aW9uIHRvIHJlY292ZXIgaGl0IHBvaW50cyBkdXJpbmcgYSBTaG9ydCBSZXN0LicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBDb25zdGl0dXRpb246IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2hlYWxlcicsXHJcbiAgICBuYW1lOiAnSGVhbGVyJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnQmF0dGxlZmllbGQgbWVkaWNpbmUgaXMgYW4gYXJ0LCBhbmQgeW91IGhhdmUgbWFzdGVyZWQgaXQgdW5kZXIgdGhlIHdvcnN0IHBvc3NpYmxlIGNvbmRpdGlvbnMuIFdoZW4geW91IHVzZSBhIEhlYWxlclxcJ3MgS2l0IHRvIHN0YWJpbGlzZSBvciB0ZW5kIGEgY3JlYXR1cmUsIHRoZXkgbWF5IGltbWVkaWF0ZWx5IHJvbGwgb25lIG9mIHRoZWlyIEhpdCBEaWNlIOKAlCBhbmQgbWF5IHJlcm9sbCBhbnkgZGllIHNob3dpbmcgYSAxLicsXHJcbiAgICAvLyAyMDI0IFBIQjogSGVhbGVyIGlzIGFuIE9SSUdJTiBmZWF0IOKAlCBubyBBU0ksIG5vIHNraWxsIHByb2ZpY2llbmN5LiBIZWFsZXIncyBLaXQgbWVjaGFuaWNzXHJcbiAgICAvLyBUT0RPKEZFQVRVUkVTKTogSW1wbGVtZW50IEhlYWxlcidzIEtpdCBzdGFiaWxpc2UtYW5kLXJvbGwtaGl0LWRpZSBtZWNoYW5pYyAoc2VlIGRvY3MvRkVBVFVSRVNfVE9ETy5tZCkuXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2x1Y2t5JyxcclxuICAgIG5hbWU6ICdMdWNreScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0ZvcnR1bmUgYmVuZHMgdG8geW91ciB3aWxsIGF0IHRoZSBtb21lbnRzIHRoYXQgbWF0dGVyIG1vc3QuIEdhaW4gTHVjayBQb2ludHMgZXF1YWwgdG8geW91ciBQcm9maWNpZW5jeSBCb251cyBhZnRlciBlYWNoIExvbmcgUmVzdDsgc3BlbmQgb25lIHRvIGdhaW4gQWR2YW50YWdlIG9uIGFueSBkMjAgdGVzdCwgb3IgZm9yY2UgYSByZS1yb2xsIHdoZW4geW91IGFyZSBhdHRhY2tlZC4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgbHVja3lQb2ludHM6IHRydWUsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdvYnNlcnZhbnQnLFxyXG4gICAgbmFtZTogJ09ic2VydmFudCcsXHJcbiAgICBkZXNjcmlwdGlvbjogJ05vdGhpbmcgZXNjYXBlcyB5b3VyIG5vdGljZSDigJQgYSBnbGFuY2UgYWNyb3NzIGEgY3Jvd2RlZCB0YXZlcm4gdGVsbHMgeW91IGV2ZXJ5dGhpbmcuIEdhaW4gSW50ZWxsaWdlbmNlIG9yIFdpc2RvbSArMTsgeW91ciBwYXNzaXZlIFBlcmNlcHRpb24gYW5kIHBhc3NpdmUgSW52ZXN0aWdhdGlvbiBlYWNoIGluY3JlYXNlIGJ5IDUsIGFuZCB5b3UgY2FuIHJlYWQgbGlwcy4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydJbnRlbGxpZ2VuY2UnLCAnV2lzZG9tJ10sXHJcbiAgICAgIHNraWxsUHJvZmljaWVuY2llczogWydpbnZlc3RpZ2F0aW9uJywgJ2luc2lnaHQnXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICAvLyBVcGRhdGVkIDIwMjUtMTItMTE6IENoYW5nZWQgZnJvbSBoYXJkY29kZWQgQ29uc3RpdHV0aW9uIHRvIHNlbGVjdGFibGUgYWJpbGl0eSBzY29yZVxyXG4gIC8vIFBsYXllciBjaG9vc2VzIG9uZSBvZiBzaXggYWJpbGl0aWVzOyBnYWlucyArMSB0byB0aGF0IGFiaWxpdHkgQU5EIHByb2ZpY2llbmN5IGluIHRoYXQgc2F2aW5nIHRocm93XHJcbiAgLy8gVE9ETyhGRUFUVVJFUyk6IEltcGxlbWVudCBVSSBmb3IgYWJpbGl0eSBzZWxlY3Rpb24gYW5kIGxvZ2ljIHRvIGFwcGx5IG1hdGNoaW5nIHNhdmUgcHJvZmljaWVuY3kgKHNlZSBkb2NzL0ZFQVRVUkVTX1RPRE8ubWQ7IGlmIHRoaXMgYmxvY2sgaXMgbW92ZWQvcmVmYWN0b3JlZC9tb2R1bGFyaXplZCwgdXBkYXRlIHRoZSBGRUFUVVJFU19UT0RPIGVudHJ5IHBhdGgpLlxyXG4gIHtcclxuICAgIGlkOiAncmVzaWxpZW50JyxcclxuICAgIG5hbWU6ICdSZXNpbGllbnQnLFxyXG4gICAgZGVzY3JpcHRpb246ICdXaGVyZSB5b3Ugb25jZSBmYWx0ZXJlZCwgeW91IG5vdyBob2xkIGZpcm0uIENob29zZSBvbmUgYWJpbGl0eSBzY29yZSB0byBpbmNyZWFzZSBieSAxIGFuZCBnYWluIHByb2ZpY2llbmN5IGluIHNhdmluZyB0aHJvd3MgdXNpbmcgdGhhdCBhYmlsaXR5IOKAlCBmb3J0aWZ5aW5nIHlvdXIgZ3JlYXRlc3QgdnVsbmVyYWJpbGl0eS4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydTdHJlbmd0aCcsICdEZXh0ZXJpdHknLCAnQ29uc3RpdHV0aW9uJywgJ0ludGVsbGlnZW5jZScsICdXaXNkb20nLCAnQ2hhcmlzbWEnXSxcclxuICAgICAgc2F2aW5nVGhyb3dMaW5rZWRUb0FiaWxpdHk6IHRydWUsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAgLy8gVXBkYXRlZCAyMDI1LTEyLTExOiBDaGFuZ2VkIGZyb20gaGFyZGNvZGVkIHNraWxscyB0byBzZWxlY3RhYmxlXHJcbiAgLy8gVE9ETyhGRUFUVVJFUyk6IEltcGxlbWVudCBVSSBmb3Igc2VsZWN0aW5nIDMgc2tpbGxzIGZyb20gdGhlIGZ1bGwgc2tpbGwgbGlzdCAoc2VlIGRvY3MvRkVBVFVSRVNfVE9ETy5tZDsgaWYgdGhpcyBibG9jayBpcyBtb3ZlZC9yZWZhY3RvcmVkL21vZHVsYXJpemVkLCB1cGRhdGUgdGhlIEZFQVRVUkVTX1RPRE8gZW50cnkgcGF0aCkuXHJcbiAge1xyXG4gICAgaWQ6ICdza2lsbGVkJyxcclxuICAgIG5hbWU6ICdTa2lsbGVkJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGhhdmUgdGhyb3duIHlvdXJzZWxmIGludG8gbGVhcm5pbmcgd2l0aCByZWxlbnRsZXNzIGZvY3VzLiBHYWluIHByb2ZpY2llbmN5IGluIGFueSB0aHJlZSBza2lsbHMgb2YgeW91ciBjaG9pY2Ug4oCUIGEgcmFyZSB2ZXJzYXRpbGl0eSBtb3N0IGFkdmVudHVyZXJzIGVudnkuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIHNraWxsUHJvZmljaWVuY2llczogW10sXHJcbiAgICAgIHNlbGVjdGFibGVTa2lsbENvdW50OiAzLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAndG91Z2gnLFxyXG4gICAgbmFtZTogJ1RvdWdoJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGhhdmUgc3Vydml2ZWQgdGhpbmdzIHRoYXQgd291bGQga2lsbCBsZXNzZXIgd2FycmlvcnMsIGFuZCBlYWNoIHNjYXIgb25seSBtYWtlcyB5b3UgaGFyZGVyIHRvIHB1dCBkb3duLiBZb3VyIEhpdCBQb2ludCBtYXhpbXVtIGluY3JlYXNlcyBieSB0d2ljZSB5b3VyIGN1cnJlbnQgbGV2ZWwsIGFuZCBieSAyIGZvciBldmVyeSBsZXZlbCB5b3UgZ2FpbiBhZnRlcndhcmQuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGhwTWF4SW5jcmVhc2VQZXJMZXZlbDogMixcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2NyYWZ0ZXInLFxyXG4gICAgbmFtZTogJ0NyYWZ0ZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdTZWFzb25zIHNwZW50IGF0IHRoZSBmb3JnZSwgbG9vbSwgb3Igd29ya2JlbmNoIGhhdmUgbWFkZSB5b3UgZW50aXJlbHkgc2VsZi1zdWZmaWNpZW50LiBHYWluIEludGVsbGlnZW5jZSArMSwgcHJvZmljaWVuY3kgd2l0aCB0aHJlZSBBcnRpc2FuXFwncyBUb29scywgY3JhZnQgaXRlbXMgaW4gaGFsZiB0aGUgdGltZSwgYW5kIHB1cmNoYXNlIG5vbm1hZ2ljYWwgZXF1aXBtZW50IGF0IGEgMjAlIGRpc2NvdW50LicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBJbnRlbGxpZ2VuY2U6IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ21hZ2ljX2luaXRpYXRlJyxcclxuICAgIG5hbWU6ICdNYWdpYyBJbml0aWF0ZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0EgYnJ1c2ggd2l0aCB0aGUgYXJjYW5lIGhhcyBvcGVuZWQgYSBkb29yIHlvdSBjYW4gbmV2ZXIgZnVsbHkgY2xvc2UuIENob29zZSBhIGNsYXNzIGxpc3QgYW5kIGxlYXJuIHR3byBjYW50cmlwcyBhbmQgb25lIDFzdC1sZXZlbCBzcGVsbCBmcm9tIGl0IOKAlCB0aGUgbGV2ZWxlZCBzcGVsbCBjYW4gYmUgY2FzdCBvbmNlIHBlciBMb25nIFJlc3Qgd2l0aG91dCBleHBlbmRpbmcgYSBzbG90LicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZToge30sXHJcbiAgICAgIHNlbGVjdGFibGVBYmlsaXR5U2NvcmVzOiBbJ0ludGVsbGlnZW5jZScsICdXaXNkb20nLCAnQ2hhcmlzbWEnXSxcclxuICAgICAgc3BlbGxCZW5lZml0czoge1xyXG4gICAgICAgIHNlbGVjdGFibGVTcGVsbFNvdXJjZTogWydjbGVyaWMnLCAnZHJ1aWQnLCAnd2l6YXJkJ10sXHJcbiAgICAgICAgc3BlbGxDaG9pY2VzOiBbXHJcbiAgICAgICAgICB7IGNvdW50OiAyLCBsZXZlbDogMCwgZGVzY3JpcHRpb246ICdDaG9vc2UgMiBjYW50cmlwcyBmcm9tIHlvdXIgc2VsZWN0ZWQgY2xhc3MnIH0sXHJcbiAgICAgICAgICB7IGNvdW50OiAxLCBsZXZlbDogMSwgZGVzY3JpcHRpb246ICdDaG9vc2UgMSBmaXJzdC1sZXZlbCBzcGVsbCBmcm9tIHlvdXIgc2VsZWN0ZWQgY2xhc3MnIH0sXHJcbiAgICAgICAgXSxcclxuICAgICAgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ211c2ljaWFuJyxcclxuICAgIG5hbWU6ICdNdXNpY2lhbicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ011c2ljIGlzIHlvdXIgbGFuZ3VhZ2UgZm9yIGluc3BpcmluZyBjb3VyYWdlLiBHYWluIENoYXJpc21hICsxIGFuZCBwcm9maWNpZW5jeSB3aXRoIHRocmVlIE11c2ljYWwgSW5zdHJ1bWVudHM7IGFmdGVyIGEgTG9uZyBSZXN0LCBhIHBlcmZvcm1hbmNlIG9mIHlvdXIgY2hvb3NpbmcgZ3JhbnRzIEJhcmRpYyBJbnNwaXJhdGlvbiB0byBuZWFyYnkgYWxsaWVzLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBDaGFyaXNtYTogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnc2F2YWdlX2F0dGFja2VyJyxcclxuICAgIG5hbWU6ICdTYXZhZ2UgQXR0YWNrZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgY29tbWl0IHRvIGV2ZXJ5IHN3aW5nIHdpdGggcmVja2xlc3MgZmVyb2NpdHksIHJlZnVzaW5nIHRvIGFjY2VwdCBhIHdlYWsgcmVzdWx0LiBPbmNlIHBlciB0dXJuIHdoZW4geW91IGhpdCB3aXRoIGEgd2VhcG9uLCByb2xsIHRoZSBkYW1hZ2UgZGljZSB0d2ljZSBhbmQgdXNlIGVpdGhlciByZXN1bHQuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IFN0cmVuZ3RoOiAxIH0sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAgLy8gVXBkYXRlZCAyMDI1LTEyLTExOiBDaGFuZ2VkIGZyb20gZ2l2aW5nIGJvdGggU1RSKzEgYW5kIENPTisxIHRvIHNlbGVjdGluZyBvbmVcclxuICAvLyBUT0RPKEZFQVRVUkVTKTogSW1wbGVtZW50IFVJIGZvciBhYmlsaXR5IHNlbGVjdGlvbjsgYWxzbyBuZWVkcyBpbXByb3Zpc2VkIHdlYXBvbiBhbmQgdW5hcm1lZCBzdHJpa2UgbWVjaGFuaWNzIChzZWUgZG9jcy9GRUFUVVJFU19UT0RPLm1kOyBpZiB0aGlzIGJsb2NrIGlzIG1vdmVkL3JlZmFjdG9yZWQvbW9kdWxhcml6ZWQsIHVwZGF0ZSB0aGUgRkVBVFVSRVNfVE9ETyBlbnRyeSBwYXRoKS5cclxuICB7XHJcbiAgICBpZDogJ3RhdmVybl9icmF3bGVyJyxcclxuICAgIG5hbWU6ICdUYXZlcm4gQnJhd2xlcicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0EgYnJva2VuIGJvdHRsZSwgYSBiYXIgc3Rvb2wsIGEgaGVhZGJ1dHQg4oCUIGFueXRoaW5nIGJlY29tZXMgYSB3ZWFwb24gaW4geW91ciBoYW5kcy4gR2FpbiBTdHJlbmd0aCBvciBDb25zdGl0dXRpb24gKzEsIHByb2ZpY2llbmN5IHdpdGggSW1wcm92aXNlZCBXZWFwb25zLCBpbXByb3ZlZCBVbmFybWVkIFN0cmlrZXMgKDFkNCArIFN0cmVuZ3RoKSwgYW5kIGFmdGVyIGxhbmRpbmcgYSBoaXQgeW91IGNhbiBzaG92ZSB0aGUgdGFyZ2V0IDUgZmVldC4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydTdHJlbmd0aCcsICdDb25zdGl0dXRpb24nXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2Nyb3NzYm93X2V4cGVydCcsXHJcbiAgICBuYW1lOiAnQ3Jvc3Nib3cgRXhwZXJ0JyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGxvYWQsIGFpbSwgYW5kIGZpcmUgaW4gYSBzaW5nbGUgZmx1aWQgbW90aW9uLiBHYWluIERleHRlcml0eSArMTsgaWdub3JlIHRoZSBMb2FkaW5nIHByb3BlcnR5IG9mIGNyb3NzYm93cywgZmlyZSB3aXRob3V0IERpc2FkdmFudGFnZSB3aGlsZSBhZGphY2VudCB0byBlbmVtaWVzLCBhbmQgbWFrZSBhIEJvbnVzIEFjdGlvbiBoYW5kLWNyb3NzYm93IGF0dGFjayBhZnRlciBhdHRhY2tpbmcgd2l0aCBhIG9uZS1oYW5kZWQgd2VhcG9uLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBEZXh0ZXJpdHk6IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2RlZmVuc2l2ZV9kdWVsaXN0JyxcclxuICAgIG5hbWU6ICdEZWZlbnNpdmUgRHVlbGlzdCcsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1RoZSBibGFkZSBpcyB5b3VyIHNoaWVsZC4gR2FpbiBEZXh0ZXJpdHkgKzE7IHdoZW4gYW4gZW5lbXkgc3RyaWtlcyBhdCB5b3Ugd2hpbGUgeW91IGhvbGQgYSBmaW5lc3NlIHdlYXBvbiB5b3VcXCdyZSBwcm9maWNpZW50IHdpdGgsIHNwZW5kIHlvdXIgUmVhY3Rpb24gdG8gYWRkIHlvdXIgUHJvZmljaWVuY3kgQm9udXMgdG8geW91ciBBQyBhZ2FpbnN0IHRoYXQgaGl0LicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBEZXh0ZXJpdHk6IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2R1YWxfd2llbGRlcicsXHJcbiAgICBuYW1lOiAnRHVhbCBXaWVsZGVyJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnVHdvIGJsYWRlcyBtb3ZlIGFzIG9uZSB1bmRlciB5b3VyIGhhbmRzLiBHYWluIERleHRlcml0eSArMTsgZ2FpbiArMSBBQyB3aGlsZSBkdWFsLXdpZWxkaW5nLCBkcmF3IG9yIHN0b3cgdHdvIHdlYXBvbnMgc2ltdWx0YW5lb3VzbHksIGFuZCB3aWVsZCBhbnkgb25lLWhhbmRlZCBtZWxlZSB3ZWFwb25zIOKAlCBub3QganVzdCBMaWdodCBvbmVzIOKAlCBpbiBlYWNoIGhhbmQuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IERleHRlcml0eTogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIC8vIFVwZGF0ZWQgMjAyNS0xMi0xMTogQWRkZWQgc2VsZWN0YWJsZURhbWFnZVR5cGVzIGZvciB0aGUgZWxlbWVudGFsIGNob2ljZVxyXG4gIC8vIFRPRE8oRkVBVFVSRVMpOiBJbXBsZW1lbnQgVUkgZm9yIGRhbWFnZSB0eXBlIHNlbGVjdGlvbiBhbmQgY29tYmF0IGxvZ2ljIGZvciBpZ25vcmluZyByZXNpc3RhbmNlIC8gdHJlYXRpbmcgMXMgYXMgMnMgKHNlZSBkb2NzL0ZFQVRVUkVTX1RPRE8ubWQ7IGlmIHRoaXMgYmxvY2sgaXMgbW92ZWQvcmVmYWN0b3JlZC9tb2R1bGFyaXplZCwgdXBkYXRlIHRoZSBGRUFUVVJFU19UT0RPIGVudHJ5IHBhdGgpLlxyXG4gIHtcclxuICAgIGlkOiAnZWxlbWVudGFsX2FkZXB0JyxcclxuICAgIG5hbWU6ICdFbGVtZW50YWwgQWRlcHQnLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgaGF2ZSBiZW50IGEgcHJpbWFsIGZvcmNlIGVudGlyZWx5IHRvIHlvdXIgd2lsbC4gR2FpbiBhIHNwZWxsY2FzdGluZyBhYmlsaXR5ICsxOyBjaG9vc2UgQWNpZCwgQ29sZCwgRmlyZSwgTGlnaHRuaW5nLCBvciBUaHVuZGVyIOKAlCB5b3VyIHNwZWxscyBpZ25vcmUgUmVzaXN0YW5jZSB0byB0aGF0IHR5cGUsIGFuZCBkYW1hZ2UgZGljZSBzaG93aW5nIDEgY291bnQgYXMgMi4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydJbnRlbGxpZ2VuY2UnLCAnV2lzZG9tJywgJ0NoYXJpc21hJ10sXHJcbiAgICAgIHNlbGVjdGFibGVEYW1hZ2VUeXBlczogWydBY2lkJywgJ0NvbGQnLCAnRmlyZScsICdMaWdodG5pbmcnLCAnVGh1bmRlciddLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnZmV5X3RvdWNoZWQnLFxyXG4gICAgbmFtZTogJ0ZleS1Ub3VjaGVkJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnU29tZXRoaW5nIGZyb20gdGhlIGJvcmRlciBvZiB3b3JsZHMgaGFzIGxlZnQgaXRzIG1hcmsgb24geW91IOKAlCBhIGZsaWNrZXIgb2YgZ2xhbW91ciBpbiB0aGUgYmxvb2QuIEdhaW4gYSBtZW50YWwgYWJpbGl0eSArMTsgbGVhcm4gTWlzdHkgU3RlcCBhbmQgb25lIDFzdC1sZXZlbCBEaXZpbmF0aW9uIG9yIEVuY2hhbnRtZW50IHNwZWxsLCBlYWNoIHVzYWJsZSBvbmNlIHBlciBMb25nIFJlc3Qgd2l0aG91dCBhIHNsb3QuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnSW50ZWxsaWdlbmNlJywgJ1dpc2RvbScsICdDaGFyaXNtYSddLFxyXG4gICAgICBzcGVsbEJlbmVmaXRzOiB7XHJcbiAgICAgICAgZ3JhbnRlZFNwZWxsczogW1xyXG4gICAgICAgICAgeyBzcGVsbElkOiAnbWlzdHktc3RlcCcsIGNhc3RpbmdNZXRob2Q6ICdvbmNlX3Blcl9sb25nX3Jlc3QnIH0sXHJcbiAgICAgICAgXSxcclxuICAgICAgICBzcGVsbENob2ljZXM6IFtcclxuICAgICAgICAgIHsgY291bnQ6IDEsIGxldmVsOiAxLCBzY2hvb2xzOiBbU3BlbGxTY2hvb2wuRGl2aW5hdGlvbiwgU3BlbGxTY2hvb2wuRW5jaGFudG1lbnRdLCBkZXNjcmlwdGlvbjogJ0Nob29zZSAxIERpdmluYXRpb24gb3IgRW5jaGFudG1lbnQgc3BlbGwnIH0sXHJcbiAgICAgICAgXSxcclxuICAgICAgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2dyYXBwbGVyJyxcclxuICAgIG5hbWU6ICdHcmFwcGxlcicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdXIgZ3JpcCBpcyBhIGNhZ2UgeW91ciBlbmVtaWVzIGNhbm5vdCBlc2NhcGUuIEdhaW4gU3RyZW5ndGggb3IgRGV4dGVyaXR5ICsxOyB5b3VyIFVuYXJtZWQgU3RyaWtlcyBjYW4gc2ltdWx0YW5lb3VzbHkgaW5pdGlhdGUgYSBHcmFwcGxlIG9uIGEgaGl0LCBhbmQgeW91IGhhdmUgQWR2YW50YWdlIG9uIGF0dGFja3MgYWdhaW5zdCBhbnkgY3JlYXR1cmUgeW91IGFyZSBjdXJyZW50bHkgZ3JhcHBsaW5nLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZToge30sXHJcbiAgICAgIHNlbGVjdGFibGVBYmlsaXR5U2NvcmVzOiBbJ1N0cmVuZ3RoJywgJ0RleHRlcml0eSddLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnZ3JlYXRfd2VhcG9uX21hc3RlcicsXHJcbiAgICBuYW1lOiAnR3JlYXQgV2VhcG9uIE1hc3RlcicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0V2ZXJ5IGNyaXRpY2FsIHN0cmlrZSBhbmQgZXZlcnkgZmFsbGVuIGZvZSBmZWVkcyB5b3VyIG1vbWVudHVtLiBHYWluIFN0cmVuZ3RoICsxOyBkZWFsIGJvbnVzIGRhbWFnZSBlcXVhbCB0byB5b3VyIFByb2ZpY2llbmN5IEJvbnVzIG9uIGV2ZXJ5IGhpdCB3aXRoIGEgSGVhdnkgd2VhcG9uLCBhbmQgd2hlbiB5b3Ugcm9sbCBhIGNyaXRpY2FsIGhpdCBvciByZWR1Y2UgYSBjcmVhdHVyZSB0byAwIEhQLCBtYWtlIG9uZSBleHRyYSBtZWxlZSBhdHRhY2sgYXMgYSBCb251cyBBY3Rpb24uJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IFN0cmVuZ3RoOiAxIH0sXHJcbiAgICAgIGhlYXZ5V2VhcG9uUHJvZmljaWVuY3lCb251czogdHJ1ZSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2hlYXZpbHlfYXJtb3JlZCcsXHJcbiAgICBuYW1lOiAnSGVhdmlseSBBcm1vcmVkJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGhhdmUgdHJhaW5lZCB0byBiZWFyIHRoZSBmdWxsIHdlaWdodCBvZiB3YXIg4oCUIHBsYXRlLCBtYWlsLCBhbmQgYWxsLiBHYWluIHByb2ZpY2llbmN5IHdpdGggSGVhdnkgQXJtb3IgYW5kIGluY3JlYXNlIFN0cmVuZ3RoIG9yIENvbnN0aXR1dGlvbiBieSAxLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZToge30sXHJcbiAgICAgIHNlbGVjdGFibGVBYmlsaXR5U2NvcmVzOiBbJ1N0cmVuZ3RoJywgJ0NvbnN0aXR1dGlvbiddLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnaGVhdnlfYXJtb3JfbWFzdGVyJyxcclxuICAgIG5hbWU6ICdIZWF2eSBBcm1vciBNYXN0ZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdJcm9uIHBsYXRlcyBiZWNvbWUgYSBzZWNvbmQgc2tpbiwgdHVybmluZyBhc2lkZSBibG93cyB0aGF0IHdvdWxkIGZlbGwgYSBsZXNzZXIgd2Fycmlvci4gR2FpbiBTdHJlbmd0aCArMTsgd2hpbGUgd2VhcmluZyBIZWF2eSBBcm1vciwgcmVkdWNlIG5vbm1hZ2ljYWwgQmx1ZGdlb25pbmcsIFBpZXJjaW5nLCBhbmQgU2xhc2hpbmcgZGFtYWdlIHlvdSB0YWtlIGJ5IGFuIGFtb3VudCBlcXVhbCB0byB5b3VyIFByb2ZpY2llbmN5IEJvbnVzLicsXHJcbiAgICBwcmVyZXF1aXNpdGVzOiB7IG1pbkxldmVsOiA0IH0sXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBTdHJlbmd0aDogMSB9LFxyXG4gICAgICBkYW1hZ2VSZWR1Y3Rpb25Qcm9maWNpZW5jeTogdHJ1ZSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2luc3BpcmluZ19sZWFkZXInLFxyXG4gICAgbmFtZTogJ0luc3BpcmluZyBMZWFkZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3VyIHdvcmRzIGtpbmRsZSBzb21ldGhpbmcgZmllcmNlIGluIHRoZSBoZWFydHMgb2YgdGhvc2Ugd2hvIGZvbGxvdyB5b3UuIEdhaW4gQ2hhcmlzbWEgKzE7IHNwZW5kIDEwIG1pbnV0ZXMgdG8gZ3JhbnQgdXAgdG8gNiBjcmVhdHVyZXMgdGVtcG9yYXJ5IGhpdCBwb2ludHMgZXF1YWwgdG8geW91ciBDaGFyaXNtYSBtb2RpZmllciArIHlvdXIgUHJvZmljaWVuY3kgQm9udXMuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IENoYXJpc21hOiAxIH0sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdrZWVuX21pbmQnLFxyXG4gICAgbmFtZTogJ0tlZW4gTWluZCcsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdXIgbWluZCBpcyBhIHRyYXAgdGhhdCBuZXZlciBmb3JnZXRzLiBHYWluIEludGVsbGlnZW5jZSArMTsgeW91IGFsd2F5cyBrbm93IHdoaWNoIHdheSBpcyBub3J0aCBhbmQgaG93IG1hbnkgaG91cnMgcmVtYWluIHVudGlsIGRhd24gb3IgZHVzaywgYW5kIGNhbiBwZXJmZWN0bHkgcmVjYWxsIGFueXRoaW5nIHlvdSBoYXZlIHNlZW4gb3IgaGVhcmQgd2l0aGluIHRoZSBwYXN0IG1vbnRoLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBJbnRlbGxpZ2VuY2U6IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2xpZ2h0bHlfYXJtb3JlZCcsXHJcbiAgICBuYW1lOiAnTGlnaHRseSBBcm1vcmVkJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnRXZlbiB0aGUgbGlnaHRlc3QgYXJtb3IgZGVtYW5kcyBwcmFjdGljZSB0byB3ZWFyIHdlbGwsIGFuZCB5b3UgaGF2ZSBkb25lIHRoZSB3b3JrLiBHYWluIERleHRlcml0eSArMSBhbmQgcHJvZmljaWVuY3kgd2l0aCBMaWdodCBBcm1vci4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHsgRGV4dGVyaXR5OiAxIH0sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdtYWdlX3NsYXllcicsXHJcbiAgICBuYW1lOiAnTWFnZSBTbGF5ZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgaGF2ZSBsZWFybmVkIHRvIHJlYWQgdGhlIHRlbGx0YWxlIGNhZGVuY2Ugb2YgYSBzcGVsbCBiZWluZyBjYXN0IOKAlCBhbmQgdG8gY2xvc2UgdGhlIGdhcCBiZWZvcmUgdGhlIGluY2FudGF0aW9uIGNvbXBsZXRlcy4gR2FpbiBTdHJlbmd0aCBvciBEZXh0ZXJpdHkgKzE7IHdoZW4geW91IGRhbWFnZSBhIGNvbmNlbnRyYXRpbmcgY3JlYXR1cmUgaXQgaGFzIERpc2FkdmFudGFnZSBvbiBpdHMgc2F2ZSwgYW5kIG9uY2UgcGVyIFNob3J0IFJlc3QgeW91IGNhbiBhdXRvLXN1Y2NlZWQgb24gb25lIEludGVsbGlnZW5jZSwgV2lzZG9tLCBvciBDaGFyaXNtYSBzYXZpbmcgdGhyb3cuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnU3RyZW5ndGgnLCAnRGV4dGVyaXR5J10sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdtYXJ0aWFsX3dlYXBvbl90cmFpbmluZycsXHJcbiAgICBuYW1lOiAnTWFydGlhbCBXZWFwb24gVHJhaW5pbmcnLFxyXG4gICAgZGVzY3JpcHRpb246ICdXZWVrcyBhdCB0aGUgdHJhaW5pbmcgeWFyZCBoYXZlIGJyb2FkZW5lZCB5b3VyIHdlYXBvbiByZXBlcnRvaXJlIGZhciBiZXlvbmQgd2hhdCBtb3N0IGNvbWJhdGFudHMgZXZlciBtYXN0ZXIuIEdhaW4gU3RyZW5ndGggKzEgYW5kIERleHRlcml0eSArMSwgYW5kIHByb2ZpY2llbmN5IHdpdGggYWxsIE1hcnRpYWwgV2VhcG9ucy4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHsgU3RyZW5ndGg6IDEsIERleHRlcml0eTogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnbWVkaXVtX2FybW9yX21hc3RlcicsXHJcbiAgICBuYW1lOiAnTWVkaXVtIEFybW9yIE1hc3RlcicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdSB3ZWFyIG1lZGl1bSBhcm1vciBsaWtlIGEgc2Vjb25kIHNraW4sIHNxdWVlemluZyBldmVyeSBwb2ludCBvZiBwcm90ZWN0aW9uIG91dCBvZiBldmVyeSBzdHJhcCBhbmQgYnVja2xlLiBHYWluIERleHRlcml0eSArMTsgYWRkIHVwIHRvIDMgKGluc3RlYWQgb2YgMikgb2YgeW91ciBEZXh0ZXJpdHkgbW9kaWZpZXIgdG8gQUMgd2hpbGUgaW4gbWVkaXVtIGFybW9yLCBhbmQgc3VmZmVyIG5vIFN0ZWFsdGggRGlzYWR2YW50YWdlIGZyb20gaXQuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IERleHRlcml0eTogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnbW9kZXJhdGVseV9hcm1vcmVkJyxcclxuICAgIG5hbWU6ICdNb2RlcmF0ZWx5IEFybW9yZWQnLFxyXG4gICAgZGVzY3JpcHRpb246ICdUaGUgdHJhbnNpdGlvbiBmcm9tIGxpZ2h0IHRvIG1lZGl1bSBhcm1vciBpcyBhIG1pbGVzdG9uZSBvZiBtYXJ0aWFsIHRyYWluaW5nIOKAlCB5b3UgaGF2ZSBjcm9zc2VkIGl0LiBHYWluIFN0cmVuZ3RoIG9yIERleHRlcml0eSArMSBhbmQgcHJvZmljaWVuY3kgd2l0aCBNZWRpdW0gQXJtb3IgYW5kIFNoaWVsZHMuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnU3RyZW5ndGgnLCAnRGV4dGVyaXR5J10sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdtb3VudGVkX2NvbWJhdGFudCcsXHJcbiAgICBuYW1lOiAnTW91bnRlZCBDb21iYXRhbnQnLFxyXG4gICAgZGVzY3JpcHRpb246ICdGcm9tIGhvcnNlYmFjayB5b3UgYXJlIGEgZm9yY2Ugb2YgbmF0dXJlIOKAlCBlbGV2YXRlZCwgZmFzdCwgYW5kIHRlcnJpZnlpbmcuIEdhaW4gU3RyZW5ndGggb3IgRGV4dGVyaXR5ICsxOyBBZHZhbnRhZ2Ugb24gbWVsZWUgYXR0YWNrcyBhZ2FpbnN0IHVubW91bnRlZCBzbWFsbGVyIGNyZWF0dXJlcywgcmVkaXJlY3QgYXR0YWNrcyB0YXJnZXRpbmcgeW91ciBtb3VudCB0byB5b3Vyc2VsZiwgYW5kIHlvdXIgbW91bnQgZ2FpbnMgRXZhc2lvbiBvbiBEZXh0ZXJpdHkgc2F2aW5nIHRocm93cy4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydTdHJlbmd0aCcsICdEZXh0ZXJpdHknXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3BpZXJjZXInLFxyXG4gICAgbmFtZTogJ1BpZXJjZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgZHJpdmUgdGhlIHBvaW50IGhvbWUgd2l0aCB1bmNhbm55IHByZWNpc2lvbiwgZmluZGluZyB0aGUgZ2FwIGJldHdlZW4gc2NhbGVzIGFuZCBhcm1vdXIgYWxpa2UuIEdhaW4gU3RyZW5ndGggb3IgRGV4dGVyaXR5ICsxOyBvbmNlIHBlciB0dXJuIHJlcm9sbCBvbmUgcGllcmNpbmcgZGFtYWdlIGRpZSBhbmQgdXNlIHRoZSBoaWdoZXIgcmVzdWx0LCBhbmQgb24gYSBjcml0aWNhbCBoaXQgcm9sbCBvbmUgYWRkaXRpb25hbCBkYW1hZ2UgZGllLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZToge30sXHJcbiAgICAgIHNlbGVjdGFibGVBYmlsaXR5U2NvcmVzOiBbJ1N0cmVuZ3RoJywgJ0RleHRlcml0eSddLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAncG9pc29uZXInLFxyXG4gICAgbmFtZTogJ1BvaXNvbmVyJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGhhbmRsZSBkZWFkbHkgc3Vic3RhbmNlcyB3aXRoIGEgcHJhY3RpdGlvbmVyXFwncyBjYWxtLiBHYWluIERleHRlcml0eSArMSBhbmQgSW50ZWxsaWdlbmNlICsxOyB5b3VyIGNyYWZ0ZWQgcG9pc29ucyBieXBhc3MgUG9pc29uIFJlc2lzdGFuY2UsIGFuZCBjb2F0aW5nIGEgYmxhZGUgb3IgcGllY2Ugb2YgYW1tdW5pdGlvbiB0YWtlcyBvbmx5IGEgQm9udXMgQWN0aW9uLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBEZXh0ZXJpdHk6IDEsIEludGVsbGlnZW5jZTogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAncG9sZWFybV9tYXN0ZXInLFxyXG4gICAgbmFtZTogJ1BvbGVhcm0gTWFzdGVyJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnRXZlcnkgaW5jaCBvZiB5b3VyIHdlYXBvbiBpcyBhIHRocmVhdC4gR2FpbiBTdHJlbmd0aCBvciBEZXh0ZXJpdHkgKzE7IG1ha2UgYSBCb251cyBBY3Rpb24gYnV0dC1lbmQgc3RyaWtlIGFmdGVyIGF0dGFja2luZyB3aXRoIGEgR2xhaXZlLCBIYWxiZXJkLCBRdWFydGVyc3RhZmYsIG9yIFNwZWFyLCBhbmQgdHJpZ2dlciBvcHBvcnR1bml0eSBhdHRhY2tzIHRoZSBtb21lbnQgYW4gZW5lbXkgZW50ZXJzIHlvdXIgcmVhY2guJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnU3RyZW5ndGgnLCAnRGV4dGVyaXR5J10sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdyaXR1YWxfY2FzdGVyJyxcclxuICAgIG5hbWU6ICdSaXR1YWwgQ2FzdGVyJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnRm9yYmlkZGVuIGZvcm11bGFlIGZpbGwgeW91ciBqb3VybmFscyDigJQgcG93ZXIgd2l0aG91dCB0aGUgcHJpY2Ugb2YgYSBzbG90LiBHYWluIEludGVsbGlnZW5jZSBvciBXaXNkb20gKzE7IGxlYXJuIHJpdHVhbCBzcGVsbHMgZnJvbSBhIGNob3NlbiBjbGFzcyBsaXN0LCBzY3JpYmUgbmV3IHJpdHVhbCBzcGVsbHMgeW91IGRpc2NvdmVyLCBhbmQgY2FzdCB0aGVtIGFzIGV4dGVuZGVkIHJpdHVhbHMuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnSW50ZWxsaWdlbmNlJywgJ1dpc2RvbSddLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnc2VudGluZWwnLFxyXG4gICAgbmFtZTogJ1NlbnRpbmVsJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGFyZSB0aGUgd2FsbCBub3RoaW5nIHBhc3NlcyB0aHJvdWdoLiBHYWluIFN0cmVuZ3RoIG9yIERleHRlcml0eSArMTsgb3Bwb3J0dW5pdHkgYXR0YWNrcyB5b3UgbWFrZSByZWR1Y2UgdGhlIHRhcmdldFxcJ3MgU3BlZWQgdG8gMCwgZW5lbWllcyBjYW5ub3QgRGlzZW5nYWdlIHBhc3QgeW91LCBhbmQgZm9lcyB3aG8gYXR0YWNrIHlvdXIgYWxsaWVzIGRyYXcgYW4gaW1tZWRpYXRlIG9wcG9ydHVuaXR5IGF0dGFjayBmcm9tIHlvdS4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydTdHJlbmd0aCcsICdEZXh0ZXJpdHknXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3NoYWRvd190b3VjaGVkJyxcclxuICAgIG5hbWU6ICdTaGFkb3ctVG91Y2hlZCcsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1RoZSBkYXJrIGJldHdlZW4gd29ybGRzIGhhcyBzZWVwZWQgaW50byB5b3VyIGJsb29kLCBhbmQgc2hhZG93cyBhbnN3ZXIgeW91ciBjYWxsLiBHYWluIGEgbWVudGFsIGFiaWxpdHkgKzE7IGxlYXJuIEludmlzaWJpbGl0eSBhbmQgb25lIDFzdC1sZXZlbCBJbGx1c2lvbiBvciBOZWNyb21hbmN5IHNwZWxsLCBlYWNoIGNhc3RhYmxlIG9uY2UgcGVyIExvbmcgUmVzdCB3aXRob3V0IGEgc2xvdC4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydJbnRlbGxpZ2VuY2UnLCAnV2lzZG9tJywgJ0NoYXJpc21hJ10sXHJcbiAgICAgIHNwZWxsQmVuZWZpdHM6IHtcclxuICAgICAgICBncmFudGVkU3BlbGxzOiBbXHJcbiAgICAgICAgICB7IHNwZWxsSWQ6ICdpbnZpc2liaWxpdHknLCBjYXN0aW5nTWV0aG9kOiAnb25jZV9wZXJfbG9uZ19yZXN0JyB9LFxyXG4gICAgICAgIF0sXHJcbiAgICAgICAgc3BlbGxDaG9pY2VzOiBbXHJcbiAgICAgICAgICB7IGNvdW50OiAxLCBsZXZlbDogMSwgc2Nob29sczogW1NwZWxsU2Nob29sLklsbHVzaW9uLCBTcGVsbFNjaG9vbC5OZWNyb21hbmN5XSwgZGVzY3JpcHRpb246ICdDaG9vc2UgMSBJbGx1c2lvbiBvciBOZWNyb21hbmN5IHNwZWxsJyB9LFxyXG4gICAgICAgIF0sXHJcbiAgICAgIH0sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdzaGFycHNob290ZXInLFxyXG4gICAgbmFtZTogJ1NoYXJwc2hvb3RlcicsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0Rpc3RhbmNlIGFuZCBjb3ZlciBtZWFuIG5vdGhpbmcgdG8gYSB0cmFpbmVkIGV5ZS4gR2FpbiBEZXh0ZXJpdHkgKzE7IHlvdXIgcmFuZ2VkIGF0dGFja3MgaWdub3JlIGhhbGYgYW5kIHRocmVlLXF1YXJ0ZXJzIGNvdmVyLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZTogeyBEZXh0ZXJpdHk6IDEgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3NoaWVsZF9tYXN0ZXInLFxyXG4gICAgbmFtZTogJ1NoaWVsZCBNYXN0ZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3VyIHNoaWVsZCBpcyBhcyBtdWNoIGEgd2VhcG9uIGFzIHRoZSBibGFkZSBpbiB5b3VyIG90aGVyIGhhbmQuIEdhaW4gU3RyZW5ndGggb3IgRGV4dGVyaXR5ICsxOyBhZGQgeW91ciBzaGllbGRcXCdzIGJvbnVzIHRvIERleCBzYXZlcyB0aGF0IHRhcmdldCBvbmx5IHlvdSwgdXNlIHlvdXIgUmVhY3Rpb24gdG8gdGFrZSBubyBkYW1hZ2Ugb24gYSBzdWNjZXNzZnVsIERleCBzYXZlIHZlcnN1cyBhIGhhbGYtZGFtYWdlIGVmZmVjdCwgYW5kIHNob3ZlIGEgZm9lIGFzIGEgQm9udXMgQWN0aW9uIGFmdGVyIGF0dGFja2luZy4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydTdHJlbmd0aCcsICdEZXh0ZXJpdHknXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3NraWxsX2V4cGVydCcsXHJcbiAgICBuYW1lOiAnU2tpbGwgRXhwZXJ0JyxcclxuICAgIGRlc2NyaXB0aW9uOiAnQSBsaWZldGltZSBvZiBvYnNlc3NpdmUgcHJhY3RpY2UgaGFzIHNoYXJwZW5lZCBvbmUgdGFsZW50IHRvIGEgcmF6b3JlZCBlZGdlLiBHYWluICsxIHRvIGFueSBhYmlsaXR5IHNjb3JlLCBwcm9maWNpZW5jeSBpbiBvbmUgc2tpbGwgb2YgeW91ciBjaG9pY2UsIGFuZCBFeHBlcnRpc2Ug4oCUIGRvdWJsZSBwcm9maWNpZW5jeSDigJQgaW4gb25lIHNraWxsIHlvdSBhcmUgYWxyZWFkeSBwcm9maWNpZW50IHdpdGguJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnU3RyZW5ndGgnLCAnRGV4dGVyaXR5JywgJ0NvbnN0aXR1dGlvbicsICdJbnRlbGxpZ2VuY2UnLCAnV2lzZG9tJywgJ0NoYXJpc21hJ10sXHJcbiAgICAgIHNraWxsUHJvZmljaWVuY2llczogWydhbnknXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3NrdWxrZXInLFxyXG4gICAgbmFtZTogJ1NrdWxrZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgYXJlIGEgc2hhZG93IGdpdmVuIHB1cnBvc2Ug4oCUIHBhdGllbnQsIGludmlzaWJsZSwgbGV0aGFsLiBHYWluIERleHRlcml0eSArMSBhbmQgQmxpbmRzaWdodCAxMCBmZWV0OyBsaWdodGx5IG9ic2N1cmVkIHRlcnJhaW4gZG9lcyBub3QgcmV2ZWFsIHlvdSB3aGVuIGhpZGRlbiwgYW5kIG1pc3Npbmcgd2l0aCBhIHJhbmdlZCBhdHRhY2sgZG9lcyBub3QgZ2l2ZSBhd2F5IHlvdXIgcG9zaXRpb24uJyxcclxuICAgIHByZXJlcXVpc2l0ZXM6IHsgYWJpbGl0eVNjb3JlczogeyBEZXh0ZXJpdHk6IDEzIH0gfSxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7IERleHRlcml0eTogMSB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIC8vIFVwZGF0ZWQgMjAyNS0xMi0xMTogQ2hhbmdlZCBmcm9tIGdpdmluZyBib3RoIFNUUisxIGFuZCBERVgrMSB0byBzZWxlY3Rpbmcgb25lXHJcbiAgLy8gQ29tYmF0IG1lY2hhbmljcyBpbXBsZW1lbnRlZCAyMDI2LTAxLTA1OiBTcGVlZCByZWR1Y3Rpb24gKG9uY2UgcGVyIHR1cm4pIGFuZCBjcml0IGRpc2FkdmFudGFnZSB2aWEgQWN0aXZlRWZmZWN0XHJcbiAgLy8gVE9ETyhGRUFUVVJFUyk6IEltcGxlbWVudCBVSSBmb3IgYWJpbGl0eSBzZWxlY3Rpb24gKFNUUiBvciBERVgpIGR1cmluZyBmZWF0IHNlbGVjdGlvbi5cclxuICB7XHJcbiAgICBpZDogJ3NsYXNoZXInLFxyXG4gICAgbmFtZTogJ1NsYXNoZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdBIGNsZWFuIHNsYXNoIGxlYXZlcyB0aGVtIHN0dW1ibGluZywgYmxlZWRpbmcsIGFuZCBhZnJhaWQuIEdhaW4gU3RyZW5ndGggb3IgRGV4dGVyaXR5ICsxOyBvbmNlIHBlciB0dXJuIHJlZHVjZSBhIHN0cnVjayBjcmVhdHVyZVxcJ3MgU3BlZWQgYnkgMTAgZmVldCwgYW5kIG9uIGEgY3JpdGljYWwgaGl0IHRoZXkgaGF2ZSBEaXNhZHZhbnRhZ2Ugb24gYXR0YWNrcyB1bnRpbCB5b3VyIG5leHQgdHVybi4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydTdHJlbmd0aCcsICdEZXh0ZXJpdHknXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3NwZWVkeScsXHJcbiAgICBuYW1lOiAnU3BlZWR5JyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91ciBsZWdzIGNhcnJ5IHlvdSBmYXN0ZXIgdGhhbiBtb3N0IHBlb3BsZSB0aGluayBwb3NzaWJsZSwgYW5kIG5vdGhpbmcgb24gdGhlIGdyb3VuZCBzbG93cyB5b3Ugd2hlbiB5b3VcXCdyZSBydW5uaW5nLiBHYWluIERleHRlcml0eSArMSwgKzEwIGZlZXQgU3BlZWQsIGFuZCBub25tYWdpY2FsIGRpZmZpY3VsdCB0ZXJyYWluIGRvZXNuXFwndCBzbG93IHlvdSB3aGVuIHlvdSB0YWtlIHRoZSBEYXNoIGFjdGlvbi4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHsgRGV4dGVyaXR5OiAxIH0sXHJcbiAgICAgIHNwZWVkSW5jcmVhc2U6IDEwLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAnc3BlbGxfc25pcGVyJyxcclxuICAgIG5hbWU6ICdTcGVsbCBTbmlwZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgdGhyZWFkIHNwZWxscyB0aHJvdWdoIGFycm93LXNsaXRzIGFuZCBhcm91bmQgcGlsbGFycyB0aGF0IGxlc3NlciBjYXN0ZXJzIG5ldmVyIGF0dGVtcHQuIEdhaW4gYSBzcGVsbGNhc3RpbmcgYWJpbGl0eSArMTsgZG91YmxlIHRoZSByYW5nZSBvZiBzcGVsbCBhdHRhY2tzLCBpZ25vcmUgaGFsZiBhbmQgdGhyZWUtcXVhcnRlcnMgY292ZXIsIGxlYXJuIG9uZSBhdHRhY2sgY2FudHJpcCwgYW5kIHlvdXIgc3BlbGwgYXR0YWNrcyBzY29yZSBhIGNyaXRpY2FsIGhpdCBvbiBhIDE5IG9yIDIwLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZToge30sXHJcbiAgICAgIHNlbGVjdGFibGVBYmlsaXR5U2NvcmVzOiBbJ0ludGVsbGlnZW5jZScsICdXaXNkb20nLCAnQ2hhcmlzbWEnXSxcclxuICAgICAgc3BlbGxCZW5lZml0czoge1xyXG4gICAgICAgIHNwZWxsQ2hvaWNlczogW1xyXG4gICAgICAgICAgeyBjb3VudDogMSwgbGV2ZWw6IDAsIHJlcXVpcmVzQXR0YWNrOiB0cnVlLCBkZXNjcmlwdGlvbjogJ0Nob29zZSAxIGNhbnRyaXAgdGhhdCByZXF1aXJlcyBhbiBhdHRhY2sgcm9sbCcgfSxcclxuICAgICAgICBdLFxyXG4gICAgICB9LFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAndGVsZWtpbmV0aWMnLFxyXG4gICAgbmFtZTogJ1RlbGVraW5ldGljJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91ciB3aWxsIGV4dGVuZHMgb3V0d2FyZCwgbnVkZ2luZyB0aGUgd29ybGQgd2l0aCBpbnZpc2libGUgZmluZ2VycyBubyBvbmUgY2FuIHRyYWNlLiBHYWluIGEgbWVudGFsIGFiaWxpdHkgKzE7IGNhc3QgTWFnZSBIYW5kIGF0IHdpbGwgKDYwIGZ0IHJhbmdlLCBpbnZpc2libGUpLCBhbmQgYXMgYSBCb251cyBBY3Rpb24gcHVzaCBvciBwdWxsIGEgY3JlYXR1cmUgNSBmZWV0IG9uIGEgZmFpbGVkIFN0cmVuZ3RoIHNhdmUuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnSW50ZWxsaWdlbmNlJywgJ1dpc2RvbScsICdDaGFyaXNtYSddLFxyXG4gICAgICBzcGVsbEJlbmVmaXRzOiB7XHJcbiAgICAgICAgZ3JhbnRlZFNwZWxsczogW1xyXG4gICAgICAgICAgeyBzcGVsbElkOiAnbWFnZS1oYW5kJywgY2FzdGluZ01ldGhvZDogJ2F0X3dpbGwnLCBzcGVjaWFsTm90ZXM6ICdSYW5nZSA2MCBmdCwgaW52aXNpYmxlIGhhbmQnIH0sXHJcbiAgICAgICAgXSxcclxuICAgICAgfSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3RlbGVwYXRoaWMnLFxyXG4gICAgbmFtZTogJ1RlbGVwYXRoaWMnLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3VyIHRob3VnaHRzIGJsZWVkIG91dHdhcmQsIHRvdWNoaW5nIG1pbmRzIHdpdGhvdXQgYSBzcG9rZW4gd29yZC4gR2FpbiBhIG1lbnRhbCBhYmlsaXR5ICsxOyBjYXN0IERldGVjdCBUaG91Z2h0cyBvbmNlIHBlciBMb25nIFJlc3Qgd2l0aG91dCBhIHNsb3QsIGFuZCBjb21tdW5pY2F0ZSB0ZWxlcGF0aGljYWxseSB3aXRoIGFueSBjcmVhdHVyZSB5b3UgY2FuIHNlZSB3aXRoaW4gNjAgZmVldC4nLFxyXG4gICAgYmVuZWZpdHM6IHtcclxuICAgICAgYWJpbGl0eVNjb3JlSW5jcmVhc2U6IHt9LFxyXG4gICAgICBzZWxlY3RhYmxlQWJpbGl0eVNjb3JlczogWydJbnRlbGxpZ2VuY2UnLCAnV2lzZG9tJywgJ0NoYXJpc21hJ10sXHJcbiAgICAgIHNwZWxsQmVuZWZpdHM6IHtcclxuICAgICAgICBncmFudGVkU3BlbGxzOiBbXHJcbiAgICAgICAgICB7IHNwZWxsSWQ6ICdkZXRlY3QtdGhvdWdodHMnLCBjYXN0aW5nTWV0aG9kOiAnb25jZV9wZXJfbG9uZ19yZXN0JyB9LFxyXG4gICAgICAgIF0sXHJcbiAgICAgIH0sXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICd3YXJfY2FzdGVyJyxcclxuICAgIG5hbWU6ICdXYXIgQ2FzdGVyJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnQmF0dGxlIGlzIHlvdXIgY3J1Y2libGUg4oCUIHRoZSBpbmNhbnRhdGlvbiBob2xkcyBldmVuIHdoZW4gdGhlIGJsYWRlIGZhbGxzLiBHYWluIEludGVsbGlnZW5jZSwgV2lzZG9tLCBvciBDaGFyaXNtYSArMTsgQWR2YW50YWdlIG9uIENvbmNlbnRyYXRpb24gc2F2aW5nIHRocm93cywgcGVyZm9ybSBzb21hdGljIGNvbXBvbmVudHMgd2l0aCB3ZWFwb25zIG9yIGEgc2hpZWxkIGluIGhhbmQsIGFuZCBjYXN0IGEgc3BlbGwgaW5zdGVhZCBvZiBtYWtpbmcgYW4gb3Bwb3J0dW5pdHkgYXR0YWNrLicsXHJcbiAgICBiZW5lZml0czoge1xyXG4gICAgICBhYmlsaXR5U2NvcmVJbmNyZWFzZToge30sXHJcbiAgICAgIHNlbGVjdGFibGVBYmlsaXR5U2NvcmVzOiBbJ0ludGVsbGlnZW5jZScsICdXaXNkb20nLCAnQ2hhcmlzbWEnXSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3dlYXBvbl9tYXN0ZXInLFxyXG4gICAgbmFtZTogJ1dlYXBvbiBNYXN0ZXInLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgaGF2ZSBkcmlsbGVkIG9ic2Vzc2l2ZWx5IHdpdGggd2VhcG9ucyBtb3N0IHNvbGRpZXJzIG5ldmVyIHRvdWNoLCBleHBhbmRpbmcgeW91ciBtYXJ0aWFsIHJlcGVydG9pcmUgZmFyIGJleW9uZCB5b3VyIHRyYWluaW5nLiBHYWluIFN0cmVuZ3RoIG9yIERleHRlcml0eSArMSBhbmQgcHJvZmljaWVuY3kgd2l0aCBmb3VyIHdlYXBvbnMgb2YgeW91ciBjaG9pY2UuJyxcclxuICAgIGJlbmVmaXRzOiB7XHJcbiAgICAgIGFiaWxpdHlTY29yZUluY3JlYXNlOiB7fSxcclxuICAgICAgc2VsZWN0YWJsZUFiaWxpdHlTY29yZXM6IFsnU3RyZW5ndGgnLCAnRGV4dGVyaXR5J10sXHJcbiAgICB9LFxyXG4gIH0sXHJcblxyXG4gIC8vID09PSBGSUdIVElORyBTVFlMRSBGRUFUUyA9PT1cclxuICB7XHJcbiAgICBpZDogJ2FyY2hlcnlfc3R5bGUnLFxyXG4gICAgbmFtZTogJ0FyY2hlcnkgRmlnaHRpbmcgU3R5bGUnLFxyXG4gICAgZGVzY3JpcHRpb246ICdDb3VudGxlc3MgaG91cnMgYXQgdGhlIHJhbmdlIGhhdmUgcGVyZmVjdGVkIHlvdXIgZHJhdywgc2lnaHQgcGljdHVyZSwgYW5kIHJlbGVhc2UuIFlvdSBnYWluIGEgKzIgYm9udXMgdG8gYXR0YWNrIHJvbGxzIG1hZGUgd2l0aCByYW5nZWQgd2VhcG9ucy4nLFxyXG4gICAgcHJlcmVxdWlzaXRlczoge1xyXG4gICAgICByZXF1aXJlc0ZpZ2h0aW5nU3R5bGU6IHRydWUsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdkZWZlbnNlX3N0eWxlJyxcclxuICAgIG5hbWU6ICdEZWZlbnNlIEZpZ2h0aW5nIFN0eWxlJyxcclxuICAgIGRlc2NyaXB0aW9uOiAnWW91IGtub3cgaG93IHRvIGFuZ2xlIGVhY2ggcGllY2Ugb2YgYXJtb3IgdG8gZGVmbGVjdCB0aGUgYmxvdyBhbmQgcmVkaXJlY3QgdGhlIGZvcmNlLiBXaGlsZSB3ZWFyaW5nIGFybW9yLCB5b3UgZ2FpbiBhICsxIGJvbnVzIHRvIEFDLicsXHJcbiAgICBwcmVyZXF1aXNpdGVzOiB7XHJcbiAgICAgIHJlcXVpcmVzRmlnaHRpbmdTdHlsZTogdHJ1ZSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ2R1ZWxpbmdfc3R5bGUnLFxyXG4gICAgbmFtZTogJ0R1ZWxpbmcgRmlnaHRpbmcgU3R5bGUnLFxyXG4gICAgZGVzY3JpcHRpb246ICdBIHNpbmdsZSBibGFkZSwgcGVyZmVjdGx5IGNvbnRyb2xsZWQsIGlzIGFsbCB5b3UgbmVlZC4gV2hlbiB5b3Ugd2llbGQgYSBvbmUtaGFuZGVkIG1lbGVlIHdlYXBvbiBhbmQgbm8gb3RoZXIgd2VhcG9ucywgZ2FpbiArMiB0byBkYW1hZ2Ugcm9sbHMgd2l0aCB0aGF0IHdlYXBvbi4nLFxyXG4gICAgcHJlcmVxdWlzaXRlczoge1xyXG4gICAgICByZXF1aXJlc0ZpZ2h0aW5nU3R5bGU6IHRydWUsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdncmVhdF93ZWFwb25fZmlnaHRpbmdfc3R5bGUnLFxyXG4gICAgbmFtZTogJ0dyZWF0IFdlYXBvbiBGaWdodGluZyBTdHlsZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdSBsZXQgdGhlIHdlaWdodCBhbmQgbW9tZW50dW0gZmxvdyB0aHJvdWdoIHlvdSwgbmV2ZXIgYWNjZXB0aW5nIGEgd2VhayBzd2luZy4gV2hlbiB5b3UgYXR0YWNrIHdpdGggYSB0d28taGFuZGVkIG9yIHZlcnNhdGlsZSBtZWxlZSB3ZWFwb24sIHJlcm9sbCBhbnkgZGFtYWdlIGRpY2Ugc2hvd2luZyAxIOKAlCBvbmNlIHBlciBkaWUuJyxcclxuICAgIHByZXJlcXVpc2l0ZXM6IHtcclxuICAgICAgcmVxdWlyZXNGaWdodGluZ1N0eWxlOiB0cnVlLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAndHdvX3dlYXBvbl9maWdodGluZ19zdHlsZScsXHJcbiAgICBuYW1lOiAnVHdvLVdlYXBvbiBGaWdodGluZyBTdHlsZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdSBoYXZlIHRyYWluZWQgeW91ciBvZmYgaGFuZCB0byBiZSBldmVyeSBiaXQgYXMgbGV0aGFsIGFzIHlvdXIgcHJpbWFyeSDigJQgbm8gd2FzdGVkIG1vdGlvbiwgbm8gd2FzdGVkIGhpdC4gQWRkIHlvdXIgYWJpbGl0eSBtb2RpZmllciB0byB0aGUgZGFtYWdlIG9mIHlvdXIgb2ZmLWhhbmQgYXR0YWNrLicsXHJcbiAgICBwcmVyZXF1aXNpdGVzOiB7XHJcbiAgICAgIHJlcXVpcmVzRmlnaHRpbmdTdHlsZTogdHJ1ZSxcclxuICAgIH0sXHJcbiAgfSxcclxuICB7XHJcbiAgICBpZDogJ3Byb3RlY3Rpb25fc3R5bGUnLFxyXG4gICAgbmFtZTogJ1Byb3RlY3Rpb24gRmlnaHRpbmcgU3R5bGUnLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3VyIHNoaWVsZCBpcyBhIHByb21pc2UgdG8gdGhvc2Ugd2hvIHN0YW5kIGJlc2lkZSB5b3UuIFdoaWxlIHdpZWxkaW5nIGEgc2hpZWxkLCB1c2UgeW91ciBSZWFjdGlvbiB0byBpbXBvc2UgRGlzYWR2YW50YWdlIG9uIGFuIGF0dGFjayByb2xsIGFnYWluc3QgYSBuZWFyYnkgYWxseSB5b3UgY2FuIHNlZS4nLFxyXG4gICAgcHJlcmVxdWlzaXRlczoge1xyXG4gICAgICByZXF1aXJlc0ZpZ2h0aW5nU3R5bGU6IHRydWUsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdpbnRlcmNlcHRpb25fc3R5bGUnLFxyXG4gICAgbmFtZTogJ0ludGVyY2VwdGlvbiBGaWdodGluZyBTdHlsZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdSB0aHJvdyB5b3Vyc2VsZiBiZXR3ZWVuIGZyaWVuZCBhbmQgYmxhZGUgd2l0aG91dCBoZXNpdGF0aW9uLiBXaGlsZSB3aWVsZGluZyBhIHdlYXBvbiBvciBzaGllbGQsIHVzZSB5b3VyIFJlYWN0aW9uIHRvIHJlZHVjZSBhIG5lYXJieSBhbGx5XFwncyBpbmNvbWluZyBkYW1hZ2UgYnkgMWQxMCArIHlvdXIgUHJvZmljaWVuY3kgQm9udXMuJyxcclxuICAgIHByZXJlcXVpc2l0ZXM6IHtcclxuICAgICAgcmVxdWlyZXNGaWdodGluZ1N0eWxlOiB0cnVlLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAndW5hcm1lZF9maWdodGluZ19zdHlsZScsXHJcbiAgICBuYW1lOiAnVW5hcm1lZCBGaWdodGluZyBTdHlsZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ1lvdXIgYm9keSBpcyBhIHdlYXBvbiwgcmVmaW5lZCB0aHJvdWdoIGJydXRhbCBjb25kaXRpb25pbmcgdW50aWwgZmlzdHMgaGl0IGhhcmRlciB0aGFuIHNvbWUgc3dvcmRzLiBVbmFybWVkIHN0cmlrZXMgZGVhbCAxZDggZGFtYWdlICgxZDYgaWYgaG9sZGluZyBhbnl0aGluZyk7IGdyYXBwbGVkIGZvZXMgdGFrZSAxZDQgYmx1ZGdlb25pbmcgYXQgdGhlIHN0YXJ0IG9mIHlvdXIgdHVybi4nLFxyXG4gICAgcHJlcmVxdWlzaXRlczoge1xyXG4gICAgICByZXF1aXJlc0ZpZ2h0aW5nU3R5bGU6IHRydWUsXHJcbiAgICB9LFxyXG4gIH0sXHJcbiAge1xyXG4gICAgaWQ6ICdibGluZF9maWdodGluZ19zdHlsZScsXHJcbiAgICBuYW1lOiAnQmxpbmQgRmlnaHRpbmcgU3R5bGUnLFxyXG4gICAgZGVzY3JpcHRpb246ICdZb3UgaGF2ZSB0cmFpbmVkIGluIHRvdGFsIGRhcmtuZXNzIHVudGlsIGRhcmtuZXNzIGl0c2VsZiBzdXJyZW5kZXJzIGl0cyBzZWNyZXRzIHRvIHlvdS4gR2FpbiBCbGluZHNpZ2h0IDEwIGZlZXQg4oCUIHBlcmNlaXZpbmcgZXZlcnl0aGluZyB3aXRoaW4gcmFuZ2UgcmVnYXJkbGVzcyBvZiBsaWdodCBvciBpbnZpc2liaWxpdHkuJyxcclxuICAgIHByZXJlcXVpc2l0ZXM6IHtcclxuICAgICAgcmVxdWlyZXNGaWdodGluZ1N0eWxlOiB0cnVlLFxyXG4gICAgfSxcclxuICB9LFxyXG4gIHtcclxuICAgIGlkOiAndGhyb3duX3dlYXBvbl9maWdodGluZ19zdHlsZScsXHJcbiAgICBuYW1lOiAnVGhyb3duIFdlYXBvbiBGaWdodGluZyBTdHlsZScsXHJcbiAgICBkZXNjcmlwdGlvbjogJ0V2ZXJ5IGh1cmxlZCBibGFkZSBvciBheGUgaXMgYW4gZXh0ZW5zaW9uIG9mIHlvdXIgYXJtIOKAlCBkcmF3biBhbmQgdGhyb3duIGluIG9uZSBzZWFtbGVzcyBtb3Rpb24uIERyYXcgdGhyb3duIHdlYXBvbnMgYXMgcGFydCBvZiB0aGUgdGhyb3csIGFuZCBkZWFsICsyIGRhbWFnZSBvbiByYW5nZWQgYXR0YWNrcyB3aXRoIHRocm93biB3ZWFwb25zLicsXHJcbiAgICBwcmVyZXF1aXNpdGVzOiB7XHJcbiAgICAgIHJlcXVpcmVzRmlnaHRpbmdTdHlsZTogdHJ1ZSxcclxuICAgIH0sXHJcbiAgfSxcclxuXTtcclxuIl0sIm1hcHBpbmdzIjoiQUFDQSxTQUFTLG1CQUFtQjtBQWdCckIsYUFBTSxhQUFxQjtBQUFBLEVBQ2hDO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixVQUFVO0FBQUEsTUFDUixzQkFBc0IsQ0FBQztBQUFBLElBQ3pCO0FBQUEsRUFDRjtBQUFBLEVBQ0E7QUFBQSxJQUNFLElBQUk7QUFBQSxJQUNKLE1BQU07QUFBQSxJQUNOLGFBQWE7QUFBQSxJQUNiLGVBQWUsRUFBRSxlQUFlLEVBQUUsVUFBVSxHQUFHLEVBQUU7QUFBQSxJQUNqRCxVQUFVO0FBQUEsTUFDUixzQkFBc0IsRUFBRSxVQUFVLEVBQUU7QUFBQSxNQUNwQyxvQkFBb0IsQ0FBQyxhQUFhLGFBQWE7QUFBQSxJQUNqRDtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixVQUFVO0FBQUEsTUFDUiw0QkFBNEI7QUFBQSxJQUM5QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixVQUFVO0FBQUEsTUFDUixzQkFBc0IsRUFBRSxVQUFVLEdBQUcs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QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFBQSxFQUNBO0FBQUEsSUFDRSxJQUFJO0FBQUEsSUFDSixNQUFNO0FBQUEsSUFDTixhQUFhO0FBQUEsSUFDYixlQUFlO0FBQUEsTUFDYix1QkFBdUI7QUFBQSxJQUN6QjtBQUFBLEVBQ0Y7QUFDRjsiLCJuYW1lcyI6W119

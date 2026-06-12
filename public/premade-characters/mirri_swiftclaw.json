@@ -1,0 +1,313 @@
+{
+  "id": "premade_mirri_swiftclaw",
+  "name": "Mirri Swiftclaw",
+  "age": 31,
+  "background": "guide",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "tabaxi",
+    "name": "Tabaxi",
+    "baseRace": "beastfolk",
+    "description": "Hailing from a strange and distant land, wandering tabaxi are catlike humanoids driven by curiosity to collect interesting artifacts, gather tales and stories, and lay eyes on all the world’s wonders. Ultimate travelers, the inquisitive tabaxi rarely stay in one place for long. Their innate nature pushes them to leave no secrets uncovered, no treasures or legends lost.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium or Small",
+      "Speed: 30 feet",
+      "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+      "Cat’s Claws: You can use your claws to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier slashing damage, instead of the bludgeoning damage normal for an unarmed strike. You also have a climbing speed equal to your walking speed.",
+      "Cat’s Talent: You have proficiency in the Perception and Stealth skills.",
+      "Feline Agility: Your reflexes and agility allow you to move with a burst of speed. When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can’t use it again until you move 0 feet on one of your turns."
+    ],
+    "imageUrl": "https://i.ibb.co/Placeholder/Tabaxi.png",
+    "visual": {
+      "id": "tabaxi",
+      "icon": "🐱",
+      "color": "#D2691E",
+      "maleIllustrationPath": "assets/images/races/Tabaxi_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Tabaxi_Female.png"
+    }
+  },
+  "class": {
+    "id": "druid",
+    "name": "Druid",
+    "description": "A priest of the Old Faith, wielding the powers of nature and adopting animal forms.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Wisdom"
+    ],
+    "savingThrowProficiencies": [
+      "Intelligence",
+      "Wisdom"
+    ],
+    "skillProficienciesAvailable": [
+      "animal_handling",
+      "arcana",
+      "insight",
+      "medicine",
+      "nature",
+      "perception",
+      "religion",
+      "survival"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor",
+      "Medium armor",
+      "Shields"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "features": [
+      {
+        "id": "druidic",
+        "name": "Druidic",
+        "description": "You know the secret language of druids and can leave hidden messages.",
+        "levelAvailable": 1
+      }
+    ],
+    "primalOrders": [
+      {
+        "id": "Magician",
+        "name": "Magician",
+        "description": "You know one extra cantrip from the Druid spell list."
+      },
+      {
+        "id": "Warden",
+        "name": "Warden",
+        "description": "You gain proficiency with Martial weapons and training with Medium armor."
+      }
+    ],
+    "spellcasting": {
+      "ability": "Wisdom",
+      "knownCantrips": 2,
+      "knownSpellsL1": 4,
+      "spellList": [
+        "druidcraft",
+        "elementalism",
+        "frostbite",
+        "guidance",
+        "magic-stone",
+        "mending",
+        "message",
+        "poison-spray",
+        "produce-flame",
+        "resistance",
+        "shape-water",
+        "shillelagh",
+        "spare-the-dying",
+        "starry-wisp",
+        "thorn-whip",
+        "thunderclap",
+        "animal-friendship",
+        "charm-person",
+        "create-or-destroy-water",
+        "cure-wounds",
+        "detect-magic",
+        "detect-poison-and-disease",
+        "entangle",
+        "faerie-fire",
+        "fog-cloud",
+        "goodberry",
+        "healing-word",
+        "ice-knife",
+        "jump",
+        "longstrider",
+        "protection-from-evil-and-good",
+        "purify-food-and-drink",
+        "speak-with-animals",
+        "thunderwave"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Wisdom",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Wisdom powers your spells and Wild Shape. Constitution helps maintain concentration. Dexterity boosts AC since you avoid metal armor.",
+    "recommendedPointBuyPriorities": [
+      "Wisdom",
+      "Constitution",
+      "Dexterity",
+      "Intelligence",
+      "Strength",
+      "Charisma"
+    ]
+  },
+  "classLevels": {
+    "druid": 1
+  },
+  "abilityScores": {
+    "Strength": 10,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 12,
+    "Wisdom": 16,
+    "Charisma": 8
+  },
+  "finalAbilityScores": {
+    "Strength": 10,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 12,
+    "Wisdom": 16,
+    "Charisma": 8
+  },
+  "skills": [
+    {
+      "id": "nature",
+      "name": "Nature",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "animal_handling",
+      "name": "Animal Handling",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "Dexterity"
+    },
+    {
+      "id": "survival",
+      "name": "Survival",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "Wisdom"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "magic_initiate"
+  ],
+  "featChoices": {
+    "magic_initiate": {
+      "selectedAbilityScore": "Wisdom",
+      "selectedSpellSource": "druid",
+      "selectedCantrips": [
+        "guidance",
+        "thorn-whip"
+      ],
+      "selectedLeveledSpells": [
+        "cure-wounds"
+      ]
+    }
+  },
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "druidcraft",
+      "guidance",
+      "produce-flame",
+      "thorn-whip"
+    ],
+    "knownSpells": [
+      "entangle",
+      "cure-wounds",
+      "faerie-fire",
+      "thunderwave",
+      "speak-with-animals"
+    ],
+    "preparedSpells": [
+      "entangle",
+      "cure-wounds",
+      "faerie-fire",
+      "thunderwave",
+      "speak-with-animals"
+    ],
+    "racialSpellGrants": []
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 2,
+      "max": 2
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "wisdom",
+  "limitedUses": {
+    "feat_magic_initiate_cure-wounds": {
+      "name": "Magic Initiate: Cast cure wounds",
+      "current": 1,
+      "max": 1,
+      "resetOn": "long_rest"
+    }
+  },
+  "selectedDruidOrder": "Magician",
+  "racialSelections": {},
+  "visuals": {
+    "gender": "Female",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Tabaxi Druid. Female adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [
+      "Perception",
+      "Stealth"
+    ],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

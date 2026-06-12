@@ -25,7 +25,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } 
 import BattleMap from './BattleMap';
 import BattleMap3D from './BattleMap3D';
 import { PlayerCharacter } from '../../types';
-import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
+import { Ability, BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
@@ -89,7 +89,10 @@ function makeRaceLineup(spells: Record<string, Spell>): CombatCharacter[] {
 // distinct creature forms (undead/beast/giant + size scaling). Enabled by
 // `window.__BM3D_CREATURE_LINEUP`. Guarded by canUseDevTools.
 function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
-  const specs: Array<{ name: string; size?: string; creatureTypes: string[]; hp?: number }> = [
+  const specs: Array<{
+    name: string; size?: string; creatureTypes: string[]; hp?: number;
+    conditions?: CombatCharacter['conditions'];
+  }> = [
     { name: 'Goblin',         creatureTypes: ['Humanoid', 'Goblinoid'] },
     { name: 'Skeleton',       creatureTypes: ['Undead'] },
     { name: 'Dire Wolf',      creatureTypes: ['Beast'] },
@@ -100,6 +103,16 @@ function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
     { name: 'Beholder',       size: 'Large', creatureTypes: ['Aberration'] },
     // Spawns already dead — verifies the death/unconscious visual (GOAL #20).
     { name: 'Slain Orc',      creatureTypes: ['Humanoid'], hp: 0 },
+    // Spawns pre-conditioned — verifies the condition badge row (GOAL #19,
+    // task 76) without needing a scripted combat to apply effects.
+    {
+      name: 'Afflicted Cultist', creatureTypes: ['Humanoid'],
+      conditions: [
+        { name: 'Poisoned', duration: { type: 'permanent' }, appliedTurn: 0, source: 'Ray of Sickness' },
+        { name: 'Frightened', duration: { type: 'permanent' }, appliedTurn: 0 },
+        { name: 'Restrained', duration: { type: 'permanent' }, appliedTurn: 0 },
+      ] as CombatCharacter['conditions'],
+    },
   ];
   const out: CombatCharacter[] = [];
   specs.forEach((s, i) => {
@@ -115,6 +128,7 @@ function makeCreatureLineup(spells: Record<string, Spell>): CombatCharacter[] {
         team: 'enemy',
         creatureTypes: s.creatureTypes,
         currentHP: s.hp ?? cc.currentHP,
+        conditions: s.conditions ?? cc.conditions,
         stats: { ...cc.stats, size: (s.size ?? cc.stats.size) as typeof cc.stats.size },
       });
     }
@@ -392,6 +406,108 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   };
 
   const currentCharacter = turnManager.getCurrentCharacter() ?? null;
+
+  // Dev-only deterministic targeting hook (gap #29 / GOAL #14-#15 verification).
+  // The headless rig can't reliably click the ability palette: whose turn it is
+  // at mount depends on initiative rolls, and an enemy or ability-less character
+  // leaves the palette empty (the turn-order flakiness that sank the first
+  // capture attempt). `window.__bm3dTargeting.start()` advances turns until a
+  // player character with a usable targeted ability is active, then enters
+  // targeting mode exactly the way the palette button does.
+  const targetingHookRefs = useRef({ turnManager, abilitySystem, characters });
+  useEffect(() => { targetingHookRefs.current = { turnManager, abilitySystem, characters }; });
+  // Dev-only: expose the generated map so the capture rig can locate terrain
+  // features (slopes, water edges) deterministically instead of eyeballing.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !canUseDevTools()) return;
+    (window as unknown as { __bm3dMapData?: unknown }).__bm3dMapData = mapData;
+  }, [mapData]);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !canUseDevTools()) return;
+    const w = window as unknown as { __bm3dTargeting?: unknown };
+    // Pick the most *visible* showcase: 'area' targeting paints every in-range
+    // tile red, while 'single_enemy' only paints enemy-occupied tiles — which
+    // is an empty set when spawn separation exceeds the ability's range.
+    const pickAbility = (c: CombatCharacter, abilityName?: string) => {
+      const abilities = c.abilities ?? [];
+      if (abilityName) {
+        return abilities.find(a => a.name.toLowerCase().includes(abilityName.toLowerCase()));
+      }
+      return abilities
+        .filter(a => a.targeting !== 'self' && a.range > 0)
+        .sort((l, r) =>
+          Number(r.targeting === 'area') - Number(l.targeting === 'area')
+          || r.range - l.range)[0]
+        ?? abilities[0];
+    };
+    // Synthetic area ability for the AoE-template showcase (GOAL #15): the
+    // demo party may have no areaOfEffect ability at all (task 78's best find
+    // was single_enemy Acid Splash), and the preview path needs one. Targeting
+    // + previewAoE only read shape/size/range — it is never executed.
+    const devAoeAbility = {
+      id: 'dev-aoe-showcase',
+      name: 'Dev AoE Showcase',
+      description: 'Dev-only fireball-shaped template for capture verification.',
+      type: 'spell',
+      targeting: 'area',
+      range: 8,
+      areaOfEffect: { shape: 'circle', size: 3 },
+      cost: { type: 'action' },
+      effects: [],
+    } as unknown as Ability;
+    w.__bm3dTargeting = {
+      // prepOnly: advance turns to the chosen caster but do NOT start
+      // targeting — gives before/after captures an identical turn state.
+      start: async (abilityName?: string, prepOnly?: boolean) => {
+        const { characters: roster } = targetingHookRefs.current;
+        // '__aoe' selects the synthetic area showcase regardless of roster
+        // loadout (real area abilities still win via the normal ranking when
+        // present — pass their name instead).
+        const useDevAoe = abilityName === '__aoe';
+        // Choose the best (caster, ability) across the whole player roster,
+        // then advance turns until that caster is active.
+        const players = roster.filter(c => c.team === 'player' && c.currentHP > 0);
+        const ranked = players
+          .map(c => ({ c, a: useDevAoe ? devAoeAbility : pickAbility(c, abilityName) }))
+          .filter((x): x is { c: CombatCharacter; a: NonNullable<ReturnType<typeof pickAbility>> } => !!x.a)
+          .sort((l, r) =>
+            Number(r.a.targeting === 'area') - Number(l.a.targeting === 'area')
+            || r.a.range - l.a.range);
+        const target = ranked[0];
+        if (!target) return 'no-targetable-ability-found';
+        for (let attempt = 0; attempt <= roster.length + 2; attempt++) {
+          const { turnManager: tmNow, abilitySystem: ab } = targetingHookRefs.current;
+          const c = tmNow.getCurrentCharacter();
+          if (c && c.id === target.c.id) {
+            if (!prepOnly) ab.startTargeting(target.a, c);
+            return { character: c.name, team: c.team, ability: target.a.name, targeting: target.a.targeting, range: target.a.range, prepOnly: !!prepOnly };
+          }
+          await tmNow.endTurn();
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        return 'caster-never-became-active';
+      },
+      // Deterministic stand-in for hovering tile (x, y) while targeting —
+      // drives the same previewAoE the 3D tile-hover path calls (GOAL #15).
+      previewAoEAt: (x: number, y: number) => {
+        const { turnManager: tmNow, abilitySystem: ab } = targetingHookRefs.current;
+        const caster = tmNow.getCurrentCharacter();
+        if (!caster) return 'no-active-character';
+        if (!ab.targetingMode) return 'not-in-targeting-mode';
+        ab.previewAoE({ x, y }, caster);
+        return {
+          previewedAt: { x, y },
+          ability: ab.selectedAbility?.name ?? null,
+          hasAreaOfEffect: !!ab.selectedAbility?.areaOfEffect,
+        };
+      },
+      state: () => {
+        const ab = targetingHookRefs.current.abilitySystem;
+        return { targetingMode: ab.targetingMode, ability: ab.selectedAbility?.name ?? null };
+      },
+    };
+    return () => { delete w.__bm3dTargeting; };
+  }, []);
 
   return (
     <div className="bg-gray-900 text-white h-screen flex flex-col p-4 overflow-hidden">

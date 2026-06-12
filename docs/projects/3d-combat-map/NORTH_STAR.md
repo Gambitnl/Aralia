@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: "Game & Simulation"
 subcategory: "Combat & Encounters"
 status: active
-last_updated: 2026-06-10
-confidence: medium
+last_updated: 2026-06-11
+confidence: high
 evidence: docs/projects/3d-combat-map
-gap_signal: "5 open gaps (G1/G2/G4/G6/G8 closed; NC1 done. Open: G3 pop-out proof, G5 style policy, G7 NC2 fixture blocker, G9 character silhouette pop proof, G10 3D status/defeat readability proof)"
+gap_signal: "5 open gaps (G1/G2/G3/G4/G6/G7/G8 closed; NC1 and NC2 done. Open: G5 style policy, G9 character silhouette pop proof, G10 3D status/defeat readability proof, G11 targeting decal PNG proof, G12 elevation contrast)"
 protocol: living project doc set
-next_step: "Unblock NC2 (G7), continue G3/G5 follow-ups, or take a bounded G9/G10 tactical readability proof slice. G7 fixture work accepted and queued 2026-06-10 (owner session, DECISION_BLITZ_2026-06-10.md 'Items converted to work'): build the reachable combat fixture (2D-exploration save + dev hook to a battle-map encounter) so G3/NC2 proofs can run."
+next_step: "Run the G11 targeting-decal saved-PNG proof from HANDOFF.md, then continue G12 elevation contrast or a bounded G9/G10 tactical readability proof slice. NC2/G3/G7 are closed by the 2026-06-11 headless CombatView pop-out proof through ?dev_combat=1."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -31,8 +31,9 @@ required_verification:
 completed_verification:
   - docs_consistency
   - browser_visual_smoke
-last_proof: 2026-06-09
-workflow_gaps_reviewed: 2026-06-10
+  - nc2_popout_lifecycle
+last_proof: 2026-06-11
+workflow_gaps_reviewed: 2026-06-11
 compaction_status: not_needed
 lifecycle_status: active
 deprecation_confidence: none
@@ -43,7 +44,7 @@ human_decision_required: "no"
 # 3D Combat Map North Star
 
 Status: active
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Purpose
 
@@ -89,16 +90,16 @@ Project: 3D Combat Map
 Slug: 3d-combat-map
 Category: Feature/UI Projects
 Status: active
-Last updated: 2026-06-10
-Confidence: medium
+Last updated: 2026-06-11
+Confidence: high
 Evidence: docs/projects/3d-combat-map
-Gap signal: 5 open gaps (G2/NC1/G4/G6/G8 closed; G3 pop-out proof, G5 style policy, G7 blocker, G9 character pop proof, G10 status/defeat readability proof remain)
+Gap signal: 5 open gaps (G1/G2/G3/G4/G6/G7/G8 closed; G5 style policy, G9 character pop proof, G10 status/defeat readability proof, G11 targeting decal PNG proof, G12 elevation contrast remain)
 Protocol: living project doc set
-Next step: Run NC2 pop-out lifecycle proof, continue G3/G5 follow-ups, or take a bounded G9/G10 tactical readability proof slice.
+Next step: Run the G11 targeting-decal saved-PNG proof from HANDOFF.md, then continue G12 elevation contrast or a bounded G9/G10 tactical readability proof slice.
 Required verification: docs_consistency, scoped_tests
-Completed verification: docs_consistency, scoped_tests, browser_visual_smoke
-Last proof: 2026-06-09
-Workflow gaps reviewed: 2026-06-10
+Completed verification: docs_consistency, scoped_tests, browser_visual_smoke, nc2_popout_lifecycle
+Last proof: 2026-06-11
+Workflow gaps reviewed: 2026-06-11
 Agent comments:
 Required docs: NORTH_STAR.md, TRACKER.md, GAPS.md, COLD_START_AGENT_PROMPT.md, DECISIONS.md, AUDIT_OR_PROOF.md, RUNBOOK.md
 Optional docs: tasks/, architecture notes, migration notes
@@ -123,7 +124,7 @@ The next implementation slice can treat the MVP boundary as stable when:
 
 - `BattleMap3D` stays inside combat flow and does not absorb exploration-path behavior.
 - 2D and 3D modes preserve movement, targeting, AoE, turn flow, and combat messages.
-- `CombatView` pop-out and return preserve the active render mode and lifecycle state.
+- `CombatView` pop-out and return preserve the active render mode and lifecycle state (verified by NC2 on 2026-06-11 through `?dev_combat=1`).
 - The renderer stays inside the 60 fps target on GTX 1060+ class desktop hardware for the documented combat map size.
 - Any enabled post-processing path is explicit about its budget and stability tradeoffs.
 - Visual fallback substitutes do not satisfy MVP or proof criteria; renderer
@@ -146,7 +147,7 @@ Not required for MVP:
 ## Open Questions
 
 1. Should SSAO and post-processing usage remain required in MVP, or be made optional by render mode profile? (Resolved in code and proof: SSAO + `enableNormalPass` were removed for WebGL2 stability, ContactShadows now provides ground darkening, and NC1 passed in the browser on 2026-06-08 without repeated `GL_INVALID_OPERATION`, `glBlitFramebuffer`, `SSAO`, or `NormalPass` errors.)
-2. Should `CombatView` pop-out 3D mode include stronger external sync for render mode and lifecycle state?
+2. Should `CombatView` pop-out 3D mode include stronger external sync for render mode and lifecycle state? (Resolved for the current MVP proof: NC2 passed on 2026-06-11 with shared `renderMode`, persisted turn order, and persisted inspected token.)
 3. How strict should the 60 fps requirement be in the coldest test hardware profile before relaxing effects?
 
 ## Resume Path
@@ -155,7 +156,7 @@ Not required for MVP:
 2. Read `docs/projects/3d-combat-map/TRACKER.md` (Next-Check List NC1/NC2).
 3. Read `docs/projects/3d-combat-map/GAPS.md`.
 4. Read `docs/projects/3d-combat-map/AUDIT_OR_PROOF.md` for the durable NC1/NC2 step definitions and proof log.
-5. Continue with NC2 to close out the pop-out concern, or continue with the remaining G3/G5 follow-ups.
+5. NC2 is closed; run the G11 targeting-decal saved-PNG proof from `HANDOFF.md`, then continue G12 elevation contrast or a bounded G9/G10 tactical readability proof slice.
 
 
 ## Cold-Start Gap Routing

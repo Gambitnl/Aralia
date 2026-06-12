@@ -142,25 +142,62 @@ function createWideFlatTreeGeometry(): PropGeometrySet[] {
   ];
 }
 
-/** Dead/bare tree — trunk with angled branches, no canopy */
+/**
+ * Dead/bare tree — gnarled recursive branching (task 77, GOAL #35).
+ * The old version was three straight cylinders on a pole (a stick figure);
+ * this builds a tapered, twisting branch skeleton via recursion so the
+ * silhouette reads "dead gothic tree" at tactical zoom. Deterministic local
+ * LCG: the geometry is shared by all instances (per-instance variety comes
+ * from the task-75 scale/tilt/tint variation).
+ */
 function createDeadTreeGeometry(): PropGeometrySet[] {
-  const trunk = new THREE.CylinderGeometry(0.05, 0.12, 1.4, 6);
-  trunk.translate(0, 0.7, 0);
-  const branch1 = new THREE.CylinderGeometry(0.02, 0.04, 0.5, 4);
-  branch1.rotateZ(-0.7);
-  branch1.translate(0.25, 1.1, 0);
-  const branch2 = new THREE.CylinderGeometry(0.02, 0.03, 0.4, 4);
-  branch2.rotateZ(0.5);
-  branch2.translate(-0.18, 0.9, 0.1);
-  const branch3 = new THREE.CylinderGeometry(0.015, 0.03, 0.35, 4);
-  branch3.rotateX(0.6);
-  branch3.translate(0.05, 1.2, -0.2);
+  const parts: THREE.BufferGeometry[] = [];
+  let s = 48271;
+  const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const UP = new THREE.Vector3(0, 1, 0);
+
+  const addBranch = (
+    start: THREE.Vector3,
+    dir: THREE.Vector3,
+    len: number,
+    radius: number,
+    depth: number,
+  ): void => {
+    const seg = new THREE.CylinderGeometry(Math.max(0.008, radius * 0.55), radius, len, 5);
+    seg.translate(0, len / 2, 0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(UP, dir.clone().normalize());
+    seg.applyMatrix4(new THREE.Matrix4().compose(start, quat, new THREE.Vector3(1, 1, 1)));
+    parts.push(seg);
+    if (depth <= 0) return;
+
+    const end = start.clone().add(dir.clone().normalize().multiplyScalar(len));
+    const childCount = depth >= 3 ? 3 : 2;
+    for (let i = 0; i < childCount; i++) {
+      const tilt = 0.45 + rnd() * 0.65;     // splay outward — gnarled, not straight
+      const spin = rnd() * Math.PI * 2;
+      const childDir = dir.clone().normalize()
+        .applyAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin(spin) * tilt)
+        .applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.cos(spin) * tilt);
+      // Dead trees still reach for the sky they lost — clamp droop.
+      if (childDir.y < 0.1) childDir.y = 0.1 + rnd() * 0.3;
+      addBranch(end, childDir, len * (0.52 + rnd() * 0.18), radius * 0.55, depth - 1);
+    }
+  };
+
+  // Trunk leans slightly (swamp settling), then three branch generations.
+  addBranch(
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0.12, 1, -0.06),
+    0.85,
+    0.11,
+    3,
+  );
 
   const mat = new THREE.MeshStandardMaterial({
-    color: 0x4a3520, roughness: 0.9, metalness: 0.0,
+    color: 0x453322, roughness: 0.95, metalness: 0.0,
   });
 
-  return [{ geometry: mergeGeometries([trunk, branch1, branch2, branch3]), material: mat }];
+  return [{ geometry: mergeGeometries(parts), material: mat }];
 }
 
 // Tree variant factories for random per-instance species selection
@@ -606,6 +643,51 @@ const DecorationProps: React.FC<DecorationPropsProps> = ({ mapData }) => {
       // One tint per INSTANCE, shared by all parts of that instance so a
       // prop's pieces (trunk + top, rock + base) stay color-coherent.
       const colors = buildColorVariations(tiles.length);
+
+      // Swamp dead trees (task 77, GOAL #35): the NORTH_STAR's swamp calls
+      // for "murky water, dead trees, hanging moss", but the old dead-tree
+      // geometry was unmounted dead code. ~28% of mangrove tiles now render
+      // the gnarled dead tree instead. Transforms/tints are built ONCE for
+      // all tiles (above) and partitioned by index, so the RNG streams — and
+      // therefore every other prop's layout — are byte-identical to before.
+      if (decorationType === 'mangrove') {
+        const splitRand = seededRandom((mapData.seed ?? 42) + 313);
+        const deadIdx: number[] = [];
+        const mangIdx: number[] = [];
+        tiles.forEach((_, i) => (splitRand() < 0.28 ? deadIdx : mangIdx).push(i));
+
+        const pick = (idx: number[], src: Float32Array, stride: number): Float32Array => {
+          const out = new Float32Array(idx.length * stride);
+          idx.forEach((srcI, k) => out.set(src.subarray(srcI * stride, (srcI + 1) * stride), k * stride));
+          return out;
+        };
+
+        if (mangIdx.length > 0) {
+          result.push({
+            key: 'mangrove',
+            parts: geoSets.map(gs => ({
+              geometry: gs.geometry,
+              material: gs.material,
+              matrices: pick(mangIdx, matrices, 16),
+              count: mangIdx.length,
+              colors: pick(mangIdx, colors, 3),
+            })),
+          });
+        }
+        if (deadIdx.length > 0) {
+          result.push({
+            key: 'mangrove-deadtree',
+            parts: createDeadTreeGeometry().map(gs => ({
+              geometry: gs.geometry,
+              material: gs.material,
+              matrices: pick(deadIdx, matrices, 16),
+              count: deadIdx.length,
+              colors: pick(deadIdx, colors, 3),
+            })),
+          });
+        }
+        continue;
+      }
 
       result.push({
         key: decorationType,

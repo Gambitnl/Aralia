@@ -1,0 +1,109 @@
+{
+  "label": "run1",
+  "ranAt": "2026-06-11T21:42:05.669Z",
+  "savedPayload": {
+    "source": "IndexedDB",
+    "key": "aralia_rpg_autosave",
+    "slotName": "Auto-Save",
+    "saveVersion": "0.1.0",
+    "saveTimestamp": 1780787911138,
+    "phase": 4,
+    "worldViewMode": "3d",
+    "currentLocationId": "clearing",
+    "subMapCoordinates": {
+      "x": 15,
+      "y": 10
+    },
+    "playerWorldPos": {
+      "x": 2072.760415935526,
+      "y": 0,
+      "z": -881.9446186283999
+    },
+    "partySize": 1,
+    "partyNames": [
+      "Satum"
+    ],
+    "gold": 10,
+    "inventoryCount": 0,
+    "gameTime": "0351-01-01T10:54:16.000Z",
+    "isSubmapVisible": false,
+    "isMapVisible": false,
+    "isThreeDVisible": false,
+    "hasMapData": true,
+    "worldSeed": 944286926
+  },
+  "slotIndex": [
+    {
+      "slotId": "aralia_rpg_autosave",
+      "slotName": "Auto-Save",
+      "lastSaved": 1780787911138,
+      "isAutoSave": true,
+      "isCheckpoint": false,
+      "locationName": "clearing",
+      "partyLevel": 1,
+      "playtimeSeconds": 16732
+    }
+  ],
+  "clickedButton": "Continue Journey Last Seen: Jun 7, 2026, 01:18 AM",
+  "phaseTrail": [
+    {
+      "atMs": 1015,
+      "phase": "LOAD_TRANSITION"
+    },
+    {
+      "atMs": 3105,
+      "phase": "PLAYING"
+    }
+  ],
+  "liveStateAfterResume": {
+    "phase": "PLAYING",
+    "worldViewMode": "3d",
+    "currentLocationId": "clearing",
+    "subMapCoordinates": {
+      "x": 15,
+      "y": 10
+    },
+    "playerWorldPos": {
+      "x": 2072.760415935526,
+      "y": 3.665174559561171,
+      "z": -881.9446186283999
+    },
+    "partySize": 1,
+    "partyNames": [
+      "Satum"
+    ],
+    "gold": 10,
+    "inventoryCount": 0,
+    "gameTime": "0351-01-01T10:54:19.000Z",
+    "isMapVisible": false,
+    "isSubmapVisible": false,
+    "isThreeDVisible": false,
+    "saveTimestamp": 1780787911138,
+    "error": null,
+    "isLoading": false
+  },
+  "surfaceTextSnippet": "3D World View\nControls ▼\n3D\nAtlas\n💬\nCHAT\nHistory",
+  "diffs": [
+    {
+      "field": "playerWorldPos",
+      "saved": {
+        "x": 2072.760415935526,
+        "y": 0,
+        "z": -881.9446186283999
+      },
+      "live": {
+        "x": 2072.760415935526,
+        "y": 3.665174559561171,
+        "z": -881.9446186283999
+      }
+    },
+    {
+      "field": "gameTime",
+      "saved": "0351-01-01T10:54:16.000Z",
+      "live": "0351-01-01T10:54:19.000Z",
+      "note": "live clock starts ticking after resume — small drift expected"
+    }
+  ],
+  "consoleErrorCount": 0,
+  "consoleErrors": []
+}

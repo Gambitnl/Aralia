@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ headless: true, args: ['--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+const errors = [];
+page.on('pageerror', e => errors.push(String(e).slice(0, 150)));
+await page.goto('http://localhost:5174/Aralia/?phase=worldforge', { waitUntil: 'domcontentloaded' });
+await new Promise(r => setTimeout(r, 25000));
+const text = await page.evaluate(() => document.body.innerText.slice(0, 300));
+console.log('page text:', JSON.stringify(text));
+console.log('errors:', JSON.stringify(errors.slice(0, 3)));
+await page.screenshot({ path: 'forge-mount.png' });
+await browser.close();

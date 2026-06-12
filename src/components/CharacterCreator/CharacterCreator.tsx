@@ -467,18 +467,27 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.BackgroundFeatSelection: {
         const previewForFeat = generatePreviewCharacter(state, state.characterName);
         const knownSkills = previewForFeat?.skills.map(s => s.id) || [];
+        const knownSpells = [
+          ...(previewForFeat?.spellbook?.cantrips ?? []),
+          ...(previewForFeat?.spellbook?.knownSpells ?? []),
+        ];
+        const backgroundName = state.selectedBackground
+          ? state.selectedBackground.replace(/[_-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+          : null;
         return (
-          <FeatSelection 
-            availableFeats={featOptions} 
-            selectedFeatId={state.backgroundFeatId || undefined} 
-            featChoices={state.featChoices} 
-            onSelectFeat={handleBackgroundFeatSelect} 
-            onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} 
-            onConfirm={handleFeatConfirm} 
-            onBack={goBack} 
-            hasEligibleFeats={hasEligibleFeats} 
-            dispatch={appDispatch} 
+          <FeatSelection
+            title={backgroundName ? `Origin Feat — ${backgroundName}` : 'Origin Feat'}
+            availableFeats={featOptions}
+            selectedFeatId={state.backgroundFeatId || undefined}
+            featChoices={state.featChoices}
+            onSelectFeat={handleBackgroundFeatSelect}
+            onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }}
+            onConfirm={handleFeatConfirm}
+            onBack={goBack}
+            hasEligibleFeats={hasEligibleFeats}
+            dispatch={appDispatch}
             knownSkillIds={knownSkills}
+            knownSpellIds={knownSpells}
             allowSkip={false}
           />
         );
@@ -486,18 +495,24 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.RacialFeatSelection: {
         const previewForFeat = generatePreviewCharacter(state, state.characterName);
         const knownSkills = previewForFeat?.skills.map(s => s.id) || [];
+        const knownSpells = [
+          ...(previewForFeat?.spellbook?.cantrips ?? []),
+          ...(previewForFeat?.spellbook?.knownSpells ?? []),
+        ];
         return (
-          <FeatSelection 
-            availableFeats={featOptions} 
-            selectedFeatId={state.racialFeatId || undefined} 
-            featChoices={state.featChoices} 
-            onSelectFeat={handleRacialFeatSelect} 
-            onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} 
-            onConfirm={handleFeatConfirm} 
-            onBack={goBack} 
-            hasEligibleFeats={hasEligibleFeats} 
-            dispatch={appDispatch} 
+          <FeatSelection
+            title={state.selectedRace ? `Racial Feat — ${state.selectedRace.name}` : 'Racial Feat'}
+            availableFeats={featOptions}
+            selectedFeatId={state.racialFeatId || undefined}
+            featChoices={state.featChoices}
+            onSelectFeat={handleRacialFeatSelect}
+            onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }}
+            onConfirm={handleFeatConfirm}
+            onBack={goBack}
+            hasEligibleFeats={hasEligibleFeats}
+            dispatch={appDispatch}
             knownSkillIds={knownSkills}
+            knownSpellIds={knownSpells}
             allowSkip={false}
           />
         );

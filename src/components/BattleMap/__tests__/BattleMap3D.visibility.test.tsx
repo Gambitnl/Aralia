@@ -48,6 +48,7 @@ vi.mock('../../../hooks/useBattleMap', () => ({
 
 vi.mock('../../../hooks/combat/useTargetSelection', () => ({
   useTargetSelection: () => ({
+    aoeSet: new Set(),
     validTargetSet: new Set(),
     teleportDestinationSet: new Set()
   })
@@ -72,6 +73,10 @@ vi.mock('../terrain', () => ({
 
 vi.mock('../characters', () => ({
   CharacterActor: () => null
+}));
+
+vi.mock('../TargetingDecals', () => ({
+  default: () => null
 }));
 
 vi.mock('../camera', () => ({

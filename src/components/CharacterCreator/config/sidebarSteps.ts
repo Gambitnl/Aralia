@@ -139,16 +139,6 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     isVisible: () => true,
   },
   {
-    step: CreationStep.BackgroundFeatSelection,
-    label: 'Origin Feat',
-    group: 'origin',
-    getSelectionSummary: (state) => {
-      if (!state.backgroundFeatId) return null;
-      return state.backgroundFeatId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    },
-    isVisible: (state) => !!state.selectedBackground,
-  },
-  {
     step: CreationStep.Visuals,
     label: 'Appearance',
     group: 'origin',
@@ -164,28 +154,12 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     getSelectionSummary: (state) => state.selectedClass?.name ?? null,
     isVisible: () => true,
   },
-  {
-    step: CreationStep.ClassFeatures,
-    label: 'Class Features',
-    group: 'class',
-    parentStep: CreationStep.Class,
-    getSelectionSummary: (state) => {
-      if (!state.selectedClass) return null;
-      if (state.selectedClass.id === 'fighter' && state.selectedFightingStyle) {
-        return state.selectedFightingStyle.name;
-      }
-      if (state.selectedDivineOrder) return state.selectedDivineOrder;
-      if (state.selectedDruidOrder) return state.selectedDruidOrder;
-      if (state.selectedCantrips.length > 0) return `${state.selectedCantrips.length} cantrips`;
-      return null;
-    },
-    isVisible: (state) => {
-      if (!state.selectedClass) return false;
-      return !!(state.selectedClass.fightingStyles || state.selectedClass.spellcasting);
-    },
-  },
 
   // === ABILITIES GROUP ===
+  // NOTE: This sequence mirrors the wizard's actual traversal order
+  // (Ability Scores → Skillful → Skills → Class Features → Weapon Mastery →
+  // Origin Feat → Racial Feat). Keep it in sync with the step-advance logic in
+  // characterCreatorState.ts so the numbered list never jumps backwards (GAPS.md G9).
   {
     step: CreationStep.AbilityScores,
     label: 'Ability Scores',
@@ -203,7 +177,8 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     label: 'Skillful',
     group: 'abilities',
     getSelectionSummary: (state) => {
-      const skills = state.racialSelections['human']?.skillIds;
+      const raceKey = state.selectedRace?.id ?? 'human';
+      const skills = state.racialSelections[raceKey]?.skillIds ?? state.racialSelections['human']?.skillIds;
       return skills?.length ? skills[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     },
     isVisible: (state) => state.selectedRace?.id === 'human' || state.selectedRace?.baseRace === 'human',
@@ -219,6 +194,25 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     isVisible: () => true,
   },
   {
+    step: CreationStep.ClassFeatures,
+    label: 'Class Features',
+    group: 'abilities',
+    getSelectionSummary: (state) => {
+      if (!state.selectedClass) return null;
+      if (state.selectedClass.id === 'fighter' && state.selectedFightingStyle) {
+        return state.selectedFightingStyle.name;
+      }
+      if (state.selectedDivineOrder) return state.selectedDivineOrder;
+      if (state.selectedDruidOrder) return state.selectedDruidOrder;
+      if (state.selectedCantrips.length > 0) return `${state.selectedCantrips.length} cantrips`;
+      return null;
+    },
+    isVisible: (state) => {
+      if (!state.selectedClass) return false;
+      return !!(state.selectedClass.fightingStyles || state.selectedClass.spellcasting);
+    },
+  },
+  {
     step: CreationStep.WeaponMastery,
     label: 'Weapon Mastery',
     group: 'abilities',
@@ -228,10 +222,24 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     },
     isVisible: (state) => (state.selectedClass?.weaponMasterySlots ?? 0) > 0,
   },
+
+  // === FINAL GROUP ===
+  // Feat configuration happens after class/ability choices are locked in, so
+  // both feat steps live here — where the wizard actually visits them.
+  {
+    step: CreationStep.BackgroundFeatSelection,
+    label: 'Origin Feat',
+    group: 'final',
+    getSelectionSummary: (state) => {
+      if (!state.backgroundFeatId) return null;
+      return state.backgroundFeatId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+    isVisible: (state) => !!state.selectedBackground,
+  },
   {
     step: CreationStep.RacialFeatSelection,
     label: 'Racial Feat',
-    group: 'abilities',
+    group: 'final',
     getSelectionSummary: (state) => {
       if (state.featStepSkipped) return 'Skipped';
       if (!state.racialFeatId) return null;
@@ -239,8 +247,6 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
     },
     isVisible: (state) => state.selectedRace?.id === 'human' || state.selectedRace?.baseRace === 'human',
   },
-
-  // === FINAL GROUP ===
   {
     step: CreationStep.NameAndReview,
     label: 'Name & Review',

@@ -37,6 +37,7 @@ import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { getGameDay } from '../utils/core';
+import { gridWorldDimensions } from '../utils/worldCoords';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '@/utils/spatial';
 // TODO(lint-intent): 'createPlayerCharacterFromTemp' is imported but unused; it hints at a helper/type the module was meant to use.
@@ -595,12 +596,28 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const loadedWorldViewMode = loadedState.worldViewMode ?? 'atlas';
             const loadedPlayerWorldPos = loadedState.playerWorldPos ?? null;
 
-            // If loading into 3D mode, validate that position is complete.
-            const validatedPlayerWorldPos = loadedPlayerWorldPos &&
+            // If loading into 3D mode, validate that position is complete —
+            // and clamp it into the world grid. Saves written before the
+            // dispatch-side clamp carry off-map camera positions (z=-881 in
+            // the audited autosave); resuming them centered the 3D streamer
+            // outside the grid and the player came back to a featureless
+            // slab (resume-journey task 2). Healing here fixes old saves.
+            const completePlayerWorldPos = loadedPlayerWorldPos &&
                 typeof loadedPlayerWorldPos.x === 'number' &&
                 typeof loadedPlayerWorldPos.y === 'number' &&
                 typeof loadedPlayerWorldPos.z === 'number'
                 ? loadedPlayerWorldPos
+                : null;
+            const loadedGridSize =
+                (loadedState.mapData as { gridSize?: { cols: number; rows: number } } | null)?.gridSize
+                ?? { cols: 60, rows: 40 };
+            const worldDims = gridWorldDimensions(loadedGridSize.cols, loadedGridSize.rows);
+            const validatedPlayerWorldPos = completePlayerWorldPos
+                ? {
+                    x: Math.min(Math.max(completePlayerWorldPos.x, 0), worldDims.widthM),
+                    y: completePlayerWorldPos.y,
+                    z: Math.min(Math.max(completePlayerWorldPos.z, 0), worldDims.heightM),
+                }
                 : null;
 
             return {

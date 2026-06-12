@@ -1,0 +1,47 @@
+[
+  {
+    "t": 1781214511871,
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "t": 1781214512217,
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "t": 1781214512477,
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "t": 1781214512674,
+    "type": "info",
+    "text": "[2026-06-11T21:48:32.670Z] [INFO] IndexedDB: Created object store {store: saves}"
+  },
+  {
+    "t": 1781214512684,
+    "type": "info",
+    "text": "[2026-06-11T21:48:32.682Z] [INFO] Save storage initialized {indexedDB: true}"
+  },
+  {
+    "t": 1781214512692,
+    "type": "info",
+    "text": "[2026-06-11T21:48:32.686Z] [INFO] Save storage initialized {indexedDB: true}"
+  },
+  {
+    "t": 1781214512695,
+    "type": "info",
+    "text": "[2026-06-11T21:48:32.691Z] [INFO] Migrated saves from localStorage to IndexedDB {count: 1}"
+  },
+  {
+    "t": 1781214512696,
+    "type": "info",
+    "text": "[2026-06-11T21:48:32.694Z] [INFO] Migrated saves from localStorage to IndexedDB {count: 1}"
+  },
+  {
+    "t": 1781214515777,
+    "type": "info",
+    "text": "[2026-06-11T21:48:35.767Z] [INFO] Game loaded {slotId: aralia_rpg_autosave, storage: IndexedDB, timestamp: 2026-06-06T23:18:31.138Z}"
+  }
+]

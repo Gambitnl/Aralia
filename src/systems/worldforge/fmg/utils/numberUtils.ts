@@ -56,3 +56,16 @@ export const normalize = (val: number, min: number, max: number) => {
 export const lerp = (a: number, b: number, t: number) => {
   return a + (b - a) * t;
 };
+
+/**
+ * Convert number to short string with SI postfix — verbatim port of upstream
+ * src/utils/unitUtils.ts si (added for Military regiment totals).
+ */
+export const si = (n: number): string => {
+  if (n >= 1e9) return `${rn(n / 1e9, 1)}B`;
+  if (n >= 1e8) return `${rn(n / 1e6)}M`;
+  if (n >= 1e6) return `${rn(n / 1e6, 1)}M`;
+  if (n >= 1e4) return `${rn(n / 1e3)}K`;
+  if (n >= 1e3) return `${rn(n / 1e3, 1)}K`;
+  return rn(n).toString();
+};

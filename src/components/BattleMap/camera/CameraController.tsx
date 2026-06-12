@@ -236,6 +236,11 @@ const CameraController: React.FC<CameraControllerProps> = ({
         const tz = members.reduce((s, c) => s + c.position.y + 0.5, 0) / members.length;
         return poseAround(tx, tz, distance, polarDeg, azimuthDeg);
       },
+      // Frame an arbitrary world-space point (e.g. a specific tile) — lets the
+      // rig verify tile-anchored effects like targeting decals deterministically.
+      poseAt(tx: number, tz: number, distance: number, polarDeg: number, azimuthDeg: number) {
+        return poseAround(tx, tz, distance, polarDeg, azimuthDeg);
+      },
     };
     return () => { delete (window as unknown as { __bm3dCam?: unknown }).__bm3dCam; };
   }, [camera, mapCenter, characters]);

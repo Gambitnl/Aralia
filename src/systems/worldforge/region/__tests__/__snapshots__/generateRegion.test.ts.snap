@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generateRegion (C2: civilization) > matches FROZEN golden values for burg-bearing anchor > c2-region-golden 1`] = `
+{
+  "firstEnvelopeWidth": 800,
+  "firstGateCount": 0,
+  "roadCount": 1,
+  "roadKinds": [
+    "trail",
+  ],
+  "townSiteCount": 1,
+}
+`;
+
+exports[`generateRegion > matches FROZEN golden values for anchor cell > region-golden 1`] = `
+{
+  "boundsHeight": 25000,
+  "boundsWidth": 25000,
+  "gridHeight": 250,
+  "gridWidth": 250,
+  "heightfieldHash": 802165006,
+  "riverBankCount": 2,
+}
+`;
+
+exports[`generateRegion > smoothness invariant: heightfield is lattice-smooth, not white-noise speckle > smoothness-laplacian 1`] = `0.0003599034992151319`;

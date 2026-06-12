@@ -18,12 +18,12 @@ import World3DScene from './World3DScene';
 import InWorldHUD from './InWorldHUD';
 import { createWorkerChunkLoader, type DisposableChunkLoader } from './createWorkerChunkLoader';
 import { usePlayerWorldPos, useWorldViewMode } from '../../hooks/useWorldViewMode';
-import { getTerrainHeight } from '../../utils/worldCoords';
+import { getTerrainHeight, gridWorldDimensions } from '../../utils/worldCoords';
 import { useGameState } from '../../state/GameContext';
 import { GamePhase } from '../../types/core';
 import type { WorldData } from '../../services/worldSim/types';
 import type { PlayerWorldPosition } from '../../types';
-import { WORLD3D_CONFIG } from '../../systems/world3d/config';
+import { WORLD3D_CONFIG, heightToMeters } from '../../systems/world3d/config';
 import { POSITION_DISPATCH_INTERVAL_MS } from './transitionTiming';
 
 interface World3DWrapperProps {
@@ -133,6 +133,20 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
   const handlePositionChange = useCallback((worldX: number, worldZ: number) => {
     const now = Date.now();
 
+    // Clamp to the world grid BEFORE anything persists. The free-roam camera
+    // can pan past the map edge; dispatching the raw coords let the autosave
+    // capture off-map positions (e.g. z=-881), and resuming such a save
+    // centered the chunk streamer outside the grid — the player came back to
+    // a featureless edge-clamped slab (resume-journey task 2).
+    if (worldData) {
+      const { widthM, heightM } = gridWorldDimensions(
+        worldData.gridSize.cols,
+        worldData.gridSize.rows,
+      );
+      worldX = Math.min(Math.max(worldX, 0), widthM);
+      worldZ = Math.min(Math.max(worldZ, 0), heightM);
+    }
+
     // Skip if throttled (less than DISPATCH_INTERVAL_MS since last dispatch).
     if (now - lastDispatchTime.current < DISPATCH_INTERVAL_MS) {
       return;
@@ -178,12 +192,26 @@ const World3DWrapper: React.FC<World3DWrapperProps> = ({ entryPosition, worldDat
     [],
   );
 
+  // Spawn-surface height via the SAME mapping the chunk geometry uses
+  // (heightToMeters: 0..100 → exaggerated meters). Saved entry positions
+  // carry y≈0 from before vertical exaggeration landed, which parked the
+  // camera hundreds of meters UNDER the terrain — every face back-culled,
+  // so PLAYING's 3D view rendered nothing but sky (the "light blue box").
+  const startSurfaceY = useMemo(() => {
+    if (!worldData) return frozenEntry.current.y;
+    const { cols, rows } = worldData.gridSize;
+    const gx = Math.max(0, Math.min(cols - 1, Math.round(frozenEntry.current.x / WORLD3D_CONFIG.METERS_PER_CELL)));
+    const gy = Math.max(0, Math.min(rows - 1, Math.round(frozenEntry.current.z / WORLD3D_CONFIG.METERS_PER_CELL)));
+    return heightToMeters(worldData.heights[gy * cols + gx] ?? 0);
+  }, [worldData]);
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {loader ? (
         <World3DScene
           loader={loader}
           start={startPos}
+          startSurfaceY={startSurfaceY}
           playerWorldPos={position}
           onPositionChange={handlePositionChange}
           onChunkUpdate={handleChunkUpdate}

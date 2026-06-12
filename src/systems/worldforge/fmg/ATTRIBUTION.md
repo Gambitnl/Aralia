@@ -12,6 +12,12 @@ Fantasy Map Generator** (FMG).
   `public/config/heightmap-templates.js`; the polygon clipping comes from the
   vendored `public/libs/lineclip.min.js` (lineclip by mourner,
   https://github.com/mapbox/lineclip, ISC, with FMG's `secure` modification).
+  Slice 3 additionally vendors: `public/libs/flatqueue.js` (flatqueue by
+  Vladimir Agafonkin, https://github.com/mourner/flatqueue, ISC), npm
+  `polylabel` 2.0.1 with its inlined `tinyqueue` dependency (Mapbox /
+  Vladimir Agafonkin, ISC) and a local verbatim subset of d3-quadtree 3.x
+  (Mike Bostock, ISC) in `utils/quadtree.ts`; the heraldry module comes from
+  `public/modules/coa-generator.js` (shared with Azgaar's Armoria, MIT).
 
 MIT License
 
@@ -46,6 +52,133 @@ flagged with `UPSTREAM BUG PRESERVED` / `UPSTREAM QUIRK PRESERVED` comments.
 Permitted changes are cosmetic only: import paths, explicit parameters in
 place of globals/DOM reads, strict-TS annotations (`!`, `Boolean(...)` where
 truthiness is unchanged), and removal of DOM/SVG/render code.
+
+## What was ported (slice 3 — civilization layer)
+
+| Ported file | Upstream source |
+| --- | --- |
+| `ice.ts` | `src/modules/ice.ts` (generate only — its `Math.random = Alea(seed)` reseed feeds the entire civilization chain, see RNG notes) |
+| `rankCells.ts` | `rankCells()` from `public/main.js` (not yet modularized on the TS branch) |
+| `cultures-generator.ts` | `src/modules/cultures-generator.ts` (getDefault data tables, getRandomShield, generate, expand) |
+| `burgs-generator.ts` | `src/modules/burgs-generator.ts` (generate, shift, getType, specify = definePopulation/defineEmblem/defineFeatures/defineGroup, getDefaultGroups) |
+| `states-generator.ts` | `src/modules/states-generator.ts` (createStates, expandStates, normalize, getPoles, findNeighbors, assignColors, generateCampaigns, generateDiplomacy, collectStatistics, defineStateForms, getFullName — complete generation surface) |
+| `routes-generator.ts` | `src/modules/routes-generator.ts` (generate: Urquhart edges via Delaunator, findPath segments, merge, getPoints; helpers isConnected/areConnected/getRoute/hasRoad/isCrossroad/getConnectivityRate) |
+| `religions-generator.ts` | `src/modules/religions-generator.ts` (all name data + generate: folk/organized cores, specify, combine, origins, expand, spreadFolk, checkCenters) |
+| `provinces-generator.ts` | `src/modules/provinces-generator.ts` (generate + getPoles; in upstream's default generate() path) |
+| `names-generator.ts` | `src/modules/names-generator.ts` (calculateChain, getBase, getCulture(/Short), getBaseShort, validateSuffix, getState) |
+| `name-bases.ts` | `src/modules/names-generator.ts getNameBases()` (frozen data, 43 bases, copied verbatim) |
+| `coa-generator.ts` | `public/modules/coa-generator.js` (full data tables + generate + getShield; heraldry draws sit mid-stream in states/burgs/provinces) |
+| `river-generator.ts` (extended) | `src/modules/river-generator.ts` — added `specify`/`getName`/`getType`/`riverTypes`/`smallLength`/`getBasin` (stripped in slice 2, runs after Provinces) |
+| `lakes.ts` (extended) | `src/modules/lakes.ts` — added `defineNames`/`getName` (stripped in slice 1, needs the Names generator) |
+| `utils/languageUtils.ts` | `src/utils/languageUtils.ts` (isVowel, trimVowels, getAdjective — draws P per sub-1 rule, abbreviate) |
+| `utils/stringUtils.ts` | `src/utils/stringUtils.ts` (capitalize only) |
+| `utils/colorUtils.ts` | `src/utils/colorUtils.ts` (C_12, getColors, getRandomColor, getMixedColor — all draw from the seeded stream) |
+| `utils/pathUtils.ts` (extended) | added `getIsolines` (polygons mode), `getPolesOfInaccessibility`, `findPath` (upstream `src/utils/pathUtils.ts`) |
+| `utils/graphUtils.ts` (extended) | added `getGridPolygon`, `findClosestCell` (upstream `src/utils/graphUtils.ts`) |
+| `utils/flatqueue.ts` | `public/libs/flatqueue.js` (flatqueue by mourner, ISC; un-minified verbatim — heap tie order is part of the deterministic output) |
+| `utils/quadtree.ts` | local verbatim port of d3-quadtree 3.x (`quadtree()`, add/addAll/cover/find) — find's quadrant visit order decides placement ties |
+| `utils/polylabel.ts` | local verbatim port of npm `polylabel` 2.0.1 (ISC, Mapbox; the version the TS branch depends on) with `tinyqueue` inlined |
+| `d3Shim.ts` (extended) | added `max`, `median` (sort-based, output-identical to d3's quickselect quantile), `shuffler` (verbatim Fisher-Yates), plus the d3-color/d3-interpolate/d3-scale-chromatic subset colorUtils needs (`Rgb` with brighter/formatHex/formatRgb, `color()` parser for hex/rgb, `interpolateRgb`/`interpolate`, cubehelix `interpolateRainbow`, `scaleSequential`) |
+| `generateWorld.ts` | orchestration order from `public/main.js generate()` (stages Ice→Lakes.defineNames), continuing `generateAtlas.ts`; also builds the `pack.cells.q` quadtree that upstream reGraph builds (stripped in slice 2 with a "port with the first stage that needs it" note — Routes.getPoints needs it) |
+
+## What was stripped in slice 3 (DOM/SVG/render/UI code left behind)
+
+- Upstream stages after `Lakes.defineNames` are NOT ported:
+  `Military.generate` (`public/modules/military-generator.js`),
+  `Markers.generate` (`public/modules/markers-generator.js`),
+  `Zones.generate` (`src/modules/zones-generator.ts`) and
+  `Names.getMapName` (map-title input). They run strictly after every ported
+  stage, so omitting them cannot shift any ported draw. Port them with the
+  slice that needs military/markers/zones data.
+- `ice.ts`: addIceberg/removeIce/randomizeIcebergShape/changeIcebergSize
+  (iceberg editor handlers calling redraw* SVG functions).
+- `cultures-generator.ts`: add() (culture editor); the "Extreme climate
+  warning" jQuery dialogs (count-reduction logic kept).
+- `burgs-generator.ts`: createWatabouCityLinks/VillageLinks/DwellingLinks +
+  getPreview (watabou URL builders for the UI preview pane), add(),
+  changeGroup(), remove() (editor handlers).
+- `routes-generator.ts`: generateName + its models/prefixes/descriptors/
+  suffixes data (route-label generator, only called from the routes overview
+  UI — never during generate()), getPath (d3 curveCatmullRom SVG builder),
+  getLength (reads rendered SVGPathElement), connect()/getNextId/remove
+  (editor handlers).
+- `religions-generator.ts`: add() (religion editor), recalculate()
+  (post-edit re-expansion).
+- `names-generator.ts`: getMapName + addSuffix (map-title UI; draws on the
+  UI stream after all civilization stages).
+- `coa-generator.ts`: toString/copy helpers (export/editor-only).
+- `utils/pathUtils.ts`: getIsolines' fill/halo/waterGap output modes and the
+  getFillPath/getBorderPath SVG-string builders (render-only; the
+  cell-visit/vertex-chain order later stages observe is identical),
+  getVertexPath.
+- `utils/stringUtils.ts`: round/splitInTwo/parseTransform/sanitizeId/JSON
+  helpers (SVG/UI plumbing). `utils/languageUtils.ts`: nth, list.
+  `utils/colorUtils.ts`: toHEX (UI editor helper).
+- DOM inputs became explicit options (see `FmgWorldOptions` in
+  generateWorld.ts): `culturesInput` → culturesNumber (default 12),
+  `culturesSet` → culturesSet ("world"; the per-option `data-max` table from
+  index.html is the `CULTURES_SET_MAX` constant), `statesNumber` (18),
+  `provincesRatio` (20), `manorsInput` → manorsNumber (1000 = auto),
+  `religionsNumber` (6), `sizeVariety` (4), `growthRate` (1.5),
+  `emblemShape` ("culture"), `yearInput` → year (1050).
+  `statesGrowthRate` and `neutralRate` have NO elements in upstream
+  index.html — their `byId(...)?.valueAsNumber || 1` fallbacks always yield
+  1, kept as constants.
+
+## RNG fidelity notes — slice 3 (SPEC §10 honesty)
+
+- **Stream topology**: upstream's last reseed before the civilization chain
+  is `Math.random = Alea(seed)` inside `Ice.generate`; none of rankCells /
+  Cultures / Burgs / States / Routes / Religions / Burgs.specify /
+  collectStatistics / defineStateForms reseeds. That is why Ice is ported in
+  full even though nothing reads `pack.ice` yet — its P(0.8)-per-eligible-
+  water-cell and rand()-per-iceberg draws set the stream every later stage
+  consumes. `Provinces.generate` reseeds `Alea(seed)` again (upstream
+  `localSeed === seed` when regenerate=false), and `Rivers.specify` /
+  `Lakes.defineNames` continue on that post-Provinces stream.
+- Draw-free stages, verified against upstream: rankCells (d3 median/max/mean
+  only), Routes.generate (the module's only RNG lives in the stripped
+  generateName), States.collectStatistics, Provinces.getPoles
+  (polylabel is deterministic geometry).
+- **COA load-time draws NOT REPRODUCED (not reproducible)**: upstream
+  coa-generator.js evaluates `stains: +P(0.03)` (field, division) and
+  `+P(0.05)` (charge) ONCE at script load from the browser's UNSEEDED native
+  Math.random — heraldry stain availability is random per page load even
+  upstream. The port fixes all three weights to 0 (the ~95-97% outcome).
+  rw() draws exactly one random regardless of weights, so draw counts and
+  stream positions are unaffected; only in the rare upstream session where a
+  stain weight rolled 1 could generated tinctures differ.
+- Duplicate object keys in upstream COA typeMapping data (cancer/oak/
+  wolfStatant/cannon/crown2) are TS errors; resolved with exact JS
+  duplicate-key semantics (first-occurrence position, last-occurrence value)
+  and flagged `UPSTREAM QUIRK PRESERVED` inline.
+- `Burgs.specify` → defineFeatures checks `states[burg.state].form ===
+  "Theocracy"`, but upstream runs Burgs.specify BEFORE defineStateForms, so
+  `form` is undefined and the theocracy temple bonus never fires on initial
+  generation — preserved verbatim.
+- `Rivers.getType` caches `smallLength` on upstream's session-global
+  `window.Rivers`, so upstream's SECOND map in a session reuses the previous
+  map's threshold. The port resets the cache at the top of specify()
+  (= upstream's first-map-of-session behavior), keeping
+  generateFmgWorld(seed) a pure function.
+- Per-run module instances replace upstream's window singletons (Names
+  chain cache, Cultures.cells, options.burgs.groups): all are pure functions
+  of constant data or rebuilt per generation upstream, so this is
+  draw-for-draw identical to upstream's first generation in a session.
+- Ordering-sensitive non-RNG machinery ported verbatim because it decides
+  ties that the seeded draws then build on: FlatQueue heap sift order
+  (expansion queues, findPath), d3-quadtree add/find quadrant order
+  (culture/burg/religion spacing), d3 shuffler swap order (getColors),
+  Object.entries iteration in Routes (insertion-ordered integer-like keys).
+- NOT reproduced (same stance as slices 1-2): upstream `randomizeOptions()`
+  randomizes culturesNumber/culturesSet/statesNumber/provincesRatio/
+  religionsNumber/sizeVariety/growthRate and `generateEra`'s year on the
+  UI-only aleaPRNG stream. They are explicit options defaulting to the
+  center of upstream's randomization distribution (see FmgWorldOptions
+  doc comments).
+- `getAdjective` draws P(rule.probability) for every probability<1 rule it
+  scans (P(1) short-circuits without drawing) — rule order preserved.
+- No other known places where exact RNG draw order could not be preserved.
 
 ## What was ported (slice 2 — climate → pack → rivers → biomes)
 
@@ -209,9 +342,17 @@ truthiness is unchanged), and removal of DOM/SVG/render code.
 
 ## Determinism contract
 
-`src/systems/worldforge/fmg/__tests__/fmgBase.test.ts` (slice 1) and
-`src/systems/worldforge/fmg/__tests__/fmgAtlas.test.ts` (slice 2) pin golden
+`src/systems/worldforge/fmg/__tests__/fmgBase.test.ts` (slice 1),
+`src/systems/worldforge/fmg/__tests__/fmgAtlas.test.ts` (slice 2) and
+`src/systems/worldforge/fmg/__tests__/fmgWorld.test.ts` (slice 3) pin golden
 values (cell counts, height/temperature/precipitation/flux hashes and sums,
-river counts, biome histograms, feature counts) for fixed seeds. Those
+river counts, biome histograms, feature counts, culture/state/burg/religion/
+province names and counts, route counts by type) for fixed seeds. Those
 goldens are frozen persistence contracts in the same sense as
 `worldforgeSpine.test.ts` — see that file's header.
+
+| `military-generator.ts` | `public/modules/military-generator.js` (generate + getDefaultOptions/getName/getEmblem/getTotal/generateNote; pipeline stage 33, after Lakes.defineNames). No reseed — note draws (ra/rand/gauss per regiment) continue the post-Provinces stream. Quirks preserved: bare `name` identifier in the regiment literal (= window.name = "" upstream), `childen` typo, getEmblem non-null main-unit lookup. Supporting verbatim ports: d3-quadtree `remove` + custom accessors (utils/quadtree.ts), `findAllInQuadtree` (utils/graphUtils.ts), `nth` (utils/languageUtils.ts), `si` (utils/numberUtils.ts). populationRate/urbanization/era are typed options (upstream DOM inputs / UI-stream era), defaults 1000/1/"Common Era". |
+
+| `markers-generator.ts` | `public/modules/markers-generator.js` (generate/regenerate/add/deleteMarker/getConfig/setConfig + all 35 default marker types; pipeline stage 34, after Military). No reseed — extractAnyElement + per-type legend draws continue the stream. Quirks preserved: bare `name` concat in lighthouse/waterfall names (= window.name = ""), listFairs redundant double population check, addBrigands assigns cells.p (a point) to `height` so the highlander branch never fires, addStatue ra() over strings splits surrogate pairs, dungeon/encounter iframe legends verbatim. Adaptations: DOM marker removal in regenerate() skipped (headless); culturesSet context value drives the isFantasy multiplier; notes filtered in place. Supporting ports: `generateDate` (utils/commonUtils.ts), `convertTemperature` + `getHeight`/`makeGetFriendlyHeight` (utils/unitUtils.ts, heightUnit "ft" / exponent 2 defaults from upstream inputs). |
+
+| `zones-generator.ts` | `src/modules/zones-generator.ts` (generate + all 11 zone types; pipeline stage 35, after Markers — the final generation stage; only Names.getMapName remains unported, a map-title UI call). No reseed — gauss count + ra/rand/P/rw placement draws continue the stream. Quirks preserved: falsy `if (!startCell)` guards skip candidate cell 0; addEruption rewrites the volcano marker note legend in place ("Active volcano" → "Erupting volcano"); zone colors keep upstream SVG hatch-pattern url strings. Globals → context (pack, Names, Routes, notes). |

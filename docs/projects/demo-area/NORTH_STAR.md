@@ -6,12 +6,12 @@ category: Feature/UI Projects
 main_category: Review / Archive
 subcategory: Deprecation Review
 status: reference-only
-last_updated: 2026-06-10
+last_updated: 2026-06-11
 confidence: medium
 evidence: docs/projects/demo-area
-gap_signal: "G1 decided 2026-06-10 (D19: retain as reference artifact); 1 open gap (G2 registry alignment)"
+gap_signal: "All gaps resolved (G1 keep, G2 mounted & aligned)"
 protocol: living project doc set
-next_step: "G1 decided 2026-06-10 (D19): retain src/components/demo/CombatMessagingDemo.tsx as a reference artifact — no re-home, no removal. Remaining open item is G2 (registry evidence path alignment)."
+next_step: "Project is fully resolved as reference-only. CombatMessagingDemo is mounted to the Dev Menu for reference validation."
 agent_comments: ""
 required_docs:
   - NORTH_STAR.md
@@ -26,7 +26,7 @@ required_verification:
   - docs_consistency
 completed_verification:
   - docs_consistency
-last_proof: 2026-06-05
+last_proof: 2026-06-11
 workflow_gaps_reviewed: 2026-06-08
 compaction_status: not_needed
 lifecycle_status: reference-only
@@ -101,18 +101,14 @@ Status: decision recorded 2026-06-10; the G1/T3 review gate is closed as "keep".
 
 ## Current State
 
-- T3 is still active: decide whether `src/components/demo/CombatMessagingDemo.tsx` should be retained, moved, or removed. (Decided 2026-06-10, D19: retain as reference artifact — no re-home, no removal.)
-- The component is still orphaned in runtime terms; no import path or route points to it.
-- The registry row in `docs/projects/PROJECT_TRACKER.md` still points at `src/components/demo`, so registry evidence and runtime evidence remain out of sync.
-- This pass refreshed the handoff docs only. No runtime files were changed.
+- T3/G1 is resolved: Decided 2026-06-10 (D19) to retain `CombatMessagingDemo.tsx` as a reference artifact.
+- G2 is resolved: Mounted `CombatMessagingDemo.tsx` to the Dev Menu in `App.tsx` and `DevMenu.tsx`. The component is no longer runtime-orphaned, bringing registry evidence path and runtime implementation into alignment.
+- Local verification successfully executed on 2026-06-11 via a headless Playwright script to capture rendering proof.
 
 ## Resume Path
 
-1. Re-read `TRACKER.md` and `GAPS.md`.
-2. Decide keep, move, or remove for `src/components/demo/CombatMessagingDemo.tsx`. (Decided 2026-06-10, D19: keep as a reference artifact; no re-home, no removal — a mount path is not required by this decision.)
-3. If keeping, add a mount path so it is no longer orphaned.
-4. If removing, record the decision in `GAPS.md` before deletion or re-homing.
-5. If registry alignment becomes in-scope, update `docs/projects/PROJECT_TRACKER.md`; otherwise keep the mismatch visible here.
+1. All currently identified project gaps (G1, G2) are closed.
+2. In the next cycle, run a new gap scan or align other orphaned demo elements if any arise.
 
 ## Dashboard Card Schema
 
@@ -122,12 +118,12 @@ Category: Feature/UI Projects
 Status: reference-only
 Confidence: medium
 Evidence: `docs/projects/demo-area`
-Gap signal: G1 decided 2026-06-10 (D19: retain as reference artifact); 1 open gap (G2 registry alignment)
+Gap signal: All gaps resolved (G1 keep, G2 mounted & aligned)
 Protocol: living project doc set
-Next step: G1 decided 2026-06-10 (D19): retain `src/components/demo/CombatMessagingDemo.tsx` as a reference artifact — no re-home, no removal. Remaining open item is G2 (registry evidence path alignment).
+Next step: Project is fully resolved as reference-only. CombatMessagingDemo is mounted to the Dev Menu for reference validation.
 Required verification: docs_consistency
 Completed verification: docs_consistency
-Last proof: 2026-06-05
+Last proof: 2026-06-11
 Workflow gaps reviewed: 2026-06-08
 Lifecycle status: reference-only
 Deprecation confidence: medium

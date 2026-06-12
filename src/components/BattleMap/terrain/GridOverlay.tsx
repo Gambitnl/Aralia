@@ -20,6 +20,7 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BattleMapData, BattleMapTile } from '../../../types/combat';
+import { makeTerrainHeightSampler } from './TerrainMesh';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -205,20 +206,47 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
     materialRef.current.visible = newOpacity > 0.01;
   });
 
-  // Generate overlay geometry — flat plane at same dimensions as terrain
+  // Generate overlay geometry — terrain-conforming mesh (gap #30).
+  // The original 1×1-segment flat plane at y=0.02 was silently BURIED under
+  // elevated tiles (move/path highlights vanished on hills) and knifed OUT of
+  // water-carved banks as a floating sheet (scatter24-before2-crop.png).
+  // Subdivide 2 cells per tile and drop every vertex onto the same surface
+  // formula the terrain mesh renders; the world-space fragment shader is
+  // untouched. ~80×60 cells ≈ 9.6k tris — negligible.
   const geometry = useMemo(() => {
-    const geo = new THREE.PlaneGeometry(width * TILE_SIZE, height * TILE_SIZE, 1, 1);
+    const SUBDIV = 2; // cells per tile
+    const geo = new THREE.PlaneGeometry(
+      width * TILE_SIZE,
+      height * TILE_SIZE,
+      width * SUBDIV,
+      height * SUBDIV,
+    );
     geo.rotateX(-Math.PI / 2);
 
-    // Shift to match terrain positioning (origin at tile 0,0)
+    const grid: (BattleMapTile | null)[][] = [];
+    for (let y = 0; y < height; y++) {
+      grid[y] = [];
+      for (let x = 0; x < width; x++) {
+        grid[y][x] = mapData.tiles.get(`${x}-${y}`) ?? null;
+      }
+    }
+    const sampleGround = makeTerrainHeightSampler(grid, width, height, mapData.seed ?? 42);
+
+    // Shift to match terrain positioning (origin at tile 0,0) and conform
     const positions = geo.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < positions.count; i++) {
-      positions.setX(i, positions.getX(i) + (width / 2) * TILE_SIZE);
-      positions.setZ(i, positions.getZ(i) + (height / 2) * TILE_SIZE);
+      const x = positions.getX(i) + (width / 2) * TILE_SIZE;
+      const z = positions.getZ(i) + (height / 2) * TILE_SIZE;
+      positions.setX(i, x);
+      positions.setZ(i, z);
+      positions.setY(i, sampleGround(x, z));
     }
     positions.needsUpdate = true;
     return geo;
-  }, [width, height]);
+  }, [width, height, mapData]);
+
+  // Rebuilds with mapData now — release the old GPU buffers.
+  React.useEffect(() => () => { geometry.dispose(); }, [geometry]);
 
   return (
     <mesh

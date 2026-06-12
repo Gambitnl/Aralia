@@ -1,0 +1,288 @@
+{
+  "id": "premade_seraphel_dawnwhisper",
+  "name": "Seraphel Dawnwhisper",
+  "age": 45,
+  "background": "hermit",
+  "level": 1,
+  "xp": 0,
+  "proficiencyBonus": 2,
+  "race": {
+    "id": "protector_aasimar",
+    "name": "Protector Aasimar",
+    "baseRace": "aasimar",
+    "description": "Protector aasimar are charged by the powers of good to guard the weak, strike at evil wherever it arises, and stand vigilant against the darkness. From a young age, a protector aasimar receives advice and directives that urge them to stand against evil. Their celestial guide speaks in dreams, visions, and feelings, guiding them toward righteousness. When they transform, spectral wings sprout from their back, a manifestation of their celestial nature that allows them to soar above their enemies while radiating divine light.",
+    "abilityBonuses": [],
+    "traits": [
+      "Creature Type: Humanoid",
+      "Size: Medium or Small",
+      "Speed: 30 feet",
+      "Vision: You can see in [[dim_light|dim light]] within 60 feet of you as if it were [[bright_light|bright light]], and in [[darkness]] as if it were [[dim_light|dim light]]. You can't discern color in [[darkness]], only shades of gray.",
+      "Celestial Resistance: You have resistance to necrotic damage and radiant damage.",
+      "Healing Hands: As an action, you can touch a creature and roll a number of d4s equal to your Proficiency Bonus. The creature regains a number of hit points equal to the total rolled. Once you use this trait, you can't use it again until you finish a Long Rest.",
+      "Light Bearer: You know the light cantrip. Charisma is your spellcasting ability for it.",
+      "Radiant Soul: Starting at 3rd level, you can use a Bonus Action to unleash the divine energy within yourself, causing your eyes to glimmer and two luminous, incorporeal wings to sprout from your back. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you have a flying speed equal to your walking speed, and once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your Proficiency Bonus. Once you use this trait, you can't use it again until you finish a Long Rest."
+    ],
+    "visual": {
+      "id": "protector_aasimar",
+      "color": "#FFD700",
+      "maleIllustrationPath": "assets/images/races/Aasimar_Protector_Male.png",
+      "femaleIllustrationPath": "assets/images/races/Aasimar_Protector_Female.png"
+    },
+    "knownSpells": [
+      {
+        "minLevel": 1,
+        "spellId": "light"
+      }
+    ]
+  },
+  "class": {
+    "id": "warlock",
+    "name": "Warlock",
+    "description": "A wielder of magic derived from a bargain with an extraplanar entity.",
+    "hitDie": 8,
+    "primaryAbility": [
+      "Charisma"
+    ],
+    "savingThrowProficiencies": [
+      "Wisdom",
+      "Charisma"
+    ],
+    "skillProficienciesAvailable": [
+      "arcana",
+      "deception",
+      "history",
+      "intimidation",
+      "investigation",
+      "nature",
+      "religion"
+    ],
+    "numberOfSkillProficiencies": 2,
+    "armorProficiencies": [
+      "Light armor"
+    ],
+    "weaponProficiencies": [
+      "Simple weapons"
+    ],
+    "warlockPatrons": [],
+    "features": [
+      {
+        "id": "pact_magic",
+        "name": "Pact Magic",
+        "description": "Your arcane research and the magic bestowed on you by your patron have given you facility with spells.",
+        "levelAvailable": 1
+      }
+    ],
+    "spellcasting": {
+      "ability": "Charisma",
+      "knownCantrips": 2,
+      "knownSpellsL1": 2,
+      "spellList": [
+        "blade-ward",
+        "chill-touch",
+        "eldritch-blast",
+        "friends",
+        "frostbite",
+        "mage-hand",
+        "magic-stone",
+        "mind-sliver",
+        "minor-illusion",
+        "poison-spray",
+        "prestidigitation",
+        "sword-burst",
+        "thunderclap",
+        "toll-the-dead",
+        "true-strike",
+        "armor-of-agathys",
+        "arms-of-hadar",
+        "bane",
+        "charm-person",
+        "comprehend-languages",
+        "detect-magic",
+        "expeditious-retreat",
+        "hellish-rebuke",
+        "hex",
+        "illusory-script",
+        "protection-from-evil-and-good",
+        "speak-with-animals",
+        "tashas-hideous-laughter",
+        "unseen-servant",
+        "witch-bolt",
+        "nondetection"
+      ]
+    },
+    "statRecommendationFocus": [
+      "Charisma",
+      "Constitution",
+      "Dexterity"
+    ],
+    "statRecommendationDetails": "Charisma fuels your powerful pact magic. Constitution is vital for maintaining concentration on your spells. Dexterity provides a bonus to AC.",
+    "recommendedPointBuyPriorities": [
+      "Charisma",
+      "Constitution",
+      "Dexterity",
+      "Wisdom",
+      "Intelligence",
+      "Strength"
+    ]
+  },
+  "classLevels": {
+    "warlock": 1
+  },
+  "abilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 15
+  },
+  "finalAbilityScores": {
+    "Strength": 8,
+    "Dexterity": 13,
+    "Constitution": 14,
+    "Intelligence": 10,
+    "Wisdom": 12,
+    "Charisma": 15
+  },
+  "skills": [
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "Intelligence"
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "Charisma"
+    },
+    {
+      "id": "medicine",
+      "name": "Medicine",
+      "ability": "Wisdom"
+    },
+    {
+      "id": "religion",
+      "name": "Religion",
+      "ability": "Intelligence"
+    }
+  ],
+  "toolProficiencies": [],
+  "hp": 10,
+  "maxHp": 10,
+  "hitPointDice": [
+    {
+      "die": 8,
+      "max": 1,
+      "current": 1
+    }
+  ],
+  "armorClass": 11,
+  "speed": 30,
+  "darkvisionRange": 0,
+  "transportMode": "foot",
+  "selectedWeaponMasteries": [],
+  "feats": [
+    "healer"
+  ],
+  "featChoices": {},
+  "equippedItems": {},
+  "statusEffects": [],
+  "spellbook": {
+    "cantrips": [
+      "eldritch-blast",
+      "minor-illusion"
+    ],
+    "knownSpells": [
+      "hex",
+      "armor-of-agathys",
+      "light"
+    ],
+    "preparedSpells": [
+      "hex",
+      "armor-of-agathys",
+      "light"
+    ],
+    "racialSpellGrants": [
+      {
+        "sourceRaceId": "protector_aasimar",
+        "sourceRaceName": "Protector Aasimar",
+        "minLevel": 1,
+        "spellId": "light",
+        "castingMethod": "at_will",
+        "upcastable": true,
+        "countsAsPrepared": false
+      }
+    ]
+  },
+  "spellSlots": {
+    "level_1": {
+      "current": 1,
+      "max": 1
+    },
+    "level_2": {
+      "current": 0,
+      "max": 0
+    },
+    "level_3": {
+      "current": 0,
+      "max": 0
+    },
+    "level_4": {
+      "current": 0,
+      "max": 0
+    },
+    "level_5": {
+      "current": 0,
+      "max": 0
+    },
+    "level_6": {
+      "current": 0,
+      "max": 0
+    },
+    "level_7": {
+      "current": 0,
+      "max": 0
+    },
+    "level_8": {
+      "current": 0,
+      "max": 0
+    },
+    "level_9": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "spellcastingAbility": "charisma",
+  "limitedUses": {
+    "racial_feature_protector_aasimar__healing_hands__resource": {
+      "name": "Protector Aasimar: Healing Hands (Healing Hands usage)",
+      "current": 2,
+      "max": "proficiency_bonus",
+      "resetOn": "long_rest"
+    }
+  },
+  "racialSelections": {
+    "protector_aasimar": {
+      "spellAbility": "Charisma"
+    }
+  },
+  "visuals": {
+    "gender": "Male",
+    "skinColor": 1,
+    "hairStyle": "Hair1",
+    "hairColor": "Black",
+    "clothing": "Shirt"
+  },
+  "visualDescription": "A high fantasy character portrait of a level 1 Protector Aasimar Warlock. Male adventurer. Head-and-shoulders, detailed, dramatic lighting, neutral background.",
+  "modifiers": {
+    "advantage": [],
+    "disadvantage": [],
+    "bonuses": [],
+    "reactions": [],
+    "skillProficiencies": [],
+    "weaponProficiencies": [],
+    "armorProficiencies": []
+  },
+  "weaponProficiencies": [],
+  "armorProficiencies": []
+}

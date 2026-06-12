@@ -3,8 +3,8 @@
  * ARCHITECTURAL ADVISORY:
  * SHARED UTILITY: Multiple systems rely on these exports.
  *
- * Last Sync: 30/05/2026, 23:33:47
- * Dependents: components/BattleMap/CombatCharacterInspector.tsx, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellcastingAdapter.ts, types/index.ts, types/mechanics.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/world/sceneUtils.ts
+ * Last Sync: 11/06/2026, 12:51:57
+ * Dependents: components/BattleMap/CombatCharacterInspector.tsx, components/World3D/World3DWrapper.tsx, data/adapters/5eTools/shared.ts, data/adapters/5eTools/spellcastingAdapter.ts, types/index.ts, types/mechanics.ts, utils/character/checkUtils.ts, utils/sandbox/quickCharacterGenerator.ts, utils/world/sceneUtils.ts
  * Imports: None
  *
  * MULTI-AGENT SAFETY:
@@ -30,6 +30,17 @@ export enum GamePhase {
   // DESIGN_PREVIEW removed - now a standalone tool at /Aralia/misc/design.html
   /** 3D world chunk streaming sandbox demo phase added in Plan 2. */
   WORLD3D_DEMO,
+  /**
+   * Worldforge atlas cartographer demo (docs/projects/worldforge — the
+   * ported-FMG native map surface). Appended LAST so existing phase indexes
+   * stay save-compatible. URL slug: 'worldforge'.
+   */
+  WORLDFORGE_DEMO,
+  /**
+   * Combat messaging system demo phase, added to mount and display the
+   * unified combat logging and notification system in action.
+   */
+  COMBAT_MESSAGING_DEMO,
 }
 
 // Core D&D attributes

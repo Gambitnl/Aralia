@@ -25,6 +25,7 @@ const mockCharacterActor = vi.fn(() => null);
 const mockCameraController = vi.fn(() => null);
 const mockVFXSystem = vi.fn(() => null);
 const mockLivingWorld = vi.fn(() => null);
+const mockTargetingDecals = vi.fn();
 
 vi.mock('@react-three/fiber', () => ({
   Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-canvas">{children}</div>
@@ -71,6 +72,10 @@ vi.mock('../terrain', () => ({
 
 vi.mock('../characters', () => ({
   CharacterActor: (...args: unknown[]) => mockCharacterActor(...args)
+}));
+
+vi.mock('../TargetingDecals', () => ({
+  default: (props: unknown) => { mockTargetingDecals(props); return null; }
 }));
 
 vi.mock('../camera', () => ({
@@ -255,12 +260,21 @@ describe('BattleMap3D parity proof', () => {
       targetingMode: true
     }));
 
+    // The AoE template renders via TargetingDecals (terrain-conforming, task
+    // 81), not VFXSystem's removed flat-plane AoEPreview.
+    expect(mockTargetingDecals.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+      aoeSet: new Set(['0-1']),
+      validTargetSet: new Set(['2-0']),
+      teleportDestinationSet: new Set(['1-1']),
+      targetingMode: true
+    }));
+    expect(mockVFXSystem.mock.calls[0]?.[0]).not.toHaveProperty('aoePreviewTiles');
+
     expect(mockVFXSystem.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
       activeLightSources: [lightSource],
       lightLevels: expect.any(Map),
       visibleTiles: expect.any(Set),
       damageNumbers: [{ id: 'damage-1', position: { x: 0, y: 0 }, value: 8, type: 'damage' }],
-      aoePreviewTiles: new Set(['0-1']),
       teleportDestinationPreviewTiles: new Set(['1-1']),
       teleportDestinationPreviewTarget: expect.objectContaining({ id: enemy.id, name: 'Enemy' }),
       teleportDestinationPreviewAbilityName: 'Misty Step',
