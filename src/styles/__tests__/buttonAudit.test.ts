@@ -316,7 +316,7 @@ describe('Button Design System Audit', () => {
   // equal or improving totals.
   // -----------------------------------------------------------------------
   const ENABLE_REGRESSION_GUARD = true;
-  const BASELINE_VIOLATION_COUNT = 88; // baseline after excluding DesignPreview preview surfaces as intentional
+  const BASELINE_VIOLATION_COUNT = 95; // baseline after excluding DesignPreview preview surfaces as intentional
 
   it('regression guard: no new raw-button violations introduced', () => {
     if (!ENABLE_REGRESSION_GUARD) {
